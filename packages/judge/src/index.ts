@@ -13,7 +13,7 @@ export type {
 } from "./judge-turn";
 export { nearDuplicateCheck, splitSentences } from "./near-duplicate-check";
 export type { NearDuplicateMatch, NearDuplicateResult } from "./near-duplicate-check";
-export { ngramCheck } from "./ngram-check";
+export { collapse, countRepeatedNgrams, ngramCheck, toNgrams } from "./ngram-check";
 export type { NgramResult } from "./ngram-check";
 export { dialogueRegisterBroken, expectedPoliteRegister, registerCheck } from "./register-check";
 export type { RegisterResult } from "./register-check";

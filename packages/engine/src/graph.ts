@@ -104,7 +104,9 @@ export const RESPONSE_STOP: string[] = ["</response>"];
 // 本文（<action> と <dialogue> の中身）がこの割合に届かんターンは、続きを 1 回だけ書かせて足す。
 // 2026-09-05 CI 33942086314: 下限を出力契約に書いても deepseek-v3.2 は 87〜370 字で止まる（目安 220〜550）。
 // 旧経路の too_short continuation と同じ役。回数は 1 回。足した分も同じ判定器を通る。
-const EXTEND_BELOW_RATIO = 0.8;
+// ベンチが summary-*.json に実効値を記録するので export する（記録が無いと
+// トランスクリプトがどの閾値で撃たれたか後から辿れん）。
+export const EXTEND_BELOW_RATIO = 0.8;
 const MAX_EXTENSIONS_PER_TURN = 1;
 
 const VISIBLE_TAG_PATTERN = /<(action|dialogue)>([\S\s]*?)<\/\1>/g;
@@ -202,6 +204,8 @@ export type TurnGraphDeps = {
   // 段分離アーム（2026-09-05 敵対レビュー R2-1）用。指定すると目安字数・penalty・extend の発火・max_tokens
   // だけをこの段の値にして、お手本と段名（内容側）は台帳の段のまま残す。本番では未指定。
   mechanicsPhase?: ScenePhase;
+  // A3 再仕様腕用。プロンプトの字数下限（N字以上）だけを外す。本番では未指定。
+  dropMinChars?: boolean;
   checkpointer?: BaseCheckpointSaver;
   now?: () => number;
   id?: () => string;
@@ -334,6 +338,7 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
               .map((message) => message.content),
           ),
           voice: { endings: voice.endings, tics: voice.tics },
+          dropMinChars: deps.dropMinChars,
         });
         const messages = [...state.history, { role: "user" as const, content: state.userText }];
         const prompt: ComposedPrompt = { version: "v0001", system, messages };
@@ -368,7 +373,17 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
           ...(error ? { error } : {}),
           ...(truncated ? { truncated } : {}),
         };
-        return { raw, generationId, generation, extended: 0 };
+        // preExtendVisibleChars / preExtendRawLength は extend が raw を上書きする前の
+        // 初回生成の寸法。発火の有無に関わらず毎ターンここで入れる（発火ターンだけ入れると
+        // 「非発火」の対照セルが空になる = v15 の空セルバグの一層下）。
+        return {
+          raw,
+          generationId,
+          generation,
+          extended: 0,
+          preExtendVisibleChars: visibleCharsOf(raw),
+          preExtendRawLength: raw.length,
+        };
       })
       .addNode("extend", async (state) => {
         if (!state.prompt) throw new Error("prompt が未生成のまま extend に到達した");
@@ -399,12 +414,25 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
       })
       .addNode("chunk", (state) => {
         const pendingChunks = splitChunks(state.raw);
+        // extend は raw へ追記するだけなので、extend 前の塊は必ず seq 順の接頭辞になる。
+        // 各塊の raw 内での開始位置を順に辿って preExtendRawLength と比べる。
+        // splitChunks はタグブロックの切り出しと trim をするので、塊本文は raw の
+        // 部分文字列として見つかる。見つからんかった場合は境目を取り違えるより
+        // extend 側（false）へ倒す。
+        let searchFrom = 0;
+        const pendingPreExtend = pendingChunks.map((text) => {
+          const at = state.raw.indexOf(text, searchFrom);
+          if (at === -1) return false;
+          searchFrom = at + text.length;
+          return at < state.preExtendRawLength;
+        });
         // 穴あき配列を避けるため全 index を 1 で初期化しとく（regenerate_chunk が該当 index だけ 2 に上書き）。
         // chunks / regenerationCount も毎ターン空に戻す。checkpointer 付きで同じ thread_id を使うと
         // 前ターンの channel 値が残るので、リセットせんと前ターンの chunk が混ざり、
         // 再生成予算（1ターン MAX_REGENERATIONS_PER_TURN 回）が 2 ターン目以降ずっと使い切りになる。
         return {
           pendingChunks,
+          pendingPreExtend,
           cursor: 0,
           attempts: pendingChunks.map(() => 1),
           dropped: [],
@@ -429,7 +457,13 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
         });
         const attempt = state.attempts[state.cursor] ?? 1;
         const chunks = [...state.chunks];
-        const judged: JudgedChunk = { seq: state.cursor, text, judge, attempt };
+        const judged: JudgedChunk = {
+          seq: state.cursor,
+          text,
+          judge,
+          attempt,
+          preExtend: state.pendingPreExtend[state.cursor] ?? false,
+        };
         chunks[state.cursor] = judged;
         return { chunks };
       })
@@ -485,6 +519,7 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
           text: current.text,
           judge: current.judge,
           attempt: current.attempt,
+          preExtend: current.preExtend,
         } satisfies TurnEvent);
         return { cursor: state.cursor + 1 };
       })
@@ -507,6 +542,7 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
               text: chunkItem.text,
               judge: chunkItem.judge,
               attempt: chunkItem.attempt,
+              preExtend: chunkItem.preExtend,
             }),
           ),
         ];
@@ -524,6 +560,8 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
             truncated: state.generation.truncated ?? null,
             model: state.generation.model,
             latencyMs: state.generation.latencyMs,
+            mechanicsPhase: mechanics(state),
+            preExtendVisibleChars: state.preExtendVisibleChars,
           } satisfies TurnEvent);
         }
         runtime.writer({

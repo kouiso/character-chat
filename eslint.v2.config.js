@@ -42,7 +42,13 @@ export default defineConfig([
     // cwd にして実行するので、files のグロブは実行時 cwd からの相対パスで書く
     // （config ファイルの場所からの相対パスやない）。ファイル名がパッケージ内で
     // 一意なので、他パッケージへ誤爆せん。
-    files: ["src/run.ts", "src/persist-check.ts", "src/script-run.ts"],
+    files: [
+      "src/run.ts",
+      "src/persist-check.ts",
+      "src/script-run.ts",
+      "src/repetition-rate.ts",
+      "src/refusal-check.ts",
+    ],
     rules: {
       "no-console": "off",
     },

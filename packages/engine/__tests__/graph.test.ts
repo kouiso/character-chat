@@ -45,6 +45,9 @@ const expectFirstTurnSaved = (store: MemoryTurnStore, streamed: TurnEvent[]): vo
   expect(saved[0]?.userText).toBe("こんにちは");
   const savedEvents = saved[0]?.events ?? [];
   expect(savedEvents.filter(isChunkEvent)).toHaveLength(3);
+  // 保存用 events の chunk にも preExtend が載る（persist が写す）。無いと保存側と
+  // 配信側で境目の情報が食い違う。
+  expect(savedEvents.filter(isChunkEvent).every((event) => event.preExtend)).toBe(true);
   const generation = savedEvents.find(isGenerationEvent);
   expect(generation).toMatchObject({
     model: "fake-list",
@@ -96,8 +99,17 @@ describe("createTurnGraph", () => {
       (event): event is Extract<TurnEvent, { type: "turn-meta" }> => event.type === "turn-meta",
     );
     expect(meta).toBeDefined();
-    expect(meta?.extended).toBe(0);
     expect(typeof meta?.model).toBe("string");
+    // turn-meta は閾値を決めた段（mechanicsPhase）と extend 前の可視字数を必ず運ぶ。
+    // 運ばんくなると段ごとの集計と shortfall の対照が黙って死ぬ（2b4c1c90 と同じ型の退行）。
+    // preExtendVisibleChars 25 = VALID_XML の action 14字 + dialogue 11字。
+    expect(meta).toMatchObject({
+      extended: 0,
+      mechanicsPhase: "conversation",
+      preExtendVisibleChars: 25,
+    });
+    // extend が走らんターンでは全塊が preExtend=true。
+    expect(chunkEvents.every((chunkEvent) => chunkEvent.preExtend)).toBe(true);
     expectFirstTurnSaved(store, events);
 
     // 2ターン目: intake が1ターン目の履歴を読み直して history に積んどることの確認。
@@ -327,7 +339,25 @@ describe("createTurnGraph", () => {
     const last = Array.isArray(sent) ? sent[sent.length - 1] : undefined;
     const instruction = last instanceof BaseMessage ? String(last.content) : "";
     expect(instruction).toContain("350 字に足りん");
-    expect(events.filter(isChunkEvent)).toHaveLength(4);
+    const chunkEvents = events.filter(isChunkEvent);
+    expect(chunkEvents).toHaveLength(4);
+    // extend が追記した分は生の出力の末尾に付くので、先頭 2 塊（初回生成分）だけが
+    // preExtend=true、書き足しの 2 塊は false。境目は N2 解析が水増し前本文を切る口。
+    expect(chunkEvents.map((chunkEvent) => chunkEvent.preExtend)).toEqual([
+      true,
+      true,
+      false,
+      false,
+    ]);
+    const meta = events.find(
+      (event): event is Extract<TurnEvent, { type: "turn-meta" }> => event.type === "turn-meta",
+    );
+    // extend 前の本文の可視字数（初回生成の action 25字 + dialogue 11字 = 36）。
+    expect(meta).toMatchObject({
+      extended: 1,
+      mechanicsPhase: "intimate",
+      preExtendVisibleChars: 36,
+    });
     const saved = store.turns.get("conv-h")?.[0];
     expect(saved?.events.find(isGenerationEvent)?.rawOutput).toContain("風邪ひくよ");
   });

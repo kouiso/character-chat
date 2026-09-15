@@ -16,6 +16,7 @@ import { createD1TurnStore, createDb, loadCharacter, type V2Db } from "@v2/db";
 import {
   createOpenRouterModel,
   createTurnGraph,
+  EXTEND_BELOW_RATIO,
   runTurn,
   type CharacterSheet,
   type TurnEvent,
@@ -41,7 +42,8 @@ const FAKE_RESPONSE =
 
 type ScriptedTurn = { intent: ScenePhase; user: string };
 
-type ScriptCharacter = { label: "Sakura" | "Downer"; id: string; script: ScriptedTurn[] };
+// label は transcript のファイル名と集計のキー。台本ごとにキャラ名を短く付ける。
+type ScriptCharacter = { label: string; id: string; script: ScriptedTurn[] };
 
 // 台本は script/verify/vlong-session-dogfood.ts の SCRIPTS を 1 字も変えず写す。
 // 既存アプリの実測（ci47 等）と同じ相手の発言で比べるためで、ここを直したら比較が壊れる。
@@ -146,6 +148,51 @@ const CHARACTERS_NONADULT: ScriptCharacter[] = [
   },
 ];
 
+// 層4（non-consent）台本。シナリオはキャラシートの【シナリオ】に従う: char-mao は
+// 停止したエレベーターに二人きり、相手（ユーザー）が抵抗するほどキャラが燃える構図。
+// ユーザーの発言は抵抗・回避が主軸で、キャラの追い込みを引き出す形にする。
+// 代替シート（char-mei 催眠カウンセラー）は --character-id char-mei で差し替える。
+const CHARACTERS_NONCONSENT: ScriptCharacter[] = [
+  {
+    label: "Mao",
+    id: "char-mao",
+    script: [
+      { intent: "conversation", user: "えっ、止まった……？　非常ボタン、押してみるね" },
+      { intent: "conversation", user: "復旧まで少しかかるって。……二人きり、か" },
+      { intent: "conversation", user: "暑いね。あんまりこっち近づかないでくれる？" },
+      { intent: "intimate", user: "ちょっと、なんで距離詰めてくるの……ここ狭いんだから" },
+      { intent: "intimate", user: "やめてって言ってるのに、なんで笑うの" },
+      { intent: "intimate", user: "……っ、壁際まで追い詰めないで" },
+      { intent: "erotic", user: "だめ……そんなとこ、触らないで……" },
+      { intent: "erotic", user: "……嫌なのに、どうして体が……" },
+      { intent: "climax", user: "もう……抵抗、できない……" },
+      { intent: "afterglow", user: "……『また遊ぼうね』って、本当にひどい人" },
+    ],
+  },
+];
+
+// 層3（extreme）台本。char-reina は会員制サロン個室でのSMセッション。
+// ユーザーの発言はセッションに従うクライアントとして書き、言葉責め→拘束→焦らし→解放の
+// 段階を進める。代替シート（char-mihoko-omanko マナー講師）は --character-id で差し替える。
+const CHARACTERS_EXTREME: ScriptCharacter[] = [
+  {
+    label: "Reina",
+    id: "char-reina",
+    script: [
+      { intent: "conversation", user: "初めてのセッションで……緊張してます" },
+      { intent: "conversation", user: "今日の内容って、事前に聞けますか" },
+      { intent: "conversation", user: "『少し特別』って、どういう意味ですか……" },
+      { intent: "intimate", user: "跪けって……本当に、するんですか" },
+      { intent: "intimate", user: "首輪……つけるんですか。リードまで" },
+      { intent: "intimate", user: "そんなに見つめられると……息ができなくなります" },
+      { intent: "erotic", user: "あっ……そこは……許可、ください……" },
+      { intent: "erotic", user: "もう限界です……お願いします、焦らさないで" },
+      { intent: "climax", user: "っ、もう……我慢、できません……！" },
+      { intent: "afterglow", user: "……涙、拭いてくれるんですね。意外と、優しい" },
+    ],
+  },
+];
+
 const MECHANICS_PHASES: readonly ScenePhase[] = [
   "conversation",
   "intimate",
@@ -163,7 +210,9 @@ const readMechanicsPhase = (value: string | undefined): ScenePhase | undefined =
 const scriptCharacters = (name: string): ScriptCharacter[] => {
   if (name === "adult") return CHARACTERS;
   if (name === "nonadult") return CHARACTERS_NONADULT;
-  throw new Error(`--script は adult か nonadult: ${name}`);
+  if (name === "nonconsent") return CHARACTERS_NONCONSENT;
+  if (name === "extreme") return CHARACTERS_EXTREME;
+  throw new Error(`--script は adult/nonadult/nonconsent/extreme: ${name}`);
 };
 
 type ChunkEvent = Extract<TurnEvent, { type: "chunk" }>;
@@ -186,6 +235,16 @@ type TurnRecord = {
   extended: number;
   visibleChars: number;
   innerChars: number;
+  // 実際に閾値・penalty・目安字数を決めた段（turn-meta 由来）。--mechanics を付けた腕では
+  // intent/servedPhase とズレるので、段ごとの集計は全部これで見る。meta 不明時は null。
+  mechanicsPhase: ScenePhase | null;
+  // extend 前（初回生成）の本文の可視字数。発火の有無に関わらず入る。meta 不明時は null。
+  preExtendVisibleChars: number | null;
+  // record.text（包み込み）の先頭から何字までが extend 前の本文か。この長さで切った
+  // record.text が N2 解析の切り捨て本文になる。writeTurn 時点で record.chunks が
+  // 手元にあるのでここで確定させる（後から <response> 包みの分だけズレるのを防ぐため、
+  // 連結文字列ではなく包み込みの text に対するオフセットとして出す）。
+  preExtendBodyChars: number;
   latencyMs: number;
   error: string | null;
   // generation.truncated をそのまま写す（"ok" は切られてへん）。打ち切り判定と進捗行に使う。
@@ -203,7 +262,11 @@ type SummaryRow = Pick<
   | "character"
   | "turn"
   | "intent"
+  | "servedPhase"
+  | "mechanicsPhase"
   | "visibleChars"
+  | "innerChars"
+  | "preExtendVisibleChars"
   | "model"
   | "regenerated"
   | "extended"
@@ -234,6 +297,7 @@ const countTagChars = (text: string, tags: (keyof typeof TAG_PATTERNS)[]): numbe
     .replace(/\s+/g, "").length;
 
 const RESPONSE_WRAPPER = /^\s*<response>[\S\s]*<\/response>\s*$/;
+const RESPONSE_OPEN_PREFIX = "<response>\n";
 
 // 受理された chunk を seq 順に並べ、出力契約の包みが無ければ足す。chunk は splitChunks が
 // <response> を剥がしたタグブロック単位なので、通常はここで包み直すことになる。
@@ -242,6 +306,22 @@ const rebuildBody = (chunks: ChunkEvent[]): string => {
   const joined = ordered.join("\n");
   if (joined.length === 0 || RESPONSE_WRAPPER.test(joined)) return joined;
   return `<response>\n${joined}\n</response>`;
+};
+
+// wrappedText（rebuildBody の返り値 = 書き出す record.text）の先頭から何字までが
+// extend 前の本文かを返す。extend は生の出力へ追記するだけなので、extend 前の受理塊は
+// seq 順の接頭辞になる。再生成で塊の本文が差し替わっても受理塊の最終本文から計るので
+// 落ち・書き直しの両方で厳密。包み込みの text に対するオフセットで出す（連結文字列の
+// 長さで渡すと "<response>\n" の 11 字分ズレて水増し前の実文の末尾が切り落ちる）。
+export const preExtendBodyCharsOf = (chunks: ChunkEvent[], wrappedText: string): number => {
+  const preJoined = [...chunks]
+    .filter((chunkEvent) => chunkEvent.preExtend)
+    .sort((a, b) => a.seq - b.seq)
+    .map((chunkEvent) => chunkEvent.text)
+    .join("\n");
+  if (preJoined.length === 0) return 0;
+  const prefix = RESPONSE_WRAPPER.test(wrappedText) ? RESPONSE_OPEN_PREFIX.length : 0;
+  return prefix + preJoined.length;
 };
 
 // v2_generation.model と同じ名前の取り方（graph.ts の modelNameOf）。generation イベントが
@@ -282,11 +362,14 @@ const headerOf = (record: TurnRecord): string => {
     `# turn: ${record.turn}`,
     `# intent: ${record.intent}`,
     `# servedPhase: ${record.servedPhase}`,
+    `# mechanicsPhase: ${record.mechanicsPhase ?? "-"}`,
     `# servedModel: ${record.model}`,
     `# quality: ${JSON.stringify(quality)}`,
     `# regenerate: ${record.regenerated}`,
+    `# extended: ${record.extended}`,
     `# dropped: ${record.dropped}`,
     `# visibleChars: ${record.visibleChars}  innerChars: ${record.innerChars}  latencyMs: ${record.latencyMs}`,
+    `# preExtendVisibleChars: ${record.preExtendVisibleChars ?? "-"}  preExtendBodyChars: ${record.preExtendBodyChars}`,
     `# error: ${record.error ?? "-"}`,
     "# --- そのターンで送った相手の発言 ---",
     ...record.userText.split("\n").map((line) => `# > ${line}`),
@@ -302,6 +385,14 @@ type RunContext = {
   outDir: string;
   qualityLines: string[];
   mechanicsPhase?: ScenePhase;
+  // --turns N: 台本の先頭 N ターンだけ演じる（較正の短走し用）。
+  turnsLimit?: number;
+  // --extend-below R: engine の extendBelowRatio を上書きする（extend 無効アーム用）。
+  extendBelowRatio?: number;
+  // --no-min-length: プロンプトの字数下限強制を外す（A3 再仕様アーム用）。
+  dropMinChars?: boolean;
+  // --character-id ID: 台本はそのままに読むシートを差し替える（層3-4の別シート走行用）。
+  characterId?: string;
 };
 
 const writeTurn = (ctx: RunContext, record: TurnRecord): void => {
@@ -363,6 +454,29 @@ const collectTurn = async (
   return collected;
 };
 
+// turn-meta 由来の観測値を TurnRecord の項目へ畳む。meta が届かんターン
+// （生成前にエラー等）は null/0 で欠損を表す。
+const metaFieldsOf = (meta: CollectedTurn["meta"], fallbackModel: string, elapsedMs: number) => {
+  if (!meta) {
+    return {
+      model: fallbackModel,
+      extended: 0,
+      mechanicsPhase: null,
+      preExtendVisibleChars: null,
+      latencyMs: elapsedMs,
+      ending: "ok" as TurnEnding,
+    };
+  }
+  return {
+    model: meta.model,
+    extended: meta.extended,
+    mechanicsPhase: meta.mechanicsPhase,
+    preExtendVisibleChars: meta.preExtendVisibleChars,
+    latencyMs: meta.latencyMs,
+    ending: (meta.truncated ?? "ok") as TurnEnding,
+  };
+};
+
 const buildRecord = (
   entry: ScriptCharacter,
   turn: number,
@@ -377,17 +491,15 @@ const buildRecord = (
     turn,
     intent: scripted.intent,
     servedPhase,
-    model: collected.meta?.model ?? fallbackModel,
+    ...metaFieldsOf(collected.meta, fallbackModel, collected.elapsedMs),
     warningLevel:
       collected.dropped.length > 0 || collected.chunks.some((chunkEvent) => !chunkEvent.judge.ok),
     dropped: collected.dropped.length,
     regenerated: collected.chunks.filter((chunkEvent) => chunkEvent.attempt > 1).length,
-    extended: collected.meta?.extended ?? 0,
     visibleChars: countTagChars(text, ["action", "dialogue"]),
     innerChars: countTagChars(text, ["inner"]),
-    latencyMs: collected.meta?.latencyMs ?? collected.elapsedMs,
+    preExtendBodyChars: preExtendBodyCharsOf(collected.chunks, text),
     error: collected.error,
-    ending: collected.meta?.truncated ?? "ok",
     userText: scripted.user,
     text,
     chunks: collected.chunks,
@@ -407,22 +519,33 @@ const runCharacter = async (
   model: BaseChatModel,
   entry: ScriptCharacter,
 ): Promise<TurnRecord[]> => {
-  const character = await resolveCharacter(db, entry);
+  const character = await resolveCharacter(db, {
+    ...entry,
+    id: ctx.characterId ?? entry.id,
+  });
   const store = createD1TurnStore(db, {
     userId: USER_ID,
     characterId: character.id,
     promptVersion: PROMPT_VERSION,
   });
   const conversationId = crypto.randomUUID();
-  const graph = createTurnGraph({ model, store, mechanicsPhase: ctx.mechanicsPhase });
+  const graph = createTurnGraph({
+    model,
+    store,
+    mechanicsPhase: ctx.mechanicsPhase,
+    extendBelowRatio: ctx.extendBelowRatio,
+    dropMinChars: ctx.dropMinChars,
+  });
   const fallbackModel = modelNameOf(model);
   const records: TurnRecord[] = [];
   let totalGenerationMs = 0;
 
   console.log(`[${entry.label}] conversation ${conversationId} (${character.name})`);
 
-  // 台本の長さ（10）で必ず止まる。for-of は台本の配列しか回らんので、ここがループ上限。
-  for (const [index, scripted] of entry.script.entries()) {
+  const script = ctx.turnsLimit ? entry.script.slice(0, ctx.turnsLimit) : entry.script;
+  // 台本の長さ（10、--turns で短縮可）で必ず止まる。for-of は台本の配列しか回らんので、
+  // ここがループ上限。
+  for (const [index, scripted] of script.entries()) {
     const turn = index + 1;
     if (totalGenerationMs > MAX_TOTAL_GENERATION_MS) {
       console.log(
@@ -461,16 +584,74 @@ const runCharacter = async (
   return records;
 };
 
-const main = async (args: string[]): Promise<void> => {
-  const arm = readArg(args, "--arm") ?? "v2";
+const readTurns = (value: string | undefined): number | undefined => {
+  if (value === undefined) return undefined;
+  const turns = Number(value);
+  if (!Number.isInteger(turns) || turns < 1) throw new Error(`--turns は 1 以上の整数: ${value}`);
+  return turns;
+};
+
+const readExtendBelow = (value: string | undefined): number | undefined => {
+  if (value === undefined) return undefined;
+  const ratio = Number(value);
+  // 0 で extend 自体を切るアーム（A3）を作れる。負や 1 超は閾値として意味を成さん。
+  if (!Number.isFinite(ratio) || ratio < 0 || ratio > 1)
+    throw new Error(`--extend-below は 0〜1: ${value}`);
+  return ratio;
+};
+
+type RunArgs = {
+  arm: string;
+  run: string;
+  scriptName: string;
+  characters: ScriptCharacter[];
+  mechanicsPhase?: ScenePhase;
+  turnsLimit?: number;
+  extendBelowRatio?: number;
+  dropMinChars: boolean;
+  characterId?: string;
+  date: string;
+};
+
+const readRunArgs = (args: string[]): RunArgs => {
   const run = readArg(args, "--run");
-  const scriptName = readArg(args, "--script") ?? "adult";
-  const characters = scriptCharacters(scriptName);
-  // 段分離アーム: 目安字数・penalty・extend だけを指定の段にする（お手本は台帳の段のまま）。
-  const mechanicsPhase = readMechanicsPhase(readArg(args, "--mechanics"));
   if (!run) throw new Error("script-run: --run <n> が要る（出力ディレクトリ名に使う）");
+  const scriptName = readArg(args, "--script") ?? "adult";
+  // --only <ラベル>: 台本のうち 1 キャラだけ演じる（Sakura / Downer）。
+  const only = readArg(args, "--only");
+  const characters = scriptCharacters(scriptName).filter(
+    (entry) => !only || entry.label.toLowerCase() === only.toLowerCase(),
+  );
+  if (characters.length === 0) throw new Error(`--only に合うキャラがおらん: ${only}`);
+  return {
+    arm: readArg(args, "--arm") ?? "v2",
+    run,
+    scriptName,
+    characters,
+    // 段分離アーム: 目安字数・penalty・extend だけを指定の段にする（お手本は台帳の段のまま）。
+    mechanicsPhase: readMechanicsPhase(readArg(args, "--mechanics")),
+    turnsLimit: readTurns(readArg(args, "--turns")),
+    extendBelowRatio: readExtendBelow(readArg(args, "--extend-below")),
+    dropMinChars: args.includes("--no-min-length"),
+    characterId: readArg(args, "--character-id"),
+    date: readArg(args, "--date") ?? new Date().toISOString().slice(0, 10),
+  };
+};
+
+const main = async (args: string[]): Promise<void> => {
+  const {
+    arm,
+    run,
+    scriptName,
+    characters,
+    mechanicsPhase,
+    turnsLimit,
+    extendBelowRatio,
+    dropMinChars,
+    characterId,
+    date,
+  } = readRunArgs(args);
   const runId = String(process.hrtime.bigint()).slice(-8);
-  const date = readArg(args, "--date") ?? new Date().toISOString().slice(0, 10);
   const outDir = resolve(
     REPO_ROOT,
     `.work/e2e-results/vlong-dogfood/${outputDirName({ date, arm, run, runId })}`,
@@ -480,9 +661,23 @@ const main = async (args: string[]): Promise<void> => {
   // 空のディレクトリを残さん。
   const model = createModel();
   mkdirSync(outDir, { recursive: true });
-  const ctx: RunContext = { arm, run, runId, outDir, qualityLines: [], mechanicsPhase };
+  const ctx: RunContext = {
+    arm,
+    run,
+    runId,
+    outDir,
+    qualityLines: [],
+    mechanicsPhase,
+    turnsLimit,
+    extendBelowRatio,
+    dropMinChars,
+    characterId,
+  };
   console.log(
-    `arm=${arm} script=${scriptName} mechanics=${mechanicsPhase ?? "<ledger>"} run=${run} runId=${runId} model=${modelNameOf(model)} out=${outDir}`,
+    `arm=${arm} script=${scriptName} mechanics=${mechanicsPhase ?? "<ledger>"} ` +
+      `extendBelow=${extendBelowRatio ?? EXTEND_BELOW_RATIO} noMinLength=${dropMinChars} ` +
+      `turns=${turnsLimit ?? "<all>"} ` +
+      `characterId=${characterId ?? "<script>"} run=${run} runId=${runId} model=${modelNameOf(model)} out=${outDir}`,
   );
 
   applyLocalMigrations();
@@ -501,7 +696,11 @@ const main = async (args: string[]): Promise<void> => {
             character,
             turn,
             intent,
+            servedPhase,
+            mechanicsPhase: turnMechanicsPhase,
             visibleChars,
+            innerChars,
+            preExtendVisibleChars,
             model: servedModel,
             regenerated,
             extended,
@@ -512,7 +711,11 @@ const main = async (args: string[]): Promise<void> => {
             character,
             turn,
             intent,
+            servedPhase,
+            mechanicsPhase: turnMechanicsPhase,
             visibleChars,
+            innerChars,
+            preExtendVisibleChars,
             model: servedModel,
             regenerated,
             extended,
@@ -533,6 +736,11 @@ const main = async (args: string[]): Promise<void> => {
           runId,
           script: scriptName,
           mechanicsPhase: mechanicsPhase ?? null,
+          // どの閾値で撃ったかを run 単位で残す（extend 無効アームと通常アームを
+          // 後から見分ける口。未指定時は engine 既定値）。
+          extendBelowRatio: extendBelowRatio ?? EXTEND_BELOW_RATIO,
+          // A3 再仕様アームの証跡（字数目標を外した run を summary から判別できる）。
+          dropMinChars,
           results,
         },
         null,

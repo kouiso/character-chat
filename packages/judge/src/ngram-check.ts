@@ -17,14 +17,32 @@ const MIN_REPETITION_LENGTH = 12;
 const TAG_PATTERN = /<[^>]+>/g;
 
 // タグを剥がし、空白を畳んだ「実質の文字列」。n-gram の生成にも長さ判定にも同じものを使う。
-const collapse = (text: string): string => text.replace(TAG_PATTERN, "").replace(/\s+/g, "");
+// ベンチの解析（intra-turn / cross-turn の反復計測）も同じ正規化を使うので export する。
+// 解析側が別実装を持つと、ランタイムの判定と集計の母集団がズレて比較不能になる。
+export const collapse = (text: string): string => text.replace(TAG_PATTERN, "").replace(/\s+/g, "");
 
-const toNgrams = (collapsed: string): Set<string> => {
+export const toNgrams = (collapsed: string): Set<string> => {
   const grams = new Set<string>();
   for (let i = 0; i + N <= collapsed.length; i += 1) {
     grams.add(collapsed.slice(i, i + N));
   }
   return grams;
+};
+
+// 同じターンの中で 2 回以上出た n-gram の種類数。toNgrams は Set なのでターン内の
+// 反復が消える（「彼女の胸は、少し……動いている」x10 が 1 gram に潰れる）。解析側が
+// ランタイムと同じ正規化・同じ N でターン内反復を数えるための共有実装。
+export const countRepeatedNgrams = (collapsed: string): number => {
+  const counts = new Map<string, number>();
+  for (let i = 0; i + N <= collapsed.length; i += 1) {
+    const gram = collapsed.slice(i, i + N);
+    counts.set(gram, (counts.get(gram) ?? 0) + 1);
+  }
+  let repeated = 0;
+  for (const count of counts.values()) {
+    if (count >= 2) repeated += 1;
+  }
+  return repeated;
 };
 
 // 完全一致の判定には句読点・括弧・空白まで落とす。「…ずっとここにいて」と「ずっとここにいて。」を同じ台詞と見る。

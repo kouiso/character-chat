@@ -58,6 +58,11 @@ e2e-results/
 !.work/qa/
 !.work/verify/
 !.work/e2e-results/
+# dogfood の transcript は生成済みアダルト本文を含むので公開 git へ入れん
+.work/e2e-results/vlong-dogfood/
+# blind-copy の出力も本文を含む
+script/verify/blind/
+script/verify/scratchpad/
 !.work/scrape/
 .work/verify/last-verify.json
 .work/verify/screenshots/

@@ -84,6 +84,20 @@ describe("composeSystemPrompt", () => {
     expect(system).not.toContain("おおよそ");
   });
 
+  it("dropMinChars なら下限強制（字以上）を落として上限（字まで）だけ残す", () => {
+    const system = composeSystemPrompt({
+      sheet: "一人称: わたし",
+      name: "桜庭 さくら",
+      ledger: emptyLedger(),
+      phase: "intimate",
+      targetChars: 350,
+      exemplar: "<response><action>x</action><dialogue>y</dialogue><inner>z</inner></response>",
+      dropMinChars: true,
+    });
+    expect(system).not.toContain("350 字以上");
+    expect(system).toContain("700 字まで");
+  });
+
   it("使い済みの言い回しとシートの語尾・口癖を渡すと出力形式に載る（渡さんければ載らん）", () => {
     const base = {
       sheet: "一人称: わたし",

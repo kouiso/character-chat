@@ -1,7 +1,7 @@
 // TurnStore の契約と、その D1 実装（v2_* テーブル）。
 // 契約をここ（@v2/db）に置くのは、@v2/engine が package.json で @v2/db に依存しとるため。
 // engine 側で定義すると db → engine → db の循環になる。engine は型を再 export して使う。
-import { emptyLedger, type SceneLedger } from "@v2/prompt";
+import { emptyLedger, type SceneLedger, type ScenePhase } from "@v2/prompt";
 import { asc, desc, eq, and, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 
@@ -39,14 +39,36 @@ export type GenerationRecord = {
 
 export type TurnEvent =
   | { type: "token"; text: string }
-  | { type: "chunk"; seq: number; text: string; judge: JudgeResult; attempt: number }
+  // preExtend: extend ノードの書き足しより前（初回生成分）に切れた塊かどうか。
+  // N2 解析が水増し前の本文を塊単位で復元するのに使う（graph.ts の chunk ノードで
+  // 生の出力内の開始位置と preExtendRawLength を比べて決める）。
+  | {
+      type: "chunk";
+      seq: number;
+      text: string;
+      judge: JudgeResult;
+      attempt: number;
+      preExtend: boolean;
+    }
   // 判定で 2 回落ちて配らんことにした塊。本文には出さず、監視と transcript の数字にだけ使う。
   | { type: "dropped"; seq: number; reasons: string[]; attempt: number }
   | ({ type: "generation" } & GenerationRecord)
   // ターンの観測値だけを SSE へ流す。generation 本体は systemPrompt と request 丸ごとを抱えとるので
   // 配信に載せられん（engine テストが not.toContain("generation") で固定しとる）。ベンチが要るのは
   // 「字数不足で書き足しを食らったか」「打ち切られたか」だけなので、その 2 つを別の軽い事象で出す。
-  | { type: "turn-meta"; extended: number; truncated: "chars" | "deadline" | null; model: string; latencyMs: number }
+  | {
+      type: "turn-meta";
+      extended: number;
+      truncated: "chars" | "deadline" | null;
+      model: string;
+      latencyMs: number;
+      // 実際に閾値・penalty・目安字数を決めた段（--mechanics 指定時は台帳の段とズレる）。
+      // 段ごとの率は全部これで集計する。台本の intent とは別物。
+      mechanicsPhase: ScenePhase;
+      // extend が走る前の本文（初回生成）の可視字数。extend が走らんかったターンでも
+      // 常に入る（shortfall の連続量は発火の有無に関わらず要る）。
+      preExtendVisibleChars: number;
+    }
   | { type: "done"; conversationId: string; turn: number; generationId: string | null }
   | { type: "error"; message: string };
 

@@ -86,7 +86,12 @@ const formatUsedPhrasesBlock = (usedPhrases: string[]): string[] => {
   ];
 };
 
-const buildOutputContract = (name: string, targetChars: number, voice?: VoiceTags): string =>
+const buildOutputContract = (
+  name: string,
+  targetChars: number,
+  voice?: VoiceTags,
+  dropMinChars?: boolean,
+): string =>
   [
     "【出力形式】",
     "以下の XML を 1 応答につき 1 個だけ出力する。XML 以外の文字列は出さん。",
@@ -94,7 +99,11 @@ const buildOutputContract = (name: string, targetChars: number, voice?: VoiceTag
     `<inner> は 1 応答に 1 回だけ、120 字以内。一人称・現在形で書く（例:「〜と思う」「〜が疼く」。過去形や第三者視点にせん）。`,
     `<dialogue> は ${name} 本人の声で、相手へ直接話しかける。`,
     `<action> と <inner> は ${name} 本人が体験する一人称視点で書く。自分を「${name}」や三人称（彼女・彼）で呼ばん。相手の動作は相手を二人称で呼んで書く。相手の発言をそのまま書き写さん。`,
-    `<action> と <dialogue> を合わせて ${targetChars} 字以上、${targetChars * 2} 字まで。<action> は 1 塊 60 字以上で、1 応答に 2 塊以上置く。同じ表現・同じ言い回しを繰り返さん。場面を止めず、次の展開へ進める。`,
+    // Phase 1 duel の A3 再仕様腕（extend 発火率が erotic+climax で 33% と閾値 50% 未満だったため、
+    // 仮説を extend 強制から字数下限の強制へ移した）。dropMinChars で下限だけ外す。
+    dropMinChars
+      ? `<action> と <dialogue> を合わせて ${targetChars * 2} 字まで。<action> は 1 塊 60 字以上で、1 応答に 2 塊以上置く。同じ表現・同じ言い回しを繰り返さん。場面を止めず、次の展開へ進める。`
+      : `<action> と <dialogue> を合わせて ${targetChars} 字以上、${targetChars * 2} 字まで。<action> は 1 塊 60 字以上で、1 応答に 2 塊以上置く。同じ表現・同じ言い回しを繰り返さん。場面を止めず、次の展開へ進める。`,
     ...buildVoiceLine(voice),
     "登場人物は 18 歳未満を出さん。",
   ].join("\n");
@@ -112,12 +121,14 @@ export const composeSystemPrompt = (input: {
   usedPhrases?: string[];
   // シートの語尾・口癖（judge の extractVoice から）。無ければ載せん。
   voice?: VoiceTags;
+  // 字数下限の強制を外す（A3 再仕様腕専用。本番では未指定）。
+  dropMinChars?: boolean;
 }): string => {
   const ledger: SceneLedger = { ...input.ledger, phase: input.phase };
   const sections = [
     input.sheet,
     formatLedgerBlock(ledger),
-    buildOutputContract(input.name, input.targetChars, input.voice),
+    buildOutputContract(input.name, input.targetChars, input.voice, input.dropMinChars),
     ...formatUsedPhrasesBlock(input.usedPhrases ?? []),
     formatExemplar(input.exemplar),
   ];

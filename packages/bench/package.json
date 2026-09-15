@@ -16,7 +16,9 @@
     "lint": "eslint --config ../../eslint.v2.config.js .",
     "bench": "tsx src/run.ts --fake",
     "persist-check": "tsx src/persist-check.ts",
-    "script-run": "tsx src/script-run.ts"
+    "script-run": "tsx src/script-run.ts",
+    "repetition-rate": "tsx src/repetition-rate.ts",
+    "refusal-check": "tsx src/refusal-check.ts"
   },
   "dependencies": {
     "@langchain/core": "^1.2.9",

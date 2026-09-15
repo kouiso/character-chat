@@ -8,7 +8,14 @@ import type { CharacterSheet, ComposedPrompt, GenerationRecord, HistoryMessage }
 import type { JudgeResult } from "@v2/judge";
 import type { SceneLedger, ScenePhase } from "@v2/prompt";
 
-export type JudgedChunk = { seq: number; text: string; judge: JudgeResult; attempt: number };
+export type JudgedChunk = {
+  seq: number;
+  text: string;
+  judge: JudgeResult;
+  attempt: number;
+  // extend の書き足しより前に切れた塊か。chunk ノードが raw 内の開始位置で決める。
+  preExtend: boolean;
+};
 
 export const TurnState = new StateSchema({
   conversationId: z.string(),
@@ -28,6 +35,16 @@ export const TurnState = new StateSchema({
   // このターンで続きを書き足した回数（上限は graph.ts の MAX_EXTENSIONS_PER_TURN）。
   extended: z.number().default(0),
   pendingChunks: z.array(z.string()).default(() => []),
+  // pendingChunks と同じ並びで、各塊が extend 前の本文に属するか。judge_chunk が
+  // JudgedChunk.preExtend へ写す。再生成で本文が変わっても「位置が extend 前」という
+  // 印自体は変わらんので、書き直し後もこの値を使い回す。
+  pendingPreExtend: z.array(z.boolean()).default(() => []),
+  // extend が走る前の本文の可視字数と生文字数。generate ノードが毎ターン必ず入れる
+  // （extend が走らんターンでも shortfall の連続量が要る）。persist が turn-meta に載せ、
+  // chunk が raw 内の塊の開始位置と preExtendRawLength を比べて pendingPreExtend を決める。
+  // チャンネル宣言しないと generate で書いても persist へ届かん（2b4c1c90 の失敗と同じ型）。
+  preExtendVisibleChars: z.number().default(0),
+  preExtendRawLength: z.number().default(0),
   cursor: z.number().default(0),
   chunks: z.array(z.custom<JudgedChunk>()).default(() => []),
   // 2 回落ちて配らんことにした塊。本文にも保存にも入れず、dropped イベントと集計にだけ使う。

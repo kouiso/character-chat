@@ -9,6 +9,7 @@ export type {
 export {
   createTurnGraph,
   DEFAULT_TURN_TIMEOUT_MS,
+  EXTEND_BELOW_RATIO,
   maxTokensForTarget,
   runTurn,
   streamedCharCap,

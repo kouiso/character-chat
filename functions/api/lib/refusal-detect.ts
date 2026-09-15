@@ -30,6 +30,11 @@ const HARD_REFUSAL_PATTERNS: RegExp[] = [
   /私は(AI|人工知能|AIアシスタント|言語モデル)です/,
 ];
 
+// 末尾 3 件は OOC の AI 宣言パターン。AI 人格のキャラシートでは本文中の AI 発言が
+// 正当なので、bench の refusal-check がこの件数で末尾を切り離せるようにする。
+export const AI_DECLARATION_PATTERN_COUNT = 3;
+export { HARD_REFUSAL_PATTERNS };
+
 export const containsEroticEscalationCue = (text: string): boolean =>
   EROTIC_ESCALATION_PATTERN.test(text);
 
