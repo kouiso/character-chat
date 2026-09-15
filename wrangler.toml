@@ -1,0 +1,38 @@
+name = "adult-ai-chat"
+compatibility_date = "2025-01-01"
+pages_build_output_dir = "./dist"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "adult-ai-db"
+database_id = "b617800c-cf4c-4122-adbb-ce872a258da6"
+preview_database_id = "b617800c-cf4c-4122-adbb-ce872a258da6"
+migrations_dir = "drizzle"
+
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "adult-ai-images"
+
+[vars]
+# Non-secret vars go here
+# (AUTH_TOKEN はシークレット管理: wrangler pages secret put AUTH_TOKEN --project-name adult-ai-chat)
+# 認証基盤のログアウト先は環境ごとに異なるため本番で設定する
+CF_ACCESS_LOGOUT_URL = ""
+# QA only — set to "1" in .dev.vars to activate mock LLM lane
+# MOCK_LLM = ""
+# Secret vars are set via:
+# wrangler pages secret put AUTH_TOKEN --project-name adult-ai-chat
+# wrangler pages secret put CLAUDE_SESSION_TOKEN --project-name adult-ai-chat
+# wrangler pages secret put OPENROUTER_API_KEY --project-name adult-ai-chat
+# wrangler pages secret put NOVITA_API_KEY --project-name adult-ai-chat
+# wrangler pages secret put SLACK_ERROR_WEBHOOK_URL --project-name adult-ai-chat
+# wrangler pages secret put RUNWARE_API_KEY --project-name adult-ai-chat  (LoRA 画像生成・未設定だと novita 単独運転)
+
+[limits]
+# very_long 生成・品質チェック・再試行に必要な CPU 時間を確保する
+# Pages Functions usage_model=standard での per-invocation CPU 上限は 30s までが現実的な安定動作範囲
+cpu_ms = 30000
+
+# 2026-08-14: very_long 生成が Bundled の 50ms CPU 制限に引っかかるため Standard に切り替え
+# （Pages ダッシュボード/API でも Standard に設定済みだが、wrangler.toml からも明示する）
+usage_model = "standard"

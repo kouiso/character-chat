@@ -1,0 +1,59 @@
+name: Protect main branch
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, edited, synchronize]
+
+jobs:
+  check-branch:
+    name: Check branch policy
+    runs-on: ${{ vars.RUNNER_LINUX_4VCPU || 'blacksmith-4vcpu-ubuntu-2404' }}
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Enforce merge policy
+        id: enforce
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+        run: |
+          # このリポジトリはトランクベース開発（feat/fix/chore/codex/devin/docs -> main へ直接PR）。
+          # 互換のため develop/staging/release/hotfix も許可する（完全一致・glob）。
+          # bash case の glob は全文一致なので任意文字列の混入を許さない
+          case "$HEAD_REF" in
+            feat/*|fix/*|chore/*|codex/*|devin/*|claude/*|docs/*|renovate/*|develop|staging|release/*|hotfix/*)
+              echo "Allowed: $HEAD_REF -> main"
+              ;;
+            *)
+              echo "Disallowed: $HEAD_REF -> main"
+              exit 1
+              ;;
+          esac
+
+      # 組織の Actions 許可リスト外のマーケットプレイスアクションはジョブ起動時に弾かれ
+      # startup failure になるため、コメント投稿は組込みの gh CLI で行う（外部アクション不使用）。
+      - name: Upsert branch policy comment
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          MARKER: "<!-- protect-main-bot -->"
+        run: |
+          body="$MARKER
+          ## :warning: このブランチ名では main へPRを出せません
+
+          \`main\` へPRを出せるのは以下の命名規則に合致するブランチのみです：
+
+          - \`feat/*\` / \`fix/*\` / \`chore/*\` / \`codex/*\` / \`devin/*\` / \`claude/*\` / \`docs/*\` / \`renovate/*\`（通常のトランクベース開発・依存関係更新）
+          - \`hotfix/*\` / \`release/*\` / \`staging\` / \`develop\`（互換のため許可）
+
+          ブランチ名を上記のいずれかのプレフィックスに変更してから、再度PRを出してください。"
+          existing_id=$(gh api --paginate "repos/${REPO}/issues/${PR_NUMBER}/comments" \
+            --jq ".[] | select(.body | startswith(\"${MARKER}\")) | .id" | tail -n1)
+          if [ -n "$existing_id" ]; then
+            gh api -X PATCH "repos/${REPO}/issues/comments/${existing_id}" -f body="$body"
+          else
+            gh api -X POST "repos/${REPO}/issues/${PR_NUMBER}/comments" -f body="$body"
+          fi

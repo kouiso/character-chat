@@ -1,0 +1,68 @@
+-- キャラ名にふりがなを振る（#1490）。
+-- 読みはシートに書かれとらんので、ここで人名として自然な読みを当てる。
+-- 読みが決まらん・そもそも人名やない（シナリオ題のインポート分）キャラは NULL のままにして、
+-- UI 側でルビを出さん。間違った読みを振るより出さん方がまし。
+ALTER TABLE character ADD COLUMN name_reading text;
+
+UPDATE character SET name_reading = 'ななせなぎさ' WHERE id = 'char-nagisa';
+UPDATE character SET name_reading = 'くじょうあずさ' WHERE id = 'char-azusa';
+UPDATE character SET name_reading = 'ほうじょうさよこ' WHERE id = 'char-sayoko';
+UPDATE character SET name_reading = 'ちはや' WHERE id = 'char-chihaya';
+UPDATE character SET name_reading = 'ふたばうみ' WHERE id = 'char-umi';
+UPDATE character SET name_reading = 'ふたばそら' WHERE id = 'char-sora';
+UPDATE character SET name_reading = 'あまみやひかり' WHERE id = 'char-hikari';
+UPDATE character SET name_reading = 'おくだつむぎ' WHERE id = 'char-tsumugi';
+UPDATE character SET name_reading = 'きさらぎあおい' WHERE id = 'char-aoi';
+UPDATE character SET name_reading = 'みやしたしおり' WHERE id = 'char-shiori-boss';
+UPDATE character SET name_reading = 'みやもとめい' WHERE id = 'char-mei-yokyo';
+UPDATE character SET name_reading = 'ひなたあかね' WHERE id = 'char-akane';
+UPDATE character SET name_reading = 'ほしみやらん' WHERE id = 'char-ran';
+UPDATE character SET name_reading = 'ほしよみまどか' WHERE id = 'char-madoka';
+UPDATE character SET name_reading = 'つきしろきらら' WHERE id = 'char-kirara';
+UPDATE character SET name_reading = 'つきしまみつき' WHERE id = 'char-mitsuki';
+UPDATE character SET name_reading = 'ゆづき' WHERE id = 'char-yuzuki';
+UPDATE character SET name_reading = 'さくらばさくら' WHERE id = 'char-koharu-ex';
+UPDATE character SET name_reading = 'さくらばさや' WHERE id = 'char-saya';
+UPDATE character SET name_reading = 'つばき' WHERE id = 'char-tsubaki';
+UPDATE character SET name_reading = 'かえで' WHERE id = 'char-kaede';
+UPDATE character SET name_reading = 'たちばなさよ' WHERE id = 'char-saylo-ol';
+UPDATE character SET name_reading = 'たちばなあき' WHERE id = 'char-aki-imouto';
+UPDATE character SET name_reading = 'たちばなかほ' WHERE id = 'char-kaho';
+UPDATE character SET name_reading = 'みなせなつみ' WHERE id = 'char-natsumi';
+UPDATE character SET name_reading = 'すずつきしおん' WHERE id = 'char-shion-ohogoe';
+UPDATE character SET name_reading = 'せなかのん' WHERE id = 'char-kanon';
+UPDATE character SET name_reading = 'せな' WHERE id = 'char-sena';
+UPDATE character SET name_reading = 'せとりお' WHERE id = 'char-rio';
+UPDATE character SET name_reading = 'せとゆい' WHERE id = 'char-yui';
+UPDATE character SET name_reading = 'しろさきりんか' WHERE id = 'char-rinka';
+UPDATE character SET name_reading = 'しらかわとうか' WHERE id = 'char-touka';
+UPDATE character SET name_reading = 'しろばらありす' WHERE id = 'char-alice';
+UPDATE character SET name_reading = 'すめらぎみく' WHERE id = 'char-miku';
+UPDATE character SET name_reading = 'そうまみさき' WHERE id = 'char-misaki-ntr';
+UPDATE character SET name_reading = 'たちばなりか' WHERE id = 'char-rika-kotoba';
+UPDATE character SET name_reading = 'しのはらかおり' WHERE id = 'char-kaori';
+UPDATE character SET name_reading = 'しおんめい' WHERE id = 'char-mei';
+UPDATE character SET name_reading = 'あやせりさ' WHERE id = 'char-risa';
+UPDATE character SET name_reading = 'ふじわらひな' WHERE id = 'char-hinata';
+UPDATE character SET name_reading = 'とうどうまみこ' WHERE id = 'char-mamiko';
+UPDATE character SET name_reading = 'みづきみほこ' WHERE id = 'char-mihoko-omanko';
+UPDATE character SET name_reading = 'すずはらすず' WHERE id = 'char-suzu';
+UPDATE character SET name_reading = 'ひなたひなた' WHERE id = 'char-hinata-nurse';
+UPDATE character SET name_reading = 'ひなのすずね' WHERE id = 'char-suzune-kyudo';
+UPDATE character SET name_reading = 'あまみやしずく' WHERE id = 'char-shizuku';
+UPDATE character SET name_reading = 'ゆきのゆの' WHERE id = 'char-yuno';
+UPDATE character SET name_reading = 'きりしまれいな' WHERE id = 'char-reina';
+UPDATE character SET name_reading = 'かざみこはる' WHERE id = 'char-koharu';
+UPDATE character SET name_reading = 'たかねすみれ' WHERE id = 'char-sumire';
+UPDATE character SET name_reading = 'なるみつかさ' WHERE id = 'char-tsukasa';
+UPDATE character SET name_reading = 'くろかわまお' WHERE id = 'char-mao';
+UPDATE character SET name_reading = 'しもつきすず' WHERE id = 'import-charap-ダウナーお姉さんに拾われる話';
+UPDATE character SET name_reading = 'さくらいりん' WHERE id = 'import-charap-桜井-凛';
+UPDATE character SET name_reading = 'いけだみさき' WHERE id = 'import-charap-池田-美咲';
+UPDATE character SET name_reading = 'はやかわあいな' WHERE id = 'import-charap-早川あいな';
+UPDATE character SET name_reading = 'みやがわあかね' WHERE id = 'import-charap-宮川あかね';
+UPDATE character SET name_reading = 'しみずゆいか' WHERE id = 'import-charap-清水結花';
+UPDATE character SET name_reading = 'しらかわまいか' WHERE id = 'import-charap-白川舞花';
+UPDATE character SET name_reading = 'むらくもしずか' WHERE id = 'import-charap-叢雲静';
+UPDATE character SET name_reading = 'まい' WHERE id = 'import-charap-舞衣';
+UPDATE character SET name_reading = 'かれん' WHERE id = 'import-charap-華恋';

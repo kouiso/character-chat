@@ -1,0 +1,15 @@
+/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://adult-ai-images.r2.cloudflarestorage.com https://*.r2.dev https://image.novita.ai https://im.runware.ai https://novita-output.s3.amazonaws.com https://faas-output-image.s3.ap-southeast-1.amazonaws.com; connect-src 'self' https://openrouter.ai https://api.novita.ai https://api.runware.ai https://api.anthropic.com https://api.atlascloud.ai; font-src 'self' data:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
+
+/sw.js
+  Content-Type: application/javascript; charset=utf-8
+  Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+
+/workbox-*.js
+  Content-Type: application/javascript; charset=utf-8
+  Cache-Control: no-store, no-cache, must-revalidate, max-age=0

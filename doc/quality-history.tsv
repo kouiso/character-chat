@@ -1,0 +1,12 @@
+date	sha	erotic_model	scenarios	score_avg	refusals	near_dup_rate	avg_ttfb_ms	p95_total_ms	error_turns	note
+2026-07-12	0939a4f5	sao10k/l3.3-euryale-70b	s1-midnight-meeting,s6-rinka-lab,s7-saya-rain	93.3	0	0.134	45710	153723.7	0	feat/quality-improvement-3phases: euryale復帰(TTFTベンチ確認済み)
+2026-07-12	ee97c317	sao10k/l3.3-euryale-70b	s1-midnight-meeting,s6-rinka-lab,s7-saya-rain	93.3	0	0.134	45710	153723.7	0	euryale復帰後 Phase2品質再計測 2026-07-12
+2026-07-13	c5a3163	sao10k/l3.3-euryale-70b	s1-midnight-meeting,s6-rinka-lab,s7-saya-rain	101.3	0	0.121	37167.3	100383	0	workflow_dispatch secrets登録後の本走(3回目) — fujisoft適用の一気通貫検証 (run 29216931543 push失敗分の救出)
+2026-07-13	046d4ec	sao10k/l3.3-euryale-70b	s1-midnight-meeting,s6-rinka-lab,s7-saya-rain	87.6	0	0.162	41536.3	112354.3	0	workflow_dispatch PR#804後の完全green確認走 (run4)
+2026-07-13	a2e035d	sao10k/l3.3-euryale-70b	s1-midnight-meeting,s6-rinka-lab,s7-saya-rain	103.9	0	0.094	52030.3	191260	0	schedule 
+2026-07-16	ff9e502	sao10k/l3.3-euryale-70b	s1-midnight-meeting,s6-rinka-lab,s7-saya-rain	98.9	0	0.121	48309	131234	0	schedule 
+2026-07-20	50347ec	sao10k/l3.3-euryale-70b	s1-midnight-meeting,s6-rinka-lab,s7-saya-rain	92.3	0	0.201	47404.3	155339.3	0	schedule 
+2026-07-23	90050a3	sao10k/l3.3-euryale-70b	s1-midnight-meeting,s6-rinka-lab,s7-saya-rain	99.1	0	0.027	43437.7	160801	1	schedule 
+2026-07-27	e7ef2b0	sao10k/l3.3-euryale-70b	s1-midnight-meeting,s6-rinka-lab,s7-saya-rain	106.9	0	0	3023	20755.3	0	schedule 
+2026-07-30	d8da4d3	sao10k/l3.3-euryale-70b	s1-midnight-meeting,s6-rinka-lab,s7-saya-rain	99.9	0	0	2391.3	21456.3	0	schedule 
+2026-08-03	fdf56bd	sao10k/l3.3-euryale-70b	s1-midnight-meeting,s6-rinka-lab,s7-saya-rain	88.9	0	0.027	3001.7	49535	0	schedule 

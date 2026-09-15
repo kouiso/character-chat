@@ -1,0 +1,78 @@
+name: Slack Error Notify
+
+on:
+  workflow_run:
+    workflows:
+      # WHY: `Deploy` という名前のワークフローはこのリポに存在せん(デプロイは Cloudflare Pages の
+      # Git 連携で行われ、Actions を経由せんため)。存在せん名前の購読は永久に発火せんだけの
+      # 死に設定なので外す。
+      - Migration Label
+      - Migrate D1
+      - Quarterly D1 Backup
+    types:
+      - completed
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.workflow_run.id }}
+  cancel-in-progress: false
+
+jobs:
+  notify:
+    if: ${{ github.event.workflow_run.conclusion == 'failure' || github.event.workflow_run.conclusion == 'timed_out' || github.event.workflow_run.conclusion == 'cancelled' }}
+    runs-on: ${{ vars.RUNNER_LINUX || 'ubuntu-latest' }}
+    timeout-minutes: 5
+    steps:
+      - name: Send Slack notification
+        env:
+          WEBHOOK_URL: ${{ secrets.SLACK_ERROR_WEBHOOK_URL }}
+          RUN_NAME: ${{ github.event.workflow_run.name }}
+          RUN_URL: ${{ github.event.workflow_run.html_url }}
+          CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          BRANCH: ${{ github.event.workflow_run.head_branch }}
+          SHA: ${{ github.event.workflow_run.head_sha }}
+          ACTOR: ${{ github.event.workflow_run.actor.login }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          if [ -z "${WEBHOOK_URL}" ]; then
+            echo "SLACK_ERROR_WEBHOOK_URL is not set; skipping"
+            exit 0
+          fi
+
+          SHORT_SHA="${SHA:0:12}"
+          PAYLOAD=$(jq -n \
+            --arg project "adult-ai-app" \
+            --arg severity "error" \
+            --arg source "github_actions" \
+            --arg run_name "${RUN_NAME}" \
+            --arg conclusion "${CONCLUSION}" \
+            --arg branch "${BRANCH}" \
+            --arg sha "${SHORT_SHA}" \
+            --arg actor "${ACTOR}" \
+            --arg repo "${REPOSITORY}" \
+            --arg run_url "${RUN_URL}" \
+            '{
+              text: "[adult-ai-app][error] GitHub Actions failure: \($run_name)",
+              blocks: [
+                { type: "header", text: { type: "plain_text", text: "Adult AI App GitHub Actions error", emoji: true } },
+                { type: "section", text: { type: "mrkdwn", text: "*\($run_name)* finished with `\($conclusion)`" } },
+                { type: "section", fields: [
+                  { type: "mrkdwn", text: "*project:*\n\($project)" },
+                  { type: "mrkdwn", text: "*severity:*\n\($severity)" },
+                  { type: "mrkdwn", text: "*source:*\n\($source)" },
+                  { type: "mrkdwn", text: "*repo:*\n\($repo)" },
+                  { type: "mrkdwn", text: "*branch:*\n\($branch)" },
+                  { type: "mrkdwn", text: "*commit:*\n\($sha)" },
+                  { type: "mrkdwn", text: "*actor:*\n\($actor)" }
+                ] },
+                { type: "context", elements: [{ type: "mrkdwn", text: "labels: `project:adult-ai-app` `source:github_actions` `severity:error`" }] },
+                { type: "actions", elements: [{ type: "button", text: { type: "plain_text", text: "Open workflow run" }, url: $run_url }] }
+              ]
+            }')
+
+          curl -sS -X POST "${WEBHOOK_URL}" \
+            -H "Content-Type: application/json" \
+            --data "${PAYLOAD}"

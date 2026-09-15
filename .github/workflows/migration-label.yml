@@ -1,0 +1,48 @@
+name: Migration Label
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    # WHY: このジョブは drizzle 配下の .sql が「新規追加」された時だけラベルを付ける。
+    # 該当ファイルを触ってへん PR では fetch-depth:0 の全履歴 clone をした上で
+    # 何もせず終わっとった。ラベルの削除は元々行わんため、起動せんこと自体が
+    # 挙動の変化にならん。
+    paths:
+      - 'drizzle/**.sql'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  label-migrations:
+    runs-on: ${{ vars.RUNNER_LINUX_4VCPU || 'blacksmith-4vcpu-ubuntu-2404' }}
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Detect newly added migrations
+        id: migration_check
+        run: |
+          set -euo pipefail
+          BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+          NEW_MIGRATIONS=$(git diff --name-status "$BASE_SHA" "$HEAD_SHA" | awk '$1 == "A" && $2 ~ /^drizzle\/.*\.sql$/ {print $2}')
+          if [ -n "$NEW_MIGRATIONS" ]; then
+            echo "has_new_migration=true" >> "$GITHUB_OUTPUT"
+            echo "$NEW_MIGRATIONS"
+          else
+            echo "has_new_migration=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Add needs-migration label
+        if: steps.migration_check.outputs.has_new_migration == 'true'
+        uses: actions-ecosystem/action-add-labels@18f1af5e3544586314bbe15c0273249c770b2daf # v1.1.3
+        with:
+          labels: needs-migration

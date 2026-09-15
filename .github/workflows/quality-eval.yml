@@ -1,0 +1,129 @@
+# CI品質スコアリング (fujisoft_automate 方式の移植)
+# 定期実行 → S1/S6/S7 をAPIリプレイ実走 → rubric採点 → doc/quality-history.tsv へ履歴追記 →
+# 直近3回平均から-10点で失敗+issue自動起票。「静かな品質退行」を構造的に不可能にする。
+#
+# 必要な repo secrets:
+#   OPENROUTER_API_KEY   (必須: 生成API。費用は数十円/回)
+#   judge も同じ OPENROUTER_API_KEY を使う(#952 で Anthropic 直送から移行)。キーが無い場合は
+#   fail-open で通すが judge_ran=NULL として障害を記録する。
+name: Quality Eval
+
+concurrency:
+  group: quality-eval
+  cancel-in-progress: true
+
+on:
+  schedule:
+    # 週2回 (月・木 21:00 UTC = 火・金 6:00 JST)
+    - cron: "0 21 * * 1,4"
+  workflow_dispatch:
+    inputs:
+      note:
+        description: "履歴TSVに残す備考"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  quality-eval:
+    runs-on: ${{ vars.RUNNER_LINUX_4VCPU || 'blacksmith-4vcpu-ubuntu-2404' }}
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "22"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build app (wrangler pages dev は dist を配信する)
+        run: pnpm build
+
+      - name: Write .dev.vars
+        run: |
+          cat > .dev.vars <<EOF
+          OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY }}
+          DEFAULT_MODEL=qwen/qwen-2.5-72b-instruct
+          TEST_NO_FALLBACK=
+          TEST_DISABLE_REFUSAL_RECOVERY=
+          EOF
+
+      - name: Migrate + seed local D1
+        run: |
+          pnpm db:migrate:local
+          pnpm db:seed
+
+      - name: Start dev worker
+        run: |
+          nohup pnpm dev:worker > /tmp/dev-worker.log 2>&1 &
+          for i in $(seq 1 60); do
+            if curl -sf -o /dev/null http://127.0.0.1:8788; then echo "worker up"; break; fi
+            sleep 2
+          done
+          curl -sf -o /dev/null http://127.0.0.1:8788 || { echo "worker failed to start"; tail -50 /tmp/dev-worker.log; exit 1; }
+
+      - name: Run replay scenarios (S1/S6/S7)
+        run: |
+          OUT_DIR=.work/e2e-results/quality-eval-${{ github.run_id }} \
+          SCENARIOS=s1-midnight-meeting,s6-rinka-lab,s7-saya-rain \
+          pnpm exec tsx script/e2e/replay-chat.ts
+
+      - name: Score + append quality history (+ regression gate)
+        id: score
+        run: |
+          set +e
+          pnpm exec tsx script/e2e/score-replay.ts \
+            --dir=.work/e2e-results/quality-eval-${{ github.run_id }} \
+            --tsv=doc/quality-history.tsv \
+            --gate \
+            --note="${{ github.event_name }} ${{ inputs.note }}"
+          echo "gate_exit=$?" >> "$GITHUB_OUTPUT"
+
+      - name: Commit quality history
+        run: |
+          git config user.name "quality-eval[bot]"
+          git config user.email "quality-eval@users.noreply.github.com"
+          git add doc/quality-history.tsv
+          # noise filter でスキップされたランでは per-scenario TSV が生成されへんことがある
+          [ -f doc/quality-history-per-scenario.tsv ] && git add doc/quality-history-per-scenario.tsv || true
+          git diff --cached --quiet || git commit -m "chore(quality): append quality-history row (run ${{ github.run_id }}) [e2e: skipped — 履歴追記のみ、本文はワークフロー内で実走済み]"
+          # フックは無効化せん。.lefthook.yml の ci-fast が task バイナリの無い環境
+          # (この runner) を自分で見分けてスキップするので、pre-push はそのまま通る。
+          git push origin main
+
+      # WHY: 採点結果そのものは doc/quality-history.tsv へ既にgit commit済みで永続化されている。
+      # このartifactはS1/S6/S7の生の会話ログで、gateが落ちた時の原因調査以外では誰も見に来ない。
+      # 常時保存すると(このジョブは高頻度実行)org共有のGitHub Actions storage枠を無駄に消費する
+      # ため、失敗/regression検知時だけに絞り、保持日数も30日→7日に短縮する。
+      - name: Upload replay artifacts
+        if: failure() || steps.score.outputs.gate_exit == '2'
+        # アーティファクト保存容量の quota 超過で run 全体を failure にしない（保存は nice-to-have）
+        continue-on-error: true
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: quality-eval-${{ github.run_id }}
+          path: .work/e2e-results/quality-eval-${{ github.run_id }}
+          retention-days: 7
+
+      - name: File regression issue + fail
+        if: steps.score.outputs.gate_exit == '2'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          BODY=$(cat .work/e2e-results/quality-eval-${{ github.run_id }}/regression.json)
+          gh issue create \
+            --title "品質退行検知: quality-eval スコアが直近3回平均から10点以上下落" \
+            --body "$(printf 'quality-eval (run %s) が閾値ゲートで退行を検知した。\n\n```json\n%s\n```\n\n履歴: doc/quality-history.tsv / アーティファクト: quality-eval-%s' "${{ github.run_id }}" "$BODY" "${{ github.run_id }}")" \
+            --label bug
+          echo "quality regression detected"
+          exit 1

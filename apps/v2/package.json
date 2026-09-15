@@ -1,0 +1,41 @@
+{
+  "name": "@v2/app",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "vite dev --port 3100",
+    "build": "vite build",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "lint": "eslint --config ../../eslint.v2.config.js ."
+  },
+  "dependencies": {
+    "@langchain/core": "^1.2.9",
+    "@tanstack/react-router": "^1.170.32",
+    "@tanstack/react-start": "^1.168.49",
+    "@v2/cf": "workspace:^",
+    "@v2/db": "workspace:^",
+    "@v2/engine": "workspace:^",
+    "@v2/judge": "workspace:^",
+    "@v2/prompt": "workspace:^",
+    "drizzle-orm": "^0.45.2",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260317.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/node": "^24.12.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "jsdom": "^26.1.0",
+    "typescript": "~5.9.3",
+    "vite": "^8.2.1",
+    "vitest": "^4.1.2"
+  }
+}

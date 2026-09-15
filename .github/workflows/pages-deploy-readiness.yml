@@ -1,0 +1,58 @@
+name: Cloudflare Readiness Evidence
+
+on:
+  pull_request:
+    branches: [main]
+    # draft から ready に変えた時に走らせるため、既定の types に加えて明示する
+    types: [opened, reopened, synchronize, ready_for_review]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  readiness:
+    name: Cloudflare Pages readiness evidence
+    # WHY: draft のうちは走らせん。ci.yml と同じ判定式を使う。
+    # job 単位の if で落とすと結果は skipped になり、必須チェックとしては成功扱いのまま
+    # runner を1つも消費せん(trigger ごと消すと必須チェックが「待ち」で固まる)。
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    runs-on: ${{ vars.RUNNER_LINUX_4VCPU || 'blacksmith-4vcpu-ubuntu-2404' }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # WHY: `pnpm build` は dist を artifact 化するためだけに置かれとった step で、
+      # その artifact upload が storage 枠を食う原因として削除された後も残っとった。
+      # 下の verify 2本は wrangler.toml / package.json / .github/workflows を読む
+      # 静的検査だけで、dist の有無に依存せん(dist 未生成の状態で両方 PASS することを実測)。
+      # ci.yml の build マトリクスと丸ごと重複しており、PR 1本ごとに無駄な1ビルドやった。
+      - name: Verify deploy path ownership (Cloudflare only)
+        run: pnpm verify:no-github-actions-deploy
+
+      - name: Verify Cloudflare readiness / secret hygiene
+        run: pnpm verify:pages-deploy-readiness
+
+      # WHY: distをartifactとして保存していたが、実際にダウンロードして参照する人・機構が
+      # 皆無だった(download-artifactを使う後続ジョブなし、Cloudflare Pagesのデプロイ自体は
+      # このworkflowを経由せずローカルwrangler CLI/Cloudflare Git integrationで行われる)。
+      # 上のverify 2本が既にpass/failを出しており、distの中身自体を人が見返す運用も無い。
+      # 「証拠として保存する」だけの目的でorg共有のGitHub Actions storage枠(500MB/月)を
+      # このartifact単体で月間の約73%消費し、枠を使い切ってorg全体のartifactアップロードが
+      # 失敗する原因になっていた(2026年8月実測)。再現性はコミットから常に再ビルド可能なため、
+      # 監査で実物が必要になった場合はそのコミットで`pnpm build`すれば良く、保存の必要は無い。
+      # 詳細: doc/cloudflare-pages-deploy-readiness.md

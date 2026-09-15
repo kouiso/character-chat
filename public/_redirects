@@ -1,0 +1,4 @@
+# SPA fallback: pathname ルーティング(/home, /chat, /legal/... など)へ直アクセス・
+# リロードしても 404 にせず index.html を返す。Cloudflare Pages では静的資産と
+# Pages Functions(/api/* 等)がこのルールより優先されるため、それらは横取りされない。
+/* /index.html 200

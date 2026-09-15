@@ -1,0 +1,34 @@
+# .codex/dev-vars.example — PLACEHOLDER secrets for the Codex Cloud container.
+# NOT real credentials. No external network, no real payment, no real API calls.
+# `.codex/setup.sh` copies this to `.dev.vars` (gitignored) only when it is absent,
+# so a developer's real `.dev.vars` is never overwritten.
+
+# --- auth (placeholder) ---
+AUTH_TOKEN=codex-local-placeholder-token
+AUTH_SIGNING_KEY=codex-local-placeholder-signing-key-0123456789abcdef
+BASIC_AUTH_USER=codex
+BASIC_AUTH_PASS=codex-local
+
+# --- LLM / image providers (placeholder keys — presence-guards pass, no real calls) ---
+OPENROUTER_API_KEY=sk-or-v1-PLACEHOLDER-no-network
+NOVITA_API_KEY=PLACEHOLDER-no-network
+RUNWARE_API_KEY=PLACEHOLDER-no-network
+ATLASCLOUD_API_KEY=PLACEHOLDER-no-network
+IMAGE_PROVIDER=novita
+IMAGE_PROVIDER_PRIMARY=novita
+IMAGE_PROVIDER_FALLBACK=runware
+
+# QA mock lane recognized by functions/api/[[route]].ts — avoids real LLM calls.
+MOCK_LLM=1
+
+# Base URL of the local mock API server (.codex/mock-server.mjs). Integration
+# tests / a locally-run worker point their fetch at this instead of the internet.
+MOCK_API_BASE=http://127.0.0.1:8790
+
+# --- Cloudflare Access (empty in the container; auth is bypassed locally) ---
+CF_ACCESS_LOGOUT_URL=
+CLOUDFLARE_ACCESS_TEAM_DOMAIN=
+CLOUDFLARE_ACCESS_AUD=
+
+# --- Slack error webhook (empty = notifications are no-ops locally) ---
+SLACK_ERROR_WEBHOOK_URL=

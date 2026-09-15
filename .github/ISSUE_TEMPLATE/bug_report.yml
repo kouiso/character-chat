@@ -1,0 +1,71 @@
+name: "🐛 バグ報告"
+description: "バグや不具合の報告はこちらのテンプレートをご利用ください。"
+title: "[bug] "
+labels: ["refine"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: "バグの説明"
+      description: "バグの内容をできるだけ詳しく記載してください。"
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: "発生した環境"
+      description: "バグが発生した環境について記載してください。"
+      placeholder: |
+        - デバイス: iPhone17Pro
+        - OS: iOS 15.4
+        - アプリのバージョン: 1.0.3
+    validations:
+      required: true
+  - type: textarea
+    id: user-info
+    attributes:
+      label: "発生した時間と対象ユーザー"
+      description: "バグが発生した時間と対象ユーザーについて記載してください。"
+      placeholder: |
+        - 発生時間: 2025/12/09 10:00:00
+        - 対象ユーザーID or Email: example@example.com
+    validations:
+      required: false
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: "再現手順"
+      description: "バグを再現するための手順を具体的に記載してください。"
+      placeholder: |
+        1. ホームページにアクセスする
+        2. 「ログイン」ボタンをクリックする
+        3. ユーザー名とパスワードを入力して「送信」ボタンをクリックする
+        4. エラーメッセージが表示される
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: "期待する動作"
+      description: "バグが修正された場合に期待する動作を記載してください。"
+      placeholder: "例: ユーザーが正常にログインできること"
+    validations:
+      required: true
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: "スクリーンショットや画面録画"
+      description: "バグの内容を示すためのスクリーンショットや画面録画を添付してください。"
+    validations:
+      required: false
+  - type: textarea
+    id: test-items
+    attributes:
+      label: "テスト項目"
+      description: "このIssueの完了時に確認すべきテスト項目を記載してください。"
+      placeholder: |
+        - [ ] 正常系: ○○ができること
+        - [ ] 異常系: △△の場合にエラーになること
+        - [ ] 境界値: □□の場合の挙動
+    validations:
+      required: false

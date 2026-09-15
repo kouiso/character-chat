@@ -1,0 +1,17 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "types": [
+      "node",
+      "@cloudflare/workers-types"
+    ]
+  },
+  "include": [
+    "src",
+    "../../src/schema/character.ts",
+    "../../src/schema/user.ts",
+    "../../src/schema/conversation.ts",
+    "../../src/schema/message.ts",
+    "vitest.config.ts"
+  ]
+}

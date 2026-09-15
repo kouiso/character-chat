@@ -1,0 +1,204 @@
+/* chatscope UI Kit のデフォルトを「燈(Ouse)」トークンのダークテーマに寄せる */
+.chatscope-integrated .cs-chat-container {
+  background-color: #140f0d;
+  color: #f3ead9;
+}
+
+.chatscope-integrated .cs-message-list {
+  background-color: transparent;
+  color: #f3ead9;
+}
+
+.chatscope-integrated .cs-message-list__scroll-wrapper {
+  padding: 0;
+}
+
+.chatscope-integrated .cs-message__content {
+  color: #f3ead9;
+}
+
+.chatscope-integrated .cs-message--incoming .cs-message__content {
+  background-color: rgba(176, 125, 58, 0.18);
+  border: 1px solid rgba(201, 180, 140, 0.3);
+  color: #f3ead9;
+}
+
+.chatscope-integrated .cs-message--outgoing .cs-message__content {
+  background-color: rgba(214, 169, 87, 0.24);
+  border: 1px solid rgba(201, 180, 140, 0.3);
+  color: #f3ead9;
+}
+
+.chatscope-integrated .cs-message-input {
+  background-color: rgba(58, 47, 40, 0.55);
+  border-top: 1px solid rgba(201, 180, 140, 0.22);
+  color: #f3ead9;
+}
+
+.chatscope-integrated .cs-message-input__content-editor-wrapper,
+.chatscope-integrated .cs-message-input__content-editor-container,
+.chatscope-integrated .cs-message-input__content-editor {
+  background-color: rgba(58, 47, 40, 0.55);
+  color: #f3ead9;
+}
+
+.chatscope-integrated .cs-message-input__content-editor[data-placeholder]:empty:before {
+  color: #8e8470;
+}
+
+/* 既存の HerMessage / YouMessage バブルをそのまま使うため、chatscope の枠を透明にする */
+.chatscope-integrated .cs-message {
+  margin: 0;
+}
+
+.chatscope-integrated .cs-message__content-wrapper {
+  max-width: 100%;
+}
+
+.chatscope-integrated .cs-message__content {
+  background-color: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  color: #f3ead9;
+}
+
+.chatscope-integrated .cs-message--incoming .cs-message__content,
+.chatscope-integrated .cs-message--outgoing .cs-message__content {
+  background-color: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  color: #f3ead9;
+}
+
+/* chatscope MessageInput を「燈」の入力バーに寄せる */
+.chatscope-ouse-input .cs-message-input {
+  flex: 1;
+  min-width: 0;
+  align-items: center;
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+.chatscope-ouse-input .cs-message-input__content-editor-wrapper {
+  flex: 1;
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+}
+
+.chatscope-ouse-input .cs-message-input__content-editor-container {
+  background: transparent;
+  padding: 0;
+  min-height: 44px;
+  max-height: 128px !important;
+  font-size: 14px;
+  line-height: 1.75;
+}
+
+.chatscope-ouse-input .cs-message-input__content-editor {
+  background: transparent;
+  border: none;
+  color: #f3ead9;
+  font-family: "Zen Kaku Gothic New", sans-serif;
+  outline: none;
+  white-space: pre-wrap;
+}
+
+.chatscope-ouse-input .cs-message-input__content-editor[data-placeholder]:empty::before {
+  color: #8e8470;
+}
+
+.chatscope-ouse-input .cs-message-input__tools {
+  display: flex;
+  align-items: center;
+  margin: 0;
+}
+
+.chatscope-ouse-input .cs-message-input__tools .cs-button {
+  margin: 0;
+}
+
+.chatscope-ouse-input .cs-message-input__tools .cs-button--send {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #d6a957, #b07d3a);
+  border: none;
+  color: #241a0e;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chatscope-ouse-input .cs-message-input__tools .cs-button--send svg {
+  display: none;
+}
+
+.chatscope-ouse-input .cs-message-input__tools .cs-button--send::before {
+  content: "➤";
+}
+
+.chatscope-ouse-input .cs-message-input__tools .cs-button--send:disabled {
+  background: transparent;
+  border: 1px solid rgba(243, 234, 217, 0.28);
+  color: rgba(243, 234, 217, 0.35);
+  opacity: 1;
+}
+
+/* chatscope ConversationList/Conversation を燈のキャラ一覧に寄せる */
+.chatscope-ouse-conversations {
+  height: auto;
+  flex-basis: auto;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.chatscope-ouse-conversations > div > ul {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+}
+
+.chatscope-ouse-conversations .cs-conversation {
+  padding: 10px 20px;
+  border-radius: 16px;
+  background: transparent;
+  color: #f3ead9;
+  font-family: inherit;
+}
+
+.chatscope-ouse-conversations .cs-conversation:hover {
+  background-color: rgba(214, 169, 87, 0.08);
+}
+
+.chatscope-ouse-conversations .cs-conversation.cs-conversation--active {
+  background-color: rgba(214, 169, 87, 0.12);
+  border: 1px solid rgba(214, 169, 87, 0.4);
+}
+
+.chatscope-ouse-conversations .cs-conversation > .cs-avatar {
+  width: 52px;
+  height: 52px;
+  min-width: 52px;
+  min-height: 52px;
+  margin-right: 12px;
+}
+
+.chatscope-ouse-conversations .cs-conversation__content {
+  margin-right: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.chatscope-ouse-conversations .cs-conversation__last-activity-time {
+  color: #d6a957;
+  font-family: "Zen Maru Gothic", sans-serif;
+  font-size: 11px;
+}

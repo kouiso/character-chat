@@ -1,0 +1,1 @@
+../../prompt/instructions/image-gen-reference-first.md

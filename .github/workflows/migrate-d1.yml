@@ -1,0 +1,48 @@
+name: Migrate D1
+
+# Cloudflare Pages native git deploy はビルド/デプロイだけ担当。
+# D1 schema は別 workflow で manual approval ゲート越しに apply する。
+# drizzle/*.sql 追加時のみ走らせ、deploy と整合させる。
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'drizzle/**.sql'
+  workflow_dispatch:
+
+concurrency:
+  group: migrate-d1-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    name: Apply D1 migrations (remote, manual approval)
+    runs-on: ${{ vars.RUNNER_LINUX_4VCPU || 'blacksmith-4vcpu-ubuntu-2404' }}
+    timeout-minutes: 15
+    environment:
+      name: d1-migration
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Apply D1 migrations (remote)
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "::error::CLOUDFLARE_API_TOKEN is not set."
+            exit 1
+          fi
+          pnpm exec wrangler d1 migrations apply adult-ai-db --remote

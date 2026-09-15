@@ -1,0 +1,1687 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;500;600;700&family=Zen+Kaku+Gothic+New:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background:#f6f2ea; }
+  @keyframes lampGlow { 0%,100% { opacity:.55 } 50% { opacity:.85 } }
+  @keyframes caretBlink { 0%,100% { opacity:.2 } 50% { opacity:.95 } }
+  @keyframes shimmer { 0% { background-position:-260px 0 } 100% { background-position:260px 0 } }
+  @keyframes spinSlow { to { transform:rotate(360deg) } }
+  .scrollhide::-webkit-scrollbar { width:0; height:0; }
+  .scrollhide { scrollbar-width:none; }
+</style>
+</helmet>
+
+<div style="font-family:'Zen Kaku Gothic New',sans-serif; background:#f6f2ea; padding:48px 60px 140px; display:flex; flex-direction:column; gap:70px; min-width:1900px;">
+
+  <section id="4a" style="display:flex; flex-direction:column; gap:26px; border-bottom:1px solid #e2dbcd; padding-bottom:60px;">
+    <div data-drags-parent="1" style="display:flex; align-items:center; gap:12px;">
+      <span style="display:inline-flex; padding:3px 11px; border-radius:999px; background:#2a241e; color:#e7c987; font-size:12px; font-weight:700;">4a</span>
+      <span style="font-family:'Noto Serif JP',serif; font-size:24px; font-weight:600; color:#2a241e;">ホームタブ ・ マイタブ — 実装AI指摘の抜けを補完</span>
+    </div>
+    <div data-drags-parent="1" style="font-size:12.5px; line-height:1.8; color:#7c7266; max-width:880px;">4タブ（ホーム/さがす/アルバム/マイ）の残り2枚。ホームは特定の1人を主役にせず<b style="color:#3a3025;">「つづきから」のフラットな連なり</b>が主。マイは「つくる」の主役CTA＋自分の子の管理。既存実装の技術設定（TTS・モデル・画像プロバイダ等）は<b style="color:#3a3025;">ユーザー向けには出さない</b>（開発者フラグ裏へ）。</div>
+    <div style="display:flex; gap:44px; flex-wrap:wrap; align-items:flex-start;">
+
+      <div data-screen-label="4a ホームタブ">
+        <div data-drags-parent="1" style="margin-bottom:13px; font-family:'Noto Serif JP',serif; font-size:14.5px; color:#7c7060;">ホーム — 今夜のつづきから</div>
+        <div style="width:392px; height:812px; border-radius:42px; overflow:hidden; position:relative; display:flex; flex-direction:column; background:radial-gradient(120% 60% at 50% -6%, #2c2522 0%, #1b1512 54%, #140f0d 100%); box-shadow:0 30px 70px -28px rgba(40,28,16,.55); color:#ece2d2;">
+          <div style="position:absolute; top:-90px; left:50%; transform:translateX(-50%); width:340px; height:260px; background:radial-gradient(closest-side, rgba(214,160,84,.22), rgba(214,160,84,0) 72%); animation:lampGlow 7s ease-in-out infinite; pointer-events:none;"></div>
+          <div style="position:relative; display:flex; justify-content:space-between; align-items:center; padding:16px 26px 0; font-size:13px; color:#c9bba6;"><span style="font-weight:500;">23:41</span><span style="display:flex; gap:7px; align-items:center; opacity:.8;"><span style="font-size:11px;">●●●</span><span style="font-size:11px;">▾</span><span>100%</span></span></div>
+          <div style="position:relative; display:flex; align-items:center; justify-content:space-between; padding:16px 26px 4px;">
+            <div style="display:flex; align-items:center; gap:10px;">
+              <svg width="24" height="24" viewBox="0 0 64 64"><path d="M32 12 C37 21 44 25.5 44 35 A12 12 0 1 1 20 35 C20 25.5 27 21 32 12 Z" fill="#e7c987"></path><path d="M32 26 C34.4 30.5 37.6 32.8 37.6 37.4 A5.6 5.6 0 1 1 26.4 37.4 C26.4 32.8 29.6 30.5 32 26 Z" fill="#1b1512"></path></svg>
+              <span style="font-family:'Noto Serif JP',serif; font-size:18px; font-weight:600; color:#f3ead9;">燈</span>
+            </div>
+            <span style="font-size:11.5px; color:#9a8a6f;">こんばんは</span>
+          </div>
+          <div class="scrollhide" style="position:relative; flex:1; min-height:0; overflow:auto; padding:10px 24px 14px;">
+            <div style="font-size:11px; letter-spacing:.2em; color:#b79766; margin:6px 0 10px;">つづきから</div>
+            <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:22px;">
+              <div style="display:flex; align-items:center; gap:13px; padding:13px 14px; border-radius:20px; border:1px solid rgba(231,201,135,.35); background:rgba(214,160,84,.08);">
+                <div style="flex:0 0 auto; width:52px; height:52px; border-radius:50%; overflow:hidden; border:1px solid rgba(231,201,135,.5);"><img src="assets/shino.png" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 18%;"></div>
+                <div style="flex:1; min-width:0;">
+                  <div style="display:flex; align-items:baseline; gap:8px;"><span style="font-family:'Noto Serif JP',serif; font-size:16px; color:#f1e7d6;">詩乃</span><span style="font-size:10.5px; color:#9a8a6f;">雨夜のひと部屋</span></div>
+                  <div style="font-size:11.5px; color:#b8ab94; margin-top:4px; font-style:italic; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">「今夜は……もう少しだけ、帰らないで」</div>
+                </div>
+                <span style="flex:0 0 auto; font-size:11px; color:#e7c987;">3分前</span>
+              </div>
+              <div style="display:flex; align-items:center; gap:13px; padding:13px 14px; border-radius:20px; border:1px solid rgba(201,180,140,.2); background:rgba(20,15,13,.35);">
+                <div style="flex:0 0 auto; width:52px; height:52px; border-radius:50%; overflow:hidden; border:1px solid rgba(201,180,140,.35);"><img src="assets/rei.png" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 16%;"></div>
+                <div style="flex:1; min-width:0;">
+                  <div style="display:flex; align-items:baseline; gap:8px;"><span style="font-family:'Noto Serif JP',serif; font-size:16px; color:#f1e7d6;">玲</span><span style="font-size:10.5px; color:#9a8a6f;">オフィスの残業</span></div>
+                  <div style="font-size:11.5px; color:#b8ab94; margin-top:4px; font-style:italic; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">「……別に、待ってたわけじゃない」</div>
+                </div>
+                <span style="flex:0 0 auto; font-size:11px; color:#9a8a6f;">昨夜</span>
+              </div>
+              <div style="display:flex; align-items:center; gap:13px; padding:13px 14px; border-radius:20px; border:1px solid rgba(201,180,140,.2); background:rgba(20,15,13,.35);">
+                <div style="flex:0 0 auto; width:52px; height:52px; border-radius:50%; overflow:hidden; border:1px solid rgba(201,180,140,.35);"><img src="assets/shino.png" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 30%;"></div>
+                <div style="flex:1; min-width:0;">
+                  <div style="display:flex; align-items:baseline; gap:8px;"><span style="font-family:'Noto Serif JP',serif; font-size:16px; color:#f1e7d6;">雨宿りの三人</span><span style="padding:2px 8px; border-radius:10px; background:rgba(214,160,84,.16); font-size:9.5px; color:#e7c987;">宴</span></div>
+                  <div style="font-size:11.5px; color:#b8ab94; margin-top:4px; font-style:italic; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">玲「……で、どっちの隣に座るの？」</div>
+                </div>
+                <span style="flex:0 0 auto; font-size:11px; color:#9a8a6f;">火曜</span>
+              </div>
+            </div>
+            <div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom:10px;">
+              <span style="font-size:11px; letter-spacing:.2em; color:#b79766;">今夜の出会い</span>
+              <span style="font-size:11px; color:#8a7f6c;">さがす →</span>
+            </div>
+            <div class="scrollhide" style="display:flex; gap:10px; overflow-x:auto; margin-bottom:18px;">
+              <div style="flex:0 0 118px; position:relative; border-radius:16px; overflow:hidden; aspect-ratio:3/4.4; border:1px solid rgba(201,180,140,.2);"><img src="assets/rei.png" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 12%;"><div style="position:absolute; inset:0; background:linear-gradient(180deg,rgba(20,15,13,0) 50%,rgba(20,15,13,.9));"></div><div style="position:absolute; left:9px; right:9px; bottom:9px;"><div style="font-family:'Noto Serif JP',serif; font-size:13px; color:#fbf3e4;">紗夜</div><div style="font-size:9.5px; color:#e0cba0; margin-top:2px;">人妻・甘やかし</div></div></div>
+              <div style="flex:0 0 118px; position:relative; border-radius:16px; overflow:hidden; aspect-ratio:3/4.4; border:1px solid rgba(201,180,140,.2);"><img src="assets/shino.png" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 10%;"><div style="position:absolute; inset:0; background:linear-gradient(180deg,rgba(20,15,13,0) 50%,rgba(20,15,13,.9));"></div><div style="position:absolute; left:9px; right:9px; bottom:9px;"><div style="font-family:'Noto Serif JP',serif; font-size:13px; color:#fbf3e4;">真昼</div><div style="font-size:9.5px; color:#e0cba0; margin-top:2px;">年上・母性的</div></div></div>
+              <div style="flex:0 0 118px; position:relative; border-radius:16px; overflow:hidden; aspect-ratio:3/4.4; border:1px solid rgba(201,180,140,.2);"><img src="assets/rei.png" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 32%;"><div style="position:absolute; inset:0; background:linear-gradient(180deg,rgba(20,15,13,0) 50%,rgba(20,15,13,.9));"></div><div style="position:absolute; left:9px; right:9px; bottom:9px;"><div style="font-family:'Noto Serif JP',serif; font-size:13px; color:#fbf3e4;">澪</div><div style="font-size:9.5px; color:#e0cba0; margin-top:2px;">クール・同僚</div></div></div>
+            </div>
+            <div style="border-radius:16px; border:1px dashed rgba(231,201,135,.35); background:rgba(214,160,84,.06); padding:13px 16px; display:flex; align-items:center; gap:12px;">
+              <span style="font-size:15px; color:#e7c987;">✦</span>
+              <span style="flex:1; font-size:11.5px; line-height:1.7; color:#cbbda3;">会いたい子がいない夜は — <b style="color:#f0dcae;">つくる →</b></span>
+            </div>
+          </div>
+          <div style="position:relative; flex:0 0 auto; display:flex; justify-content:space-around; align-items:center; padding:12px 18px 22px; background:#160f0d; border-top:1px solid rgba(201,180,140,.12);">
+            <div style="display:flex; flex-direction:column; align-items:center; gap:4px; color:#e7c987;"><span style="font-size:18px;">⌂</span><span style="font-size:10px;">ホーム</span></div>
+            <div style="display:flex; flex-direction:column; align-items:center; gap:4px; color:#7c7060;"><span style="font-size:18px;">⌕</span><span style="font-size:10px;">さがす</span></div>
+            <div style="display:flex; flex-direction:column; align-items:center; gap:4px; color:#7c7060;"><span style="font-size:18px;">▣</span><span style="font-size:10px;">アルバム</span></div>
+            <div style="display:flex; flex-direction:column; align-items:center; gap:4px; color:#7c7060;"><span style="font-size:18px;">◔</span><span style="font-size:10px;">マイ</span></div>
+          </div>
+        </div>
+        <div data-drags-parent="1" style="font-size:11.5px; line-height:1.7; color:#8b8174; margin-top:12px; max-width:360px;">特定の1人をヒーローにしない（以前の指摘反映）。最上段=最後に話した子、宴も同列。下段の「つくる」行はホーム側の控えめ導線。</div>
+      </div>
+
+      <div data-screen-label="4a マイタブ">
+        <div data-drags-parent="1" style="margin-bottom:13px; font-family:'Noto Serif JP',serif; font-size:14.5px; color:#7c7060;">マイ — つくる主役CTA＋自分の子の管理</div>
+        <div style="width:392px; height:812px; border-radius:42px; overflow:hidden; position:relative; display:flex; flex-direction:column; background:radial-gradient(120% 60% at 50% -6%, #2c2522 0%, #1b1512 54%, #140f0d 100%); box-shadow:0 30px 70px -28px rgba(40,28,16,.55); color:#ece2d2;">
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 26px 0; font-size:13px; color:#c9bba6;"><span style="font-weight:500;">23:42</span><span style="display:flex; gap:7px; align-items:center; opacity:.8;"><span style="font-size:11px;">●●●</span><span style="font-size:11px;">▾</span><span>100%</span></span></div>
+          <div style="padding:14px 26px 4px; display:flex; align-items:center; justify-content:space-between;">
+            <div style="font-family:'Noto Serif JP',serif; font-size:23px; font-weight:600; color:#f3ead9;">マイ</div>
+            <span style="font-size:16px; color:#c9b48c;">⚙</span>
+          </div>
+          <div class="scrollhide" style="flex:1; min-height:0; overflow:auto; padding:12px 24px 14px;">
+            <div style="position:relative; border-radius:22px; border:1px solid rgba(231,201,135,.45); background:linear-gradient(150deg, rgba(214,160,84,.2), rgba(214,160,84,.05)); padding:20px; margin-bottom:20px;">
+              <div style="font-size:20px; color:#e7c987;">✦</div>
+              <div style="font-family:'Noto Serif JP',serif; font-size:18px; font-weight:600; color:#f6e6c4; margin-top:9px;">あたらしい相手をつくる</div>
+              <div style="font-size:12px; line-height:1.8; color:#cbbda3; margin-top:7px;">話しながら・シナリオから・こだわって。この世のどこにもいない子を。</div>
+            </div>
+            <div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom:10px;">
+              <span style="font-size:11px; letter-spacing:.2em; color:#b79766;">つくった子 — 2人</span>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:22px;">
+              <div style="display:flex; align-items:center; gap:13px; padding:12px 14px; border-radius:18px; border:1px solid rgba(201,180,140,.2); background:rgba(20,15,13,.35);">
+                <div style="flex:0 0 auto; width:48px; height:48px; border-radius:50%; overflow:hidden; border:1px solid rgba(201,180,140,.4);"><img src="assets/shino.png" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 30%;"></div>
+                <div style="flex:1; min-width:0;">
+                  <div style="font-family:'Noto Serif JP',serif; font-size:15px; color:#f1e7d6;">ひなた</div>
+                  <div style="font-size:10.5px; color:#9a8d77; margin-top:3px;">恋人 ・ 12回 ・ シーン2つ</div>
+                </div>
+                <div style="display:flex; gap:7px;">
+                  <span style="padding:8px 13px; border-radius:14px; border:1px solid rgba(231,201,135,.4); font-size:11px; color:#e7c987;">話す</span>
+                  <span style="padding:8px 12px; border-radius:14px; border:1px solid rgba(201,180,140,.3); font-size:11px; color:#c9b48c;">✎</span>
+                </div>
+              </div>
+              <div style="display:flex; align-items:center; gap:13px; padding:12px 14px; border-radius:18px; border:1px solid rgba(201,180,140,.2); background:rgba(20,15,13,.35);">
+                <div style="flex:0 0 auto; width:48px; height:48px; border-radius:50%; overflow:hidden; border:1px solid rgba(201,180,140,.4);"><img src="assets/rei.png" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 14%;"></div>
+                <div style="flex:1; min-width:0;">
+                  <div style="font-family:'Noto Serif JP',serif; font-size:15px; color:#f1e7d6;">綾</div>
+                  <div style="font-size:10.5px; color:#9a8d77; margin-top:3px;">家庭教師 ・ 3回 ・ シーン1つ</div>
+                </div>
+                <div style="display:flex; gap:7px;">
+                  <span style="padding:8px 13px; border-radius:14px; border:1px solid rgba(231,201,135,.4); font-size:11px; color:#e7c987;">話す</span>
+                  <span style="padding:8px 12px; border-radius:14px; border:1px solid rgba(201,180,140,.3); font-size:11px; color:#c9b48c;">✎</span>
+                </div>
+              </div>
+            </div>
+            <div style="font-size:11px; letter-spacing:.2em; color:#b79766; margin-bottom:10px;">ふたりの記録</div>
+            <div style="border-radius:18px; border:1px solid rgba(201,180,140,.24); background:rgba(20,15,13,.35); padding:4px 16px; margin-bottom:20px;">
+              <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 0; border-bottom:1px solid rgba(201,180,140,.12);"><span style="display:flex; align-items:center; gap:10px; font-size:12.5px; color:#ded2bc;"><span style="color:#c9b48c;">◆</span>記憶</span><span style="font-size:11.5px; color:#8a7f6c;">›</span></div>
+              <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 0; border-bottom:1px solid rgba(201,180,140,.12);"><span style="display:flex; align-items:center; gap:10px; font-size:12.5px; color:#ded2bc;"><span style="color:#c9b48c;">≡</span>履歴</span><span style="font-size:11.5px; color:#8a7f6c;">›</span></div>
+              <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 0;"><span style="display:flex; align-items:center; gap:10px; font-size:12.5px; color:#ded2bc;"><span style="color:#c9b48c;">❖</span>宴</span><span style="font-size:11.5px; color:#8a7f6c;">›</span></div>
+            </div>
+            <div style="font-size:11px; line-height:1.75; color:#7c7060;">⚙（右上）→ 全体設定（D-8：法的文章とログアウトのみ）</div>
+          </div>
+          <div style="position:relative; flex:0 0 auto; display:flex; justify-content:space-around; align-items:center; padding:12px 18px 22px; background:#160f0d; border-top:1px solid rgba(201,180,140,.12);">
+            <div style="display:flex; flex-direction:column; align-items:center; gap:4px; color:#7c7060;"><span style="font-size:18px;">⌂</span><span style="font-size:10px;">ホーム</span></div>
+            <div style="display:flex; flex-direction:column; align-items:center; gap:4px; color:#7c7060;"><span style="font-size:18px;">⌕</span><span style="font-size:10px;">さがす</span></div>
+            <div style="display:flex; flex-direction:column; align-items:center; gap:4px; color:#7c7060;"><span style="font-size:18px;">▣</span><span style="font-size:10px;">アルバム</span></div>
+            <div style="display:flex; flex-direction:column; align-items:center; gap:4px; color:#e7c987;"><span style="font-size:18px;">◔</span><span style="font-size:10px;">マイ</span></div>
+          </div>
+        </div>
+        <div data-drags-parent="1" style="font-size:11.5px; line-height:1.7; color:#8b8174; margin-top:12px; max-width:360px;">記憶・履歴・宴はここからのプッシュ画面（3a の決定どおり）。実装済みの技術設定（TTS・モデル・画像プロバイダ・動画予算等）はユーザー向けに出さず、開発者フラグの裏へ。</div>
+      </div>
+
+    </div>
+  </section>
+
+  <section id="3a" style="display:flex; flex-direction:column; gap:26px; border-bottom:1px solid #e2dbcd; padding-bottom:60px;">
+    <div data-drags-parent="1" style="display:flex; align-items:center; gap:12px;">
+      <span style="display:inline-flex; padding:3px 11px; border-radius:999px; background:#2a241e; color:#e7c987; font-size:12px; font-weight:700;">3a</span>
+      <span style="font-family:'Noto Serif JP',serif; font-size:24px; font-weight:600; color:#2a241e;">最終レビュー — プレモーテム＋敵対レビューの結論</span>
+    </div>
+    <div style="display:flex; gap:24px; flex-wrap:wrap; align-items:stretch;">
+      <div style="flex:1; min-width:380px; max-width:560px; border-radius:20px; background:#fbf8f2; border:1px solid #e2dbcd; padding:24px 26px;">
+        <div style="font-size:11px; letter-spacing:.24em; color:#b08545; margin-bottom:12px;">確定した採用セット</div>
+        <div style="font-size:12.5px; line-height:2.05; color:#4d453a;">
+          ・つくる＝<b>案1（<a href="#1a" style="color:#b08545;">1a</a>）</b>。3ルート入口、B-1/B-2（<a href="#1b" style="color:#b08545;">1b</a>）は「こだわってつくる」の中身、プレビューは A-4 に統一<br>
+          ・タブは <b>ホーム／さがす／アルバム／マイ</b> の4つ。記憶・履歴・シーンはプッシュ画面<br>
+          ・設定は二層：<b>この子との設定</b>（長さ・写真頻度、D-7）＋<b>全体設定</b>（法務とログアウトのみ、D-8）。課金・通知・年齢確認は置かない<br>
+          ・検索は さがす上部＋宴のメンバー選択で同じ横断検索（D-1）。ゼロ件は必ず「つくる」へ<br>
+          ・ロゴ＝燈（<a href="#2f" style="color:#b08545;">2f</a>）＋ステルス「メモ」擬態
+        </div>
+      </div>
+      <div style="flex:1; min-width:380px; max-width:560px; border-radius:20px; background:#fbf8f2; border:1px solid #e2dbcd; padding:24px 26px;">
+        <div style="font-size:11px; letter-spacing:.24em; color:#b08545; margin-bottom:12px;">レビューで直した点</div>
+        <div style="font-size:12.5px; line-height:2.05; color:#4d453a;">
+          ・関係の指定を閉じたチップ→<b>自由入力＋サジェスト</b>に（D-5。数百体を3択では特定不能）<br>
+          ・タブ不整合（記憶／アルバムが画面ごとに揺れ）→記憶タブ廃止で統一<br>
+          ・Firefoxでスクロールバー露出→全面非表示に<br>
+          ・チップ／ボタンの中間折返し（「片想い」「アップロード」）→nowrap化<br>
+          ・D-5下部注記の崩れた組版、D-2ナビのアイコンサイズ違い<br>
+          ・A-1に「2回目は前回ルートを即開く」を明記（毎回3択は摩擦）
+        </div>
+      </div>
+      <div style="flex:1; min-width:380px; max-width:560px; border-radius:20px; background:#fbf8f2; border:1px solid #e2dbcd; padding:24px 26px;">
+        <div style="font-size:11px; letter-spacing:.24em; color:#b08545; margin-bottom:12px;">実装への申し送り（静止画では担保できない分）</div>
+        <div style="font-size:12.5px; line-height:2.05; color:#4d453a;">
+          ・タップ目標は44px以上（小さく見えるチップも当たり判定を拡張）<br>
+          ・SSEの再開はサーバ側カーソルで冪等に（二重表示・二重投稿ゼロ）<br>
+          ・入力とウィザードの下書きは常にローカル保存（クラッシュ・離脱復帰）<br>
+          ・画像は本文と別ストリーム、失敗は独立再試行（C-2）<br>
+          ・「秘めた面」は既定で折りたたみ（覗き見・スクショ事故への配慮）<br>
+          ・残課題：宴3人以上の密度／分岐×記憶の競合UI／ホームのヒーロー枠は実データ検証
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section style="display:flex; flex-direction:column; gap:60px; border-bottom:1px solid #e2dbcd; padding-bottom:70px;">
+
+    <div style="max-width:920px;" data-drags-parent="1">
+      <div style="font-family:'Noto Serif JP',serif; font-size:13px; letter-spacing:.34em; color:#9a8f80; text-transform:uppercase;">turn 2 / remaining features + logo</div>
+      <div style="font-family:'Noto Serif JP',serif; font-size:30px; font-weight:600; color:#2a241e; margin-top:10px;">残りの機能ぜんぶ ＋ ロゴ</div>
+      <div style="font-size:13.5px; line-height:2; color:#6f665b; margin-top:12px;"><a href="#2a" style="color:#b08545;">2a</a> 宴（グループ会話）／<a href="#2b" style="color:#b08545;">2b</a> ねだる・キャラ切替シート／<a href="#2c" style="color:#b08545;">2c</a> 会話の分岐・写真が届く演出／<a href="#2d" style="color:#b08545;">2d</a> プロフィール・オンボーディング・ログイン・法的文章／<a href="#2e" style="color:#b08545;">2e</a> 共有ビュー・全画面ビューア／<a href="#2f" style="color:#b08545;">2f</a> アプリロゴ。課金・通知導線なし、技術用語なしの方針は継続。</div>
+    </div>
+
+    <!-- ═══════ 2a 宴 ═══════ -->
+    <div id="2a">
+      <div data-drags-parent="1" style="display:flex; align-items:center; gap:12px; margin-bottom:8px;">
+        <span style="display:inline-flex; padding:3px 11px; border-radius:999px; background:#2a241e; color:#e7c987; font-size:12px; font-weight:700;">2a</span>
+        <span style="font-family:'Noto Serif JP',serif; font-size:21px; font-weight:600; color:#2a241e;">宴 — 複数キャラと同じ夜を</span>
+      </div>
+      <div data-drags-parent="1" style="font-size:12.5px; line-height:1.8; color:#7c7266; margin-bottom:22px; max-width:840px;">グループ会話は「宴」という言葉のまま採用。マイ内の導線から開き、メンバーは自分の子＋公式から混成でき、名前・タグ・雰囲気の検索（D-1と同じ横断検索）で呼べる。発言者は名前と小さな顔で区別し、色は増やさない（燈の一色運用を守る）。</div>
+      <div style="display:flex; gap:44px; flex-wrap:wrap; align-items:flex-start;">
+
+        <div data-screen-label="2a 宴一覧">
+          <div data-drags-parent="1" style="margin-bottom:13px; font-family:'Noto Serif JP',serif; font-size:14.5px; color:#7c7060;">宴の一覧・開く</div>
+          <div style="width:392px; height:812px; border-radius:42px; overflow:hidden; position:relative; display:flex; flex-direction:column; background:radial-gradient(120% 60% at 50% -6%, #2c2522 0%, #1b1512 54%, #140f0d 100%); box-shadow:0 30px 70px -28px rgba(40,28,16,.55); color:#ece2d2;">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 26px 0; font-size:13px; color:#c9bba6;"><span style="font-weight:500;">1:02</span><span style="display:flex; gap:7px; align-items:center; opacity:.8;"><span style="font-size:11px;">●●●</span><span style="font-size:11px;">▾</span><span>100%</span></span></div>
+            <div style="padding:14px 26px 2px;"><div style="font-family:'Noto Serif JP',serif; font-size:23px; font-weight:600; color:#f3ead9;">宴</div><div style="font-size:11.5px; color:#9a8a6f; margin-top:4px;">ふたりじゃない夜も。</div></div>
+            <div class="scrollhide" style="flex:1; min-height:0; overflow:auto; padding:14px 24px;">
+              <div style="border-radius:20px; border:1px solid rgba(201,180,140,.26); background:rgba(20,15,13,.4); padding:16px; margin-bottom:12px;">
+                <div style="display:flex; align-items:center; gap:12px;">
+                  <div style="display:flex;">
+                    <div style="width:40px; height:40px; border-radius:50%; overflow:hidden; border:2px solid #1b1512;"><img src="assets/shino.png" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 18%;"></div>
+                    <div style="width:40px; height:40px; border-radius:50%; overflow:hidden; border:2px solid #1b1512; margin-left:-14px;"><img src="assets/rei.png" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 16%;"></div>
+                  </div>
+                  <div style="flex:1; min-width:0;">
+                    <div style="font-family:'Noto Serif JP',serif; font-size:16px; color:#f1e7d6;">雨宿りの三人</div>
+                    <div style="font-size:11px; color:#9a8d77; margin-top:3px;">詩乃・玲 ・ 2人の宴 ・ 14回</div>
+                  </div>
+                  <span style="font-size:11px; color:#e7c987;">つづき →</span>
+                </div>
+                <div style="font-size:11.5px; color:#9a8d77; font-style:italic; margin-top:10px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">玲「……で、どっちの隣に座るの？」</div>
+              </div>
+              <div style="border-radius:20px; border:1px solid rgba(201,180,140,.26); background:rgba(20,15,13,.4); padding:16px; margin-bottom:20px;">
+                <div style="display:flex; align-items:center; gap:12px;">
+                  <div style="display:flex;">
+                    <div style="width:40px; height:40px; border-radius:50%; overflow:hidden; border:2px solid #1b1512;"><img src="assets/rei.png" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 30%;"></div>
+                    <div style="width:40px; height:40px; border-radius:50%; overflow:hidden; border:2px solid #1b1512; margin-left:-14px;"><img src="assets/shino.png" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 28%;"></div>
+                  </div>
+                  <div style="flex:1; min-width:0;">
+                    <div style="font-family:'Noto Serif JP',serif; font-size:16px; color:#f1e7d6;">放課後の音楽室</div>
+                    <div style="font-size:11px; color:#9a8d77; margin-top:3px;">澪・ひなた ・ 2人の宴 ・ 3回</div>
+                  </div>
+                  <span style="font-size:11px; color:#e7c987;">つづき →</span>
+                </div>
+              </div>
+              <div style="font-size:11px; letter-spacing:.2em; color:#b79766; margin-bottom:10px;">あたらしい宴 — 誰を呼ぶ？</div>
+              <div style="display:flex; align-items:center; gap:9px; padding:11px 15px; border-radius:20px; background:rgba(20,15,13,.6); border:1px solid rgba(201,180,140,.3); margin-bottom:10px;">
+                <span style="font-size:13px; color:#c9b48c;">⌕</span>
+                <span style="font-size:12.5px; color:#f1e7d6;">れい</span>
+                <span style="display:inline-block; width:2px; height:14px; background:#e7c987; animation:caretBlink 1.1s infinite;"></span>
+                <span style="flex:1;"></span>
+                <span style="font-size:10.5px; color:#8a7f6c;">名前・タグ・雰囲気</span>
+              </div>
+              <div style="font-size:10.5px; color:#8a7f6c; margin-bottom:9px;">「れい」に一致 — タップで宴に追加</div>
+              <div style="display:flex; gap:10px; margin-bottom:12px;">
+                <div style="flex:0 0 auto; text-align:center;"><div style="width:54px; height:54px; border-radius:50%; overflow:hidden; border:2px solid #d6a054;"><img src="assets/shino.png" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 18%;"></div><div style="font-size:10.5px; color:#e7c987; margin-top:5px;">詩乃 ✓</div></div>
+                <div style="flex:0 0 auto; text-align:center;"><div style="width:54px; height:54px; border-radius:50%; overflow:hidden; border:2px solid #d6a054;"><img src="assets/rei.png" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 16%;"></div><div style="font-size:10.5px; color:#e7c987; margin-top:5px;">玲 ✓</div></div>
+                <div style="flex:0 0 auto; text-align:center;"><div style="width:54px; height:54px; border-radius:50%; overflow:hidden; border:1px solid rgba(201,180,140,.3); opacity:.6;"><img src="assets/shino.png" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 30%;"></div><div style="font-size:10.5px; color:#8a7f6c; margin-top:5px;">ひなた</div></div>
+                <div style="flex:0 0 auto; text-align:center;"><div style="width:54px; height:54px; border-radius:50%; border:1px dashed rgba(201,180,140,.4); display:flex; align-items:center; justify-content:center; color:#c9b48c; font-size:18px;">＋</div><div style="font-size:10.5px; color:#8a7f6c; margin-top:5px;">つくる</div></div>
+              </div>
+              <div style="font-size:11px; color:#8a7f6c;">場面はあとから決められます（自由記述もOK）</div>
+            </div>
+            <div style="flex:0 0 auto; padding:12px 24px 26px; background:#160f0d; border-top:1px solid rgba(201,180,140,.12);">
+              <div style="text-align:center; padding:15px 0; border-radius:26px; background:linear-gradient(145deg,#f0d18a,#d6a054); color:#2a1c0c; font-size:14px; font-weight:700;">この2人と宴を開く</div>
+            </div>
+          </div>
+        </div>
+
+        <div data-screen-label="2a 宴チャット">
+          <div data-drags-parent="1" style="margin-bottom:13px; font-family:'Noto Serif JP',serif; font-size:14.5px; color:#7c7060;">宴のチャット — 発言者の区別と間</div>
+          <div style="width:392px; height:812px; border-radius:42px; overflow:hidden; position:relative; display:flex; flex-direction:column; background:radial-gradient(125% 78% at 50% -8%, #2c2522 0%, #1b1512 52%, #140f0d 100%); box-shadow:0 30px 70px -28px rgba(40,28,16,.55); color:#ece2d2;">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 26px 0; font-size:13px; color:#c9bba6;"><span style="font-weight:500;">1:03</span><span style="display:flex; gap:7px; align-items:center; opacity:.8;"><span style="font-size:11px;">●●●</span><span style="font-size:11px;">▾</span><span>100%</span></span></div>
+            <div style="display:flex; align-items:center; gap:12px; padding:12px 22px 12px;">
+              <span style="font-size:22px; color:#b79766;">‹</span>
+              <div style="display:flex;">
+                <div style="width:32px; height:32px; border-radius:50%; overflow:hidden; border:2px solid #1b1512;"><img src="assets/shino.png" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 18%;"></div>
+                <div style="width:32px; height:32px; border-radius:50%; overflow:hidden; border:2px solid #1b1512; margin-left:-12px;"><img src="assets/rei.png" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 16%;"></div>
+              </div>
+              <div style="flex:1; min-width:0;"><div style="font-family:'Noto Serif JP',serif; font-size:16px; font-weight:600; color:#f1e7d6;">雨宿りの三人</div><div style="font-size:10.5px; color:#9a8a6f; margin-top:2px;">詩乃 ・ 玲 ・ あなた</div></div>
+              <span style="width:34px; height:34px; border-radius:50%; border:1px solid rgba(201,180,140,.4); display:flex; align-items:center; justify-content:center; font-size:14px; color:#c9b48c;">⋯</span>
+            </div>
+            <div style="height:1px; margin:0 22px; background:linear-gradient(90deg, transparent, rgba(201,180,140,.28), transparent);"></div>
+            <div class="scrollhide" style="flex:1; min-height:0; overflow:auto; padding:20px 26px 14px;">
+              <p style="margin:0 0 20px; color:#b3a791; line-height:2; font-size:14px;">急な雨。コンビニの軒下で、偶然ふたりと鉢合わせた。</p>
+              <div style="display:flex; gap:11px; margin-bottom:18px;">
+                <div style="flex:0 0 auto; width:36px; height:36px; border-radius:50%; overflow:hidden; border:1px solid rgba(201,180,140,.5);"><img src="assets/shino.png" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 20%;"></div>
+                <div style="flex:1; min-width:0;">
+                  <div style="font-family:'Noto Serif JP',serif; font-size:12.5px; color:#cda86a; margin-bottom:5px;">詩乃</div>
+                  <p style="margin:0; font-family:'Noto Serif JP',serif; font-size:16.5px; line-height:1.85; color:#f3ead9;">「あら……偶然。傘、ないんだ？」</p>
+                </div>
+              </div>
+              <div style="display:flex; gap:11px; margin-bottom:18px;">
+                <div style="flex:0 0 auto; width:36px; height:36px; border-radius:50%; overflow:hidden; border:1px solid rgba(201,180,140,.5);"><img src="assets/rei.png" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 16%;"></div>
+                <div style="flex:1; min-width:0;">
+                  <div style="font-family:'Noto Serif JP',serif; font-size:12.5px; color:#cda86a; margin-bottom:5px;">玲</div>
+                  <p style="margin:0; font-family:'Noto Serif JP',serif; font-size:16.5px; line-height:1.85; color:#f3ead9;">「……先に言っておくけど、私の傘には入れない」</p>
+                  <p style="margin:8px 0 0; padding-left:12px; border-left:1px solid rgba(183,151,102,.35); color:#8c8270; font-style:italic; line-height:1.9; font-size:13px;">＊ほんとうは、少しだけ嬉しい。</p>
+                </div>
+              </div>
+              <div style="margin:0 0 18px;">
+                <div style="text-align:right; font-size:11px; letter-spacing:.14em; color:#8a7f6c; margin-bottom:6px;">あなた</div>
+                <div style="display:flex; justify-content:flex-end;">
+                  <div style="max-width:80%; padding:12px 17px; border-radius:20px 20px 7px 20px; background:linear-gradient(145deg, rgba(214,169,87,.24), rgba(176,125,58,.18)); border:1px solid rgba(201,180,140,.3); color:#f3ead9; font-size:14px; line-height:1.7;">じゃあ、3人で雨宿りだな</div>
+                </div>
+              </div>
+              <div style="display:flex; align-items:center; gap:9px; color:#8a7f6c; font-size:11.5px;">
+                <div style="width:26px; height:26px; border-radius:50%; overflow:hidden; opacity:.8;"><img src="assets/shino.png" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 20%;"></div>
+                詩乃が書いています…
+                <span style="display:inline-block; width:2px; height:12px; background:#e7c987; animation:caretBlink 1.1s infinite;"></span>
+              </div>
+              <div style="display:flex; justify-content:center; margin-top:16px;"><span style="padding:7px 14px; border-radius:15px; border:1px solid rgba(201,180,140,.3); font-size:11px; color:#c9b48c;">◇ 玲に振る ・ 詩乃に振る ・ 成り行きにまかせる</span></div>
+            </div>
+            <div style="flex:0 0 auto; padding:12px 20px 26px; background:#160f0d; border-top:1px solid rgba(201,180,140,.12);">
+              <div style="display:flex; align-items:center; gap:11px;">
+                <div style="flex:1; display:flex; align-items:center; padding:13px 17px; border-radius:24px; background:rgba(20,15,13,.7); border:1px solid rgba(201,180,140,.3); font-size:13px; color:#8a7f6c;">ふたりに話しかける…</div>
+                <div style="flex:0 0 auto; width:44px; height:44px; border-radius:50%; background:linear-gradient(145deg,#f0d18a,#d6a054); display:flex; align-items:center; justify-content:center; color:#2a1c0c; font-size:15px; font-weight:700;">↑</div>
+              </div>
+            </div>
+          </div>
+          <div data-drags-parent="1" style="font-size:11.5px; line-height:1.7; color:#8b8174; margin-top:12px; max-width:360px;">「誰に振るか」を軽く選べるチップで、3人の会話が停滞しない。返答は1人ずつ順に届く（同時に喋らない）。</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══════ 2b ねだる・切替シート ═══════ -->
+    <div id="2b">
+      <div data-drags-parent="1" style="display:flex; align-items:center; gap:12px; margin-bottom:8px;">
+        <span style="display:inline-flex; padding:3px 11px; border-radius:999px; background:#2a241e; color:#e7c987; font-size:12px; font-weight:700;">2b</span>
+        <span style="font-family:'Noto Serif JP',serif; font-size:21px; font-weight:600; color:#2a241e;">ねだるシート ・ キャラ切替シート</span>
+      </div>
+      <div data-drags-parent="1" style="font-size:12.5px; line-height:1.8; color:#7c7266; margin-bottom:22px; max-width:840px;">どちらもチャットを離れないボトムシート。「ねだる」は入力欄横の◆から、切替はヘッダの顔タップから。ねだりは必ず叶うとは限らない＝彼女の気分次第（断られる余地がドキドキを作る）。</div>
+      <div style="display:flex; gap:44px; flex-wrap:wrap; align-items:flex-start;">
+
+        <div data-screen-label="2b ねだるシート">
+          <div data-drags-parent="1" style="margin-bottom:13px; font-family:'Noto Serif JP',serif; font-size:14.5px; color:#7c7060;">ねだる — ことばにする前の、ちいさなお願い</div>
+          <div style="width:392px; height:812px; border-radius:42px; overflow:hidden; position:relative; display:flex; flex-direction:column; background:radial-gradient(125% 78% at 50% -8%, #2c2522 0%, #1b1512 52%, #140f0d 100%); box-shadow:0 30px 70px -28px rgba(40,28,16,.55); color:#ece2d2;">
+            <div style="position:absolute; inset:0; background:rgba(10,7,5,.55); z-index:1;"></div>
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 26px 0; font-size:13px; color:#c9bba6;"><span style="font-weight:500;">1:06</span><span style="display:flex; gap:7px; align-items:center; opacity:.8;"><span style="font-size:11px;">●●●</span><span style="font-size:11px;">▾</span><span>100%</span></span></div>
+            <div style="display:flex; align-items:center; gap:14px; padding:12px 22px;">
+              <span style="font-size:22px; color:#b79766;">‹</span>
+              <div style="width:34px; height:34px; border-radius:50%; overflow:hidden; border:1px solid rgba(201,180,140,.4);"><img src="assets/shino.png" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 20%;"></div>
+              <div style="flex:1;"><div style="font-family:'Noto Serif JP',serif; font-size:16px; font-weight:600; color:#f1e7d6;">詩乃 — 雨夜のひと部屋</div></div>
+            </div>
+            <div style="flex:1; padding:10px 26px; overflow:hidden;">
+              <p style="margin:0; font-family:'Noto Serif JP',serif; font-size:17px; line-height:1.85; color:#f3ead9; opacity:.5;">「今夜は……もう少しだけ、帰らないで」</p>
+            </div>
+            <div style="position:relative; z-index:2; border-radius:26px 26px 0 0; border:1px solid rgba(201,180,140,.3); border-bottom:none; background:rgba(24,18,15,.97); padding:14px 20px 30px; box-shadow:0 -24px 64px rgba(5,3,2,.62);">
+              <div style="width:44px; height:5px; border-radius:3px; background:rgba(201,180,140,.3); margin:0 auto 16px;"></div>
+              <div style="font-family:'Noto Serif JP',serif; font-size:19px; letter-spacing:.16em; color:#f3ead9;">ねだる</div>
+              <div style="font-size:11.5px; color:#9a8d77; margin-top:5px; margin-bottom:16px;">ことばにする前の、ちいさなお願い。</div>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:9px; margin-bottom:14px;">
+                <div style="border-radius:16px; border:1px solid rgba(231,201,135,.4); background:rgba(214,160,84,.12); padding:14px 15px;"><div style="font-size:14px; color:#e7c987;">▣</div><div style="font-size:13px; color:#f1e7d6; margin-top:6px;">いまの顔が見たい</div></div>
+                <div style="border-radius:16px; border:1px solid rgba(201,180,140,.26); background:rgba(20,15,13,.4); padding:14px 15px;"><div style="font-size:14px; color:#c9b48c;">▣</div><div style="font-size:13px; color:#ded2bc; margin-top:6px;">もっと近くで</div></div>
+                <div style="border-radius:16px; border:1px solid rgba(201,180,140,.26); background:rgba(20,15,13,.4); padding:14px 15px;"><div style="font-size:14px; color:#c9b48c;">✎</div><div style="font-size:13px; color:#ded2bc; margin-top:6px;">つづけて</div></div>
+                <div style="border-radius:16px; border:1px solid rgba(201,180,140,.26); background:rgba(20,15,13,.4); padding:14px 15px;"><div style="font-size:14px; color:#c9b48c;">♡</div><div style="font-size:13px; color:#ded2bc; margin-top:6px;">やさしくして</div></div>
+                <div style="border-radius:16px; border:1px solid rgba(201,180,140,.26); background:rgba(20,15,13,.4); padding:14px 15px;"><div style="font-size:14px; color:#c9b48c;">✧</div><div style="font-size:13px; color:#ded2bc; margin-top:6px;">いじわるして</div></div>
+                <div style="border-radius:16px; border:1px dashed rgba(201,180,140,.35); padding:14px 15px;"><div style="font-size:14px; color:#a1907a;">…</div><div style="font-size:13px; color:#a1907a; margin-top:6px;">じぶんのことばで</div></div>
+              </div>
+              <div style="font-size:10.5px; line-height:1.7; color:#7c7060;">叶うかどうかは、彼女の気分次第。</div>
+            </div>
+          </div>
+        </div>
+
+        <div data-screen-label="2b キャラ切替シート">
+          <div data-drags-parent="1" style="margin-bottom:13px; font-family:'Noto Serif JP',serif; font-size:14.5px; color:#7c7060;">キャラ切替 — チャットを離れず乗り換え</div>
+          <div style="width:392px; height:812px; border-radius:42px; overflow:hidden; position:relative; display:flex; flex-direction:column; background:radial-gradient(125% 78% at 50% -8%, #2c2522 0%, #1b1512 52%, #140f0d 100%); box-shadow:0 30px 70px -28px rgba(40,28,16,.55); color:#ece2d2;">
+            <div style="position:absolute; inset:0; background:rgba(10,7,5,.55); z-index:1;"></div>
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 26px 0; font-size:13px; color:#c9bba6;"><span style="font-weight:500;">1:07</span><span style="display:flex; gap:7px; align-items:center; opacity:.8;"><span style="font-size:11px;">●●●</span><span style="font-size:11px;">▾</span><span>100%</span></span></div>
+            <div style="flex:1;"></div>
+            <div style="position:relative; z-index:2; border-radius:26px 26px 0 0; border:1px solid rgba(201,180,140,.3); border-bottom:none; background:rgba(24,18,15,.97); padding:14px 20px 30px; box-shadow:0 -24px 64px rgba(5,3,2,.62);">
+              <div style="width:44px; height:5px; border-radius:3px; background:rgba(201,180,140,.3); margin:0 auto 16px;"></div>
+              <div style="font-size:11.5px; letter-spacing:.18em; color:#9a8d77; margin-bottom:14px;">相手をえらぶ</div>
+              <div style="display:flex; align-items:center; gap:13px; padding:11px 13px; border-radius:16px; border:1px solid rgba(231,201,135,.45); background:rgba(214,160,84,.1); margin-bottom:8px;">
+                <div style="width:44px; height:44px; border-radius:50%; overflow:hidden; border:1px solid rgba(231,201,135,.5);"><img src="assets/shino.png" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 18%;"></div>
+                <div style="flex:1;"><div style="font-family:'Noto Serif JP',serif; font-size:16px; color:#f0dcae;">詩乃</div><div style="font-size:11px; color:#9a8d77; margin-top:2px;">雨夜のひと部屋 ・ 進行中</div></div>
+                <span style="font-size:10px; letter-spacing:.2em; color:#e7c987;">いまここ</span>
+              </div>
+              <div style="display:flex; align-items:center; gap:13px; padding:11px 13px; border-radius:16px; background:rgba(251,247,239,.04); margin-bottom:8px;">
+                <div style="width:44px; height:44px; border-radius:50%; overflow:hidden; border:1px solid rgba(201,180,140,.35);"><img src="assets/rei.png" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 16%;"></div>
+                <div style="flex:1;"><div style="font-family:'Noto Serif JP',serif; font-size:16px; color:#f1e7d6;">玲</div><div style="font-size:11px; color:#9a8d77; margin-top:2px;">「次はいつ会える？」</div></div>
+              </div>
+              <div style="display:flex; align-items:center; gap:13px; padding:11px 13px; border-radius:16px; background:rgba(251,247,239,.04); margin-bottom:8px;">
+                <div style="width:44px; height:44px; border-radius:50%; overflow:hidden; border:1px solid rgba(201,180,140,.35);"><img src="assets/shino.png" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 30%;"></div>
+                <div style="flex:1;"><div style="font-family:'Noto Serif JP',serif; font-size:16px; color:#f1e7d6;">ひなた</div><div style="font-size:11px; color:#9a8d77; margin-top:2px;">「おかえりっ」</div></div>
+              </div>
+              <div style="display:flex; align-items:center; gap:13px; padding:11px 13px; border-radius:16px; border:1px dashed rgba(201,180,140,.3);">
+                <div style="width:44px; height:44px; border-radius:50%; border:1px dashed rgba(201,180,140,.4); display:flex; align-items:center; justify-content:center; color:#c9b48c; font-size:18px;">＋</div>
+                <div style="font-size:13px; color:#c9b48c;">キャラを追加する</div>
+              </div>
+            </div>
+          </div>
+          <div data-drags-parent="1" style="font-size:11.5px; line-height:1.7; color:#8b8174; margin-top:12px; max-width:360px;">「＋キャラを追加する」は 1a の入口（A-1）へ接続。切替候補には最後のひと言を添えて「戻りたくなる」導線に。</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══════ 2c 分岐・写真演出 ═══════ -->
+    <div id="2c">
+      <div data-drags-parent="1" style="display:flex; align-items:center; gap:12px; margin-bottom:8px;">
+        <span style="display:inline-flex; padding:3px 11px; border-radius:999px; background:#2a241e; color:#e7c987; font-size:12px; font-weight:700;">2c</span>
+        <span style="font-family:'Noto Serif JP',serif; font-size:21px; font-weight:600; color:#2a241e;">会話の分岐ツリー ・ 写真が届く演出</span>
+      </div>
+      <div data-drags-parent="1" style="font-size:12.5px; line-height:1.8; color:#7c7266; margin-bottom:22px; max-width:840px;">分岐は「if の栞（しおり）」と呼ぶ。どの発言からでも挟める＝都合の悪い展開はなかったことにできる。写真は3拍の演出（気配→現像→届く）で「もらった」感を作る。</div>
+      <div style="display:flex; gap:44px; flex-wrap:wrap; align-items:flex-start;">
+
+        <div data-screen-label="2c 分岐ツリー">
+          <div data-drags-parent="1" style="margin-bottom:13px; font-family:'Noto Serif JP',serif; font-size:14.5px; color:#7c7060;">分岐 — if の栞</div>
+          <div style="width:392px; height:812px; border-radius:42px; overflow:hidden; position:relative; display:flex; flex-direction:column; background:radial-gradient(120% 60% at 50% -6%, #2c2522 0%, #1b1512 54%, #140f0d 100%); box-shadow:0 30px 70px -28px rgba(40,28,16,.55); color:#ece2d2;">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 26px 0; font-size:13px; color:#c9bba6;"><span style="font-weight:500;">1:09</span><span style="display:flex; gap:7px; align-items:center; opacity:.8;"><span style="font-size:11px;">●●●</span><span style="font-size:11px;">▾</span><span>100%</span></span></div>
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 24px 0;">
+              <span style="font-size:18px; color:#c9b48c;">‹</span>
+              <div style="font-family:'Noto Serif JP',serif; font-size:16px; color:#f3ead9;">雨夜のひと部屋 — if の栞</div>
+              <span style="width:18px;"></span>
+            </div>
+            <div style="padding:8px 26px 4px; font-size:11.5px; line-height:1.7; color:#8a7f6c;">どの夜も、なかったことにできる。栞から別の展開へ。</div>
+            <div class="scrollhide" style="flex:1; min-height:0; overflow:auto; padding:14px 24px;">
+              <div style="position:relative; padding-left:26px;">
+                <div style="position:absolute; left:8px; top:8px; bottom:8px; width:1px; background:rgba(183,151,102,.3);"></div>
+                <div style="position:relative; margin-bottom:18px;">
+                  <span style="position:absolute; left:-23px; top:4px; width:9px; height:9px; border-radius:50%; background:#d6a054; box-shadow:0 0 10px rgba(214,160,84,.6);"></span>
+                  <div style="font-size:10.5px; color:#8a7f6c;">23:12</div>
+                  <div style="font-family:'Noto Serif JP',serif; font-size:13.5px; color:#f1e7d6; margin-top:3px;">「おかえり。……ずっと、待ってたんだよ」</div>
+                </div>
+                <div style="position:relative; margin-bottom:10px;">
+                  <span style="position:absolute; left:-23px; top:4px; width:9px; height:9px; border-radius:50%; background:#d6a054; box-shadow:0 0 10px rgba(214,160,84,.6);"></span>
+                  <div style="font-size:10.5px; color:#8a7f6c;">23:26 ・ 栞のある発言</div>
+                  <div style="font-family:'Noto Serif JP',serif; font-size:13.5px; color:#f1e7d6; margin-top:3px;">「今夜は……もう少しだけ、帰らないで」</div>
+                </div>
+                <div style="position:relative; margin-left:14px; padding-left:18px; border-left:1px dashed rgba(183,151,102,.4); margin-bottom:14px;">
+                  <div style="border-radius:14px; border:1px solid rgba(231,201,135,.45); background:rgba(214,160,84,.12); padding:11px 13px; margin-bottom:9px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;"><span style="font-size:11px; color:#e7c987;">いまのルート</span><span style="font-size:10px; color:#8a7f6c;">つづき 23:41 →</span></div>
+                    <div style="font-size:12px; color:#ded2bc; margin-top:5px;">素直に隣へ。そのまま朝まで——</div>
+                  </div>
+                  <div style="border-radius:14px; border:1px solid rgba(201,180,140,.26); background:rgba(20,15,13,.4); padding:11px 13px; margin-bottom:9px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;"><span style="font-size:11px; color:#c9b48c;">if ・ 6/30に分岐</span><span style="font-size:10px; color:#8a7f6c;">このルートへ →</span></div>
+                    <div style="font-size:12px; color:#b3a791; margin-top:5px;">「帰る」と言ってみた夜。引き留め方が変わる——</div>
+                  </div>
+                  <div style="display:inline-flex; align-items:center; gap:7px; padding:9px 15px; border-radius:16px; border:1px dashed rgba(231,201,135,.4); font-size:11.5px; color:#e7c987;">＋ この発言から、別の夜を</div>
+                </div>
+                <div style="position:relative; margin-bottom:6px;">
+                  <span style="position:absolute; left:-23px; top:4px; width:9px; height:9px; border-radius:50%; background:rgba(201,180,140,.4);"></span>
+                  <div style="font-size:10.5px; color:#8a7f6c;">23:41 ・ いまのルートの続き</div>
+                  <div style="font-family:'Noto Serif JP',serif; font-size:13.5px; color:#cfc2aa; margin-top:3px;">彼女がそっと隣に腰を下ろす。——</div>
+                </div>
+              </div>
+              <div style="font-size:11px; line-height:1.75; color:#7c7060; margin-top:14px;">・栞は発言の長押しメニュー「ここから別の夜を」からも挟める<br>・記憶（◆）はルートをまたいで共有。ルート限定にもできる</div>
+            </div>
+          </div>
+        </div>
+
+        <div data-screen-label="2c 写真が届く演出">
+          <div data-drags-parent="1" style="margin-bottom:13px; font-family:'Noto Serif JP',serif; font-size:14.5px; color:#7c7060;">写真が届く — 3拍の演出（動きの仕様）</div>
+          <div style="width:392px; height:812px; border-radius:42px; overflow:hidden; position:relative; display:flex; flex-direction:column; background:radial-gradient(125% 78% at 50% -8%, #2c2522 0%, #1b1512 52%, #140f0d 100%); box-shadow:0 30px 70px -28px rgba(40,28,16,.55); color:#ece2d2;">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 26px 0; font-size:13px; color:#c9bba6;"><span style="font-weight:500;">1:11</span><span style="display:flex; gap:7px; align-items:center; opacity:.8;"><span style="font-size:11px;">●●●</span><span style="font-size:11px;">▾</span><span>100%</span></span></div>
+            <div style="display:flex; align-items:center; gap:14px; padding:12px 22px;">
+              <span style="font-size:22px; color:#b79766;">‹</span>
+              <div style="width:34px; height:34px; border-radius:50%; overflow:hidden; border:1px solid rgba(201,180,140,.4);"><img src="assets/shino.png" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 20%;"></div>
+              <div style="flex:1;"><div style="font-family:'Noto Serif JP',serif; font-size:16px; font-weight:600; color:#f1e7d6;">詩乃 — 雨夜のひと部屋</div></div>
+            </div>
+            <div class="scrollhide" style="flex:1; min-height:0; overflow:auto; padding:14px 26px;">
+              <div style="display:flex; gap:12px; margin-bottom:18px;">
+                <div style="flex:0 0 auto; width:38px; height:38px; border-radius:50%; overflow:hidden; border:1px solid rgba(201,180,140,.5);"><img src="assets/shino.png" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 20%;"></div>
+                <div style="flex:1; min-width:0;">
+                  <div style="font-family:'Noto Serif JP',serif; font-size:13px; color:#cda86a; margin-bottom:6px;">詩乃</div>
+                  <p style="margin:0 0 10px; font-style:italic; color:#8c8270; font-size:13px; line-height:1.8;">＊ かすかに、シャッターの音。</p>
+                  <div style="position:relative; border-radius:18px; overflow:hidden; border:1px solid rgba(201,180,140,.28); height:230px;">
+                    <img src="assets/shino.png" alt="" style="width:100%; height:100%; object-fit:cover; object-position:50% 14%; filter:blur(14px) brightness(.75); transform:scale(1.06);">
+                    <div style="position:absolute; inset:0; background:linear-gradient(100deg, rgba(214,160,84,0) 40%, rgba(240,220,170,.14) 50%, rgba(214,160,84,0) 60%); background-size:520px 100%; animation:shimmer 1.8s linear infinite;"></div>
+                    <div style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:9px;">
+                      <span style="display:inline-block; width:22px; height:22px; border-radius:50%; border:2px solid rgba(231,201,135,.3); border-top-color:#e7c987; animation:spinSlow 1.1s linear infinite;"></span>
+                      <span style="font-size:11.5px; letter-spacing:.16em; color:#e7d3a6;">現像中…</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div style="font-size:11px; letter-spacing:.2em; color:#b79766; margin:6px 0 10px;">演出の3拍</div>
+              <div style="display:flex; gap:8px; margin-bottom:12px;">
+                <div style="flex:1; border-radius:13px; border:1px solid rgba(201,180,140,.24); background:rgba(20,15,13,.4); padding:11px;"><div style="font-size:10px; letter-spacing:.14em; color:#e7c987;">① 気配 0.8s</div><div style="font-size:10.5px; line-height:1.65; color:#a99c85; margin-top:6px;">「＊シャッターの音」等の描写が先に届く</div></div>
+                <div style="flex:1; border-radius:13px; border:1px solid rgba(201,180,140,.24); background:rgba(20,15,13,.4); padding:11px;"><div style="font-size:10px; letter-spacing:.14em; color:#e7c987;">② 現像 1.5–3s</div><div style="font-size:10.5px; line-height:1.65; color:#a99c85; margin-top:6px;">強ブラー＋琥珀の光が横切る。生成待ちを演出に変換</div></div>
+                <div style="flex:1; border-radius:13px; border:1px solid rgba(201,180,140,.24); background:rgba(20,15,13,.4); padding:11px;"><div style="font-size:10px; letter-spacing:.14em; color:#e7c987;">③ 届く 0.6s</div><div style="font-size:10.5px; line-height:1.65; color:#a99c85; margin-top:6px;">ブラーが上から解け、最後にふわっと発光→添え書き</div></div>
+              </div>
+              <div style="font-size:11px; line-height:1.75; color:#7c7060;">・生成に失敗したら②のまま止めず、C-2の「画像だけ再試行」カードへ差し替え<br>・完成写真は自動でアルバム（D-2）へ</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══════ 2d 入口系 ═══════ -->
+    <div id="2d">
+      <div data-drags-parent="1" style="display:flex; align-items:center; gap:12px; margin-bottom:8px;">
+        <span style="display:inline-flex; padding:3px 11px; border-radius:999px; background:#2a241e; color:#e7c987; font-size:12px; font-weight:700;">2d</span>
+        <span style="font-family:'Noto Serif JP',serif; font-size:21px; font-weight:600; color:#2a241e;">入口系 — プロフィール・オンボーディング・ログイン・法的文章</span>
+      </div>
+      <div data-drags-parent="1" style="font-size:12.5px; line-height:1.8; color:#7c7266; margin-bottom:22px; max-width:860px;">初回の流れ：好みを3タップ → すぐ最初の子に会う（登録は後回し、まず体験）。ログインは復帰用で、メールだけの最小構成。年齢確認は一旦なし（自分たち用のため）。公開時に差し込むならオンボーディングの前。</div>
+      <div style="display:flex; gap:44px; flex-wrap:wrap; align-items:flex-start;">
+
+        <div data-screen-label="2d プロフィール">
+          <div data-drags-parent="1" style="margin-bottom:13px; font-family:'Noto Serif JP',serif; font-size:14.5px; color:#7c7060;">プロフィール — 話す前に、少しだけ知る</div>
+          <div style="width:392px; height:812px; border-radius:42px; overflow:hidden; position:relative; display:flex; flex-direction:column; background:#140f0d; color:#ece2d2;">
+            <div style="position:absolute; top:0; left:0; right:0; height:460px;"><img src="assets/shino.png" alt="詩乃" style="width:100%; height:100%; object-fit:cover; object-position:50% 10%;"><div style="position:absolute; inset:0; background:linear-gradient(180deg, rgba(20,15,13,.35) 0%, rgba(20,15,13,0) 30%, rgba(20,15,13,.55) 72%, #140f0d 100%);"></div></div>
+            <div style="position:relative; display:flex; justify-content:space-between; align-items:center; padding:16px 26px 0; font-size:13px; color:#fff;"><span style="font-weight:500;">1:14</span><span style="display:flex; gap:7px; align-items:center; opacity:.85;"><span style="font-size:11px;">●●●</span><span style="font-size:11px;">▾</span><span>100%</span></span></div>
+            <div style="position:relative; display:flex; justify-content:space-between; align-items:center; padding:12px 22px 0;">
+              <span style="width:36px; height:36px; border-radius:50%; background:rgba(20,15,13,.5); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center; font-size:17px; color:#f3ead9;">‹</span>
+              <span style="width:36px; height:36px; border-radius:50%; background:rgba(20,15,13,.5); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center; font-size:16px; color:#e7c987;">♡</span>
+            </div>
+            <div style="flex:1;"></div>
+            <div style="position:relative; padding:0 26px;">
+              <div style="display:flex; align-items:baseline; gap:10px;"><span style="font-family:'Noto Serif JP',serif; font-size:30px; font-weight:600; color:#fff;">詩乃</span><span style="font-size:13px; color:#e7d3a6;">26</span><span style="padding:3px 9px; border-radius:11px; background:rgba(20,15,13,.55); font-size:10px; color:#e7c987;">公式</span></div>
+              <div style="display:flex; gap:7px; margin-top:10px; flex-wrap:wrap;">
+                <span style="padding:5px 11px; border-radius:13px; background:rgba(20,15,13,.55); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); font-size:11.5px; color:#f3ead9;">年上</span>
+                <span style="padding:5px 11px; border-radius:13px; background:rgba(20,15,13,.55); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); font-size:11.5px; color:#f3ead9;">甘えさせ</span>
+                <span style="padding:5px 11px; border-radius:13px; background:rgba(20,15,13,.55); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); font-size:11.5px; color:#f3ead9;">敬語</span>
+                <span style="padding:5px 11px; border-radius:13px; background:rgba(20,15,13,.55); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); font-size:11.5px; color:#f3ead9;">寂しがり</span>
+              </div>
+              <div style="font-size:12.5px; line-height:1.95; color:#d8cbb4; margin-top:13px;">仕事帰りのあなたを、灯りをひとつ落とした部屋で待つひと。甘やかすのが上手で、甘えるのは下手。夜が深くなるほど、素直になる。</div>
+              <div style="margin-top:13px; padding:13px 16px; border-radius:16px; background:rgba(20,15,13,.55); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); border:1px solid rgba(201,180,140,.28);">
+                <div style="font-size:10px; letter-spacing:.22em; color:#b79766; margin-bottom:6px;">はじまりのひと言</div>
+                <div style="font-family:'Noto Serif JP',serif; font-size:14px; line-height:1.85; color:#f3ead9; font-style:italic;">「おかえりなさい。……傘、持って出なかったでしょう」</div>
+              </div>
+              <div style="display:flex; gap:16px; margin-top:12px; font-size:11px; color:#9a8d77;"><span>3つのシーン</span><span>♡ 1.2万</span><span>あなたと 128回</span></div>
+            </div>
+            <div style="position:relative; display:flex; align-items:center; gap:11px; padding:16px 24px 28px;">
+              <div style="flex:1; text-align:center; padding:15px 0; border-radius:26px; background:linear-gradient(145deg,#f0d18a,#d6a054); color:#2a1c0c; font-size:14px; font-weight:700;">この子と話す →</div>
+            </div>
+          </div>
+        </div>
+
+        <div data-screen-label="2d オンボーディング">
+          <div data-drags-parent="1" style="margin-bottom:13px; font-family:'Noto Serif JP',serif; font-size:14.5px; color:#7c7060;">オンボーディング — 3タップで最初の子へ</div>
+          <div style="width:392px; height:812px; border-radius:42px; overflow:hidden; position:relative; display:flex; flex-direction:column; background:radial-gradient(120% 60% at 50% -6%, #2c2522 0%, #1b1512 52%, #140f0d 100%); box-shadow:0 30px 70px -28px rgba(40,28,16,.55); color:#ece2d2;">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 26px 0; font-size:13px; color:#c9bba6;"><span style="font-weight:500;">1:15</span><span style="display:flex; gap:7px; align-items:center; opacity:.8;"><span style="font-size:11px;">●●●</span><span style="font-size:11px;">▾</span><span>100%</span></span></div>
+            <div style="padding:22px 28px 0;">
+              <div style="font-size:11px; letter-spacing:.22em; color:#b79766;">はじめまして</div>
+              <div style="font-family:'Noto Serif JP',serif; font-size:22px; font-weight:600; color:#f3ead9; margin-top:8px; line-height:1.7;">今夜は、どんなひとに<br>会いたい気分？</div>
+              <div style="font-size:11.5px; color:#8a7f6c; margin-top:8px;">3つ選ぶだけ。あとでいくらでも変えられます。</div>
+            </div>
+            <div class="scrollhide" style="flex:1; min-height:0; overflow:auto; padding:20px 26px;">
+              <div style="font-size:11px; letter-spacing:.2em; color:#b79766; margin-bottom:9px;">距離感</div>
+              <div style="display:flex; gap:8px; margin-bottom:18px;">
+                <span style="flex:1; text-align:center; padding:11px 0; border-radius:15px; background:#d6a054; color:#2a1c0c; font-size:12.5px; font-weight:700;">甘やかされたい</span>
+                <span style="flex:1; text-align:center; padding:11px 0; border-radius:15px; border:1px solid rgba(201,180,140,.3); color:#c9b48c; font-size:12.5px;">攻めたい</span>
+              </div>
+              <div style="font-size:11px; letter-spacing:.2em; color:#b79766; margin-bottom:9px;">相手</div>
+              <div style="display:flex; gap:8px; margin-bottom:18px;">
+                <span style="flex:1; text-align:center; padding:11px 0; border-radius:15px; background:#d6a054; color:#2a1c0c; font-size:12.5px; font-weight:700;">年上</span>
+                <span style="flex:1; text-align:center; padding:11px 0; border-radius:15px; border:1px solid rgba(201,180,140,.3); color:#c9b48c; font-size:12.5px;">同い年</span>
+                <span style="flex:1; text-align:center; padding:11px 0; border-radius:15px; border:1px solid rgba(201,180,140,.3); color:#c9b48c; font-size:12.5px;">年下</span>
+              </div>
+              <div style="font-size:11px; letter-spacing:.2em; color:#b79766; margin-bottom:9px;">ことば</div>
+              <div style="display:flex; gap:8px; margin-bottom:26px;">
+                <span style="flex:1; text-align:center; padding:11px 0; border-radius:15px; border:1px solid rgba(201,180,140,.3); color:#c9b48c; font-size:12.5px;">タメ口</span>
+                <span style="flex:1; text-align:center; padding:11px 0; border-radius:15px; background:#d6a054; color:#2a1c0c; font-size:12.5px; font-weight:700;">敬語</span>
+                <span style="flex:1; text-align:center; padding:11px 0; border-radius:15px; border:1px solid rgba(201,180,140,.3); color:#c9b48c; font-size:12.5px;">どちらでも</span>
+              </div>
+              <div style="border-radius:18px; border:1px solid rgba(231,201,135,.4); background:rgba(214,160,84,.08); padding:15px 17px; display:flex; align-items:center; gap:13px;">
+                <div style="width:46px; height:46px; border-radius:50%; overflow:hidden; border:1px solid rgba(231,201,135,.5);"><img src="assets/shino.png" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 18%;"></div>
+                <div style="flex:1; font-size:12px; line-height:1.7; color:#cbbda3;">あなたの夜を用意しています…<br><b style="color:#f0dcae;">詩乃</b> が待っていそう。</div>
+                <span style="display:inline-block; width:16px; height:16px; border-radius:50%; border:2px solid rgba(231,201,135,.3); border-top-color:#e7c987; animation:spinSlow 1s linear infinite;"></span>
+              </div>
+            </div>
+            <div style="flex:0 0 auto; padding:12px 24px 26px; background:#160f0d; border-top:1px solid rgba(201,180,140,.12);">
+              <div style="text-align:center; padding:15px 0; border-radius:26px; background:linear-gradient(145deg,#f0d18a,#d6a054); color:#2a1c0c; font-size:14px; font-weight:700;">会いに行く →</div>
+              <div style="text-align:center; font-size:11px; color:#7c7060; margin-top:10px;">登録はあとでOK。まず会ってから。</div>
+            </div>
+          </div>
+        </div>
+
+        <div data-screen-label="2d ログイン">
+          <div data-drags-parent="1" style="margin-bottom:13px; font-family:'Noto Serif JP',serif; font-size:14.5px; color:#7c7060;">ログイン — 復帰用の最小構成（＋更新バナー）</div>
+          <div style="width:392px; height:812px; border-radius:42px; overflow:hidden; position:relative; display:flex; flex-direction:column; background:radial-gradient(120% 60% at 50% -6%, #2c2522 0%, #1b1512 52%, #140f0d 100%); box-shadow:0 30px 70px -28px rgba(40,28,16,.55); color:#ece2d2;">
+            <div style="position:absolute; top:-70px; left:50%; transform:translateX(-50%); width:300px; height:230px; background:radial-gradient(closest-side, rgba(214,160,84,.22), rgba(214,160,84,0) 72%); animation:lampGlow 7s ease-in-out infinite;"></div>
+            <div style="flex:1;"></div>
+            <div style="position:relative; padding:0 32px;">
+              <div style="text-align:center; font-family:'Noto Serif JP',serif; font-size:34px; color:#e7c987; text-shadow:0 0 26px rgba(214,160,84,.4);">燈</div>
+              <div style="text-align:center; font-family:'Noto Serif JP',serif; font-size:17px; color:#f3ead9; margin-top:16px;">おかえりなさい</div>
+              <div style="text-align:center; font-size:11.5px; color:#8a7f6c; margin-top:7px;">彼女たちは、ちゃんと覚えています。</div>
+              <div style="display:flex; align-items:center; gap:10px; padding:14px 17px; border-radius:16px; background:rgba(20,15,13,.6); border:1px solid rgba(201,180,140,.3); margin-top:26px;">
+                <span style="font-size:13px; color:#8a7f6c;">メールアドレス</span>
+              </div>
+              <div style="text-align:center; padding:15px 0; border-radius:26px; background:linear-gradient(145deg,#f0d18a,#d6a054); color:#2a1c0c; font-size:14px; font-weight:700; margin-top:13px;">つづける</div>
+              <div style="text-align:center; font-size:11.5px; color:#c9b48c; margin-top:16px;">登録せずにはじめる（この端末にだけ残ります）</div>
+            </div>
+            <div style="flex:1;"></div>
+            <div style="position:relative; margin:0 18px 24px; display:flex; align-items:center; gap:11px; padding:13px 16px; border-radius:18px; background:rgba(24,18,15,.96); border:1px solid rgba(231,201,135,.35); box-shadow:0 14px 40px rgba(0,0,0,.5);">
+              <span style="font-size:14px; color:#e7c987;">✦</span>
+              <div style="flex:1; font-size:11.5px; line-height:1.6; color:#cbbda3;">あたらしい燈があります</div>
+              <span style="padding:8px 15px; border-radius:15px; background:rgba(214,160,84,.22); border:1px solid rgba(231,201,135,.45); font-size:11px; color:#e7c987;">灯し直す</span>
+            </div>
+          </div>
+          <div data-drags-parent="1" style="font-size:11.5px; line-height:1.7; color:#8b8174; margin-top:12px; max-width:360px;">下部はPWA更新バナー（トーストと衝突しない下配置・会話中は出さない）。「登録せずにはじめる」で体験を先に。</div>
+        </div>
+
+        <div data-screen-label="2d 法的文章">
+          <div data-drags-parent="1" style="margin-bottom:13px; font-family:'Noto Serif JP',serif; font-size:14.5px; color:#7c7060;">法的文章 — 読ませる組版</div>
+          <div style="width:392px; height:812px; border-radius:42px; overflow:hidden; position:relative; display:flex; flex-direction:column; background:radial-gradient(120% 60% at 50% -6%, #2c2522 0%, #1b1512 54%, #140f0d 100%); box-shadow:0 30px 70px -28px rgba(40,28,16,.55); color:#ece2d2;">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 26px 0; font-size:13px; color:#c9bba6;"><span style="font-weight:500;">1:17</span><span style="display:flex; gap:7px; align-items:center; opacity:.8;"><span style="font-size:11px;">●●●</span><span style="font-size:11px;">▾</span><span>100%</span></span></div>
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 24px 0;">
+              <span style="display:inline-flex; align-items:center; gap:6px; font-size:12.5px; color:#c9b48c;"><span style="font-size:16px;">‹</span>戻る</span>
+              <div style="font-family:'Noto Serif JP',serif; font-size:16px; color:#f3ead9;">利用規約</div>
+              <span style="width:34px;"></span>
+            </div>
+            <div class="scrollhide" style="flex:1; min-height:0; overflow:auto; padding:20px 28px;">
+              <div style="font-size:10.5px; letter-spacing:.16em; color:#8a7f6c; margin-bottom:18px;">最終更新 2026年6月1日</div>
+              <div style="font-family:'Noto Serif JP',serif; font-size:14.5px; font-weight:600; color:#e7d3a6; margin-bottom:9px;">第1条（適用）</div>
+              <p style="margin:0 0 20px; font-size:12.5px; line-height:2.1; color:#cfc2aa;">本規約は、本サービスの利用に関する条件を、本サービスを利用するすべてのお客様との間で定めるものです。</p>
+              <div style="font-family:'Noto Serif JP',serif; font-size:14.5px; font-weight:600; color:#e7d3a6; margin-bottom:9px;">第2条（年齢制限）</div>
+              <p style="margin:0 0 20px; font-size:12.5px; line-height:2.1; color:#cfc2aa;">本サービスは18歳以上の方のみ利用できます。18歳未満の方の利用は固くお断りします。</p>
+              <div style="font-family:'Noto Serif JP',serif; font-size:14.5px; font-weight:600; color:#e7d3a6; margin-bottom:9px;">第3条（コンテンツの性質）</div>
+              <p style="margin:0 0 20px; font-size:12.5px; line-height:2.1; color:#cfc2aa;">本サービスに登場するキャラクターおよび会話・画像・動画はすべてAIによる創作物であり、実在の人物とは関係ありません。</p>
+              <div style="font-family:'Noto Serif JP',serif; font-size:14.5px; font-weight:600; color:#e7d3a6; margin-bottom:9px;">第4条（禁止事項）</div>
+              <p style="margin:0; font-size:12.5px; line-height:2.1; color:#cfc2aa;">法令または公序良俗に違反する行為、第三者の権利を侵害する行為、……</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══════ 2e 共有・ビューア ═══════ -->
+    <div id="2e">
+      <div data-drags-parent="1" style="display:flex; align-items:center; gap:12px; margin-bottom:8px;">
+        <span style="display:inline-flex; padding:3px 11px; border-radius:999px; background:#2a241e; color:#e7c987; font-size:12px; font-weight:700;">2e</span>
+        <span style="font-family:'Noto Serif JP',serif; font-size:21px; font-weight:600; color:#2a241e;">会話の共有ビュー ・ 全画面ビューア</span>
+      </div>
+      <div data-drags-parent="1" style="font-size:12.5px; line-height:1.8; color:#7c7266; margin-bottom:22px; max-width:840px;">共有は「一夜の栞を渡す」体験。受け手は読むだけ（読み取り専用）、名前や記憶などの個人情報は含めない。ビューアはチャット/アルバム双方から開き、写真と動画で同じ骨格。</div>
+      <div style="display:flex; gap:44px; flex-wrap:wrap; align-items:flex-start;">
+
+        <div data-screen-label="2e 共有ビュー">
+          <div data-drags-parent="1" style="margin-bottom:13px; font-family:'Noto Serif JP',serif; font-size:14.5px; color:#7c7060;">共有ビュー — 受け取った側の見え方</div>
+          <div style="width:392px; height:812px; border-radius:42px; overflow:hidden; position:relative; display:flex; flex-direction:column; background:radial-gradient(125% 78% at 50% -8%, #2c2522 0%, #1b1512 52%, #140f0d 100%); box-shadow:0 30px 70px -28px rgba(40,28,16,.55); color:#ece2d2;">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 26px 0; font-size:13px; color:#c9bba6;"><span style="font-weight:500;">1:19</span><span style="display:flex; gap:7px; align-items:center; opacity:.8;"><span style="font-size:11px;">●●●</span><span style="font-size:11px;">▾</span><span>100%</span></span></div>
+            <div style="margin:12px 20px 0; display:flex; align-items:center; gap:9px; padding:10px 14px; border-radius:14px; background:rgba(214,160,84,.1); border:1px solid rgba(231,201,135,.3); font-size:11.5px; color:#cbbda3;"><span style="color:#e7c987;">❝</span>共有された一夜 — 読むことだけできます</div>
+            <div style="display:flex; align-items:center; gap:12px; padding:14px 22px 10px;">
+              <div style="width:34px; height:34px; border-radius:50%; overflow:hidden; border:1px solid rgba(201,180,140,.4);"><img src="assets/shino.png" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 20%;"></div>
+              <div style="flex:1;"><div style="font-family:'Noto Serif JP',serif; font-size:16px; font-weight:600; color:#f1e7d6;">詩乃 — 雨夜のひと部屋</div><div style="font-size:10.5px; color:#9a8a6f; margin-top:2px;">6月30日の夜 ・ 抜粋</div></div>
+            </div>
+            <div style="height:1px; margin:0 22px; background:linear-gradient(90deg, transparent, rgba(201,180,140,.28), transparent);"></div>
+            <div class="scrollhide" style="flex:1; min-height:0; overflow:auto; padding:20px 26px 14px;">
+              <p style="margin:0 0 20px; color:#b3a791; line-height:2; font-size:14px;">帰宅したあなたを、彼女は灯りをひとつだけ落とした部屋で待っていた。</p>
+              <div style="display:flex; gap:12px; margin-bottom:20px;">
+                <div style="flex:0 0 auto; width:38px; height:38px; border-radius:50%; overflow:hidden; border:1px solid rgba(201,180,140,.5);"><img src="assets/shino.png" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 20%;"></div>
+                <div style="flex:1;">
+                  <div style="font-family:'Noto Serif JP',serif; font-size:13px; color:#cda86a; margin-bottom:6px;">詩乃</div>
+                  <p style="margin:0; font-family:'Noto Serif JP',serif; font-size:17px; line-height:1.85; color:#f3ead9;">「おかえり。……ずっと、待ってたんだよ」</p>
+                </div>
+              </div>
+              <div style="margin-bottom:20px;">
+                <div style="text-align:right; font-size:11px; letter-spacing:.14em; color:#8a7f6c; margin-bottom:6px;">相手</div>
+                <div style="display:flex; justify-content:flex-end;">
+                  <div style="max-width:80%; padding:12px 17px; border-radius:20px 20px 7px 20px; background:linear-gradient(145deg, rgba(214,169,87,.24), rgba(176,125,58,.18)); border:1px solid rgba(201,180,140,.3); color:#f3ead9; font-size:14px; line-height:1.7;">ただいま。……遅くなって、ごめん。</div>
+                </div>
+              </div>
+              <p style="margin:0 0 22px; padding-left:14px; border-left:1px solid rgba(183,151,102,.35); color:#8c8270; font-style:italic; line-height:1.95; font-size:13.5px;">＊この距離が、今日はやけに近い。</p>
+              <div style="text-align:center; font-size:11px; color:#7c7060;">— 抜粋はここまで —</div>
+            </div>
+            <div style="flex:0 0 auto; padding:14px 24px 28px; background:#160f0d; border-top:1px solid rgba(201,180,140,.12);">
+              <div style="text-align:center; padding:15px 0; border-radius:26px; background:linear-gradient(145deg,#f0d18a,#d6a054); color:#2a1c0c; font-size:14px; font-weight:700;">あなたも、あなただけの夜を →</div>
+              <div style="text-align:center; font-size:10.5px; color:#7c7060; margin-top:10px;">共有した側はいつでもリンクを消せます ・ 名前や記憶は含まれません</div>
+            </div>
+          </div>
+        </div>
+
+        <div data-screen-label="2e 全画面ビューア">
+          <div data-drags-parent="1" style="margin-bottom:13px; font-family:'Noto Serif JP',serif; font-size:14.5px; color:#7c7060;">全画面ビューア — 写真・動画共通</div>
+          <div style="width:392px; height:812px; border-radius:42px; overflow:hidden; position:relative; display:flex; flex-direction:column; background:#0d0a08; color:#ece2d2;">
+            <div style="position:absolute; inset:0; display:flex; align-items:center;"><img src="assets/shino.png" alt="" style="width:100%; object-fit:cover;"></div>
+            <div style="position:absolute; top:0; left:0; right:0; height:130px; background:linear-gradient(180deg, rgba(13,10,8,.8), rgba(13,10,8,0));"></div>
+            <div style="position:absolute; bottom:0; left:0; right:0; height:210px; background:linear-gradient(0deg, rgba(13,10,8,.92), rgba(13,10,8,0));"></div>
+            <div style="position:relative; display:flex; justify-content:space-between; align-items:center; padding:16px 26px 0; font-size:13px; color:#e8ddc9;"><span style="font-weight:500;">1:20</span><span style="display:flex; gap:7px; align-items:center; opacity:.85;"><span style="font-size:11px;">●●●</span><span style="font-size:11px;">▾</span><span>100%</span></span></div>
+            <div style="position:relative; display:flex; justify-content:space-between; align-items:center; padding:12px 20px 0;">
+              <span style="width:36px; height:36px; border-radius:50%; background:rgba(13,10,8,.5); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center; font-size:15px; color:#f3ead9;">✕</span>
+              <div style="display:flex; gap:8px;">
+                <span style="width:36px; height:36px; border-radius:50%; background:rgba(13,10,8,.5); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center; font-size:14px; color:#e7c987;">↓</span>
+                <span style="width:36px; height:36px; border-radius:50%; background:rgba(13,10,8,.5); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center; font-size:14px; color:#e7c987;">⋯</span>
+              </div>
+            </div>
+            <div style="flex:1;"></div>
+            <div style="position:relative; padding:0 24px 30px;">
+              <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px;">
+                <div style="width:64px; height:64px; border-radius:14px; background:rgba(13,10,8,.55); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); border:1px solid rgba(231,201,135,.4); display:flex; align-items:center; justify-content:center; font-size:22px; color:#f0dcae;">⏵</div>
+                <div style="flex:1;">
+                  <div style="position:relative; height:4px; border-radius:2px; background:rgba(236,226,210,.25);"><div style="position:absolute; left:0; top:0; bottom:0; width:46%; border-radius:2px; background:#e7c987;"></div><div style="position:absolute; left:46%; top:50%; transform:translate(-50%,-50%); width:13px; height:13px; border-radius:50%; background:#f0d18a; box-shadow:0 1px 6px rgba(0,0,0,.6);"></div></div>
+                  <div style="display:flex; justify-content:space-between; font-size:10.5px; color:#cbbda3; margin-top:7px;"><span>0:11</span><span>0:24</span></div>
+                </div>
+              </div>
+              <div style="display:flex; align-items:center; justify-content:space-between;">
+                <div><div style="font-family:'Noto Serif JP',serif; font-size:14px; color:#f3ead9;">詩乃 ・ 雨夜のひと部屋</div><div style="font-size:10.5px; color:#b8ab94; margin-top:3px; font-style:italic;">＊ こちらをのぞき込んで、いたずらっぽく——</div></div>
+                <span style="flex:0 0 auto; padding:9px 15px; border-radius:16px; background:rgba(13,10,8,.55); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); border:1px solid rgba(231,201,135,.4); font-size:11px; color:#e7c987;">この会話へ →</span>
+              </div>
+            </div>
+          </div>
+          <div data-drags-parent="1" style="font-size:11.5px; line-height:1.7; color:#8b8174; margin-top:12px; max-width:360px;">写真のときは再生UIが消えるだけで同じ骨格。左右スワイプで同じ子の前後の写真へ、下スワイプで閉じる。</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══════ 2f ロゴ ═══════ -->
+    <div id="2f">
+      <div data-drags-parent="1" style="display:flex; align-items:center; gap:12px; margin-bottom:8px;">
+        <span style="display:inline-flex; padding:3px 11px; border-radius:999px; background:#2a241e; color:#e7c987; font-size:12px; font-weight:700;">2f</span>
+        <span style="font-family:'Noto Serif JP',serif; font-size:21px; font-weight:600; color:#2a241e;">ロゴ — 燈（ともしび）</span>
+      </div>
+      <div data-drags-parent="1" style="font-size:12.5px; line-height:1.8; color:#7c7266; margin-bottom:22px; max-width:860px;">シンボルは「夜の部屋にひとつだけ灯る炎」。一見アダルトと分からない静かな佇まい＋「ひかえめな見た目」用のステルスアイコンまで1セット。</div>
+      <div style="display:flex; gap:36px; flex-wrap:wrap; align-items:flex-start;">
+
+        <div style="border-radius:24px; background:#171210; padding:36px 40px; display:flex; flex-direction:column; align-items:center; gap:22px; width:392px;" data-screen-label="2f ロゴ プライマリ">
+          <div style="font-size:10.5px; letter-spacing:.26em; color:#8a7f6c; align-self:flex-start;">PRIMARY MARK</div>
+          <svg width="150" height="150" viewBox="0 0 64 64">
+            <defs>
+              <radialGradient id="lgGlow" cx="50%" cy="42%" r="52%">
+                <stop offset="0%" stop-color="#d6a054" stop-opacity=".34"></stop>
+                <stop offset="100%" stop-color="#d6a054" stop-opacity="0"></stop>
+              </radialGradient>
+              <linearGradient id="lgFlame" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#f4dfa4"></stop>
+                <stop offset="100%" stop-color="#d6a054"></stop>
+              </linearGradient>
+            </defs>
+            <circle cx="32" cy="30" r="30" fill="url(#lgGlow)"></circle>
+            <path d="M32 12 C37 21 44 25.5 44 35 A12 12 0 1 1 20 35 C20 25.5 27 21 32 12 Z" fill="url(#lgFlame)"></path>
+            <path d="M32 26 C34.4 30.5 37.6 32.8 37.6 37.4 A5.6 5.6 0 1 1 26.4 37.4 C26.4 32.8 29.6 30.5 32 26 Z" fill="#171210"></path>
+            <circle cx="32" cy="38.6" r="2.1" fill="#f4dfa4"></circle>
+          </svg>
+          <div style="text-align:center;">
+            <div style="font-family:'Noto Serif JP',serif; font-size:38px; font-weight:600; color:#f3ead9; letter-spacing:.06em;">燈</div>
+            <div style="font-size:10px; letter-spacing:.52em; color:#b79766; margin-top:8px; padding-left:.52em;">TOMOSHIBI</div>
+          </div>
+          <div style="font-size:11px; line-height:1.75; color:#7c7060; text-align:center;">炎の中に「灯芯のしずく」の抜き。<br>暗所では外周のにじみ（glow）を許可。</div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:24px; width:392px;">
+          <div style="border-radius:24px; background:#f0ebe0; border:1px solid #e2dbcd; padding:28px 30px;" data-screen-label="2f アプリアイコン">
+            <div style="font-size:10.5px; letter-spacing:.26em; color:#9a8f80; margin-bottom:18px;">APP ICON ・ サイズ耐性</div>
+            <div style="display:flex; align-items:flex-end; gap:20px;">
+              <div style="text-align:center;">
+                <div style="width:110px; height:110px; border-radius:26px; background:radial-gradient(120% 100% at 50% -12%, #33291f 0%, #191310 58%, #120d0b 100%); display:flex; align-items:center; justify-content:center; box-shadow:0 14px 30px -14px rgba(40,28,16,.5);">
+                  <svg width="66" height="66" viewBox="0 0 64 64"><circle cx="32" cy="30" r="30" fill="url(#lgGlow)"></circle><path d="M32 12 C37 21 44 25.5 44 35 A12 12 0 1 1 20 35 C20 25.5 27 21 32 12 Z" fill="url(#lgFlame)"></path><path d="M32 26 C34.4 30.5 37.6 32.8 37.6 37.4 A5.6 5.6 0 1 1 26.4 37.4 C26.4 32.8 29.6 30.5 32 26 Z" fill="#191310"></path><circle cx="32" cy="38.6" r="2.1" fill="#f4dfa4"></circle></svg>
+                </div>
+                <div style="font-size:10px; color:#9a8f80; margin-top:8px;">180px</div>
+              </div>
+              <div style="text-align:center;">
+                <div style="width:64px; height:64px; border-radius:16px; background:radial-gradient(120% 100% at 50% -12%, #33291f 0%, #191310 58%, #120d0b 100%); display:flex; align-items:center; justify-content:center;">
+                  <svg width="42" height="42" viewBox="0 0 64 64"><path d="M32 12 C37 21 44 25.5 44 35 A12 12 0 1 1 20 35 C20 25.5 27 21 32 12 Z" fill="url(#lgFlame)"></path><path d="M32 26 C34.4 30.5 37.6 32.8 37.6 37.4 A5.6 5.6 0 1 1 26.4 37.4 C26.4 32.8 29.6 30.5 32 26 Z" fill="#191310"></path></svg>
+                </div>
+                <div style="font-size:10px; color:#9a8f80; margin-top:8px;">64px</div>
+              </div>
+              <div style="text-align:center;">
+                <div style="width:34px; height:34px; border-radius:9px; background:#191310; display:flex; align-items:center; justify-content:center;">
+                  <svg width="24" height="24" viewBox="0 0 64 64"><path d="M32 12 C37 21 44 25.5 44 35 A12 12 0 1 1 20 35 C20 25.5 27 21 32 12 Z" fill="#e7c987"></path></svg>
+                </div>
+                <div style="font-size:10px; color:#9a8f80; margin-top:8px;">34px<br>単色化</div>
+              </div>
+            </div>
+          </div>
+          <div style="border-radius:24px; background:#f0ebe0; border:1px solid #e2dbcd; padding:28px 30px;" data-screen-label="2f ステルスアイコン">
+            <div style="font-size:10.5px; letter-spacing:.26em; color:#9a8f80; margin-bottom:18px;">STEALTH ・「ひかえめな見た目」用</div>
+            <div style="display:flex; align-items:center; gap:20px;">
+              <div style="text-align:center;">
+                <div style="width:80px; height:80px; border-radius:19px; background:#5b6470; display:flex; align-items:center; justify-content:center;">
+                  <svg width="40" height="40" viewBox="0 0 40 40"><rect x="9" y="7" width="22" height="26" rx="4" fill="#eceef1"></rect><line x1="14" y1="14" x2="26" y2="14" stroke="#aab2bd" stroke-width="2" stroke-linecap="round"></line><line x1="14" y1="20" x2="26" y2="20" stroke="#aab2bd" stroke-width="2" stroke-linecap="round"></line><line x1="14" y1="26" x2="21" y2="26" stroke="#d6a054" stroke-width="2" stroke-linecap="round"></line></svg>
+                </div>
+                <div style="font-size:10px; color:#9a8f80; margin-top:8px;">「メモ」</div>
+              </div>
+              <div style="flex:1; font-size:11.5px; line-height:1.85; color:#7c7266;">ホーム画面では無地のメモ帳アプリに擬態。最後の1本線だけ琥珀＝知っている人にだけわかる灯り。名前・通知文言も中立に。</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="border-radius:24px; background:#171210; padding:28px 30px; width:392px; display:flex; flex-direction:column; gap:18px;" data-screen-label="2f ロックアップ">
+          <div style="font-size:10.5px; letter-spacing:.26em; color:#8a7f6c;">LOCKUP ・ 使用例</div>
+          <div style="display:flex; align-items:center; gap:13px; padding:14px 18px; border-radius:16px; background:rgba(20,15,13,.5); border:1px solid rgba(201,180,140,.2);">
+            <svg width="30" height="30" viewBox="0 0 64 64"><path d="M32 12 C37 21 44 25.5 44 35 A12 12 0 1 1 20 35 C20 25.5 27 21 32 12 Z" fill="url(#lgFlame)"></path><path d="M32 26 C34.4 30.5 37.6 32.8 37.6 37.4 A5.6 5.6 0 1 1 26.4 37.4 C26.4 32.8 29.6 30.5 32 26 Z" fill="#171210"></path></svg>
+            <span style="font-family:'Noto Serif JP',serif; font-size:20px; font-weight:600; color:#f3ead9; letter-spacing:.08em;">燈</span>
+            <span style="font-size:9px; letter-spacing:.4em; color:#b79766; margin-top:6px;">TOMOSHIBI</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:13px; padding:14px 18px; border-radius:16px; background:#f0ebe0;">
+            <svg width="30" height="30" viewBox="0 0 64 64"><path d="M32 12 C37 21 44 25.5 44 35 A12 12 0 1 1 20 35 C20 25.5 27 21 32 12 Z" fill="#b08545"></path><path d="M32 26 C34.4 30.5 37.6 32.8 37.6 37.4 A5.6 5.6 0 1 1 26.4 37.4 C26.4 32.8 29.6 30.5 32 26 Z" fill="#f0ebe0"></path></svg>
+            <span style="font-family:'Noto Serif JP',serif; font-size:20px; font-weight:600; color:#2a241e; letter-spacing:.08em;">燈</span>
+            <span style="font-size:9px; letter-spacing:.4em; color:#9a8f80; margin-top:6px;">TOMOSHIBI</span>
+          </div>
+          <div style="font-size:11px; line-height:1.8; color:#7c7060;">・明地では琥珀を1段深く（#b08545）<br>・グロー（にじみ）は暗地のみ・最小サイズでは炎を単色シルエット化<br>・ワードマークは Noto Serif JP 600 ＋ 欧文は字間 .4em</div>
+        </div>
+
+      </div>
+    </div>
+
+  </section>
+
+
+  <section style="display:flex; flex-direction:column; gap:60px;">
+
+    <div style="max-width:920px;" data-drags-parent="1">
+      <div style="font-family:'Noto Serif JP',serif; font-size:13px; letter-spacing:.34em; color:#9a8f80; text-transform:uppercase;">adult-ai-app / create flow &amp; system screens</div>
+      <div style="font-family:'Noto Serif JP',serif; font-size:34px; font-weight:600; color:#2a241e; margin-top:10px;">「つくる」再設計 ＋ 未デザイン画面</div>
+      <div style="font-size:13.5px; line-height:2; color:#6f665b; margin-top:12px;">「つくる」は<b style="color:#3a3025;">自分だけのキャラをゼロから生む導線</b>（さがすで選んだ子の振る舞い指定ではない）。構成違いで <a href="#1a" style="color:#b08545;">1a 対話型</a> / <a href="#1b" style="color:#b08545;">1b ウィザード型</a> の2案。どちらも最後は同じプレビューに合流し、手直し→保存→即チャット。<br>入口のおすすめ：<b style="color:#3a3025;">マイタブの主役CTA＋ホーム最下部の控えめな1行</b>の2箇所。さがすタブには置かない（既存の子えらびと混ざるため）。性的特徴は折りたたみ<b style="color:#3a3025;">「秘めた面」</b>方式（要約→タップで全文）。<a href="#1c" style="color:#b08545;">1c</a> は異常系とSSEストリーミング、<a href="#1d" style="color:#b08545;">1d</a> はアルバム・記憶・シーン・編集・履歴・設定。</div>
+    </div>
+
+    <!-- ═══════════════ 1a 案1 対話でつくる ═══════════════ -->
+    <div id="1a">
+      <div data-drags-parent="1" style="display:flex; align-items:center; gap:12px; margin-bottom:8px;">
+        <span style="display:inline-flex; padding:3px 11px; border-radius:999px; background:#2a241e; color:#e7c987; font-size:12px; font-weight:700;">1a</span>
+        <span style="font-family:'Noto Serif JP',serif; font-size:21px; font-weight:600; color:#2a241e;">案1 — 対話でつくる（ルート分岐型）</span>
+      </div>
+      <div data-drags-parent="1" style="font-size:12.5px; line-height:1.8; color:#7c7266; margin-bottom:22px; max-width:840px;">入口で「話す・貼る・えらぶ」に分岐。おまかせはAIがヒアリングしながら意図を汲み、シナリオ投入は貼った物語から登場人物・関係・振る舞いまで丸ごと組み立てる。どのルートも同じプレビューに合流。</div>
+      <div style="display:flex; gap:44px; flex-wrap:wrap; align-items:flex-start;">
+
+        <!-- A-1 入口 -->
+        <div data-screen-label="1a A1 つくる入口">
+          <div data-drags-parent="1" style="margin-bottom:13px; font-family:'Noto Serif JP',serif; font-size:14.5px; color:#7c7060;">A-1 入口 — 3ルート</div>
+          <div style="width:392px; height:812px; border-radius:42px; overflow:hidden; position:relative; display:flex; flex-direction:column; background:radial-gradient(120% 60% at 50% -6%, #2c2522 0%, #1b1512 52%, #140f0d 100%); box-shadow:0 30px 70px -28px rgba(40,28,16,.55); color:#ece2d2;">
+            <div style="position:absolute; top:-90px; left:50%; transform:translateX(-50%); width:340px; height:260px; background:radial-gradient(closest-side, rgba(214,160,84,.26), rgba(214,160,84,0) 72%); animation:lampGlow 7s ease-in-out infinite; pointer-events:none;"></div>
+            <div style="position:relative; display:flex; justify-content:space-between; align-items:center; padding:16px 26px 0; font-size:13px; color:#c9bba6;"><span style="font-weight:500;">0:04</span><span style="display:flex; gap:7px; align-items:center; opacity:.8;"><span style="font-size:11px;">●●●</span><span style="font-size:11px;">▾</span><span>100%</span></span></div>
+            <div style="position:relative; display:flex; align-items:center; justify-content:space-between; padding:14px 24px 0;">
+              <span style="font-size:18px; color:#c9b48c;">‹</span>
+              <div style="font-family:'Noto Serif JP',serif; font-size:16px; color:#f3ead9;">あたらしい相手をつくる</div>
+              <span style="width:18px;"></span>
+            </div>
+            <div style="position:relative; padding:20px 26px 6px; font-family:'Noto Serif JP',serif; font-size:13.5px; line-height:2; color:#b3a791;">この世のどこにもいない、<br>あなただけの子を。</div>
+            <div class="scrollhide" style="position:relative; flex:1; min-height:0; overflow:auto; padding:14px 24px; display:flex; flex-direction:column; gap:14px;">
+              <div style="position:relative; border-radius:22px; border:1px solid rgba(231,201,135,.45); background:linear-gradient(150deg, rgba(214,160,84,.2), rgba(214,160,84,.05)); padding:20px;">
+                <div style="position:absolute; top:14px; right:16px; padding:4px 10px; border-radius:11px; background:rgba(231,201,135,.18); font-size:10.5px; color:#e7c987;">いちばんかんたん</div>
+                <div style="font-size:20px; color:#e7c987;">✦</div>
+                <div style="font-family:'Noto Serif JP',serif; font-size:18px; font-weight:600; color:#f6e6c4; margin-top:9px;">おまかせでつくる</div>
+                <div style="font-size:12px; line-height:1.8; color:#cbbda3; margin-top:7px;">話しながら決める。ぼんやりしたイメージでも、こちらから聞きながら形にします。</div>
+              </div>
+              <div style="border-radius:22px; border:1px solid rgba(201,180,140,.3); background:rgba(20,15,13,.35); padding:20px;">
+                <div style="font-size:20px; color:#c9b48c;">❝</div>
+                <div style="font-family:'Noto Serif JP',serif; font-size:18px; font-weight:600; color:#f1e7d6; margin-top:9px;">シナリオからつくる</div>
+                <div style="font-size:12px; line-height:1.8; color:#a99c85; margin-top:7px;">好きな物語や設定を貼り付けるだけ。登場人物・関係・振る舞いまで、その世界の子として組み立てます。</div>
+              </div>
+              <div style="border-radius:22px; border:1px solid rgba(201,180,140,.3); background:rgba(20,15,13,.35); padding:20px;">
+                <div style="font-size:20px; color:#c9b48c;">◇</div>
+                <div style="font-family:'Noto Serif JP',serif; font-size:18px; font-weight:600; color:#f1e7d6; margin-top:9px;">こだわってつくる</div>
+                <div style="font-size:12px; line-height:1.8; color:#a99c85; margin-top:7px;">タイプ・関係・性格・体型をえらんで指定。細部まで自分で決めたい人に。</div>
+              </div>
+              <div style="text-align:center; font-size:11.5px; color:#8a7f6c; padding:6px 0 2px;">どのルートでも、最後にぜんぶ手直しできます ・ 2回目からは前回のルートをすぐ開きます</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- A-2 ヒアリング -->
+        <div data-screen-label="1a A2 おまかせヒアリング">
+          <div data-drags-parent="1" style="margin-bottom:13px; font-family:'Noto Serif JP',serif; font-size:14.5px; color:#7c7060;">A-2 おまかせ — AIヒアリング</div>
+          <div style="width:392px; height:812px; border-radius:42px; overflow:hidden; position:relative; display:flex; flex-direction:column; background:radial-gradient(120% 60% at 50% -6%, #2c2522 0%, #1b1512 52%, #140f0d 100%); box-shadow:0 30px 70px -28px rgba(40,28,16,.55); color:#ece2d2;">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 26px 0; font-size:13px; color:#c9bba6;"><span style="font-weight:500;">0:05</span><span style="display:flex; gap:7px; align-items:center; opacity:.8;"><span style="font-size:11px;">●●●</span><span style="font-size:11px;">▾</span><span>100%</span></span></div>
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 24px 0;">
+              <span style="font-size:18px; color:#c9b48c;">‹</span>
+              <div style="font-family:'Noto Serif JP',serif; font-size:16px; color:#f3ead9;">おまかせでつくる</div>
+              <span style="font-size:11.5px; color:#c9b48c;">もう作って</span>
+            </div>
+            <div class="scrollhide" style="flex:1; min-height:0; overflow:auto; padding:20px 24px 12px;">
+              <div style="display:flex; gap:11px; margin-bottom:20px;">
+                <div style="flex:0 0 auto; width:34px; height:34px; border-radius:50%; border:1px solid rgba(231,201,135,.5); display:flex; align-items:center; justify-content:center; color:#e7c987; font-size:15px; background:rgba(214,160,84,.12);">✦</div>
+                <div style="flex:1; padding:13px 16px; border-radius:18px 18px 18px 5px; background:rgba(214,160,84,.12); border:1px solid rgba(214,160,84,.26); font-size:13px; line-height:1.85; color:#f1e7d6;">どんな子に会いたい？ 思いつくまま教えて。雰囲気だけでも大丈夫。</div>
+              </div>
+              <div style="display:flex; justify-content:flex-end; margin-bottom:20px;">
+                <div style="max-width:82%; padding:12px 16px; border-radius:20px 20px 7px 20px; background:linear-gradient(145deg, rgba(214,169,87,.24), rgba(176,125,58,.18)); border:1px solid rgba(201,180,140,.3); font-size:13px; line-height:1.8; color:#f3ead9;">疲れて帰ったときに全部受け止めてくれる年上の人。ちょっと寂しがりで、夜だけ甘え方が変わる感じ</div>
+              </div>
+              <div style="display:flex; gap:11px; margin-bottom:14px;">
+                <div style="flex:0 0 auto; width:34px; height:34px; border-radius:50%; border:1px solid rgba(231,201,135,.5); display:flex; align-items:center; justify-content:center; color:#e7c987; font-size:15px; background:rgba(214,160,84,.12);">✦</div>
+                <div style="flex:1; padding:13px 16px; border-radius:18px 18px 18px 5px; background:rgba(214,160,84,.12); border:1px solid rgba(214,160,84,.26); font-size:13px; line-height:1.85; color:#f1e7d6;">いいね。包容力があって、夜だけ素直になる年上の人。<br>ひとつだけ——ふたりの<b style="color:#f0dcae;">関係</b>は？<span style="display:inline-block; width:2px; height:15px; background:#e7c987; vertical-align:-2px; margin-left:2px; animation:caretBlink 1.1s infinite;"></span></div>
+              </div>
+              <div style="display:flex; flex-wrap:wrap; gap:8px; padding-left:45px; margin-bottom:18px;">
+                <span style="padding:8px 15px; border-radius:17px; border:1px solid rgba(231,201,135,.45); color:#e7c987; font-size:12.5px; background:rgba(20,15,13,.4);">恋人</span>
+                <span style="padding:8px 15px; border-radius:17px; border:1px solid rgba(201,180,140,.3); color:#c9b48c; font-size:12.5px;">人妻</span>
+                <span style="padding:8px 15px; border-radius:17px; border:1px solid rgba(201,180,140,.3); color:#c9b48c; font-size:12.5px;">幼なじみ</span>
+                <span style="padding:8px 15px; border-radius:17px; border:1px solid rgba(201,180,140,.3); color:#c9b48c; font-size:12.5px;">職場の先輩</span>
+                <span style="padding:8px 15px; border-radius:17px; border:1px dashed rgba(201,180,140,.35); color:#a1907a; font-size:12.5px;">自由に書く…</span>
+              </div>
+              <div style="text-align:center; font-size:11px; color:#8a7f6c;">あと1〜2問で組み立てられます ・ 右上「もう作って」でいつでも生成へ</div>
+            </div>
+            <div style="flex:0 0 auto; padding:12px 20px 26px; background:#160f0d; border-top:1px solid rgba(201,180,140,.12);">
+              <div style="display:flex; align-items:center; gap:11px;">
+                <div style="flex:1; display:flex; align-items:center; padding:13px 17px; border-radius:24px; background:rgba(20,15,13,.7); border:1px solid rgba(201,180,140,.3); font-size:13px; color:#8a7f6c;">ことばで答える…</div>
+                <div style="flex:0 0 auto; width:44px; height:44px; border-radius:50%; background:linear-gradient(145deg,#f0d18a,#d6a054); display:flex; align-items:center; justify-content:center; color:#2a1c0c; font-size:15px; font-weight:700;">↑</div>
+              </div>
+            </div>
+          </div>
+          <div data-drags-parent="1" style="font-size:11.5px; line-height:1.7; color:#8b8174; margin-top:12px; max-width:360px;">質問はチップでも自由記述でも答えられる。「もう作って」で途中でも生成に進める＝尋問にならない。</div>
+        </div>
+
+        <!-- A-3 シナリオ投入 -->
+        <div data-screen-label="1a A3 シナリオからつくる">
+          <div data-drags-parent="1" style="margin-bottom:13px; font-family:'Noto Serif JP',serif; font-size:14.5px; color:#7c7060;">A-3 シナリオファースト — 貼って組み立て</div>
+          <div style="width:392px; height:812px; border-radius:42px; overflow:hidden; position:relative; display:flex; flex-direction:column; background:radial-gradient(120% 60% at 50% -6%, #2c2522 0%, #1b1512 52%, #140f0d 100%); box-shadow:0 30px 70px -28px rgba(40,28,16,.55); color:#ece2d2;">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 26px 0; font-size:13px; color:#c9bba6;"><span style="font-weight:500;">0:07</span><span style="display:flex; gap:7px; align-items:center; opacity:.8;"><span style="font-size:11px;">●●●</span><span style="font-size:11px;">▾</span><span>100%</span></span></div>
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 24px 0;">
+              <span style="font-size:18px; color:#c9b48c;">‹</span>
+              <div style="font-family:'Noto Serif JP',serif; font-size:16px; color:#f3ead9;">シナリオからつくる</div>
+              <span style="width:18px;"></span>
+            </div>
+            <div class="scrollhide" style="flex:1; min-height:0; overflow:auto; padding:18px 24px 14px;">
+              <div style="font-size:11px; letter-spacing:.2em; color:#b79766; margin-bottom:10px;">展開したい物語・設定を貼り付け</div>
+              <div style="border-radius:18px; background:rgba(20,15,13,.6); border:1px solid rgba(201,180,140,.3); padding:16px 17px; font-size:13px; line-height:1.95; color:#ded2bc; min-height:190px;">週に二度、彼女は家庭教師として俺の部屋に来る。教科書よりも近い距離。消しゴムを取る指が、今日はやけにゆっくりで——「……ここ、まちがえてる」と囁く声が、いつもより低い。<span style="display:inline-block; width:2px; height:15px; background:#e7c987; vertical-align:-2px; animation:caretBlink 1.1s infinite;"></span></div>
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; margin-bottom:20px;">
+                <span style="font-size:11px; color:#8a7f6c;">途中まででも、あらすじだけでも大丈夫</span>
+                <span style="font-size:11px; color:#8a7f6c;">412字</span>
+              </div>
+              <div style="font-size:11px; letter-spacing:.2em; color:#b79766; margin-bottom:10px;">読み取り中…</div>
+              <div style="border-radius:18px; border:1px solid rgba(201,180,140,.22); background:rgba(20,15,13,.35); padding:15px 17px; display:flex; flex-direction:column; gap:11px;">
+                <div style="display:flex; align-items:center; gap:10px; font-size:12.5px; color:#d9c9a8;"><span style="color:#a8c69a;">✓</span>登場人物 — <b style="color:#f1e7d6;">三嶋 綾</b>（26・家庭教師）</div>
+                <div style="display:flex; align-items:center; gap:10px; font-size:12.5px; color:#d9c9a8;"><span style="color:#a8c69a;">✓</span>あなたの役 — 教え子</div>
+                <div style="display:flex; align-items:center; gap:10px; font-size:12.5px; color:#d9c9a8;"><span style="color:#a8c69a;">✓</span>はじまりの場面 — 授業のあと、ふたりきりの部屋</div>
+                <div style="display:flex; align-items:center; gap:10px; font-size:12.5px; color:#b79766;"><span style="display:inline-block; width:13px; height:13px; border-radius:50%; border:2px solid rgba(231,201,135,.35); border-top-color:#e7c987; animation:spinSlow 1s linear infinite;"></span>性格・口調・秘めた面を組み立てています…</div>
+              </div>
+              <div style="font-size:11.5px; line-height:1.75; color:#8a7f6c; margin-top:14px;">物語の続きから始めることも、同じ子と別の場面から始めることもできます。</div>
+            </div>
+            <div style="flex:0 0 auto; padding:12px 24px 26px; background:#160f0d; border-top:1px solid rgba(201,180,140,.12);">
+              <div style="text-align:center; padding:15px 0; border-radius:26px; background:rgba(214,160,84,.25); color:#e0cba0; font-size:14px; font-weight:700;">組み立てています…</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- A-4 プレビュー -->
+        <div data-screen-label="1a A4 生成プレビュー">
+          <div data-drags-parent="1" style="margin-bottom:13px; font-family:'Noto Serif JP',serif; font-size:14.5px; color:#7c7060;">A-4 プレビュー — 合流点（全ルート共通）</div>
+          <div style="width:392px; height:812px; border-radius:42px; overflow:hidden; position:relative; display:flex; flex-direction:column; background:radial-gradient(120% 60% at 50% -6%, #2c2522 0%, #1b1512 52%, #140f0d 100%); box-shadow:0 30px 70px -28px rgba(40,28,16,.55); color:#ece2d2;">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 26px 0; font-size:13px; color:#c9bba6;"><span style="font-weight:500;">0:08</span><span style="display:flex; gap:7px; align-items:center; opacity:.8;"><span style="font-size:11px;">●●●</span><span style="font-size:11px;">▾</span><span>100%</span></span></div>
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 24px 0;">
+              <span style="font-size:18px; color:#c9b48c;">‹</span>
+              <div style="font-family:'Noto Serif JP',serif; font-size:16px; color:#f3ead9;">できあがり</div>
+              <span style="font-size:11.5px; color:#c9b48c;">細かく編集</span>
+            </div>
+            <div class="scrollhide" style="flex:1; min-height:0; overflow:auto; padding:16px 24px 14px;">
+              <div style="position:relative; border-radius:22px; overflow:hidden; border:1px solid rgba(201,180,140,.3); margin-bottom:14px;">
+                <img src="assets/rei.png" alt="綾" style="display:block; width:100%; height:250px; object-fit:cover; object-position:50% 12%;">
+                <div style="position:absolute; inset:0; background:linear-gradient(180deg, rgba(20,15,13,0) 45%, rgba(20,15,13,.88));"></div>
+                <div style="position:absolute; left:16px; bottom:14px; display:flex; align-items:baseline; gap:9px;"><span style="font-family:'Noto Serif JP',serif; font-size:24px; font-weight:600; color:#fbf3e4;">綾</span><span style="font-size:12px; color:#e0cba0;">26 ・ 家庭教師</span></div>
+                <div style="position:absolute; right:12px; bottom:12px; display:flex; gap:7px;">
+                  <span style="padding:6px 11px; border-radius:14px; background:rgba(20,15,13,.55); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); font-size:11px; color:#e7c987;">↻ 別の顔</span>
+                  <span style="padding:6px 11px; border-radius:14px; background:rgba(20,15,13,.55); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); font-size:11px; color:#e7c987;">自分の画像</span>
+                </div>
+              </div>
+              <div style="display:flex; flex-wrap:wrap; gap:7px; margin-bottom:16px;">
+                <span style="padding:5px 11px; border-radius:13px; background:rgba(214,160,84,.16); border:1px solid rgba(231,201,135,.35); font-size:11px; color:#f0dcae;">年上</span>
+                <span style="padding:5px 11px; border-radius:13px; background:rgba(214,160,84,.16); border:1px solid rgba(231,201,135,.35); font-size:11px; color:#f0dcae;">家庭教師</span>
+                <span style="padding:5px 11px; border-radius:13px; background:rgba(214,160,84,.16); border:1px solid rgba(231,201,135,.35); font-size:11px; color:#f0dcae;">敬語まじり</span>
+                <span style="padding:5px 11px; border-radius:13px; background:rgba(214,160,84,.16); border:1px solid rgba(231,201,135,.35); font-size:11px; color:#f0dcae;">主導権を握る</span>
+              </div>
+              <div style="font-size:11px; letter-spacing:.2em; color:#b79766; margin-bottom:7px;">性格・見た目</div>
+              <div style="font-size:12.5px; line-height:1.9; color:#cfc2aa; margin-bottom:16px;">落ち着いた物腰の家庭教師。授業中は端正な敬語、ふたりきりになると声がすこし低くなる。距離の詰め方が静かで、気づいたときには逃げ場がない。</div>
+              <div style="font-size:11px; letter-spacing:.2em; color:#b79766; margin-bottom:7px;">シナリオ</div>
+              <div style="font-size:12.5px; line-height:1.9; color:#cfc2aa; margin-bottom:16px;">週に二度の授業。今日の課題が終わったあと、彼女はノートを閉じずにあなたを見ている——貼り付けた物語の続きから始まります。</div>
+              <div style="font-size:11px; letter-spacing:.2em; color:#b79766; margin-bottom:7px;">はじまりのひと言</div>
+              <div style="font-family:'Noto Serif JP',serif; font-size:15px; line-height:1.9; color:#f3ead9; font-style:italic; margin-bottom:16px;">「……今日は、集中できてなかったね。理由、聞いてもいい？」</div>
+              <div style="border-radius:16px; border:1px dashed rgba(201,180,140,.35); padding:13px 16px; margin-bottom:18px;">
+                <div style="display:flex; align-items:center; justify-content:space-between;">
+                  <span style="font-size:12px; color:#c9b48c;">秘めた面 — 焦らし好き、主導権を…</span>
+                  <span style="font-size:11px; color:#8a7f6c;">タップで全文 ▸</span>
+                </div>
+              </div>
+              <div style="display:flex; align-items:center; gap:9px; margin-bottom:6px;">
+                <div style="flex:1; display:flex; align-items:center; padding:11px 15px; border-radius:20px; background:rgba(20,15,13,.6); border:1px solid rgba(201,180,140,.3); font-size:12px; color:#8a7f6c;">例: もっと強気に、呼び方は「先生」…</div>
+                <span style="flex:0 0 auto; padding:11px 16px; border-radius:20px; border:1px solid rgba(231,201,135,.45); color:#e7c987; font-size:12px;">↻ 直す</span>
+              </div>
+            </div>
+            <div style="flex:0 0 auto; padding:12px 24px 26px; background:#160f0d; border-top:1px solid rgba(201,180,140,.12);">
+              <div style="text-align:center; padding:15px 0; border-radius:26px; background:linear-gradient(145deg,#f0d18a,#d6a054); color:#2a1c0c; font-size:14px; font-weight:700;">この子に会いに行く →</div>
+            </div>
+          </div>
+          <div data-drags-parent="1" style="font-size:11.5px; line-height:1.7; color:#8b8174; margin-top:12px; max-width:360px;">保存＝そのままチャット開始。「秘めた面」は折りたたみで要約のみ、開くと全文＋編集。ことばで直して部分再生成できる。</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══════════════ 1b 案2 ウィザード型 ═══════════════ -->
+    <div id="1b">
+      <div data-drags-parent="1" style="display:flex; align-items:center; gap:12px; margin-bottom:8px;">
+        <span style="display:inline-flex; padding:3px 11px; border-radius:999px; background:#2a241e; color:#e7c987; font-size:12px; font-weight:700;">1b</span>
+        <span style="font-family:'Noto Serif JP',serif; font-size:21px; font-weight:600; color:#2a241e;">案2 — えらんでつくる（ウィザード型）</span>
+      </div>
+      <div data-drags-parent="1" style="font-size:12.5px; line-height:1.8; color:#7c7266; margin-bottom:22px; max-width:840px;">リポジトリの実装（属性チップ→シチュエーション＆こだわり→生成結果）に忠実な3ステップ。おまかせ対話とシナリオ投入は Step2 の自由記述に吸収する構成。迷わないが、自由度は案1が上。<b style="color:#3a3025;">最終見解：単独案としては不採用。B-1/B-2 は案1「こだわってつくる」ルートの中身として吸収、B-3 のプレビューは A-4 に統一。</b></div>
+      <div style="display:flex; gap:44px; flex-wrap:wrap; align-items:flex-start;">
+
+        <!-- B-1 Step1 -->
+        <div data-screen-label="1b B1 属性チップ">
+          <div data-drags-parent="1" style="margin-bottom:13px; font-family:'Noto Serif JP',serif; font-size:14.5px; color:#7c7060;">B-1 Step 1/3 — 方向性をえらぶ</div>
+          <div style="width:392px; height:812px; border-radius:42px; overflow:hidden; position:relative; display:flex; flex-direction:column; background:radial-gradient(120% 60% at 50% -6%, #2c2522 0%, #1b1512 52%, #140f0d 100%); box-shadow:0 30px 70px -28px rgba(40,28,16,.55); color:#ece2d2;">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 26px 0; font-size:13px; color:#c9bba6;"><span style="font-weight:500;">0:11</span><span style="display:flex; gap:7px; align-items:center; opacity:.8;"><span style="font-size:11px;">●●●</span><span style="font-size:11px;">▾</span><span>100%</span></span></div>
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 24px 0;">
+              <span style="font-size:18px; color:#c9b48c;">‹</span>
+              <div style="font-family:'Noto Serif JP',serif; font-size:16px; color:#f3ead9;">あたらしい相手</div>
+              <span style="font-size:12px; color:#8a7f6c;">1/3</span>
+            </div>
+            <div style="display:flex; gap:6px; padding:12px 24px 0;"><span style="flex:1; height:3px; border-radius:2px; background:#d6a054;"></span><span style="flex:1; height:3px; border-radius:2px; background:rgba(201,180,140,.2);"></span><span style="flex:1; height:3px; border-radius:2px; background:rgba(201,180,140,.2);"></span></div>
+            <div class="scrollhide" style="flex:1; min-height:0; overflow:auto; padding:18px 24px 14px;">
+              <div style="font-size:11px; letter-spacing:.2em; color:#b79766; margin-bottom:10px;">タイプ</div>
+              <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px;">
+                <span style="padding:8px 14px; border-radius:17px; background:#d6a054; color:#2a1c0c; font-size:12px; font-weight:700;">お姉さん</span>
+                <span style="padding:8px 14px; border-radius:17px; border:1px solid rgba(201,180,140,.3); color:#c9b48c; font-size:12px;">清楚系</span>
+                <span style="padding:8px 14px; border-radius:17px; border:1px solid rgba(201,180,140,.3); color:#c9b48c; font-size:12px;">ギャル</span>
+                <span style="padding:8px 14px; border-radius:17px; border:1px solid rgba(201,180,140,.3); color:#c9b48c; font-size:12px;">お嬢様</span>
+                <span style="padding:8px 14px; border-radius:17px; border:1px solid rgba(201,180,140,.3); color:#c9b48c; font-size:12px;">メンヘラ</span>
+                <span style="padding:8px 14px; border-radius:17px; border:1px solid rgba(201,180,140,.3); color:#c9b48c; font-size:12px;">ボーイッシュ</span>
+                <span style="padding:8px 14px; border-radius:17px; border:1px solid rgba(201,180,140,.3); color:#c9b48c; font-size:12px;">JD</span>
+              </div>
+              <div style="font-size:11px; letter-spacing:.2em; color:#b79766; margin-bottom:10px;">関係性</div>
+              <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px;">
+                <span style="padding:8px 14px; border-radius:17px; border:1px solid rgba(201,180,140,.3); color:#c9b48c; font-size:12px;">彼女</span>
+                <span style="padding:8px 14px; border-radius:17px; background:#d6a054; color:#2a1c0c; font-size:12px; font-weight:700;">先輩</span>
+                <span style="padding:8px 14px; border-radius:17px; border:1px solid rgba(201,180,140,.3); color:#c9b48c; font-size:12px;">先生</span>
+                <span style="padding:8px 14px; border-radius:17px; border:1px solid rgba(201,180,140,.3); color:#c9b48c; font-size:12px;">幼馴染</span>
+                <span style="padding:8px 14px; border-radius:17px; border:1px solid rgba(201,180,140,.3); color:#c9b48c; font-size:12px;">人妻</span>
+                <span style="padding:8px 14px; border-radius:17px; border:1px solid rgba(201,180,140,.3); color:#c9b48c; font-size:12px;">ナース</span>
+                <span style="padding:8px 14px; border-radius:17px; border:1px solid rgba(201,180,140,.3); color:#c9b48c; font-size:12px;">同僚</span>
+                <span style="padding:8px 14px; border-radius:17px; border:1px solid rgba(201,180,140,.3); color:#c9b48c; font-size:12px;">義妹</span>
+              </div>
+              <div style="font-size:11px; letter-spacing:.2em; color:#b79766; margin-bottom:10px;">性格</div>
+              <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px;">
+                <span style="padding:8px 14px; border-radius:17px; border:1px solid rgba(201,180,140,.3); color:#c9b48c; font-size:12px;">ツンデレ</span>
+                <span style="padding:8px 14px; border-radius:17px; background:#d6a054; color:#2a1c0c; font-size:12px; font-weight:700;">甘えん坊</span>
+                <span style="padding:8px 14px; border-radius:17px; border:1px solid rgba(201,180,140,.3); color:#c9b48c; font-size:12px;">小悪魔</span>
+                <span style="padding:8px 14px; border-radius:17px; border:1px solid rgba(201,180,140,.3); color:#c9b48c; font-size:12px;">クール</span>
+                <span style="padding:8px 14px; border-radius:17px; border:1px solid rgba(201,180,140,.3); color:#c9b48c; font-size:12px;">従順</span>
+                <span style="padding:8px 14px; border-radius:17px; border:1px solid rgba(201,180,140,.3); color:#c9b48c; font-size:12px;">強気</span>
+                <span style="padding:8px 14px; border-radius:17px; border:1px solid rgba(201,180,140,.3); color:#c9b48c; font-size:12px;">母性的</span>
+                <span style="padding:8px 14px; border-radius:17px; border:1px solid rgba(201,180,140,.3); color:#c9b48c; font-size:12px;">淫乱</span>
+              </div>
+              <div style="font-size:11px; letter-spacing:.2em; color:#b79766; margin-bottom:10px;">体型・見た目</div>
+              <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px;">
+                <span style="padding:8px 14px; border-radius:17px; border:1px solid rgba(201,180,140,.3); color:#c9b48c; font-size:12px;">巨乳</span>
+                <span style="padding:8px 14px; border-radius:17px; border:1px solid rgba(201,180,140,.3); color:#c9b48c; font-size:12px;">スレンダー</span>
+                <span style="padding:8px 14px; border-radius:17px; background:#d6a054; color:#2a1c0c; font-size:12px; font-weight:700;">黒髪</span>
+                <span style="padding:8px 14px; border-radius:17px; background:#d6a054; color:#2a1c0c; font-size:12px; font-weight:700;">ロングヘア</span>
+                <span style="padding:8px 14px; border-radius:17px; border:1px solid rgba(201,180,140,.3); color:#c9b48c; font-size:12px;">低身長</span>
+                <span style="padding:8px 14px; border-radius:17px; border:1px solid rgba(201,180,140,.3); color:#c9b48c; font-size:12px;">高身長</span>
+              </div>
+              <div style="font-size:11px; letter-spacing:.2em; color:#b79766; margin-bottom:10px;">その他（自由入力）</div>
+              <div style="display:flex; align-items:center; padding:13px 16px; border-radius:15px; background:rgba(20,15,13,.6); border:1px solid rgba(201,180,140,.3); font-size:13px; color:#8a7f6c;">例: 眼鏡、関西弁、タトゥー…</div>
+            </div>
+            <div style="flex:0 0 auto; padding:12px 24px 26px; background:#160f0d; border-top:1px solid rgba(201,180,140,.12);">
+              <div style="text-align:center; padding:15px 0; border-radius:26px; background:linear-gradient(145deg,#f0d18a,#d6a054); color:#2a1c0c; font-size:14px; font-weight:700;">つぎへ — 場面をえらぶ</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- B-2 Step2 -->
+        <div data-screen-label="1b B2 シチュエーションとこだわり">
+          <div data-drags-parent="1" style="margin-bottom:13px; font-family:'Noto Serif JP',serif; font-size:14.5px; color:#7c7060;">B-2 Step 2/3 — 場面・こだわり・画像</div>
+          <div style="width:392px; height:812px; border-radius:42px; overflow:hidden; position:relative; display:flex; flex-direction:column; background:radial-gradient(120% 60% at 50% -6%, #2c2522 0%, #1b1512 52%, #140f0d 100%); box-shadow:0 30px 70px -28px rgba(40,28,16,.55); color:#ece2d2;">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 26px 0; font-size:13px; color:#c9bba6;"><span style="font-weight:500;">0:12</span><span style="display:flex; gap:7px; align-items:center; opacity:.8;"><span style="font-size:11px;">●●●</span><span style="font-size:11px;">▾</span><span>100%</span></span></div>
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 24px 0;">
+              <span style="font-size:18px; color:#c9b48c;">‹</span>
+              <div style="font-family:'Noto Serif JP',serif; font-size:16px; color:#f3ead9;">あたらしい相手</div>
+              <span style="font-size:12px; color:#8a7f6c;">2/3</span>
+            </div>
+            <div style="display:flex; gap:6px; padding:12px 24px 0;"><span style="flex:1; height:3px; border-radius:2px; background:#d6a054;"></span><span style="flex:1; height:3px; border-radius:2px; background:#d6a054;"></span><span style="flex:1; height:3px; border-radius:2px; background:rgba(201,180,140,.2);"></span></div>
+            <div class="scrollhide" style="flex:1; min-height:0; overflow:auto; padding:18px 24px 14px;">
+              <div style="font-size:11px; letter-spacing:.2em; color:#b79766; margin-bottom:10px;">出会いのシチュエーション</div>
+              <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
+                <span style="padding:8px 14px; border-radius:17px; border:1px solid rgba(201,180,140,.3); color:#c9b48c; font-size:12px;">カフェで隣に座った</span>
+                <span style="padding:8px 14px; border-radius:17px; background:#d6a054; color:#2a1c0c; font-size:12px; font-weight:700;">飲み会で隣になった</span>
+                <span style="padding:8px 14px; border-radius:17px; border:1px solid rgba(201,180,140,.3); color:#c9b48c; font-size:12px;">マッチングアプリ</span>
+                <span style="padding:8px 14px; border-radius:17px; border:1px solid rgba(201,180,140,.3); color:#c9b48c; font-size:12px;">偶然の再会</span>
+                <span style="padding:8px 14px; border-radius:17px; border:1px solid rgba(201,180,140,.3); color:#c9b48c; font-size:12px;">深夜のコンビニ</span>
+                <span style="padding:8px 14px; border-radius:17px; border:1px solid rgba(201,180,140,.3); color:#c9b48c; font-size:12px;">家庭教師と生徒</span>
+                <span style="padding:8px 14px; border-radius:17px; border:1px dashed rgba(201,180,140,.35); color:#a1907a; font-size:12px;">自由に入力…</span>
+              </div>
+              <div style="font-size:11px; color:#8a7f6c; margin-bottom:18px;">物語を貼り付けたい場合は下の「こだわり」にそのまま貼ってOK</div>
+              <div style="font-size:11px; letter-spacing:.2em; color:#b79766; margin-bottom:10px;">こだわりポイント（任意）</div>
+              <div style="border-radius:15px; background:rgba(20,15,13,.6); border:1px solid rgba(201,180,140,.3); padding:14px 16px; font-size:12.5px; line-height:1.9; color:#8a7f6c; min-height:96px; margin-bottom:20px;">例: 最初は嫌がるけど途中から積極的になる、方言で喋る、Mっ気がある、シナリオの貼り付け…など何でもOK</div>
+              <div style="font-size:11px; letter-spacing:.2em; color:#b79766; margin-bottom:10px;">画像</div>
+              <div style="display:flex; gap:8px; margin-bottom:12px;">
+                <span style="flex:1; text-align:center; padding:11px 0; border-radius:15px; background:#d6a054; color:#2a1c0c; font-size:12.5px; font-weight:700;">AIで生成</span>
+                <span style="flex:1; text-align:center; padding:11px 0; border-radius:15px; border:1px solid rgba(201,180,140,.3); color:#c9b48c; font-size:12.5px;">アップロード</span>
+              </div>
+              <div style="font-size:11.5px; line-height:1.75; color:#8a7f6c;">生成結果に合わせて顔も描かれます。あとから何度でも差し替え可。</div>
+            </div>
+            <div style="flex:0 0 auto; padding:12px 24px 26px; background:#160f0d; border-top:1px solid rgba(201,180,140,.12);">
+              <div style="text-align:center; padding:15px 0; border-radius:26px; background:linear-gradient(145deg,#f0d18a,#d6a054); color:#2a1c0c; font-size:14px; font-weight:700;">✦ AIで生成する</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- B-3 Step3 -->
+        <div data-screen-label="1b B3 生成結果">
+          <div data-drags-parent="1" style="margin-bottom:13px; font-family:'Noto Serif JP',serif; font-size:14.5px; color:#7c7060;">B-3 Step 3/3 — 生成結果と手直し</div>
+          <div style="width:392px; height:812px; border-radius:42px; overflow:hidden; position:relative; display:flex; flex-direction:column; background:radial-gradient(120% 60% at 50% -6%, #2c2522 0%, #1b1512 52%, #140f0d 100%); box-shadow:0 30px 70px -28px rgba(40,28,16,.55); color:#ece2d2;">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 26px 0; font-size:13px; color:#c9bba6;"><span style="font-weight:500;">0:13</span><span style="display:flex; gap:7px; align-items:center; opacity:.8;"><span style="font-size:11px;">●●●</span><span style="font-size:11px;">▾</span><span>100%</span></span></div>
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 24px 0;">
+              <span style="font-size:18px; color:#c9b48c;">‹</span>
+              <div style="font-family:'Noto Serif JP',serif; font-size:16px; color:#f3ead9;">生成結果</div>
+              <span style="font-size:12px; color:#8a7f6c;">3/3</span>
+            </div>
+            <div style="display:flex; gap:6px; padding:12px 24px 0;"><span style="flex:1; height:3px; border-radius:2px; background:#d6a054;"></span><span style="flex:1; height:3px; border-radius:2px; background:#d6a054;"></span><span style="flex:1; height:3px; border-radius:2px; background:#d6a054;"></span></div>
+            <div class="scrollhide" style="flex:1; min-height:0; overflow:auto; padding:16px 24px 14px;">
+              <div style="border-radius:20px; border:1px solid rgba(201,180,140,.26); background:rgba(20,15,13,.4); padding:17px; margin-bottom:14px;">
+                <div style="display:flex; gap:14px; align-items:center; margin-bottom:14px;">
+                  <div style="flex:0 0 auto; width:62px; height:62px; border-radius:50%; overflow:hidden; border:1px solid rgba(201,180,140,.4);"><img src="assets/shino.png" alt="紗和" style="width:100%; height:100%; object-fit:cover; object-position:50% 16%;"></div>
+                  <div>
+                    <div style="font-family:'Noto Serif JP',serif; font-size:20px; font-weight:600; color:#f3ead9;">紗和</div>
+                    <div style="display:flex; gap:6px; margin-top:6px;"><span style="padding:3px 9px; border-radius:11px; background:rgba(214,160,84,.16); border:1px solid rgba(231,201,135,.35); font-size:10.5px; color:#f0dcae;">お姉さん</span><span style="padding:3px 9px; border-radius:11px; background:rgba(214,160,84,.16); border:1px solid rgba(231,201,135,.35); font-size:10.5px; color:#f0dcae;">先輩</span><span style="padding:3px 9px; border-radius:11px; background:rgba(214,160,84,.16); border:1px solid rgba(231,201,135,.35); font-size:10.5px; color:#f0dcae;">甘えん坊</span></div>
+                  </div>
+                </div>
+                <div style="font-size:11px; letter-spacing:.2em; color:#b79766; margin-bottom:6px;">性格・見た目</div>
+                <div style="font-size:12.5px; line-height:1.85; color:#cfc2aa; margin-bottom:13px;">職場では頼れる先輩。黒髪ロングを耳にかける仕草が癖。ふたりだけになると、急に距離が近い。</div>
+                <div style="font-size:11px; letter-spacing:.2em; color:#b79766; margin-bottom:6px;">シナリオ</div>
+                <div style="font-size:12.5px; line-height:1.85; color:#cfc2aa; margin-bottom:13px;">飲み会の帰り道。終電を逃したのはたぶん、わざと。「うち、寄ってく？」からの夜。</div>
+                <div style="font-size:11px; letter-spacing:.2em; color:#b79766; margin-bottom:6px;">はじまりのひと言</div>
+                <div style="font-family:'Noto Serif JP',serif; font-size:14.5px; line-height:1.9; color:#f3ead9; font-style:italic; margin-bottom:13px;">「ん……終電、行っちゃったね。どうする？」</div>
+                <div style="display:flex; align-items:center; justify-content:space-between; border-top:1px dashed rgba(201,180,140,.25); padding-top:12px;">
+                  <span style="font-size:12px; color:#c9b48c;">秘めた面 — 甘やかしたがり、独占欲…</span>
+                  <span style="font-size:11px; color:#8a7f6c;">▸</span>
+                </div>
+              </div>
+              <div style="font-size:11px; letter-spacing:.2em; color:#b79766; margin-bottom:8px;">気になるところを、ことばで直す</div>
+              <div style="display:flex; align-items:center; gap:9px; margin-bottom:14px;">
+                <div style="flex:1; display:flex; align-items:center; gap:2px; padding:12px 15px; border-radius:20px; background:rgba(20,15,13,.6); border:1px solid rgba(231,201,135,.4); font-size:12.5px; color:#f1e7d6;">もっと積極的に<span style="display:inline-block; width:2px; height:14px; background:#e7c987; animation:caretBlink 1.1s infinite;"></span></div>
+                <span style="flex:0 0 auto; padding:12px 16px; border-radius:20px; background:rgba(214,160,84,.22); border:1px solid rgba(231,201,135,.45); color:#e7c987; font-size:12px;">↻ 再生成</span>
+              </div>
+              <div style="display:flex; gap:9px;">
+                <span style="flex:1; text-align:center; padding:13px 0; border-radius:22px; border:1px solid rgba(201,180,140,.3); color:#c9b48c; font-size:12.5px;">細かく編集して保存</span>
+              </div>
+            </div>
+            <div style="flex:0 0 auto; padding:12px 24px 26px; background:#160f0d; border-top:1px solid rgba(201,180,140,.12);">
+              <div style="text-align:center; padding:15px 0; border-radius:26px; background:linear-gradient(145deg,#f0d18a,#d6a054); color:#2a1c0c; font-size:14px; font-weight:700;">このまま会いに行く →</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══════════════ 1c 異常系・ストリーミング ═══════════════ -->
+    <div id="1c">
+      <div data-drags-parent="1" style="display:flex; align-items:center; gap:12px; margin-bottom:8px;">
+        <span style="display:inline-flex; padding:3px 11px; border-radius:999px; background:#2a241e; color:#e7c987; font-size:12px; font-weight:700;">1c</span>
+        <span style="font-family:'Noto Serif JP',serif; font-size:21px; font-weight:600; color:#2a241e;">異常系・処理中・ストリーミング</span>
+      </div>
+      <div data-drags-parent="1" style="font-size:12.5px; line-height:1.8; color:#7c7266; margin-bottom:22px; max-width:860px;">原則：<b style="color:#3a3025;">入力は絶対に失わせない／待ち時間は「読める途中経過」に変える／エラーは世界観のことばで、技術用語は見せない</b>。生成はSSEで項目ごとに流れ、チャットは切断→自動再接続→途中から再開（二重投稿なし）。</div>
+      <div style="display:flex; gap:44px; flex-wrap:wrap; align-items:flex-start;">
+
+        <!-- C-1 生成中 SSE -->
+        <div data-screen-label="1c C1 生成中ストリーム">
+          <div data-drags-parent="1" style="margin-bottom:13px; font-family:'Noto Serif JP',serif; font-size:14.5px; color:#7c7060;">C-1 生成中 — SSEで項目ごとに届く</div>
+          <div style="width:392px; height:812px; border-radius:42px; overflow:hidden; position:relative; display:flex; flex-direction:column; background:radial-gradient(120% 60% at 50% -6%, #2c2522 0%, #1b1512 52%, #140f0d 100%); box-shadow:0 30px 70px -28px rgba(40,28,16,.55); color:#ece2d2;">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 26px 0; font-size:13px; color:#c9bba6;"><span style="font-weight:500;">0:13</span><span style="display:flex; gap:7px; align-items:center; opacity:.8;"><span style="font-size:11px;">●●●</span><span style="font-size:11px;">▾</span><span>100%</span></span></div>
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 24px 0;">
+              <span style="width:18px;"></span>
+              <div style="font-family:'Noto Serif JP',serif; font-size:16px; color:#f3ead9;">組み立てています</div>
+              <span style="font-size:11.5px; color:#8a7f6c;">中断</span>
+            </div>
+            <div class="scrollhide" style="flex:1; min-height:0; overflow:auto; padding:16px 24px 14px;">
+              <div style="position:relative; border-radius:22px; overflow:hidden; border:1px solid rgba(201,180,140,.3); margin-bottom:14px; height:250px; background:linear-gradient(100deg, rgba(214,160,84,.06) 40%, rgba(214,160,84,.14) 50%, rgba(214,160,84,.06) 60%); background-size:520px 100%; animation:shimmer 1.6s linear infinite;">
+                <div style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px;">
+                  <span style="display:inline-block; width:26px; height:26px; border-radius:50%; border:2px solid rgba(231,201,135,.3); border-top-color:#e7c987; animation:spinSlow 1s linear infinite;"></span>
+                  <span style="font-size:12px; color:#b79766;">顔を描いています…（本文と並行）</span>
+                </div>
+              </div>
+              <div style="font-size:11px; letter-spacing:.2em; color:#b79766; margin-bottom:7px;">なまえ</div>
+              <div style="display:flex; align-items:center; gap:9px; margin-bottom:16px;"><span style="font-family:'Noto Serif JP',serif; font-size:20px; font-weight:600; color:#f3ead9;">紗和</span><span style="color:#a8c69a; font-size:13px;">✓</span></div>
+              <div style="font-size:11px; letter-spacing:.2em; color:#b79766; margin-bottom:7px;">性格・見た目</div>
+              <div style="font-size:12.5px; line-height:1.9; color:#cfc2aa; margin-bottom:16px;">職場では頼れる先輩。黒髪ロングを耳にかける仕草が癖。ふたりだけになると、急に距<span style="display:inline-block; width:2px; height:14px; background:#e7c987; vertical-align:-2px; animation:caretBlink 1.1s infinite;"></span></div>
+              <div style="font-size:11px; letter-spacing:.2em; color:#b79766; margin-bottom:9px;">シナリオ</div>
+              <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:16px;">
+                <span style="height:11px; border-radius:6px; width:100%; background:linear-gradient(100deg, rgba(201,180,140,.12) 40%, rgba(201,180,140,.22) 50%, rgba(201,180,140,.12) 60%); background-size:520px 100%; animation:shimmer 1.6s linear infinite;"></span>
+                <span style="height:11px; border-radius:6px; width:86%; background:linear-gradient(100deg, rgba(201,180,140,.12) 40%, rgba(201,180,140,.22) 50%, rgba(201,180,140,.12) 60%); background-size:520px 100%; animation:shimmer 1.6s linear infinite;"></span>
+                <span style="height:11px; border-radius:6px; width:62%; background:linear-gradient(100deg, rgba(201,180,140,.12) 40%, rgba(201,180,140,.22) 50%, rgba(201,180,140,.12) 60%); background-size:520px 100%; animation:shimmer 1.6s linear infinite;"></span>
+              </div>
+              <div style="font-size:11px; letter-spacing:.2em; color:#b79766; margin-bottom:9px;">はじまりのひと言</div>
+              <div style="display:flex; flex-direction:column; gap:8px;">
+                <span style="height:11px; border-radius:6px; width:74%; background:linear-gradient(100deg, rgba(201,180,140,.12) 40%, rgba(201,180,140,.22) 50%, rgba(201,180,140,.12) 60%); background-size:520px 100%; animation:shimmer 1.6s linear infinite;"></span>
+              </div>
+            </div>
+            <div style="flex:0 0 auto; padding:12px 24px 26px; background:#160f0d; border-top:1px solid rgba(201,180,140,.12);">
+              <div style="text-align:center; font-size:11.5px; color:#8a7f6c;">できた部分から読めます ・ 中断しても入力は残ります</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- C-2 生成失敗 -->
+        <div data-screen-label="1c C2 生成失敗">
+          <div data-drags-parent="1" style="margin-bottom:13px; font-family:'Noto Serif JP',serif; font-size:14.5px; color:#7c7060;">C-2 失敗 — 全体失敗と画像だけ失敗</div>
+          <div style="width:392px; height:812px; border-radius:42px; overflow:hidden; position:relative; display:flex; flex-direction:column; background:radial-gradient(120% 60% at 50% -6%, #2c2522 0%, #1b1512 52%, #140f0d 100%); box-shadow:0 30px 70px -28px rgba(40,28,16,.55); color:#ece2d2;">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 26px 0; font-size:13px; color:#c9bba6;"><span style="font-weight:500;">0:14</span><span style="display:flex; gap:7px; align-items:center; opacity:.8;"><span style="font-size:11px;">●●●</span><span style="font-size:11px;">▾</span><span>100%</span></span></div>
+            <div style="padding:12px 20px 0;">
+              <div style="display:flex; align-items:center; gap:9px; padding:10px 14px; border-radius:14px; background:rgba(120,60,40,.22); border:1px solid rgba(210,120,80,.35); font-size:11.5px; color:#e0b09a;"><span>◌</span>オフラインです — つながったら自動で続きから再開します</div>
+            </div>
+            <div class="scrollhide" style="flex:1; min-height:0; overflow:auto; padding:16px 24px 14px;">
+              <div style="border-radius:20px; border:1px solid rgba(210,120,80,.4); background:rgba(120,60,40,.14); padding:20px; margin-bottom:18px;">
+                <div style="font-family:'Noto Serif JP',serif; font-size:16.5px; font-weight:600; color:#f0d5c2;">うまく組み立てられませんでした</div>
+                <div style="font-size:12px; line-height:1.85; color:#c9ac97; margin-top:8px;">選んだ条件と入力はそのまま残っています。少し待ってからもう一度お試しください。</div>
+                <div style="display:flex; gap:9px; margin-top:15px;">
+                  <span style="flex:1; text-align:center; padding:12px 0; border-radius:20px; background:linear-gradient(145deg,#f0d18a,#d6a054); color:#2a1c0c; font-size:12.5px; font-weight:700;">↻ もう一度</span>
+                  <span style="flex:1; text-align:center; padding:12px 0; border-radius:20px; border:1px solid rgba(201,180,140,.3); color:#c9b48c; font-size:12.5px;">条件を少し変える</span>
+                </div>
+              </div>
+              <div style="height:1px; background:rgba(201,180,140,.18); margin:4px 0 18px;"></div>
+              <div style="font-size:11px; letter-spacing:.2em; color:#b79766; margin-bottom:10px;">画像だけ失敗した場合（本文はできあがり）</div>
+              <div style="border-radius:20px; border:1px solid rgba(201,180,140,.26); background:rgba(20,15,13,.4); padding:17px;">
+                <div style="border-radius:16px; border:1px dashed rgba(210,120,80,.45); background:rgba(120,60,40,.1); height:150px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; margin-bottom:14px;">
+                  <span style="font-size:18px; color:#d69a7c;">◍</span>
+                  <span style="font-size:12px; color:#c9ac97;">顔の生成に失敗しました</span>
+                  <div style="display:flex; gap:8px; margin-top:2px;">
+                    <span style="padding:7px 14px; border-radius:15px; background:rgba(214,160,84,.22); border:1px solid rgba(231,201,135,.45); font-size:11px; color:#e7c987;">↻ 画像だけ再試行</span>
+                    <span style="padding:7px 14px; border-radius:15px; border:1px solid rgba(201,180,140,.3); font-size:11px; color:#c9b48c;">あとで</span>
+                  </div>
+                </div>
+                <div style="display:flex; gap:12px; align-items:center;">
+                  <div style="flex:1; min-width:0;">
+                    <div style="font-family:'Noto Serif JP',serif; font-size:17px; font-weight:600; color:#f3ead9;">紗和</div>
+                    <div style="font-size:11.5px; color:#9a8d77; margin-top:3px;">本文は保存できます。顔はあとから描き直せます。</div>
+                  </div>
+                  <span style="flex:0 0 auto; padding:10px 16px; border-radius:18px; background:linear-gradient(145deg,#f0d18a,#d6a054); color:#2a1c0c; font-size:12px; font-weight:700;">このまま保存</span>
+                </div>
+              </div>
+              <div style="font-size:11.5px; line-height:1.8; color:#8a7f6c; margin-top:16px;">・失敗トーストは出さず、その場に留まるパネルで（流れて消えると再試行できないため）<br>・「モデル」「API」「429」等の技術語は一切出さない</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- C-3 チャット切断・送信失敗 -->
+        <div data-screen-label="1c C3 チャット切断と送信失敗">
+          <div data-drags-parent="1" style="margin-bottom:13px; font-family:'Noto Serif JP',serif; font-size:14.5px; color:#7c7060;">C-3 チャット — 受信中・切断・送信失敗</div>
+          <div style="width:392px; height:812px; border-radius:42px; overflow:hidden; position:relative; display:flex; flex-direction:column; background:radial-gradient(125% 78% at 50% -8%, #2c2522 0%, #1b1512 52%, #140f0d 100%); box-shadow:0 30px 70px -28px rgba(40,28,16,.55); color:#ece2d2;">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 26px 0; font-size:13px; color:#c9bba6;"><span style="font-weight:500;">23:58</span><span style="display:flex; gap:7px; align-items:center; opacity:.8;"><span style="font-size:11px;">●●●</span><span style="font-size:11px;">▾</span><span>100%</span></span></div>
+            <div style="display:flex; align-items:center; gap:14px; padding:12px 22px 12px;">
+              <span style="font-size:22px; color:#b79766;">‹</span>
+              <div style="width:34px; height:34px; border-radius:50%; overflow:hidden; border:1px solid rgba(201,180,140,.4);"><img src="assets/shino.png" alt="" style="width:100%; height:100%; object-fit:cover; object-position:50% 20%;"></div>
+              <div style="flex:1; min-width:0;">
+                <div style="font-family:'Noto Serif JP',serif; font-size:16px; font-weight:600; color:#f1e7d6;">詩乃 — 雨夜のひと部屋</div>
+                <div style="font-size:10.5px; letter-spacing:.08em; color:#9a8a6f; margin-top:2px;">恋人 ・ 128回プレイ</div>
+              </div>
+            </div>
+            <div style="margin:0 20px 0; display:flex; align-items:center; gap:9px; padding:9px 14px; border-radius:13px; background:rgba(120,60,40,.2); border:1px solid rgba(210,120,80,.3); font-size:11.5px; color:#e0b09a;"><span style="display:inline-block; width:11px; height:11px; border-radius:50%; border:2px solid rgba(224,176,154,.35); border-top-color:#e0b09a; animation:spinSlow 1s linear infinite;"></span>接続が切れました — つなぎ直しています…</div>
+            <div class="scrollhide" style="flex:1; min-height:0; overflow:auto; padding:18px 26px 14px;">
+              <div style="margin:0 0 20px;">
+                <div style="text-align:right; font-size:11px; letter-spacing:.14em; color:#8a7f6c; margin-bottom:6px;">あなた</div>
+                <div style="display:flex; justify-content:flex-end;">
+                  <div style="max-width:80%; padding:12px 17px; border-radius:20px 20px 7px 20px; background:linear-gradient(145deg, rgba(214,169,87,.24), rgba(176,125,58,.18)); border:1px solid rgba(201,180,140,.3); color:#f3ead9; font-size:14px; line-height:1.7;">こっち来て</div>
+                </div>
+              </div>
+              <div style="display:flex; gap:12px; margin:0 0 22px;">
+                <div style="flex:0 0 auto; width:38px; height:38px; border-radius:50%; overflow:hidden; border:1px solid rgba(201,180,140,.5);"><img src="assets/shino.png" alt="詩乃" style="width:100%; height:100%; object-fit:cover; object-position:50% 20%;"></div>
+                <div style="flex:1; min-width:0;">
+                  <div style="font-family:'Noto Serif JP',serif; font-size:13px; color:#cda86a; letter-spacing:.06em; margin-bottom:6px;">詩乃</div>
+                  <p style="margin:0; font-family:'Noto Serif JP',serif; font-size:17px; line-height:1.85; color:#f3ead9;">「ん……そういうとこ、ずるい。じゃあ、目、つぶって<span style="display:inline-block; width:2px; height:16px; background:#e7c987; vertical-align:-2px; animation:caretBlink 1.1s infinite;"></span></p>
+                  <div style="margin-top:9px; font-size:11px; color:#8a7f6c;">受信がとまっています — 再接続後、この続きから届きます（二重にはなりません）</div>
+                </div>
+              </div>
+              <div style="margin:0 0 8px;">
+                <div style="text-align:right; font-size:11px; letter-spacing:.14em; color:#8a7f6c; margin-bottom:6px;">あなた</div>
+                <div style="display:flex; justify-content:flex-end; align-items:center; gap:9px;">
+                  <span style="flex:0 0 auto; width:22px; height:22px; border-radius:50%; background:rgba(120,60,40,.35); border:1px solid rgba(210,120,80,.5); color:#e8b195; font-size:12px; display:flex; align-items:center; justify-content:center;">!</span>
+                  <div style="max-width:74%; padding:12px 17px; border-radius:20px 20px 7px 20px; background:rgba(214,169,87,.1); border:1px dashed rgba(210,120,80,.45); color:#b3a791; font-size:14px; line-height:1.7;">それで？</div>
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:14px; margin-top:8px; font-size:11.5px;">
+                  <span style="color:#e7c987;">↻ タップで再送</span>
+                  <span style="color:#8a7f6c;">長押しで削除</span>
+                </div>
+              </div>
+            </div>
+            <div style="flex:0 0 auto; padding:12px 20px 26px; background:#160f0d; border-top:1px solid rgba(201,180,140,.12);">
+              <div style="display:flex; align-items:center; gap:11px;">
+                <div style="flex:1; display:flex; align-items:center; padding:13px 17px; border-radius:24px; background:rgba(20,15,13,.7); border:1px solid rgba(201,180,140,.3); font-size:13px; color:#8a7f6c;">送信すると再接続後に届けます…</div>
+                <div style="flex:0 0 auto; width:44px; height:44px; border-radius:50%; background:rgba(214,160,84,.3); display:flex; align-items:center; justify-content:center; color:#8a7060; font-size:15px;">↑</div>
+              </div>
+            </div>
+          </div>
+          <div data-drags-parent="1" style="font-size:11.5px; line-height:1.7; color:#8b8174; margin-top:12px; max-width:360px;">切断中も入力・送信操作は可能（キューに積んで再接続後に送る）。失敗メッセージはその場に残り、タップ再送。</div>
+        </div>
+
+        <!-- C-4 メッセージ操作 -->
+        <div data-screen-label="1c C4 メッセージ操作">
+          <div data-drags-parent="1" style="margin-bottom:13px; font-family:'Noto Serif JP',serif; font-size:14.5px; color:#7c7060;">C-4 発言の good / bad / コピー配線</div>
+          <div style="width:392px; height:812px; border-radius:42px; overflow:hidden; position:relative; display:flex; flex-direction:column; background:radial-gradient(125% 78% at 50% -8%, #2c2522 0%, #1b1512 52%, #140f0d 100%); box-shadow:0 30px 70px -28px rgba(40,28,16,.55); color:#ece2d2;">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 26px 0; font-size:13px; color:#c9bba6;"><span style="font-weight:500;">23:59</span><span style="display:flex; gap:7px; align-items:center; opacity:.8;"><span style="font-size:11px;">●●●</span><span style="font-size:11px;">▾</span><span>100%</span></span></div>
+            <div style="display:flex; align-items:center; gap:14px; padding:12px 22px 12px;">
+              <span style="font-size:22px; color:#b79766;">‹</span>
+              <div style="width:34px; height:34px; border-radius:50%; overflow:hidden; border:1px solid rgba(201,180,140,.4);"><img src="assets/shino.png" alt="" style="width:100%; height:100%; object-fit:cover; object-position:50% 20%;"></div>
+              <div style="flex:1; min-width:0;"><div style="font-family:'Noto Serif JP',serif; font-size:16px; font-weight:600; color:#f1e7d6;">詩乃 — 雨夜のひと部屋</div></div>
+            </div>
+            <div class="scrollhide" style="flex:1; min-height:0; overflow:auto; padding:18px 26px 14px;">
+              <div style="display:flex; gap:12px; margin:0 0 10px;">
+                <div style="flex:0 0 auto; width:38px; height:38px; border-radius:50%; overflow:hidden; border:1px solid rgba(201,180,140,.5);"><img src="assets/shino.png" alt="詩乃" style="width:100%; height:100%; object-fit:cover; object-position:50% 20%;"></div>
+                <div style="flex:1; min-width:0;">
+                  <div style="font-family:'Noto Serif JP',serif; font-size:13px; color:#cda86a; letter-spacing:.06em; margin-bottom:6px;">詩乃</div>
+                  <p style="margin:0; font-family:'Noto Serif JP',serif; font-size:17px; line-height:1.85; color:#f3ead9;">「今夜は……もう少しだけ、帰らないで」</p>
+                  <div style="display:flex; align-items:center; gap:15px; margin-top:12px; color:#8a7f6c;">
+                    <span style="display:inline-flex; align-items:center; gap:4px; font-size:15px; color:#e7c987;">♡</span>
+                    <span style="font-size:15px;">▽</span>
+                    <span style="font-size:14px;">⧉</span>
+                    <span style="display:inline-flex; align-items:center; gap:5px; font-size:12px;"><span style="font-size:14px;">↻</span>再生成</span>
+                    <span style="display:inline-flex; align-items:center; gap:8px; font-size:12px;"><span style="font-size:14px;">‹</span><span style="letter-spacing:.06em;">2 / 3</span><span style="font-size:14px;">›</span></span>
+                  </div>
+                  <div style="font-size:10.5px; color:#7c7060; margin-top:8px;">長押しでも同メニュー ・ ♡は「こういう返しが好き」として学習</div>
+                </div>
+              </div>
+              <div style="display:flex; justify-content:center; margin:14px 0 18px;"><span style="padding:8px 16px; border-radius:16px; background:rgba(20,15,13,.75); border:1px solid rgba(201,180,140,.3); font-size:11.5px; color:#d9c9a8;">⧉ コピーしました</span></div>
+              <div style="height:1px; background:rgba(201,180,140,.15); margin-bottom:18px;"></div>
+              <div style="font-size:11px; letter-spacing:.2em; color:#b79766; margin-bottom:10px;">▽（イマイチ）タップ時 — 下からシート</div>
+              <div style="border-radius:22px 22px 0 0; border:1px solid rgba(201,180,140,.3); border-bottom:none; background:#1e1714; padding:18px 18px 22px; box-shadow:0 -14px 40px rgba(0,0,0,.4);">
+                <div style="width:38px; height:4px; border-radius:2px; background:rgba(201,180,140,.3); margin:0 auto 14px;"></div>
+                <div style="font-family:'Noto Serif JP',serif; font-size:15px; color:#f1e7d6; margin-bottom:4px;">この返し、どこがイマイチ？</div>
+                <div style="font-size:11.5px; color:#8a7f6c; margin-bottom:13px;">この子の返し方にすぐ反映されます（採点ではありません）</div>
+                <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px;">
+                  <span style="padding:8px 14px; border-radius:17px; background:#d6a054; color:#2a1c0c; font-size:12px; font-weight:700;">口調がちがう</span>
+                  <span style="padding:8px 14px; border-radius:17px; border:1px solid rgba(201,180,140,.3); color:#c9b48c; font-size:12px;">展開が早い</span>
+                  <span style="padding:8px 14px; border-radius:17px; border:1px solid rgba(201,180,140,.3); color:#c9b48c; font-size:12px;">設定とズレてる</span>
+                  <span style="padding:8px 14px; border-radius:17px; border:1px solid rgba(201,180,140,.3); color:#c9b48c; font-size:12px;">長すぎる</span>
+                  <span style="padding:8px 14px; border-radius:17px; border:1px dashed rgba(201,180,140,.35); color:#a1907a; font-size:12px;">ことばで伝える…</span>
+                </div>
+                <div style="display:flex; gap:9px;">
+                  <span style="flex:1; text-align:center; padding:12px 0; border-radius:20px; background:linear-gradient(145deg,#f0d18a,#d6a054); color:#2a1c0c; font-size:12.5px; font-weight:700;">伝えて書き直させる</span>
+                  <span style="flex:0 0 auto; padding:12px 18px; border-radius:20px; border:1px solid rgba(201,180,140,.3); color:#c9b48c; font-size:12.5px;">伝えるだけ</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══════════════ 1d システム画面 ═══════════════ -->
+    <div id="1d">
+      <div data-drags-parent="1" style="display:flex; align-items:center; gap:12px; margin-bottom:8px;">
+        <span style="display:inline-flex; padding:3px 11px; border-radius:999px; background:#2a241e; color:#e7c987; font-size:12px; font-weight:700;">1d</span>
+        <span style="font-family:'Noto Serif JP',serif; font-size:21px; font-weight:600; color:#2a241e;">システム画面 — 検索・アルバム・記憶・シーン・編集・履歴・設定</span>
+      </div>
+      <div data-drags-parent="1" style="font-size:12.5px; line-height:1.8; color:#7c7266; margin-bottom:22px; max-width:880px;">検索の入口は<b style="color:#3a3025;">さがすタブ上部の検索バー</b>（公式もつくった子も横断）。文章の長さ・写真の頻度は<b style="color:#3a3025;">キャラ／シーンごとの設定</b>（D-7・チャットの「⋯」から。全キャラ共通にはしない）。全体の設定は法的文章とログアウトのみの最小構成（D-8）。課金導線・通知は置かない。記憶は「都合が悪くなったら書き換えられる」まで含めて設計。</div>
+      <div style="display:flex; gap:44px; flex-wrap:wrap; align-items:flex-start;">
+
+        <!-- D-1 検索 -->
+        <div data-screen-label="1d D1 検索">
+          <div data-drags-parent="1" style="margin-bottom:13px; font-family:'Noto Serif JP',serif; font-size:14.5px; color:#7c7060;">D-1 検索 — 公式もつくった子も横断</div>
+          <div style="width:392px; height:812px; border-radius:42px; overflow:hidden; position:relative; display:flex; flex-direction:column; background:radial-gradient(120% 60% at 50% -6%, #2c2522 0%, #1b1512 54%, #140f0d 100%); box-shadow:0 30px 70px -28px rgba(40,28,16,.55); color:#ece2d2;">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 26px 0; font-size:13px; color:#c9bba6;"><span style="font-weight:500;">0:16</span><span style="display:flex; gap:7px; align-items:center; opacity:.8;"><span style="font-size:11px;">●●●</span><span style="font-size:11px;">▾</span><span>100%</span></span></div>
+            <div style="display:flex; align-items:center; gap:10px; padding:14px 22px 0;">
+              <div style="flex:1; display:flex; align-items:center; gap:9px; padding:12px 16px; border-radius:22px; background:rgba(20,15,13,.7); border:1px solid rgba(231,201,135,.4);">
+                <span style="font-size:14px; color:#c9b48c;">⌕</span>
+                <span style="font-size:13.5px; color:#f1e7d6;">年上 甘やかし</span>
+                <span style="display:inline-block; width:2px; height:15px; background:#e7c987; animation:caretBlink 1.1s infinite;"></span>
+                <span style="flex:1;"></span>
+                <span style="font-size:13px; color:#8a7f6c;">✕</span>
+              </div>
+              <span style="font-size:12.5px; color:#c9b48c;">閉じる</span>
+            </div>
+            <div class="scrollhide" style="display:flex; gap:7px; overflow-x:auto; padding:12px 22px 4px;">
+              <span style="flex:0 0 auto; padding:7px 13px; border-radius:15px; background:rgba(214,160,84,.2); border:1px solid rgba(231,201,135,.45); font-size:12px; color:#f0dcae;">すべて</span>
+              <span style="flex:0 0 auto; padding:7px 13px; border-radius:15px; border:1px solid rgba(201,180,140,.22); font-size:12px; color:#a1907a;">公式</span>
+              <span style="flex:0 0 auto; padding:7px 13px; border-radius:15px; border:1px solid rgba(201,180,140,.22); font-size:12px; color:#a1907a;">つくった子</span>
+              <span style="flex:0 0 auto; padding:7px 13px; border-radius:15px; border:1px solid rgba(201,180,140,.22); font-size:12px; color:#a1907a;">話したことがある</span>
+            </div>
+            <div class="scrollhide" style="flex:1; min-height:0; overflow:auto; padding:12px 20px 14px;">
+              <div style="font-size:10.5px; letter-spacing:.18em; color:#8a7f6c; margin:2px 4px 10px;">12人が見つかりました</div>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;">
+                <div style="position:relative; border-radius:18px; overflow:hidden; aspect-ratio:3/4; border:1px solid rgba(201,180,140,.2);"><img src="assets/shino.png" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 12%;"><div style="position:absolute; inset:0; background:linear-gradient(180deg,rgba(20,15,13,0) 45%,rgba(20,15,13,.9));"></div><div style="position:absolute; left:11px; right:11px; bottom:11px;"><div style="font-family:'Noto Serif JP',serif; font-size:15px; color:#fbf3e4;">詩乃</div><div style="font-size:10.5px; color:#e0cba0; margin-top:2px;"><b style="color:#f0dcae;">年上</b>・<b style="color:#f0dcae;">甘やかし</b>・敬語</div></div></div>
+                <div style="position:relative; border-radius:18px; overflow:hidden; aspect-ratio:3/4; border:1px solid rgba(231,201,135,.4);"><img src="assets/rei.png" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 14%;"><div style="position:absolute; inset:0; background:linear-gradient(180deg,rgba(20,15,13,0) 45%,rgba(20,15,13,.9));"></div><div style="position:absolute; top:10px; left:10px; padding:4px 9px; border-radius:11px; background:rgba(20,15,13,.6); font-size:10px; color:#e7c987;">つくった子</div><div style="position:absolute; left:11px; right:11px; bottom:11px;"><div style="font-family:'Noto Serif JP',serif; font-size:15px; color:#fbf3e4;">綾</div><div style="font-size:10.5px; color:#e0cba0; margin-top:2px;"><b style="color:#f0dcae;">年上</b>・家庭教師</div></div></div>
+                <div style="position:relative; border-radius:18px; overflow:hidden; aspect-ratio:3/4; border:1px solid rgba(201,180,140,.2);"><img src="assets/rei.png" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 30%;"><div style="position:absolute; inset:0; background:linear-gradient(180deg,rgba(20,15,13,0) 45%,rgba(20,15,13,.9));"></div><div style="position:absolute; left:11px; right:11px; bottom:11px;"><div style="font-family:'Noto Serif JP',serif; font-size:15px; color:#fbf3e4;">紗夜</div><div style="font-size:10.5px; color:#e0cba0; margin-top:2px;">人妻・<b style="color:#f0dcae;">甘やかし</b></div></div></div>
+                <div style="position:relative; border-radius:18px; overflow:hidden; aspect-ratio:3/4; border:1px solid rgba(201,180,140,.2);"><img src="assets/shino.png" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 28%;"><div style="position:absolute; inset:0; background:linear-gradient(180deg,rgba(20,15,13,0) 45%,rgba(20,15,13,.9));"></div><div style="position:absolute; left:11px; right:11px; bottom:11px;"><div style="font-family:'Noto Serif JP',serif; font-size:15px; color:#fbf3e4;">真昼</div><div style="font-size:10.5px; color:#e0cba0; margin-top:2px;"><b style="color:#f0dcae;">年上</b>・母性的</div></div></div>
+              </div>
+              <div style="border-radius:18px; border:1px dashed rgba(231,201,135,.4); background:rgba(214,160,84,.07); padding:15px 17px; display:flex; align-items:center; gap:12px;">
+                <span style="font-size:17px; color:#e7c987;">✦</span>
+                <div style="flex:1; font-size:12px; line-height:1.7; color:#cbbda3;">ぴったりの子がいない？<br><b style="color:#f0dcae;">「年上 甘やかし」のままつくる →</b></div>
+              </div>
+            </div>
+            <div style="flex:0 0 auto; display:flex; justify-content:space-around; align-items:center; padding:12px 18px 22px; background:#160f0d; border-top:1px solid rgba(201,180,140,.12);">
+              <div style="display:flex; flex-direction:column; align-items:center; gap:4px; color:#7c7060;"><span style="font-size:18px;">⌂</span><span style="font-size:10px;">ホーム</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:4px; color:#e7c987;"><span style="font-size:18px;">⌕</span><span style="font-size:10px;">さがす</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:4px; color:#7c7060;"><span style="font-size:18px;">▣</span><span style="font-size:10px;">アルバム</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:4px; color:#7c7060;"><span style="font-size:18px;">◔</span><span style="font-size:10px;">マイ</span></div>
+            </div>
+          </div>
+          <div data-drags-parent="1" style="font-size:11.5px; line-height:1.7; color:#8b8174; margin-top:12px; max-width:360px;">入口はさがす上部の検索バー。名前・タグ・雰囲気の自由語で横断検索、ヒット語はハイライト。ゼロ件でも行き止まりにせず「その条件でつくる」へ接続。</div>
+        </div>
+
+        <!-- D-2 アルバム -->
+        <div data-screen-label="1d D2 アルバム">
+          <div data-drags-parent="1" style="margin-bottom:13px; font-family:'Noto Serif JP',serif; font-size:14.5px; color:#7c7060;">D-2 アルバム — もらった写真と動画</div>
+          <div style="width:392px; height:812px; border-radius:42px; overflow:hidden; position:relative; display:flex; flex-direction:column; background:radial-gradient(120% 60% at 50% -6%, #2c2522 0%, #1b1512 54%, #140f0d 100%); box-shadow:0 30px 70px -28px rgba(40,28,16,.55); color:#ece2d2;">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 26px 0; font-size:13px; color:#c9bba6;"><span style="font-weight:500;">0:17</span><span style="display:flex; gap:7px; align-items:center; opacity:.8;"><span style="font-size:11px;">●●●</span><span style="font-size:11px;">▾</span><span>100%</span></span></div>
+            <div style="padding:14px 26px 4px;"><div style="font-family:'Noto Serif JP',serif; font-size:23px; font-weight:600; color:#f3ead9;">アルバム</div></div>
+            <div class="scrollhide" style="display:flex; gap:7px; overflow-x:auto; padding:10px 24px 12px;">
+              <span style="flex:0 0 auto; padding:7px 13px; border-radius:15px; background:rgba(214,160,84,.2); border:1px solid rgba(231,201,135,.45); font-size:12px; color:#f0dcae;">すべて</span>
+              <span style="flex:0 0 auto; padding:7px 13px; border-radius:15px; border:1px solid rgba(201,180,140,.22); font-size:12px; color:#a1907a;">詩乃</span>
+              <span style="flex:0 0 auto; padding:7px 13px; border-radius:15px; border:1px solid rgba(201,180,140,.22); font-size:12px; color:#a1907a;">玲</span>
+              <span style="flex:0 0 auto; padding:7px 13px; border-radius:15px; border:1px solid rgba(201,180,140,.22); font-size:12px; color:#a1907a;">ひなた</span>
+              <span style="flex:0 0 auto; padding:7px 13px; border-radius:15px; border:1px solid rgba(201,180,140,.22); font-size:12px; color:#a1907a;">動画のみ</span>
+            </div>
+            <div class="scrollhide" style="flex:1; min-height:0; overflow:auto; padding:2px 20px 14px;">
+              <div style="font-size:10.5px; letter-spacing:.18em; color:#8a7f6c; margin:4px 4px 9px;">今夜</div>
+              <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:16px;">
+                <div style="position:relative; border-radius:13px; overflow:hidden; aspect-ratio:3/4;"><img src="assets/shino.png" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 12%;"></div>
+                <div style="position:relative; border-radius:13px; overflow:hidden; aspect-ratio:3/4;"><img src="assets/shino.png" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 40%;"><div style="position:absolute; left:7px; bottom:7px; display:flex; align-items:center; gap:4px; padding:3px 8px; border-radius:10px; background:rgba(20,15,13,.65); font-size:10px; color:#f0dcae;">⏵ 0:12</div></div>
+                <div style="position:relative; border-radius:13px; overflow:hidden; aspect-ratio:3/4; background:linear-gradient(100deg, rgba(214,160,84,.08) 40%, rgba(214,160,84,.16) 50%, rgba(214,160,84,.08) 60%); background-size:400px 100%; animation:shimmer 1.6s linear infinite; display:flex; align-items:center; justify-content:center;"><span style="font-size:10.5px; color:#b79766;">現像中…</span></div>
+              </div>
+              <div style="font-size:10.5px; letter-spacing:.18em; color:#8a7f6c; margin:0 4px 9px;">6月30日 ・ 玲</div>
+              <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:16px;">
+                <div style="position:relative; border-radius:13px; overflow:hidden; aspect-ratio:3/4;"><img src="assets/rei.png" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 14%;"></div>
+                <div style="position:relative; border-radius:13px; overflow:hidden; aspect-ratio:3/4;"><img src="assets/rei.png" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 34%;"></div>
+                <div style="position:relative; border-radius:13px; overflow:hidden; aspect-ratio:3/4; border:1px dashed rgba(210,120,80,.45); background:rgba(120,60,40,.1); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;"><span style="font-size:14px; color:#d69a7c;">◍</span><span style="font-size:10px; color:#c9ac97; text-align:center; line-height:1.5;">届きません<br>でした</span><span style="font-size:10.5px; color:#e7c987;">↻ 再試行</span></div>
+              </div>
+              <div style="text-align:center; font-size:11px; color:#8a7f6c; padding:4px 0;">タップで拡大 ・ 長押しで保存 / その会話へ飛ぶ</div>
+            </div>
+            <div style="flex:0 0 auto; display:flex; justify-content:space-around; align-items:center; padding:12px 18px 22px; background:#160f0d; border-top:1px solid rgba(201,180,140,.12);">
+              <div style="display:flex; flex-direction:column; align-items:center; gap:4px; color:#7c7060;"><span style="font-size:18px;">⌂</span><span style="font-size:10px;">ホーム</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:4px; color:#7c7060;"><span style="font-size:18px;">⌕</span><span style="font-size:10px;">さがす</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:4px; color:#e7c987;"><span style="font-size:18px;">▣</span><span style="font-size:10px;">アルバム</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:4px; color:#7c7060;"><span style="font-size:18px;">◔</span><span style="font-size:10px;">マイ</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- D-3 記憶 -->
+        <div data-screen-label="1d D3 記憶">
+          <div data-drags-parent="1" style="margin-bottom:13px; font-family:'Noto Serif JP',serif; font-size:14.5px; color:#7c7060;">D-3 記憶 — 強化記憶の一覧・書き換え</div>
+          <div style="width:392px; height:812px; border-radius:42px; overflow:hidden; position:relative; display:flex; flex-direction:column; background:radial-gradient(120% 60% at 50% -6%, #2c2522 0%, #1b1512 54%, #140f0d 100%); box-shadow:0 30px 70px -28px rgba(40,28,16,.55); color:#ece2d2;">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 26px 0; font-size:13px; color:#c9bba6;"><span style="font-weight:500;">0:18</span><span style="display:flex; gap:7px; align-items:center; opacity:.8;"><span style="font-size:11px;">●●●</span><span style="font-size:11px;">▾</span><span>100%</span></span></div>
+            <div style="display:flex; align-items:center; gap:12px; padding:14px 26px 4px;">
+              <span style="font-size:18px; color:#c9b48c;">‹</span>
+              <div style="font-family:'Noto Serif JP',serif; font-size:23px; font-weight:600; color:#f3ead9; flex:1;">記憶</div>
+              <div style="display:flex; align-items:center; gap:8px;"><div style="width:30px; height:30px; border-radius:50%; overflow:hidden; border:1px solid rgba(231,201,135,.5);"><img src="assets/shino.png" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 18%;"></div><span style="font-size:12.5px; color:#e0cba0;">詩乃 ▾</span></div>
+            </div>
+            <div style="padding:6px 26px 10px; font-size:11.5px; line-height:1.7; color:#8a7f6c;">彼女が覚えていること。<b style="color:#c9b48c;">書き換えれば、それが彼女の事実になります。</b></div>
+            <div class="scrollhide" style="flex:1; min-height:0; overflow:auto; padding:6px 24px 14px;">
+              <div style="border-radius:18px; border:1px solid rgba(231,201,135,.4); background:rgba(214,160,84,.1); padding:15px 16px; margin-bottom:12px;">
+                <div style="display:flex; align-items:flex-start; gap:9px;">
+                  <span style="color:#e7c987; font-size:12px; margin-top:2px;">◆</span>
+                  <div style="flex:1; font-size:13px; line-height:1.8; color:#f1e7d6;">あなたの帰りを待つのが好き</div>
+                  <span style="font-size:12px; color:#e7c987;">ピン</span>
+                </div>
+                <div style="display:flex; gap:14px; margin-top:9px; padding-left:21px; font-size:11px; color:#8a7f6c;"><span>6/28 の会話から</span><span style="color:#c9b48c;">書き換える</span><span>忘れさせる</span></div>
+              </div>
+              <div style="border-radius:18px; border:1px solid rgba(201,180,140,.24); background:rgba(20,15,13,.35); padding:15px 16px; margin-bottom:12px;">
+                <div style="display:flex; align-items:flex-start; gap:9px;">
+                  <span style="color:#b79766; font-size:12px; margin-top:2px;">◆</span>
+                  <div style="flex:1; font-size:13px; line-height:1.8; color:#ded2bc;">呼び方は「きみ」。ふたりのときだけ名前で呼ぶ</div>
+                </div>
+                <div style="display:flex; gap:14px; margin-top:9px; padding-left:21px; font-size:11px; color:#8a7f6c;"><span>6/30 の会話から</span><span style="color:#c9b48c;">書き換える</span><span>忘れさせる</span></div>
+              </div>
+              <div style="border-radius:18px; border:1px solid rgba(231,201,135,.5); background:rgba(20,15,13,.55); padding:15px 16px; margin-bottom:12px;">
+                <div style="font-size:11px; letter-spacing:.16em; color:#b79766; margin-bottom:8px;">書き換え中</div>
+                <div style="display:flex; align-items:center; gap:2px; padding:11px 14px; border-radius:13px; background:rgba(20,15,13,.7); border:1px solid rgba(231,201,135,.4); font-size:13px; color:#f1e7d6;">はじめて会ったのは大学の図書館<span style="display:inline-block; width:2px; height:14px; background:#e7c987; animation:caretBlink 1.1s infinite;"></span></div>
+                <div style="display:flex; gap:9px; margin-top:11px;">
+                  <span style="flex:0 0 auto; padding:9px 18px; border-radius:16px; background:linear-gradient(145deg,#f0d18a,#d6a054); color:#2a1c0c; font-size:11.5px; font-weight:700;">これを事実にする</span>
+                  <span style="flex:0 0 auto; padding:9px 16px; border-radius:16px; border:1px solid rgba(201,180,140,.3); color:#c9b48c; font-size:11.5px;">やめる</span>
+                </div>
+              </div>
+              <div style="display:flex; align-items:center; gap:12px; padding:13px 4px;">
+                <div style="flex:0 0 auto; width:38px; height:38px; border-radius:50%; border:1px dashed rgba(201,180,140,.4); display:flex; align-items:center; justify-content:center; font-size:17px; color:#c9b48c;">＋</div>
+                <div style="font-size:13px; color:#d9c9a8;">覚えさせたいことを足す</div>
+              </div>
+              <div style="font-size:11px; line-height:1.75; color:#7c7060; margin-top:8px; padding:0 4px;">会話中の「◆ 覚えておく」がここに溜まります。書き換え・削除は即反映。彼女は書き換えに気づきません。</div>
+            </div>
+          </div>
+          <div data-drags-parent="1" style="font-size:11.5px; line-height:1.7; color:#8b8174; margin-top:12px; max-width:360px;">タブではなくプッシュ画面に変更：マイ・各キャラの「⋯」・プロフィールから開く（タブは ホーム/さがす/アルバム/マイ の4つに統一）。</div>
+        </div>
+
+        <!-- D-4 シーン切替 -->
+        <div data-screen-label="1d D4 シーン切替">
+          <div data-drags-parent="1" style="margin-bottom:13px; font-family:'Noto Serif JP',serif; font-size:14.5px; color:#7c7060;">D-4 シーン — 同じ子と、別の場面</div>
+          <div style="width:392px; height:812px; border-radius:42px; overflow:hidden; position:relative; display:flex; flex-direction:column; background:radial-gradient(120% 60% at 50% -6%, #2c2522 0%, #1b1512 54%, #140f0d 100%); box-shadow:0 30px 70px -28px rgba(40,28,16,.55); color:#ece2d2;">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 26px 0; font-size:13px; color:#c9bba6;"><span style="font-weight:500;">0:19</span><span style="display:flex; gap:7px; align-items:center; opacity:.8;"><span style="font-size:11px;">●●●</span><span style="font-size:11px;">▾</span><span>100%</span></span></div>
+            <div style="display:flex; align-items:center; gap:13px; padding:14px 24px 12px;">
+              <span style="font-size:18px; color:#c9b48c;">‹</span>
+              <div style="width:38px; height:38px; border-radius:50%; overflow:hidden; border:1px solid rgba(201,180,140,.4);"><img src="assets/shino.png" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 18%;"></div>
+              <div style="flex:1;"><div style="font-family:'Noto Serif JP',serif; font-size:17px; font-weight:600; color:#f3ead9;">詩乃 のシーン</div><div style="font-size:11px; color:#9a8a6f; margin-top:2px;">記憶と関係はシーンをまたいで続きます</div></div>
+            </div>
+            <div class="scrollhide" style="flex:1; min-height:0; overflow:auto; padding:6px 24px 14px;">
+              <div style="position:relative; border-radius:20px; overflow:hidden; border:1px solid rgba(231,201,135,.45); margin-bottom:14px;">
+                <img src="assets/shino.png" alt="" style="display:block; width:100%; height:150px; object-fit:cover; object-position:50% 14%;">
+                <div style="position:absolute; inset:0; background:linear-gradient(180deg, rgba(20,15,13,.05) 0%, rgba(20,15,13,.94));"></div>
+                <div style="position:absolute; left:16px; right:16px; bottom:13px;">
+                  <div style="font-size:10px; letter-spacing:.22em; color:#e7c987;">いま進行中</div>
+                  <div style="font-family:'Noto Serif JP',serif; font-size:17px; font-weight:600; color:#fbf3e4; margin-top:4px;">雨夜のひと部屋</div>
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-top:5px;"><span style="font-size:11.5px; color:#cbbda3; font-style:italic;">「今夜は……もう少しだけ、帰らないで」</span><span style="font-size:11px; color:#e7c987;">つづきから →</span></div>
+                </div>
+              </div>
+              <div style="display:flex; align-items:center; gap:14px; padding:12px 4px; border-bottom:1px solid rgba(201,180,140,.12);">
+                <div style="flex:0 0 auto; width:46px; height:46px; border-radius:13px; overflow:hidden;"><img src="assets/shino.png" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 34%;"></div>
+                <div style="flex:1; min-width:0;"><div style="font-family:'Noto Serif JP',serif; font-size:14.5px; color:#f1e7d6;">昼下がりの図書館</div><div style="font-size:11px; color:#9a8d77; margin-top:3px;">24回 ・ 最後は6/24</div></div>
+                <span style="font-size:11.5px; color:#c9b48c;">再開</span>
+              </div>
+              <div style="display:flex; align-items:center; gap:14px; padding:12px 4px; border-bottom:1px solid rgba(201,180,140,.12);">
+                <div style="flex:0 0 auto; width:46px; height:46px; border-radius:13px; overflow:hidden;"><img src="assets/rei.png" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 40%;"></div>
+                <div style="flex:1; min-width:0;"><div style="font-family:'Noto Serif JP',serif; font-size:14.5px; color:#f1e7d6;">温泉旅行の夜</div><div style="font-size:11px; color:#9a8d77; margin-top:3px;">8回 ・ 最後は6/12</div></div>
+                <span style="font-size:11.5px; color:#c9b48c;">再開</span>
+              </div>
+              <div style="font-size:11px; letter-spacing:.2em; color:#b79766; margin:20px 0 10px;">あたらしいシーンをはじめる</div>
+              <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px;">
+                <span style="padding:8px 14px; border-radius:17px; border:1px solid rgba(201,180,140,.3); color:#c9b48c; font-size:12px;">深夜のコンビニ</span>
+                <span style="padding:8px 14px; border-radius:17px; border:1px solid rgba(201,180,140,.3); color:#c9b48c; font-size:12px;">旅行先の宿</span>
+                <span style="padding:8px 14px; border-radius:17px; border:1px solid rgba(201,180,140,.3); color:#c9b48c; font-size:12px;">朝、目が覚めたら</span>
+                <span style="padding:8px 14px; border-radius:17px; border:1px dashed rgba(201,180,140,.35); color:#a1907a; font-size:12px;">自由に書く…</span>
+              </div>
+              <div style="border-radius:16px; border:1px dashed rgba(231,201,135,.35); padding:13px 16px; font-size:11.5px; line-height:1.75; color:#a99c85;">❝ シナリオを貼り付けて、この子とその物語を始めることもできます</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- D-5 キャラ編集 -->
+        <div data-screen-label="1d D5 キャラ編集">
+          <div data-drags-parent="1" style="margin-bottom:13px; font-family:'Noto Serif JP',serif; font-size:14.5px; color:#7c7060;">D-5 キャラ編集 — 作った子の修正</div>
+          <div style="width:392px; height:812px; border-radius:42px; overflow:hidden; position:relative; display:flex; flex-direction:column; background:radial-gradient(120% 60% at 50% -6%, #2c2522 0%, #1b1512 54%, #140f0d 100%); box-shadow:0 30px 70px -28px rgba(40,28,16,.55); color:#ece2d2;">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 26px 0; font-size:13px; color:#c9bba6;"><span style="font-weight:500;">0:21</span><span style="display:flex; gap:7px; align-items:center; opacity:.8;"><span style="font-size:11px;">●●●</span><span style="font-size:11px;">▾</span><span>100%</span></span></div>
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 24px 0;">
+              <span style="font-size:18px; color:#c9b48c;">‹</span>
+              <div style="font-family:'Noto Serif JP',serif; font-size:16px; color:#f3ead9;">ひなた を編集</div>
+              <span style="font-size:12px; color:#e7c987; font-weight:700;">保存</span>
+            </div>
+            <div class="scrollhide" style="flex:1; min-height:0; overflow:auto; padding:18px 24px 14px;">
+              <div style="display:flex; align-items:center; gap:16px; margin-bottom:20px;">
+                <div style="flex:0 0 auto; width:74px; height:74px; border-radius:50%; overflow:hidden; border:1px solid rgba(231,201,135,.45);"><img src="assets/shino.png" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 16%;"></div>
+                <div style="display:flex; flex-direction:column; gap:7px;">
+                  <span style="white-space:nowrap; padding:7px 14px; border-radius:15px; border:1px solid rgba(231,201,135,.4); color:#e7c987; font-size:11.5px; text-align:center;">↻ AIで描き直す</span>
+                  <span style="white-space:nowrap; padding:7px 14px; border-radius:15px; border:1px solid rgba(201,180,140,.3); color:#c9b48c; font-size:11.5px; text-align:center;">画像をアップロード</span>
+                </div>
+              </div>
+              <div style="font-size:11px; letter-spacing:.2em; color:#b79766; margin-bottom:8px;">なまえ</div>
+              <div style="display:flex; align-items:center; padding:12px 16px; border-radius:14px; background:rgba(20,15,13,.6); border:1px solid rgba(201,180,140,.3); margin-bottom:18px;"><span style="font-family:'Noto Serif JP',serif; font-size:15px; color:#f1e7d6;">ひなた</span></div>
+              <div style="font-size:11px; letter-spacing:.2em; color:#b79766; margin-bottom:8px;">あなたとの関係 — 自由に書ける</div>
+              <div style="display:flex; align-items:center; padding:12px 16px; border-radius:14px; background:rgba(20,15,13,.6); border:1px solid rgba(231,201,135,.4); margin-bottom:9px;"><span style="font-family:'Noto Serif JP',serif; font-size:14px; color:#f1e7d6;">同じマンションに住む年上の恋人</span><span style="display:inline-block; width:2px; height:15px; background:#e7c987; margin-left:2px; animation:caretBlink 1.1s infinite;"></span></div>
+              <div style="display:flex; flex-wrap:wrap; gap:7px; margin-bottom:6px;">
+                <span style="white-space:nowrap; padding:7px 13px; border-radius:15px; border:1px solid rgba(201,180,140,.3); color:#c9b48c; font-size:11.5px;">恋人</span>
+                <span style="white-space:nowrap; padding:7px 13px; border-radius:15px; border:1px solid rgba(201,180,140,.3); color:#c9b48c; font-size:11.5px;">人妻</span>
+                <span style="white-space:nowrap; padding:7px 13px; border-radius:15px; border:1px solid rgba(201,180,140,.3); color:#c9b48c; font-size:11.5px;">幼なじみ</span>
+                <span style="white-space:nowrap; padding:7px 13px; border-radius:15px; border:1px solid rgba(201,180,140,.3); color:#c9b48c; font-size:11.5px;">職場の先輩</span>
+                <span style="white-space:nowrap; padding:7px 13px; border-radius:15px; border:1px solid rgba(201,180,140,.3); color:#c9b48c; font-size:11.5px;">元カノ</span>
+              </div>
+              <div style="font-size:10.5px; color:#8a7f6c; margin-bottom:18px;">チップは入力の下書きになるだけ。書き換え・書き足し自由（例: 週2で通う家庭教師）</div>
+              <div style="font-size:11px; letter-spacing:.2em; color:#b79766; margin-bottom:8px;">性格・見た目</div>
+              <div style="border-radius:14px; background:rgba(20,15,13,.6); border:1px solid rgba(201,180,140,.3); padding:13px 16px; font-size:12.5px; line-height:1.85; color:#ded2bc; margin-bottom:8px;">甘えん坊で、いつもタメ口。あなたの前でだけ声がすこし高くなる。休日は部屋着のまま膝の上に来る。</div>
+              <div style="text-align:right; font-size:11px; color:#c9b48c; margin-bottom:18px;">✦ ことばで指示して書き直す</div>
+              <div style="font-size:11px; letter-spacing:.2em; color:#b79766; margin-bottom:8px;">秘めた面</div>
+              <div style="display:flex; align-items:center; justify-content:space-between; border-radius:14px; border:1px dashed rgba(201,180,140,.35); padding:13px 16px; margin-bottom:18px;">
+                <span style="font-size:12px; color:#c9b48c;">独占欲が強い、甘噛みの癖…</span>
+                <span style="font-size:11px; color:#8a7f6c;">開いて編集 ▸</span>
+              </div>
+              <div style="font-size:11px; letter-spacing:.2em; color:#b79766; margin-bottom:8px;">はじまりのひと言</div>
+              <div style="border-radius:14px; background:rgba(20,15,13,.6); border:1px solid rgba(201,180,140,.3); padding:13px 16px; font-size:12.5px; line-height:1.85; color:#ded2bc; font-style:italic; margin-bottom:22px;">「おかえりっ。今日もがんばったね……ねえ、こっちきて？」</div>
+              <div style="border-top:1px solid rgba(210,120,80,.25); padding-top:16px;">
+                <div style="display:flex; align-items:center; justify-content:space-between;">
+                  <div><div style="font-size:12.5px; color:#d69a7c;">この子とお別れする</div><div style="font-size:10.5px; color:#8a7f6c; margin-top:3px;">会話・記憶・アルバムも消えます（取り消せません）</div></div>
+                  <span style="padding:8px 15px; border-radius:15px; border:1px solid rgba(210,120,80,.4); color:#d69a7c; font-size:11.5px;">お別れ…</span>
+                </div>
+              </div>
+            </div>
+            <div style="flex:0 0 auto; padding:12px 24px 26px; background:#160f0d; border-top:1px solid rgba(201,180,140,.12);">
+              <div style="padding:11px 15px; border-radius:15px; background:rgba(214,160,84,.1); border:1px solid rgba(231,201,135,.3); font-size:11.5px; line-height:1.7; color:#cbbda3;">✎ 変更は<b style="color:#f0dcae;">次の返事から</b>反映。進行中のシーンは変わりません。</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- D-6 履歴 -->
+        <div data-screen-label="1d D6 履歴">
+          <div data-drags-parent="1" style="margin-bottom:13px; font-family:'Noto Serif JP',serif; font-size:14.5px; color:#7c7060;">D-6 履歴 — 過去の会話ログ</div>
+          <div style="width:392px; height:812px; border-radius:42px; overflow:hidden; position:relative; display:flex; flex-direction:column; background:radial-gradient(120% 60% at 50% -6%, #2c2522 0%, #1b1512 54%, #140f0d 100%); box-shadow:0 30px 70px -28px rgba(40,28,16,.55); color:#ece2d2;">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 26px 0; font-size:13px; color:#c9bba6;"><span style="font-weight:500;">0:22</span><span style="display:flex; gap:7px; align-items:center; opacity:.8;"><span style="font-size:11px;">●●●</span><span style="font-size:11px;">▾</span><span>100%</span></span></div>
+            <div style="padding:14px 26px 8px;"><div style="font-family:'Noto Serif JP',serif; font-size:23px; font-weight:600; color:#f3ead9;">履歴</div></div>
+            <div style="padding:0 24px 6px;">
+              <div style="display:flex; align-items:center; gap:9px; padding:11px 16px; border-radius:20px; background:rgba(20,15,13,.6); border:1px solid rgba(201,180,140,.26); font-size:12.5px; color:#8a7f6c;"><span style="color:#c9b48c;">⌕</span>会話の中身も検索できます…</div>
+            </div>
+            <div class="scrollhide" style="flex:1; min-height:0; overflow:auto; padding:8px 24px 14px;">
+              <div style="font-size:10.5px; letter-spacing:.18em; color:#8a7f6c; margin:6px 2px 8px;">今夜</div>
+              <div style="display:flex; align-items:center; gap:13px; padding:11px 2px; border-bottom:1px solid rgba(201,180,140,.12);">
+                <div style="flex:0 0 auto; width:46px; height:46px; border-radius:50%; overflow:hidden; border:1px solid rgba(201,180,140,.4);"><img src="assets/shino.png" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 18%;"></div>
+                <div style="flex:1; min-width:0;">
+                  <div style="display:flex; align-items:baseline; gap:8px;"><span style="font-family:'Noto Serif JP',serif; font-size:15px; color:#f1e7d6;">詩乃</span><span style="font-size:10.5px; color:#9a8a6f;">雨夜のひと部屋</span></div>
+                  <div style="font-size:11.5px; color:#9a8d77; margin-top:3px; font-style:italic; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">「今夜は……もう少しだけ、帰らないで」</div>
+                </div>
+                <div style="text-align:right; flex:0 0 auto;"><div style="font-size:10.5px; color:#8a7f6c;">23:41</div><div style="font-size:11px; color:#e7c987; margin-top:4px;">つづき →</div></div>
+              </div>
+              <div style="display:flex; align-items:center; gap:13px; padding:11px 2px; border-bottom:1px solid rgba(201,180,140,.12);">
+                <div style="flex:0 0 auto; width:46px; height:46px; border-radius:50%; overflow:hidden; border:1px solid rgba(201,180,140,.4);"><img src="assets/rei.png" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 16%;"></div>
+                <div style="flex:1; min-width:0;">
+                  <div style="display:flex; align-items:baseline; gap:8px;"><span style="font-family:'Noto Serif JP',serif; font-size:15px; color:#f1e7d6;">玲</span><span style="font-size:10.5px; color:#9a8a6f;">オフィスの残業</span></div>
+                  <div style="font-size:11.5px; color:#9a8d77; margin-top:3px; font-style:italic; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">「……別に、待ってたわけじゃない」</div>
+                </div>
+                <div style="text-align:right; flex:0 0 auto;"><div style="font-size:10.5px; color:#8a7f6c;">22:05</div><div style="font-size:11px; color:#e7c987; margin-top:4px;">つづき →</div></div>
+              </div>
+              <div style="font-size:10.5px; letter-spacing:.18em; color:#8a7f6c; margin:16px 2px 8px;">6月30日</div>
+              <div style="display:flex; align-items:center; gap:13px; padding:11px 2px; border-bottom:1px solid rgba(201,180,140,.12);">
+                <div style="flex:0 0 auto; width:46px; height:46px; border-radius:50%; overflow:hidden; border:1px solid rgba(201,180,140,.4);"><img src="assets/shino.png" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 30%;"></div>
+                <div style="flex:1; min-width:0;">
+                  <div style="display:flex; align-items:baseline; gap:8px;"><span style="font-family:'Noto Serif JP',serif; font-size:15px; color:#f1e7d6;">ひなた</span><span style="font-size:10.5px; color:#9a8a6f;">はじめまして</span></div>
+                  <div style="font-size:11.5px; color:#9a8d77; margin-top:3px; font-style:italic; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">「おかえりっ。今日もがんばったね」</div>
+                </div>
+                <div style="text-align:right; flex:0 0 auto;"><div style="font-size:10.5px; color:#8a7f6c;">1:12</div><div style="font-size:11px; color:#e7c987; margin-top:4px;">つづき →</div></div>
+              </div>
+              <div style="text-align:center; font-size:11px; color:#7c7060; padding:14px 0 4px;">左スワイプで 共有 / 削除 ・ 削除しても記憶は残ります</div>
+            </div>
+            <div style="flex:0 0 auto; display:flex; justify-content:space-around; align-items:center; padding:12px 18px 22px; background:#160f0d; border-top:1px solid rgba(201,180,140,.12);">
+              <div style="display:flex; flex-direction:column; align-items:center; gap:4px; color:#e7c987;"><span style="font-size:18px;">⌂</span><span style="font-size:10px;">ホーム</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:4px; color:#7c7060;"><span style="font-size:18px;">⌕</span><span style="font-size:10px;">さがす</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:4px; color:#7c7060;"><span style="font-size:18px;">▣</span><span style="font-size:10px;">アルバム</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:4px; color:#7c7060;"><span style="font-size:18px;">◔</span><span style="font-size:10px;">マイ</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- D-7 設定 -->
+        <div data-screen-label="1d D7 この子との設定">
+          <div data-drags-parent="1" style="margin-bottom:13px; font-family:'Noto Serif JP',serif; font-size:14.5px; color:#7c7060;">D-7 この子との設定 — キャラ・シーンごとに変える</div>
+          <div style="width:392px; height:812px; border-radius:42px; overflow:hidden; position:relative; display:flex; flex-direction:column; background:radial-gradient(120% 60% at 50% -6%, #2c2522 0%, #1b1512 54%, #140f0d 100%); box-shadow:0 30px 70px -28px rgba(40,28,16,.55); color:#ece2d2;">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 26px 0; font-size:13px; color:#c9bba6;"><span style="font-weight:500;">0:23</span><span style="display:flex; gap:7px; align-items:center; opacity:.8;"><span style="font-size:11px;">●●●</span><span style="font-size:11px;">▾</span><span>100%</span></span></div>
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 24px 0;">
+              <span style="font-size:18px; color:#c9b48c;">‹</span>
+              <div style="font-family:'Noto Serif JP',serif; font-size:16px; color:#f3ead9;">詩乃との設定</div>
+              <span style="width:18px;"></span>
+            </div>
+            <div class="scrollhide" style="flex:1; min-height:0; overflow:auto; padding:18px 24px 14px;">
+              <div style="font-size:11px; letter-spacing:.2em; color:#b79766; margin-bottom:10px;">どこに効かせる？</div>
+              <div style="display:flex; gap:8px; margin-bottom:20px;">
+                <span style="flex:1; text-align:center; padding:11px 0; border-radius:15px; background:#d6a054; color:#2a1c0c; font-size:12.5px; font-weight:700;">詩乃とのぜんぶ</span>
+                <span style="flex:1; text-align:center; padding:11px 0; border-radius:15px; border:1px solid rgba(201,180,140,.3); color:#c9b48c; font-size:12.5px;">このシーンだけ</span>
+              </div>
+              <div style="font-size:11px; letter-spacing:.2em; color:#b79766; margin-bottom:10px;">返事のかたち</div>
+              <div style="border-radius:18px; border:1px solid rgba(201,180,140,.24); background:rgba(20,15,13,.35); padding:16px; margin-bottom:20px;">
+                <div style="font-size:12.5px; color:#ded2bc; margin-bottom:9px;">文章の長さ</div>
+                <div style="display:flex; gap:7px; margin-bottom:6px;">
+                  <span style="flex:1; text-align:center; padding:10px 0; border-radius:13px; border:1px solid rgba(201,180,140,.3); color:#c9b48c; font-size:12px;">短め</span>
+                  <span style="flex:1; text-align:center; padding:10px 0; border-radius:13px; border:1px solid rgba(201,180,140,.3); color:#c9b48c; font-size:12px;">ふつう</span>
+                  <span style="flex:1; text-align:center; padding:10px 0; border-radius:13px; background:#d6a054; color:#2a1c0c; font-size:12px; font-weight:700;">たっぷり</span>
+                </div>
+                <div style="font-size:10.5px; line-height:1.7; color:#8a7f6c; margin-bottom:14px;">たっぷり＝状況・描写・セリフ・心の声まで。会話中のチップからも変えられます。</div>
+                <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-top:1px solid rgba(201,180,140,.12);">
+                  <div><div style="font-size:12.5px; color:#ded2bc;">会話に写真を混ぜる</div><div style="font-size:10.5px; color:#8a7f6c; margin-top:2px;">向こうから送ってくる頻度</div></div>
+                  <div style="flex:0 0 auto; width:46px; height:26px; border-radius:14px; background:#d6a054; position:relative;"><span style="position:absolute; right:3px; top:3px; width:20px; height:20px; border-radius:50%; background:#2a1c0c;"></span></div>
+                </div>
+                <div style="display:flex; align-items:center; gap:11px; padding:4px 0 12px;">
+                  <span style="font-size:10.5px; color:#8a7f6c;">ひかえめ</span>
+                  <div style="flex:1; position:relative; height:5px; border-radius:3px; background:rgba(201,180,140,.2);"><div style="position:absolute; left:0; top:0; bottom:0; width:72%; border-radius:3px; background:linear-gradient(90deg,#b8863f,#e7c987);"></div><div style="position:absolute; left:72%; top:50%; transform:translate(-50%,-50%); width:17px; height:17px; border-radius:50%; background:#f0d18a;"></div></div>
+                  <span style="font-size:10.5px; color:#8a7f6c;">バンバン</span>
+                </div>
+                <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-top:1px solid rgba(201,180,140,.12);">
+                  <div><div style="font-size:12.5px; color:#ded2bc;">動画も受け取る</div></div>
+                  <div style="flex:0 0 auto; width:46px; height:26px; border-radius:14px; background:rgba(201,180,140,.25); position:relative;"><span style="position:absolute; left:3px; top:3px; width:20px; height:20px; border-radius:50%; background:#8a7f6c;"></span></div>
+                </div>
+                <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 0 2px; border-top:1px solid rgba(201,180,140,.12);">
+                  <div><div style="font-size:12.5px; color:#ded2bc;">文章のみモード</div><div style="font-size:10.5px; color:#8a7f6c; margin-top:2px;">画像・動画を止めて、ことばだけで</div></div>
+                  <div style="flex:0 0 auto; width:46px; height:26px; border-radius:14px; background:rgba(201,180,140,.25); position:relative;"><span style="position:absolute; left:3px; top:3px; width:20px; height:20px; border-radius:50%; background:#8a7f6c;"></span></div>
+                </div>
+              </div>
+              <div style="border-radius:16px; border:1px dashed rgba(201,180,140,.3); padding:13px 16px; font-size:11.5px; line-height:1.75; color:#a99c85;">ここでの変更は<b style="color:#f0dcae;">この子（またはこのシーン）だけ</b>に効きます。ほかの子には影響しません。</div>
+            </div>
+          </div>
+          <div data-drags-parent="1" style="font-size:11.5px; line-height:1.7; color:#8b8174; margin-top:12px; max-width:360px;">チャットヘッダの「⋯」から開く。既定は「この子ぜんぶ」、シーン限定にも切替可。キャラ編集（D-5）とは別物＝人格はいじらず、届き方だけ変える。</div>
+        </div>
+
+        <!-- D-8 全体設定 -->
+        <div data-screen-label="1d D8 全体設定">
+          <div data-drags-parent="1" style="margin-bottom:13px; font-family:'Noto Serif JP',serif; font-size:14.5px; color:#7c7060;">D-8 全体の設定 — 最小構成</div>
+          <div style="width:392px; height:812px; border-radius:42px; overflow:hidden; position:relative; display:flex; flex-direction:column; background:radial-gradient(120% 60% at 50% -6%, #2c2522 0%, #1b1512 54%, #140f0d 100%); box-shadow:0 30px 70px -28px rgba(40,28,16,.55); color:#ece2d2;">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 26px 0; font-size:13px; color:#c9bba6;"><span style="font-weight:500;">0:24</span><span style="display:flex; gap:7px; align-items:center; opacity:.8;"><span style="font-size:11px;">●●●</span><span style="font-size:11px;">▾</span><span>100%</span></span></div>
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 24px 0;">
+              <span style="font-size:18px; color:#c9b48c;">‹</span>
+              <div style="font-family:'Noto Serif JP',serif; font-size:16px; color:#f3ead9;">設定</div>
+              <span style="width:18px;"></span>
+            </div>
+            <div class="scrollhide" style="flex:1; min-height:0; overflow:auto; padding:20px 24px 14px;">
+              <div style="font-size:11px; letter-spacing:.2em; color:#b79766; margin-bottom:10px;">法的文章</div>
+              <div style="border-radius:18px; border:1px solid rgba(201,180,140,.24); background:rgba(20,15,13,.35); padding:4px 16px; margin-bottom:20px;">
+                <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 0; border-bottom:1px solid rgba(201,180,140,.12);"><span style="font-size:12.5px; color:#ded2bc;">利用規約</span><span style="font-size:11.5px; color:#8a7f6c;">›</span></div>
+                <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 0; border-bottom:1px solid rgba(201,180,140,.12);"><span style="font-size:12.5px; color:#ded2bc;">プライバシーポリシー</span><span style="font-size:11.5px; color:#8a7f6c;">›</span></div>
+                <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 0;"><span style="font-size:12.5px; color:#ded2bc;">特定商取引法に基づく表示</span><span style="font-size:11.5px; color:#8a7f6c;">›</span></div>
+              </div>
+              <div style="border-radius:18px; border:1px solid rgba(201,180,140,.24); background:rgba(20,15,13,.35); padding:4px 16px;">
+                <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 0;"><span style="font-size:12.5px; color:#9a8d77;">ログアウト</span><span style="font-size:11.5px; color:#8a7f6c;">›</span></div>
+              </div>
+              <div style="text-align:center; font-size:10.5px; letter-spacing:.18em; color:#7c7060; margin-top:26px;">燈 ・ 1.0.0</div>
+            </div>
+          </div>
+          <div data-drags-parent="1" style="font-size:11.5px; line-height:1.7; color:#8b8174; margin-top:12px; max-width:360px;">課金・通知・モデル等の項目は置かない。返事のかたちは各キャラの「⋯」（D-7）へ。</div>
+        </div>
+      </div>
+    </div>
+
+  </section>
+</div>
+</x-dc>
+</body>
+</html>

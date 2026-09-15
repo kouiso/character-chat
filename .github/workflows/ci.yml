@@ -1,0 +1,194 @@
+name: CI
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # WHY(2026-08-16): このリポの runs-on 直書き12箇所が runner_budget_switch の対象から
+  # 外れとった。同じ穴が別の workflow 追加時に開き直さんよう静的に検査する。
+  # draft でも走らせる(5秒程度で終わる静的検査で、早く気づけるほど手戻りが小さい)。
+  runner-hardcode-guard:
+    name: runner-hardcode-guard
+    runs-on: ${{ vars.RUNNER_LINUX || 'ubuntu-latest' }}
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Fail on hardcoded GitHub-hosted runners
+        run: bash ./.github/script/check-runner-hardcode.sh
+
+  ci:
+    name: CI (${{ matrix.check-type }})
+    runs-on: ${{ vars.RUNNER_LINUX_4VCPU || 'blacksmith-4vcpu-ubuntu-2404' }}
+    # push イベントでは github.event.pull_request が null になり draft 判定が falsy に
+    # なるため、push: branches:[main] のトリガーがあっても全ジョブが skip されとった。
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        check-type: [lint, test, build]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        if: matrix.check-type == 'lint'
+        run: pnpm run lint
+
+      # vitest.config.ts の coverage.thresholds は定義されとるだけで CI から一度も
+      # 実行されておらず、閾値割れを検知できんかった。test を coverage 付きに変えて強制する。
+      - name: Test (with coverage thresholds)
+        if: matrix.check-type == 'test'
+        run: pnpm run test:coverage
+
+      - name: Build
+        if: matrix.check-type == 'build'
+        run: pnpm run build
+
+  # マイグレーションの適用順序（CREATE 前の ALTER/参照など）は、まっさらなローカル D1 に
+  # 全件適用して初めて検知できる。0020/0022 の順序バグは PR CI で流してへんかったため
+  # マージ後の Quality Eval まで気づけず main を壊した。手遅れにせんよう PR/push で検証する。
+  migrations:
+    name: Migrations (fresh local D1)
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    # push イベントでは github.event.pull_request が null になり draft 判定が falsy に
+    # なるため、push: branches:[main] のトリガーがあっても全ジョブが skip されとった。
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # --local はネットワーク/シークレット不要でオフライン完結する。
+      - name: Apply migrations to a fresh local D1
+        run: pnpm run db:migrate:local
+
+  # e2e spec は Vite dev サーバーのみを対象にし、API 依存ステップは
+  # アプリのエラー状態時に graceful skip する（ライブ鍵不要）。
+  # webServer 設定が CI で dev サーバーを自動起動する。
+  e2e:
+    name: E2E (offline smoke)
+    runs-on: ${{ vars.RUNNER_LINUX_4VCPU || 'blacksmith-4vcpu-ubuntu-2404' }}
+    # push イベントでは github.event.pull_request が null になり draft 判定が falsy に
+    # なるため、push: branches:[main] のトリガーがあっても全ジョブが skip されとった。
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Playwright のブラウザバイナリは依存に含まれないため明示インストールする。
+      # e2e と boot-smoke が別ジョブで同じ chromium を毎回ダウンロードしとったため、
+      # playwright のバージョンをキーにキャッシュを共有する。OS 依存パッケージ(apt)は
+      # キャッシュに乗らんので、hit 時も install-deps だけは毎回走らせる。
+      - name: Resolve Playwright version
+        id: playwright-version
+        run: echo "version=$(node -p "require('playwright/package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ steps.playwright-version.outputs.version }}-chromium
+
+      - name: Install Playwright browser
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Install Playwright OS dependencies (cache hit)
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: pnpm exec playwright install-deps chromium
+
+      - name: E2E (Playwright)
+        run: pnpm run test:e2e
+
+  # 起動時パースエラー(白画面)を検知する boot-smoke ガード。
+  # scripts/boot-smoke.mjs をビルド済みアプリに対して実行する
+  # (pnpm smoke = pnpm build && node scripts/boot-smoke.mjs)。
+  boot-smoke:
+    name: Boot smoke
+    runs-on: ${{ vars.RUNNER_LINUX_4VCPU || 'blacksmith-4vcpu-ubuntu-2404' }}
+    # push イベントでは github.event.pull_request が null になり draft 判定が falsy に
+    # なるため、push: branches:[main] のトリガーがあっても全ジョブが skip されとった。
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # boot-smoke はビルド済みアプリを実ブラウザで起動して検証するため
+      # Playwright のブラウザバイナリを明示インストールする。
+      # キャッシュキーは e2e ジョブと同一にして、片方が温めたものを両方で使う。
+      - name: Resolve Playwright version
+        id: playwright-version
+        run: echo "version=$(node -p "require('playwright/package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ steps.playwright-version.outputs.version }}-chromium
+
+      - name: Install Playwright browser
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Install Playwright OS dependencies (cache hit)
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: pnpm exec playwright install-deps chromium
+
+      - name: Boot smoke
+        run: pnpm smoke

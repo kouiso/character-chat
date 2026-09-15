@@ -1,0 +1,41 @@
+name: TruffleHog Secret Scan
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  security-events: write
+
+# WHY: 2026-08-01 の追加以降15日で484 run と、このリポで最多の起動数になっとった。
+# concurrency が無く、PR へ連続 push するたび前の走行が生き残って積み上がる。
+# 同じ ref の走行は最新だけ残す(スキャン対象は最新コミットなので古い走行に価値が無い)。
+# push:branches[main] は残す。quality-eval.yml が main へ直接 push しており、
+# その内容は PR 側のスキャンを通らんため。
+# cancel-in-progress は pull_request の時だけ。
+# WHY: この action の push スキャンは全履歴やのうて before..after の差分スキャンなので、
+# 走行を途中で潰すとその差分範囲は二度とスキャンされず、間のコミットに入った秘密を
+# 取りこぼす。pull_request 側は base..head を毎回スキャンし直すため、
+# 新しい走行が古い走行の範囲を必ず含む＝潰しても取りこぼさん。
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  trufflehog:
+    name: Secret Scan
+    runs-on: ${{ vars.RUNNER_LINUX || 'ubuntu-latest' }}
+    # fetch-depth:0 の全履歴スキャンで、詰まった時に無制限に枠を食うのを防ぐ
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+
+      - name: TruffleHog OSS
+        uses: trufflesecurity/trufflehog@702bbefa350895c57f0e303eeb2855a1c637908f # v3.92.2
+        with:
+          extra_args: --only-verified

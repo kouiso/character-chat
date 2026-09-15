@@ -1,0 +1,1 @@
+../../prompt/commands/add-char-photo.md

@@ -1,0 +1,1365 @@
+/* ---- ステージ：画面ぜんぶが相手の顔 ---- */
+.ou-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+.ou-face-fallback {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(140% 100% at 68% 20%, var(--ink) 0%, var(--night-mid) 55%, var(--night) 100%);
+}
+/* talk 画面（案A「燈」）専用のフラット背景。背景色は ou-stage.tsx から OU2 トークンで注入する */
+.ou-stage-flat-bg {
+  position: absolute;
+  inset: 0;
+}
+.ou-face {
+  position: absolute;
+  inset: 0;
+}
+.ou-vign {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(125% 80% at 64% 30%, transparent 38%, rgba(6, 4, 3, 0.55) 100%);
+}
+.ou-scrim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    102deg,
+    rgba(7, 5, 4, 0.95) 0%,
+    rgba(8, 6, 5, 0.82) 24%,
+    rgba(9, 7, 5, 0.34) 45%,
+    transparent 60%
+  );
+}
+.ou-key {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+.ou-slotnote {
+  position: absolute;
+  right: 22px;
+  bottom: 20px;
+  z-index: 13;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  color: rgba(255, 255, 255, 0.24);
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+/* ---- 顔の原寸スロット（何が出るかを明示） ---- */
+.ou-faceslot {
+  position: absolute;
+  left: 70%;
+  top: 55%;
+  transform: translate(-50%, -50%);
+  z-index: 13;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  pointer-events: none;
+  opacity: 1;
+  animation: ou-fade 0.6s ease;
+}
+.ou-faceslot-frame {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(243, 234, 217, 0.62);
+  border: 1.5px dashed rgba(243, 234, 217, 0.4);
+  background: rgba(10, 8, 6, 0.22);
+}
+.ou-faceslot-t {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.26em;
+  color: rgba(243, 234, 217, 0.56);
+  text-align: center;
+}
+
+/* ---- レール ---- */
+.ou-rail {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 76px;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 0 22px;
+  background: linear-gradient(to right, rgba(5, 4, 3, 0.66), rgba(5, 4, 3, 0.18) 70%, transparent);
+}
+.ou-rail-mark {
+  font-size: 24px;
+  letter-spacing: 0.1em;
+  margin-bottom: 30px;
+  opacity: 0.9;
+}
+.ou-rail-faves {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
+.ou-rail-bottom {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding-top: 18px;
+}
+.ou-rail-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.62;
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
+}
+.ou-rail-item:hover {
+  opacity: 1;
+}
+.ou-rail-item.is-active {
+  opacity: 1;
+}
+.ou-rail-add,
+.ou-rail-ic {
+  width: 44px;
+  height: 44px;
+  border-radius: 99px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(243, 234, 217, 0.18);
+  color: rgba(243, 234, 217, 0.62);
+}
+.ou-rail-add {
+  border-style: dashed;
+}
+.ou-message-highlight {
+  animation: ou-msg-highlight 2s ease-out forwards;
+}
+@keyframes ou-msg-highlight {
+  0%,
+  20% {
+    background: rgba(243, 234, 217, 0.12);
+  }
+  100% {
+    background: transparent;
+  }
+}
+.ou-rail-item:hover .ou-rail-ic,
+.ou-rail-item.is-active .ou-rail-ic {
+  border-color: rgba(214, 169, 87, 0.55);
+  color: var(--lamp);
+}
+.ou-fly {
+  position: absolute;
+  left: 60px;
+  white-space: nowrap;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  color: var(--text);
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: rgba(18, 13, 10, 0.92);
+  box-shadow: 0 8px 24px -10px #000;
+  opacity: 0;
+  transform: translateX(-6px);
+  pointer-events: none;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+.ou-rail-item:hover .ou-fly {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* ---- 名前のchrome ---- */
+.ou-name {
+  position: absolute;
+  left: 98px;
+  top: 54px;
+  z-index: 24;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.ou-name-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.ou-name-text > span:last-child {
+  white-space: nowrap;
+}
+
+/* ---- 台本コラム ---- */
+.ou-col {
+  position: absolute;
+  left: 76px;
+  top: 0;
+  bottom: 0;
+  width: clamp(400px, 34vw, 496px);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 92px 40px 40px 40px;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 15%, #000 100%);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 15%, #000 100%);
+}
+.ou-col.is-log {
+  justify-content: flex-start;
+  padding-top: 104px;
+  overflow: hidden;
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+.ou-col.is-scene {
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: auto;
+  max-width: none;
+  max-height: none;
+  z-index: 40;
+  justify-content: stretch;
+  padding: 0;
+  overflow: hidden;
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+/* 案A「燈」talk画面: 写真背景キャプション用の下詰めcolumnではなく、
+   ヘッダ直下から上詰めで流れる読み物レイアウト。フラット背景いっぱいに使う */
+.ou-col.is-talk {
+  left: 76px;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: auto;
+  max-width: 680px;
+  max-height: none;
+  margin: 0 auto;
+  justify-content: flex-start;
+  padding: 84px 0 0;
+  overflow: hidden;
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+.ou-pc-shell .ou-col.is-talk {
+  left: 0;
+}
+
+/* chatscope MessageList を排し、ネイティブスクロールの自前リストに置き換え */
+.ou-message-list {
+  position: relative;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+  overscroll-behavior-y: contain;
+  scrollbar-width: none;
+  min-height: 0;
+}
+
+.ou-message-list::-webkit-scrollbar {
+  display: none;
+}
+
+/* discover サイドバーでは shadcn ScrollArea のスクロールバーを隠して燈のネイティブ風にする */
+.ou-discover-scroll [data-slot="scroll-area-scrollbar"] {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ou-stage,
+  .ou-stage *,
+  .ou-stage *::before,
+  .ou-stage *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+.ou-conv {
+  display: flex;
+  flex-direction: column;
+}
+.ou-conv-wrap {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+}
+.ou-prev {
+  font-size: 13px;
+  line-height: 1.9;
+  margin: 0 0 14px;
+}
+.ou-you {
+  text-align: right;
+  margin: 0 0 14px;
+  padding-left: 12%;
+}
+.ou-you-bubble {
+  display: inline-block;
+  max-width: 22em;
+  text-wrap: pretty;
+}
+.ou-four {
+  margin: 0;
+}
+.ou-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-top: 16px;
+}
+.ou-caret {
+  display: inline-block;
+  width: 2px;
+  height: 15px;
+  margin-left: 3px;
+  vertical-align: -2px;
+}
+.ou-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 99px;
+  display: inline-block;
+  flex: none;
+}
+
+/* ---- 入力（ささやき） ---- */
+.ou-whisper {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin-top: 18px;
+}
+.ou-whisper-field {
+  flex: 1;
+  min-width: 0;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 6px;
+  border-bottom: 1px solid rgba(243, 234, 217, 0.28);
+}
+.ou-circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 99px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(243, 234, 217, 0.26);
+  transition:
+    border-color 0.2s,
+    color 0.2s;
+}
+.ou-circle:hover {
+  border-color: rgba(214, 169, 87, 0.6);
+}
+.ou-circle-send:hover {
+  filter: brightness(1.06);
+}
+
+/* ---- 右端のフィルム ---- */
+.ou-film {
+  position: absolute;
+  right: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 14;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  align-items: center;
+}
+.ou-film-dev {
+  width: 40px;
+  height: 54px;
+  border-radius: 9px;
+  border: 1.2px dashed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ---- 夜をさかのぼる（台本） ---- */
+.ou-log {
+  position: relative;
+  padding-left: 0;
+}
+.ou-log-thread {
+  position: absolute;
+  left: 3px;
+  top: 8px;
+  bottom: 30px;
+  width: 1px;
+  background: rgba(243, 234, 217, 0.12);
+}
+.ou-log-node {
+  position: relative;
+  padding-left: 26px;
+}
+.ou-log-pin {
+  position: absolute;
+  left: 0;
+  top: 6px;
+  width: 7px;
+  height: 7px;
+  border-radius: 99px;
+}
+.ou-log-foot {
+  text-align: center;
+  font-family: "Zen Maru Gothic", sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  margin-top: 18px;
+}
+
+/* ---- 右から寄るパネル ---- */
+.ou-scrim-tap {
+  position: absolute;
+  inset: 0;
+  z-index: 38;
+  background: rgba(6, 4, 3, 0.5);
+  backdrop-filter: blur(2px);
+  animation: ou-fade 0.3s ease;
+}
+.ou-panel {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: clamp(360px, 30vw, 432px);
+  z-index: 40;
+  background: linear-gradient(to bottom, rgba(22, 17, 13, 0.98), rgba(13, 10, 8, 0.99));
+  box-shadow:
+    -40px 0 80px -30px rgba(0, 0, 0, 0.85),
+    inset 1px 0 0 rgba(243, 234, 217, 0.08);
+  padding: 26px 28px 30px;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  animation: ou-slide-r 0.36s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.ou-panel-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.ou-panel-head > div:nth-child(2) {
+  flex: 1;
+}
+.ou-grip {
+  display: none;
+}
+.ou-x {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 99px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ou-x:hover {
+  background: rgba(243, 234, 217, 0.06);
+}
+.ou-panel-body {
+  flex: 1;
+}
+
+.ou-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 2px;
+  width: 100%;
+  text-align: left;
+}
+.ou-row:hover {
+  background: rgba(243, 234, 217, 0.03);
+}
+.ou-row-ic {
+  width: 44px;
+  height: 44px;
+  border-radius: 99px;
+  flex: none;
+  border: 1px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ou-row-body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.ou-tabs {
+  display: flex;
+  gap: 22px;
+  border-bottom: 1px solid rgba(243, 234, 217, 0.14);
+  margin-bottom: 18px;
+}
+.ou-tab {
+  padding-bottom: 11px;
+  font-size: 14px;
+  letter-spacing: 0.1em;
+  border-bottom: 1.5px solid transparent;
+}
+.ou-memo-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border-bottom: 1px solid;
+  padding: 10px 2px;
+  margin-bottom: 16px;
+}
+.ou-memo {
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid;
+}
+
+/* ---- 全面オーバーレイ（アルバム / はじまり / しつらえ） ---- */
+.ou-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  overflow-y: auto;
+  background: radial-gradient(
+    120% 60% at 50% -6%,
+    var(--night-mid) 0%,
+    var(--viewer-night) 58%,
+    var(--viewer-black) 100%
+  );
+  animation: ou-fade 0.32s ease;
+}
+.ou-overlay-inner {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 72px 48px 80px;
+}
+.ou-overlay-x {
+  position: absolute;
+  top: 28px;
+  right: 34px;
+  z-index: 2;
+  width: 40px;
+  height: 40px;
+  border-radius: 99px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ou-overlay-x:hover {
+  background: rgba(243, 234, 217, 0.06);
+}
+.ou-head {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin-bottom: 30px;
+}
+
+.ou-filter {
+  display: flex;
+  gap: 22px;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+}
+.ou-filter-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+}
+.ou-filter-all {
+  width: 48px;
+  height: 48px;
+  border-radius: 99px;
+  border: 1.5px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ou-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  grid-auto-rows: 8px;
+  gap: 14px;
+}
+.ou-tile {
+  position: relative;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 14px 30px -16px #000;
+  cursor: pointer;
+}
+.ou-tile:hover {
+  box-shadow:
+    0 0 0 1.5px rgba(214, 169, 87, 0.5),
+    0 14px 30px -14px #000;
+}
+.ou-tile-tone {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(10, 8, 6, 0.62), transparent 44%);
+}
+.ou-tile-play {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 99px;
+}
+
+.ou-scene-head {
+  margin-bottom: 34px;
+}
+.ou-scene-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 16px;
+}
+.ou-scene-card {
+  padding: 22px;
+  border-radius: 18px;
+  border: 1px solid rgba(243, 234, 217, 0.12);
+  background: rgba(243, 234, 217, 0.025);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  text-align: left;
+  transition:
+    border-color 0.2s,
+    background 0.2s;
+}
+.ou-scene-card:hover {
+  border-color: rgba(214, 169, 87, 0.4);
+  background: rgba(214, 169, 87, 0.05);
+}
+.ou-scene-q {
+  margin-left: 62px;
+  padding-left: 14px;
+  border-left: 2px solid;
+}
+.ou-scene-own {
+  opacity: 0.8;
+}
+
+.ou-settings {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 14px 48px;
+  align-items: start;
+}
+.ou-sgroup {
+  margin-bottom: 8px;
+}
+.ou-srow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 2px;
+}
+.ou-slider {
+  position: relative;
+  height: 2px;
+  border-radius: 2px;
+  background: rgba(243, 234, 217, 0.14);
+}
+.ou-slider-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  border-radius: 2px;
+}
+.ou-slider-knob {
+  position: absolute;
+  top: -4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 99px;
+  transform: translateX(-50%);
+}
+
+/* ---- お気に入りの子の切替（モバイル） ---- */
+.ou-faces {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  padding: 14px 26px 30px;
+  background: linear-gradient(to bottom, rgba(22, 17, 13, 0.98), rgba(13, 10, 8, 0.99));
+  border-radius: 26px 26px 0 0;
+  box-shadow: 0 -30px 60px -20px rgba(0, 0, 0, 0.8);
+  animation: ou-slide-up 0.36s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.ou-faces .ou-grip {
+  display: block;
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(243, 234, 217, 0.22);
+  margin: 0 auto 12px;
+}
+.ou-faces-row {
+  display: flex;
+  gap: 22px;
+  justify-content: center;
+}
+.ou-faces-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ---- 彼女の部屋（プロフィール / 夜の一覧） ---- */
+.ou-profile {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  background: var(--viewer-black);
+  animation: ou-fade 0.3s ease;
+}
+.ou-pf-scroll {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+}
+.ou-pf-back {
+  position: absolute;
+  left: 18px;
+  top: 18px;
+  z-index: 4;
+  width: 40px;
+  height: 40px;
+  border-radius: 99px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 8, 6, 0.5);
+  backdrop-filter: blur(8px);
+}
+.ou-pf-back:hover {
+  background: rgba(10, 8, 6, 0.78);
+}
+.ou-pf-hero {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3/4;
+  max-height: 64vh;
+  overflow: hidden;
+}
+.ou-pf-hero-frame {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  transform: translate(-50%, -50%);
+  width: 88px;
+  height: 88px;
+  border-radius: 18px;
+  border: 1.5px dashed rgba(243, 234, 217, 0.32);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 8px;
+  line-height: 1.7;
+}
+.ou-pf-hero-tone {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(to bottom, transparent 40%, rgba(11, 9, 7, 0.5) 72%, var(--viewer-black) 100%);
+}
+.ou-pf-hero-meta {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 0 28px 22px;
+}
+.ou-pf-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+.ou-pf-tag {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  padding: 5px 12px;
+  border-radius: 99px;
+  border: 1px solid;
+}
+
+.ou-pf-body {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 26px 28px 0;
+}
+.ou-pf-sec {
+  padding: 18px 0;
+  border-top: 1px solid rgba(243, 234, 217, 0.08);
+}
+.ou-pf-sec:first-child {
+  border-top: none;
+}
+.ou-pf-label {
+  font-size: 9px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  margin-bottom: 11px;
+}
+.ou-pf-sechead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.ou-pf-text {
+  font-size: 14.5px;
+  line-height: 1.95;
+  margin: 0;
+  text-wrap: pretty;
+}
+
+.ou-pf-new {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  width: 100%;
+  text-align: left;
+  padding: 16px 16px;
+  border-radius: 16px;
+  border: 1px dashed rgba(214, 169, 87, 0.4);
+  background: rgba(214, 169, 87, 0.05);
+  margin: 4px 0 14px;
+  transition:
+    background 0.2s,
+    border-color 0.2s;
+}
+.ou-pf-new:hover {
+  background: rgba(214, 169, 87, 0.1);
+  border-color: rgba(214, 169, 87, 0.65);
+}
+.ou-pf-new-ic {
+  width: 44px;
+  height: 44px;
+  border-radius: 99px;
+  flex: none;
+  border: 1px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ou-pf-new-body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.ou-pf-threads {
+  display: flex;
+  flex-direction: column;
+}
+.ou-pf-thread {
+  position: relative;
+  display: flex;
+  gap: 14px;
+  width: 100%;
+  text-align: left;
+  padding: 14px 4px 14px 0;
+  border-top: 1px solid rgba(243, 234, 217, 0.07);
+}
+.ou-pf-thread:first-child {
+  border-top: none;
+}
+.ou-pf-thread:hover {
+  background: rgba(243, 234, 217, 0.03);
+}
+.ou-pf-pin {
+  width: 7px;
+  height: 7px;
+  border-radius: 99px;
+  flex: none;
+  margin: 7px 6px 0 4px;
+}
+.ou-pf-thread-body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+  gap: 5px;
+}
+.ou-pf-thread-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.ou-pf-thread-prev {
+  font-size: 12.5px;
+  line-height: 1.6;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ou-pf-album {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 9px;
+  margin-top: 4px;
+}
+.ou-pf-thumb {
+  position: relative;
+  aspect-ratio: 3/4;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 0 0 1px rgba(243, 234, 217, 0.08);
+}
+.ou-pf-thumb-v {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  display: inline-flex;
+}
+
+.ou-pf-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 22px calc(14px + env(safe-area-inset-bottom));
+  max-width: 680px;
+  margin: 0 auto;
+  background: linear-gradient(to top, var(--viewer-black) 60%, transparent);
+}
+.ou-pf-write {
+  width: 52px;
+  height: 52px;
+  border-radius: 99px;
+  flex: none;
+  border: 1px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    border-color 0.2s,
+    color 0.2s;
+}
+.ou-pf-write:hover {
+  border-color: rgba(214, 169, 87, 0.5);
+  color: var(--lamp);
+}
+.ou-pf-cta {
+  flex: 1;
+  height: 52px;
+  border-radius: 99px;
+  font-size: 15px;
+  letter-spacing: 0.12em;
+  box-shadow: 0 12px 30px -12px rgba(214, 169, 87, 0.5);
+  transition: filter 0.2s;
+}
+.ou-pf-cta:hover {
+  filter: brightness(1.05);
+}
+
+@keyframes ou-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes ou-slide-r {
+  from {
+    transform: translateX(40px);
+    opacity: 0.4;
+  }
+}
+@keyframes ou-slide-up {
+  from {
+    transform: translateY(40px);
+    opacity: 0.4;
+  }
+}
+
+/* =========================================================================
+ *  TABLET — 顔は全画面のまま、こと葉は下の帯へ。レールは細く左に残る。
+ * ========================================================================= */
+@media (max-width: 1023px) {
+  .ou-scrim {
+    background: linear-gradient(
+      to top,
+      rgba(6, 4, 3, 0.95) 6%,
+      rgba(8, 6, 5, 0.6) 34%,
+      rgba(8, 6, 5, 0.12) 56%,
+      transparent 68%
+    );
+  }
+  .ou-col {
+    left: 76px;
+    right: 0;
+    top: auto;
+    bottom: 0;
+    width: auto;
+    max-width: 680px;
+    max-height: calc(100% - 92px);
+    overflow: hidden;
+    justify-content: flex-end;
+    padding: 0 44px 34px;
+  }
+  /* is-log の画面(さがす・ホーム・記録・アルバム・マイ)には TalkHeader が出ん
+     (ou-app.tsx は centerScreen === "talk" の時だけ描く)。top で下げた上に
+     padding-top でも同じ分だけ空けとったので、140px の死んだ余白が頭に乗っとった。
+     余白は 1 回だけにする。 */
+  .ou-col.is-log {
+    top: 0;
+    bottom: 0;
+    justify-content: flex-start;
+    padding: 12px 44px 30px;
+  }
+  .ou-col.is-scene {
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: auto;
+    max-width: none;
+    max-height: none;
+    padding: 0;
+  }
+  .ou-name {
+    left: 96px;
+    top: 46px;
+  }
+  .ou-slotnote {
+    display: none;
+  }
+  .ou-film {
+    right: 16px;
+    top: 40%;
+  }
+  .ou-faceslot {
+    top: 33%;
+  }
+  .ou-film .ou-film-dev,
+  .ou-film > div:last-child {
+    display: none;
+  }
+  .ou-panel {
+    left: 0;
+    right: 0;
+    top: auto;
+    bottom: 0;
+    width: auto;
+    max-height: 82vh;
+    border-radius: 26px 26px 0 0;
+    padding-top: 14px;
+    animation: ou-slide-up 0.36s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .ou-panel-head {
+    align-items: center;
+  }
+  .ou-grip {
+    display: block;
+    width: 36px;
+    height: 4px;
+    border-radius: 2px;
+    background: rgba(243, 234, 217, 0.22);
+    margin: 0 0 0;
+  }
+  .ou-panel-head .ou-grip {
+    position: absolute;
+    left: 50%;
+    top: 12px;
+    transform: translateX(-50%);
+  }
+  .ou-overlay-inner {
+    padding: 64px 36px 70px;
+  }
+}
+
+/* =========================================================================
+ *  PC 3ペイン — 左:出会い/記録, 中央:会話ステージ, 右:キャラ情報
+ * ========================================================================= */
+.ou-pc-shell {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  background: var(--viewer-black);
+}
+.ou-pc-left {
+  width: 240px;
+  flex: none;
+  overflow-y: auto;
+  border-right: 1px solid rgba(243, 234, 217, 0.08);
+  background: rgba(8, 6, 5, 0.97);
+  display: flex;
+  flex-direction: column;
+}
+.ou-pc-right {
+  width: 280px;
+  flex: none;
+  overflow-y: auto;
+  border-left: 1px solid rgba(243, 234, 217, 0.08);
+  background: rgba(8, 6, 5, 0.96);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.ou-pc-center {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  justify-content: center;
+  position: relative;
+}
+.ou-pc-center > .ou-stage {
+  width: 100%;
+  max-width: 720px;
+}
+.ou-pc-shell .ou-rail {
+  display: none;
+}
+.ou-pc-left-tabs {
+  display: flex;
+  gap: 0;
+  padding: 18px 16px 0;
+  border-bottom: 1px solid rgba(243, 234, 217, 0.08);
+}
+.ou-pc-left-tab {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 9px 4px;
+  font-family: "Zen Maru Gothic", sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-bottom: 1.5px solid transparent;
+  transition:
+    color 0.15s,
+    border-color 0.15s;
+  color: rgba(243, 234, 217, 0.3);
+}
+.ou-pc-left-tab.is-active {
+  color: var(--lamp);
+  border-bottom-color: rgba(214, 169, 87, 0.6);
+}
+.ou-pc-left-body {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+}
+.ou-pc-char-panel {
+  padding: 28px 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.ou-pc-char-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid rgba(243, 234, 217, 0.14);
+  display: block;
+  margin: 0 auto;
+}
+.ou-pc-char-avatar-placeholder {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: rgba(20, 15, 12, 1);
+  border: 1px solid rgba(243, 234, 217, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  color: rgba(243, 234, 217, 0.25);
+  margin: 0 auto;
+}
+.ou-pc-char-name {
+  font-family: "Shippori Mincho", "Noto Serif JP", serif;
+  font-size: 18px;
+  letter-spacing: 0.12em;
+  color: rgba(243, 234, 217, 0.88);
+  text-align: center;
+  margin: 0;
+}
+.ou-pc-char-desc {
+  font-family: "Shippori Mincho", "Noto Serif JP", serif;
+  font-size: 12px;
+  line-height: 1.9;
+  color: rgba(243, 234, 217, 0.4);
+  letter-spacing: 0.05em;
+}
+.ou-pc-char-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 4px;
+}
+.ou-pc-char-btn {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 11px 0;
+  border-radius: 99px;
+  border: 1px solid;
+  font-family: "Zen Maru Gothic", sans-serif;
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  cursor: pointer;
+  transition:
+    background 0.18s,
+    border-color 0.18s;
+}
+.ou-pc-char-btn.primary {
+  border-color: rgba(214, 169, 87, 0.6);
+  background: rgba(214, 169, 87, 0.1);
+  color: oklch(0.88 0.1 66);
+}
+.ou-pc-char-btn.primary:hover {
+  background: rgba(214, 169, 87, 0.2);
+}
+.ou-pc-char-btn.secondary {
+  border-color: rgba(243, 234, 217, 0.14);
+  background: none;
+  color: rgba(243, 234, 217, 0.5);
+}
+.ou-pc-char-btn.secondary:hover {
+  background: rgba(243, 234, 217, 0.04);
+}
+.ou-pc-divider {
+  height: 1px;
+  background: rgba(243, 234, 217, 0.06);
+  margin: 0 20px;
+}
+
+/* タブレット（640〜1023px）：レールを除いた領域ではなく画面全体中央に寄せる。
+   left/right をレール幅 76px で対称にし、max-width + margin:auto で中央配置を保つ。 */
+@media (min-width: 640px) and (max-width: 1023px) {
+  .ou-col.is-talk {
+    left: 76px;
+    right: 76px;
+  }
+}
+
+/* =========================================================================
+ *  MOBILE — 既存のスマホUIへ。レールは隠れ、名前タップで子を切替。
+ * ========================================================================= */
+@media (max-width: 639px) {
+  .ou-rail {
+    display: none;
+  }
+  /* TalkHeader (~64px) が top:0 に浮くためコンテンツを下に寄せる。mask はデスクトップ専用。 */
+  .ou-col {
+    left: 0;
+    right: 0;
+    padding: 64px 24px 40px;
+    max-width: none;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+  /* 上と同じ理由。TalkHeader の無い画面で 64px + 64px = 128px を空けとった。 */
+  .ou-col.is-log {
+    top: 0;
+    padding: 12px 26px 28px;
+  }
+  /* .ou-col の left:0 は詳細度 (0,1,0)、.ou-col.is-talk の left:76px は (0,2,0)。
+     メディアクエリは詳細度を上げんので、上の .ou-col リセットでは talk に勝てず、
+     レールを display:none にしとるスマホでも本文が 76px 右へずれとった
+     (390px 端末で実測 left:76px / width:314px)。 */
+  .ou-col.is-talk {
+    left: 0;
+  }
+  .ou-col.is-scene {
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    max-height: none;
+    padding: 0;
+  }
+  .ou-name {
+    left: 22px;
+    top: 50px;
+  }
+  .ou-fly {
+    display: none;
+  }
+  .ou-prev {
+    display: none;
+  }
+  .ou-film {
+    right: 12px;
+  }
+  .ou-overlay-inner {
+    padding: 58px 22px 64px;
+  }
+  .ou-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .ou-settings {
+    grid-template-columns: 1fr;
+  }
+  .ou-scene-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,144 @@
+# 通し読み用の実測アームを CI で回す。
+#
+# なんで要るか: 抜き所の長さ（issue #1495 L1-3）と通読判定（L2-b）は、実際に生成した本文を
+# 読まんと判定でけへん。ローカルで回すには復号した OPENROUTER_API_KEY が要るが、
+# セッションによっては手元でそれを開けん。CI には repo secret として既に在る
+# （quality-eval.yml が同じ鍵で走っとる）ので、同じ手順でアームを回す。
+#
+# 課金: 1 アーム 20 ターンで数百円規模。VLONG_BUDGET_CENTS が上限を握っとる。
+# 既定で 2 本回すのは doc/dogfood/vlong-2026-08-20.md §28 の帯（同じコードで 2〜5/6 に振れる）の
+# ため。**1 本 vs 1 本の比較は禁止**なので、1 本だけ回しても判定には使えん。
+#
+# 走る条件: コミットメッセージに [arm] が入っとる push だけ。
+# 普通の push では 1 円も使わん。workflow_dispatch は既定ブランチに在る時だけ効くので、
+# 作業ブランチでは push 側が本線になる。
+name: Dogfood Arm
+
+concurrency:
+  group: dogfood-arm-${{ github.ref }}
+  cancel-in-progress: false
+
+on:
+  push:
+    branches:
+      - "claude/**"
+  workflow_dispatch:
+    inputs:
+      arms:
+        description: "回すアームの本数（帯を出すため既定 2）"
+        required: false
+        default: "2"
+
+permissions:
+  contents: write
+
+jobs:
+  arm:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[arm]')
+    runs-on: ${{ vars.RUNNER_LINUX_4VCPU || 'blacksmith-4vcpu-ubuntu-2404' }}
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.ref }}
+
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "22"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build app (wrangler pages dev は dist を配信する)
+        run: pnpm build
+
+      # 罠 §5-1: TEST_FORCE_CHAT_MODEL が立っとるとフェーズ別ルーティングが丸ごと無効になり、
+      # 抜き所を書くはずのモデルと別のモデルで測ってまう。ここでは一切書かん。
+      # LOCAL_AUTH_BYPASS が無いと /api/* が 401 を返し、下の「両キャラ存在チェック」で
+      # 落ちてアームが 1 本も回らん（2026-08-21 にローカルで踏んだ）。ランナーは使い捨てで
+      # 外から触れんので、ここだけ本人判定を省く。
+      - name: Write .dev.vars
+        run: |
+          cat > .dev.vars <<EOF
+          OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY }}
+          LOCAL_AUTH_BYPASS=1
+          EOF
+
+      - name: Assert the measurement environment is the shipped one
+        run: |
+          if grep -q "TEST_FORCE_CHAT_MODEL=1" .dev.vars; then
+            echo "TEST_FORCE_CHAT_MODEL is set — the arm would measure the wrong routing"; exit 1
+          fi
+
+      - name: Migrate + seed local D1
+        run: |
+          pnpm db:migrate:local
+          pnpm db:seed
+
+      - name: Start dev worker
+        run: |
+          nohup pnpm dev:worker > /tmp/dev-worker.log 2>&1 &
+          for i in $(seq 1 60); do
+            if curl -sf -o /dev/null http://127.0.0.1:8788; then echo "worker up"; break; fi
+            sleep 2
+          done
+          curl -sf -o /dev/null http://127.0.0.1:8788 || { echo "worker failed to start"; tail -50 /tmp/dev-worker.log; exit 1; }
+
+      # 台本が使う 2 体が実際に居ることを、金を使う前に確かめる。
+      - name: Assert both characters exist
+        run: |
+          BODY=$(curl -sf http://127.0.0.1:8788/api/characters)
+          echo "$BODY" | grep -q "char-koharu-ex" || { echo "Sakura missing from local D1"; exit 1; }
+          echo "$BODY" | grep -q "ダウナーお姉さん" || { echo "Downer missing from local D1"; exit 1; }
+
+      - name: Run arms
+        env:
+          ARMS: ${{ inputs.arms || '2' }}
+        run: |
+          set -e
+          for i in $(seq 1 "${ARMS:-2}"); do
+            ARM="ci${{ github.run_number }}-$i"
+            echo "::group::arm $ARM"
+            BASE_URL=http://127.0.0.1:8788 \
+              pnpm exec tsx script/verify/vlong-session-dogfood.ts --mode session --arm "$ARM"
+            echo "::endgroup::"
+          done
+
+      # 課金ゼロの再チェック。読解に入る前に機械で分かる欠陥を潰しておくための節を、
+      # ジョブログにそのまま残す（成果物を落とせん時でもログから読めるように）。
+      - name: Recheck every arm produced by this run
+        if: always()
+        run: |
+          for dir in .work/e2e-results/vlong-dogfood/*ci${{ github.run_number }}-*; do
+            [ -d "$dir" ] || continue
+            echo "::group::recheck $dir"
+            pnpm exec tsx script/verify/vlong-dogfood-recheck.ts "$dir" || true
+            echo "::endgroup::"
+          done
+
+      # 実測の全文は必ずコミットする（issue #1495 §8。コンテナは使い捨て）。
+      - name: Commit transcripts
+        if: always()
+        run: |
+          # 独自の bot 名義で積むと、ブランチの全コミットに要求されとる committer
+          # （Claude / noreply@anthropic.com）から外れて GitHub が Unverified を出す。
+          # 中身はエージェントが回した実測なので、名義もそれに揃える。
+          git config user.name "Claude"
+          git config user.email "noreply@anthropic.com"
+          git add -f .work/e2e-results/vlong-dogfood || true
+          git diff --cached --quiet && { echo "no transcripts produced"; exit 0; }
+          git commit -m "chore(dogfood): keep the transcripts from CI run ${{ github.run_id }} [e2e: skipped — 実測そのもの]"
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
+
+      - name: Upload transcripts
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: dogfood-arm-${{ github.run_id }}
+          path: .work/e2e-results/vlong-dogfood
+          retention-days: 7

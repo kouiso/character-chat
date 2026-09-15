@@ -1,0 +1,104 @@
+name: "🚀 機能リクエスト"
+description: "新機能実装はこちらのテンプレートをご利用ください。"
+title: "[feature] "
+labels: ["growth"]
+body:
+  - type: input
+    id: figma-url
+    attributes:
+      label: "FigmaデザインURL"
+      description: "該当するFigmaのデザインURLを貼り付けてください（該当なしの場合は「なし」と記載）。"
+      placeholder: "https://www.figma.com/design/..."
+    validations:
+      required: true
+  - type: textarea
+    id: background
+    attributes:
+      label: "1. 実施背景 (Background & Issues)"
+      description: |
+        なぜこの開発が必要ですか？どんな課題・ユーザーの困りごとを解決しますか？
+        関連資料（Figjam、遷移図など）があればURLを記載してください。
+      placeholder: |
+        - 背景・課題の説明
+        - 関連するFigjam・遷移図等のURL
+    validations:
+      required: true
+  - type: textarea
+    id: goal
+    attributes:
+      label: "2. Issueの目標 (Function Goal)"
+      description: "このIssueで実現したいこと・達成するゴールを明確に記載してください。"
+      placeholder: "例: ユーザーがプロフィールを編集できるようにする。"
+    validations:
+      required: true
+  - type: dropdown
+    id: kpi
+    attributes:
+      label: "3. 寄与KPI (Contributing KPI)"
+      description: |
+        このIssueが寄与する主要KPIを選択してください（複数選択可）。
+        該当が「その他」「該当なし」の場合も、次の「KPI目標」欄に補足してください。
+      multiple: true
+      options:
+        - "DAU（アクティブユーザー数）"
+        - "課金率"
+        - "マッチ率"
+        - "継続率（リテンション）"
+        - "登録CVR（新規登録完了率）"
+        - "ARPU / 売上"
+        - "その他（KPI目標欄に記載）"
+        - "該当なし（基盤改善・リファクタ・不具合修正等）"
+    validations:
+      required: true
+  - type: textarea
+    id: kpi-goal
+    attributes:
+      label: "4. KPI目標 (KPI Goal)"
+      description: |
+        選択したKPIを「どのくらい上げる／下げるか」の目標を、できるだけ定量的に記載してください。
+        現状値 → 目標値、または増減幅（pt / %）と、その根拠・前提があれば併せて記載します。
+        「該当なし」を選んだ場合は、その理由（例: 基盤改善のためKPI直接寄与なし）を記載してください。
+      placeholder: |
+        - 寄与KPI: 課金率
+        - 目標: 4.8% → 5.3%（+0.5pt）
+        - 根拠/前提: 課金導線の改善により離脱を約10%削減できる想定
+    validations:
+      required: true
+  - type: textarea
+    id: specifications
+    attributes:
+      label: "5. 要件詳細 (Specifications)"
+      description: |
+        対象画面、ユーザーフロー、UI上のポイント等を記載してください。
+        バックエンドに関わる部分はAPI実装方法ではなく、考慮すべきこと・前提事項を記載してください。
+      placeholder: |
+        ### 対象画面
+        - 新規 or 既存画面の有無、構成、画面遷移
+
+        ### ユーザーフロー
+        - ユーザーの操作フローやUIのポイント
+        - デザイン資料: Figmaリンクなど
+
+        ### バックエンド考慮事項
+        - 外部サービスとの接続が必要な場合の注意点
+        - 挙動に関しての留意点
+    validations:
+      required: true
+  - type: textarea
+    id: test-items
+    attributes:
+      label: "テスト項目"
+      description: "このIssueの完了時に確認すべきテスト項目を記載してください。"
+      placeholder: |
+        - [ ] 正常系: ○○ができること
+        - [ ] 異常系: △△の場合にエラーになること
+        - [ ] 境界値: □□の場合の挙動
+    validations:
+      required: false
+  - type: textarea
+    id: additional
+    attributes:
+      label: "補足情報"
+      description: "その他補足があれば記載してください。"
+    validations:
+      required: false

@@ -1,0 +1,14 @@
+pre-push:
+  commands:
+    ci-fast:
+      env:
+        NODE_OPTIONS: "--experimental-sqlite"
+      # CI runner には task バイナリが入っとらんので、ここで即死すると push 自体が塞がる。
+      # 逃がすのは CI だけ。手元で task が無いのは環境の不備なので、そのまま失敗させて
+      # 気づかせる（バイナリの有無だけで判定すると、検査ゼロの push が静かに通る）。
+      run: |
+        if [ "$CI" = "true" ] && ! command -v task >/dev/null 2>&1; then
+          echo "CI runner に task が無いので ci:fast をスキップする"
+          exit 0
+        fi
+        task ci:fast

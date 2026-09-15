@@ -1,0 +1,63 @@
+name: PR Auto Setting
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  # 組織の Actions 許可リスト外のマーケットプレイスアクションはジョブ起動時に弾かれ
+  # startup failure になるため、組込みの gh CLI で実装する（外部アクション不使用）。
+  assign-author:
+    name: Assign Author
+    # bot 作者(devin-ai-integration[bot] 等)は GitHub の仕様上 assignee にできず
+    # `--add-assignee` が "not found" で失敗するため、bot 作者の PR ではスキップする。
+    if: >-
+      (github.event.action == 'opened' || github.event.action == 'reopened')
+      && github.event.pull_request.user.type != 'Bot'
+    runs-on: ${{ vars.RUNNER_LINUX_4VCPU || 'blacksmith-4vcpu-ubuntu-2404' }}
+    steps:
+      - name: Assign PR author
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          AUTHOR: ${{ github.event.pull_request.user.login }}
+        run: gh pr edit "$PR_NUMBER" --repo "$REPO" --add-assignee "$AUTHOR"
+
+  pr-labeler:
+    name: Add PR Labels
+    # push のたびに起動して同じラベル計算を繰り返すため、同一 PR では最新だけ残す。
+    # concurrency を workflow 直下に置くと assign-author まで巻き込んで
+    # 連続 push 時に assignee 付与が取り消されるので、このジョブ限定にする。
+    concurrency:
+      group: ${{ github.workflow }}-pr-labeler-${{ github.ref }}
+      cancel-in-progress: true
+    runs-on: ${{ vars.RUNNER_LINUX_4VCPU || 'blacksmith-4vcpu-ubuntu-2404' }}
+    steps:
+      - name: Label by changed files
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          # gh pr diff --name-only は差分が2万行を超えると API が 406 を返して落ちる。
+          # ファイル名しか要らんので、行数に依存せんファイル一覧 API を使う。
+          files=$(gh api --paginate "repos/$REPO/pulls/$PR_NUMBER/files" --jq '.[].filename')
+          labels=()
+          # .github/labeler.yml と同じ対応: documentation=docs配下/README, admin=admin配下
+          if printf '%s\n' "$files" | grep -qE '(^docs/|README[^/]*\.md$)'; then
+            labels+=(documentation)
+          fi
+          if printf '%s\n' "$files" | grep -qE '^admin/'; then
+            labels+=(admin)
+          fi
+          if [ ${#labels[@]} -gt 0 ]; then
+            args=()
+            for label in "${labels[@]}"; do args+=(--add-label "$label"); done
+            gh pr edit "$PR_NUMBER" --repo "$REPO" "${args[@]}"
+          fi

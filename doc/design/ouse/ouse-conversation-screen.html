@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>逢 / Ouse — 会話画面（モバイル）</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;600;700&family=Noto+Serif+JP:wght@400;500;600&family=Zen+Maru+Gothic:wght@400;500;700&family=JetBrains+Mono:wght@400;500&family=Manrope:wght@500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #0c0907;
+    --surface: #0e0b09;
+    --text: #FBF7EF;
+    --dim: rgba(251,247,239,.84);
+    --soft: rgba(251,247,239,.62);
+    --faint: rgba(251,247,239,.46);
+    --ghost: rgba(251,247,239,.3);
+    --hair: rgba(251,247,239,.1);
+    --lamp: oklch(0.82 0.12 66);
+    --lampDim: oklch(0.82 0.12 66 / .5);
+    --lampFaint: oklch(0.82 0.12 66 / .13);
+    --ink: oklch(0.24 0.03 52);
+    --rose: oklch(0.78 0.13 12);
+    --serif: 'Shippori Mincho','Noto Serif JP',serif;
+    --round: 'Zen Maru Gothic',sans-serif;
+    --mono: 'JetBrains Mono',monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body { background: #060504; font-family: var(--round); -webkit-font-smoothing: antialiased;
+    display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 24px; }
+  .wrap { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+  .note { font-family: var(--round); font-size: 12px; color: var(--faint); letter-spacing: .04em; text-align: center; max-width: 402px; line-height: 1.75; }
+  .note b { color: var(--dim); font-weight: 500; }
+  .portrait { position: relative; background-color: oklch(0.3 0.045 32); overflow: hidden;
+    background-image:
+      radial-gradient(60% 44% at 50% 30%, oklch(0.62 0.07 44) 0%, transparent 60%),
+      radial-gradient(40% 50% at 64% 52%, oklch(0.48 0.07 28) 0%, transparent 55%),
+      radial-gradient(46% 60% at 33% 64%, oklch(0.2 0.04 300) 0%, transparent 60%),
+      linear-gradient(180deg, oklch(0.16 0.03 34) 0%, transparent 30%, transparent 64%, oklch(0.09 0.02 32) 100%); }
+  .portrait::after { content: ""; position: absolute; inset: 0; mix-blend-mode: overlay; opacity: .4;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2'/%3E%3C/filter%3E%3Crect width='90' height='90' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E"); }
+  .phone { position: relative; width: 402px; height: 874px; overflow: hidden; border-radius: 46px;
+    background: var(--bg); color: var(--text); box-shadow: 0 60px 120px -40px #000, 0 0 0 1px rgba(251,247,239,.06);
+    isolation: isolate; }
+  .bgwash { position: absolute; inset: 0; z-index: 0;
+    background:
+      radial-gradient(120% 50% at 50% 0%, oklch(0.2 0.035 40) 0%, transparent 60%),
+      radial-gradient(100% 40% at 50% 100%, oklch(0.13 0.025 36) 0%, transparent 70%),
+      var(--surface); }
+  .status { position: absolute; top: 0; left: 0; right: 0; height: 52px; z-index: 25; display: flex; align-items: center;
+    justify-content: space-between; padding: 17px 26px 0; color: var(--text); pointer-events: none; }
+  .status .t { font-family: 'Manrope',sans-serif; font-size: 14px; font-weight: 600; letter-spacing: .02em; }
+  .status .ic { display: flex; align-items: center; gap: 6px; }
+  .home { position: absolute; bottom: 9px; left: 50%; transform: translateX(-50%); width: 134px; height: 5px;
+    border-radius: 3px; background: rgba(255,255,255,.4); z-index: 30; }
+  .top { position: absolute; left: 0; right: 0; top: 0; z-index: 18; padding: 56px 16px 12px;
+    display: flex; flex-direction: column; gap: 11px; background: var(--surface);
+    border-bottom: 1px solid var(--hair); box-shadow: 0 12px 24px -16px #000; }
+  .top-row { display: flex; align-items: center; gap: 11px; }
+  .top-av { width: 42px; height: 42px; border-radius: 99px; flex: none; box-shadow: 0 0 0 1.5px rgba(251,247,239,.2); }
+  .top-id { display: flex; flex-direction: column; min-width: 0; }
+  .top-id .n { font-family: var(--serif); font-size: 17px; color: var(--text); letter-spacing: .14em; }
+  .top-id .s { font-family: var(--round); font-size: 10.5px; color: var(--soft); letter-spacing: .06em; margin-top: 2px; }
+  .top-acts { margin-left: auto; display: flex; align-items: center; gap: 7px; }
+  .top-btn { width: 36px; height: 36px; border-radius: 99px; display: flex; align-items: center; justify-content: center;
+    color: var(--dim); background: rgba(251,247,239,.05); border: 1px solid var(--hair); }
+  .stats { display: flex; align-items: center; gap: 6px; }
+  .stat { display: flex; align-items: center; gap: 5px; height: 28px; padding: 0 10px; border-radius: 99px;
+    background: rgba(251,247,239,.05); border: 1px solid var(--hair);
+    font-family: var(--round); font-size: 11.5px; color: var(--dim); letter-spacing: .03em; white-space: nowrap; }
+  .stat.author { color: var(--lamp); }
+  .stat.pro { color: var(--lamp); border-color: var(--lampDim); background: var(--lampFaint); font-family: var(--mono); font-size: 9.5px; letter-spacing: .14em; }
+  .stat-add { width: 28px; height: 28px; border-radius: 99px; display: flex; align-items: center; justify-content: center;
+    color: var(--lamp); border: 1px solid var(--lampDim); background: var(--lampFaint); }
+  .scroll { position: absolute; left: 0; right: 0; top: 0; bottom: 152px; z-index: 12; overflow-y: auto;
+    padding: 150px 18px 22px; scrollbar-width: none; }
+  .scroll::-webkit-scrollbar { display: none; }
+  .hero { position: relative; border-radius: 20px; overflow: hidden; aspect-ratio: 4/5; margin-bottom: 8px;
+    box-shadow: 0 24px 50px -26px #000, 0 0 0 1px rgba(251,247,239,.07); }
+  .hero .grad { position: absolute; inset: 0; background: linear-gradient(to top, rgba(8,6,5,.78) 0%, rgba(8,6,5,.1) 40%, transparent 60%); }
+  .hero .meta { position: absolute; left: 16px; right: 16px; bottom: 14px; display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; }
+  .hero .nm { font-family: var(--serif); font-size: 21px; color: var(--text); letter-spacing: .12em; text-shadow: 0 2px 12px rgba(0,0,0,.6); }
+  .hero .sub { font-family: var(--round); font-size: 11px; color: var(--dim); letter-spacing: .06em; margin-top: 4px; }
+  .photo-tag { font-family: var(--mono); font-size: 8px; letter-spacing: .18em; color: rgba(251,247,239,.6); text-transform: uppercase;
+    border: 1px solid rgba(251,247,239,.28); border-radius: 99px; padding: 3px 8px; background: rgba(10,8,6,.4); white-space: nowrap; }
+  .mark { display: flex; align-items: center; gap: 12px; margin: 22px 0 18px; }
+  .mark .ln { flex: 1; height: 1px; background: linear-gradient(to right, transparent, var(--hair)); }
+  .mark .ln.r { background: linear-gradient(to left, transparent, var(--hair)); }
+  .mark .t { font-family: var(--round); font-size: 10.5px; letter-spacing: .22em; color: var(--soft); white-space: nowrap; }
+  .turn { margin-bottom: 24px; }
+  .turn:last-child { margin-bottom: 4px; }
+  .her { position: relative; padding-left: 40px; }
+  .her .who { position: absolute; left: 0; top: 0; display: flex; flex-direction: column; align-items: center; bottom: 0; }
+  .her .who-av { width: 28px; height: 28px; border-radius: 99px; flex: none; box-shadow: 0 0 0 1px rgba(251,247,239,.16); }
+  .her .who-line { width: 1px; flex: 1; background: var(--hair); margin-top: 7px; }
+  .her .name { font-family: var(--serif); font-size: 13px; color: var(--lamp); letter-spacing: .12em; margin-bottom: 9px; display: inline-block; }
+  .act { font-family: var(--serif); font-size: 14px; line-height: 1.95; color: var(--soft); margin: 0 0 9px; text-wrap: pretty; }
+  .dlg { font-family: var(--serif); font-size: 18.5px; font-weight: 500; line-height: 1.72; color: var(--text); letter-spacing: .02em;
+    margin: 0 0 9px; text-wrap: pretty; }
+  .dlg:last-child, .act:last-child { margin-bottom: 0; }
+  .inn { font-family: var(--serif); font-size: 13px; font-style: italic; line-height: 1.85; color: var(--rose); margin: 0; }
+  .shot { position: relative; margin: 13px 0 2px; border-radius: 15px; overflow: hidden; aspect-ratio: 4/5;
+    box-shadow: 0 18px 40px -24px #000, 0 0 0 1px rgba(251,247,239,.07); }
+  .shot .grad { position: absolute; inset: 0; background: linear-gradient(to top, rgba(8,6,5,.66), transparent 48%); }
+  .shot .cap { position: absolute; left: 12px; bottom: 11px; display: flex; align-items: center; gap: 7px; }
+  .shot .cap .c { font-family: var(--round); font-size: 11px; color: var(--dim); text-shadow: 0 1px 6px rgba(0,0,0,.6); }
+  .you { display: flex; flex-direction: column; align-items: flex-end; text-align: right; }
+  .you .tag { font-family: var(--mono); font-size: 8.5px; letter-spacing: .18em; color: var(--ghost); margin-bottom: 7px; }
+  .you-bubble { display: inline-block; max-width: 84%; text-align: left; border-radius: 16px 16px 6px 16px; padding: 12px 16px;
+    background: linear-gradient(155deg, oklch(0.46 0.06 60 / .9), oklch(0.36 0.05 54 / .9));
+    border: 1px solid var(--lampFaint); box-shadow: 0 12px 26px -20px #000; }
+  .you-bubble .b { font-family: var(--round); font-size: 14.5px; line-height: 1.8; color: rgba(251,247,239,.96); letter-spacing: .02em; }
+  .her.latest .name::after { content: "いま"; font-family: var(--mono); font-size: 8px; letter-spacing: .14em; color: var(--ink);
+    background: var(--lamp); border-radius: 99px; padding: 2px 7px; margin-left: 9px; vertical-align: 2px; }
+  .acts { display: flex; align-items: center; gap: 7px; margin-top: 14px; flex-wrap: wrap; }
+  .act-btn { display: flex; align-items: center; gap: 6px; height: 32px; padding: 0 13px; border-radius: 99px;
+    font-family: var(--round); font-size: 11.5px; letter-spacing: .03em; color: var(--ink);
+    background: var(--lamp); border: 1px solid transparent; }
+  .act-ic { width: 32px; height: 32px; border-radius: 99px; display: flex; align-items: center; justify-content: center;
+    color: var(--soft); background: rgba(251,247,239,.05); border: 1px solid var(--hair); }
+  .modes { position: absolute; left: 0; right: 0; bottom: 92px; z-index: 16; display: flex; gap: 8px; padding: 0 16px; }
+  .mode { display: flex; align-items: center; gap: 7px; height: 36px; padding: 0 14px; border-radius: 99px; flex: 1; justify-content: center;
+    font-family: var(--round); font-size: 12px; letter-spacing: .03em; color: var(--dim); white-space: nowrap;
+    background: rgba(251,247,239,.05); border: 1px solid var(--hair); }
+  .mode.on { color: var(--lamp); border-color: var(--lampDim); background: var(--lampFaint); }
+  .bar { position: absolute; left: 0; right: 0; bottom: 0; z-index: 17; display: flex; align-items: center; gap: 10px;
+    padding: 12px 16px 26px; background: var(--surface); border-top: 1px solid var(--hair); }
+  .bar-av { width: 44px; height: 44px; border-radius: 99px; flex: none; display: flex; align-items: center; justify-content: center;
+    background: var(--lampFaint); border: 1px solid var(--lampDim); color: var(--lamp); font-family: var(--serif); font-size: 18px; }
+  .bar-field { flex: 1; min-width: 0; height: 48px; display: flex; align-items: center; gap: 10px; padding: 0 16px;
+    border-radius: 99px; background: rgba(255,255,255,.05); border: 1px solid var(--hair);
+    font-family: var(--round); font-size: 14px; color: var(--faint); }
+  .bar-field .grow { flex: 1; }
+  .bar-ic { color: var(--soft); display: flex; }
+  .bar-ic.lamp { color: var(--lamp); }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="phone">
+      <div class="bgwash"></div>
+      <div class="status">
+        <span class="t">23:14</span>
+        <span class="ic">
+          <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="4.6" y="5" width="3" height="6" rx="1"/><rect x="9.2" y="2.6" width="3" height="8.4" rx="1"/><rect x="13.8" y="0" width="3" height="11" rx="1"/></svg>
+          <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><path d="M8 2.4c2.3 0 4.4.9 6 2.3l-1.3 1.4A6.4 6.4 0 0 0 8 4.3 6.4 6.4 0 0 0 3.3 6.1L2 4.7A8.7 8.7 0 0 1 8 2.4Zm0 3.3c1.4 0 2.7.5 3.6 1.4l-1.3 1.4A2.8 2.8 0 0 0 8 7.6c-.9 0-1.7.3-2.3.9L4.4 7.1A4.1 4.1 0 0 1 8 5.7Zm0 3.1 1.6 1.6L8 11 6.4 9.4Z"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="1" y="1" width="20.5" height="10" rx="2.8" stroke="currentColor" stroke-opacity=".5"/><rect x="2.6" y="2.6" width="15.5" height="6.8" rx="1.4" fill="currentColor"/><rect x="22.8" y="4" width="1.6" height="4" rx="0.8" fill="currentColor" fill-opacity=".5"/></svg>
+        </span>
+      </div>
+      <div class="scroll" id="scroll">
+        <div class="hero portrait">
+          <div class="grad"></div>
+          <div class="meta">
+            <div>
+              <div class="nm">結衣</div>
+              <div class="sub">玄関先 — 灯りはランプだけ</div>
+            </div>
+            <span class="photo-tag">写真</span>
+          </div>
+        </div>
+        <div class="mark"><span class="ln"></span><span class="t">いま、ふたり</span><span class="ln r"></span></div>
+        <div class="turn">
+          <div class="her">
+            <div class="who"><div class="who-av portrait"></div><div class="who-line"></div></div>
+            <span class="name">結衣</span>
+            <p class="act">帰ってきたあなたの声に、結衣は一瞬まばたきを忘れて、それからゆっくりと袖をつかんだ。指先が少し震えている。</p>
+            <p class="dlg">「……ずるい。そういうこと、先に言うんだ」</p>
+            <p class="inn">（わたしも。……ずっと、あなたのこと考えてた）</p>
+          </div>
+        </div>
+        <div class="turn">
+          <div class="you">
+            <span class="tag">あなた · 22:41</span>
+            <span class="you-bubble"><span class="b">ただいま。……今日はずっと、結衣のこと考えてた</span></span>
+          </div>
+        </div>
+        <div class="turn">
+          <div class="her latest">
+            <div class="who"><div class="who-av portrait"></div><div class="who-line"></div></div>
+            <span class="name">結衣</span>
+            <p class="act">袖をつかむ手に、ぎゅっと力がこもる。逃がさない、というように。彼女は背伸びして、あなたの耳もとへ唇を寄せた。</p>
+            <p class="dlg">「ねえ……今夜は、帰さないから」</p>
+            <div class="shot portrait">
+              <div class="grad"></div>
+              <div class="cap"><span class="c">結衣 — 袖をつかんで</span></div>
+            </div>
+            <div class="acts">
+              <span class="act-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3.5 13.7 9 19 10.5 13.7 12 12 17.5 10.3 12 5 10.5 10.3 9Z"/></svg>続きを見る</span>
+              <span class="act-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4.5" width="18" height="15" rx="2.4"/><circle cx="8.5" cy="9.5" r="1.6"/><path d="m4 17 4.5-4.5 3.5 3.5 3-3 5 5"/></svg></span>
+              <span class="act-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><rect x="3" y="6" width="13" height="12" rx="2.4"/><path d="m16 10 5-3v10l-5-3Z"/></svg></span>
+              <span class="act-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M20 11a8 8 0 1 0-.6 4"/><path d="M20 4v6h-6"/></svg></span>
+              <span class="act-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M6.5 4h11v16l-5.5-3.5L6.5 20Z"/></svg></span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="top">
+        <div class="top-row">
+          <div class="top-av portrait"></div>
+          <div class="top-id">
+            <span class="n">結衣</span>
+            <span class="s">5,528人が逢った</span>
+          </div>
+          <div class="top-acts">
+            <div class="top-btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2" stroke-linecap="round"/></svg></div>
+            <div class="top-btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="12" r="2.3"/><circle cx="17.5" cy="6" r="2.3"/><circle cx="17.5" cy="18" r="2.3"/><path d="M8 11 15.5 7.2M8 13l7.5 3.8"/></svg></div>
+            <div class="top-btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg></div>
+          </div>
+        </div>
+        <div class="stats">
+          <span class="stat author">@神楽</span>
+          <span class="stat"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 20.5C5.5 16 3 12.3 3 9a4.5 4.5 0 0 1 9-1 4.5 4.5 0 0 1 9 1c0 3.3-2.5 7-9 11.5Z"/></svg>968</span>
+          <span class="stat"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M21 11.5a8.4 8.4 0 0 1-12 7.6L3 21l1.9-5.9A8.4 8.4 0 1 1 21 11.5Z"/></svg>6</span>
+          <span class="stat pro">PRO</span>
+          <span class="stat"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="oklch(0.82 0.12 66)" stroke-width="1.6" stroke-linejoin="round"><path d="M6 3h12l3 6-9 12L3 9Z"/><path d="M3 9h18"/></svg>61</span>
+          <span class="stat-add"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span>
+        </div>
+      </div>
+      <div class="modes">
+        <span class="mode on"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 4h11v16l-5.5-3.5L6.5 20Z"/></svg>物語</span>
+        <span class="mode"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-12 7.6L3 21l1.9-5.9A8.4 8.4 0 1 1 21 11.5Z"/></svg>会話</span>
+        <span class="mode"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="3" y="6" width="13" height="12" rx="2.4"/><path d="m16 10 5-3v10l-5-3Z"/></svg>動画</span>
+      </div>
+      <div class="bar">
+        <div class="bar-av">逢</div>
+        <div class="bar-field">
+          <span class="grow">ことばを返す…</span>
+          <span class="bar-ic lamp"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3.5 13.7 9 19 10.5 13.7 12 12 17.5 10.3 12 5 10.5 10.3 9Z"/></svg></span>
+          <span class="bar-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span>
+        </div>
+      </div>
+      <div class="home"></div>
+    </div>
+    <div class="note">夜の地の上に会話を整理して並べ、立ち絵は<b>ちゃんとした画像カードとしてインラインに</b>。<b>誰の発言か（アバター＋名前）・描写はグレー・あなたの返信は右・最新ターンは「いま」印＋操作</b>で導線を明快に。</div>
+  </div>
+  <script>
+    (function () { var s = document.getElementById('scroll'); if (s) s.scrollTop = s.scrollHeight; })();
+  </script>
+</body>
+</html>

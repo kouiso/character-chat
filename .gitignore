@@ -1,0 +1,134 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/tasks.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Cloudflare
+# .dev.vars* で受ける。.dev.vars.step2-backup のような派生名が素通りして
+# 本番APIキーがコミット対象に入る事故を防ぐため（2026-07-26 に未追跡で発見）
+.dev.vars*
+.prod-verify.vars
+.wrangler/
+
+# Task runner cache
+.task/
+
+.omc/
+.dbg/
+
+# v2 monorepo（apps/v2, packages/*）
+.data/
+.tanstack/
+**/.output/
+
+# Playwright MCP artifacts (開発時の自動スクショ・ログ)
+.playwright-mcp/
+
+# Debug screenshots and test artifacts (repo root に PNG を置かせない)
+/*.png
+public/iter-attempt-*.png
+public/visual-check-*.png
+public/admin-data/
+e2e-results/
+
+# Working files (session artifacts, test results, handoff notes)
+.work/*
+!.work/qa/
+!.work/verify/
+!.work/e2e-results/
+!.work/scrape/
+.work/verify/last-verify.json
+.work/verify/screenshots/
+.work/verify/bypass.json
+.work/e2e-results/*.png
+.work/e2e-results/*.jpg
+.work/e2e-results/*.mp4
+.work/e2e-results/browser-smoke-*.json
+.work/e2e-results/prod-smoke-*.json
+.work/e2e-results/pwa-crash-repro-*.json
+.work/e2e-results/runs/
+.work/e2e-results/reviews/
+
+# Avatar pipeline Python venv (re-creatable — never track)
+.work/avatar-dedupe-venv/
+
+# Working image files — heavy binaries, never track; Drive is canonical (Phase 2+)
+.work/**/*.png
+.work/**/*.jpg
+.work/**/*.webp
+
+# Serena IDE config
+.serena/
+
+# Visual verify enforcer state
+.verify-enforcer.json
+
+# Parallel worktrees (codex/agent sandboxes)
+.worktrees/
+
+# Lighthouse audit artifacts
+doc/lighthouse-*/
+doc/report.html
+doc/report.json
+doc/lighthouse-baseline-screenshot.png
+
+# Claude Code local settings (machine-specific)
+.claude/scheduled_tasks.lock
+.claude/settings.local.json
+
+# Claude Code session screenshots
+.claude/*.png
+
+# Browser session chat logs
+chat-claude/
+coverage/
+__pycache__/
+
+# design-sync build artifacts
+.ds-sync/
+ds-bundle/
+.design-sync/
+
+# TypeScript declaration files (tsc build output — not source)
+functions/**/*.d.ts
+script/e2e/**/*.d.ts
+
+# Claude Code plan files (session artifacts)
+.claude/plans/
+
+# claude/rules that mirror prompt/instructions (single-source is prompt/)
+.claude/rules/adult-image-gen-stance.md
+
+# Local skill replay data and test results (machine-specific artifacts)
+# 先頭スラッシュ必須: `skills/` だと全階層にマッチし、AI指示の single source である
+# prompt/skills/ と .claude/skills/ の新規追加が無言で無視される
+/skills/
+.claude/skills/**/replay/
+test-results/
+# Added by code-review-graph
+.code-review-graph/
+
+# scratch / working files (kept out of public tree)
+.work/

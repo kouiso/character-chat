@@ -1,0 +1,54 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+language: ja-JP
+
+reviews:
+  profile: assertive
+  instructions: |
+    Only cite rules explicitly defined in REVIEW.md as the basis for findings.
+    Do not flag general best practices or common coding conventions as repository-specific rule violations.
+    When citing a rule, reference its name (e.g., HR-1, Type Safety).
+    For patterns not covered in REVIEW.md, label them as "suggestion" — never as "violation".
+    Actively look for better implementations (see the "Better Way Perspective" section in REVIEW.md) and propose concrete alternatives using GitHub Suggested Changes format when applicable.
+  auto_review:
+    ignore_usernames: []
+    drafts: false
+  path_instructions:
+    - path: "drizzle/**"
+      instructions: |
+        DB-1（破壊的migration禁止）とDB-2（scaffolding≠done）を重点的にチェックしてください。
+        DROP TABLE / DROP COLUMN / データ消失を伴う ALTER は [MUST] で flag してください。
+        マイグレーションのみで writer コードが同 PR にない場合は DB-2 として flag してください。
+    - path: "functions/api/**"
+      instructions: |
+        IMG-1〜IMG-4（画像生成タグ）、CHAT-1〜CHAT-4（会話品質）、SSE-1〜SSE-2（ストリーミング）、PHIL-1（検閲禁止）を重点的にチェックしてください。
+        特に PHIL-1: モデレーション/検閲系の実装が P0/必須として混入していないか確認してください。
+    - path: "src/schema/**"
+      instructions: |
+        TS-1（Zod スキーマ型不一致）を重点的にチェックしてください。
+        型変更時に consumer が同 PR で修正されているか確認してください。
+    - path: "prompt/instructions/**"
+      instructions: |
+        PHIL-1（検閲提案禁止）、CHAT-1〜CHAT-4（会話品質）を重点的にチェックしてください。
+        品質影響ファイルの変更にはコミットメッセージに [e2e:] タグが付いているか確認してください（quality-commit-score.md ルール）。
+    - path: "src/lib/model.ts"
+      instructions: |
+        PHIL-1（検閲提案禁止）、CHAT-1〜CHAT-4（会話品質）を重点的にチェックしてください。
+        品質影響ファイルの変更にはコミットメッセージに [e2e:] タグが付いているか確認してください（quality-commit-score.md ルール）。
+    - path: "**/*.ts"
+      instructions: |
+        TS-2（any型・@ts-ignore・eslint-disable 禁止）、PHIL-5（英語コメント・自明コメント禁止）をチェックしてください。
+    - path: "**/*.tsx"
+      instructions: |
+        TS-2（any型・@ts-ignore・eslint-disable 禁止）、PHIL-5（英語コメント・自明コメント禁止）をチェックしてください。
+  path_filters:
+    - "!.claude/skills/**"
+    - "!.agents/skills/**"
+    - "!pnpm-lock.yaml"
+
+chat:
+  auto_reply: true
+
+knowledge_base:
+  code_guidelines:
+    filePatterns:
+      - "**/REVIEW.md"

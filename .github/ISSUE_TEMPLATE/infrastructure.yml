@@ -1,0 +1,59 @@
+name: "🏗️ インフラ構築・修正"
+description: "インフラの構築や修正依頼はこちらのテンプレートをご利用ください。"
+title: "[infra] "
+labels: ["infra"]
+body:
+  - type: textarea
+    id: work-description
+    attributes:
+      label: "作業内容"
+      description: "実施する作業の内容を記載してください。"
+    validations:
+      required: true
+  - type: textarea
+    id: purpose
+    attributes:
+      label: "目的・背景"
+      description: "なぜこの作業が必要ですか？"
+    validations:
+      required: true
+  - type: checkboxes
+    id: target-env
+    attributes:
+      label: "対象環境"
+      options:
+        - label: "production"
+        - label: "staging"
+        - label: "development"
+  - type: textarea
+    id: completion-criteria
+    attributes:
+      label: "完了条件"
+      description: "何をもって完了とみなしますか？"
+    validations:
+      required: true
+  - type: textarea
+    id: risks
+    attributes:
+      label: "注意事項・リスク"
+      description: "想定されるリスクや注意点があれば記載してください。"
+    validations:
+      required: false
+  - type: textarea
+    id: test-items
+    attributes:
+      label: "テスト項目"
+      description: "このIssueの完了時に確認すべきテスト項目を記載してください。"
+      placeholder: |
+        - [ ] 正常系: ○○ができること
+        - [ ] 異常系: △△の場合にエラーになること
+        - [ ] 境界値: □□の場合の挙動
+    validations:
+      required: false
+  - type: textarea
+    id: additional
+    attributes:
+      label: "補足情報"
+      description: "その他補足があれば記載してください。"
+    validations:
+      required: false

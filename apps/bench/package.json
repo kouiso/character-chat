@@ -1,0 +1,20 @@
+{
+  "name": "@adult-ai-app/bench",
+  "private": true,
+  "type": "module",
+  "description": "検証台。既存の src/ functions/ には一切触らず、生成テキストの質だけを数字で測る。",
+  "scripts": {
+    "baseline": "node script/baseline.ts",
+    "test": "node --test 'src/**/*.test.ts'",
+    "turn": "node script/turn.ts",
+    "run": "node script/run.ts",
+    "score": "node script/score.ts",
+    "serve": "node src/server.ts",
+    "compare": "node script/compare.ts",
+    "probe": "node script/probe.ts",
+    "feedback": "node script/feedback.ts"
+  },
+  "engines": {
+    "node": ">=24"
+  }
+}

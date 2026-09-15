@@ -1,0 +1,1 @@
+../../prompt/commands/delete-my-chat-history.md

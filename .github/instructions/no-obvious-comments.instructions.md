@@ -1,0 +1,1 @@
+../../prompt/skills/no-obvious-comments/SKILL.md

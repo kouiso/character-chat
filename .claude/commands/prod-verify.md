@@ -1,0 +1,1 @@
+../../prompt/commands/prod-verify.md

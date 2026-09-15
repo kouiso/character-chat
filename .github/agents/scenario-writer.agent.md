@@ -1,0 +1,1 @@
+../../prompt/agents/scenario-writer.md

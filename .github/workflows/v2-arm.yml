@@ -1,0 +1,136 @@
+# v2 エンジン（apps/v2 + packages/*）で 10 ターン台本を演じ、トランスクリプトを残す CI アーム。
+#
+# なんで要るか: 既存アプリの通し読みアーム（dogfood-arm.yml、ci47 等）と同じ台本・同じ 2 キャラで
+# v2 の本文を読んで比べるには、実モデルで生成した全文が要る。復号した OPENROUTER_API_KEY は
+# CI の repo secret にしか無いので、同じ手順で v2 側のアームも CI で回す。
+#
+# 課金: 1 run = 2 キャラ × 10 ターン。既定で 2 run 回す（1 本 vs 1 本の比較は禁止、
+# dogfood-arm.yml と同じ理由）。走る条件はコミットの件名（1 行目）に [v2arm] が入っとる push だけ。
+# 普通の push では 1 円も使わん。
+#
+# 任意: 件名に [v2model:<id>] を足すと V2_MODEL を上書きする（既定は engine の DEFAULT_MODEL）。
+name: V2 Arm
+
+# ref だけにしとると連続 push の 2 本目が静かにキャンセルされるので sha を足す
+# （dogfood-arm.yml と同じ）。ランナーも D1 も run ごとに使い捨てなので並走して構わん。
+concurrency:
+  group: v2-arm-${{ github.ref }}-${{ github.sha }}
+  cancel-in-progress: false
+
+on:
+  push:
+    branches:
+      - "claude/**"
+
+permissions:
+  contents: write
+
+jobs:
+  # 見るのは件名（1 行目）だけ。本文に「[v2arm] を読む」と書いただけで金を使う run が
+  # 立たんように、gate ジョブで件名を切り出してから arm ジョブへ渡す。
+  gate:
+    if: contains(github.event.head_commit.message, '[v2arm]')
+    runs-on: ${{ vars.RUNNER_LINUX || 'ubuntu-latest' }}
+    timeout-minutes: 5
+    outputs:
+      run: ${{ steps.subject.outputs.run }}
+      v2_model: ${{ steps.subject.outputs.v2_model }}
+      v2_script: ${{ steps.subject.outputs.v2_script }}
+      v2_mechanics: ${{ steps.subject.outputs.v2_mechanics }}
+    steps:
+      - name: Parse the head commit subject
+        id: subject
+        env:
+          HEAD_MSG: ${{ github.event.head_commit.message }}
+        run: |
+          set -e
+          SUBJECT=$(printf '%s' "$HEAD_MSG" | head -1)
+          if printf '%s' "$SUBJECT" | grep -qF '[v2arm]'; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::[v2arm] is in the body but not the subject — not running the arm"
+          fi
+          SCRIPT_FLAG=$(printf '%s' "$SUBJECT" \
+            | { grep -oE '\[script:(adult|nonadult)\]' || true; } \
+            | head -1 | sed -E 's/\[script:(.*)\]/\1/')
+          echo "v2_script=${SCRIPT_FLAG:-adult}" >> "$GITHUB_OUTPUT"
+          V2_MODEL_FLAG=$(printf '%s' "$SUBJECT" \
+            | { grep -oE '\[v2model:[A-Za-z0-9._/:-]+\]' || true; } \
+            | head -1 | sed -E 's/\[v2model:(.*)\]/\1/')
+          echo "v2_model=${V2_MODEL_FLAG:-}" >> "$GITHUB_OUTPUT"
+          # 段分離アーム（2026-09-05）: [mechanics:erotic] で目安字数・penalty・extend だけをその段にする。
+          MECH_FLAG=$(printf '%s' "$SUBJECT" \
+            | { grep -oE '\[mechanics:(conversation|intimate|erotic|climax|afterglow)\]' || true; } \
+            | head -1 | sed -E 's/\[mechanics:(.*)\]/\1/')
+          echo "v2_mechanics=${MECH_FLAG:-}" >> "$GITHUB_OUTPUT"
+          echo "parsed subject='$SUBJECT' v2_model=${V2_MODEL_FLAG:-<engine default>}"
+
+  arm:
+    needs: gate
+    if: needs.gate.outputs.run == 'true'
+    runs-on: ${{ vars.RUNNER_LINUX || 'ubuntu-latest' }}
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.ref }}
+
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "22"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Migrate + seed local D1
+        run: |
+          pnpm db:migrate:local
+          pnpm db:seed
+
+      # 鍵は .dev.vars に書かず env で渡す。createOpenRouterModel(process.env) が読む。
+      # V2_MODEL は件名の [v2model:<id>] がある時だけ渡し、無ければ engine の既定に任せる。
+      - name: Run arm (run 1 and run 2)
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          V2_MODEL_FLAG: ${{ needs.gate.outputs.v2_model }}
+          V2_SCRIPT: ${{ needs.gate.outputs.v2_script }}
+          V2_MECHANICS: ${{ needs.gate.outputs.v2_mechanics }}
+        run: |
+          set -e
+          if [ -n "$V2_MODEL_FLAG" ]; then export V2_MODEL="$V2_MODEL_FLAG"; fi
+          echo "V2_MODEL=${V2_MODEL:-<engine default>}"
+          for i in 1 2; do
+            echo "::group::v2 arm run $i"
+            ARM_NAME="v2"; [ "${V2_SCRIPT:-adult}" = "nonadult" ] && ARM_NAME="v2-nonadult"
+            MECH_ARGS=""
+            if [ -n "$V2_MECHANICS" ]; then ARM_NAME="$ARM_NAME-mech-$V2_MECHANICS"; MECH_ARGS="--mechanics $V2_MECHANICS"; fi
+            # shellcheck disable=SC2086
+            pnpm v2:script-run --arm "$ARM_NAME" --script "${V2_SCRIPT:-adult}" $MECH_ARGS --run "$i"
+            echo "::endgroup::"
+          done
+
+      # 実測の全文は必ずコミットする（コンテナは使い捨て）。CI=true は GitHub Actions が
+      # 既定で立てとるので、.lefthook.yml の pre-push は task が無いランナーで自分を飛ばす。
+      - name: Commit transcripts
+        if: always()
+        run: |
+          git config user.name "v2-arm[bot]"
+          git config user.email "v2-arm@users.noreply.github.com"
+          git add -f .work/e2e-results/vlong-dogfood || true
+          git diff --cached --quiet && { echo "no transcripts produced"; exit 0; }
+          git commit -m "chore(v2): keep the v2 transcripts from CI run ${{ github.run_id }} [e2e: skipped — 実測そのもの]"
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
+
+      - name: Upload transcripts
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: v2-arm-${{ github.run_id }}
+          path: .work/e2e-results/vlong-dogfood
+          retention-days: 7

@@ -1,0 +1,16 @@
+# CI の sync-ai-rules.sh チェックで CRLF/LF ズレを防ぐ
+*.md text eol=lf
+*.sh text eol=lf
+*.yml text eol=lf
+
+# git-crypt: .env のみ暗号化する（局長判断 2026-07-15: prompt/ は暗号化しない）。
+# prompt/ を外した理由: 中身は秘密情報ではなくAIへの指示文で、暗号化の便益より事故の
+# 実害が上回った。実際 char-approval-process.md と erotic-chat-quality-loop.md が暗号文の
+# 破損で読めなくなり、後者は6週間気付かれずに死んでいた（下の -text 注記がその機序）。
+#
+# -text は .env に必須。暗号文はランダムなバイト列で、25KB もあれば CR(0x0D) が100個前後
+# 紛れ込む。上の "*.md text eol=lf" は後勝ちでここにも掛かるので、-text を付けんと
+# git が暗号文の CRLF をテキストの改行と誤認して CR を削り、復号時に HMAC が壊れて
+# "encrypted file has been tampered with" で checkout ごと死ぬ。小さいファイルは CR が
+# 数個しか出ず偶然助かるだけで、地雷は全ファイルに埋まっとる。
+/.env filter=git-crypt diff=git-crypt -text

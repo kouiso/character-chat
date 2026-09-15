@@ -1,0 +1,160 @@
+{
+  "projectId": "5b2e49a2-4493-4708-8642-c3c2a0d32739",
+  "shape": "package",
+  "pkg": "adult-ai-app",
+  "globalName": "AdultAiApp",
+  "srcDir": "src/component/ui",
+  "tsconfig": "tsconfig.json",
+  "cssEntry": "dist/assets/ds-combined.css",
+  "guidelinesGlob": [
+    "doc/regression-coverage.md"
+  ],
+  "extraFonts": [
+    "node_modules/@fontsource-variable/geist/index.css",
+    "node_modules/@fontsource-variable/noto-serif-jp/index.css"
+  ],
+  "overrides": {
+    "Dialog": {
+      "cardMode": "single",
+      "viewport": "480x460"
+    },
+    "DialogClose": {
+      "cardMode": "single",
+      "viewport": "480x460"
+    },
+    "DialogContent": {
+      "cardMode": "single",
+      "viewport": "480x460"
+    },
+    "DialogDescription": {
+      "cardMode": "single",
+      "viewport": "480x460"
+    },
+    "DialogFooter": {
+      "cardMode": "single",
+      "viewport": "480x460"
+    },
+    "DialogHeader": {
+      "cardMode": "single",
+      "viewport": "480x460"
+    },
+    "DialogOverlay": {
+      "cardMode": "single",
+      "viewport": "480x460"
+    },
+    "DialogPortal": {
+      "cardMode": "single",
+      "viewport": "480x460"
+    },
+    "DialogTitle": {
+      "cardMode": "single",
+      "viewport": "480x460"
+    },
+    "DialogTrigger": {
+      "cardMode": "single",
+      "viewport": "480x460"
+    },
+    "Sheet": {
+      "cardMode": "single",
+      "viewport": "600x440"
+    },
+    "SheetClose": {
+      "cardMode": "single",
+      "viewport": "600x440"
+    },
+    "SheetContent": {
+      "cardMode": "single",
+      "viewport": "600x440"
+    },
+    "SheetDescription": {
+      "cardMode": "single",
+      "viewport": "600x440"
+    },
+    "SheetFooter": {
+      "cardMode": "single",
+      "viewport": "600x440"
+    },
+    "SheetHeader": {
+      "cardMode": "single",
+      "viewport": "600x440"
+    },
+    "SheetTitle": {
+      "cardMode": "single",
+      "viewport": "600x440"
+    },
+    "SheetTrigger": {
+      "cardMode": "single",
+      "viewport": "600x440"
+    },
+    "AlertDialog": {
+      "cardMode": "single",
+      "viewport": "460x420"
+    },
+    "AlertDialogAction": {
+      "cardMode": "single",
+      "viewport": "460x420"
+    },
+    "AlertDialogCancel": {
+      "cardMode": "single",
+      "viewport": "460x420"
+    },
+    "AlertDialogContent": {
+      "cardMode": "single",
+      "viewport": "460x420"
+    },
+    "AlertDialogDescription": {
+      "cardMode": "single",
+      "viewport": "460x420"
+    },
+    "AlertDialogFooter": {
+      "cardMode": "single",
+      "viewport": "460x420"
+    },
+    "AlertDialogHeader": {
+      "cardMode": "single",
+      "viewport": "460x420"
+    },
+    "AlertDialogMedia": {
+      "cardMode": "single",
+      "viewport": "460x420"
+    },
+    "AlertDialogOverlay": {
+      "cardMode": "single",
+      "viewport": "460x420"
+    },
+    "AlertDialogPortal": {
+      "cardMode": "single",
+      "viewport": "460x420"
+    },
+    "AlertDialogTitle": {
+      "cardMode": "single",
+      "viewport": "460x420"
+    },
+    "AlertDialogTrigger": {
+      "cardMode": "single",
+      "viewport": "460x420"
+    },
+    "Tooltip": {
+      "cardMode": "single",
+      "viewport": "360x220"
+    },
+    "TooltipContent": {
+      "cardMode": "single",
+      "viewport": "360x220"
+    },
+    "TooltipProvider": {
+      "cardMode": "single",
+      "viewport": "360x220"
+    },
+    "TooltipTrigger": {
+      "cardMode": "single",
+      "viewport": "360x220"
+    },
+    "Toaster": {
+      "cardMode": "single",
+      "viewport": "420x280"
+    }
+  },
+  "buildCmd": "node -e \"const fs = require('node:fs'); const esbuild = require('./.ds-sync/node_modules/esbuild'); const entryPoints = ['src/component/ui/index.ts', ...fs.readdirSync('src/component/ui').filter((file) => file.endsWith('.tsx')).map((file) => 'src/component/ui/' + file)]; esbuild.buildSync({ entryPoints, bundle: false, format: 'esm', outdir: 'dist/ui-lib', outbase: 'src', loader: {'.tsx': 'tsx', '.ts': 'ts'}, tsconfig: 'tsconfig.json', logLevel: 'info' }); console.log('esbuild done');\" && node_modules/.bin/tsc --project tsconfig.ui-lib.json --skipLibCheck true",
+  "entryPath": "./dist/ui-lib/component/ui/index.js"
+}

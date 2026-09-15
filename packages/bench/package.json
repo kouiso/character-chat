@@ -1,0 +1,36 @@
+{
+  "name": "@v2/bench",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "version": "0.0.0",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "lint": "eslint --config ../../eslint.v2.config.js .",
+    "bench": "tsx src/run.ts --fake",
+    "persist-check": "tsx src/persist-check.ts",
+    "script-run": "tsx src/script-run.ts"
+  },
+  "dependencies": {
+    "@langchain/core": "^1.2.9",
+    "@v2/cf": "workspace:^",
+    "@v2/db": "workspace:^",
+    "@v2/engine": "workspace:^",
+    "@v2/judge": "workspace:^",
+    "@v2/prompt": "workspace:^"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260317.1",
+    "@types/node": "^24.12.0",
+    "tsx": "^4.21.0",
+    "typescript": "~5.9.3",
+    "vitest": "^4.1.2"
+  }
+}

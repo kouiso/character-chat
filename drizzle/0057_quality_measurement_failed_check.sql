@@ -1,0 +1,1 @@
+ALTER TABLE `quality_measurement` ADD `failed_check` text;

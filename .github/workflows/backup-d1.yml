@@ -1,0 +1,51 @@
+name: Quarterly D1 Backup
+
+on:
+  schedule:
+    # 1st of Jan, Apr, Jul, Oct at 02:00 UTC
+    - cron: '0 2 1 1,4,7,10 *'
+  workflow_dispatch:
+
+concurrency:
+  group: backup-d1-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    name: Export D1 to R2
+    runs-on: ${{ vars.RUNNER_LINUX_4VCPU || 'blacksmith-4vcpu-ubuntu-2404' }}
+    timeout-minutes: 30
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Print Wrangler version
+        run: pnpm exec wrangler --version
+
+      # GitHub Actions artifact ではなく R2(既存の adult-ai-images バケットを流用)へ
+      # 保存する。無料プランの Actions artifact ストレージクォータ(500MB)を
+      # 消費させないため(2026-07-13、局長指示)。R2 は Cloudflare 無料枠が別途あり、
+      # backups/ プレフィックスで既存の画像資産と分離する。
+      - name: Export D1 database and upload to R2
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "::error::CLOUDFLARE_API_TOKEN is not set."
+            exit 1
+          fi
+          FILENAME="backup-$(date -u +%Y%m%d-%H%M%S)-${GITHUB_RUN_ID}.sql"
+          pnpm exec wrangler d1 export DB --remote --output "./$FILENAME"
+          echo "Backup created: $FILENAME ($(du -h "$FILENAME" | cut -f1))"
+          pnpm exec wrangler r2 object put "adult-ai-images/backups/$FILENAME" --file "./$FILENAME" --content-type "application/sql" --remote
+          echo "Uploaded to r2://adult-ai-images/backups/$FILENAME"

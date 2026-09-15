@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <radialGradient id="iconBg" cx="50%" cy="-12%" r="120%">
+      <stop offset="0%" stop-color="#33291f"/>
+      <stop offset="58%" stop-color="#191310"/>
+      <stop offset="100%" stop-color="#120d0b"/>
+    </radialGradient>
+    <linearGradient id="iconFlame" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f4dfa4"/>
+      <stop offset="100%" stop-color="#d6a054"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="15" fill="url(#iconBg)"/>
+  <g transform="translate(10.7 10.7) scale(0.665)">
+    <path d="M32 12 C37 21 44 25.5 44 35 A12 12 0 1 1 20 35 C20 25.5 27 21 32 12 Z" fill="url(#iconFlame)"/>
+    <path d="M32 26 C34.4 30.5 37.6 32.8 37.6 37.4 A5.6 5.6 0 1 1 26.4 37.4 C26.4 32.8 29.6 30.5 32 26 Z" fill="#191310"/>
+    <circle cx="32" cy="38.6" r="2.1" fill="#f4dfa4"/>
+  </g>
+</svg>

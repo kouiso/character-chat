@@ -1,0 +1,51 @@
+name: "🛠 既存機能の改善・リファクタリング"
+description: "既存機能の改善・品質向上のためのリファクタリング依頼はこちらのテンプレートをご利用ください。"
+title: "[modify] "
+labels: ["refine"]
+body:
+  - type: textarea
+    id: improvement
+    attributes:
+      label: "改善したい点"
+      description: "何を改善したいですか？"
+    validations:
+      required: true
+  - type: textarea
+    id: current-problem
+    attributes:
+      label: "現状の課題"
+      description: "現在どのような問題がありますか？"
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: "対象範囲"
+      description: "影響するファイル、モジュール、画面等。"
+    validations:
+      required: true
+  - type: textarea
+    id: completion-criteria
+    attributes:
+      label: "完了条件"
+      description: "何をもって完了とみなしますか？"
+    validations:
+      required: true
+  - type: textarea
+    id: test-items
+    attributes:
+      label: "テスト項目"
+      description: "このIssueの完了時に確認すべきテスト項目を記載してください。"
+      placeholder: |
+        - [ ] 正常系: ○○ができること
+        - [ ] 異常系: △△の場合にエラーになること
+        - [ ] 境界値: □□の場合の挙動
+    validations:
+      required: false
+  - type: textarea
+    id: additional
+    attributes:
+      label: "補足情報"
+      description: "その他補足があれば記載してください。"
+    validations:
+      required: false

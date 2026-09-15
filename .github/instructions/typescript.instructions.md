@@ -1,0 +1,1 @@
+../../prompt/skills/typescript/SKILL.md

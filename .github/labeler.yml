@@ -1,0 +1,10 @@
+# ファイル変更ベースのラベル付け
+documentation:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'doc/**/*'
+          - '**/README*.md'
+
+admin:
+  - changed-files:
+      - any-glob-to-any-file: 'admin/**/*'

@@ -1,0 +1,1 @@
+../../prompt/skills/character-sheet-design/SKILL.md
