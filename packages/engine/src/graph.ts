@@ -476,10 +476,13 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
           ...(judged?.checks.ngram.matchedPhrases ?? []),
           ...(judged?.checks.nearDuplicate.matches.map((match) => match.sentence) ?? []),
         ];
+        // 「別の言い方で同じ場面を進め」は場面を進めず同じ動作を言い換える塊を産む
+        // （2026-09-15 実測: regen≥1 ターンだけに intra-turn 反復ループが出た）。
+        // 落ちた句を名指しした上で、言い換え自体を禁じて新しい出来事を一つ書かせる。
         const phraseLine =
           matched.length > 0
-            ? `次の句は前の段落や例示と同じ言い回しになっとる: ${matched.map((phrase) => `「${phrase}」`).join("")}。この句を使わず、別の言い方で同じ場面を一段先へ進める。`
-            : "同じ表現の繰り返しを避け、具体的に書く。";
+            ? `次の句は前の段落や例示と同じ言い回しになっとる: ${matched.map((phrase) => `「${phrase}」`).join("")}。この句は使わん。前の段落の動作や感覚を言い換えるのも禁止。その場面でまだ書いとらん新しい出来事か動作を一つだけ書け。`
+            : "前の段落と同じ動作を言い換えん。その場面でまだ書いとらん新しい出来事か動作を一つだけ書け。";
         const instruction = [
           "ここまでの本文:",
           before,

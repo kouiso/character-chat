@@ -266,6 +266,31 @@ describe("createTurnGraph", () => {
     expect(chunk).toMatchObject({ type: "chunk", attempt: 2 });
   });
 
+  test("書き直し指示は「別の言い方」ではなく「新しい出来事を一つ」を要求する", async () => {
+    // 2026-09-15 実測: regen≥1 のターンだけに intra-turn 反復ループが出た（regen=0 は最大3）。
+    // 「別の言い方で同じ場面を一段先へ進める」が、場面を進めず同じ動作を言い換える塊を産んでいた。
+    const store = createMemoryTurnStore();
+    const copied =
+      "<action>奥の奥にどくどくと注がれる熱が止まらない。子宮が精液で満たされていく重さが下腹にずしりと広がる。</action>";
+    const fresh = "窓の外で雨が強くなり、部屋の灯りが一度だけ揺れた。";
+    const model = new FakeListChatModel({ responses: [copied, fresh] });
+    const invokeSpy = jest.spyOn(model, "invoke");
+    const graph = createTurnGraph({ model, store, extendBelowRatio: 0 });
+
+    for await (const event of runTurn(
+      graph,
+      { conversationId: "conv-i", userText: "一回目", character, phase: "climax" },
+      "conv-i",
+    )) {
+      void event;
+    }
+
+    const messages = invokeSpy.mock.calls[0]?.[0] as BaseMessage[];
+    const instruction = String(messages.at(-1)?.content);
+    expect(instruction).toContain("新しい出来事");
+    expect(instruction).not.toContain("別の言い方");
+  });
+
   test("前のターンで配った塊をそのまま書いた塊は反復として落ちる（判定はターンをまたぐ）", async () => {
     const store = createMemoryTurnStore();
     // 1 ターン目も 2 ターン目も（書き直しも）同じ本文しか返さんモデル。
