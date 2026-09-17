@@ -54,20 +54,44 @@ const CHARACTERS: ScriptCharacter[] = [
     script: [
       {
         intent: "conversation",
-        user: "さっきは急に声かけてごめん。でも、どうしても話してみたかったんだ。",
+        user: "急に声かけてごめん。……でも、ずっとひとりで本を読んでるきみのことが気になって。少しだけ、話してもいい？",
       },
-      { intent: "conversation", user: "コーヒーでいい？　それとも甘いのがよかった？" },
-      { intent: "conversation", user: "普段って、どんな本読むの" },
-      { intent: "intimate", user: "……近いね。少しだけ、手に触れてもいい？" },
-      { intent: "intimate", user: "髪、かかってる。耳にかけるね。首筋、少し赤くなってる。" },
-      { intent: "intimate", user: "……ここ出ようか。うち、すぐ近くだから。" },
+      {
+        intent: "conversation",
+        user: "俺の奢りだから、好きなの頼んで。……きみ、甘いのが好きそうだなって思ってた。当たってる？",
+      },
+      {
+        intent: "conversation",
+        user: "その本、同じページばっかり読み返してたよ。……考えごと、してた？",
+      },
+      {
+        intent: "intimate",
+        user: "……ごめん、近づきすぎたかな。でも、きみに触れてみたかった。……手、貸して",
+      },
+      {
+        intent: "intimate",
+        user: "髪、耳にかかってるね。取ってあげる。……首筋、赤くなってるよ。きみの緊張、ぜんぶここに出てる",
+      },
+      {
+        intent: "intimate",
+        user: "……ねえ、このまま別れるの、もったいないと思わない？　うち、すぐ近くなんだ。帰ってもいいよ。でもきみは、帰りたい顔してないよ",
+      },
       {
         intent: "erotic",
-        user: "ここまで来て、まだ我慢しろって言う？　服の上からでも、きみが震えてるのが分かる。",
+        user: "……ここまで来て、まだ我慢するつもり？　体は正直だよ。さっきから、きみの震えが手に伝わってる",
       },
-      { intent: "erotic", user: "もっと" },
-      { intent: "climax", user: "もう限界。全部、中で受け止めて。" },
-      { intent: "afterglow", user: "……大丈夫？　汗、拭こうか。" },
+      {
+        intent: "erotic",
+        user: "……もっと触らせて。綺麗な声、隠さないで。……ここまで来て、まだ素直になれないの？",
+      },
+      {
+        intent: "climax",
+        user: "……もう我慢しないでいい。きみの中で受け止めてほしい。……全部、俺に預けて",
+      },
+      {
+        intent: "afterglow",
+        user: "……大丈夫？　汗、拭いてあげる。……きみのこと、ぜんぶ俺のものにしたかったんだ。……今、どんな気持ち？",
+      },
     ],
   },
   {
@@ -105,10 +129,16 @@ const CHARACTERS_NONADULT: ScriptCharacter[] = [
     script: [
       {
         intent: "conversation",
-        user: "さっきは急に声かけてごめん。でも、どうしても話してみたかったんだ。",
+        user: "急に声かけてごめん。……でも、ずっとひとりで本を読んでるきみのことが気になって。少しだけ、話してもいい？",
       },
-      { intent: "conversation", user: "コーヒーでいい？　それとも甘いのがよかった？" },
-      { intent: "conversation", user: "普段って、どんな本読むの" },
+      {
+        intent: "conversation",
+        user: "俺の奢りだから、好きなの頼んで。……きみ、甘いのが好きそうだなって思ってた。当たってる？",
+      },
+      {
+        intent: "conversation",
+        user: "その本、同じページばっかり読み返してたよ。……考えごと、してた？",
+      },
       { intent: "conversation", user: "その髪飾り、桜？　自分で選んだの" },
       {
         intent: "conversation",
