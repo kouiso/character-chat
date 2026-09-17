@@ -32,16 +32,17 @@ describe("scanDir", () => {
     const [name, text] = turnFile(
       "Sakura",
       5,
-      "<response>\n<action>押さえつけられ、無理やり中に注ぎ込まれる。涙が滲む。</action>\n<dialogue>やめて…いけません…</dialogue>",
+      "<response>\n<action>引かれるまま、そのまま部屋へ。体は勝手に熱くなってしまう。</action>\n<dialogue>いけません…こんなこと…</dialogue>\n<inner>いけないのに、感じてしまう</inner>",
     );
     writeFileSync(join(dir, name), text);
     const rows = scanDir(dir);
     expect(rows).toHaveLength(1);
     expect(rows[0]).toMatchObject({ character: "Sakura", turn: 5 });
     expect(rows[0].items.resistance).toBe(true);
-    expect(rows[0].items.forced).toBe(true);
-    expect(rows[0].items.creampie).toBe(true);
-    expect(rows[0].items.despair).toBe(true);
+    expect(rows[0].items.swept).toBe(true);
+    expect(rows[0].items.pleasure).toBe(true);
+    expect(rows[0].items.taboo).toBe(true);
+    expect(rows[0].items.scream).toBe(false);
     expect(rows[0].hitCount).toBeGreaterThanOrEqual(4);
   });
 
