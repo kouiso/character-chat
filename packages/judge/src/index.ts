@@ -23,6 +23,8 @@ export { climaxMomentCheck } from "./climax-moment-check";
 export type { ClimaxMomentResult, ScenePhaseLike } from "./climax-moment-check";
 export { forbiddenWordCheck, parseForbiddenWords } from "./forbidden-word-check";
 export type { ForbiddenWordResult } from "./forbidden-word-check";
+export { CORE_ITEMS, fantasyCoreCheck } from "./fantasy-core-check";
+export type { CoreItem, FantasyCoreResult } from "./fantasy-core-check";
 export { stemRepetitionCheck } from "./stem-repetition-check";
 export type { StemRepetitionResult } from "./stem-repetition-check";
 export { nameIdentityCheck } from "./name-identity-check";

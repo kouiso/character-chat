@@ -451,6 +451,27 @@ describe("parseSystemPrompt", () => {
     expect(parsed.eroticProfile).toBe("性的な性格: 甘い");
   });
 
+  it("【プレイヤーへの約束】を逆パースして再構築する", () => {
+    const promise =
+      "清楚を落とし、爪痕を残す。抵抗は本物で、力は虚しく無理やり中出しされ、絶望する。";
+    const prompt = `【キャラクター】\nさくら\n【キャラクター性的特徴】\n献身・受け\n【プレイヤーへの約束】\n${promise}\n【キャラカード】\nfirst_person: わたし`;
+    const parsed = parseSystemPrompt(prompt);
+    expect(parsed.fantasyPromise).toBe(promise);
+
+    const rebuilt = buildSystemPrompt({
+      name: "さくら",
+      personality: "清楚",
+      scenario: "",
+      custom: "",
+      eroticProfile: "献身・受け",
+      fantasyPromise: promise,
+    });
+    expect(rebuilt).toContain("【プレイヤーへの約束】");
+    expect(rebuilt).toContain(promise);
+    // 芯は【キャラクター性的特徴】より優先と明示される
+    expect(rebuilt).toContain("この約束は【キャラクター性的特徴】より優先する");
+  });
+
   it("マーカーなしプロンプトはcustomにフォールバック", () => {
     const parsed = parseSystemPrompt("これは古い形式のプロンプトです");
     expect(parsed.custom).toContain("古い形式");

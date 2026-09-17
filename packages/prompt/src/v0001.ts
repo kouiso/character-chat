@@ -29,7 +29,9 @@ export const PROMPT_VERSION = "v0001" as const;
 // 2026-09-05 CI 33956503097: 実シート 1,395 字 + erotic の例示 + 使い済み句 10 個 + 声の行で 3,007 字になり、
 // 3,000 の上限に当たって さくら run1 が t7 で止まった（上限は肥大化の番であって、正規の入力を落とす
 // ためのものやない）。最悪形（テスト「実シート級」）が 3,053 字なので、余白込みで 3,300 にする。
-export const MAX_SYSTEM_CHARS = 3300;
+// 2026-09-17: 【プレイヤーへの約束】（芯）セクションをシートに載せた（さくら実シート 1,278 字 + 芯
+// 約 300 字）。正規入力の増加なので 4,000 へ拡張する。
+export const MAX_SYSTEM_CHARS = 4000;
 
 const formatLedgerBlock = (ledger: SceneLedger): string => {
   const present = ledger.present.length > 0 ? ledger.present.join("、") : "-";

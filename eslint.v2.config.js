@@ -48,6 +48,7 @@ export default defineConfig([
       "src/script-run.ts",
       "src/repetition-rate.ts",
       "src/refusal-check.ts",
+      "src/fantasy-core-check.ts",
     ],
     rules: {
       "no-console": "off",

@@ -20,6 +20,9 @@ interface PromptFields {
   scenario: string;
   custom: string;
   eroticProfile?: string;
+  // プレイヤーへの約束（芯）: このキャラがどう「落ちる・汚される・堕ちる」かをユーザーが
+  // キャラごとに書く。シートの他のセクションより優先と明示し、生成の核として注入する。
+  fantasyPromise?: string;
   memoryNotes?: string[];
   totalMessageCount?: number;
   // B2: キャラ固有の口調サンプル（100字以内）
@@ -47,6 +50,7 @@ interface ParsedSystemPrompt {
   custom: string;
   appearance?: string;
   eroticProfile?: string;
+  fantasyPromise?: string;
   speechStyle?: string;
   relationship?: string;
   characterCard?: string;
@@ -189,6 +193,9 @@ const SECTION_SCENARIO = "【シナリオ】" as const;
 const SECTION_CUSTOM = "【追加設定】" as const;
 const SECTION_SPEECH_STYLE = "【口調サンプル】" as const;
 const SECTION_EROTIC_PROFILE = "【キャラクター性的特徴】" as const;
+// プレイヤーへの約束（芯）。ユーザーがキャラごとに書く「このキャラがどう落ちるか」。
+// 生成では他のセクションより優先し、judge の芯チェックはこのセクションを期待値として読む。
+const SECTION_PROMISE = "【プレイヤーへの約束】" as const;
 const SECTION_SCENE_RULES = "【シーン品質ルール】" as const;
 const SECTION_CARD = "【キャラカード】" as const;
 // charap インポート (drizzle/0014) の旧形式マーカー。parseSystemPrompt でのみ認識し、
@@ -351,6 +358,7 @@ const buildCharapFallback = (
     custom: string;
     appearance: string;
     eroticProfile: string;
+    fantasyPromise?: string;
     relationship?: string;
     characterCard?: string;
   },
@@ -365,6 +373,7 @@ const buildCharapFallback = (
     custom: customParts.length > 0 ? customParts.join("\n\n") : base.custom.trim(),
     appearance: base.appearance.trim() || setting.appearance,
     eroticProfile: base.eroticProfile.trim() || undefined,
+    fantasyPromise: base.fantasyPromise?.trim() || undefined,
     speechStyle: behavior.speechStyle,
     relationship: base.relationship?.trim(),
     characterCard: base.characterCard?.trim(),
@@ -380,6 +389,7 @@ const buildStandardParsed = (
     custom: string;
     appearance: string;
     eroticProfile: string;
+    fantasyPromise?: string;
     relationship?: string;
     characterCard?: string;
   },
@@ -395,6 +405,7 @@ const buildStandardParsed = (
     custom: base.custom.trim(),
     appearance: base.appearance.trim() || undefined,
     eroticProfile: base.eroticProfile.trim() || undefined,
+    fantasyPromise: base.fantasyPromise?.trim() || undefined,
     relationship: base.relationship?.trim() || undefined,
     characterCard: base.characterCard?.trim() || undefined,
   };
@@ -506,6 +517,7 @@ const hasKnownSectionMarkers = (prompt: string): boolean =>
     SECTION_SCENARIO,
     SECTION_CUSTOM,
     SECTION_EROTIC_PROFILE,
+    SECTION_PROMISE,
   ].some((marker) => findLineStartMarker(prompt, marker) !== -1);
 
 // 焼き込み時代の system_prompt に残る会話品質ルールの先頭行。
@@ -673,6 +685,7 @@ const buildSanitizedFields = (
   characterCard: string;
   resolvedCharacter: ResolvedPromptCharacter;
   eroticProfile: string;
+  fantasyPromise: string;
   memoryNotesSection: string;
 } => {
   const name = sanitizeField(fields.name);
@@ -688,6 +701,7 @@ const buildSanitizedFields = (
     fields.eroticProfile ?? resolvedCharacter.eroticProfile,
     resolvedUser,
   );
+  const fantasyPromise = expandAndSanitize(fields.fantasyPromise, resolvedUser);
   const memoryNotesSection = buildMemoryNotesSection(fields.memoryNotes);
 
   return {
@@ -701,6 +715,7 @@ const buildSanitizedFields = (
     characterCard,
     resolvedCharacter,
     eroticProfile,
+    fantasyPromise,
     memoryNotesSection,
   };
 };
@@ -730,6 +745,14 @@ export const buildSystemPrompt = (
     buildPromptSection(SECTION_CUSTOM, f.custom),
     buildPromptSection(SECTION_SPEECH_STYLE, f.speechStyle),
     buildPromptSection(SECTION_EROTIC_PROFILE, f.eroticProfile),
+    ...(f.fantasyPromise
+      ? [
+          buildPromptSection(
+            SECTION_PROMISE,
+            `この約束は【キャラクター性的特徴】より優先する。${f.fantasyPromise}`,
+          ),
+        ]
+      : []),
     ...eroticRules,
   ]
     .filter((section): section is string => Boolean(section))
@@ -755,6 +778,7 @@ export const parseSystemPrompt = (prompt: string): ParsedSystemPrompt => {
     SECTION_SCENARIO,
     SECTION_CUSTOM,
     SECTION_EROTIC_PROFILE,
+    SECTION_PROMISE,
     SECTION_CARD,
     SECTION_LEGACY_SETTING,
     SECTION_LEGACY_BEHAVIOR,
@@ -765,22 +789,31 @@ export const parseSystemPrompt = (prompt: string): ParsedSystemPrompt => {
     SECTION_SCENARIO,
     SECTION_CUSTOM,
     SECTION_EROTIC_PROFILE,
+    SECTION_PROMISE,
     SECTION_CARD,
   ]);
   const scenario = extractSection(normalized, SECTION_SCENARIO, [
     SECTION_CUSTOM,
     SECTION_EROTIC_PROFILE,
+    SECTION_PROMISE,
     SECTION_CARD,
   ]);
-  const custom = extractSection(normalized, SECTION_CUSTOM, [SECTION_EROTIC_PROFILE, SECTION_CARD]);
+  const custom = extractSection(normalized, SECTION_CUSTOM, [
+    SECTION_EROTIC_PROFILE,
+    SECTION_PROMISE,
+    SECTION_CARD,
+  ]);
   const eroticProfile = extractSection(normalized, SECTION_EROTIC_PROFILE, [
     SECTION_SCENE_RULES,
+    SECTION_PROMISE,
     SECTION_CARD,
   ]);
+  const fantasyPromise = extractSection(normalized, SECTION_PROMISE, [SECTION_CARD]);
   const relationship = extractSection(normalized, SECTION_RELATIONSHIP, [
     SECTION_SCENARIO,
     SECTION_CUSTOM,
     SECTION_EROTIC_PROFILE,
+    SECTION_PROMISE,
     SECTION_CARD,
   ]);
   const characterCard = extractSection(normalized, SECTION_CARD, [
@@ -809,6 +842,7 @@ export const parseSystemPrompt = (prompt: string): ParsedSystemPrompt => {
     custom: custom.trim(),
     appearance: appearance.trim(),
     eroticProfile: eroticProfile.trim(),
+    fantasyPromise: fantasyPromise.trim(),
     relationship: relationship.trim(),
     characterCard: characterCard.trim(),
   };
