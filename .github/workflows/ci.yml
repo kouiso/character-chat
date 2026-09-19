@@ -34,7 +34,7 @@ jobs:
 
   ci:
     name: CI (${{ matrix.check-type }})
-    runs-on: ${{ vars.RUNNER_LINUX_4VCPU || 'blacksmith-4vcpu-ubuntu-2404' }}
+    runs-on: ${{ vars.RUNNER_LINUX_4VCPU || 'ubuntu-latest' }}
     # push イベントでは github.event.pull_request が null になり draft 判定が falsy に
     # なるため、push: branches:[main] のトリガーがあっても全ジョブが skip されとった。
     if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
@@ -75,7 +75,8 @@ jobs:
   # マージ後の Quality Eval まで気づけず main を壊した。手遅れにせんよう PR/push で検証する。
   migrations:
     name: Migrations (fresh local D1)
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    # 個人リポには Blacksmith runner が無いため vars 経由+ubuntu-latest fallback に揃える
+    runs-on: ${{ vars.RUNNER_LINUX_4VCPU || 'ubuntu-latest' }}
     # push イベントでは github.event.pull_request が null になり draft 判定が falsy に
     # なるため、push: branches:[main] のトリガーがあっても全ジョブが skip されとった。
     if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
@@ -102,7 +103,7 @@ jobs:
   # webServer 設定が CI で dev サーバーを自動起動する。
   e2e:
     name: E2E (offline smoke)
-    runs-on: ${{ vars.RUNNER_LINUX_4VCPU || 'blacksmith-4vcpu-ubuntu-2404' }}
+    runs-on: ${{ vars.RUNNER_LINUX_4VCPU || 'ubuntu-latest' }}
     # push イベントでは github.event.pull_request が null になり draft 判定が falsy に
     # なるため、push: branches:[main] のトリガーがあっても全ジョブが skip されとった。
     if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
@@ -151,7 +152,7 @@ jobs:
   # (pnpm smoke = pnpm build && node scripts/boot-smoke.mjs)。
   boot-smoke:
     name: Boot smoke
-    runs-on: ${{ vars.RUNNER_LINUX_4VCPU || 'blacksmith-4vcpu-ubuntu-2404' }}
+    runs-on: ${{ vars.RUNNER_LINUX_4VCPU || 'ubuntu-latest' }}
     # push イベントでは github.event.pull_request が null になり draft 判定が falsy に
     # なるため、push: branches:[main] のトリガーがあっても全ジョブが skip されとった。
     if: github.event_name != 'pull_request' || github.event.pull_request.draft == false

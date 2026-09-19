@@ -18,7 +18,7 @@ permissions:
 jobs:
   drift-check:
     name: Bridge files in sync with AGENTS.md
-    runs-on: ${{ vars.RUNNER_LINUX_4VCPU || 'blacksmith-4vcpu-ubuntu-2404' }}
+    runs-on: ${{ vars.RUNNER_LINUX_4VCPU || 'ubuntu-latest' }}
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

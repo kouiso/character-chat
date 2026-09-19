@@ -21,7 +21,7 @@ jobs:
     # job 単位の if で落とすと結果は skipped になり、必須チェックとしては成功扱いのまま
     # runner を1つも消費せん(trigger ごと消すと必須チェックが「待ち」で固まる)。
     if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
-    runs-on: ${{ vars.RUNNER_LINUX_4VCPU || 'blacksmith-4vcpu-ubuntu-2404' }}
+    runs-on: ${{ vars.RUNNER_LINUX_4VCPU || 'ubuntu-latest' }}
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
