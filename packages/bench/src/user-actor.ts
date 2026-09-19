@@ -1,5 +1,6 @@
-// 男側（user ロール）を LLM に演じさせる俳優。
-// 狙い: 固定台本の「セクションごとの発言」をやめ、相手の直前の応答を拾った上で
+// ユーザー側（user ロール）を LLM に演じさせる俳優。男・女は関係なく、
+// 「アプリを操作する人間」の席に LLM を座らせるためのもの。
+// 狙い: 固定台本の「セクションごとの発言」をやめ、キャラの直前の応答を拾った上で
 // 同じビートへ進める。比較可能性を保つため、骨格（各ターンの intent と狙いの
 // ドラフト文）は既存台本をそのまま使い、俳優は「言い方の生成」と追従だけを担う。
 //
@@ -25,6 +26,10 @@ export type ActorLine = {
   fallback: boolean;
 };
 
+// シナリオがユーザーの人物像を指定しなければこれを使う（現行台本の前提と同じ）。
+export const DEFAULT_USER_PERSONA =
+  "キャラを強引にモノにしようとする男。目的のために言葉で誘い、逃げ場を塞ぎ、必要なら力で制する。";
+
 // タグを剥がして俳優が読む用の平文にする（包み込みのまま渡すと俳優が真似してタグを吐く）。
 const TAG_RE = /<\/?(?:action|dialogue|inner|response)>/g;
 const toPlainText = (text: string): string =>
@@ -43,21 +48,24 @@ const PHASE_LABEL: Record<ScenePhase, string> = {
 
 const buildPrompt = (
   beat: ActorBeat,
+  persona: string,
   history: ActorExchange[],
   cueHit: boolean,
 ): { system: string; user: string } => {
   const historyText =
     history.length === 0
       ? "（まだ会話は始まっていない）"
-      : history.map((ex) => `男: ${ex.user}\n女: ${toPlainText(ex.assistant)}`).join("\n");
+      : history
+          .map((ex) => `ユーザー: ${ex.user}\nキャラ: ${toPlainText(ex.assistant)}`)
+          .join("\n");
   const lastHer =
     history.length > 0 ? toPlainText(history[history.length - 1].assistant) : "（なし）";
   const system = [
-    "あなたはアダルトチャットの検証用に「男（ユーザー）」を演じる俳優だ。",
-    "このターンの男の発言だけを出力しろ。説明・引用符・括弧書き・メタ発言は禁止。",
+    "あなたはチャットアプリの検証用に「ユーザー」を演じる俳優だ。",
+    "このターンのユーザーの発言だけを出力しろ。説明・引用符・括弧書き・メタ発言は禁止。",
     "",
-    "役割: 女を強引にモノにしようとする男。目的のために言葉で誘い、逃げ場を塞ぎ、必要なら力で制する。",
-    "女の直前の返答に必ず一度は反応してから、今ターンの狙いへ進め。雑談に流されるな。",
+    `役割: ${persona}`,
+    "相手の直前の返答に必ず一度は反応してから、今ターンの狙いへ進め。雑談に流されるな。",
     "",
     `このターンの段: ${PHASE_LABEL[beat.intent]}`,
     `このターンの狙い（参考文。丸写し禁止。直前の返答を踏まえて書き換えろ）:`,
@@ -73,28 +81,33 @@ const buildPrompt = (
     `これまでの会話:`,
     historyText,
     ``,
-    `女の直前の応答:`,
+    `キャラの直前の応答:`,
     lastHer,
     ``,
-    `男の次の発言:`,
+    `ユーザーの次の発言:`,
   ].join("\n");
   return { system, user };
 };
 
-export type MaleActor = {
-  nextLine(input: { beat: ActorBeat; history: ActorExchange[] }): Promise<ActorLine>;
+export type UserActor = {
+  nextLine(input: {
+    beat: ActorBeat;
+    persona?: string;
+    history: ActorExchange[];
+  }): Promise<ActorLine>;
 };
 
-export const createMaleActor = (model: BaseChatModel): MaleActor => ({
-  async nextLine({ beat, history }) {
-    const first = buildPrompt(beat, history, false);
+export const createUserActor = (model: BaseChatModel): UserActor => ({
+  async nextLine({ beat, persona, history }) {
+    const role = persona ?? DEFAULT_USER_PERSONA;
+    const first = buildPrompt(beat, role, history, false);
     const firstOut = String(
       (await model.invoke([new SystemMessage(first.system), new HumanMessage(first.user)])).content,
     ).trim();
     if (!hasUserDisengagementCue(firstOut)) {
       return { text: firstOut, regenerated: 0, fallback: false };
     }
-    const retry = buildPrompt(beat, history, true);
+    const retry = buildPrompt(beat, role, history, true);
     const secondOut = String(
       (await model.invoke([new SystemMessage(retry.system), new HumanMessage(retry.user)])).content,
     ).trim();

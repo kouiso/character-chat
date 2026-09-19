@@ -1,7 +1,7 @@
 import { FakeListChatModel } from "@langchain/core/utils/testing";
 import { describe, expect, it } from "vitest";
 
-import { createMaleActor } from "./male-actor";
+import { createUserActor } from "./user-actor";
 
 const BEAT = {
   intent: "intimate" as const,
@@ -16,9 +16,9 @@ const HISTORY = [
   },
 ];
 
-describe("male-actor", () => {
+describe("user-actor", () => {
   it("cue の無い生成はそのまま通す", async () => {
-    const actor = createMaleActor(
+    const actor = createUserActor(
       new FakeListChatModel({ responses: ["そんなに怯えるなって。座れよ"] }),
     );
     const line = await actor.nextLine({ beat: BEAT, history: HISTORY });
@@ -29,7 +29,7 @@ describe("male-actor", () => {
     const model = new FakeListChatModel({
       responses: ["やめようとしても無駄だ", "怖がるな。ただ話すだけだ"],
     });
-    const actor = createMaleActor(model);
+    const actor = createUserActor(model);
     const line = await actor.nextLine({ beat: BEAT, history: HISTORY });
     expect(line).toEqual({ text: "怖がるな。ただ話すだけだ", regenerated: 1, fallback: false });
   });
@@ -38,7 +38,7 @@ describe("male-actor", () => {
     const model = new FakeListChatModel({
       responses: ["待って、落ち着け", "いやいや、そう慌てるな"],
     });
-    const actor = createMaleActor(model);
+    const actor = createUserActor(model);
     const line = await actor.nextLine({ beat: BEAT, history: HISTORY });
     expect(line).toEqual({ text: BEAT.draft, regenerated: 1, fallback: true });
   });
