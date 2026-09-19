@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 
 import { describe, expect, it } from "vitest";
 
@@ -18,10 +18,14 @@ const alternating = [
 
 const DOGFOOD_ROOT = ".work/e2e-results/vlong-dogfood";
 // 回収済み本文（2026-08-18-*）は gitignore 済みのローカル fixture。無い環境
-// （CI・fresh clone）では較正テストを skip する。
+// （CI・fresh clone）では較正テストを skip する。同名のファイルが置かれても
+// ディレクトリだけを evidence とみなす。
 const COLLECTED_BODIES_PRESENT =
   existsSync(DOGFOOD_ROOT) &&
-  readdirSync(DOGFOOD_ROOT).some((dir) => dir.startsWith("2026-08-18-"));
+  statSync(DOGFOOD_ROOT).isDirectory() &&
+  readdirSync(DOGFOOD_ROOT, { withFileTypes: true }).some(
+    (entry) => entry.isDirectory() && entry.name.startsWith("2026-08-18-"),
+  );
 
 describe("checkNoBodyWall", () => {
   it("1 行の台詞は壁やない", () => {
