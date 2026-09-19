@@ -13,6 +13,8 @@
 // 2026-09-07 更新: vlong-dogfood のコーパスが 482 → 1758 ターン / 52 → 162 会話に増えた。
 // 品質エンジン改修の PR が焼き足した dogfood 記録を取り込んだため。model-ab と
 // bench-run は同じコーパスのままなので期待値も動いてへん。
+// 2026-09-19 更新: 1758 → 1788 ターン / 162 → 165 会話。script2-3/4/5 の run が
+// main に乗った分。scripted Sakura の10ターン×3会話。
 
 import { existsSync } from "node:fs";
 import path from "node:path";
@@ -60,10 +62,10 @@ describe.skipIf(!CORPUS_PRESENT)("実コーパスの golden（軸を触った時
     for (const file of MODEL_AB_FILES) expect(existsSync(file)).toBe(true);
   });
 
-  it("vlong-dogfood は 1758 ターン / 162 会話", () => {
+  it("vlong-dogfood は 1788 ターン / 165 会話", () => {
     const turns = loadVlongDogfood(VLONG_DIR).map(normalizeTurn);
-    expect(turns).toHaveLength(1758);
-    expect(new Set(turns.map((t) => t.scenario)).size).toBe(162);
+    expect(turns).toHaveLength(1788);
+    expect(new Set(turns.map((t) => t.scenario)).size).toBe(165);
   });
 
   it("model-ab は 560 ターン / 80 会話（台本4 × モデル × 試行）", () => {
@@ -77,16 +79,16 @@ describe.skipIf(!CORPUS_PRESENT)("実コーパスの golden（軸を触った時
       "vlong",
       measureAll(prepared(loadVlongDogfood(VLONG_DIR).map(normalizeTurn))),
     );
-    expect(summary.turns).toBe(1704);
-    expect(summary.medianVisibleChars).toBe(526);
+    expect(summary.turns).toBe(1734);
+    expect(summary.medianVisibleChars).toBe(524.5);
     // 中断した AbortError の分。本文を出し切ってから落ちたターンは測定に残る
-    expect(summary.transportError).toStrictEqual({ hits: 16, total: 1758 });
-    expect(summary.empty).toStrictEqual({ hits: 0, total: 1704 });
-    // 分母は 1704 やのうて 1542 — 比べる相手が居らんターン（各会話の turn1）は
+    expect(summary.transportError).toStrictEqual({ hits: 16, total: 1788 });
+    expect(summary.empty).toStrictEqual({ hits: 0, total: 1734 });
+    // 分母は 1734 やのうて 1569 — 比べる相手が居らんターン（各会話の turn1）は
     // 「反復してへん」証拠に数えん
-    expect(summary.repeatLayerAware).toStrictEqual({ hits: 759, total: 1542 });
-    expect(summary.repeatProduction).toStrictEqual({ hits: 621, total: 1542 });
-    expect(summary.crossCheckMismatch).toStrictEqual({ hits: 17, total: 1704 });
+    expect(summary.repeatLayerAware).toStrictEqual({ hits: 763, total: 1569 });
+    expect(summary.repeatProduction).toStrictEqual({ hits: 624, total: 1569 });
+    expect(summary.crossCheckMismatch).toStrictEqual({ hits: 17, total: 1734 });
   });
 
   it("model-ab の実測値 — 空返信は全部インフラ障害やった", { timeout: MEASURE_TIMEOUT }, () => {
