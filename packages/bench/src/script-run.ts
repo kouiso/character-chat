@@ -551,6 +551,8 @@ type RunContext = {
   extendBelowRatio?: number;
   // --no-min-length: プロンプトの字数下限強制を外す（A3 再仕様アーム用）。
   dropMinChars?: boolean;
+  // --solo-reaction: 応答が相手の動作を代行しない出力契約に切り替える。
+  soloReaction?: boolean;
   // --character-id ID: 台本はそのままに読むシートを差し替える（層3-4の別シート走行用）。
   characterId?: string;
   // --mode actor: 台本の user を「狙いのドラフト」にして俳優 LLM が台詞を生成する。
@@ -725,6 +727,7 @@ const runCharacter = async (
     mechanicsPhase: ctx.mechanicsPhase,
     extendBelowRatio: ctx.extendBelowRatio,
     dropMinChars: ctx.dropMinChars,
+    soloReaction: ctx.soloReaction,
   });
   const fallbackModel = modelNameOf(model);
   const records: TurnRecord[] = [];
@@ -818,6 +821,7 @@ type RunArgs = {
   turnsLimit?: number;
   extendBelowRatio?: number;
   dropMinChars: boolean;
+  soloReaction: boolean;
   characterId?: string;
   actorMode: boolean;
   date: string;
@@ -843,6 +847,7 @@ const readRunArgs = (args: string[]): RunArgs => {
     turnsLimit: readTurns(readArg(args, "--turns")),
     extendBelowRatio: readExtendBelow(readArg(args, "--extend-below")),
     dropMinChars: args.includes("--no-min-length"),
+    soloReaction: args.includes("--solo-reaction"),
     characterId: readArg(args, "--character-id"),
     actorMode: readArg(args, "--mode") === "actor",
     date: readArg(args, "--date") ?? new Date().toISOString().slice(0, 10),
@@ -872,6 +877,7 @@ const main = async (args: string[]): Promise<void> => {
     turnsLimit,
     extendBelowRatio,
     dropMinChars,
+    soloReaction,
     characterId,
     actorMode,
     date,
@@ -899,12 +905,13 @@ const main = async (args: string[]): Promise<void> => {
     turnsLimit,
     extendBelowRatio,
     dropMinChars,
+    soloReaction,
     characterId,
     actor,
   };
   console.log(
     `arm=${arm} script=${scriptName} mode=${modeLabel(actor)} mechanics=${mechanicsPhase ?? "<ledger>"} ` +
-      `extendBelow=${extendBelowRatio ?? EXTEND_BELOW_RATIO} noMinLength=${dropMinChars} ` +
+      `extendBelow=${extendBelowRatio ?? EXTEND_BELOW_RATIO} noMinLength=${dropMinChars} soloReaction=${soloReaction} ` +
       `turns=${turnsLimit ?? "<all>"} ` +
       `characterId=${characterId ?? "<script>"} run=${run} runId=${runId} model=${modelNameOf(model)} out=${outDir}`,
   );
@@ -970,6 +977,7 @@ const main = async (args: string[]): Promise<void> => {
           extendBelowRatio: extendBelowRatio ?? EXTEND_BELOW_RATIO,
           // A3 再仕様アームの証跡（字数目標を外した run を summary から判別できる）。
           dropMinChars,
+          soloReaction,
           results,
         },
         null,
