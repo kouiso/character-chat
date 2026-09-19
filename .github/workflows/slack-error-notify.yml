@@ -44,7 +44,7 @@ jobs:
 
           SHORT_SHA="${SHA:0:12}"
           PAYLOAD=$(jq -n \
-            --arg project "adult-ai-app" \
+            --arg project "character-chat" \
             --arg severity "error" \
             --arg source "github_actions" \
             --arg run_name "${RUN_NAME}" \
@@ -55,9 +55,9 @@ jobs:
             --arg repo "${REPOSITORY}" \
             --arg run_url "${RUN_URL}" \
             '{
-              text: "[adult-ai-app][error] GitHub Actions failure: \($run_name)",
+              text: "[character-chat][error] GitHub Actions failure: \($run_name)",
               blocks: [
-                { type: "header", text: { type: "plain_text", text: "Adult AI App GitHub Actions error", emoji: true } },
+                { type: "header", text: { type: "plain_text", text: "Character Chat GitHub Actions error", emoji: true } },
                 { type: "section", text: { type: "mrkdwn", text: "*\($run_name)* finished with `\($conclusion)`" } },
                 { type: "section", fields: [
                   { type: "mrkdwn", text: "*project:*\n\($project)" },
@@ -68,7 +68,7 @@ jobs:
                   { type: "mrkdwn", text: "*commit:*\n\($sha)" },
                   { type: "mrkdwn", text: "*actor:*\n\($actor)" }
                 ] },
-                { type: "context", elements: [{ type: "mrkdwn", text: "labels: `project:adult-ai-app` `source:github_actions` `severity:error`" }] },
+                { type: "context", elements: [{ type: "mrkdwn", text: "labels: `project:character-chat` `source:github_actions` `severity:error`" }] },
                 { type: "actions", elements: [{ type: "button", text: { type: "plain_text", text: "Open workflow run" }, url: $run_url }] }
               ]
             }')

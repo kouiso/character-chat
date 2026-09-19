@@ -2,7 +2,7 @@
 <!-- DO NOT HAND-EDIT — changes will be overwritten on next sync -->
 <!-- To update: edit AGENTS.md, then run: bash scripts/sync-ai-rules.sh -->
 
-# adult-ai-app
+# character-chat
 
 AI キャラクターチャット＆画像生成 PWA。Cloudflare Pages + Hono バックエンド構成。
 

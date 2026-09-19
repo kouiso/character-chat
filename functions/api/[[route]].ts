@@ -1913,12 +1913,18 @@ export const app = new Hono<{ Bindings: Bindings }>()
                 timestamp: now,
               });
 
-              if (!c.env.GH_APP_ID || !c.env.GH_APP_PRIVATE_KEY || !c.env.GH_APP_INSTALLATION_ID) {
-                console.warn("quality-report GitHub App env missing");
+              const hasLinear = Boolean(c.env.LINEAR_API_KEY && c.env.LINEAR_TEAM_ID);
+              const hasGitHubApp = Boolean(
+                c.env.GH_APP_ID && c.env.GH_APP_PRIVATE_KEY && c.env.GH_APP_INSTALLATION_ID,
+              );
+              if (!hasLinear && !hasGitHubApp) {
+                console.warn("quality-report destination env missing (LINEAR_* or GH_APP_*)");
                 return;
               }
               await createQualityIssue(
                 {
+                  linearApiKey: c.env.LINEAR_API_KEY,
+                  linearTeamId: c.env.LINEAR_TEAM_ID,
                   appId: c.env.GH_APP_ID,
                   appPrivateKey: c.env.GH_APP_PRIVATE_KEY,
                   appInstallationId: c.env.GH_APP_INSTALLATION_ID,

@@ -187,6 +187,8 @@ export type Bindings = {
   GH_APP_ID?: string;
   GH_APP_PRIVATE_KEY?: string;
   GH_APP_INSTALLATION_ID?: string;
+  LINEAR_API_KEY?: string;
+  LINEAR_TEAM_ID?: string;
   SLACK_ERROR_WEBHOOK_URL?: string;
 };
 export type AppContext = Context<{ Bindings: Bindings }>;

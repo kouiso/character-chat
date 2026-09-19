@@ -1,18 +1,16 @@
 ## 関連Issue
 
 <!--
-このPRが関連するIssueをリンクしてください。
-`Closes` / `Fixes` / `Resolves` キーワードを使うと、
-- マージ時にIssueが自動クローズされる
-- Issue サイドバーの Development 欄に PR が自動表示される
+タスク管理は Linear。関連する Linear issue をリンクしてください。
+Linear の GitHub 連携により、`Closes` / `Fixes` / `Resolves` + issue ID で
+マージ時に Linear issue が自動クローズされる。
 
-同一リポの場合: Closes #35
-別リポの場合: Closes ritmo-inc/adult-ai-app#35
+例: Closes RIT-123
 
-複数Issue紐付け可。紐付け不要(クローズしない)なら `Refs #35` 等のキーワード無し形式で記載してください。
+紐付け不要ならキーワード無しで Linear の issue リンクを貼るだけでよい。
 -->
 
-Closes #
+Closes 
 
 ## 概要
 
