@@ -44,6 +44,9 @@ const BENCH_RUNS_DIR = path.join(ROOT, ".work", "e2e-results", "bench-runs");
 const prepared = (turns: ReturnType<typeof normalizeTurn>[]) =>
   markTurnsAfterBrokenContext(turns);
 
+// 実測系は全ターン走査するので、遅い GitHub-hosted runner では既定 5s を超える
+const MEASURE_TIMEOUT = 120_000;
+
 describe("実コーパスの golden（軸を触った時に気付くため）", () => {
   it("コーパスがリポジトリに在る（追跡されとる前提そのものを守る）", () => {
     expect(existsSync(VLONG_DIR)).toBe(true);
@@ -62,7 +65,7 @@ describe("実コーパスの golden（軸を触った時に気付くため）", 
     expect(new Set(turns.map((t) => t.scenario)).size).toBe(80);
   });
 
-  it("vlong-dogfood の実測値", () => {
+  it("vlong-dogfood の実測値", { timeout: MEASURE_TIMEOUT }, () => {
     const summary = summarize(
       "vlong",
       measureAll(prepared(loadVlongDogfood(VLONG_DIR).map(normalizeTurn))),
@@ -79,7 +82,7 @@ describe("実コーパスの golden（軸を触った時に気付くため）", 
     expect(summary.crossCheckMismatch).toStrictEqual({ hits: 17, total: 1704 });
   });
 
-  it("model-ab の実測値 — 空返信は全部インフラ障害やった", () => {
+  it("model-ab の実測値 — 空返信は全部インフラ障害やった", { timeout: MEASURE_TIMEOUT }, () => {
     const summary = summarize(
       "model-ab",
       measureAll(prepared(loadModelAbStages(MODEL_AB_FILES).map(normalizeTurn))),
@@ -90,7 +93,7 @@ describe("実コーパスの golden（軸を触った時に気付くため）", 
     expect(summary.repeatLayerAware).toStrictEqual({ hits: 3, total: 410 });
   });
 
-  it("bench-run（生成した run）の実測値 — 壊れた文脈の後は採点せん", () => {
+  it("bench-run（生成した run）の実測値 — 壊れた文脈の後は採点せん", { timeout: MEASURE_TIMEOUT }, () => {
     // この run が、除外の規則が効いとることを示す唯一の実証拠。golden へ入れてへんかった
     // 間は、turn6-10 を採点し直す regression が入っても全部 green のままやった
     expect(existsSync(BENCH_RUNS_DIR)).toBe(true);
