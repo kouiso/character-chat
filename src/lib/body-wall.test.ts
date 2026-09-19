@@ -16,6 +16,13 @@ const alternating = [
   "</response>",
 ].join("\n");
 
+const DOGFOOD_ROOT = ".work/e2e-results/vlong-dogfood";
+// 回収済み本文（2026-08-18-*）は gitignore 済みのローカル fixture。無い環境
+// （CI・fresh clone）では較正テストを skip する。
+const COLLECTED_BODIES_PRESENT =
+  existsSync(DOGFOOD_ROOT) &&
+  readdirSync(DOGFOOD_ROOT).some((dir) => dir.startsWith("2026-08-18-"));
+
 describe("checkNoBodyWall", () => {
   it("1 行の台詞は壁やない", () => {
     expect(checkNoBodyWall(block("dialogue", ["「そばにおって」"]))).toBe(true);
