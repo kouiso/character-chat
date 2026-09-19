@@ -691,6 +691,11 @@ const isSceneDisengagement = (content: string): boolean => {
   );
 };
 
+// bench の男側俳優（male-actor.ts）など、ユーザー発言を機械生成する側からの送信前ゲート。
+// 生成文に「やめ」「無理」等が混じると読み取り側で disengagement（連続リセット）を誤発火
+// させるので、吐き出す前に弾くために外へ出す。本番のユーザー入力判定には関わらん。
+export const hasUserDisengagementCue = (content: string): boolean => isSceneDisengagement(content);
+
 const getSoftIntimacyScan = (
   userMessages: { role: string; content: string }[],
   allowAmbiguousCues: boolean,
