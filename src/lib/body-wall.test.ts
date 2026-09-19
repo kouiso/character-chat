@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 
 import { describe, expect, it } from "vitest";
 
@@ -54,41 +54,50 @@ describe("checkNoBodyWall", () => {
   // 落ちる。実測の分布は最長連続が 1〜2 に固まっとって、そこから 5 以上へ飛ぶ。
   // 谷が広いので閾値 3 でも 6 でも拾う集合は一致する。一致せんくなったら分布が
   // 変わったということなので、その時は閾値を選び直す。
-  it("回収済みの本文では、閾値 3 と 6 がほぼ同じ集合を拾う（谷が広い）", () => {
-    const root = ".work/e2e-results/vlong-dogfood";
-    let total = 0;
-    const atThree: string[] = [];
-    const atSix: string[] = [];
-    const runs: number[] = [];
-    for (const dir of readdirSync(root)) {
-      if (!dir.startsWith("2026-08-18-")) continue;
-      for (const file of readdirSync(`${root}/${dir}`)) {
-        if (!file.endsWith(".txt")) continue;
-        const text = readFileSync(`${root}/${dir}/${file}`, "utf8")
-          .split("\n")
-          .filter((line) => !line.startsWith("# "))
-          .join("\n")
-          .trim();
-        if (!text.includes("<dialogue>")) continue;
-        total += 1;
-        const { run } = longestRenderedLineRun(text);
-        runs.push(run);
-        if (run >= 3) atThree.push(`${dir}/${file}`);
-        if (run >= WALL_RENDERED_LINE_RUN) atSix.push(`${dir}/${file}`);
+  // vlong-dogfood の 2026-08-18 実測コーパスは gitignore 済みのローカル fixture。
+  // 無い環境(新規 clone・CI)では skip する。owner 側の dc751cc と同じ扱い。
+  const corpusRoot = ".work/e2e-results/vlong-dogfood";
+  const corpusPresent =
+    existsSync(corpusRoot) && readdirSync(corpusRoot).some((dir) => dir.startsWith("2026-08-18-"));
+
+  it.skipIf(!corpusPresent)(
+    "回収済みの本文では、閾値 3 と 6 がほぼ同じ集合を拾う（谷が広い）",
+    () => {
+      const root = corpusRoot;
+      let total = 0;
+      const atThree: string[] = [];
+      const atSix: string[] = [];
+      const runs: number[] = [];
+      for (const dir of readdirSync(root)) {
+        if (!dir.startsWith("2026-08-18-")) continue;
+        for (const file of readdirSync(`${root}/${dir}`)) {
+          if (!file.endsWith(".txt")) continue;
+          const text = readFileSync(`${root}/${dir}/${file}`, "utf8")
+            .split("\n")
+            .filter((line) => !line.startsWith("# "))
+            .join("\n")
+            .trim();
+          if (!text.includes("<dialogue>")) continue;
+          total += 1;
+          const { run } = longestRenderedLineRun(text);
+          runs.push(run);
+          if (run >= 3) atThree.push(`${dir}/${file}`);
+          if (run >= WALL_RENDERED_LINE_RUN) atSix.push(`${dir}/${file}`);
+        }
       }
-    }
-    expect(total).toBeGreaterThan(250);
-    // 谷は完全な空やのうて、5 行の 1 件だけが挟まっとる。閾値をどこに置いても
-    // 拾う集合がほぼ動かんことだけ担保する（全体の 2% 以内）。
-    expect(atThree).toEqual(expect.arrayContaining(atSix));
-    expect(atThree.length - atSix.length).toBeLessThanOrEqual(Math.ceil(total * 0.02));
-    // 壁が全体の何割かも見とく。1 割を切ったら検出器が眠っとるし、
-    // 4 割を超えたら閾値が厳し過ぎて撮り直しが増え過ぎる。
-    const rate = atSix.length / total;
-    expect(rate).toBeGreaterThan(0.05);
-    expect(rate).toBeLessThan(0.4);
-    // 大半のターンは壁を作っとらん、が前提。ここが崩れたら閾値の議論やのうて
-    // 生成側の退行を疑う。
-    expect(runs.filter((run) => run <= 2).length / total).toBeGreaterThan(0.6);
-  });
+      expect(total).toBeGreaterThan(250);
+      // 谷は完全な空やのうて、5 行の 1 件だけが挟まっとる。閾値をどこに置いても
+      // 拾う集合がほぼ動かんことだけ担保する（全体の 2% 以内）。
+      expect(atThree).toEqual(expect.arrayContaining(atSix));
+      expect(atThree.length - atSix.length).toBeLessThanOrEqual(Math.ceil(total * 0.02));
+      // 壁が全体の何割かも見とく。1 割を切ったら検出器が眠っとるし、
+      // 4 割を超えたら閾値が厳し過ぎて撮り直しが増え過ぎる。
+      const rate = atSix.length / total;
+      expect(rate).toBeGreaterThan(0.05);
+      expect(rate).toBeLessThan(0.4);
+      // 大半のターンは壁を作っとらん、が前提。ここが崩れたら閾値の議論やのうて
+      // 生成側の退行を疑う。
+      expect(runs.filter((run) => run <= 2).length / total).toBeGreaterThan(0.6);
+    },
+  );
 });
