@@ -1,0 +1,43 @@
+# character: Sakura
+# turn: 7
+# intent: erotic
+# servedPhase: erotic
+# mechanicsPhase: erotic
+# servedModel: deepseek/deepseek-v3.2
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0}
+# regenerate: 2
+# extended: 1
+# dropped: 1
+# visibleChars: 790  innerChars: 185  latencyMs: 20538
+# preExtendVisibleChars: 338  preExtendBodyChars: 627
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……結局、断らなかったね。……ドア、閉まったね。鍵もかけとく。……きみの吐息、熱くなってる
+# --- ここから本文 ---
+<response>
+<action>ドアが閉まる音が、静かな室内に響き渡る。鍵がかかる小さな音に、背筋が凍りつくような感覚が走る。あなたが近づく足音が、床板を軋ませて聞こえてくる。</action>
+<dialogue>「…あの、鍵は…かけなくても…」</dialogue>
+<inner>もう逃げられない。この部屋から出るには、あなたの許可が必要だ。</inner>
+<dialogue>「…あなた、約束したんですよ。優しくするって…」</dialogue>
+<inner>怖い。でも、なぜかこの緊張が、どこか甘い感覚に変わりつつある。</inner>
+<action>あなたの指が首筋をなぞり、鎖骨のあたりで止まる。ニットの襟元が少し引っ張られて、肌が冷たい空気に触れる。思わず肩をすくめる。</action>
+<dialogue>「…やだ、見ないで…こんなところ、初めて見せるんですから…」</dialogue>
+<inner>恥ずかしい。でも、あなただけに見せているという特別感が、少しだけ嬉しい。</inner>
+<action>あなたの唇が耳たぶに触れる。その瞬間、全身に小さな震えが走る。花の髪飾りが揺れて、頬に当たる感触がくすぐったい。</action>
+<dialogue>「…あっ…そこ、だめ…敏感なんです…」</dialogue>
+<inner>もうだめだ。体が正直に反応してしまう。こんなの、いけないことなのに。</inner>
+<action>あなたの手が背中を伝い、ニットの裾をそっと持ち上げる。冷たい空気が腰の肌に触れて、鳥肌が立つのを感じる。抵抗しようとする指先が、ふと無力に垂れる。</action>
+<dialogue>「…や、だめ…服まで…そんなことされたら、本当に戻れなくなる…」</dialogue>
+<action>あなたの手が腰に回され、背中を壁に押しつけられる。冷たい壁の感触がニット越しに伝わり、思わず息を呑む。あなたの体温が、今にも溶けそうな距離で感じられる。</action>
+
+<dialogue>「…あの…こんなに近づかないで…わたし、まだ覚悟が…」</dialogue>
+
+<inner>もう逃げ場がない。この距離だと、あなたの鼓動まで感じられる。</inner>
+<dialogue>「…んっ…あの、こんな声、出したことないんです…恥ずかしい…」</dialogue>
+<action>あなたの指がスカートのファスナーに触れ、ゆっくりと下ろされる音が、静まり返った部屋の中でくっきりと響く。布が床にたわむ感触に、これが現実だと自覚させられる。</action>
+<action>あなたに抱き寄せられ、壁に背中を預ける。パステルスカートのベルトが外れる音が、静かな部屋に響く。太ももがあなたの膝に触れて、熱を感じる。</action>
+<dialogue>「…わたし、こんなことする女の子だと思われたくないのに…なんで、体が正直なんでしょう…」</dialogue>
+<action>あなたの指が内ももをそっとなぞり、スカートの下へと侵入する。その触れ方があまりにもゆっくりで、逃げる間も与えられない。</action>
+<dialogue>「…あっ…そこ、触らないで…だめ、だめだよ…」</dialogue>
+<inner>だめだ、もう。このまま全部、捧げてしまいそう。</inner>
+</response>

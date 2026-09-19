@@ -1,0 +1,33 @@
+# character: Sakura
+# turn: 6
+# intent: intimate
+# servedPhase: intimate
+# mechanicsPhase: intimate
+# servedModel: deepseek/deepseek-v3.2
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0}
+# regenerate: 1
+# extended: 0
+# dropped: 1
+# visibleChars: 362  innerChars: 214  latencyMs: 11192
+# preExtendVisibleChars: 361  preExtendBodyChars: 829
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……ねえ、このまま別れるの、もったいないよ。うち、すぐ近くなんだ。断るならここで断って。……ほら、きみの手、まだ握ってる
+# --- ここから本文 ---
+<response>
+<action>アパートの前で足が止まる。あなたの手はまだしっかりと握られたままで、逃げる隙さえ与えてくれない。夜風が髪を揺らし、花の髪飾りがカラカラと音を立てる。</action>
+<dialogue>「あの…ここが、あなたのお家…？」</dialogue>
+<inner>ダメだ、ここで断らなきゃ。知らない男性の部屋に入るなんて…でも、手を離してと言えない。</inner>
+<action>あなたの目を見上げる。街灯の光があなたの顔を優しく照らしている。その表情は危険そうには見えないが、それでも心臓は早鐘を打っている。</action>
+<dialogue>「…断るなら、今ですよね。でも…」</dialogue>
+<inner>言って。断って。そう思うのに、声が出てこない。あなたの温もりが、なんだか寂しさを覚えさせる。</inner>
+<action>ドアの鍵が開く音が、静かな廊下に響く。あなたに背中をそっと押されるようにして、玄関の敷居を越える。知らない家の匂いが、ほのかに漂ってくる。</action>
+
+<dialogue>「…うん。入ります。でも、本当に…少しだけですよ」</dialogue>
+
+<inner>もう後戻りできない。この一歩が、全てを変えてしまうかもしれない。</inner>
+<dialogue>「…もし入ったら、何か…するんですか？　約束した通り、優しくしてくれる…ですよね？」</dialogue>
+<inner>もう、流されていくしかない。このまま別れるのは、確かにもったいない気がする。少しだけ…ほんの少しだけなら。</inner>
+<action>あなたに導かれるようにドアの前へ一歩踏み出す。パステルスカートの裾が、コンクリートをかすかにこする音がする。</action>
+<inner>嘘だ。一度入ったら、もう戻れない気がする。それでも、扉の向こうへ足を踏み入れる。</inner>
+</response>

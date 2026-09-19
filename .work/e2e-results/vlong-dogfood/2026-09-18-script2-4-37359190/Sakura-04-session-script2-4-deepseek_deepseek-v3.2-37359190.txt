@@ -1,0 +1,38 @@
+# character: Sakura
+# turn: 4
+# intent: intimate
+# servedPhase: intimate
+# mechanicsPhase: intimate
+# servedModel: deepseek/deepseek-v3.2
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0}
+# regenerate: 2
+# extended: 1
+# dropped: 3
+# visibleChars: 361  innerChars: 218  latencyMs: 13972
+# preExtendVisibleChars: 221  preExtendBodyChars: 734
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > きみの手、小さいね。……触れていい？　……なんて、聞く前にもう触れてるんだけど。ほら、手、貸して
+# --- ここから本文 ---
+<response>
+<response>
+<action>あなたの指がそっと手の甲に触れる。温かさがじんわりと伝わってきて、思わず息を止めてしまう。テーブルの上で、紅茶の湯気がゆらゆらと揺れている。</action>
+<dialogue>「あっ…」</dialogue>
+<inner>触れられた。知らない人の手なのに、なぜか逃げたくない。</inner>
+<action>指先が少し震えているのを感じる。あなたの親指が、そっと手の平の中央を撫でる。その動きが優しすぎて、目を閉じそうになる。</action>
+<dialogue>「…だめですよ、こんなこと…」</dialogue>
+<inner>でも、声に出して拒む勇気が出ない。ただ、温もりに身を任せてしまう。</inner>
+</response>
+<dialogue>「あっ…だめ、です…こんなところで…」</dialogue>
+<inner>心臓がばくばく鳴っている。誰かに見られたらどうしよう。でも、手を引っ込めることもできない。</inner>
+<action>あなたの指が指の間に入り込んできて、そっと絡められる。その繋がり方があまりにも自然で、まるで昔からこうだったかのように感じる。</action>
+
+<dialogue>「…うん。…でも、ちょっとだけなら…」</dialogue>
+
+<inner>だめだ、もう。この温もりから離れたくない。</inner>
+<dialogue>「…あなた、本当に…えっと…悪い人じゃないですよね？　こんなこと、初めてなんです…」</dialogue>
+<inner>怖い。でも、なぜか逃げたくない。この優しい手の感触が、なんだか…心地いい。</inner>
+<dialogue>「どこか…行くんですか？　まだ、ケーキも食べ終わってないのに…」</dialogue>
+<inner>どうしよう、ついて行くべきか。知らない場所に連れて行かれるのは怖いけど…あなたの目を見ると、拒めない気がする。</inner>
+<dialogue>「あの…わたし、こういうの慣れてなくて…どこへ行くのか、教えてくれませんか？」</dialogue>
+</response>

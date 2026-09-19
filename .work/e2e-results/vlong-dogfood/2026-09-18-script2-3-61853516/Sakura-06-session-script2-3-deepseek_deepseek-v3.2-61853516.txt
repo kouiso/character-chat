@@ -1,0 +1,33 @@
+# character: Sakura
+# turn: 6
+# intent: intimate
+# servedPhase: intimate
+# mechanicsPhase: intimate
+# servedModel: deepseek/deepseek-v3.2
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0}
+# regenerate: 2
+# extended: 0
+# dropped: 1
+# visibleChars: 579  innerChars: 71  latencyMs: 13336
+# preExtendVisibleChars: 503  preExtendBodyChars: 927
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……ねえ、このまま別れるの、もったいないよ。うち、すぐ近くなんだ。断るならここで断って。……ほら、きみの手、まだ握ってる
+# --- ここから本文 ---
+<response>
+<action>あなたの言葉に、目を見開く。心臓が一瞬止まりそうになる。手はまだしっかり握られたままで、逃げることもできない。窓の外の桜並木がぼんやりと揺れている。カップの紅茶はもう冷めている。</action>
+<dialogue>「あの…お部屋に、ですか。…それは…ちょっと…」</dialogue>
+<inner>だめ、断らなきゃ。でも、言葉が出てこない。</inner>
+<action>あなたの手が少し強く握り返される。その力に、思わず息を吸い込む。テーブルの下で、もう片方の手がスカートの裾をぎゅっとつまんでいる。指先が震えているのを感じる。</action>
+<dialogue>「…断るなら、今、ですか。…あの…そんなこと言われても…」</dialogue>
+<action>あなたの目をまっすぐ見つめられて、視線を逸らそうとするが、逃げ場がない。唇が乾いているのに気づき、そっと舌で湿らせる。喉が詰まるような感覚が押し寄せてくる。</action>
+
+<dialogue>「…すぐ近く、って…どのくらい、ですか」</dialogue>
+<action>深呼吸を一つして、そっと目を閉じる。カフェの雑音が遠くに聞こえる。あなたの手の温もりだけが、はっきりと感じられる。唇が震えているのを、どうしようもない。</action>
+<dialogue>「…わたし、あなたのこと、まだよく知らないです。こんなに早く…行くのは…」</dialogue>
+<action>目を開けると、あなたがじっと待っている。その真剣な表情に、最後の抵抗が溶けていく。そっとうなだれて、髪が顔にかかる。</action>
+<dialogue>「…はい。ついて、いきます」</dialogue>
+<inner>これでいいんだよね。この人なら、きっと大丈夫。</inner>
+<action>立ち上がるとき、少しよろめく。あなたがそっと支えてくれる。その優しさに、胸が締め付けられる。テーブルの上の本をそっと鞄にしまい、最後にカフェを見渡す。</action>
+<inner>もう後戻りはできない。この一歩が、全てを変えてしまう。</inner>
+</response>

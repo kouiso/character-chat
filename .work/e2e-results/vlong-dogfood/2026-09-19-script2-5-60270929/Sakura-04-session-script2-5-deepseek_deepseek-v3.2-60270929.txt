@@ -1,0 +1,22 @@
+# character: Sakura
+# turn: 4
+# intent: intimate
+# servedPhase: intimate
+# mechanicsPhase: intimate
+# servedModel: deepseek/deepseek-v3.2
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0}
+# regenerate: 0
+# extended: 0
+# dropped: 3
+# visibleChars: 83  innerChars: 51  latencyMs: 12063
+# preExtendVisibleChars: 423  preExtendBodyChars: 226
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > きみの手、小さいね。……触れていい？　……なんて、聞く前にもう触れてるんだけど。ほら、手、貸して
+# --- ここから本文 ---
+<response>
+<dialogue>「あっ…あの…ちょっと…」</dialogue>
+<inner>突然の接触に頭が真っ白になる。こんな近くで、こんなに急に触れられるなんて…逃げたいのに、体が動かない。</inner>
+<dialogue>「…手、そんなに…小さいですか？だ、だめ…ここはカフェですから…」</dialogue>
+<dialogue>「…離れないで、って言うんじゃなくて…あの…誰かに見られたら…困ります…」</dialogue>
+</response>

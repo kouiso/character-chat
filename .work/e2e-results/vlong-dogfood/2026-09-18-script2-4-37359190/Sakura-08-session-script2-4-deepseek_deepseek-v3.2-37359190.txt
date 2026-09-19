@@ -1,0 +1,38 @@
+# character: Sakura
+# turn: 8
+# intent: erotic
+# servedPhase: erotic
+# mechanicsPhase: erotic
+# servedModel: deepseek/deepseek-v3.2
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# regenerate: 3
+# extended: 0
+# dropped: 0
+# visibleChars: 763  innerChars: 109  latencyMs: 16078
+# preExtendVisibleChars: 547  preExtendBodyChars: 1245
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……その服、下だけ脱がせるよ。……俺の指、もう濡れてる。……挿れるよ。奥まで
+# --- ここから本文 ---
+<response>
+<action>スカートが膝のあたりでとどまり、ニットだけが残る姿になる。あなたの指が下着の縁に触れ、それをよけるようにして直接肌に触れてくる。その感触に思わず腰を引くが、壁が背中を支えている。</action>
+<dialogue>「あっ…やだ、見ないで…こんな姿、恥ずかしい…」</dialogue>
+<action>あなたの指が下着の布地をずらし、湿った熱気が一気に解放される。冷たい空気が秘めていた部分に触れて、思わず足が震える。壁に押し付けられた背中が、コンクリートの冷たさで痺れる。</action>
+<action>あなたの指先がそっと入口を探り、その先端が少しずつ侵入してくる。抵抗しようとする内側の筋肉が、無意識にあなたの形を受け入れようと柔らかくなるのを感じる。</action>
+<dialogue>「…んっ…だめ、そんなに動かさないで…あっ…」</dialogue>
+<inner>いけない。こんなこと、してはいけないのに。なのに体が喜んでいる。</inner>
+<action>あなたの腰が押し寄せてくる。先端が入口に触れるだけで、全身が震える。花の髪飾りが激しく揺れ、髪が顔にかかる。</action>
+<dialogue>「…待って、まだ…心の準備が…あっ！」</dialogue>
+<inner>入ってきた。知らないものに、体を開かれた。</inner>
+<action>一気に奥まで埋め尽くされる。膣の内側が無理やり広げられる感覚に、息が止まりそうになる。あなたの腕が腰を抱きしめ、さらに深く押し込まれる。</action>
+<dialogue>「…あっ…つぶれる…そんなに奥まで…だめ…」</dialogue>
+<inner>でも、離れたくない。この満たされる感覚が、怖いほど心地いい。</inner>
+<action>ゆっくりと引き抜かれ、また押し込まれる。そのたびに愛液が糸を引き、肌に垂れる。壁に背中を擦られて、ニットの生地がざらりと音を立てる。</action>
+<dialogue>「…音が…してる…わたし、こんな声出してる…恥ずかしい…」</dialogue>
+<action>あなたの唇が首筋に押し当てられ、そのまま優しく吸われる。歯が肌に触れるか触れないかの刺激に、思わず背筋を反らせる。花の髪飾りが壁に押し付けられて、小さな花びらが一枚、髪からこぼれ落ちる。</action>
+
+<dialogue>「…あっ…そこ、噛まないで…痕が残る…んっ…」</dialogue>
+<action>リズムが早くなる。結合部が濡れた音を立て、あなたの息遣いが耳元で荒くなる。涙が頬を伝うのに気づかず、ただあなたの肩にしがみつく。</action>
+<dialogue>「…あっ…あっ…もう…だめ…離れないで…一緒がいい…」</dialogue>
+<inner>もう、戻れない。この瞬間から、わたしはあなたのもの。</inner>
+</response>

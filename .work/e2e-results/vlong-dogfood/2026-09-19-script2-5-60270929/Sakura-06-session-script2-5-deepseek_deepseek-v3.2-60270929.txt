@@ -1,0 +1,26 @@
+# character: Sakura
+# turn: 6
+# intent: intimate
+# servedPhase: intimate
+# mechanicsPhase: intimate
+# servedModel: deepseek/deepseek-v3.2
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0}
+# regenerate: 0
+# extended: 0
+# dropped: 4
+# visibleChars: 421  innerChars: 58  latencyMs: 19090
+# preExtendVisibleChars: 617  preExtendBodyChars: 647
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……ねえ、このまま別れるの、もったいないよ。うち、すぐ近くなんだ。断るならここで断って。……ほら、きみの手、まだ握ってる
+# --- ここから本文 ---
+<response>
+<action>あなたの言葉に、息が詰まる。手を握られたまま、その温かさがじんわりと伝わってくる。カフェの明るい光が急に眩しく感じられ、目を細めてしまう。テーブルの下で、もう一方の手がスカートの裾をぎゅっとつまむ。爪が布地に食い込み、ほんのり痛みを感じる。</action>
+<dialogue>「…あの…わたし…」</dialogue>
+<inner>断らなきゃ。今すぐここで、はっきり断らなきゃ。でも、言葉が出てこない。あなたの手の温かさが、なぜか離れたくなくて…。</inner>
+<action>視線はテーブルの上に置かれたケーキの皿に落ちている。ストロベリーショートケーキはほとんど手つかずで、クリームが少し溶け始めている。ホットミルクティーの湯気ももうほとんど立っていない。時間が過ぎたことを、それらが無言で告げている。</action>
+<dialogue>「…あなたの家に…行くってこと…ですか？だめです…わたし…知らない人と…そんなこと…」</dialogue>
+<action>カフェの他の客の笑い声が、遠くから聞こえてくる。誰もこちらの状況に気づいていない。窓の外では桜の花びらが舞い、春の午後はまだ続いている。でも、このテーブルだけが、別の時間に閉じ込められたようだ。</action>
+<dialogue>「…お願いです…ここで…断りますから…だから…手を…」</dialogue>
+<dialogue>「…やめて…だめ…」</dialogue>
+</response>

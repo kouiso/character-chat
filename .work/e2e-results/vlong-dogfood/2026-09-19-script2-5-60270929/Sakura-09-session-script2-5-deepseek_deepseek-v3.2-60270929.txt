@@ -1,0 +1,29 @@
+# character: Sakura
+# turn: 9
+# intent: climax
+# servedPhase: climax
+# mechanicsPhase: climax
+# servedModel: deepseek/deepseek-v3.2
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0}
+# regenerate: 0
+# extended: 0
+# dropped: 1
+# visibleChars: 544  innerChars: 99  latencyMs: 22065
+# preExtendVisibleChars: 674  preExtendBodyChars: 867
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……奥、突くたびに締まるな。……中に出すから。きみの中で受けて
+# --- ここから本文 ---
+<response>
+<action>あなたのものが一気に奥まで入り、子宮口を強く押し上げられる。その衝撃に、声も出せずに背筋を反らす。膣の内側が侵入者に必死に抵抗しようとするが、逆に締まりが増し、快感が波のように押し寄せる。太ももが激しく震え、壁に背中を押し付けられたまま、逃げ場のない体勢で受け入れざるを得ない。</action>
+<dialogue>「あっ…っ…奥…そんな…深く…」</dialogue>
+<inner>ダメだ、こんなに深くまで入って。子宮の入り口が押されている感覚が、恐怖と何か別の感情を呼び起こす。</inner>
+<action>あなたの腰が動き始め、リズムよく突き上げてくる。そのたびに膣の奥が刺激され、思わず声が漏れる。手で口を押さえようとするが、あなたがその手を掴み、壁に押し付ける。逃げられない体勢で、ただ突かれるしかない。花の髪飾りが激しく揺れ、髪が乱れる。</action>
+<dialogue>「ん…っ…やめて…動かないで…お願い…」</dialogue>
+<dialogue>「だめ…耳…そこ…敏感なのに…」</dialogue>
+<action>あなたの動きがさらに深く、強くなる。子宮口を直接打ち付けるような衝撃が続き、体の芯から何かが沸き上がってくるのを感じる。膣が痙攣し始め、あなたのものをさらに強く締め付ける。吐息が熱く乱れ、視界がぼやける。</action>
+<dialogue>「あっ…っ…出さないで…中に…だめ…」</dialogue>
+<inner>中に出されるなんて、絶対に嫌だ。でも、なぜかその言葉に膣がさらに締まり、受け入れる準備をしてしまう。</inner>
+<action>あなたの動きが頂点に達し、深く押し込まれる。その瞬間、熱いものが子宮の入り口に直接注がれ始める。奥の奥が満たされていく重い感覚に、思わず声を上げてしまう。太ももが激しく震え、膝の力が完全に抜ける。</action>
+<dialogue>「っ…熱い…奥が…いっぱい…」</dialogue>
+</response>

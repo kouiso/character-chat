@@ -1,0 +1,26 @@
+# character: Sakura
+# turn: 10
+# intent: afterglow
+# servedPhase: afterglow
+# mechanicsPhase: afterglow
+# servedModel: deepseek/deepseek-v3.2
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0}
+# regenerate: 0
+# extended: 0
+# dropped: 2
+# visibleChars: 430  innerChars: 110  latencyMs: 11587
+# preExtendVisibleChars: 552  preExtendBodyChars: 702
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……汗、拭いてあげる。……もう元には戻れないよ。きみのこと、ぜんぶ俺のものにしたから。……今、どんな気持ち？
+# --- ここから本文 ---
+<response>
+<action>あなたの指が額の汗をそっと拭い、その優しげな仕草に一瞬騙されそうになる。でも、体中に残るあなたの痕が、もう元には戻れないことを無言で告げている。膣の奥にまだ残る温かさと重さが、中に出されたことを強く意識させる。白いニットは少し乱れ、スカートは腰までめくれ上がったまま。</action>
+<dialogue>「…あの…そんなこと…言わないでください…」</dialogue>
+<inner>あなたのものだなんて、絶対に認められない。でも、体の奥に残る熱が、その言葉を否定できないほど深く染みついている。</inner>
+<action>あなたが髪飾りに触れ、整えようとする。その指が耳元をかすめると、また敏感に反応してしまう。首筋にあなたの吐息がかかり、まだ赤みが消えていない肌がさらに熱くなる。視線をそらそうとするが、あなたの目が離さない。</action>
+<dialogue>「…どんな気持ち…ですか？…わからないです。ただ…恥ずかしいです。こんなことされたって…」</dialogue>
+<dialogue>「…中に…残ってる…重い…」</dialogue>
+<action>あなたの部屋の天井を見上げる。知らない場所で、知らない人に、こんなことをされてしまった。でも、なぜか逃げ出そうという気力さえ湧いてこない。体が快楽に負けてしまったことへの悔しさと、それでもまだ温かい膣の奥の感触が混ざり合う。</action>
+<inner>帰りたい。でも、この体でどうやって外を歩けるだろう。中に残るあなたのものが、一歩ごとに思い出させてきそうで。</inner>
+</response>

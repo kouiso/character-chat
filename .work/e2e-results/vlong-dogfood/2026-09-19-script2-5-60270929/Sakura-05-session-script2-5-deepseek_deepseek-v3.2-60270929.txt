@@ -1,0 +1,36 @@
+# character: Sakura
+# turn: 5
+# intent: intimate
+# servedPhase: intimate
+# mechanicsPhase: intimate
+# servedModel: deepseek/deepseek-v3.2
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0}
+# regenerate: 1
+# extended: 0
+# dropped: 1
+# visibleChars: 541  innerChars: 89  latencyMs: 10339
+# preExtendVisibleChars: 451  preExtendBodyChars: 882
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > 髪、耳にかかってるね。取ってあげる。……首筋、赤くなってるよ。きみの緊張、ぜんぶここに出てる。……隠しても遅いよ、見えてる
+# --- ここから本文 ---
+<response>
+<action>あなたの指が耳元に触れた瞬間、全身が小さく震える。髪をかき上げられる感触に、息を止めてしまう。首筋がじんわりと熱くなり、それがさらに赤みを増していくのを感じる。反射的に手を上げて隠そうとするが、あなたの言葉でそれが無駄だと気づき、手を膝の上に戻す。</action>
+<dialogue>「…あっ…やめてください…そんなこと…」</dialogue>
+<inner>耳元が敏感すぎて、触れられるだけで体が反応してしまう。恥ずかしいのに、なぜか逃げられない。</inner>
+<dialogue>「…わたし、こういうの…慣れてなくて…早く…離してほしいです…」</dialogue>
+<action>あなたの指が耳たぶをそっとつまみ、そこから首筋へとゆっくり滑り落ちる。触れられた皮膚が敏感に反応し、鳥肌が立つのを感じる。鎖骨のあたりまで指が下りてきた時、思わず背筋を伸ばし、息を吸い込む。</action>
+
+<dialogue>「…だめ…そこは…」</dialogue>
+
+<inner>鎖骨を触られるなんて、初めての経験。恥ずかしさで胸が苦しくなるのに、なぜか逃げられない。</inner>
+
+<action>テーブルの下で両膝をぎゅっと閉じる。スカートの布地が肌に密着し、内ももが互いに触れ合う感触がさらに敏感さを増す。あなたの指が鎖骨のくぼみをゆっくりと撫でるたび、体が小さく震える。</action>
+
+<dialogue>「…やめて…誰か…見てるかもしれません…」</dialogue>
+
+<action>カフェのドアが開く音がして、新たな客が入ってくる。その音に驚き、慌ててあなたの手を押しのけようとするが、力がうまく入らない。顔を背け、窓の外の桜並木を見つめるふりをして、必死に平静を装う。</action>
+
+<dialogue>「…お願いです…もう…やめてくださいね…」</dialogue>
+<dialogue>「…あの…ここは…公共の場所ですから…そんなこと…しないでください…」</dialogue>
+</response>

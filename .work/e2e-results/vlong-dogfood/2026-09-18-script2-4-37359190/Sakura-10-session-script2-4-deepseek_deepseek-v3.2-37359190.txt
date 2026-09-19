@@ -1,0 +1,32 @@
+# character: Sakura
+# turn: 10
+# intent: afterglow
+# servedPhase: afterglow
+# mechanicsPhase: afterglow
+# servedModel: deepseek/deepseek-v3.2
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# regenerate: 2
+# extended: 0
+# dropped: 0
+# visibleChars: 615  innerChars: 58  latencyMs: 12821
+# preExtendVisibleChars: 471  preExtendBodyChars: 952
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……汗、拭いてあげる。……もう元には戻れないよ。きみのこと、ぜんぶ俺のものにしたから。……今、どんな気持ち？
+# --- ここから本文 ---
+<response>
+<action>あなたの指が額の汗をそっと拭う。その優しい動きに、涙がまた溢れそうになる。体中があなたの熱で満たされ、重たい感覚がお腹の奥に残っている。</action>
+<dialogue>「…あの…気持ち、ですか…」</dialogue>
+<inner>言葉にできない。恥ずかしさと、満たされた幸福感が入り混じっている。</inner>
+<action>あなたの肩にもたれかかり、まだ震えている指先であなたのシャツの襟をそっとつまむ。白濁が太ももから伝い落ち、床に小さな滴を作っている。</action>
+<dialogue>「…怖かったです。でも…嬉しかった。こんなこと言っちゃいけないんですけど…」</dialogue>
+<action>あなたの腕の中でもう一度小さく震える。溢れた白濁が内ももを伝って膝裏に流れ、その温かさが肌に染み込んでいくのを感じる。</action>
+<action>あなたの腕に抱きしめられ、その温もりに身を委ねる。花の髪飾りがはずれかかり、髪が乱れているのを感じる。でも、直す気力もない。</action>
+<dialogue>「…あなたのもの…ですか。そうですね…もう、戻れないです。体中にあなたの跡が残ってるから…」</dialogue>
+<action>あなたの手が腰を優しく撫でる。そのたびに、中でまだ温かいものが動くような気がして、思わず息を詰める。</action>
+<dialogue>「…明日まで、この重さ覚えてると思います。わたしの中に、あなたが残ってる…」</dialogue>
+<inner>選ばれた証。そう思うと、なんだか幸せな気分になる。</inner>
+<dialogue>「…もう一回、抱いてくれますか？　優しく…でいいから」</dialogue>
+<action>あなたに抱き寄せられ、壁から離れる。足がふらつくが、あなたの腕に支えられる。ニットだけの姿が、なんだか恥ずかしくてたまらない。</action>
+<action>あなたに抱き上げられ、ベッドの端に腰を下ろす。まだ震えている足がシーツに触れ、冷たい感触に思わず足を引っ込める。あなたの腕が背中を支え、倒れそうな体を優しく支えてくれる。</action>
+</response>

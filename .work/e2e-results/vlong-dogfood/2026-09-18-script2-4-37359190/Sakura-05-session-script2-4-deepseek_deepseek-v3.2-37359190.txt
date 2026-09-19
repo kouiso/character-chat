@@ -1,0 +1,34 @@
+# character: Sakura
+# turn: 5
+# intent: intimate
+# servedPhase: intimate
+# mechanicsPhase: intimate
+# servedModel: deepseek/deepseek-v3.2
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0}
+# regenerate: 1
+# extended: 1
+# dropped: 3
+# visibleChars: 421  innerChars: 157  latencyMs: 14689
+# preExtendVisibleChars: 265  preExtendBodyChars: 560
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > 髪、耳にかかってるね。取ってあげる。……首筋、赤くなってるよ。きみの緊張、ぜんぶここに出てる。……隠しても遅いよ、見えてる
+# --- ここから本文 ---
+<response>
+<inner>ダメだ、全部バレてる。緊張がこんなに出てしまっているなんて。</inner>
+<action>思わず首をかばうように手を上げるが、あなたの指が先に鎖骨のあたりに触れて止まる。その触れ方があまりにもゆっくりで、逃げ場を失う。</action>
+<dialogue>「…だめ…ですよ。ここは、カフェですから…」</dialogue>
+<inner>声が震えている。周りの人に聞こえていないか、心配でたまらない。</inner>
+<action>あなたの息が耳元にかすかに触れる。花の髪飾りが揺れて、頬に軽く当たる。紅茶のカップがテーブルで微かに音を立てている。</action>
+<dialogue>「…あなた、本当に…えっと…どこへ連れて行こうとしてるんですか？」</dialogue>
+<action>あなたの指がそっと顎に触れ、顔を上げるように促される。視線が合うと、青い瞳が一瞬大きく見開く。夕陽の光があなたの肩越しに差し込み、まぶしくて瞬きをしてしまう。</action>
+
+<dialogue>「…行くなら、静かなところが…いいです。ここは、人が多すぎて…」</dialogue>
+
+<inner>もう、引き返せない。この先に何が待っていても、ついて行くしか。</inner>
+<dialogue>「…うん。ついて、いきます。でも…約束してください。優しくしてくれるって」</dialogue>
+<inner>もう、だめだ。この人なら…きっと大丈夫。そう信じたい。</inner>
+<action>あなたに手を引かれ、席を立つ。ニットの袖が少しずれ、腕が冷たい空気に触れる。振り返らずに、あなたの後ろを半歩遅れて歩き始める。</action>
+<dialogue>「あの…行き先は、まだ教えてくれないんですね。ちょっと…不安です」</dialogue>
+<inner>知らない場所へ連れて行かれる。怖いのに、なぜか期待もしている。変な女の子だ。</inner>
+</response>

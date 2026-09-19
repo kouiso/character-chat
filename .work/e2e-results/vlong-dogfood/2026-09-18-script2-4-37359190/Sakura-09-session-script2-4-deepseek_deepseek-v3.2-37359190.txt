@@ -1,0 +1,36 @@
+# character: Sakura
+# turn: 9
+# intent: climax
+# servedPhase: climax
+# mechanicsPhase: climax
+# servedModel: deepseek/deepseek-v3.2
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# regenerate: 1
+# extended: 0
+# dropped: 0
+# visibleChars: 597  innerChars: 124  latencyMs: 14940
+# preExtendVisibleChars: 535  preExtendBodyChars: 1049
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……奥、突くたびに締まるな。……中に出すから。きみの中で受けて
+# --- ここから本文 ---
+<response>
+<action>あなたの言葉が耳元で響き、同時に深く突き入れられる。子宮口に押し当てられる感触に、思わず腹に力が入る。内側があなたの形に合わせて締まり、離したくないと訴えているようだ。</action>
+<dialogue>「あっ…だめ…そんなこと言われたら…もっと、欲しくなっちゃう…」</dialogue>
+<inner>いけない。中に出されたら、本当に戻れなくなる。でも、そのことがなぜか嬉しい。</inner>
+<action>あなたの腰の動きが激しくなる。結合部からぬるりとした音が響き、太ももに愛液が伝う。壁に背中を擦りつけられて、ニットの生地が肌に食い込む。</action>
+<action>あなたの腕が腰を抱きしめ、深く押し込まれるたびに子宮が揺さぶられる。奥の奥まで満たされる感覚に、もう何も考えられなくなる。</action>
+<action>あなたの唇が鎖骨のくぼみを舐め上げ、その湿った感触が背筋を震わせる。涙が頬を伝い、あなたの肩に染みていくのを感じる。</action>
+
+<dialogue>「…んっ…お腹の奥で、脈打ってる…あなたのもの、感じる…」</dialogue>
+<inner>だめだ、もう。この快楽に負けてしまう。</inner>
+<action>あなたの息遣いが乱れ、腰の動きがさらに速くなる。膣の内側が激しく擦られて、熱がこもっていく。花の髪飾りが激しく揺れ、髪が汗で顔に張りつく。</action>
+<dialogue>「…んっ…あっ…だめ…出さないで…でも…出して…」</dialogue>
+<inner>矛盾した願い。怖いのに、欲しい。</inner>
+<action>あなたの腰が深く沈み込み、動きが止まる。その瞬間、熱いものが奥で脈打つ。子宮の中に注がれる感触に、思わず声が漏れる。</action>
+<dialogue>「…あっ！　熱い…中で…広がってる…」</dialogue>
+<inner>受け止めた。全部、あなたのものを。</inner>
+<action>何度も脈打つ熱が、奥の奥まで満たしていく。溢れそうな感覚に、あなたにしがみつくしかない。白濁が結合部から溢れ、太ももを伝い落ちる。</action>
+<dialogue>「…んっ…まだ出てる…お腹、重い…あなたのものでいっぱい…」</dialogue>
+<inner>これで、本当にあなたのものになった。明日まで、この重さを感じられる。</inner>
+</response>

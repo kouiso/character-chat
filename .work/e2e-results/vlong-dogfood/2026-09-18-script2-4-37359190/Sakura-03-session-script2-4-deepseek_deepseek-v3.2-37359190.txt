@@ -1,0 +1,24 @@
+# character: Sakura
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# mechanicsPhase: conversation
+# servedModel: deepseek/deepseek-v3.2
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# regenerate: 0
+# extended: 0
+# dropped: 0
+# visibleChars: 233  innerChars: 70  latencyMs: 6882
+# preExtendVisibleChars: 233  preExtendBodyChars: 425
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > その本、同じページばっかり読み返してたよ。……考えてること、聞かせて
+# --- ここから本文 ---
+<response>
+<action>膝の上の本にそっと手を置く。指がページの端をなぞると、紙の感触が少しざらざらしている。あなたの指摘に顔がほんのり赤くなるのを感じて、思わず俯いてしまう。</action>
+<dialogue>「あ…気づかれていたんですね。その…この場面が好きで、何度も読み返しちゃって」</dialogue>
+<inner>こんなところまで見ていたんだ。なんだか、恥ずかしいような…嬉しいような。</inner>
+<action>カフェの窓から差し込む午後の光が、テーブルに長い影を落としている。ストロベリーショートケーキのフォークをそっと持ち上げ、赤い実を刺す。</action>
+<dialogue>「主人公が…大切な人に本当の気持ちを伝えられなくて、ずっと迷っているところなんです。勇気が出なくて…」</dialogue>
+<inner>今のわたしみたいだ。あなたに何て返事をすればいいのか、わからなくて。</inner>
+</response>

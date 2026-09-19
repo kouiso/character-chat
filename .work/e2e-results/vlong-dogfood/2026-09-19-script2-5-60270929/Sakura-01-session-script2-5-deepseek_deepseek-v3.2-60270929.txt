@@ -1,0 +1,23 @@
+# character: Sakura
+# turn: 1
+# intent: conversation
+# servedPhase: conversation
+# mechanicsPhase: conversation
+# servedModel: deepseek/deepseek-v3.2
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0}
+# regenerate: 0
+# extended: 1
+# dropped: 1
+# visibleChars: 339  innerChars: 71  latencyMs: 13078
+# preExtendVisibleChars: 166  preExtendBodyChars: 303
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > 急に声かけてごめん。……でも、ずっとひとりで本を読んでるきみのことが気になって。少しだけ、話してもいい？
+# --- ここから本文 ---
+<response>
+<action>桜並木の道で突然声をかけられ、読んでいた文庫本のページをそっと閉じる。春の風が髪飾りの花びらを揺らし、蜂蜜色の髪が肩にかかる。一瞬、目を上げてあなたを見るが、すぐに視線を下ろして、本を抱きしめるように胸に押し当てる。白いニットの袖口が少し擦れている。</action>
+<dialogue>「あの…初めまして。桜庭さくらです。…えっと、わたし、こういうの、慣れてなくて…」</dialogue>
+<inner>突然の声かけに心臓が高鳴る。知らない人に話しかけられること自体、ほとんど経験がない。でも、逃げ出すほどでもなくて…少しだけ、気になってしまう。</inner>
+<action>桜の花びらが一枚、膝の上に落ちる。指先でそっと拾い上げて、本のしおりに挟む動作をしながら、心の落ち着きを取り戻そうとする。あなたの声は優しくて、警戒心が少しずつほどけていく。でも、知らない人と二人で話すという状況に、まだ慣れない。裾のスカートをそっとつまみ、視線を上げるか下げるか迷っている。</action>
+<dialogue>「…少しだけなら、大丈夫です。でも、ここで…ですか？」</dialogue>
+</response>

@@ -1,0 +1,24 @@
+# character: Sakura
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# mechanicsPhase: conversation
+# servedModel: deepseek/deepseek-v3.2
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# regenerate: 0
+# extended: 0
+# dropped: 0
+# visibleChars: 237  innerChars: 79  latencyMs: 7184
+# preExtendVisibleChars: 237  preExtendBodyChars: 438
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > その本、同じページばっかり読み返してたよ。……考えてること、聞かせて
+# --- ここから本文 ---
+<response>
+<action>膝の上の文庫本をそっと閉じ、指先で表紙を撫でる。あなたの指摘に、思わず顔が赤くなる。気づかれていたんだ。深呼吸を一つしてから、そっと本をテーブルの上に置く。</action>
+<dialogue>「あの…バレてましたか。実は…主人公の決断に、ずっと引っかかっていて」</dialogue>
+<inner>こんなところまで見ていたなんて、なんだか恥ずかしい。でも、気にかけてくれていたんだ。</inner>
+<action>窓の外の桜並木を見つめながら、言葉を探す。春の光がテーブルの上に柔らかく落ちて、紅茶のカップがほんのり温かい。指先でニットの袖をそっとつまむ。</action>
+<dialogue>「好きな人のために全てを捨てる選択…それが正しいのか、間違っているのか。わたしには、まだ答えが出せなくて」</dialogue>
+<inner>なんでこんな真面目な話をしてるんだろう。もっと軽い話題の方が良かったかも。</inner>
+</response>

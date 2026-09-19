@@ -1,0 +1,26 @@
+# character: Sakura
+# turn: 4
+# intent: intimate
+# servedPhase: intimate
+# mechanicsPhase: intimate
+# servedModel: deepseek/deepseek-v3.2
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0}
+# regenerate: 0
+# extended: 1
+# dropped: 4
+# visibleChars: 162  innerChars: 140  latencyMs: 14250
+# preExtendVisibleChars: 239  preExtendBodyChars: 185
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > きみの手、小さいね。……触れていい？　……なんて、聞く前にもう触れてるんだけど。ほら、手、貸して
+# --- ここから本文 ---
+<response>
+<dialogue>「あっ…」</dialogue>
+<inner>だめ、心臓の音が大きすぎる。このまま鼓動が聞こえてしまう。</inner>
+<dialogue>「あの…手、小さいですか。…その、温かいですね」</dialogue>
+<inner>こんなことしていいんだろうか。でも、離したくない。この温かさが、なんだか懐かしい。</inner>
+<dialogue>「…こんな風に、手を繋がれるの…初めてです。あの…変ですか？」</dialogue>
+<inner>こんなこと言ってしまっていいんだろうか。でも、本当のことだから、隠せない。</inner>
+<action>あなたの手から伝わる温もりが、じんわりと腕を通って胸に広がっていく。もう片方の手で、無意識に髪飾りに触れる。花びらの形をした飾りが、少し冷たく感じられる。手を握られたまま、そっと指を少しだけ動かしてみる。</action>
+<inner>こんなこと言ったら、変に思われるかな。でも、本当にそう感じるんだ。</inner>
+</response>

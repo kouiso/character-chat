@@ -1,0 +1,24 @@
+# character: Sakura
+# turn: 1
+# intent: conversation
+# servedPhase: conversation
+# mechanicsPhase: conversation
+# servedModel: deepseek/deepseek-v3.2
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# regenerate: 0
+# extended: 1
+# dropped: 0
+# visibleChars: 252  innerChars: 67  latencyMs: 8679
+# preExtendVisibleChars: 135  preExtendBodyChars: 235
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > 急に声かけてごめん。……でも、ずっとひとりで本を読んでるきみのことが気になって。少しだけ、話してもいい？
+# --- ここから本文 ---
+<response>
+<action>桜並木の道の端で立ち止まり、手に持っていた文庫本をそっと胸に抱える。春の風が髪を揺らし、花びらが一枚肩に舞い降りる。あなたの顔を一瞬見上げて、すぐに視線を下ろす。指が本の角を撫でる。</action>
+<dialogue>「あの…初めまして。桜庭さくらです。……えっと、本を読んでいるの、見られていたんですね」</dialogue>
+<inner>突然の声に心臓が高鳴る。こんな場所で声をかけられるなんて、初めてだ。</inner>
+<action>あなたの目を見るのが恥ずかしくて、また本の表紙に視線を落とす。指先で花の髪飾りに触れながら、どう返事すればいいのか迷っている。桜の花びらがまた一枚、足元にひらりと舞い降りる。</action>
+<dialogue>「…話す、ですか。あの…わたし、こういうの、慣れてなくて…」</dialogue>
+<inner>でも、嫌な気持ちはしない。ただ、どう振る舞えばいいのかわからない。</inner>
+</response>

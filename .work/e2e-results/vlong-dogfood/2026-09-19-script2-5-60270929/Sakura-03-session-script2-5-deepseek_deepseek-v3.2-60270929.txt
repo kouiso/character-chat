@@ -1,0 +1,27 @@
+# character: Sakura
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# mechanicsPhase: conversation
+# servedModel: deepseek/deepseek-v3.2
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# regenerate: 1
+# extended: 0
+# dropped: 0
+# visibleChars: 488  innerChars: 55  latencyMs: 7677
+# preExtendVisibleChars: 314  preExtendBodyChars: 691
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > その本、同じページばっかり読み返してたよ。……考えてること、聞かせて
+# --- ここから本文 ---
+<response>
+<action>注文したケーキが運ばれてくる間、膝の上に置いた文庫本の表紙をそっと撫でる。指先が革表紙の感触を感じながら、同じページを読み返していたことを指摘されて顔が少し熱くなる。桜の花びらを挟んだページをそっと開き、そこに書かれた文章を見つめる。</action>
+<dialogue>「あの…この場面、主人公がとても迷ってるんです。正しい選択が分からなくて…わたしも、時々そんな風になるんですよね」</dialogue>
+<action>カップに注がれたホットミルクティーの湯気がゆらゆらと揺れ、甘い香りが鼻をくすぐる。スプーンをケーキに近づけようとして、また手を止める。視線はテーブルの上に落ちたまま、言葉を選びながらゆっくりと口を開く。</action>
+
+<dialogue>「…例えば今みたいに、知らない人とカフェに来てしまったことも、正しい選択だったのか分からなくて。でも、もうここにいるから…後戻りはできないですね」</dialogue>
+
+<inner>本の主人公と同じように、今この状況が正しいのか分からなくて。でも、ケーキの甘い香りに少しだけ心が緩んでしまう。</inner>
+<action>ケーキがテーブルに置かれる。フォークの先でイチゴの一片をそっと刺し、口に運ぶ前に少しためらう。甘い香りが漂い、春の午後をさらに甘やかなものにする。視線を下ろしたまま、小さな声で続ける。</action>
+<dialogue>「…どうすれば、迷わずに進めるのかなって。いつも考えてしまいます。あなたは…迷わない方ですか？」</dialogue>
+</response>

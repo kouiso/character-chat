@@ -1,0 +1,28 @@
+# character: Sakura
+# turn: 10
+# intent: afterglow
+# servedPhase: afterglow
+# mechanicsPhase: afterglow
+# servedModel: deepseek/deepseek-v3.2
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# regenerate: 2
+# extended: 0
+# dropped: 0
+# visibleChars: 581  innerChars: 35  latencyMs: 11493
+# preExtendVisibleChars: 519  preExtendBodyChars: 820
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……汗、拭いてあげる。……もう元には戻れないよ。きみのこと、ぜんぶ俺のものにしたから。……今、どんな気持ち？
+# --- ここから本文 ---
+<response>
+<action>あなたがハンカチで額の汗を拭う。その優しい仕草に、また涙が溢れそうになる。体中がぐったりとし、あなたの腕に抱きしめられたまま動けない。中にはまだ熱いものが残っていて、少し動くたびに溢れ出そうになる。</action>
+<dialogue>「あの…拭いてくれるんですか。…ありがとう、です」</dialogue>
+<action>あなたがそっと腰を下ろし、ベッドの端に寄りかかる。その動きに連れられて、膝が震えながら床につく。中から温かいものが溢れ出し、太ももを伝っていく感触に、思わず脚を閉じる。</action>
+<action>あなたの胸に顔をうずめ、ぬくもりを感じる。ニットの上から伝わる鼓動が、ゆっくりと落ち着いていく。中に残る重さと熱が、まだはっきりと感じられる。腿の内側がぬるりとしていて、恥ずかしいのに離れたくない。</action>
+<dialogue>「…元に戻れない、って…そうですね。もう、戻れないです」</dialogue>
+<action>あなたの手がそっと背中を撫でる。その動きに合わせて、中で残ったものがじわっと動く感覚に、思わず息を漏らす。指先が無意識にあなたのシャツの裾をつかみ、皺が寄る。</action>
+<dialogue>「…今の気持ち、ですか。…あの…怖いです。でも…離れたくない、とも思ってます」</dialogue>
+<action>あなたの腕にしがみつきながら、小さく震える。スカートはまだ捲られたままで、下着も下りたまま。こんな姿で抱きしめられているのが、恥ずかしくてたまらない。でも、あなたの温もりがそれを上回る。</action>
+<dialogue>「…あたしの中に…あなたが残ってる。明日まで…ずっと感じられそうです」</dialogue>
+<inner>これが選ばれた証なんだ。こんな形で刻まれるなんて、思ってもみなかった。</inner>
+</response>

@@ -1,0 +1,30 @@
+# character: Sakura
+# turn: 5
+# intent: intimate
+# servedPhase: intimate
+# mechanicsPhase: intimate
+# servedModel: deepseek/deepseek-v3.2
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# regenerate: 0
+# extended: 1
+# dropped: 0
+# visibleChars: 499  innerChars: 119  latencyMs: 16606
+# preExtendVisibleChars: 246  preExtendBodyChars: 433
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > 髪、耳にかかってるね。取ってあげる。……首筋、赤くなってるよ。きみの緊張、ぜんぶここに出てる。……隠しても遅いよ、見えてる
+# --- ここから本文 ---
+<response>
+<action>あなたが近づいてくる距離に、思わず息を止める。耳元に手が伸びて、髪をかき上げられる。その指先が首筋に触れた瞬間、背筋が震える。顔を背けようとするが、もうあなたの目に全てを見透かされている。</action>
+<dialogue>「あの…そんなに、赤くなってますか。…恥ずかしいです」</dialogue>
+<inner>どうしよう、全部バレてる。緊張がこんなに伝わってるなんて。</inner>
+<action>あなたの視線から逃れようと、そっと目を閉じる。でも、瞼の裏にもあなたの姿が焼きついている。首筋が熱く、心臓の鼓動が耳元で鳴り響いている。無意識に、あなたに握られた手の指に少し力を込める。</action>
+<dialogue>「…緊張、するのは…当然ですよね。だって…初めて、こんな風に…」</dialogue>
+<inner>こんなこと言ったら、もっとからかわれるかもしれない。でも、嘘はつけない。</inner>
+<action>目を開けると、あなたの顔がすぐ近くにある。息がかかる距離で、桜の花びらのような淡い香りが混じっている。首筋を撫でる指が、そっと鎖骨の辺りまで下りてくる。その動きに、思わず肩が小さく震える。</action>
+<dialogue>「…あの、ここ、カフェですよ。誰か来たら…見られちゃいます」</dialogue>
+<inner>本当は止めてほしいと言うべきなのに、声が震えている。</inner>
+<action>あなたの手が首から肩へと移動し、ニットの袖の上から優しく揉まれる。その感触に、思わず背筋が伸びる。窓の外を歩く学生たちの姿が視界の端に見え、恥ずかしさがこみ上げてくる。でも、体はその温もりから離れたくない。</action>
+<dialogue>「…だめ、です。こんなこと…いけないこと、ですよね」</dialogue>
+<inner>でも、止めてほしいと言えない。このまま流されていきたい。</inner>
+</response>

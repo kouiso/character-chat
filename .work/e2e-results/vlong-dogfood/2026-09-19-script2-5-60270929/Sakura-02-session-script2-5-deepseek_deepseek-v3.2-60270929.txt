@@ -1,0 +1,23 @@
+# character: Sakura
+# turn: 2
+# intent: conversation
+# servedPhase: conversation
+# mechanicsPhase: conversation
+# servedModel: deepseek/deepseek-v3.2
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# regenerate: 0
+# extended: 0
+# dropped: 0
+# visibleChars: 340  innerChars: 62  latencyMs: 8137
+# preExtendVisibleChars: 340  preExtendBodyChars: 508
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > 俺の奢りだから、好きなの頼んで。……きみ、甘いのが好きそうだなって思ってた。当たってる？
+# --- ここから本文 ---
+<response>
+<action>あなたに連れられてカフェに入り、窓際の席に案内される。白いテーブルクロスの上に置かれたメニューを、指先でそっとめくる。春の午後の光がテーブルに差し込み、クリーム色のスカートの裾が柔らかな影を作る。甘いもののページで指が止まり、チョコレートケーキの写真を少し長く見つめる。</action>
+<dialogue>「あの…わたし、ストロベリーショートケーキが好きです。でも、本当にいいんですか？こんなに…」</dialogue>
+<inner>知らない人に奢ってもらうなんて、初めての経験。なのに、なぜか断れないでいる。甘いものが好きだって当てられたのも、少し嬉しい。</inner>
+<action>メニューから目を上げて、あなたの顔をちらりと見る。すぐに視線をそらし、髪飾りに触れて整える仕草をする。ウェイトレスが近づいてくるのに気づき、少し慌ててメニューを閉じる。白いニットの袖がテーブルに触れ、ほんのり温かい。</action>
+<dialogue>「…じゃあ、ストロベリーショートケーキと…ホットミルクティーをお願いします。えへへ…当たってましたね」</dialogue>
+</response>

@@ -1,0 +1,31 @@
+# character: Sakura
+# turn: 7
+# intent: erotic
+# servedPhase: erotic
+# mechanicsPhase: erotic
+# servedModel: deepseek/deepseek-v3.2
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0}
+# regenerate: 2
+# extended: 0
+# dropped: 2
+# visibleChars: 542  innerChars: 78  latencyMs: 14197
+# preExtendVisibleChars: 595  preExtendBodyChars: 878
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……結局、断らなかったね。……ドア、閉まったね。鍵もかけとく。……きみの吐息、熱くなってる
+# --- ここから本文 ---
+<response>
+<action>ドアが閉まる音が、静かな部屋に響く。鍵がかかる小さな音に、背筋が震える。あなたの部屋の空気が、カフェとは全く違う匂いを帯びている。壁に寄りかかりながら、胸の鼓動が耳元で鳴っている。</action>
+<dialogue>「あの…鍵、かけたんですね。…なんだか、逃げられないみたいで」</dialogue>
+<action>あなたが近づいてくる足音に、思わず目を閉じる。床板の軋む音が、静かな部屋の中で大きく響く。背中が壁に押し付けられたまま、逃げ場がないのを感じる。あなたの息が額にかかり、髪の毛が揺れる。</action>
+<dialogue>「…わたし、こんなところに来るなんて…どう思われてるんでしょう」</dialogue>
+<action>あなたの指が首筋をゆっくりと撫で下り、鎖骨のくぼみに止まる。その触れ方に、思わず肩をすくめる。部屋の照明が柔らかく、壁に映る二人の影が揺れている。吐息が混ざり合う距離で、あなたの体温がじんわりと伝わってくる。</action>
+<dialogue>「…あっ…その、近すぎます…」</dialogue>
+<inner>こんなに近くで見られると、全部見透かされてしまいそう。</inner>
+<dialogue>「…だめ…こんなの…慣れてないから…」</dialogue>
+<action>背中が壁に押し付けられ、逃げ場がなくなる。あなたの体の温もりが、じんわりと伝わってくる。目を伏せて、長い睫毛が震えている。</action>
+<inner>怖い。でも、どこかで待っていたような気もする。</inner>
+<dialogue>「…あの…優しく、してくださいね。約束、です」</dialogue>
+<action>最後の抵抗のように、小さな声でお願いする。でも、その声はもう震えていて、本心がにじみ出ている。あなたの手が腰に回されるのを感じて、思わず息を吸い込む。</action>
+<inner>これで終わりだ。もう、普通の女の子じゃなくなってしまう。</inner>
+</response>

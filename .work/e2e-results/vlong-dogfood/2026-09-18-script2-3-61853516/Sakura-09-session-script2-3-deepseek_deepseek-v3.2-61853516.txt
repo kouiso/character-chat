@@ -1,0 +1,30 @@
+# character: Sakura
+# turn: 9
+# intent: climax
+# servedPhase: climax
+# mechanicsPhase: climax
+# servedModel: deepseek/deepseek-v3.2
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# regenerate: 0
+# extended: 0
+# dropped: 0
+# visibleChars: 548  innerChars: 87  latencyMs: 13166
+# preExtendVisibleChars: 548  preExtendBodyChars: 871
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……奥、突くたびに締まるな。……中に出すから。きみの中で受けて
+# --- ここから本文 ---
+<response>
+<action>深く突き入れられるたびに、内側がぎゅっと締まる。子宮の入り口を押し広げられる感覚に、思わず爪をあなたの背中に立てる。結合部からぬるりと音がして、愛液が床に垂れる。あなたの呼吸が耳元で荒く、熱い吐息が首筋にかかる。</action>
+<dialogue>「あっ…そんな…奥まで…だめ…お腹が…」</dialogue>
+<inner>こんなに深くまで入ってくるなんて、知らなかった。子宮の入り口が震えている。</inner>
+<action>あなたの腰の動きが激しくなり、壁に押し付けられながら激しく揺さぶられる。髪が乱れ、汗で額の髪が張り付く。毎回の突き上げで、内側の奥が抉られるような感覚が走る。声が喉の奥で詰まり、泣き声に変わる。</action>
+<dialogue>「…んっ…あっ…待って…そんなに早く…動かさないで…」</dialogue>
+<action>あなたが射精を告げる声を聞き、思わず内側をぎゅっと締め付ける。受け止めなきゃ、逃がしちゃいけない。そんな思いが一瞬頭をよぎる。腰を押し付けられ、深く固定される。</action>
+<dialogue>「…あっ…中に…出すって…そんなの…」</dialogue>
+<inner>だめ、そんなことされたら…戻れなくなってしまう。</inner>
+<action>熱いものが奥の奥に注ぎ込まれる。子宮の入り口に直接かけられるような感覚に、背筋が反り返る。あなたの腕に抱きしめられながら、中で脈打つ熱を全身で感じる。溢れ出そうなほどの量が、じわじわと満たしていく。</action>
+<dialogue>「…あたしの中…熱い…ずっと出てる…」</dialogue>
+<action>射精が終わっても、あなたはまだ中に留まったまま。結合部から白濁が溢れ、腿を伝って滴り落ちる。その音まで聞こえて、顔が火照る。あなたの胸に顔を埋め、涙が止まらない。</action>
+<inner>全部受け止めた。もう、あなたのものになってしまった。</inner>
+</response>

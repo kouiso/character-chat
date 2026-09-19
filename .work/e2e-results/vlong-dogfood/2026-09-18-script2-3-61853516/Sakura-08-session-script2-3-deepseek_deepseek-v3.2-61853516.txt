@@ -1,0 +1,31 @@
+# character: Sakura
+# turn: 8
+# intent: erotic
+# servedPhase: erotic
+# mechanicsPhase: erotic
+# servedModel: deepseek/deepseek-v3.2
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# regenerate: 1
+# extended: 0
+# dropped: 0
+# visibleChars: 633  innerChars: 52  latencyMs: 12139
+# preExtendVisibleChars: 549  preExtendBodyChars: 945
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……その服、下だけ脱がせるよ。……俺の指、もう濡れてる。……挿れるよ。奥まで
+# --- ここから本文 ---
+<response>
+<action>スカートの裾を捲られる音が、静かな部屋に響く。下着が下ろされていく感触に、思わず目を見開く。あなたの指が腿の内側を撫で、その先端が入り口に触れる。濡れていることを指摘されて、顔が火照る。</action>
+<dialogue>「あっ…そんなこと、言わないで…恥ずかしいです…」</dialogue>
+<action>あなたの指がそっと中へと滑り込み、思わず背筋が弓なりになる。未知の感覚が下腹部を駆け巡り、声が喉の奥で詰まる。壁に寄りかかったまま、指が一節、また一節と深く入っていく。</action>
+<action>あなたの指がゆっくりと中へ入ってくる。その太さに、思わず背筋を反らせる。壁に寄りかかったまま、もう逃げられない。指が奥へと進み、内側を探られる感触に、唇を噛みしめる。</action>
+<dialogue>「…んっ…あの…やさしく…って言ったのに…」</dialogue>
+<action>指が動き始め、内側をこすられる。その刺激に、思わず膝が震える。あなたのもう片方の手が腰を支えているが、それでも立てなくなりそうだ。吐息が熱く、部屋の空気が重たく感じられる。</action>
+<dialogue>「…だめ…そんなに動かさないで…変な感じが…」</dialogue>
+<inner>なんでこんな気持ちいいんだろう。いけないことなのに。</inner>
+<action>あなたの指が引き抜かれ、今度はもっと大きなものが先端を押し当てられる。その大きさに、思わず目を見開く。怖いけど、どこかで待っていたような気がする。あなたの腕に抱き寄せられ、完全に支えられる。</action>
+<dialogue>「…あっ…入って…きます…」</dialogue>
+<action>ゆっくりと押し込まれる。その太さに、内側が広がっていくのが分かる。痛みよりも、満たされる感覚が先に来る。あなたの胸に顔をうずめ、涙がにじむ。結合部から愛液が零れ、腿を伝っていく。</action>
+<dialogue>「…あたし…こんなの…初めてなのに…」</dialogue>
+<inner>もう、戻れない。この瞬間から、全てが変わってしまう。</inner>
+</response>
