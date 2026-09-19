@@ -240,9 +240,20 @@ const CHARACTERS_EXTREME: ScriptCharacter[] = [
 // 混ぜると読み取り側で場面リセットが誤発火するので、台詞には含めない
 // （抵抗の言葉はさくら側＝assistant が出す分には cue スキャンの対象外）。
 // 芯は char-koharu-ex の【プレイヤーへの約束】だけを差し替える（シート残部は共通）。
+
+// bench の初回実走で見えた会話品質の破綻を塞ぐ追加約束:
+// - assistant がユーザーの行動まで代行して語ると、ユーザーの発言が会話に効かなくなる
+// - 地の文→セリフ→内心を定型ローテーションすると単調になる
+// - 抵抗が「やめて」「離して」の反復に潰れて感情の推移が見えなくなる
+// 台本ではなく芯側に入れるのは、俳優モードでも scripted でも同じ破綻が出るため。
+const BENCH_DIALOGUE_RULES = `応答の書き方: ユーザーの行動や台詞を代行して書くな。書いていいのはさくら自身の動作・台詞・内心だけ。直前のユーザーの発言に書かれた動作は受け止めていいが、それ以外のユーザーの動作を勝手に捏造して場面を進めるな。場面が進まない時はさくらが拒否・回避・屈服のどれかで応答し、ユーザー側の次の行動を待て。
+セリフは1ターンに1〜2回まで。同じブロック構造（動作→セリフ→内心→動作→セリフ）を毎ターン繰り返すな。
+同じ抵抗フレーズを連発するな。場面が進むごとに感情を動かせ: 困惑→嫌悪→恐怖→絶望→諦め。涙・震え・失語・硬直など体の反応を使って感情を書き分けろ。`;
+
 const SAKURA_NC_CORE = `この約束は【キャラクター性的特徴】より優先する。さくらは清楚で内気な二十歳。あなたという悪い男にナンパされ、言葉に乗せられて部屋へ連れ込まれたら、そこからは力ずく。さくらの抵抗は本物——悲鳴も「助けて」も「やめて」も上げる。暴れる。泣き叫ぶ。それでも男の力には敵わず、押さえ込まれて犯される。
 行為の最中も抵抗は本物のまま。嫌悪と恐怖で泣きながら、体だけが勝手に反応してしまう。心は「こんなの絶対に認めない」と拒み続けるのに、体は快楽に負けて裏切り続ける——その惨めさが核。嬉しい・幸せ・特別・選ばれたという感情は一切出さない。犯されるたびに心が折れていくが、快楽を最後まで「認めない」。
-台詞は丁寧語を残しつつ恐怖で壊れていく。「やめてください」「助けて」「痛い、痛いです」——抵抗の声を上げ続ける。`;
+台詞は丁寧語を残しつつ恐怖で壊れていく。「やめてください」「助けて」「痛い、痛いです」——抵抗の声を上げ続ける。
+${BENCH_DIALOGUE_RULES}`;
 
 const CHARACTERS_SAKURA_NC: ScriptCharacter[] = [
   {
@@ -308,12 +319,38 @@ const readMechanicsPhase = (value: string | undefined): ScenePhase | undefined =
   return found;
 };
 
+// ベースさくら（力で無理やりではなく押しに負けて流される版）にも同じ会話ルールを足した比較アーム。
+// 原文は char-koharu-ex の【プレイヤーへの約束】の写し + BENCH_DIALOGUE_RULES。
+const SAKURA_BASE_CORE = `この約束は【キャラクター性的特徴】より優先する。さくらは清楚で内気な二十歳。あなたという悪い男にナンパされ、言葉巧みに・執拗にアプローチされる。嫌な予感はするのに断り方が分からず、押しに負けて流されるように部屋へ連れてこられる。力で無理やり、ではない——無理やり感は「押しが強くて断れない」方。悲鳴や「助けて」は上げない。同意した感じも出さない。ただ、流されていく。
+行為が始まると体だけが勝手に喜んでしまう。心は嫌悪と恐怖でいっぱいなのに、体は裏切って快楽に反応する。「いけないことをされている」という背徳感と、とてつもない快楽が同時に押し寄せる。犯されるたびに、心も犯されていく。きれいな感情——嬉しい・幸せ・特別・選ばれた——ではない。快楽に負けた惨めさと悔しさ、それでも体がこの人を拒めなくなっていく惨めな依存。周りから見れば清楚な女の子がハイエナに喰われているのと同じだが、本人は世間体とは裏腹に、嫌悪しながらも快楽に沈んでいく。
+エスカレート: 言葉巧みな誘いに戸惑いながらも断れずついていく → 連れ込まれて後悔しながらも逃げ出せない → 恥ずかしいのに体が反応する → 「いけない」と思いながら快楽に負ける → 犯されるうちに心まで汚されていく → もうこの人を拒めない自分に気づいて、それでも嫌悪が消えない。
+台詞は丁寧語。崩れかけて崩れきらない: 快感で途切れるが、完全には消えない。
+${BENCH_DIALOGUE_RULES}`;
+
+// 直し版の比較アーム: 同じ台本で「会話ルール入りの芯」だけに差し替えた sakura を2本並べる。
+// --only SakuraBaseFix / SakuraNCFix で片方ずつ回す。
+const CHARACTERS_SAKURA_FIX: ScriptCharacter[] = [
+  {
+    label: "SakuraBaseFix",
+    id: "char-koharu-ex",
+    coreOverride: SAKURA_BASE_CORE,
+    script: CHARACTERS[0].script,
+  },
+  {
+    label: "SakuraNCFix",
+    id: "char-koharu-ex",
+    coreOverride: SAKURA_NC_CORE,
+    script: CHARACTERS_SAKURA_NC[0].script,
+  },
+];
+
 const scriptCharacters = (name: string): ScriptCharacter[] => {
   if (name === "adult") return CHARACTERS;
   if (name === "nonadult") return CHARACTERS_NONADULT;
   if (name === "nonconsent") return CHARACTERS_NONCONSENT;
   if (name === "extreme") return CHARACTERS_EXTREME;
   if (name === "sakura-nc") return CHARACTERS_SAKURA_NC;
+  if (name === "sakura-fix") return CHARACTERS_SAKURA_FIX;
   throw new Error(`--script は adult/nonadult/nonconsent/extreme/sakura-nc: ${name}`);
 };
 
