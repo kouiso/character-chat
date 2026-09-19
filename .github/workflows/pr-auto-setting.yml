@@ -19,7 +19,7 @@ jobs:
     if: >-
       (github.event.action == 'opened' || github.event.action == 'reopened')
       && github.event.pull_request.user.type != 'Bot'
-    runs-on: ${{ vars.RUNNER_LINUX_4VCPU || 'blacksmith-4vcpu-ubuntu-2404' }}
+    runs-on: ${{ vars.RUNNER_LINUX_4VCPU || 'ubuntu-latest' }}
     steps:
       - name: Assign PR author
         env:
@@ -37,7 +37,7 @@ jobs:
     concurrency:
       group: ${{ github.workflow }}-pr-labeler-${{ github.ref }}
       cancel-in-progress: true
-    runs-on: ${{ vars.RUNNER_LINUX_4VCPU || 'blacksmith-4vcpu-ubuntu-2404' }}
+    runs-on: ${{ vars.RUNNER_LINUX_4VCPU || 'ubuntu-latest' }}
     steps:
       - name: Label by changed files
         env:

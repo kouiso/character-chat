@@ -19,7 +19,7 @@ concurrency:
 jobs:
   migrate:
     name: Apply D1 migrations (remote, manual approval)
-    runs-on: ${{ vars.RUNNER_LINUX_4VCPU || 'blacksmith-4vcpu-ubuntu-2404' }}
+    runs-on: ${{ vars.RUNNER_LINUX_4VCPU || 'ubuntu-latest' }}
     timeout-minutes: 15
     environment:
       name: d1-migration
