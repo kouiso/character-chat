@@ -23,7 +23,6 @@ import {
 } from "@v2/engine";
 import { PROMPT_VERSION, type ScenePhase } from "@v2/prompt";
 
-import { createMaleActor, type ActorExchange, type MaleActor } from "./male-actor";
 import {
   MAX_TOTAL_GENERATION_MS,
   outputDirName,
@@ -31,6 +30,7 @@ import {
   turnTimeoutMs,
   type TurnEnding,
 } from "./script-run-policy";
+import { type ActorExchange, createUserActor, type UserActor } from "./user-actor";
 
 import type { BaseChatModel } from "@langchain/core/language_models/chat_models";
 
@@ -52,6 +52,8 @@ type ScriptCharacter = {
   // 台本の性格（誘い込み系か力ずく系か）はシートの芯と矛盾したら意味が無いので、
   // セットで渡す。
   coreOverride?: string;
+  // actor モードで演じるユーザー側の人物像。未指定は DEFAULT_USER_PERSONA。
+  userPersona?: string;
 };
 
 // 台本は script/verify/vlong-session-dogfood.ts の SCRIPTS を 1 字も変えず写す。
@@ -516,7 +518,7 @@ type RunContext = {
   characterId?: string;
   // --mode actor: 台本の user を「狙いのドラフト」にして俳優 LLM が台詞を生成する。
   // 未指定は scripted（従来どおり台本原文を送信）。
-  actor?: MaleActor;
+  actor?: UserActor;
 };
 
 const writeTurn = (ctx: RunContext, record: TurnRecord): void => {
@@ -644,11 +646,13 @@ const actorUserText = async (
   label: string,
   turn: number,
   scripted: ScriptedTurn,
+  persona: string | undefined,
   history: ActorExchange[],
 ): Promise<string> => {
   if (!ctx.actor) return scripted.user;
   const line = await ctx.actor.nextLine({
     beat: { intent: scripted.intent, draft: scripted.user },
+    persona,
     history,
   });
   if (line.regenerated > 0 || line.fallback)
@@ -705,7 +709,14 @@ const runCharacter = async (
     }
 
     // --mode actor: 台本の user をドラフト（狙い）にして俳優が台詞を生成する。
-    const userText = await actorUserText(ctx, entry.label, turn, scripted, exchanges);
+    const userText = await actorUserText(
+      ctx,
+      entry.label,
+      turn,
+      scripted,
+      entry.userPersona,
+      exchanges,
+    );
 
     // 段の自動判定は未実装なので、台本の段をそのまま engine に渡す（旧アプリはサーバ側で段を
     // 推定する。この分だけ v2 が有利になることは比較の但し書きに書く）。
@@ -803,16 +814,16 @@ const readRunArgs = (args: string[]): RunArgs => {
 
 // 俳優モデルは既定で Sakura と同じものを使う。V2_ACTOR_MODEL で差し替え可能
 // （例: 俳優だけ安いモデルにして台詞生成の課金を抑える）。
-const buildActor = (actorMode: boolean, model: BaseChatModel): MaleActor | undefined => {
+const buildActor = (actorMode: boolean, model: BaseChatModel): UserActor | undefined => {
   if (!actorMode) return undefined;
   const actorModel =
     process.env.V2_FAKE_MODEL === "1" || !process.env.V2_ACTOR_MODEL
       ? model
       : createOpenRouterModel({ ...process.env, V2_MODEL: process.env.V2_ACTOR_MODEL });
-  return createMaleActor(actorModel);
+  return createUserActor(actorModel);
 };
 
-const modeLabel = (actor: MaleActor | undefined): string => (actor ? "actor" : "scripted");
+const modeLabel = (actor: UserActor | undefined): string => (actor ? "actor" : "scripted");
 
 const main = async (args: string[]): Promise<void> => {
   const {
