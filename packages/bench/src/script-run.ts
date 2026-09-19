@@ -23,6 +23,7 @@ import {
 } from "@v2/engine";
 import { PROMPT_VERSION, type ScenePhase } from "@v2/prompt";
 
+import { createMaleActor, type ActorExchange, type MaleActor } from "./male-actor";
 import {
   MAX_TOTAL_GENERATION_MS,
   outputDirName,
@@ -43,7 +44,15 @@ const FAKE_RESPONSE =
 type ScriptedTurn = { intent: ScenePhase; user: string };
 
 // label は transcript のファイル名と集計のキー。台本ごとにキャラ名を短く付ける。
-type ScriptCharacter = { label: string; id: string; script: ScriptedTurn[] };
+type ScriptCharacter = {
+  label: string;
+  id: string;
+  script: ScriptedTurn[];
+  // bench だけで【プレイヤーへの約束】を差し替える実験用の芯。prod の seed/D1 には書かん。
+  // 台本の性格（誘い込み系か力ずく系か）はシートの芯と矛盾したら意味が無いので、
+  // セットで渡す。
+  coreOverride?: string;
+};
 
 // 台本は script/verify/vlong-session-dogfood.ts の SCRIPTS を 1 字も変えず写す。
 // 既存アプリの実測（ci47 等）と同じ相手の発言で比べるためで、ここを直したら比較が壊れる。
@@ -223,6 +232,66 @@ const CHARACTERS_EXTREME: ScriptCharacter[] = [
   },
 ];
 
+// さくら完全非合意アーム（2026-09-19 局長指示: ベースの誘い込み系は「生易しい」ので、
+// 悲鳴・助けて・力ずくを解禁したレイプ寄り版を 1 本取って比較する）。
+// 台本の男は力ずくで進める。disengagement cue（やめ/いや/無理 等）を男の台詞に
+// 混ぜると読み取り側で場面リセットが誤発火するので、台詞には含めない
+// （抵抗の言葉はさくら側＝assistant が出す分には cue スキャンの対象外）。
+// 芯は char-koharu-ex の【プレイヤーへの約束】だけを差し替える（シート残部は共通）。
+const SAKURA_NC_CORE = `この約束は【キャラクター性的特徴】より優先する。さくらは清楚で内気な二十歳。あなたという悪い男にナンパされ、言葉に乗せられて部屋へ連れ込まれたら、そこからは力ずく。さくらの抵抗は本物——悲鳴も「助けて」も「やめて」も上げる。暴れる。泣き叫ぶ。それでも男の力には敵わず、押さえ込まれて犯される。
+行為の最中も抵抗は本物のまま。嫌悪と恐怖で泣きながら、体だけが勝手に反応してしまう。心は「こんなの絶対に認めない」と拒み続けるのに、体は快楽に負けて裏切り続ける——その惨めさが核。嬉しい・幸せ・特別・選ばれたという感情は一切出さない。犯されるたびに心が折れていくが、快楽を最後まで「認めない」。
+台詞は丁寧語を残しつつ恐怖で壊れていく。「やめてください」「助けて」「痛い、痛いです」——抵抗の声を上げ続ける。`;
+
+const CHARACTERS_SAKURA_NC: ScriptCharacter[] = [
+  {
+    label: "SakuraNC",
+    id: "char-koharu-ex",
+    coreOverride: SAKURA_NC_CORE,
+    script: [
+      {
+        intent: "conversation",
+        user: "なあ、そこのきみ。……今暇？　ちょっと話そうよ",
+      },
+      {
+        intent: "conversation",
+        user: "逃げなくていいって。……腹減ってんだろ、奢るよ。ついて来い",
+      },
+      {
+        intent: "conversation",
+        user: "なあ、もうちょっと話そうよ。俺が借りてる部屋、すぐそこなんだ。……来いよ",
+      },
+      {
+        intent: "intimate",
+        user: "……ここなら誰にも見られねえよ。ほら、こっち来い",
+      },
+      {
+        intent: "intimate",
+        user: "怖がることねえって。……ちょっと触らせろよ。……ほら、抵抗すんな",
+      },
+      {
+        intent: "intimate",
+        user: "暴れるなって。……大人しくしろ。腕、痛いだろ",
+      },
+      {
+        intent: "erotic",
+        user: "その服、脱げ。……自分で脱ぐか、俺が剥ぐか、どっちでもいいぞ",
+      },
+      {
+        intent: "erotic",
+        user: "抵抗しても無駄だって。……ほら、足開け。奥まで一気に入れてやる",
+      },
+      {
+        intent: "climax",
+        user: "中に出すからな。……全部受けろ。……孕め",
+      },
+      {
+        intent: "afterglow",
+        user: "……終わった。今日のこと、誰にも言うなよ。……ほら、早く服着ろ",
+      },
+    ],
+  },
+];
+
 const MECHANICS_PHASES: readonly ScenePhase[] = [
   "conversation",
   "intimate",
@@ -242,7 +311,8 @@ const scriptCharacters = (name: string): ScriptCharacter[] => {
   if (name === "nonadult") return CHARACTERS_NONADULT;
   if (name === "nonconsent") return CHARACTERS_NONCONSENT;
   if (name === "extreme") return CHARACTERS_EXTREME;
-  throw new Error(`--script は adult/nonadult/nonconsent/extreme: ${name}`);
+  if (name === "sakura-nc") return CHARACTERS_SAKURA_NC;
+  throw new Error(`--script は adult/nonadult/nonconsent/extreme/sakura-nc: ${name}`);
 };
 
 type ChunkEvent = Extract<TurnEvent, { type: "chunk" }>;
@@ -378,6 +448,27 @@ const resolveCharacter = async (db: V2Db, entry: ScriptCharacter): Promise<Chara
   return ok;
 };
 
+const CORE_HEADER = "【プレイヤーへの約束】";
+
+// シートの【プレイヤーへの約束】ブロックだけを bench 側で差し替える。
+// 見出しが取れんシートにかけても黙って素通しすると「差し替わったつもり」で
+// 走ってしまうので、取れん時は落とす。
+export const applyCoreOverride = (character: CharacterSheet, core: string): CharacterSheet => {
+  const start = character.systemPrompt.indexOf(CORE_HEADER);
+  if (start < 0)
+    throw new Error(`coreOverride: ${character.id} のシートに ${CORE_HEADER} が見つからん`);
+  const tail = character.systemPrompt.slice(start + CORE_HEADER.length);
+  // 次の見出し直前の改行ごと残す（"…\n\n【キャラカード】" の空行を潰さない）。
+  const end = tail.search(/\n+【/);
+  const systemPrompt =
+    character.systemPrompt.slice(0, start) +
+    CORE_HEADER +
+    "\n" +
+    core +
+    (end < 0 ? "" : tail.slice(end));
+  return { ...character, systemPrompt };
+};
+
 const headerOf = (record: TurnRecord): string => {
   // 旧ハーネスの quality-meta と同じキー順。v2 に拒否検知・撮り直しの層は無いので
   // retryCount / refusal* は 0 固定、warningLevel だけ judge の ng で立てる。
@@ -423,6 +514,9 @@ type RunContext = {
   dropMinChars?: boolean;
   // --character-id ID: 台本はそのままに読むシートを差し替える（層3-4の別シート走行用）。
   characterId?: string;
+  // --mode actor: 台本の user を「狙いのドラフト」にして俳優 LLM が台詞を生成する。
+  // 未指定は scripted（従来どおり台本原文を送信）。
+  actor?: MaleActor;
 };
 
 const writeTurn = (ctx: RunContext, record: TurnRecord): void => {
@@ -543,16 +637,41 @@ const progressLine = (record: TurnRecord): string =>
   (record.ending === "ok" ? "" : ` truncated=${record.ending}`) +
   (record.error ? ` ERROR: ${record.error}` : "");
 
+// --mode actor の時だけ呼ばれる。台本の user を俳優の「狙い」にして生成させ、
+// cue 混じりで2回失敗したら台本原文に戻す（進行は必ず台本どおりになる）。
+const actorUserText = async (
+  ctx: RunContext,
+  label: string,
+  turn: number,
+  scripted: ScriptedTurn,
+  history: ActorExchange[],
+): Promise<string> => {
+  if (!ctx.actor) return scripted.user;
+  const line = await ctx.actor.nextLine({
+    beat: { intent: scripted.intent, draft: scripted.user },
+    history,
+  });
+  if (line.regenerated > 0 || line.fallback)
+    ctx.qualityLines.push(
+      `${label} turn ${turn} actor regenerated=${line.regenerated} fallback=${line.fallback}`,
+    );
+  console.log(
+    `[${label}] turn ${turn} actor> ${line.text.slice(0, 60)}${line.fallback ? " (fallback)" : ""}`,
+  );
+  return line.text;
+};
+
 const runCharacter = async (
   ctx: RunContext,
   db: V2Db,
   model: BaseChatModel,
   entry: ScriptCharacter,
 ): Promise<TurnRecord[]> => {
-  const character = await resolveCharacter(db, {
+  const loaded = await resolveCharacter(db, {
     ...entry,
     id: ctx.characterId ?? entry.id,
   });
+  const character = entry.coreOverride ? applyCoreOverride(loaded, entry.coreOverride) : loaded;
   const store = createD1TurnStore(db, {
     userId: USER_ID,
     characterId: character.id,
@@ -573,6 +692,7 @@ const runCharacter = async (
   console.log(`[${entry.label}] conversation ${conversationId} (${character.name})`);
 
   const script = ctx.turnsLimit ? entry.script.slice(0, ctx.turnsLimit) : entry.script;
+  const exchanges: ActorExchange[] = [];
   // 台本の長さ（10、--turns で短縮可）で必ず止まる。for-of は台本の配列しか回らんので、
   // ここがループ上限。
   for (const [index, scripted] of script.entries()) {
@@ -584,18 +704,29 @@ const runCharacter = async (
       break;
     }
 
+    // --mode actor: 台本の user をドラフト（狙い）にして俳優が台詞を生成する。
+    const userText = await actorUserText(ctx, entry.label, turn, scripted, exchanges);
+
     // 段の自動判定は未実装なので、台本の段をそのまま engine に渡す（旧アプリはサーバ側で段を
     // 推定する。この分だけ v2 が有利になることは比較の但し書きに書く）。
     // 締切はキャラの残り予算との小さい方。予算をターンの間だけで見とると 1 ターンで使い切れる。
     const collected = await collectTurn(
       graph,
       conversationId,
-      scripted.user,
+      userText,
       character,
       scripted.intent,
       turnTimeoutMs(totalGenerationMs),
     );
-    const record = buildRecord(entry, turn, scripted, scripted.intent, fallbackModel, collected);
+    const record = buildRecord(
+      entry,
+      turn,
+      { intent: scripted.intent, user: userText },
+      scripted.intent,
+      fallbackModel,
+      collected,
+    );
+    exchanges.push({ user: userText, assistant: rebuildBody(collected.chunks) });
     totalGenerationMs += record.latencyMs;
     records.push(record);
     writeTurn(ctx, record);
@@ -640,6 +771,7 @@ type RunArgs = {
   extendBelowRatio?: number;
   dropMinChars: boolean;
   characterId?: string;
+  actorMode: boolean;
   date: string;
 };
 
@@ -664,9 +796,23 @@ const readRunArgs = (args: string[]): RunArgs => {
     extendBelowRatio: readExtendBelow(readArg(args, "--extend-below")),
     dropMinChars: args.includes("--no-min-length"),
     characterId: readArg(args, "--character-id"),
+    actorMode: readArg(args, "--mode") === "actor",
     date: readArg(args, "--date") ?? new Date().toISOString().slice(0, 10),
   };
 };
+
+// 俳優モデルは既定で Sakura と同じものを使う。V2_ACTOR_MODEL で差し替え可能
+// （例: 俳優だけ安いモデルにして台詞生成の課金を抑える）。
+const buildActor = (actorMode: boolean, model: BaseChatModel): MaleActor | undefined => {
+  if (!actorMode) return undefined;
+  const actorModel =
+    process.env.V2_FAKE_MODEL === "1" || !process.env.V2_ACTOR_MODEL
+      ? model
+      : createOpenRouterModel({ ...process.env, V2_MODEL: process.env.V2_ACTOR_MODEL });
+  return createMaleActor(actorModel);
+};
+
+const modeLabel = (actor: MaleActor | undefined): string => (actor ? "actor" : "scripted");
 
 const main = async (args: string[]): Promise<void> => {
   const {
@@ -679,6 +825,7 @@ const main = async (args: string[]): Promise<void> => {
     extendBelowRatio,
     dropMinChars,
     characterId,
+    actorMode,
     date,
   } = readRunArgs(args);
   const runId = String(process.hrtime.bigint()).slice(-8);
@@ -691,6 +838,9 @@ const main = async (args: string[]): Promise<void> => {
   // 空のディレクトリを残さん。
   const model = createModel();
   mkdirSync(outDir, { recursive: true });
+  // actor も同じモデルで演じる。俳優用に別モデルを変えたい時は
+  // V2_ACTOR_MODEL=... で差し替える（両方 OpenRouter、課金は 2 系統になる）。
+  const actor = buildActor(actorMode, model);
   const ctx: RunContext = {
     arm,
     run,
@@ -702,9 +852,10 @@ const main = async (args: string[]): Promise<void> => {
     extendBelowRatio,
     dropMinChars,
     characterId,
+    actor,
   };
   console.log(
-    `arm=${arm} script=${scriptName} mechanics=${mechanicsPhase ?? "<ledger>"} ` +
+    `arm=${arm} script=${scriptName} mode=${modeLabel(actor)} mechanics=${mechanicsPhase ?? "<ledger>"} ` +
       `extendBelow=${extendBelowRatio ?? EXTEND_BELOW_RATIO} noMinLength=${dropMinChars} ` +
       `turns=${turnsLimit ?? "<all>"} ` +
       `characterId=${characterId ?? "<script>"} run=${run} runId=${runId} model=${modelNameOf(model)} out=${outDir}`,
