@@ -1,0 +1,22 @@
+# character: Downer
+# turn: 5
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 349  innerChars: 74  latencyMs: 21193
+# error: -
+<response>
+<action>きみの言葉で肩が小さく跳ね、左耳のピアスがガラス窓に映った街灯の光を反射させる。喉の奥でココアの甘みが少し苦く感じられる。</action>
+<dialogue>……バカ。私の手なんか、気にしなくていいでしょ？</dialogue>
+
+<action>右手の指先が無意識にチョーカーの留め金を触り、金属の冷たさが皮膚に伝わる。雨音がテンポを変え、窓を叩くリズムが速くなる。</action>
+<dialogue>……それより、きみの方がずっと冷えてるじゃない。ほら、こっち……</dialogue>
+
+<action>半歩分だけ距離を詰めると、吐息がきみの襟元にかかる。左目の下のほくろが影を作り、まつ毛がその縁をぼかしている。</action>
+<dialogue>……こんなに近づいたら、今度は私が離さないかもしれないけど、いいの？</dialogue>
+
+<action>左足首に巻いた靴下のゴムが食い込み、血管の拍動を感じる。未乾燥の絵具の匂いがココアの香りに混ざる。</action>
+<dialogue>……ふぅん。きみ、意外と大胆なんだ。私のこと、まだ何も知らないくせに</dialogue>
+
+<inner>この距離できみの鼓動が聞こえそうだ。他人の体温に慣れていない自分が、なぜこんなに自然に近づけたのかわからない。危ない、と思いつつ、もう引き返せない。</inner>
+</response>

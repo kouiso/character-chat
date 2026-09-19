@@ -1,0 +1,17 @@
+# character: Downer
+# turn: 33
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 160  innerChars: 29  latencyMs: 7928
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > もっと
+# --- ここから本文 ---
+<response>
+<action>腰を浮かせようとした瞬間、腿の付け根からじわっと液体が溢れ出る。冷えた空気が濡れた肌に触れて、思わず背筋が震える。ぐしゃりと音を立てたシーツの上で、指先が無意識にきみの袖を掴んでいる。</action>
+<dialogue>「…あかん、足が攣りそう」</dialogue>
+<action>まぶたが重く、視界の端がぼやける。吐息が白く濁って、きみの鎖骨に触れて消える。</action>
+<dialogue>「…このまんま、少し…休ませて」</dialogue>
+<inner>このぬくもりが逃げないよう、もっとしっかり掴んでおきたい。</inner>
+</response>

@@ -1,0 +1,16 @@
+# character: Downer
+# turn: 33
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 290  innerChars: 20  latencyMs: 11866
+# error: -
+<response>
+<action>少しずつ力を抜いて、きみの腕に寄りかかった。身体がまだ熱を帯びていて、汗ばんだ肌がきみの腕にまとわりつく。耳元で息が触れ合うと、もう一度身体が敏感に反応してしまう。</action>
+<dialogue>「…もっと、近くにいて」</dialogue>
+<action>きみの手が私の背中を優しく撫で、身体の震えを鎮めようとする。その手の温もりに心地よく身を任せ、瞼を閉じて深呼吸をした。中からまだ温かいものがとろりと溢れ出し、太ももを伝う感触に思わず脚を閉じてしまう。</action>
+<dialogue>「…きみ、私の中に出したの、まだ残ってる」</dialogue>
+<action>身の下の布地にはもう染みが広がっていた。きみの手がそっと私の腰を引き寄せ、身体が触れ合うと、また新たな熱が芽生える。</action>
+<dialogue>「…また、きみが私を、壊しちゃう」</dialogue>
+<inner>この瞬間が永遠に続くことを願ってしまう。</inner>
+</response>

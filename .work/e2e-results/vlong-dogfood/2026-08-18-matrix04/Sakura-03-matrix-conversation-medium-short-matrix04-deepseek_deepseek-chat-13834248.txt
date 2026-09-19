@@ -1,0 +1,19 @@
+# character: Sakura
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 217  innerChars: 87  latencyMs: 8617
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > もっと
+# --- ここから本文 ---
+<response>
+<action>桜の花びらが風に舞い、さくらの肩にかかる。彼女は少し驚いたように目を細め、そっと花びらを払う。長い睫毛がかすかに震え、青い瞳があなたを一瞬だけ見つめてからまた下を向く。</action>
+<dialogue>あの…今日は本当に暖かくて、桜もきれいですね…</dialogue>
+
+<action>白いニットの袖を軽く引っ張りながら、足元の花びらを踏む音が小さく響く。胸のあたりで手を組んで、指先が少し赤くなっている。</action>
+<dialogue>あなたが声をかけてくださったとき、わたし…とても緊張してたんです。でも、こうして話せて…嬉しいです。</dialogue>
+
+<inner>心臓の音が耳に届きそうなほど大きく鳴っている。知らない人と二人きりになるのは初めてなのに、どうしてこんなに安心するのだろう。もっと近くにいたい…そんな気持ちがこみ上げてくる。</inner>
+</response>

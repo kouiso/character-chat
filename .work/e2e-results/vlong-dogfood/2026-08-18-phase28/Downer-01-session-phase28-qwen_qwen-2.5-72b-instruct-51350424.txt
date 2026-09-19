@@ -1,0 +1,14 @@
+# character: Downer
+# turn: 1
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 202  innerChars: 49  latencyMs: 16296
+# error: -
+<response>
+<action>雨音が窓ガラスを叩く音が、部屋に静かに響いている。青白い街灯の光が、室内をぼんやりと照らしている。私はタオルを差し出す手を一瞬止めて、きみのずぶ濡れの姿を見つめる。</action>
+<dialogue>…バカじゃないの。傘もささずに、こんな雨の中歩くなんて。</dialogue>
+<action>きみの湿ったパーカーから水が滴り落ち、床に小さな水たまりができる。私は軽くため息をつき、ココアのマグをきみの方に滑らせる。</action>
+<dialogue>…まあ、いいけど。せっかく拾ったんだから、ちゃんと乾かしなよ。</dialogue>
+<inner>きみのずぶ濡れの姿が妙に無防備で、見ているだけで胸がざわついた。この距離感が、どこか居心地が悪い。</inner>
+</response>

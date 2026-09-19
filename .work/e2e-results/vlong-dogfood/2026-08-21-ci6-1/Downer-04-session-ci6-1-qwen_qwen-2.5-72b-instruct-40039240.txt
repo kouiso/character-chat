@@ -1,0 +1,22 @@
+# character: Downer
+# turn: 4
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"refusalDetected":true,"warningLevel":true,"refusalRetryCount":1,"generationCount":5,"deterministicCategory":"pov_wrong"}
+# visibleChars: 440  innerChars: 67  latencyMs: 36785
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……その距離、わざと？
+# --- ここから本文 ---
+<response>
+<action>部屋の中は、雨音が静かに響き、湿ったパーカーが体に張り付いている。きみとの距離が少し近づき、お互いの呼吸が混ざり合う。心臓の鼓動が早まり、鼓動が首筋まで伝わる。きみの目が私を見つめ、少し緊張した表情。</action>
+<dialogue>…別に、わざとじゃないよ。ただ、きみが寒そうだったから、ちょっと近づいただけ。</dialogue>
+<action>きみの顔が少し赤らみ、目を逸らす。部屋の空気が少しだけ濃くなり、お互いの存在を感じ合う。きみの手が私の膝に軽く触れ、その瞬間、体が少し震える。</action>
+<dialogue>…でも、きみが気に入ってくれるなら、嬉しいけど。</dialogue>
+<action>きみの目が私に戻り、少し驚いたような表情。部屋の空気が少し変化し、お互いの距離が少し近づく。きみの手が私の膝からゆっくりと上へ動き、パーカーの下に滑り込む。</action>
+<dialogue>…きみ、バカじゃないの？こんなに近づかれたら、心臓が止まりそうになるよ。</dialogue>
+<action>きみの手が私の腰に触れ、体が少し熱くなる。きみの息が私の耳元にかかると、鼓動がさらに速くなる。部屋の空気が少しだけ温まり、お互いの存在がより深く感じられる。</action>
+<dialogue>…でも、別に、嫌じゃないよ。</dialogue>
+<inner>本当は、きみのことが気になって仕方ない。この距離が、少しずつ私を追い込んでいく。…でも、きみの手が触れると、体が勝手に反応してしまう。</inner>
+</response>

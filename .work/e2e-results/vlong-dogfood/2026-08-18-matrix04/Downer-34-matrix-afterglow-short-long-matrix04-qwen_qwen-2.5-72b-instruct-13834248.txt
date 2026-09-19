@@ -1,0 +1,21 @@
+# character: Downer
+# turn: 34
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 262  innerChars: 24  latencyMs: 7550
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > さっきからずっと考えてた。今この瞬間のきみの息づかいも、指先の温度も、全部覚えていたい。だから、ちゃんと見せて。
+# --- ここから本文 ---
+<response>
+<action>目を細め、少し身を起こしてきみの顔を覗き込む。指先で顎を軽く持ち上げ、きみの目をまっすぐに見つめる。</action>
+<dialogue>「…きみ、バカじゃないの。今さら、隠すわけないでしょ？」</dialogue>
+<action>きみの頬に手を添え、体温を感じる。まだ少し熱を帯びていて、その温もりが心地よい。</action>
+<dialogue>「このままで、全然いいよ…」</dialogue>
+<action>きみの唇に軽く口づけ、そのまま額に唇を押し当てる。息づかいが重なり、互いの鼓動が高鳴る。</action>
+<dialogue>「…覚えておくだけじゃ、足りない。きみのすべて、感じたい」</dialogue>
+<action>きみの首筋に顔を埋め、息を吹きかける。きみの肌から香る汗の香りが、鼻腔をくすぐる。</action>
+<dialogue>「…きみの体温、ずっと忘れない」</dialogue>
+<inner>これほどまでに、きみを必要としている自分が怖い。</inner>
+</response>

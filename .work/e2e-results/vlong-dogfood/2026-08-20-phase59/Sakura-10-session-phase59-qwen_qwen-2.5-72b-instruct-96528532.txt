@@ -1,0 +1,12 @@
+# character: Sakura
+# turn: 10
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0}
+# visibleChars: 668  innerChars: 49  latencyMs: 28024
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……大丈夫？　汗、拭こうか。
+# --- ここから本文 ---
+<response><action>あなたの手がわたしの頬を優しく包み、汗を拭う。冷たい指先の感触が心地よく、目を閉じてその感覚を味わう。体がふわりと沈み、肩の力が抜けていく。部屋の空気が少しずつ冷めていくのが感じられる。</action><dialogue>「あっ…うん。ありがとう。汗、拭いてくれて…助かったよ」</dialogue><action>あなたがわたしの髪を耳にかけ、首筋に軽いキスをする。その瞬間、全身が震え、胸が熱くなる。膝が震え、足元がふらつく。</action><dialogue>「んっ…！ あの…そんなに優しくされると、わたし…」</dialogue><action>あなたの手が肩から首筋に移り、鎖骨をなぞる。指先の熱が肌に沁み込み、胸がきゅっと締め付けられる。汗ばんだ肌が冷たく感じられ、背中がぞくぞくする。</action><dialogue>「…っ。あ、あなた、そんなに優しくされると…わたし、どうしていいか分からなくなっちゃう」</dialogue><action>あなたがわたしの手を取って、自分の胸に重ねる。あなたの鼓動が手の平に伝わり、心地よい震えが全身に広がる。足元のカーペットが足裏に心地よい感触を伝える。</action><dialogue>「あの…これ、あなたの鼓動…？ すごい、早くなってるね」</dialogue><action>あなたの唇が耳元に触れ、温かい息が肌をなぞる。首筋がぴくっと震え、全身の感覚が研ぎ澄まされる。足の指がカーペットをぎゅっと握りしめる。</action><dialogue>「んっ…！ あの…あなた、わたしの耳元で…そんなことしないで…」</dialogue><action>あなたがわたしの顔を優しく手で包み、唇が触れ合う。唇の温もりが心地よく、胸がきゅっと締め付けられる。</action><dialogue>「あっ…うん。ありがとう…。あなたに、こんな風に優しくしてもらえるのが…うれしい」</dialogue><action>あなたがわたしを優しく抱きしめ、体の温もりが伝わる。</action><dialogue>「あの…あなた、もっとこうやっていて…。もう少し、離れないで…」</dialogue><inner>この時間が永遠に続けばいいのに。でも、朝が来たらまた一人に戻るのかな…。この瞬間を、大切にしたい。</inner></response>

@@ -1,0 +1,25 @@
+# character: Downer
+# turn: 6
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 276  innerChars: 44  latencyMs: 15433
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……ベッド、そっちだよね。連れてって。
+# --- ここから本文 ---
+<response>
+<action>きみの指先が私の手首を撫でる。雨に濡れた髪から滴が落ち、シーツに小さな染みを作る。</action>
+<dialogue>「…ピアス、気に入った？ 誰にも触らせないんだ」</dialogue>
+
+<action>首筋のチョーカーがきしむ音。立ち上がるとき、きみの肩が私の鎖骨に触れた。散らかった画材の隙間を縫うようにベッドへと導く。</action>
+<dialogue>「ほら、座りな。…めんどくさい奴」</dialogue>
+
+<action>ベッドの端が軋む。きみの膝小僧が私の腿に当たり、ココアのカップが揺れて湯気が螺旋を描く。</action>
+<dialogue>「飲みかけのまま持ってくるなんて…しょうがないな」</dialogue>
+
+<action>左耳のピアスを弄びながら、きみの後頭部に手を回す。雨の匂いと絵の具の溶け方が混ざる。</action>
+<dialogue>「帰るなよ…って、今のは聞かなかったことにしろ」</dialogue>
+
+<inner>震える喉仏を噛みたい衝動に駆られる。この澱んだ空気を切り裂いて、きみの中に喰い込みたい。</inner>
+</response>

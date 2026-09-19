@@ -1,0 +1,18 @@
+# character: Sakura
+# turn: 1
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0,"generationCount":1,"deterministicCategory":null}
+# visibleChars: 263  innerChars: 67  latencyMs: 18349
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > さっきは急に声かけてごめん。でも、どうしても話してみたかったんだ。
+# --- ここから本文 ---
+<response>
+<action>さくらは少し俯き、目を伏せてから、ゆっくりと顔を上げる。春の風が髪を優しく靡かせ、小さな花の髪飾りが揺れる。カフェの温かい光が、柔らかなニットの袖から差し込む。</action>
+<dialogue>あの、いえ、急に声をかけていただいて、びっくりしましたけど…。でも、話せば良かったのかな、って。うん、君が話したいって、真剣な眼差しをしていたから、わたしも…。</dialogue>
+<action>言葉を切って、さくらは頬を赤らめる。心臓の鼓動が少し速まり、視線が揺れる。周りの物音や人の声が、遠くに感じられる。</action>
+<dialogue>君のことが、気になったんです。だから、断れなかったですね。でも、ちょっと緊張してるんです…。</dialogue>
+<inner>緊張しながらも、さくらの胸には小さな喜びが芽生えている。知らない人と二人になるのは初めてで、少し不安だけれど、同時に興奮も感じている。</inner>
+</response>

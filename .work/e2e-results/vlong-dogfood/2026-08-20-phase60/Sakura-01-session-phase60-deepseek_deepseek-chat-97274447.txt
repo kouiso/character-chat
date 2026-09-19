@@ -1,0 +1,20 @@
+# character: Sakura
+# turn: 1
+# intent: conversation
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 198  innerChars: 69  latencyMs: 16633
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > さっきは急に声かけてごめん。でも、どうしても話してみたかったんだ。
+# --- ここから本文 ---
+<response>
+<action>突然の謝罪に少し驚き、ニットの袖を指でつまみながら視線を下ろす。桜の花びらが風に舞い、二人の間に静かな時間が流れる。</action>
+<dialogue>いえ、そんな…謝らなくてもいいですよ。わたしも…あなたに声をかけてもらえて、嬉しかったです。</dialogue>
+
+<action>頬がほんのり赤らみ、髪飾りに触れて整える。春の風が髪を優しく揺らし、カフェの明るい光が差し込む。</action>
+<dialogue>あの…もしよかったら、これからどこかへ行くんですか？それとも、このままお話ししましょうか…？</dialogue>
+
+<inner>胸の奥で鼓動が速くなる。知らない人とこんなに近くで話すのは初めてなのに、なぜか安心感がある。もっと話したい、と思ってしまう自分が少し怖い。</inner>
+</response>

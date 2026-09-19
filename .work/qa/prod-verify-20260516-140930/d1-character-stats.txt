@@ -1,0 +1,36 @@
+
+ ⛅️ wrangler 4.76.0 (update available 4.92.0)
+─────────────────────────────────────────────
+Resource location: remote 
+
+🌀 Executing on preview database adult-ai-db (b617800c-cf4c-4122-adbb-ce872a258da6):
+🌀 To execute on your local development database, remove the --remote flag from your wrangler command.
+🚣 Executed 1 command in 0.69ms
+[
+  {
+    "results": [
+      {
+        "total": 189,
+        "has_avatar": 189
+      }
+    ],
+    "success": true,
+    "meta": {
+      "served_by": "v3-prod",
+      "served_by_region": "APAC",
+      "served_by_colo": "KIX",
+      "served_by_primary": true,
+      "timings": {
+        "sql_duration_ms": 0.691
+      },
+      "duration": 0.691,
+      "changes": 0,
+      "last_row_id": 0,
+      "changed_db": false,
+      "size_after": 925696,
+      "rows_read": 189,
+      "rows_written": 0,
+      "total_attempts": 1
+    }
+  }
+]

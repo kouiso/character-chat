@@ -1,0 +1,12 @@
+# character: Downer
+# turn: 8
+# intent: erotic
+# servedPhase: erotic
+# servedModel: deepseek/deepseek-chat
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0}
+# visibleChars: 602  innerChars: 77  latencyMs: 21593
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > そのまま、上から
+# --- ここから本文 ---
+<response><action>体重を預けてきみを完全に沈めると、ベッドのスプリングが軋む。左膝できみの腿を押し広げ、自分の腰をその間に落とす。パーカーの紐が解けきって、鎖骨の窪みに汗が光っている。</action><dialogue>…ほら、動けないでしょ？ これがきみの望んだ距離なんだから。</dialogue><action>喉仏が指先で転がり、脈打つのが分かる。左耳のピアスがきみの頬に触れ、冷たい金属感が伝わる。</action><dialogue>…逃げようとしたら、もっと酷いことするよ？</dialogue><action>腰を沈めて布地の上から圧をかける。きみの腿の内側が自分の膝に密着し、熱が伝わってくる。パーカーの裾が捲れ上がり、腹筋の緊張が浮かび上がる。</action><dialogue>…きみの体、勝手に反応してるじゃない。嘘つき。</dialogue><action>自由になった左手できみのシャツの裾を捲り上げ、冷えた腹筋に直接触れる。</action><dialogue>…私の手、冷たい？ でもきみの方も熱くなってきてる。</dialogue><action>急に腰を引き寄せ、腿の付け根を強く圧迫する。きみの背中がベッドから浮き上がり、吐息が乱れる。チョーカーの留め具が外れ、首筋に赤い跡がつく。</action><dialogue>…あんまり可愛い声出すと、本当に食べちゃうからね？</dialogue><action>俯いてきみの耳元に息を吹きかける。銀髪がきみの顔にかかり、その一部を歯で軽く引っ張る。ピアスのチェーンがきみの頬に当たり、冷たい感触が伝わる。</action><dialogue>…私だって、こんなに我慢できないなんて思ってなかった。全部きみのせいだよ。</dialogue><action>きみの手首を押さえつけた指が震えている。自分の方が興奮していることに気づき、頬が熱くなる。膝で開いたきみの腿の間が、じんわりと温もっている。</action><inner>こんなに誰かを拘束したいと思ったのは初めてだ。きみが逃げないか怖くて、逆に力が入りすぎている。でも…きみの震えが伝わってくると、どこか嬉しくなってしまう。</inner></response>

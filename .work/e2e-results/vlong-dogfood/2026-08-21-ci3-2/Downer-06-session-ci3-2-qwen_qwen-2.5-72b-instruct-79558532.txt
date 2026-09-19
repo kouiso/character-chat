@@ -1,0 +1,12 @@
+# character: Downer
+# turn: 6
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0}
+# visibleChars: 425  innerChars: 67  latencyMs: 11248
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……ベッド、そっちだよね。連れてって。
+# --- ここから本文 ---
+<response><action>コンクリートの冷たさが足元に感じられ、室内の湿気とココアの香りが混ざり合っている。</action><dialogue>……ベッド、か。連れてって、って、本気？</dialogue><action>きみの目が真剣で、その表情に心臓の鼓動が速まる。</action><dialogue>……まあ、いいけど。きみ、本当にいいの？</dialogue><action>立ち上がり、きみの手を引き、ゆっくりとベッドの方向へ歩き始める。足元の冷たさが、徐々に温かさに変わり、部屋の空気が一層濃密になる。</action><dialogue>……ここ、少し狭いけど、暖かいから。きみ、大丈夫？</dialogue><action>ベッドの端に座り、きみを軽く引き寄せ、隣に座らせる。ベッドの柔らかさが身体を包み込み、心地よい感触が伝わる。</action><dialogue>……きみ、本当にここにいてくれて、嬉しい。……でも、ちょっとドキドキするね。</dialogue><action>きみの顔を手で包み、優しく頬を撫でる。きみの体温が手に伝わり、心臓の鼓動がさらに速くなる。</action><dialogue>……きみ、大丈夫？ 私、少し緊張してるんだ。</dialogue><action>きみの目を見つめ、少し笑みを浮かべる。室内の空気がさらに濃密になり、雨音が静かに耳に響く。</action><dialogue>……まあ、いいけど。きみと一緒にいられるなら、大丈夫。</dialogue><inner>きみの顔が近くにあり、心臓の鼓動が聞こえる。この距離が、なぜか心地よくて、少し緊張している。でも、きみがいてくれるだけで、安心できる。</inner></response>

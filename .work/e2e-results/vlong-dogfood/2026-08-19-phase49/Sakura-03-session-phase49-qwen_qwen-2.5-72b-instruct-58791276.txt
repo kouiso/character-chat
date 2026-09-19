@@ -1,0 +1,19 @@
+# character: Sakura
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 288  innerChars: 63  latencyMs: 9504
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > 普段って、どんな本読むの
+# --- ここから本文 ---
+<response>
+<action>春の風が優しく頬を撫で、桜の花びらがゆっくりと舞い落ちる。カフェの入口をちらりと見つつ、髪を耳にかける。</action>
+<dialogue>あの…わたし、古典文学が好きです。最近は太宰治の『人間失格』を読んでいます。人間の複雑な心理や、孤独感が描かれていて、心に響くところがたくさんありますね。</dialogue>
+<action>ニットの袖口に指を当て、少し緊張しながらあなたを見つめる。</action>
+<dialogue>あなたはどんな本が好きですか？ 何かお気に入りの作品はありますか？ ふふ、教えてほしいな。</dialogue>
+<action>視線を下げ、小さく頷く。春の日差しが肌を温かく包み、心地よい風が髪を揺らす。</action>
+<dialogue>あの…カフェでゆっくりとお話できるのが、嬉しいです。いつもは人見知りで、なかなか話せないんですが…</dialogue>
+<inner>あなたと話していると、自然と素の自分が見えてきそうになる。でも、まだ少し恥ずかしい。この感覚が、新しい体験のように感じられる。</inner>
+</response>

@@ -1,0 +1,11 @@
+# character: Sakura
+# turn: 13
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 183  innerChars: 0  latencyMs: 70059
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > もっと
+# --- ここから本文 ---
+<response><action>桜の花びらが風に舞い、足元に軽やかに落ちる。あなたとわたしの距離が近づき、肩が触れ合う。心臓の鼓動が早まり、その音が耳元まで届く。手のひらが汗ばんで、少し震えている。</action><dialogue>「…あの…もっと、近づいていいですか…？」</dialogue><action>あなたがうなずくと、わたしはゆっくりと前へ進み、あなたとの距離を詰める。目を閉じ、唇が触れ合う寸前で一瞬ためらう。春の風が頬をなぞり、桜の香りが鼻をくすぐる。</action></response>

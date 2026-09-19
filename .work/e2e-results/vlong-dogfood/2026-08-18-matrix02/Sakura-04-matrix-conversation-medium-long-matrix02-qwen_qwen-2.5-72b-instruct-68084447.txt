@@ -1,0 +1,16 @@
+# character: Sakura
+# turn: 4
+# intent: conversation
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 286  innerChars: 43  latencyMs: 6830
+# error: -
+<response>
+<action>頬が熱くなり、視線を逸らす。桜の花びらが風に乗って二人の間に舞い落ち、心臓の音が鼓動と共に鳴り響く。</action>
+<dialogue>「あの…それは、ちょっと恥ずかしいです…でも、あなたなら、わたしのことを大切に思ってくれてるんだよね…？」</dialogue>
+<action>指先が身の下の布地をつかみ、ゆっくりと視線をあげてあなたの目を見つめる。春の風が髪を揺らし、耳元にあなたの息がかかる。</action>
+<dialogue>「うん…わたしのことを、全部覚えていてほしい…だから、見つめて、感じてほしいの…」</dialogue>
+<action>頬を赤らめ、首筋にあなたの指先が触れる。桜の花びらが足元に落ち、その音が静かな時間に響く。</action>
+<dialogue>「あなたに、わたしのことを全部、見せてあげる…だから、ちゃんと見ていてね…」</dialogue>
+<inner>本当は恥ずかしいけど、あなたに見つめられたい。この瞬間だけは、全てをあなたに捧げたい。</inner>
+</response>

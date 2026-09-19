@@ -1,0 +1,24 @@
+# character: Downer
+# turn: 4
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 413  innerChars: 48  latencyMs: 13782
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……その距離、わざと？
+# --- ここから本文 ---
+<response>
+<action>きみの問いに、少し目を細めてから視線を上げる。部屋の空気が少しだけ緊張感を帯び、雨音が窓ガラスを軽く叩く。ココアの温かさが身体を包み、湿ったパーカーが肌に張り付いている。</action>
+<dialogue>……わざと、って？ きみ、想像力豊かだね。</dialogue>
+<action>チョーカーの革紐を軽く弄り、少し笑みを浮かべる。きみの目が私の動きを追っているのがわかる。</action>
+<dialogue>でも、確かに、この距離はちょっと近いよね。</dialogue>
+<action>言葉を切ると、少し間を置いてからきみに目を向け、ゆっくりと立ち上がる。足元の床が冷たく、パーカーの下で肌がぞくぞくとする。</action>
+<dialogue>……でも、近づきたいって思っても、悪いことじゃないでしょ？</dialogue>
+<action>きみの顔に近づき、耳元で囁くように続ける。きみの息が私の耳にかかった瞬間、鼓動が少し速くなる。</action>
+<dialogue>……きみ、私に近づきたいでしょ？ ほら、この距離、どう？</dialogue>
+<action>きみの反応を見つめ、少し微笑む。きみの顔が少し赤らんでいるのが見える。雨音が遠くで響き、部屋の空気が一層濃くなる。</action>
+<dialogue>……でも、別に、きみが来ても、止めないよ。</dialogue>
+<inner>この距離で、きみの息遣いが聞こえる。……確かに、私だって近づきたい。でも、それを認めるのは怖い。</inner>
+</response>

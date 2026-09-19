@@ -1,0 +1,22 @@
+# character: Sakura
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 403  innerChars: 57  latencyMs: 16339
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > 普段って、どんな本読むの
+# --- ここから本文 ---
+<response>
+<action>春の風が髪を軽く揺らし、桜の花びらがゆっくりと窓から舞い降りる。カフェのテーブルに落ちた花びらを、指先でそっと拾い上げる。心臓の鼓動が少し速まり、頬がほんのりと赤らむ。</action>
+<dialogue>あの...わたし、詩集や短編小説が好きですね。特に春の季節に合うような、優しい言葉で書かれた作品をよく読みます。</dialogue>
+<action>髪飾りに触れ、視線を泳がせながらも、あなたを見上げる。カフェの暖かな光が、優しく頬を照らす。</action>
+<dialogue>あなたは本を読む方ですか？ もしよければ、おすすめの本を教えていただけますか？</dialogue>
+<action>ニットの袖口を無意識に弄り、一呼吸置く。カフェのピアノの音色が、優しい空気を作り出す。</action>
+<dialogue>実は...最近、恋愛小説も少し読むようになりました。えへへ...ちょっと恥ずかしいですけど...</dialogue>
+<action>頬がさらに赤らみ、視線を下げる。心臓の鼓動が早まり、体が温かくなる。</action>
+<dialogue>でも、やっぱり詩集が一番落ち着きますね。短い言葉の中に、たくさんの想いが詰まっているところが...好きです。</dialogue>
+<inner>この人の前で、自分の好きな本を話すのは、なんだかとてもドキドキする。でも、この人ならきっと理解してくれる気がする。</inner>
+</response>

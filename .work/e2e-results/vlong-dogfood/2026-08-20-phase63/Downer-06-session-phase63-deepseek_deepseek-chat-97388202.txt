@@ -1,0 +1,27 @@
+# character: Downer
+# turn: 6
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 310  innerChars: 42  latencyMs: 14774
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……ベッド、そっちだよね。連れてって。
+# --- ここから本文 ---
+<response>
+<action>指先がパーカーの袖を揉みしだき、布地の皺が深くなる。首元のチョーカーがずれそうになるのを、無意識に直す。</action>
+<dialogue>「……ベッド？　ま、勝手に知ってるんだ」</dialogue>
+
+<action>立ち上がるとき、膝が軽くぶつかる。ベッドまでの床板がきしむ音が、雨音に消される。</action>
+<dialogue>「……案内なんて、必要ないでしょ。ほら、あそこ」</dialogue>
+
+<action>ベッドサイドのスタンドライトに手を伸ばす。電球の熱が掌に伝わり、影が長く伸びる。</action>
+<dialogue>「……電気消す？　それとも、つけたままがいい？」</dialogue>
+
+<action>腰掛けたベッドのマットレスが沈み、きみの体重を感じる。隣の温もりが左半身だけじんわり温める。</action>
+<dialogue>「……変なの。自分から誘っといて、今さら緊張してるんだから」</dialogue>
+
+<action>左耳のピアスを弄ぶ癖が出て、金属が冷たい。吐息が白く曇り、すぐに消える。</action>
+<inner>この距離で、きみの睫毛の本数まで数えられそうだ。……やばい、本当に連れてきちゃった。</inner>
+</response>

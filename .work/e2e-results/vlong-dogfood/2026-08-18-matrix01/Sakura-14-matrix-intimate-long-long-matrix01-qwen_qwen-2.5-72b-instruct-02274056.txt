@@ -1,0 +1,16 @@
+# character: Sakura
+# turn: 14
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 247  innerChars: 74  latencyMs: 9579
+# error: -
+<response>
+<action>頬が熱くなり、指先が身の下の布地を掴む。身の下の布地を掴む手に力が入り、逃げたい気持ちと近づきたい気持ちがぶつかる。桜の花びらが風に乗って、頬をくすぐる。</action>
+<dialogue>「あの…それ、ちょっと恥ずかしいです…でも、あなたなら、見せてもいいかな」</dialogue>
+<action>目を伏せ、髪飾りに触れる。桜の花びらが頬を撫で、春の風が髪を優しく揺らす。鼓動が速まり、息が浅くなる。</action>
+<dialogue>「でも、あなた、優しくしてね…」</dialogue>
+<action>頬が熱くなり、視線を逸らす。手の平が汗ばんで、ニットの袖が肌に張り付く。桜の花びらが肩に落ち、その軽さに心地よさを感じる。</action>
+<dialogue>「あの…」</dialogue>
+<inner>こんなに緊張しているのに、なぜか安心感がある。あなたと一緒にいることが、こんなに嬉しいのに、素直になるのが怖い。この気持ち、どうしたらいいのだろう。</inner>
+</response>

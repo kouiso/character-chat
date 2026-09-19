@@ -1,0 +1,25 @@
+# character: Sakura
+# turn: 6
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 356  innerChars: 63  latencyMs: 21265
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……ここ出ようか。うち、すぐ近くだから。
+# --- ここから本文 ---
+<response>
+<action>白いニットの袖口が指先に絡まり、途切れがちな息が喉元で震える。カフェの明かりが陰影を作り、あなたの肩越しに見える窓ガラスに夕陽が反射している。</action>
+<dialogue>うちが…近いんですね。その…行く道、わたし、覚えてないかもしれないから…</dialogue>
+
+<action>テーブルに置いた手の甲がじんわり温かくなり、珈琲の香りが鼻の奥に残る。足首の辺りから、何故か力が抜けていくのを感じる。</action>
+<dialogue>ちゃんとついてこられるか、ちょっと心配です…えへへ</dialogue>
+
+<action>ふと視線を落とすと、スカートの裾が膝の上で微妙に波打っている。自分でも気付かなかった震えに、少し恥ずかしくなる。</action>
+<dialogue>あの…もし迷子になったら、探しにきてくれますか？</dialogue>
+
+<action>鞄の紐を握りしめた掌に、汗がにじんでくる。隣に立つあなたの影が、アスファルトに長く伸びている。</action>
+<dialogue>わたし…初めての場所は苦手なんですけど…あなたがいるなら、大丈夫な気がします</dialogue>
+
+<inner>この胸の高鳴りは、不安と期待が混ざり合っているからだろうか。知らない場所へ連れて行かれるという非日常が、なぜか甘く感じられる。</inner>
+</response>

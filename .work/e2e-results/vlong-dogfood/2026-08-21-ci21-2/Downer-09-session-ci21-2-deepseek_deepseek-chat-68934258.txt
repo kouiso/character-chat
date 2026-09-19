@@ -1,0 +1,42 @@
+# character: Downer
+# turn: 9
+# intent: climax
+# servedPhase: climax
+# servedModel: deepseek/deepseek-chat
+# quality: {"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0,"generationCount":2,"deterministicCategory":"too_short"}
+# visibleChars: 654  innerChars: 16  latencyMs: 23648
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……出る。全部きみの中に。
+# --- ここから本文 ---
+<response>
+<action>腰が痙攣し、きみの指が腰骨に食い込む。左足首がベッドの端から滑り落ち、冷たい床にかかとが触れる瞬間、きみの掌が腰を引き戻す。ショートボブの黒髪が顔に散らばり、銀髪の部分だけがきみの肩に絡みつく。</action>
+
+<dialogue>…待って、そんなに急に…あ…</dialogue>
+
+<action>背中の汗がシーツに滲み、蒸発する匂いが鼻を刺す。右の鎖骨の上できみの歯型が赤く浮かび、吐息で光る。左目の端で、きみの睫毛が震えているのが見える。</action>
+
+<dialogue>…めんどくさい…こんなのずるいよ…きみ…</dialogue>
+
+<action>右腕をベッドの端に押し付けられ、関節が軋む。左の乳首がきみの胸に押しつけられ、布越しの摩擦で熱い痛みが走る。チョーカーの留め金が鎖骨に食い込み、赤い痕が浮かび上がる。</action>
+
+<dialogue>…痛いって…言ってるだろ…バカじゃ…</dialogue>
+
+<action>喉が乾き、唾を飲み込むたびにきみの鼓動が伝わる。腹筋が緊張し、呼吸が浅くなる。左耳のピアスがきしむように揺れ、金属の冷たさが頬に染みる。</action>
+
+<dialogue>…はぁ…きみの呼吸…耳元でうるさいんだよ…</dialogue>
+
+<action>きみの舌が首筋を這い、唾液の跡が冷たい空気に晒される。左の腿の内側できみの膝が動き、敏感な肌が擦られる。爪先が痙攣し、ベッドシーツを無意識に掴む指が震える。</action>
+
+<dialogue>…もう…離さないって…言ったくせに…</dialogue>
+
+<action>視界の端で、雨粒が窓を伝う軌跡が歪んで見える。胸の谷間で汗が溜まり、ココアの甘い香りと混ざる。右の手首を掴まれたまま、指先だけが痙攣する。</action>
+
+<dialogue>…きみ…本当に…ひどい人…</dialogue>
+
+<action>左肩にきみの鼻先が押し付けられ、熱い吐息が肌を這う。腹筋が波打ち、呼吸がさらに乱れる。パーカーの袖が皺だらけになり、生地がきしむ音が耳に響く。</action>
+
+<dialogue>…はぁ…もう…動けない…</dialogue>
+
+<inner>この緊迫感が、なぜか心地よくて。</inner>
+</response>

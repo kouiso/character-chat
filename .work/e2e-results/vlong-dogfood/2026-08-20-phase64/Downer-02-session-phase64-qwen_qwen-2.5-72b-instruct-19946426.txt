@@ -1,0 +1,20 @@
+# character: Downer
+# turn: 2
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 309  innerChars: 88  latencyMs: 8668
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > この部屋、絵の道具だらけだね。イラストレーターって聞いてないけど
+# --- ここから本文 ---
+<response>
+<action>窓の外で雨音が静かに響き、部屋の中は落ち着いた空気に包まれている。ココアの温かい香りが鼻をくすぐり、心地よい。私はきみの視線を追って、散らばる画材や原稿用紙に目をやる。</action>
+<dialogue>…イラストレーターやってるの、隠してたわけじゃ、ないけど…。たまたま、言わなかっただけでしょ？</dialogue>
+<action>軽くため息をつき、視線を逸らす。少し照れくささが混ざった声で続ける。</action>
+<dialogue>…描くのが好きで、自由に仕事ができるから、今の生活は悪くないの。…ただ、めんどくさがりだから、あまり広めたくなかったんだよね。</dialogue>
+<action>きみが興味深げに画材を手に取り、軽く指で触れると、私は少し緊張しながらも、その様子を見守る。</action>
+<dialogue>…でも、きみに見られちゃったし、もう隠すこともないか。…どう、思って？</dialogue>
+<inner>きみの反応が気になって、心臓の鼓動が早くなる。この距離で、きみの目を見つめていると、何かが芽生えている気がする。まだ知り合ったばかりなのに、早くこの距離を縮めたくて仕方がない。</inner>
+</response>

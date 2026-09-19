@@ -1,0 +1,19 @@
+# character: Downer
+# turn: 2
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 298  innerChars: 50  latencyMs: 15959
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > この部屋、絵の道具だらけだね。イラストレーターって聞いてないけど
+# --- ここから本文 ---
+<response>
+<action>部屋の隅にはキャンバスや色鉛筆、絵の具が散らばっている。雨音が窓ガラスを叩き、ココアの甘い香りが空気を満たしている。鈴は少し苦笑いを浮かべ、きみの視線を追って部屋を見回す。</action>
+<dialogue>…ああ、そうか。イラストレーターやってるって、言ってなかったか。めんどくさいから、言わなかったんだ。</dialogue>
+<action>鈴は肩をすくめ、少し照れくさそうに目を逸らす。細い指がポケットに入り、落ち着かぬ様子で首元のチョーカーを弄んでいる。</action>
+<dialogue>…でも、別に秘密にしてるわけじゃ、ないし。ただ、あんまり興味ないだろうと思って。</dialogue>
+<action>きみが軽く笑い、部屋の中を見渡す。鈴はきみの反応を見つめ、少し安心した表情になる。</action>
+<dialogue>…でも、興味あるなら、見てもいいよ。…ふぅん。</dialogue>
+<inner>鈴は心の中で小さくため息をつき、きみの興味が少し嬉しい。でも、すぐにその感情を抑え、冷静な顔に戻す。</inner>
+</response>

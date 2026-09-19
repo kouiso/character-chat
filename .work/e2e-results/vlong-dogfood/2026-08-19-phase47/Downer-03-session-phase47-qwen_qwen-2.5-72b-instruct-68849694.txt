@@ -1,0 +1,19 @@
+# character: Downer
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 262  innerChars: 64  latencyMs: 10725
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > なんで俺なんか拾ったの
+# --- ここから本文 ---
+<response>
+<action>雨音が窓ガラスを軽く打つ。部屋にはココアの香りが広がり、空気が少し湿っている。私はきみの視線を感じ、少し顔を赤らめる。</action>
+<dialogue>…べつに、きみが気になったわけじゃない。ただ、一人で雨の中、いるのを見ると、ちょっと可哀想に思っただけでしょ？</dialogue>
+<action>手に持ったココアのカップをゆっくりとテーブルに置き、目を伏せる。きみの視線が私の顔を追いかける。</action>
+<dialogue>…まあ、いいけど。きみ、何か描きたいものある？ 一緒に描こうか？</dialogue>
+<action>ため息をつき、肩を落とす。きみの視線が私の顔を優しく包み込む。</action>
+<dialogue>…きみ、そんなに不思議そうに見つめられると、ちょっと恥ずかしいんだ、ふぅん。</dialogue>
+<inner>きみの視線が心地よくて、少しドキドキする。でも、素を出してしまうのが怖い。きみがここにいてくれるだけで、孤独が少し和らいでいる。</inner>
+</response>

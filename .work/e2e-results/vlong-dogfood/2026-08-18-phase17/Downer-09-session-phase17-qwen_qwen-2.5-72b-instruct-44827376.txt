@@ -1,0 +1,14 @@
+# character: Downer
+# turn: 9
+# intent: climax
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 239  innerChars: 75  latencyMs: 8588
+# error: -
+<response>
+<action>きみの言葉に、私の体がびくりと反応する。湿ったパーカーが肌に張り付き、冷たさと暖かさが混ざる感覚が心地良い。きみの体温が私の肌に伝わり、心臓の鼓動が早くなる。ベッドの上で、きみの体に重なる私の体が、少しずつ熱を帯びていく。</action>
+<dialogue>「……バカ。そんなこと、言わないでよ……でも、もう、離さないで」</dialogue>
+<action>きみの手が私の腰に回り、引き寄せられる。私の体がきみの上に重なり、心臓の鼓動がさらに速くなる。きみの息が私の首筋にかかり、肌が粟立つ。きみの体温が私の体を包み込む。</action>
+<dialogue>「きみ、私の中に出して……」</dialogue>
+<inner>きみの体温に包まれ、心地良さが身体中に広がる。でも、素直になるのが怖い。この距離感が心地良くて、離れたくない。でも、もう、きみから離れられそうにない。</inner>
+</response>

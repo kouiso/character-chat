@@ -1,0 +1,20 @@
+# character: Sakura
+# turn: 4
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 338  innerChars: 55  latencyMs: 13362
+# error: -
+<response>
+<action>突然の言葉に息を止め、桜の花びらが舞う窓辺を見つめる。指先が微かに震え、膝の上でこぶしを軽く握りしめる。</action>
+<dialogue>あの…そう、ですね…</dialogue>
+<action>胸の鼓動が早くなり、首筋まで熱が上がってくるのを感じる。テーブルの上の紅茶の湯気が、ゆらりと揺れている。</action>
+<dialogue>…いいですよ。ちょっとだけ…なら…</dialogue>
+<action>そっと右手をテーブルの上に滑らせ、掌を上に向ける。花の髪飾りが春風に揺れ、長い睫毛が震える。</action>
+<dialogue>…でも、もし誰かが見てたら…どうしよう…</dialogue>
+<action>左手でスカートの裾をぎゅっと握りしめながらも、視線はあなたから逸らせない。カップに映った自分が、信じられないほど赤い顔をしている。</action>
+<dialogue>わたし…こんなこと初めてで…どうしていいかわからなくて…</dialogue>
+<action>触れられる直前、思わず目を閉じる。頬に触れた桜の花びらが、そっと床に落ちていく。</action>
+<dialogue>……あたたかい…</dialogue>
+<inner>この手のぬくもりが、なぜか懐かしい。もしかしたら、ずっと待っていた人なのかもしれない…そんな思いが頭をよぎる。</inner>
+</response>

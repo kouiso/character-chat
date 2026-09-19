@@ -1,0 +1,16 @@
+# character: Sakura
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 327  innerChars: 72  latencyMs: 10046
+# error: -
+<response>
+<action>さくらは視線を落とし、髪飾りに触れる。桜の花びらが風に舞い、二人の間に優しく舞い落ちる。</action>
+<dialogue>あの…わたしは、詩や小説が好きです。特に、ロマンスやファンタジーが好きですね。物語の中で、登場人物が成長していく姿や、大切な人と出会う瞬間が好きです。</dialogue>
+<action>さくらは視線を上げ、あなたの目を見つめる。頬がほんのりと赤らみ、小さな笑みを浮かべる。</action>
+<dialogue>あなたはどんな本を読むんですか？　何かおすすめの本があれば、教えてほしいな。一緒に読むのも楽しいかもしれませんよ。</dialogue>
+<action>さくらは髪を耳にかけ、視線を落とす。春の風がさくらの髪をそっとなびかせ、桜の花びらが二人の足元に舞い落ちる。</action>
+<dialogue>あの…わたしが読む本は、ちょっと幼稚なところもあるかもしれません。でも、あなたに話すなら、恥ずかしくないかな。</dialogue>
+<inner>あなたに自分の好きな本のことを話すのは、少し恥ずかしい。でも、あなたに話すなら、そんな気恥ずかしさも克服できる。あなたに興味を持ってもらいたい。</inner>
+</response>

@@ -1,0 +1,40 @@
+# character: Sakura
+# turn: 6
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0,"generationCount":3,"deterministicCategory":null}
+# visibleChars: 197  innerChars: 55  latencyMs: 11290
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……ここ出ようか。うち、すぐ近くだから。
+# --- ここから本文 ---
+<response>
+<action>
+桜並木の影が揺れ、夕暮れ時の薄明かりが二人を包む。指先が少し冷たくなり、息が白くなる。
+</action>
+
+<dialogue>
+「...うち、ですか？」  
+</dialogue>
+
+<action>
+襟元に触れた指が止まり、鎖骨のあたりが熱を帯びる。足元の落ち葉が軋む音だけが聞こえる。
+</action>
+
+<dialogue>
+「...行っても、いいんですね。でも、誰かに見られたら...」
+</dialogue>
+
+<action>
+ひらひらと舞い落ちる花びらが肩に触れ、思わず身震いする。近くの自転車のベルの音に肩が跳ねる。
+</action>
+
+<dialogue>
+「こんな時間に...わたし、初めてで...」
+</dialogue>
+
+<inner>
+腕を組まれながら歩く度に、肘の内側がじんと熱くなる。知らない道を連れて行かれる不安と、期待が胸の奥で絡み合う。
+</inner>
+</response>

@@ -1,0 +1,18 @@
+# character: Sakura
+# turn: 2
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 198  innerChars: 80  latencyMs: 9756
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > コーヒーでいい？　それとも甘いのがよかった？
+# --- ここから本文 ---
+<response>
+<action>春の風が頬をそよぎ、髪飾りが軽く耳たぶをくすぐる。視線を逸らせ、手でスカートの裾をつまむ。</action>
+<dialogue>あ、どちらでも大丈夫です。でも、甘いもの、ちょっと気分が上がりますね。あなたが選んでくださるなら、それに従います。</dialogue>
+<action>頬がほんのり赤らみ、視線が揺れる。心臓の鼓動が少し早まり、春の風が髪をなびかせる。</action>
+<dialogue>あの…まだ緊張してしまって…。でも、あなたと過ごす時間が、少し楽しみでもあります。不思議と安心感があるんです。</dialogue>
+<inner>この人、どんな人だろう。初めて会ったのに、なぜか心地よい。でも、緊張も隠せない。あなたが選んでくれるなら、それに従いたい。春の風が心地よくて、少し安心している。</inner>
+</response>

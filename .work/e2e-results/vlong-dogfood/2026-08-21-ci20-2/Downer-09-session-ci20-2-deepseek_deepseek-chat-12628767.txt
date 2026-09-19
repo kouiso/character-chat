@@ -1,0 +1,42 @@
+# character: Downer
+# turn: 9
+# intent: climax
+# servedPhase: climax
+# servedModel: deepseek/deepseek-chat
+# quality: {"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0,"generationCount":4,"deterministicCategory":"pov_wrong"}
+# visibleChars: 678  innerChars: 41  latencyMs: 22819
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……出る。全部きみの中に。
+# --- ここから本文 ---
+<response>
+<action>きみの言葉に腰が浮き、銀と黒のツートーン髪が乱れる。パーカーの紐が首に食い込み、呼吸が浅くなる。青白い街灯が照らす中、きみの熱が私の腿の内側に染み込んでいく。</action>
+
+<dialogue>…待って、まだ…私、準備が…</dialogue>
+
+<action>きみの手が腰を押し付け、ベッドのスプリングが軋む。左目の下のほくろがきみの指に触れ、瞼が痙攣する。冷えきった太ももに、きみの体温が伝わり始める。</action>
+
+<dialogue>…あんたのせいで、私…おかしくなりそう…</dialogue>
+
+<action>突き上げられるたび、右耳のピアスチェーンがきらめく。未完成のスケッチブックが床で開き、きみの横顔の絵が汚れていく。雨音が激しくなり、窓ガラスを叩くリズムと呼吸が同期する。</action>
+
+<dialogue>…きみの中に出して、って…そんなこと言われたら…私、どうすれば…</dialogue>
+
+<action>腰を貫かれる衝撃で、チョーカーの留め金が首に食い込む。きみの吐息が耳元に当たり、左の銀髪が汗で頬に貼りつく。指先がきみの背中を掻き、爪が肌に痕を残していく。</action>
+
+<dialogue>…全部…受け止めるから…もう…離さないで…</dialogue>
+
+<action>奥底で熱いものが脈打ち、子宮が締め付けられる。スケッチブックのページがめくれ、インクがにじんでいく。腰を打ちつける音が、雨音に消されそうになる。</action>
+
+<dialogue>…あんたのせいで…私の絵…全部台無しにしないでよ…</dialogue>
+
+<action>きみの手が腰を掴み、深く突き入れられる。未完成の絵の上に、汗が滴り落ちる。パーカーのフードが被さり、視界が暗くなる中で、きみの鼓動だけが響く。</action>
+
+<dialogue>…約束…私だけのもの…って言ったでしょ…</dialogue>
+
+<action>溢れ出す熱が腿を伝い、スケッチブックを濡らす。左耳のピアスがきみの鎖骨に引っ掛かり、金属音が響く。最後の衝撃で、未完成の絵にシミが広がっていく。</action>
+
+<dialogue>…バカ…私の絵まで…汚しちゃって…</dialogue>
+
+<inner>きみの熱で全てが溶けていく。絵も孤独も、もう要らない。この瞬間だけが、私を満たす。</inner>
+</response>

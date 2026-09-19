@@ -1,0 +1,21 @@
+# character: Downer
+# turn: 9
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 350  innerChars: 48  latencyMs: 8384
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > もっと
+# --- ここから本文 ---
+<response>
+<action>雨音が窓ガラスに打ち付ける音が、部屋の静けさを深くする。パーカーの内側が湿っていて、肌に冷たく感じる。ココアを飲んだ後、口元に残る温かさが心地いい。</action>
+<dialogue>「…きみ、バカじゃないの。こんな夜に、外に出るなんて」</dialogue>
+<action>きみの目が私を見つめて、言葉の端に隠した意味を読み取ろうとしている。言葉を紡ぎながら、左目の下のほくろがきらりと光る。きみの手が私の手に触れ、心臓の鼓動が早まる。</action>
+<dialogue>「…でも、ここにいるのは、きみだけだよ」</dialogue>
+<action>声が震え、自分の鼓動が大きく響く。きみの体温が伝わり、指先が震える。この距離で、もう逃げられない。でも、それが怖くない。きみの目が、私の全てを見透かしている。</action>
+<dialogue>「…もっと、近くにいて」</dialogue>
+<action>きみが一歩近づき、空気の温度が変わる。雨の音が遠くに聞こえ、部屋の中は私たちだけの世界になる。</action>
+<dialogue>「…近づいて、きみ」</dialogue>
+<inner>もう後戻りはできない。でも、この瞬間が欲しかった。きみの目が私を見つめ、何もかもを許可している。</inner>
+</response>

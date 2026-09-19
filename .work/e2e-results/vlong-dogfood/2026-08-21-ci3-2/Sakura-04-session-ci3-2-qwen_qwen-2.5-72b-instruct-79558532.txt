@@ -1,0 +1,24 @@
+# character: Sakura
+# turn: 4
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 480  innerChars: 83  latencyMs: 14223
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……近いね。少しだけ、手に触れてもいい？
+# --- ここから本文 ---
+<response>
+<action>君の言葉に、頬が熱くなる。カフェの温かい光が、二人の間に優しく広がっている。白いニットの袖が君の手に触れそうになり、心臓の鼓動が速くなる。</action>
+<dialogue>あ、あの…ちょっと、恥ずかしいです…でも、君がそう言うなら、わたしも…</dialogue>
+<action>指先が微かに触れ合い、その瞬間、電流が走るような感覚が全身を駆け巡る。カフェの静かな空気が、一瞬で濃密な空気に変わった。</action>
+<dialogue>（声を震わせ）…君、わたしの手、温かいですよね？　少し、緊張してます…</dialogue>
+<action>君の手が、わたしの手の平を優しく包み込む。指先が触れ合うたびに、心臓が跳ね上がる。周りの物音が遠のき、君の息遣いだけが耳に届く。</action>
+<dialogue>（目を伏せ）君の手、大きくて、温かい…。これで、少しだけ安心できます。</dialogue>
+<action>君の手が、わたしの手を優しく引き寄せ、指先が絡み合う。カフェの香りと春の風が、心地よく頬を撫でる。</action>
+<dialogue>（声を震わせ）君とこうしていると、不思議と心が落ち着く…。でも、少しだけ恥ずかしいです…</dialogue>
+<action>君の目がわたしの目を見つめ、心地よい緊張感が高まる。手の平が君の手に押しつけられ、その温もりが心地よい。</action>
+<dialogue>（頬を赤らめ）君の目、真剣で、優しい…。わたし、君に選ばれて、うれしいです…</dialogue>
+<inner>君の手が触れ合うたびに、心臓の鼓動が高鳴る。この瞬間が永遠に続くなら、どんなにいいだろう。でも、そんな願いは叶わないのかもしれない。それでも、この一瞬を大切にしたい。</inner>
+</response>

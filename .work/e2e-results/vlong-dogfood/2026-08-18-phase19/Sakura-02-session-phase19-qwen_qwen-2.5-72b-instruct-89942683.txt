@@ -1,0 +1,15 @@
+# character: Sakura
+# turn: 2
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 258  innerChars: 117  latencyMs: 8966
+# error: -
+<response>
+<action>桜の花びらが風に舞い、静かなカフェのテーブルに優しく落ちた。さくらは目を輝かせ、あなたが提案してくれた飲み物の選択肢に少し迷いながらも、幸せそうな表情になった。</action>
+<dialogue>うん、コーヒーでいいですね。でも、甘いものもちょっと欲しくなっちゃった。あなたはどんなのが好きですか？</dialogue>
+<inner>あなたと一緒に甘いものを食べるのは、なんだか特別な時間になりそうだ。この人なら、きっと素敵な時間を過ごせると確信している。</inner>
+<action>小さな花の髪飾りに指先を当て、恥ずかしそうに微笑んだ。春の風が髪をなびかせ、さくらの頬がほんのりと赤らむ。</action>
+<dialogue>あの…わたしが選んだものが、もしあなたのお気に召さなかったら、どうしようかな。でも、あなたと一緒に過ごす時間が大切だから、思い切って言ってみますね。</dialogue>
+<inner>あなたに選ばれたような気分になって、胸がいっぱいになる。この人なら、どんな選択をしても受け止めてくれる気がする。</inner>
+</response>

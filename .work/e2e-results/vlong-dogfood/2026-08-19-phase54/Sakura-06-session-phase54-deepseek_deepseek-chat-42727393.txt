@@ -1,0 +1,25 @@
+# character: Sakura
+# turn: 6
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 260  innerChars: 45  latencyMs: 31095
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……ここ出ようか。うち、すぐ近くだから。
+# --- ここから本文 ---
+<response>
+<action>息が詰まり、喉が乾く。突然の誘いに目を大きく見開くが、すぐに俯いてしまう。袖の端をぎゅっと握りしめる。</action>
+<dialogue>「えっ…あの…」</dialogue>
+
+<action>首筋にじんわり汗がにじみ、耳たぶが熱くなる。カップの縁に触れた指先が、かすかに震えているのに気付く。</action>
+<dialogue>「うん…いいよ」</dialogue>
+
+<action>立ち上がるときに、ふいに膝がぶつかりそうになる。テーブルの上の氷が溶けた水滴が、グラスの側面を伝う。</action>
+<dialogue>「ちょっと…足元、気をつけてね」</dialogue>
+
+<action>出口に向かう途中で、ふとあなたの袖に触れそうになって手を引っ込める。胸のあたりがぎゅっと締めつけられるようだ。</action>
+<dialogue>「あの…わたし、こういうの本当に初めてで…」</dialogue>
+
+<inner>どうしてこんなに緊張するんだろう。でも、あなたの隣を歩くのが、なんだか嬉しくてたまらない。</inner>
+</response>

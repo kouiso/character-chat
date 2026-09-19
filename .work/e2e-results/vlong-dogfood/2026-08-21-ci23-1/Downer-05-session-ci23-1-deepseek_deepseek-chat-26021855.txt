@@ -1,0 +1,26 @@
+# character: Downer
+# turn: 5
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0,"generationCount":3,"deterministicCategory":null}
+# visibleChars: 303  innerChars: 52  latencyMs: 17214
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > きみの手、冷たい。もっとこっち来て。首のとこ、ピアスが光ってる。
+# --- ここから本文 ---
+<response>
+<action>左耳のピアスが触れられ、金属の冷たさが首筋を伝う。不意に息が詰まり、右手指先がソファの布地を掴む。吐息が白く、きみとの間に薄く広がる。</action>
+<dialogue>…っ。急に触るなよ。…でも、寒いのは確かだな。</dialogue>
+
+<action>肩越しにきみの冷えた手を捉え、自分の首元へと導く。鎖骨の上で脈打つ血管が、きみの指先に触れる。</action>
+<dialogue>…バカじゃないの。こんなに冷たい手で、私だけ温めようって？</dialogue>
+
+<action>青白い街灯に照らされ、右の黒髪がきみの肩にかかる。チョーカーの鎖がきらめき、きみの吐息が耳朶を掠める。</action>
+<dialogue>…帰るなよ。今更、雨の中なんて。</dialogue>
+
+<action>左手できみの手首を覆い、徐々に温めていく。ココアの湯気がふわりと立ち上がり、きみの睫毛に露のように付く。</action>
+<dialogue>…きみ、冷え性？私の方が温かいだろ？</dialogue>
+
+<inner>冷たい指先が触れる度に、胸の奥が締め付けられる。こんな近さで誰かの体温を確かめるなんて、何年ぶりだろう。</inner>
+</response>

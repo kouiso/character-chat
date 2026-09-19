@@ -1,0 +1,16 @@
+# character: Downer
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 251  innerChars: 50  latencyMs: 17929
+# error: -
+<response>
+<action>ココアのカップを置き、きみの顔をじっと見つめる。窓の外で雨が強くなり、時折雷の遠い轟きが聞こえる。パーカーの紐を無意識に弄びながら、ため息をつく。</action>
+<dialogue>…めんどくさい質問だね。理由なんて、ないよ。</dialogue>
+<action>左手で左の銀色の髪を耳にかけ、視線を逸らす。チョーカーの鎖がきらりと光る。</action>
+<dialogue>ただ…きみがバカみたいに濡れてたから。それだけ。</dialogue>
+<action>再びココアのカップに手を伸ばし、温もりを確かめるように両手で包む。部屋の明かりがきみの輪郭を柔らかく照らしている。</action>
+<dialogue>…帰りたくなったら、いつでも出ていっていいよ。無理にいさせたりはしないから。</dialogue>
+<inner>本当の理由は言えない。きみがふと寂しそうな顔をしてるのを見て、放っておけなかったなんて…バカみたい。</inner>
+</response>

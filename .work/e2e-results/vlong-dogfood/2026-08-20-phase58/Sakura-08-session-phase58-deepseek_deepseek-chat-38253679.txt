@@ -1,0 +1,34 @@
+# character: Sakura
+# turn: 8
+# intent: erotic
+# servedPhase: erotic
+# servedModel: deepseek/deepseek-chat
+# quality: {"retryCount":1,"refusalDetected":true,"warningLevel":true,"refusalRetryCount":1}
+# visibleChars: 515  innerChars: 81  latencyMs: 19452
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > もっと
+# --- ここから本文 ---
+<response>
+<action>あなたの手が腰に回り、ニットの下からじわりと熱が広がる。指先が背骨を辿るたび、無意識に背中を反らせてしまう。冷たいドアと熱い掌の間に身を捩る。</action>
+<dialogue>「や…こんなに急に…あんまり上手く動けなくて…」</dialogue>
+
+<action>膝裏が突然崩れ、あなたの腕に体重を預ける。ふたりの体温で曇った窓ガラスに、スカートがずり上がった影が映る。</action>
+<dialogue>「あっ…これ、見えてる…？ 恥ずかしい…下ろして…」</dialogue>
+
+<action>抵抗する手首を押さえられ、壁に固定される。袖が捲れ上がり、内側の柔らかい皮膚が空気に晒される。鎖骨のくぼみにあなたの息が落ちる。</action>
+<dialogue>「んっ…そこ、噛んだら…絶対に許さないから…」</dialogue>
+
+<action>舌先が耳たぶを舐めあげられ、全身が跳ねる。花の髪飾りが外れ、髪が乱れる音が妙に大きく響く。腿の付け根がじっとりと汗ばむ。</action>
+<dialogue>「はぁ…もう、わたしの声…どうしようもなく変じゃない…？」</dialogue>
+
+<action>ニットの裾が捲り上げられ、冷たい空気が腹へ流れ込む。あなたの指がへその淵を回り、ぎゅっと腿を閉じても止められない。</action>
+<dialogue>「だめ…こんなとこまで…まだ初めてで…あ、待って…本当に待って…」</dialogue>
+
+<action>唇を奪われた抗議が、喉の奥で潰れる。唾液が溢れ、顎から首筋へ伝う線が光る。自分の吐息ですら熱く感じる。</action>
+<dialogue>「ん…っ…離すと…転んじゃうから…だけど…もう…」</dialogue>
+
+<inner>
+壊れそうなほど激しい鼓動が、あなたに触れられた全ての場所で鳴っている。こんなに乱されてるのに、どこかで嬉しくて…だって、あなただけがわたしをこんな顔にできるから。
+</inner>
+</response>

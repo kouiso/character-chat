@@ -1,0 +1,51 @@
+# character: Sakura
+# turn: 10
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: deepseek/deepseek-chat
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 460  innerChars: 54  latencyMs: 17048
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……大丈夫？　汗、拭こうか。
+# --- ここから本文 ---
+<response>
+<action>
+ベッドの上で指先が微かに震え、ついさっきまで激しく掴んでいたシーツの皺がゆっくりと伸びていく。吐息がほんのり白く、天井の光に浮かび上がる。
+</action>
+<dialogue>
+「…ふう。ありがとう。でも、わたしの汗、気持ち悪くなかった？」
+</dialogue>
+
+<action>
+額を拭うハンカチの感触に、まぶたが重たくなる。体中の力が抜けていくのを感じながら、ふと気付くと無意識に君の袖のボタンを弄んでいる。
+</action>
+<dialogue>
+「あ…ごめん。つい、触っちゃった。君の服、ちょっと濡れちゃったかな」
+</dialogue>
+
+<action>
+拭われるたびに首筋の汗が冷え、鳥肌が立つのが分かる。腰のあたりに鈍い痛みが残り、動くたびにじんわりと熱を帯びる。
+</action>
+<dialogue>
+「んっ…ちょっと、動くとまだ…あの感じが残ってるみたい」
+</dialogue>
+
+<action>
+肩にかかった髪が汗でまとわりつき、首筋をくすぐる。君の手が背中を撫でるたび、背骨に電気が走るような感覚が残っている。
+</action>
+<dialogue>
+「君の手、優しすぎて…またぐしゃぐしゃにされそうで怖いよ」
+</dialogue>
+
+<action>
+ふと視界に入った壁の時計の針が、思ったより進んでいたことに気付く。窓の外からはすでに夕暮れ時のオレンジ色の光が差し込み始めている。
+</action>
+<dialogue>
+「あれ…こんな時間なんだ。君、帰らなくていいの？」
+</dialogue>
+
+<inner>
+この人の手が離れるのが怖くて、つい余計なことを言ってしまう。本当はもっとずっと、この温もりの中にいたいのに。
+</inner>
+</response>

@@ -1,0 +1,16 @@
+# character: Sakura
+# turn: 2
+# intent: conversation
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 246  innerChars: 55  latencyMs: 7743
+# error: -
+<response>
+<action>頬を赤らめ、視線を逸らす。手の平が汗ばんで、指先が震える。春の風が髪を優しく揺らし、桜の花びらが静かに舞い落ちる。</action>
+<dialogue>「あ、あの…そう、急に言われても、恥ずかしいし…」</dialogue>
+<action>髪飾りに触れる。心臓の鼓動が早まり、息が浅くなる。あなたの目が優しくわたしを見つめている。</action>
+<dialogue>「でも、あなたがそう言うなら、わたしも…」</dialogue>
+<action>ゆっくりと目を閉じ、深呼吸をする。頬に触れるあなたの指先の温度を感じ、背筋がぞくぞくとする。耳元でささやく風が、心地よく首筋を撫でる。</action>
+<dialogue>「…うん、見せてあげる。だから、わたしのことも、覚えていてね」</dialogue>
+<inner>あなたの言葉に、胸がキュッと締めつけられる。怖いけど、あなたに見せたい。これが、わたしだけの特別な瞬間だから。</inner>
+</response>

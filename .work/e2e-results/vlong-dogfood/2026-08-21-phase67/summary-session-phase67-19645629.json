@@ -1,0 +1,49 @@
+{
+  "mode": "session",
+  "arm": "phase67",
+  "runId": "19645629",
+  "baseUrl": "http://127.0.0.1:8892",
+  "responseLength": "medium",
+  "results": [
+    {
+      "character": "Sakura",
+      "records": [
+        {
+          "index": 1,
+          "intent": "conversation",
+          "servedPhase": null,
+          "servedModel": null,
+          "qualityMeta": null,
+          "visibleChars": 0,
+          "innerChars": 0,
+          "plainChars": 0,
+          "latencyMs": 29,
+          "error": "HTTP 502: {\"error\":\"upstream service error\",\"code\":\"upstream_error\"}",
+          "transportRetries": 2,
+          "userTurn": "さっきは急に声かけてごめん。でも、どうしても話してみたかったんだ。",
+          "text": ""
+        }
+      ]
+    },
+    {
+      "character": "Downer",
+      "records": [
+        {
+          "index": 1,
+          "intent": "conversation",
+          "servedPhase": null,
+          "servedModel": null,
+          "qualityMeta": null,
+          "visibleChars": 0,
+          "innerChars": 0,
+          "plainChars": 0,
+          "latencyMs": 27,
+          "error": "HTTP 502: {\"error\":\"upstream service error\",\"code\":\"upstream_error\"}",
+          "transportRetries": 2,
+          "userTurn": "……助かった。ずぶ濡れで死ぬかと思った。",
+          "text": ""
+        }
+      ]
+    }
+  ]
+}

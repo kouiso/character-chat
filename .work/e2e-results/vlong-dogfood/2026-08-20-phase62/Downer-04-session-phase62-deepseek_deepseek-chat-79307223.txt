@@ -1,0 +1,20 @@
+# character: Downer
+# turn: 4
+# intent: intimate
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 271  innerChars: 52  latencyMs: 14233
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……その距離、わざと？
+# --- ここから本文 ---
+<response>
+<action>コンクリートの冷たさが残る足元に視線を落とし、パーカーの袖を無意識に揉みしだく。ココアの湯気がゆらめき、自分の吐息が白くかすむ。</action>
+<dialogue>…べつに、理由なんてない。きみが震えてたから、それだけ。</dialogue>
+<action>チョーカーの金属が鎖骨に触れる感覚に集中しながら、壁際に寄りかかる。電気スタンドの光が、雨に濡れたアスファルトを青く照らし出している。</action>
+<dialogue>…こういうの、めんどくさいんだよね。人を拾うとか。</dialogue>
+<action>左手のピアスをいじり、きみとの距離を測るように瞬きする。湿った髪の毛が首筋に張り付くのが気になる。</action>
+<dialogue>…でもさ、きみの眼、真っ直ぐすぎて。見てるとこっちが落ち着かなくなるんだよ。</dialogue>
+<inner>この距離で息遣いが聞こえるのが、妙に居心地いい。一人の部屋に他人の気配があるのが、こんなに新鮮だなんて。</inner>
+</response>

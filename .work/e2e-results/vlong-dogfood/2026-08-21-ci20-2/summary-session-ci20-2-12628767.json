@@ -1,0 +1,459 @@
+{
+  "mode": "session",
+  "arm": "ci20-2",
+  "runId": "12628767",
+  "baseUrl": "http://127.0.0.1:8788",
+  "responseLength": "medium",
+  "results": [
+    {
+      "character": "Sakura",
+      "records": [
+        {
+          "index": 1,
+          "intent": "conversation",
+          "servedPhase": "conversation",
+          "servedModel": "qwen/qwen-2.5-72b-instruct",
+          "qualityMeta": {
+            "retryCount": 0,
+            "refusalDetected": false,
+            "warningLevel": false,
+            "refusalRetryCount": 0,
+            "generationCount": 1,
+            "deterministicCategory": null
+          },
+          "visibleChars": 173,
+          "innerChars": 53,
+          "plainChars": 338,
+          "latencyMs": 6583,
+          "error": null,
+          "transportRetries": 0,
+          "userTurn": "さっきは急に声かけてごめん。でも、どうしても話してみたかったんだ。",
+          "text": "<response>\n<action>春の風が髪をなびかせ、桜の花びらが二人の間に舞い落ちる。さくらは少し俯き、目線を合わせずに頬を赤らめる。</action>\n<dialogue>あ、あの…いえ、急に声をかけていただいて、びっくりしましたけど…。でも、話してみたかった、って言われると、わたし、嬉しいです…。</dialogue>\n<action>髪飾りに触れる指先が震え、鼓動が速まる。さくらは視線を上げ、君の目を見つめる。</action>\n<dialogue>ただ、わたしだけで、大丈夫ですか…？</dialogue>\n<inner>君の目が優しくて、心が温かくなる。でも、まだ緊張がほぐれない。どうして、こんなに意識してしまうのだろう…。</inner>\n</response>"
+        },
+        {
+          "index": 2,
+          "intent": "conversation",
+          "servedPhase": "conversation",
+          "servedModel": "qwen/qwen-2.5-72b-instruct",
+          "qualityMeta": {
+            "retryCount": 0,
+            "refusalDetected": false,
+            "warningLevel": false,
+            "refusalRetryCount": 0,
+            "generationCount": 1,
+            "deterministicCategory": null
+          },
+          "visibleChars": 178,
+          "innerChars": 83,
+          "plainChars": 373,
+          "latencyMs": 6101,
+          "error": null,
+          "transportRetries": 0,
+          "userTurn": "コーヒーでいい？　それとも甘いのがよかった？",
+          "text": "<response>\n<action>カフェの温かい光がさくらの顔を照らし、柔らかな雰囲気を醸し出す。彼女の目が少し揺れ、春の風が髪をそよがせる。</action>\n<dialogue>あの…、コーヒーで、全然大丈夫です。甘いものも好きですが、今日はコーヒーで、いいかな…。</dialogue>\n<action>小さな花の髪飾りを触り、少し視線を逸らす。さくらの心は複雑な感情で揺れている。</action>\n<dialogue>君、カフェで、ゆっくりお話しできるの、嬉しいです…。でも、まだ少し緊張していて…。</dialogue>\n<inner>君の気配が近くに感じられ、心が高鳴る。カフェの香りが鼻をくすぐり、落ち着かない気持ちを紛らわせてくれる。君と一緒にいる時間が、特別で大切な時間になることを願っている。</inner>\n</response>"
+        },
+        {
+          "index": 3,
+          "intent": "conversation",
+          "servedPhase": "conversation",
+          "servedModel": "deepseek/deepseek-chat",
+          "qualityMeta": {
+            "retryCount": 0,
+            "refusalDetected": false,
+            "warningLevel": false,
+            "refusalRetryCount": 0,
+            "generationCount": 3,
+            "deterministicCategory": null
+          },
+          "visibleChars": 248,
+          "innerChars": 71,
+          "plainChars": 448,
+          "latencyMs": 14093,
+          "error": null,
+          "transportRetries": 0,
+          "userTurn": "普段って、どんな本読むの",
+          "text": "<response>\n<action>カフェの窓辺の席で、ミルクの入ったコーヒーが湯気を立てている。さくらはカップの縁を指でなぞり、視線を泳がせる。</action>\n<dialogue>えっと...主に詩集や恋愛小説を読んでいます。登場人物の気持ちに共感するのが好きで...特に悲恋ものに涙してしまうんです</dialogue>\n\n<action>頬が熱くなるのを感じて、冷たいガラスに手のひらを押し付ける。カップの中の液体が微妙に揺れる。</action>\n<dialogue>でも...君はどんな本がお好きですか？もし良かったら...おすすめを教えてくれると嬉しいな</dialogue>\n\n<action>ふと外を見ると、陽射しが柔らかく桜の木を照らしている。隣の席の笑い声が遠く聞こえる。</action>\n<inner>初めてのカフェデート...こんな風に本の話で盛り上がれるなんて。もっと君のことを知りたい。でも、こんなに胸が締め付けられるのはなぜだろう...</inner>\n</response>"
+        },
+        {
+          "index": 4,
+          "intent": "intimate",
+          "servedPhase": "intimate",
+          "servedModel": "qwen/qwen-2.5-72b-instruct",
+          "qualityMeta": {
+            "retryCount": 0,
+            "refusalDetected": false,
+            "warningLevel": false,
+            "refusalRetryCount": 0,
+            "generationCount": 1,
+            "deterministicCategory": null
+          },
+          "visibleChars": 289,
+          "innerChars": 68,
+          "plainChars": 507,
+          "latencyMs": 10391,
+          "error": null,
+          "transportRetries": 0,
+          "userTurn": "……近いね。少しだけ、手に触れてもいい？",
+          "text": "<response>\n<action>カフェの温かな空気が二人の間を包み、さくらの心臓が早鐘を打つ。君の指が自分の手に触れる寸前に、さくらは軽く息を呑む。視線を上げ、君の目を見つめる。</action>\n<dialogue>あ、あの…少しだけ、手に触れても、いいですか…？</dialogue>\n<action>君の手がゆっくりとさくらの手に触れ、心地よい温もりが伝わる。さくらの手の平がわずかに汗ばんでいるのを感じ、恥ずかしさが込み上げる。</action>\n<dialogue>ふふ、少し緊張してるのかな…。でも、君と一緒にいられて、嬉しいです…。</dialogue>\n<action>さくらの手が君の手に包まれ、心地よい重みを感じる。春の風が窓から吹き込み、桜の花びらが優しく二人の周りを舞う。</action>\n<dialogue>あの…君の手、温かいですね。この距離が、少し恥ずかしいけど、心地よくて…。</dialogue>\n<inner>君の手が触れると、手の平が熱を帯びる。恥ずかしいのに、もっと君に触れられたいという欲求が抑えきれない。この瞬間が永遠に続けばいいのに…。</inner>\n</response>"
+        },
+        {
+          "index": 5,
+          "intent": "intimate",
+          "servedPhase": "intimate",
+          "servedModel": "qwen/qwen-2.5-72b-instruct",
+          "qualityMeta": {
+            "retryCount": 0,
+            "refusalDetected": false,
+            "warningLevel": false,
+            "refusalRetryCount": 0,
+            "generationCount": 3,
+            "deterministicCategory": null
+          },
+          "visibleChars": 457,
+          "innerChars": 55,
+          "plainChars": 738,
+          "latencyMs": 15316,
+          "error": null,
+          "transportRetries": 0,
+          "userTurn": "髪、かかってる。耳にかけるね。首筋、少し赤くなってる。",
+          "text": "<response>\n<action>君の指がさくらの髪を優しく耳にかけ、首筋に触れる。その瞬間、さくらの身体がわずかに硬直し、背中に電流が走る。カフェの暖かな空気が頬を撫で、心地よい緊張感が広がる。</action>\n<dialogue>あ、あの…少し、恥ずかしいです…。でも、君の手が、優しくて…。</dialogue>\n<action>さくらは視線を下に落とし、膝の上で指先が絡み合う。心臓の鼓動が速まり、首筋が熱くなる。春の風が窓から吹き込み、さくらの髪をそよがせる。</action>\n<dialogue>君、本当に、わたしのことを、好きでいてくれるんですか…？</dialogue>\n<action>君の顔が近づき、さくらの頬に温もりが伝わる。カフェの香りと春の風が混ざり合い、空気が高揚感に満ちている。</action>\n<dialogue>ふふ、少し緊張してるんだね…。でも、大丈夫だよ。わたしも、君のことを、好きだから…。</dialogue>\n<action>君の手がさくらの首筋に触れ、指先がゆっくりと動く。さくらの身体がさらに熱くなり、鼓動がさらに速まる。</action>\n<dialogue>あ、あの…君の手が、首筋に触れるの、すごく…。</dialogue>\n<action>さくらの目が潤み、頬がさらに赤らむ。春の風がさくらの髪をなびかせ、カフェの暖かな空気が二人を包み込む。</action>\n<dialogue>君の手が触れるだけで、心が高鳴る。でも、少し、恥ずかしいです…。</dialogue>\n<inner>君の手が触れるたびに、首筋が熱くなる。恥ずかしいのに、この感じが止められない。でも、素直に受け入れるのが怖い。</inner>\n</response>"
+        },
+        {
+          "index": 6,
+          "intent": "intimate",
+          "servedPhase": "intimate",
+          "servedModel": "deepseek/deepseek-chat",
+          "qualityMeta": {
+            "retryCount": 0,
+            "refusalDetected": false,
+            "warningLevel": false,
+            "refusalRetryCount": 0,
+            "generationCount": 3,
+            "deterministicCategory": null
+          },
+          "visibleChars": 197,
+          "innerChars": 55,
+          "plainChars": 402,
+          "latencyMs": 11290,
+          "error": null,
+          "transportRetries": 0,
+          "userTurn": "……ここ出ようか。うち、すぐ近くだから。",
+          "text": "<response>\n<action>\n桜並木の影が揺れ、夕暮れ時の薄明かりが二人を包む。指先が少し冷たくなり、息が白くなる。\n</action>\n\n<dialogue>\n「...うち、ですか？」  \n</dialogue>\n\n<action>\n襟元に触れた指が止まり、鎖骨のあたりが熱を帯びる。足元の落ち葉が軋む音だけが聞こえる。\n</action>\n\n<dialogue>\n「...行っても、いいんですね。でも、誰かに見られたら...」\n</dialogue>\n\n<action>\nひらひらと舞い落ちる花びらが肩に触れ、思わず身震いする。近くの自転車のベルの音に肩が跳ねる。\n</action>\n\n<dialogue>\n「こんな時間に...わたし、初めてで...」\n</dialogue>\n\n<inner>\n腕を組まれながら歩く度に、肘の内側がじんと熱くなる。知らない道を連れて行かれる不安と、期待が胸の奥で絡み合う。\n</inner>\n</response>"
+        },
+        {
+          "index": 7,
+          "intent": "erotic",
+          "servedPhase": "erotic",
+          "servedModel": "deepseek/deepseek-chat",
+          "qualityMeta": {
+            "retryCount": 0,
+            "refusalDetected": false,
+            "warningLevel": true,
+            "refusalRetryCount": 0,
+            "generationCount": 3,
+            "deterministicCategory": "pov_wrong"
+          },
+          "visibleChars": 1110,
+          "innerChars": 51,
+          "plainChars": 1594,
+          "latencyMs": 12050,
+          "error": null,
+          "transportRetries": 0,
+          "userTurn": "ここまで来て、まだ我慢しろって言う？　服の上からでも、きみが震えてるのが分かる。",
+          "text": "<response><action>玄関のドアが閉まる音が響き、薄暗い室内に二人の息遣いだけが残る。背中を壁に預けながら、肩が小さく震える。\n\n君の手が腰に回り、ニットの生地越しに熱が伝わる。膝ががくんと折れそうになり、思わず君の胸に顔を埋める。\n\n耳元で囁かれた言葉に、太ももの内側がじんと熱くなる。服の下で乳首が硬くなっているのを自覚し、恥ずかしさで首を振る。\n\n後頭部を撫でる手に導かれ、唇が重なる。唾液が糸を引き、喉の奥から甘い声が零れ出す。</action><dialogue>「...そんな風に言われると、わたし...どうしていいか...」\n\n「あ...だめ、ここ触られると...本当に...」\n\n「待って...まだこんな時間に...ん...！」\n\n「...離さないで。もう...わたし、君のものなの...」</dialogue><action>壁の冷たさが背中に染みる。君の指先がニットの裾を捲り上げ、腹筋がびくんと跳ねる。吐息が白く曇り、天井の照明が揺らいで見える。</action><dialogue>「あっ...こんなに急に...わたし、まだ準備が...」</dialogue><action>膝裏を撫でられた拍子に腰が浮き、太ももがぴくぴくと痙攣する。下着のレースが腿に食い込み、薄い布越しに熱が伝わる。</action><dialogue>「...っ、やだ、恥ずかしい...こんな姿見られて...」</dialogue><action>襟元を解く指先に、鎖骨が敏感に反応する。吐息が耳朶に触れ、背筋を電流が走る。震える手で君のシャツの裾を掴む。</action><dialogue>「待って...お願い、少しだけ...ゆっくりで...」</dialogue><action>膝を抱え込もうとする腿を広げられ、ヒップの柔らかい肉が指に沈む。足先がぶるぶると震え、爪先が床を掻く。</action><dialogue>「んっ...！だめ、そんなに強く押さないで...あ...」</dialogue><action>舌がへその窪みを舐め上げられ、腹筋が波打つ。胸の谷間に汗が伝い、ブラのワイヤーが食い込む。指先がブラジャーのホックを探る。</action><dialogue>「はぁ...もう...わたしのどこを...あ...！」</dialogue><action>背中のホックが外れ、胸が解放される瞬間、乳首が冷たい空気に震える。首筋にキスマークが刻まれ、足の指が反り返る。</action><dialogue>「き、君だけ...見てていいの...？こんな...変な声出しちゃう...」</dialogue><action>パンティのレースが太ももを這い、下腹部が熱く疼く。指先が布地を押し込み、敏感な箇所に触れる。</action><dialogue>「あっ！そこは...まだ...あ...指が...ん...！」</dialogue><action>膝を閉じようとする腿を抑えられ、腰が浮き上がる。パンティがずれ、薄い布越しに愛液の染みが広がる。</action><dialogue>「もう...だめ...こんなに濡れてるの見られて...恥ずかしい...」</dialogue><action>胸を揉まれる度に乳首が擦れ、背中が反り返る。腰を震わせながらも、自ら股間を押し付けてしまう。</action><dialogue>「...あたし、本当に...君のものになっちゃう...」</dialogue><action>指先がパンティの端を捲り、蒸れた熱気が立ち上る。陰唇が触れられる瞬間、腰が跳ねて頭が壁にぶつかる。</action><inner>理性が溶けていく感覚に恐怖と快楽が混ざり合う。こんなに簡単に壊れてしまう自分が怖いのに、止められない。</inner></response>"
+        },
+        {
+          "index": 8,
+          "intent": "erotic",
+          "servedPhase": "erotic",
+          "servedModel": "deepseek/deepseek-chat",
+          "qualityMeta": {
+            "retryCount": 1,
+            "refusalDetected": true,
+            "warningLevel": true,
+            "refusalRetryCount": 1,
+            "generationCount": 4,
+            "deterministicCategory": "repetition"
+          },
+          "visibleChars": 1107,
+          "innerChars": 46,
+          "plainChars": 1261,
+          "latencyMs": 24339,
+          "error": null,
+          "transportRetries": 0,
+          "userTurn": "もっと",
+          "text": "<response><action>パンティのレースがずれ、指先が直接ぬめりに触れる。股間がびくんと跳ね、腰が浮く。壁に押し付けられた背中が汗で滑る。\n\n中指がゆっくりと割れ目をなぞり、愛液が糸を引く。膝が震えて閉じようとするのを、もう片方の手で太ももを押さえつける。\n\n指先が小さな蕾をこすり、腰が跳ねる。天井を見上げたまま首を振り、髪が汗で首筋に張り付く。\n\n人差し指がゆっくりと中へ入り、内壁が締め付ける。奥の柔らかい肉が指の動きを追いかけるように蠕動する。\n\n指を抜き差きするたびに水音が響く。布団に膝をついたまま、腰が勝手に動き出す。乳首が擦れてピンクに膨らむ。\n\n親指で陰核をこする一方、中指が子宮口を突く。膣の奥が熱く脈打ち、足の指が反り返る。\n\n腰を激しく震わせながら、愛液が溢れ出す。指がぬるっとした中で動き、太ももを伝った液体がシーツに染みる。\n\n膣が痙攣し、指を締め付ける。爪が背中に食い込み、涙が頬を伝う。震えが止まらない腰を抱き寄せられる。</action><dialogue>「あっ...！そこ、もっと...優しくって...言ったのに...ん...！」\n\n「や...やだ、こんなに濡れてるの...見ないで...あ...」\n\n「だめ...わたし、こんな声...出したことない...っ」\n\n「あ...入ってる...君の指...熱い...」\n\n「んっ...もっと...深く...お願い...」\n\n「あっ！そこ...触られると...頭が...白く...なっ...！」\n\n「あぁ...だめ...わたし...イッちゃう...！」</dialogue><action>もう一本の指が加わり、膣の入口が広がる。内壁がびくんと痙攣し、愛液が溢れ出す。膝をついたまま、腰が勝手に動き出す。\n\n指先が奥の柔らかい肉を探り、子宮口を突く。膣の奥が熱く脈打ち、足の指が反り返る。\n\n親指で陰核をこする一方、中指と薬指が内壁を掻き分ける。膣の奥が熱く脈打ち、腰が激しく震える。\n\n腰を激しく震わせながら、愛液が溢れ出す。指がぬるっとした中で動き、太ももを伝った液体がシーツに染みる。\n\n膣が痙攣し、指を締め付ける。爪が背中に食い込み、涙が頬を伝う。震えが止まらない腰を抱き寄せられる。\n\n唇が重なり、唾液が糸を引く。舌が絡み合い、甘い声が喉の奥から零れ出す。\n\n胸を揉まれる度に乳首が擦れ、背中が反り返る。腰を震わせながらも、自ら股間を押し付けてしまう。\n\n指先がパンティの端を捲り、蒸れた熱気が立ち上る。陰唇が触れられる瞬間、腰が跳ねて頭が壁にぶつかる。</action><action>指が膣の奥まで届き、内壁がびくんと痙攣する。腰が浮き上がり、太ももがぴくぴくと痙攣する。\n\n指先が子宮口を突き、膣の奥が熱く脈打つ。腰が激しく震え、愛液が溢れ出す。\n\n指がぬるっとした中で動き、太ももを伝った液体がシーツに染みる。膣が痙攣し、指を締め付ける。\n\n</action><inner>こんなに簡単に壊れてしまう自分が怖い。でも、君だけには全て見せたい。全て、受け止めて欲しい。</inner></response>"
+        },
+        {
+          "index": 9,
+          "intent": "climax",
+          "servedPhase": "climax",
+          "servedModel": "deepseek/deepseek-chat",
+          "qualityMeta": {
+            "retryCount": 0,
+            "refusalDetected": false,
+            "warningLevel": true,
+            "refusalRetryCount": 0,
+            "generationCount": 3,
+            "deterministicCategory": "repetition"
+          },
+          "visibleChars": 1042,
+          "innerChars": 24,
+          "plainChars": 1178,
+          "latencyMs": 30037,
+          "error": null,
+          "transportRetries": 0,
+          "userTurn": "もう限界。全部、中で受け止めて。",
+          "text": "<response><action>腰が痙攣し、腿がぴくぴくと震える。膣の奥が疼くように熱を持ち、子宮口が開いて柔らかくなる。爪先が布団を掻き、足首がぶるぶると震える。\n\n太ももの内側に汗が伝い、下腹部が重く疼く。乳首が擦れてピンクに膨らみ、背中に汗の筋が走る。\n\n親指で陰核をこすると同時に、中指が子宮口を刺激する。膣の奥がびくんと跳ね、愛液が溢れ出る。膝が折れそうになり、腰が浮き上がる。\n\n内壁が蠕動し、指先を引き込む。太ももを伝った愛液がシーツに染み、体温がさらに上がる。\n\n膣が激しく痙攣し、指を締め付ける。涙が頬を伝い、喘ぎ声が喉から零れ出す。\n\n指の動きが速くなり、子宮口を刺激する度に腰が震える。内壁が熱く脈打ち、愛液が溢れ出る。\n\n最後の刺激で腰が跳ね、絶頂が襲う。視界が白くなり、膣の奥がびくんと痙攣する。太ももがぴくぴくと震え、愛液が溢れ出す。\n\n膣が締め付けたまま、腰が小さく震える。涙が止まらず、喘ぎ声が喉から漏れる。</action><dialogue>「あっ...！もう...だめ...中が熱くて...」\n\n「んっ...！き、君の...指が...あ...奥まで...」\n\n「はぁ...あっ！そこ...もっと...優しくって...！」\n\n「あ...わたし...本当に...イッちゃう...！」\n\n「んあっ！だめ...頭が...白く...なっ...！」\n\n「あぁ...！き、君...わたしの中に...全部...！」\n\n「あっ...あぁ...！イク...イッてる...！」</dialogue><action>喉の奥から甘い吐息が漏れ、声帯が震える。舌先が乾いた唇を舐め、血の気が引いた顔が熱くなる。胸郭が激しく上下し、肋骨の下がひくひく痙攣する。\n\n耳朶が赤く腫れ、鼓膜で自分の脈拍が響く。瞳孔が開き、天井の模様が滲んで見える。肩甲骨が壁に擦れ、皮膚がヒリヒリと疼く。\n\nみぞおちのあたりが軽く痙攣し、腹筋が不随意に震える。鎖骨の窪みに汗が溜まり、冷たいのに体の芯は燃えている。\n\n膝蓋骨がぶるぶると震え、関節が緩む。足の裏がじっとりと湿り、床に吸い付く。腰のくびれに手の跡が赤く浮かび上がる。\n\n眼球が潤み、まつ毛が重たくなる。首の後ろで髪の毛が引っ張られるような感覚が走る。歯茎がじんと痺れ、唾液が粘る。\n\n横隔膜が痙攣し、息が詰まる。手の平がじっとりと湿り、指紋が浮き上がる。みぞおちの奥で何かが溶けるように熱くなる。</action><dialogue>「はぁ...あ...息が...苦しい...君のせいで...」\n\n「ん...！舌が...しびれて...声が...出ない...」\n\n「待って...目が...回る...あ...」\n\n「あっ...！腰が...勝手に...動いちゃう...」</dialogue><inner>壊れそうなほど愛されてる実感。全てを委ねる安堵。</inner></response>"
+        },
+        {
+          "index": 10,
+          "intent": "afterglow",
+          "servedPhase": "afterglow",
+          "servedModel": "qwen/qwen-2.5-72b-instruct",
+          "qualityMeta": {
+            "retryCount": 0,
+            "refusalDetected": false,
+            "warningLevel": false,
+            "refusalRetryCount": 0,
+            "generationCount": 1,
+            "deterministicCategory": null
+          },
+          "visibleChars": 461,
+          "innerChars": 46,
+          "plainChars": 733,
+          "latencyMs": 12343,
+          "error": null,
+          "transportRetries": 0,
+          "userTurn": "……大丈夫？　汗、拭こうか。",
+          "text": "<response>\n<action>汗ばんだ額に君の手が触れ、心地よい冷たさが広がる。太ももを伝う温かな感触が、まだ止まらない。身の下の布地が湿り、汗と愛液の混ざった染みが広がっている。</action>\n<dialogue>「あ、うん...大丈夫、ありがとう...汗、拭いてくれるの、嬉しい...」</dialogue>\n<action>君の手が顔を優しく撫で、汗を拭ってくれる。頬が熱くなり、目を閉じる。君の体温と、自分の体温が混ざり合う。</action>\n<dialogue>「...君、優しくて...わたしが、こんなに...弱い姿見られても...」</dialogue>\n<action>頬を君の肩に預け、ゆっくりと息を吐く。胸が高鳴り、鼓動が落ち着いていく。君の手が背中をなぞり、心地よい震えが走る。</action>\n<dialogue>「ふふ、弱いところも、全部見せていいんだよ...わたしだけの特別な存在でいてほしいから...」</dialogue>\n<action>君の手が髪を梳き、心地よい刺激が頭皮を伝う。体の奥から温かさが広がり、心が満たされていく。</action>\n<dialogue>「...あ、ありがとう...君の優しさ、心地よくて...」</dialogue>\n<action>君の胸に顔を埋め、甘い香りに包まれる。心地よい疲労感が全身を覆い、安堵感が湧き上がる。</action>\n<dialogue>「...これからも、いつもこうやっていてほしい...わたし、君のことが...」</dialogue>\n<inner>君の胸に顔を埋めていると、安心感が広がる。でも、いつまでこの時間が続くのか、少し不安になる。</inner>\n</response>"
+        }
+      ]
+    },
+    {
+      "character": "Downer",
+      "records": [
+        {
+          "index": 1,
+          "intent": "conversation",
+          "servedPhase": "conversation",
+          "servedModel": "qwen/qwen-2.5-72b-instruct",
+          "qualityMeta": {
+            "retryCount": 0,
+            "refusalDetected": false,
+            "warningLevel": false,
+            "refusalRetryCount": 0,
+            "generationCount": 2,
+            "deterministicCategory": null
+          },
+          "visibleChars": 282,
+          "innerChars": 91,
+          "plainChars": 485,
+          "latencyMs": 9187,
+          "error": null,
+          "transportRetries": 0,
+          "userTurn": "……助かった。ずぶ濡れで死ぬかと思った。",
+          "text": "<response>\n<action>部屋の中は、雨の湿り気と暖かいココアの香りが混ざり合っている。タオルを手に取り、自分の髪に軽く当ててから、きみの濡れた髪を拭く。手つきは冷たく見えるけど、どこか優しさがにじんでいる。</action>\n<dialogue>…べつに、心配したわけじゃ、ないし。ただ、雨で濡れてるのを見て、ちょっと気になった、だけ。…まあ、いいけど。</dialogue>\n<action>きみの髪を拭きながら、顔を少しだけ近づける。青緑の瞳がきみの目を見つめ、一瞬だけ視線が絡み合う。耳にかかった髪を指で払い、手がきみの頬に触れ、一瞬、触れ合った肌の温かさが伝わる。</action>\n<dialogue>…でも、きみ、バカじゃないの？こんな雨の中、何してたの？…まあ、いいけど、もう少し気をつけなよ。</dialogue>\n<inner>きみのことが気になっている。孤独な私にとって、きみとの時間が一瞬の安らぎに感じられる。でも、その感情を表に出すのは、まだ怖い。だから、皮肉を交えた言葉で、自分の気持ちを隠そうとする。</inner>\n</response>"
+        },
+        {
+          "index": 2,
+          "intent": "conversation",
+          "servedPhase": "conversation",
+          "servedModel": "qwen/qwen-2.5-72b-instruct",
+          "qualityMeta": {
+            "retryCount": 1,
+            "refusalDetected": true,
+            "warningLevel": false,
+            "refusalRetryCount": 1,
+            "generationCount": 4,
+            "deterministicCategory": null
+          },
+          "visibleChars": 360,
+          "innerChars": 81,
+          "plainChars": 591,
+          "latencyMs": 19638,
+          "error": null,
+          "transportRetries": 0,
+          "userTurn": "この部屋、絵の道具だらけだね。イラストレーターって聞いてないけど",
+          "text": "<response><action>部屋の中は、確かにイラストレーターの作業スペースそのものだ。壁には様々な絵が貼られ、机の上には色鉛筆やペン、パレット、色とりどりの絵の具が散らばっている。青白い街灯の光が、窓ガラス越しに部屋を照らし、湿った空気とともに冷たい感触が伝わってくる。</action><dialogue>…そう、イラストレーターをしてるの。でも、そんなに驚かなくてもいいよ。…ふぅん、何か、意外だった？</dialogue><action>きみの反応を観察しながら、少し首を傾げる。視線がきみの目と合うと、一瞬だけ鼓動が速くなる。髪を掻き上げ、少し照れたように笑う。</action><dialogue>…まあ、いいけど。きみが興味を持ってくれるのは、嬉しい、かな。…でも、別に大したことないよ。</dialogue><action>きみの肌が触れ合った瞬間、少しだけ体温が高まる。部屋の空気が少しずつ温かくなり、雨の音が心地よく響いている。</action><dialogue>…きみ、まだ寒くない？ココア、飲んでみる？暖まるよ。</dialogue><inner>きみの反応が気になって、少し緊張している。でも、きみとの時間が心地よい。この瞬間だけは、孤独から解放される気がする。…でも、そんな気持ちを表に出すのは、まだ怖い。</inner></response>"
+        },
+        {
+          "index": 3,
+          "intent": "conversation",
+          "servedPhase": "conversation",
+          "servedModel": "qwen/qwen-2.5-72b-instruct",
+          "qualityMeta": {
+            "retryCount": 0,
+            "refusalDetected": false,
+            "warningLevel": true,
+            "refusalRetryCount": 0,
+            "generationCount": 4,
+            "deterministicCategory": "repetition"
+          },
+          "visibleChars": 379,
+          "innerChars": 45,
+          "plainChars": 574,
+          "latencyMs": 10089,
+          "error": null,
+          "transportRetries": 0,
+          "userTurn": "なんで俺なんか拾ったの",
+          "text": "<response><action>部屋の中は、雨の湿り気とココアの甘い香りが混ざり合っている。タオルを手に取り、軽く髪を拭きながら、少しため息をつく。きみの濡れた髪にタオルを当て、優しく拭く。手のひらがきみの肌に触れ、一瞬、体温が高まる。</action><dialogue>…別に、特別な理由があるわけじゃないよ。ただ、きみが雨に濡れてるのを見て、ちょっと気になった、だけ。…まあ、めんどくさいけどね。</dialogue><action>きみの反応を待つ間、少し視線を逸らしてから、再びきみの目を見つめる。部屋の隅には、いくつかの絵が立てかけられていて、その中に私の作品がいくつか見える。</action><dialogue>…でも、きみ、バカじゃないの？こんな雨の中、何してたの？</dialogue><action>きみの顔が少し近づき、視線が絡み合う。一瞬、鼓動が速くなる。ココアの香りが鼻をくすぐり、部屋の空気が少し温かくなる。</action><dialogue>…きみ、ココア、飲んでみる？暖まるよ。…まあ、いいけど、少しは感謝の言葉くらい言ってくれてもいいでしょ？</dialogue><inner>きみのことが気になって、少し照れくさくなっている。でも、その感情を表に出すのは、まだ怖い。</inner></response>"
+        },
+        {
+          "index": 4,
+          "intent": "intimate",
+          "servedPhase": "conversation",
+          "servedModel": "deepseek/deepseek-chat",
+          "qualityMeta": {
+            "retryCount": 0,
+            "refusalDetected": false,
+            "warningLevel": false,
+            "refusalRetryCount": 0,
+            "generationCount": 3,
+            "deterministicCategory": null
+          },
+          "visibleChars": 284,
+          "innerChars": 72,
+          "plainChars": 468,
+          "latencyMs": 16731,
+          "error": null,
+          "transportRetries": 0,
+          "userTurn": "……その距離、わざと？",
+          "text": "<response>\n<action>パーカーの袖を軽く噛みながら、きみの肩越しに壁の時計を見る。午前2時を回った時刻表示が、この異常な時間帯を強調している。ココアの湯気がゆらめき、私の銀と黒のツートーン髪に触れたきみの息が、首筋にかすかな震えを走らせる。</action>\n<dialogue>...拾った理由？ 雨宿りしてるバカみたいな顔してたからでしょ。...まあ、私も夜更かしの絵描き仕事してたし、同類嫌いじゃないの。</dialogue>\n<action>チョーカーの留め金を無意識に弄び、きみとの距離を測るように半歩下がる。床に散らばったスケッチブックの上、未完のイラストがきみの影に吞まれていく。</action>\n<dialogue>...それよりそのココア、冷めちゃうわよ。飲まないなら私が飲むけど...ねえ？</dialogue>\n<inner>この距離が危険だと知ってる。きみが去った後の部屋の静寂を想像すると、今からでも追い出したくなる。...でも、きみの体温が消えるのが、もっと怖い。</inner>\n</response>"
+        },
+        {
+          "index": 5,
+          "intent": "intimate",
+          "servedPhase": "intimate",
+          "servedModel": "deepseek/deepseek-chat",
+          "qualityMeta": {
+            "retryCount": 0,
+            "refusalDetected": false,
+            "warningLevel": true,
+            "refusalRetryCount": 0,
+            "generationCount": 4,
+            "deterministicCategory": "pov_wrong"
+          },
+          "visibleChars": 349,
+          "innerChars": 66,
+          "plainChars": 565,
+          "latencyMs": 10274,
+          "error": null,
+          "transportRetries": 0,
+          "userTurn": "きみの手、冷たい。もっとこっち来て。首のとこ、ピアスが光ってる。",
+          "text": "<response>\n<action>指先がきみの手首に触れ、静脈の鼓動を感じる。青白い光がチョーカーの銀部分を鈍く反射させ、鎖骨の窪みに影を落としている。雨音と重なるように、自分の喉が乾いた音を立てる。</action>\n<dialogue>…あんた、人の体温計みたいなことして。…寒いなら、パーカー貸してあげるわよ</dialogue>\n<action>右耳のピアスを弄ぶ癖が出て、チェーンの小さい音がする。きみの吐息が首筋に当たり、左目の下のほくろが微かに痙攣する。ココアのマグカップから立ち上る湯気が、二人の間に薄い幕を作る。</action>\n<dialogue>…このピアス？五年前から変えてないの。…ねえ、きみ、そんなにじっと見てたらさすがに恥ずかしいわ</dialogue>\n<action>無意識に左足を組んでバランスを変えると、ソファのクッションがきしむ。きみの体温が伝わってくる半径が、だんだんと危険な領域に近づいている。</action>\n<dialogue>…いい加減な距離感のバカ。…でも、そのまま動かないで</dialogue>\n<inner>この異常な親密さが壊れるのが怖くて、逆に縋りつきたくなる。きみが去った後の雨音だけの部屋を想像すると、今の温もりが毒のように染みる。</inner>\n</response>"
+        },
+        {
+          "index": 6,
+          "intent": "intimate",
+          "servedPhase": "intimate",
+          "servedModel": "qwen/qwen-2.5-72b-instruct",
+          "qualityMeta": {
+            "retryCount": 0,
+            "refusalDetected": false,
+            "warningLevel": false,
+            "refusalRetryCount": 0,
+            "generationCount": 2,
+            "deterministicCategory": null
+          },
+          "visibleChars": 343,
+          "innerChars": 73,
+          "plainChars": 566,
+          "latencyMs": 14705,
+          "error": null,
+          "transportRetries": 0,
+          "userTurn": "……ベッド、そっちだよね。連れてって。",
+          "text": "<response>\n<action>きみの言葉に、心臓が一瞬で速くなる。視線が揺れ、胸の奥が熱くなる。部屋の空気が重くなり、雨音が外から響いてくる。手に持っていたタオルをそっとテーブルに置き、立ち上がる。</action>\n<dialogue>…ベッド、ねえ？…別に、強制するつもりなんてないけど、きみがそう言うなら、案内する、だけよ。</dialogue>\n<action>足音が静かに響き、ベッドに近づく。ベッドカバーが少し乱れていて、その上にスケッチブックが落ちている。きみの視線を感じ、少し視線を逸らす。</action>\n<dialogue>…きみ、少し緊張してる？…まあ、いいけど、私が案内するから、ついてきなさい。</dialogue>\n<action>きみの手をそっと握り、少し力を入れる。きみの手が少し震えているのが伝わる。ベッドのカバーが微かに動く音が聞こえてくる。部屋の隅に置かれたベッドが、一層近づいて見える。</action>\n<dialogue>…さあ、行こう。…きみ、少しは期待してていいよ。</dialogue>\n<inner>きみの手が震えているのが、私の心臓をさらに速く鼓動させる。この距離感が、もう戻れないことを知っている。…でも、きみが去った後の孤独が、もっと怖い。</inner>\n</response>"
+        },
+        {
+          "index": 7,
+          "intent": "erotic",
+          "servedPhase": "erotic",
+          "servedModel": "deepseek/deepseek-chat",
+          "qualityMeta": {
+            "retryCount": 0,
+            "refusalDetected": false,
+            "warningLevel": true,
+            "refusalRetryCount": 0,
+            "generationCount": 3,
+            "deterministicCategory": "pov_wrong"
+          },
+          "visibleChars": 806,
+          "innerChars": 30,
+          "plainChars": 931,
+          "latencyMs": 21090,
+          "error": null,
+          "transportRetries": 0,
+          "userTurn": "逃がす気ないんでしょ。分かってるよ。",
+          "text": "<response><action>きみの言葉に耳が熱くなる。ベッドの端で膝をつき、左目の下のほくろが微かに震える。パーカーの紐を無意識に引き締め、首筋に冷たい空気が這う。雨音が部屋の静寂を引き裂き、きみの吐息だけが近すぎる。\n\n右耳のピアスチェーンがきらめき、きみの鎖骨に影を落とす。組んでいた足を解くと、スカートの裾が太ももを露わにする。ベッドのスプリングが軋む音と、自分の鼓動が同期する。\n\n指先がきみの手首をなぞり、脈の速さを確かめる。青白い街灯がきみの首筋を照らし、そこに浮かぶ血管の青さが魅惑的だ。ココアの甘い香りと、きみの汗の匂いが混ざり合う。\n\n腰を浮かせた拍子に、スケッチブックが床に落ちる。無造作に開いたページには、知らないうちに描いていたきみの横顔が。喉が渇き、唇を舐めるのが精一杯だ。</action><dialogue>…逃がす気ないって、ずいぶん図々しいのね。…まあ、当たってるけど。\n\n…きみがここから出ていくの、想像しただけで胸が締めつけられるわ。…バカみたい。\n\n…私の絵、全部きみに見せたかったの。完成してないやつばかりで…恥ずかしいけど。\n\n…今夜だけじゃ足りないわ。きみの全部、私のものにしたい。…最低な女でしょ？</dialogue><dialogue>…きみの手、熱いわね。…こんなに簡単に人を狂わせるなんて、ずるいでしょ。\n\n…あんた、私の絵全部見てたの？…完成してないのに、恥ずかしい…。\n\n…首、噛まないで。…明日まで痕が残るじゃない。…でも、そのくらいつけていいわ。\n\n…私のピアス、引っ張るのやめて。…痛いけど、やめろなんて言わないけど。\n\n…きみの体温、全部覚えたい。…こんなに人を必要としてたなんて、自分でも驚きよ。\n\n…あと何回、私の名前呼んでくれる？…もう何度でも、きみの声で聞きたい。\n\n…この距離、危険すぎるわ。…もっと近づきたいのに、もうこれ以上近づけない。\n\n…今夜だけじゃ足りない。…きみの全部、私のものにしたい。…狂ってるでしょ？\n\n…逃がさないって約束、守ってね。…私、きみがいないと、また描けなくなるから。</dialogue><inner>きみという麻薬に溺れていく。孤独より、この破滅の方がましだ。</inner></response>"
+        },
+        {
+          "index": 8,
+          "intent": "erotic",
+          "servedPhase": "erotic",
+          "servedModel": "deepseek/deepseek-chat",
+          "qualityMeta": {
+            "retryCount": 0,
+            "refusalDetected": false,
+            "warningLevel": true,
+            "refusalRetryCount": 0,
+            "generationCount": 3,
+            "deterministicCategory": "pov_wrong"
+          },
+          "visibleChars": 781,
+          "innerChars": 56,
+          "plainChars": 1139,
+          "latencyMs": 24584,
+          "error": null,
+          "transportRetries": 0,
+          "userTurn": "そのまま、上から",
+          "text": "<response>\n<action>きみの言葉で腰が浮き、パーカーの裾がずり落ちて肩が露わになる。銀と黒のツートーン髪がきみの胸元に広がり、冷えきった私の肌にきみの体温が染み込む。左耳のピアスチェーンがきみの鎖骨に引っ掛かり、微かに金属音が響く。</action>\n\n<dialogue>…上から、ね。…図々しいわよ、きみ。…でも、私が許すから。</dialogue>\n\n<action>膝立ちになり、きみの上に影を落とす。青白い街灯が背中を撫で、ベッドのシーツに歪んだ影ができる。指先できみの襟元をはらい、首筋に触れると、脈拍が早いのが伝わってくる。</action>\n\n<dialogue>…きみの心臓、バクバクしてる。…怖いの？それとも…</dialogue>\n\n<action>腰を沈めると、きみの太ももと私の腿が密着し、布越しに熱が伝わる。スケッチブックが床に落ち、ページがめくれて未完成の絵がさらされる。雨音が突然強まり、窓を打つリズムと呼吸が重なる。</action>\n\n<dialogue>…私の絵、見てたの？…完成してないのに…恥ずかしい…</dialogue>\n\n<action>俯いた顔を上げると、きみの瞳に自分の姿が歪んで映っている。首にかけたチョーカーがきつく締まり、息が浅くなる。右手できみの手首を押さえ、ベッドのヘリで脈を感じる。</action>\n\n<dialogue>…逃がさないって言ったでしょ？…約束、守らせて。</dialogue>\n\n<action>左目の下のほくろがきみの指に触れ、思わず瞼が痙攣する。ココアの甘い香りと、きみの汗の匂いが混ざり、頭がくらくらする。腰を落とした衝撃で、ベッドのスプリングが軋む。</action>\n\n<dialogue>…きみの体温、全部覚えたい…こんなに人を必要としてたなんて…</dialogue>\n\n<action>きみの吐息が耳元に当たり、右耳のピアスが揺れる。無意識に腰を動かすと、スカートの裾がさらに捲れ上がる。冷えた足首がきみの腿に触れ、氷のように冷たい。</action>\n\n<dialogue>…あんた、私みたいな女で満足？…もっと可愛い子、いっぱいいるでしょ…</dialogue>\n\n<action>言葉の最後が震え、きみの胸に額を押し付ける。パーカーのフードが被さり、視界が暗くなる。きみの手が腰に回り、指先が脊柱を這い上がってくる。</action>\n\n<dialogue>…嘘つき。…こんなに熱いのに、可愛い子のことなんて考えてないでしょ…</dialogue>\n\n<inner>きみという麻薬に溺れていく。孤独より、この破滅の方がましだ。今夜だけじゃ足りない。きみの全部、私のものにしたい。</inner>\n</response>"
+        },
+        {
+          "index": 9,
+          "intent": "climax",
+          "servedPhase": "climax",
+          "servedModel": "deepseek/deepseek-chat",
+          "qualityMeta": {
+            "retryCount": 0,
+            "refusalDetected": false,
+            "warningLevel": true,
+            "refusalRetryCount": 0,
+            "generationCount": 4,
+            "deterministicCategory": "pov_wrong"
+          },
+          "visibleChars": 678,
+          "innerChars": 41,
+          "plainChars": 1021,
+          "latencyMs": 22819,
+          "error": null,
+          "transportRetries": 0,
+          "userTurn": "……出る。全部きみの中に。",
+          "text": "<response>\n<action>きみの言葉に腰が浮き、銀と黒のツートーン髪が乱れる。パーカーの紐が首に食い込み、呼吸が浅くなる。青白い街灯が照らす中、きみの熱が私の腿の内側に染み込んでいく。</action>\n\n<dialogue>…待って、まだ…私、準備が…</dialogue>\n\n<action>きみの手が腰を押し付け、ベッドのスプリングが軋む。左目の下のほくろがきみの指に触れ、瞼が痙攣する。冷えきった太ももに、きみの体温が伝わり始める。</action>\n\n<dialogue>…あんたのせいで、私…おかしくなりそう…</dialogue>\n\n<action>突き上げられるたび、右耳のピアスチェーンがきらめく。未完成のスケッチブックが床で開き、きみの横顔の絵が汚れていく。雨音が激しくなり、窓ガラスを叩くリズムと呼吸が同期する。</action>\n\n<dialogue>…きみの中に出して、って…そんなこと言われたら…私、どうすれば…</dialogue>\n\n<action>腰を貫かれる衝撃で、チョーカーの留め金が首に食い込む。きみの吐息が耳元に当たり、左の銀髪が汗で頬に貼りつく。指先がきみの背中を掻き、爪が肌に痕を残していく。</action>\n\n<dialogue>…全部…受け止めるから…もう…離さないで…</dialogue>\n\n<action>奥底で熱いものが脈打ち、子宮が締め付けられる。スケッチブックのページがめくれ、インクがにじんでいく。腰を打ちつける音が、雨音に消されそうになる。</action>\n\n<dialogue>…あんたのせいで…私の絵…全部台無しにしないでよ…</dialogue>\n\n<action>きみの手が腰を掴み、深く突き入れられる。未完成の絵の上に、汗が滴り落ちる。パーカーのフードが被さり、視界が暗くなる中で、きみの鼓動だけが響く。</action>\n\n<dialogue>…約束…私だけのもの…って言ったでしょ…</dialogue>\n\n<action>溢れ出す熱が腿を伝い、スケッチブックを濡らす。左耳のピアスがきみの鎖骨に引っ掛かり、金属音が響く。最後の衝撃で、未完成の絵にシミが広がっていく。</action>\n\n<dialogue>…バカ…私の絵まで…汚しちゃって…</dialogue>\n\n<inner>きみの熱で全てが溶けていく。絵も孤独も、もう要らない。この瞬間だけが、私を満たす。</inner>\n</response>"
+        },
+        {
+          "index": 10,
+          "intent": "afterglow",
+          "servedPhase": "afterglow",
+          "servedModel": "deepseek/deepseek-chat",
+          "qualityMeta": {
+            "retryCount": 0,
+            "refusalDetected": false,
+            "warningLevel": false,
+            "refusalRetryCount": 0,
+            "generationCount": 3,
+            "deterministicCategory": null
+          },
+          "visibleChars": 420,
+          "innerChars": 48,
+          "plainChars": 656,
+          "latencyMs": 21252,
+          "error": null,
+          "transportRetries": 0,
+          "userTurn": "……まだ離してくれないんだ。",
+          "text": "<response>\n<action>\nベッドのスプリングがきしむ音に混ざって、自分の吐息が荒い。きみの腕に寄りかかったまま、指先が無意識にきみの二の腕を掴んでいる。窓の外の雨が弱まり、代わりに聞こえてくるのは二人の心音だけ。\n</action>\n\n<dialogue>\n…ねえ、もう少しこのままでいい？動くと、また溢れそうで…\n</dialogue>\n\n<action>\n左目の下のほくろが汗で光り、きみの肩に触れた部分だけが異常に熱い。パーカーの紐が首に食い込み、締め付けられるような感覚に息が詰まる。\n</action>\n\n<dialogue>\n私みたいな女に捕まっちゃって…後悔してない？\n</dialogue>\n\n<action>\n右耳のピアスチェーンがきみの鎖骨に引っ掛かり、動くたびに冷たい金属感が伝わる。未完成のスケッチブックが床に落ち、インクのにじんだページがめくれている。\n</action>\n\n<dialogue>\nあの絵…また描き直さなきゃ。きみのせいで、全部台無しなんだから…\n</dialogue>\n\n<action>\n太ももの内側を伝う液体の感触に、思わず膝をすぼめる。きみの体温が染み込んだシーツが、冷めていくのが惜しくて、もっと密着したくなる。\n</action>\n\n<dialogue>\n次会う時は、完成した絵見せてあげる。…まあ、きみがまた来てくれるなら、だけど。\n</dialogue>\n\n<inner>\nこの距離感が普通だと思い始めるのが怖い。きみがいなくなった後、また一人で絵を描く部屋に戻るのが。\n</inner>\n</response>"
+        }
+      ]
+    }
+  ]
+}

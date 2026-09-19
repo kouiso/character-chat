@@ -1,0 +1,21 @@
+# character: Sakura
+# turn: 35
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 331  innerChars: 35  latencyMs: 8752
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > もっと
+# --- ここから本文 ---
+<response>
+<action>まだ汗ばんだ肌が触れ合ったまま、身を預ける。中からとろりと温かいものが溢れ出し、太ももの間に広がる。体の奥に残る熱がじんわりと広がり、その重さに身を委ねる。汗ばんだ額をあなたの肩に預け、ゆっくりと息を吐く。</action>
+<dialogue>「……あなた、まだ、離れないで」</dialogue>
+<action>あなたの腕に力が入るのを感じ、安心感が胸に広がる。手が優しく髪を撫で下ろし、耳元で囁かれる言葉が心地よい。</action>
+<dialogue>「……うん、離れないよ」</dialogue>
+<action>その声に頷き、目を閉じる。春の風が窓からそよぎ、髪を揺らす。カフェの柔らかな光が、静かな時間を包んでいる。あなたの体温が、わたしの体温と混ざり合う。</action>
+<dialogue>「……こんなに、近くに感じたのは、初めてです」</dialogue>
+<action>あなたの手が、わたしの頬を優しく撫でる。その優しさに、目を細める。</action>
+<dialogue>「……うん、わたしも、初めてだよ」</dialogue>
+<inner>選ばれて、溶けていく感覚が、心の奥に広がる。この瞬間を、覚えていたい。</inner>
+</response>

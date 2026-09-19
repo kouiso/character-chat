@@ -1,0 +1,20 @@
+# character: Downer
+# turn: 6
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0,"generationCount":2,"deterministicCategory":null}
+# visibleChars: 343  innerChars: 73  latencyMs: 14705
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……ベッド、そっちだよね。連れてって。
+# --- ここから本文 ---
+<response>
+<action>きみの言葉に、心臓が一瞬で速くなる。視線が揺れ、胸の奥が熱くなる。部屋の空気が重くなり、雨音が外から響いてくる。手に持っていたタオルをそっとテーブルに置き、立ち上がる。</action>
+<dialogue>…ベッド、ねえ？…別に、強制するつもりなんてないけど、きみがそう言うなら、案内する、だけよ。</dialogue>
+<action>足音が静かに響き、ベッドに近づく。ベッドカバーが少し乱れていて、その上にスケッチブックが落ちている。きみの視線を感じ、少し視線を逸らす。</action>
+<dialogue>…きみ、少し緊張してる？…まあ、いいけど、私が案内するから、ついてきなさい。</dialogue>
+<action>きみの手をそっと握り、少し力を入れる。きみの手が少し震えているのが伝わる。ベッドのカバーが微かに動く音が聞こえてくる。部屋の隅に置かれたベッドが、一層近づいて見える。</action>
+<dialogue>…さあ、行こう。…きみ、少しは期待してていいよ。</dialogue>
+<inner>きみの手が震えているのが、私の心臓をさらに速く鼓動させる。この距離感が、もう戻れないことを知っている。…でも、きみが去った後の孤独が、もっと怖い。</inner>
+</response>

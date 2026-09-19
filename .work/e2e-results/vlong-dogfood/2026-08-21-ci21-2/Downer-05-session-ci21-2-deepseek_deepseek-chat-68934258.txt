@@ -1,0 +1,26 @@
+# character: Downer
+# turn: 5
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0,"generationCount":3,"deterministicCategory":null}
+# visibleChars: 354  innerChars: 59  latencyMs: 15063
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > きみの手、冷たい。もっとこっち来て。首のとこ、ピアスが光ってる。
+# --- ここから本文 ---
+<response>
+<action>首筋を撫でる指先の冷たさが、鋭い感覚として神経を伝う。左耳のピアスがきしむように揺れ、金属の冷たさと生温かな吐息が混ざり合う。</action>
+<dialogue>…めんどくさい。勝手に触ってきて、こっちまで震えてきたじゃない。</dialogue>
+
+<action>きみの掌が鎖骨に滑り込み、氷のように冷たい指先が私の体温を奪っていく。右目の下のほくろの辺りに、きみの睫毛の影が揺れる。</action>
+<dialogue>…こんな近くで見つめられると、逃げ場がなくて…。バカみたい。</dialogue>
+
+<action>膝がふいに震え、グラスのココアが微かに波打つ。液体の表面に映ったきみの瞳が、歪んで見える。</action>
+<dialogue>…寒がりのくせに、人肌の温もりにすぐすがりつくんだね。…はぁ、困った子。</dialogue>
+
+<action>左肩にきみの額が触れ、息遣いがチョーカーの留め金を温める。銀色のチェーンが汗ばんだ肌に張り付きそうになる。</action>
+<dialogue>…きみ、こんなに冷たい体で誰かに抱きついたことある？ …まあ、いいけど。</dialogue>
+
+<inner>この密着が異常なほど自然に感じられることに、自分でも驚いている。他人の体温に依存するなんて、普段ならありえないのに…。</inner>
+</response>

@@ -1,0 +1,20 @@
+# character: Sakura
+# turn: 6
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0,"generationCount":3,"deterministicCategory":null}
+# visibleChars: 244  innerChars: 49  latencyMs: 15722
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……ここ出ようか。うち、すぐ近くだから。
+# --- ここから本文 ---
+<response>
+<action>コーヒーの残り香が衣類に染み込む中、さくらはマグカップの縁から指を離す。窓越しの夕陽がテーブルクロスを茜色に染め、影が長く伸びていく。</action>
+<dialogue>うち…ですか。そうですね、桜の道を少し歩いたところです。あの、もしよかったら…</dialogue>
+<action>立ち上がる際にスカートの皺を払い、かばんの紐をきつく握りしめる。喉の奥が少し渇いているのを感じる。</action>
+<dialogue>ちょっと…緊張します。こんな風に誘われるの、初めてで</dialogue>
+<action>出口で振り返り、まつげの先が夕陽で金色に輝く。胸のあたりで何かが小さく波打つような感覚。</action>
+<dialogue>でも、君となら大丈夫かな、って思います</dialogue>
+<inner>連れていかれるのが怖いわけじゃない。むしろこの胸の高鳴りが、どこへ向かうのかを知りたくて仕方ない。</inner>
+</response>

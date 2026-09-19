@@ -1,0 +1,16 @@
+# character: Sakura
+# turn: 35
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 364  innerChars: 41  latencyMs: 8414
+# error: -
+<response>
+<action>まだ重い息が身体から漏れ出ている。汗で濡れた髪が額に張り付き、肌は熱を帯びたまま。あなたの腕の中で、わたしの身体はゆっくりと力を抜いていく。中からまだ温かいものがとろりと溢れ出し、太ももを伝う感触が恥ずかしい。身の下の布地には大きな染みが広がり、それが冷たく感じられて身震いした。</action>
+<dialogue>「…あなた、私の中に出してしまったんだね」</dialogue>
+<action>頬が熱くなり、視線を逸らす。あなたの胸に顔を埋め、自分の鼓動が落ち着くのを待つ。手が自然とあなたの背中をまさぐり、触れ合う肌の温もりに安心感が広がる。</action>
+<dialogue>「あなた、私の中で、いつまでもいてほしい」</dialogue>
+<action>あなたの手がわたしの髪を優しく撫で、耳元で囁く。その声が鼓膜を震わせ、身体の奥底から甘い戦慄が広がる。汗ばんだ肌が触れ合うたびに、小さな電流が走るような感覚が心地よい。</action>
+<dialogue>「ふふ、あなたも同じ気持ちでいてくれるよね？」</dialogue>
+<inner>この瞬間が永遠に続くような錯覚に陥る。あなたの存在が、わたしの全てを満たしている。</inner>
+</response>

@@ -1,0 +1,21 @@
+# character: Sakura
+# turn: 6
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 345  innerChars: 62  latencyMs: 9975
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……ここ出ようか。うち、すぐ近くだから。
+# --- ここから本文 ---
+<response>
+<action>あなたの言葉に、胸がキュッと締めつけられる。カフェの暖かな空気が一瞬で冷たく感じられ、春の風が窓から吹き込んでくる。さくらの頬が熱くなり、視線を下に落とす。指先がスカートの裾をつまみ、少しの間を置いて続ける。</action>
+<dialogue>あの…あなた、の家、ですか…？</dialogue>
+<action>あなたの目を見ると、心臓がさらに速くなる。春の風が桜の花びらを運び、その香りが鼻をくすぐる。</action>
+<dialogue>でも、あなたと、二人で、過ごす時間、増やしたい、んです…</dialogue>
+<action>視線を上げ、あなたの目を見つめる。心臓の鼓動が耳まで響き、声が震える。</action>
+<dialogue>あの、あなた、本当に、わたしを、選びたい、んですか…？</dialogue>
+<action>あなたが本当に、わたしを選びたいと思っているのか、確かめたい。もし、あなたが、わたしを選びたいなら…。</action>
+<dialogue>もし、あなたが、わたしを、選びたい、なら…わたし、あなたの家に、行きます、よ…</dialogue>
+<inner>あなたがわたしを選んでくれるなら、どこへでもついていく。でも、まだ少し不安が残る。本当に、わたしが選ばれるのか、確かめたい。</inner>
+</response>

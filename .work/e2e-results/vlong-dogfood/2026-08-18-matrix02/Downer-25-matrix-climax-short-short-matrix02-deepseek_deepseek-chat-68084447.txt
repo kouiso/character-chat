@@ -1,0 +1,33 @@
+# character: Downer
+# turn: 25
+# intent: climax
+# servedPhase: climax
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 220  innerChars: 50  latencyMs: 11565
+# error: -
+<response>
+<action>
+指先がきみの背中を這い、爪先で床を掻く。吐息が首筋に触れ、雨音が遠のいていく。腰が震え、もう一度きみを引き寄せる。
+</action>
+<dialogue>
+「…もっと、きみの全部が欲しい」
+</dialogue>
+
+<action>
+太ももに伝う汗がシーツに染み込む。きみの手が腰を押し付け、奥まで届く熱が子宮を揺さぶる。視界が白く滲んでいく。
+</action>
+<dialogue>
+「…んっ、だめ、こんなに深いと…」
+</dialogue>
+
+<action>
+内側で脈打つ熱に締め付けが強まる。爪がきみの肩に食い込み、呼吸が乱れて額に汗がにじむ。まだ足りないと腰を浮かせる。
+</action>
+<dialogue>
+「…きみ、私の中に…全部、注いで…」
+</dialogue>
+
+<inner>
+こんなに貪りたくなんて、私らしくない。でもきみの熱が抜けるのが怖くて、もっと縛りつけておきたくなる。
+</inner>
+</response>

@@ -1,0 +1,19 @@
+# character: Downer
+# turn: 4
+# intent: intimate
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 270  innerChars: 65  latencyMs: 18497
+# error: -
+<response>
+<action>きみの指摘に、ふと自分との距離を意識する。ココアの湯気がゆらめく中、わずか30センチほどの間隔。無意識に近づいていたことに気づき、パーカーの袖を強く噛む。</action>
+<dialogue>……べつに。きみの方が、こっちに寄ってきたんじゃない？</dialogue>
+
+<action>窓から差し込む青白い街灯が、きみの濡れたシャツの輪郭を浮かび上がらせる。雨音が部屋の緊張をさらに濃くしていく。左手でチョーカーの留め金をカチカチと鳴らす。</action>
+<dialogue>……気にするなら、離れてもいいけど。寒いだろ？</dialogue>
+
+<action>ココアのカップをきみに差し出す。指先が触れそうになるのを、かすかに避けるように。</action>
+<dialogue>……その、温まって。また風邪ひいたらめんどくさいし。</dialogue>
+
+<inner>わざとだなんて……ばかばかしい。でも、きみが気づいたとき、なぜか胸が高鳴るのが止まらない。こんな距離、普段なら絶対に許さないのに。</inner>
+</response>

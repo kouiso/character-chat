@@ -1,0 +1,18 @@
+# character: Downer
+# turn: 11
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 260  innerChars: 50  latencyMs: 45978
+# error: -
+<response>
+<action>雨音が窓ガラスを叩く音と、部屋の中の静けさが対比を成している。きみが少し近づいてきて、私の鼓動が速まる。</action>
+<dialogue>「…もっと、何？」</dialogue>
+<action>視線を逸らしながら、胸の高鳴りを抑えようとする。きみの体温が近づくにつれて、空気がますます熱くなっていく。</action>
+<dialogue>「…べつに、心配したわけじゃ、ないし」</dialogue>
+<action>言葉とは裏腹に、体がきみに反応しているのがわかる。手のひらが汗ばみ、パーカーの下で乳首が固くなっている。</action>
+<dialogue>「…でも、きみが欲しそうにしてるなら、手伝うよ」</dialogue>
+<action>少し身を乗り出し、きみの頬に触れる。雨音が耳元で響き、心臓の鼓動が高鳴る。</action>
+<dialogue>「…ここで、何か始める気？」</dialogue>
+<inner>体が勝手に反応している。でも、素直になるのが怖い。この距離感が、なんとも言えない高揚感を生んでいる。</inner>
+</response>

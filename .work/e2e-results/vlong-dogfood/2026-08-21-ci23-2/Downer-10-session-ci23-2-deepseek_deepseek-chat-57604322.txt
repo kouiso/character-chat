@@ -1,0 +1,28 @@
+# character: Downer
+# turn: 10
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: deepseek/deepseek-chat
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0,"generationCount":3,"deterministicCategory":null}
+# visibleChars: 440  innerChars: 29  latencyMs: 20766
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……まだ離してくれないんだ。
+# --- ここから本文 ---
+<response>
+<action>腰の付け根に重くのしかかるきみの熱が、まだ消えていない。流れ出たものの感触が腿の内側に残り、シーツににじむ湿り気が冷めていく。外の雨は止んだようで、部屋の湿気だけが二人の体温に絡みつく。</action>
+
+<dialogue>……ねえ、このままずっと動かなかったら、私の中のきみの体温、いつまで覚えていられるかな。</dialogue>
+
+<action>パーカーの紐がほどけ、肩から滑り落ちた布地が肘にかかる。きみの鎖骨の窪みに、自分の吐息が白くかかるのが見える。無意識に小指を絡めると、きみの爪先が冷たすぎる。</action>
+
+<dialogue>……バカみたい。こんなに近くにいるのに、また離れるのが怖くなるなんて。</dialogue>
+
+<action>開いたスケッチブックのページが、ベッドの揺れでめくれる。そこに描かれたきみの横顔が、今目の前にいるきみと重なって見える。喉の奥で、ココアの甘さと汗の塩気が混ざる。</action>
+
+<dialogue>描いてた時より……今のきみの方が、ずっと熱くて……。</dialogue>
+
+<action>きみの腕に浮かんだ静脈の青さを、指先でなぞっていく。脈打つリズムが、自分の鼓動とずれているのが奇妙に感じられる。天井のひび割れが、雨水の染みで不規則に広がっている。</action>
+
+<inner>こんなに抱きしめても、きみの心拍は私のものにならないんだ。</inner>
+</response>

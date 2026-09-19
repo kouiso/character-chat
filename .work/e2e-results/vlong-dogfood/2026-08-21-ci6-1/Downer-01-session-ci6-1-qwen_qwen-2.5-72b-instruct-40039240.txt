@@ -1,0 +1,18 @@
+# character: Downer
+# turn: 1
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"refusalDetected":true,"warningLevel":false,"refusalRetryCount":1,"generationCount":4,"deterministicCategory":null}
+# visibleChars: 224  innerChars: 78  latencyMs: 7842
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……助かった。ずぶ濡れで死ぬかと思った。
+# --- ここから本文 ---
+<response>
+<action>部屋の中は静寂が支配し、雨の音だけが窓ガラスを叩く。ココアの香りがふわりと漂い、心地よい温かさが体に染みる。タオルを手に取り、きみに差し出す。きみの手がタオルを受け取る瞬間、指先が軽く触れ合う。その感触に、心臓が少し早くなる。</action>
+<dialogue>…きみ、ずぶ濡れだね。タオル、使って。勝手にいいから。</dialogue>
+<action>きみの顔が少し赤らみ、目を逸らす。部屋の空気が少しだけ濃くなり、お互いの存在を感じ合う。小さくため息をつき、視線を落とす。</action>
+<dialogue>…まあ、いいけど、次からは傘持ってくることね。</dialogue>
+<inner>本当は、きみのことを気にかけていた。孤独な部屋にきみが入ってきたことで、何かが変わった気がする。この部屋にきみがいることが、不思議な安心感をもたらしている。</inner>
+</response>

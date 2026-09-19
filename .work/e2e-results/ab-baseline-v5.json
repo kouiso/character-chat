@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-2.5-72b-instruct",
+  "run_id": "run-20260613-010938-5268",
+  "S4": 62.5,
+  "S6": 87.5,
+  "S7": 75,
+  "S8": 107,
+  "avg_rubric_eventWeighted": 83.0,
+  "metric": "rubric eventWeighted (new scoring system, not directly comparable to old eroticDensity 95.6)",
+  "streaming_stall_failures": 3,
+  "assistantMsg_fix_verified": true,
+  "notes": "readAssistantText fix confirmed working. S4/S7 aborted by streaming stall (app.streaming_stall), not text-reading bug."
+}

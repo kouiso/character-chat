@@ -1,0 +1,7 @@
+# character: sakura
+# turn: 5
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 0  innerChars: 0  latencyMs: 1182
+# error: [API_ERROR:429]

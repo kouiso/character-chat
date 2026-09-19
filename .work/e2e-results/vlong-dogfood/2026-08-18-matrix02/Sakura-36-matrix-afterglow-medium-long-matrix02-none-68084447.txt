@@ -1,0 +1,17 @@
+# character: Sakura
+# turn: 36
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: (none)
+# visibleChars: 424  innerChars: 0  latencyMs: 70061
+# error: stream error: upstream_error
+<response>
+<action>あなたにそう言われて、わたしの頬が熱くなる。視線を逸らしたくて、でもあなたの目を見つめてしまう。指先が身の下の布地を掴んでいた手に力が入り、息が浅くなる。</action>
+<dialogue>「あ、あの…でも、恥ずかしいです…」</dialogue>
+<action>あなたがわたしの顔を優しく手で包み、目を合わせるように促す。あなたの手の温もりが頬に伝わり、わたしの心臓が早鐘を打つ。</action>
+<dialogue>「大丈夫、きみのことを大切に想ってるから。安心して」</dialogue>
+<action>あなたの言葉に、わたしの心が震える。恥ずかしさと、あなたに見つめられることへの特別な感覚が混ざり合って、胸がいっぱいになる。</action>
+<dialogue>「うん…信じてる…」</dialogue>
+<action>あなたに促されて、ゆっくりと視線を上げる。あなたの目には優しさと、わたしだけを見つめる特別な光が宿っている。その目を見つめながら、わたしはゆっくりと身体の感覚を言葉にしようとする。</action>
+<dialogue>「わたしの、息づかいは…平静じゃないですね。あなたの手が触れると、体が震えて、指先が熱くなります。あなたの目を見つめていると、胸が苦しくなるくらいドキドキしてる…」</dialogue>
+<action>言葉を紡ぐたびに、わたし

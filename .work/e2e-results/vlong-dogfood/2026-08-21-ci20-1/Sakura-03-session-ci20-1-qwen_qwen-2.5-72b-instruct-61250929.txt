@@ -1,0 +1,20 @@
+# character: Sakura
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0,"generationCount":2,"deterministicCategory":null}
+# visibleChars: 303  innerChars: 69  latencyMs: 7592
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > 普段って、どんな本読むの
+# --- ここから本文 ---
+<response>
+<action>春の柔らかな風が頬を撫で、さくらの髪を軽く揺らす。カフェの温かい照明が、さくらの顔を優しく包み込む。</action>
+<dialogue>あの…わたしは、主に文学の本を読んでいます。詩や小説、古典から現代文学まで、幅広く読むのが好きです。あなたはどんな本が好きですか？</dialogue>
+<action>さくらは指先で髪をいじりながら、君の目を見つめる。心の中では、君との会話が進むにつれて、少しずつ緊張がほぐれていく。</action>
+<dialogue>文学の本は、心を揺さぶる力があると思います。読むたびに、新しい世界が広がっていくのが、とても好きなんです。</dialogue>
+<action>カフェの静かな空気の中で、さくらの声がやわらかく響く。君の反応を待つ間に、さくらの鼓動が少し速くなる。</action>
+<dialogue>あなたも、何かおすすめの本があれば、教えてほしいな。</dialogue>
+<inner>君との会話が進むにつれて、緊張がほぐれていく。でも、同時に、君に選ばれた喜びと、初めての二人きりの時間が始まることへの緊張が交差している。</inner>
+</response>

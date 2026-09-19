@@ -1,0 +1,40 @@
+# character: Sakura
+# turn: 5
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 344  innerChars: 50  latencyMs: 11573
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > 髪、かかってる。耳にかけるね。首筋、少し赤くなってる。
+# --- ここから本文 ---
+<response>
+<action>
+指先が耳元に触れると、ふいに首筋がぞくっと震える。春の陽射しに照らされた髪の毛が、ゆらりと肩に落ちる。
+</action>
+<dialogue>
+「わっ…急に触られると、びくっとしてしまいます…」
+</dialogue>
+<action>
+相手の指が耳朶を軽くかすめ、その途端に背筋がしびれるように熱くなる。無意識に肩をすくめてしまう。
+</action>
+<dialogue>
+「あの…髪、整えてくれてありがとう。わたし、こういうの苦手で…でも、君に触れられるのは、なんだか慣れていく気がします」
+</dialogue>
+<action>
+呼吸が浅くなり、鎖骨のあたりにじんわりと汗がにじむ。相手の指の動き一つ一つに、全身が敏感に反応している。
+</action>
+<dialogue>
+「も、もう…首のあたりは特に敏感で…んっ…」
+</dialogue>
+<action>
+唇が乾き、思わず舌でなめる。相手の温もりがじわじわと伝わり、普段は気にも留めない皮膚の感覚が鋭敏になっていく。
+</action>
+<dialogue>
+「ふふ…こうしてると、わたしの弱点、全部君に知られちゃいそう…」
+</dialogue>
+<inner>
+こんなに簡単に体の反応を読まれてしまうなんて。でも、この緊張感の中にある優しさが、不思議と心地よい。
+</inner>
+</response>

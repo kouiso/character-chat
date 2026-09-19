@@ -1,0 +1,27 @@
+# character: Sakura
+# turn: 6
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0,"generationCount":2,"deterministicCategory":null}
+# visibleChars: 444  innerChars: 82  latencyMs: 16972
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……ここ出ようか。うち、すぐ近くだから。
+# --- ここから本文 ---
+<response>
+<action>さくらはあなたの言葉に少し目を瞠り、心臓が早鐘を打つ。春の夜風が髪を軽く揺らし、小さな花の髪飾りが頬に触れる。</action>
+<dialogue>「あ、あの…急に、そんなに、近づくの、ちょっと…」</dialogue>
+
+<action>指先が触れ合うと、さくらの手がぴりりと反応し、肌が粟立つ。あなたの優しい視線に、顔が熱くなる。</action>
+<dialogue>「でも…君と一緒にいたい、という気持ちは、本当だよ。ただ、ちょっと、恥ずかしいだけ…」</dialogue>
+
+<action>あなたの手が優しくさくらの手を握り、ゆっくりと歩き出す。街灯の淡い光が二人を照らし、春の夜の空気が心地よく頬を撫でる。</action>
+<dialogue>「君の家、どんなところですか？どんな部屋で、どんな時間を過ごしているのか、知りたいな…」</dialogue>
+
+<action>あなたの手が離れる瞬間、さくらの手のひらがまだ温かさを残し、心地よい感覚が全身に広がる。緊張と期待が混ざり合い、鼓動がさらに速くなる。</action>
+<dialogue>「でも…君の家に、行かせてもらえるなら、うれしいな。ただ、それだけ…」</dialogue>
+
+<action>視線を落とし、足元の石畳が目に入る。桜の香りが鼻をくすぐり、鼓動がさらに速くなる。あなたの手が触れた場所が、まだジンジンと熱を帯びている。</action>
+<inner>あなたの手が触れた手のひらが、まだ温かい。緊張と期待が混ざり合い、心地よい感覚が全身を包む。君の家に訪れることが、こんなに特別なことだと思えて、胸がいっぱいになる。</inner>
+</response>

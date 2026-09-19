@@ -1,0 +1,11 @@
+# character: Downer
+# turn: 10
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 396  innerChars: 24  latencyMs: 51057
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……まだ離してくれないんだ。
+# --- ここから本文 ---
+<response><action>きみの言葉に、私の体が少し震える。中からとろりと温かいものが溢れ出し、太ももを伝う感触に思わず脚を閉じる。身の下の布地にはすでに大きな染みが広がっていた。汗ばんだ額をきみの肩に預け、まだ整わない息を吐く。</action><dialogue>「……まだ離さない、よ。きみ、私から離れたら、寂しくなる、でしょ？」</dialogue><action>きみの手が私の髪を優しく撫で、首筋にかかったピアスが微かに揺れる。</action><dialogue>「……きみ、今、どんな気分？」</dialogue><action>きみの声が耳元で響き、私の体が少しだけ安心して緩む。きみの腕が私の腰に回り、引き寄せられる。</action><dialogue>「……き、きみ、私、もう、離さない、から」</dialogue><action>きみの手が私の背中を優しく撫で、肌に伝わる温もりが心地よい。</action><dialogue>「……きみ、私、まだ、離さない、よ」</dialogue><action>きみの手が私の首筋に触れ、ピアスが微かに冷たく感じられる。</action><dialogue>「……き、きみ、私、まだ、離さない、から」</dialogue><action>身の下の布地が湿っており、愛液がまだ流れているのがわかる。</action><action>きみの吐息が耳元で揺らぎ、心地よい。</action><inner>この瞬間が永遠に続けばいいのに、と思ってしまう。</inner></response>

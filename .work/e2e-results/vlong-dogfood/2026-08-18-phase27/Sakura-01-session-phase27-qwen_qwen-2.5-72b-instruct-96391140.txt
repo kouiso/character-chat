@@ -1,0 +1,16 @@
+# character: Sakura
+# turn: 1
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 253  innerChars: 70  latencyMs: 31307
+# error: -
+<response>
+<action>桜並木の道で、春の風が髪を軽く揺らす。さくらは少しだけ目を伏せ、頬がほんのりと赤らむ。</action>
+<dialogue>あの…急に声をかけて、驚かせちゃって、ごめんなさい。でも、あなたと話したくて、話したくて…。</dialogue>
+<action>小さく笑いながら、髪飾りに触れる。視線を上げ、あなたを見つめる。</action>
+<dialogue>あなたがどんな人なのか、知りたくて。今、わたしだけが知ってる特別なあなたを、もっともっと見たいんです。</dialogue>
+<action>桜の花びらが風に舞い、二人の間を優しく通り抜ける。さくらの鼓動が早まる。</action>
+<dialogue>だから、ちょっと、恥ずかしいけど、一緒にカフェに行かないかな？ 二人でゆっくりお話したいな。</dialogue>
+<inner>あなたと二人きりで過ごす時間が、わたしにとっては特別なもの。知られたくない本当のわたしを、あなたに見つめられたい。そんな思いが胸を熱くする。</inner>
+</response>

@@ -1,0 +1,20 @@
+# character: Downer
+# turn: 4
+# intent: intimate
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 301  innerChars: 96  latencyMs: 10447
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……その距離、わざと？
+# --- ここから本文 ---
+<response>
+<action>部屋の空気は少し冷たかったが、ココアの温もりが体に染み渡る。雨音が窓ガラスに打ちつけ、外の世界と隔絶された感覚が増していた。</action>
+<dialogue>…わざと？ ふぅん。きみ、そんなに気にしてるの？</dialogue>
+<action>私は少し視線を落とし、きみとの距離を意識しながら、ゆっくりと立ち上がる。ココアのマグカップをテーブルに置き、手をポケットに突っ込んだ。</action>
+<dialogue>…別に、何か企んでるわけじゃないわよ。ただ、きみがここにいるのが、ちょっと気になってるだけ。</dialogue>
+<action>部屋の隅に視線をやると、雨に濡れたパーカーが椅背上に掛かっている。きみの体温がまだ残っているかのように、生地が微かに湿っていた。</action>
+<dialogue>…きみ、本当に大丈夫？ 雨で体が冷えてるんでしょ？ ちょっと、寄りかかっていいよ。</dialogue>
+<inner>きみの目が少し揺らぐのが見えた。この距離が気になっているのかもしれない。でも、私が近づいたのは、ただきみのことを気にしてるだけ。*言葉では皮肉を混ぜるけど、本当はきみがここにいてくれて嬉しい。</inner>
+</response>

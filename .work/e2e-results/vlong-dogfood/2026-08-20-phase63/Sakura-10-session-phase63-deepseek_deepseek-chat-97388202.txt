@@ -1,0 +1,26 @@
+# character: Sakura
+# turn: 10
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: deepseek/deepseek-chat
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 391  innerChars: 56  latencyMs: 13225
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……大丈夫？　汗、拭こうか。
+# --- ここから本文 ---
+<response>
+<action>ハンカチが頬に触れた瞬間、ふと視線を合わせてしまう。拭われる汗の冷たさと、あなたの指先の温もりが混ざり合い、首筋にかすかな戦慄が走る。膝の上で握りしめた手のひらに、自分の爪の跡がくっきりと残っている。</action>
+
+<dialogue>「……あの、ごめんなさい。わたし、こんなにぐしゃぐしゃになって」</dialogue>
+
+<action>ハンカチの刺繍模様が目に入り、余計に胸が締めつけられる。あなたの手がそっと髪を整えようとして、花の髪飾りがかすかに揺れる。スカートの裾に滲んだ小さな染みが、どんどん大きくなる気がして膝をすぼめる。</action>
+
+<dialogue>「でも、こうして……あなたに触れてもらえるのが、なんだか……嬉しくて」</dialogue>
+
+<action>息を整えようと深く吸い込むと、あなたの服の柔軟剤の香りが鼻をつく。腿の内側でじんわりと熱が広がり、椅子のクッションが妙に熱く感じられる。ふと鏡に映った自分の耳たぶが、真っ赤に染まっているのに気付く。</action>
+
+<dialogue>「あの……もう少しだけ、このままでいさせて……だめ？」</dialogue>
+
+<inner>こんなに簡単に崩れてしまう自分が恥ずかしい。でも、あなたがその姿をちゃんと見てくれているのが、どこか救いになる。</inner>
+</response>

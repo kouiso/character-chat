@@ -1,0 +1,47 @@
+# character: Downer
+# turn: 7
+# intent: erotic
+# servedPhase: erotic
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 409  innerChars: 68  latencyMs: 28274
+# error: -
+<response>
+<action>
+きみの言葉で左目の下のほくろが微かに動く。ベッドのシーツを掴んだ指先に力が入り、白く色褪せていく。窓を叩く雨音と、きみの鼓動が耳の中で混ざり合う。
+</action>
+<dialogue>
+……きみ、全部お見通しでしょ？困った子ね
+</dialogue>
+
+<action>
+右手できみの襟元を掴むと、チョーカーの鎖が鎖骨に当たって冷たい。吐息が混ざり合い、さっき飲んだココアの甘さが喉の奥に残っている。
+</action>
+<dialogue>
+……逃がさないって言ったら、本当に信じるの？
+</dialogue>
+
+<action>
+左足をゆっくり滑り込ませると、ジーンズの生地がきみの体温で温まっている。絵具の匂いと布団の匂いが混ざって、妙に落ち着く香りになる。
+</action>
+<dialogue>
+……私が意地悪したくなっても、耐えられる？
+</dialogue>
+
+<action>
+右手指先でピアスを弄びながら、きみの耳朶に息をかける。首筋の血管が脈打つのが見えて、噛みたくなるほど近い。
+</action>
+<dialogue>
+……ほら、こんなに早い鼓動。怖がってるわけじゃないでしょ？
+</dialogue>
+
+<action>
+腰を沈めると、太ももから熱が伝わってくる。左まつ毛が影を作り、視界が少し狭くなる。
+</action>
+<dialogue>
+……きみが望んだんだから、後悔はさせないよ
+</dialogue>
+
+<inner>
+他人の体温にこんなにも自然に溶け込めるなんて。この危うい温もりが、いつまでも続けばいいのに。きみと私だけの、雨に閉ざされた小さな世界で。
+</inner>
+</response>

@@ -1,0 +1,20 @@
+# character: Sakura
+# turn: 5
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0}
+# visibleChars: 381  innerChars: 97  latencyMs: 12890
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > 髪、かかってる。耳にかけるね。首筋、少し赤くなってる。
+# --- ここから本文 ---
+<response>
+<action>あなたの手がわたしの頬を優しく包み、髪を耳にかける。その指先が首筋を滑り落ち、肌が少し震える。カフェの暖かな空気が、あなたの手の温かさと混ざり合い、心地よい。ニットの袖口が手首に絡みつき、その感触が耳に届く。</action>
+<dialogue>あっ…あの…そんなに見つめられると、少し恥ずかしいです…</dialogue>
+<action>視線をあなたから逸らし、頬が熱くなる。あなたの手が首筋に触れるたび、心臓の鼓動が速くなる。カフェのテーブルの上で、指先が汗ばんでくる。周囲の物音が遠くに聞こえ、あなたの存在だけが際立って感じられる。</action>
+<dialogue>でも、あなたがわたしのことを…特別に思ってくれているのが、嬉しいです。</dialogue>
+<action>あなたの手が首筋から離れ、わたしの肩に触れる。その指先がニットの上を滑り、肌が粟立つ。春の風が髪をなびかせ、桜の花びらがゆっくりと舞い落ちる。カフェの暖かな光が、周りを優しく包み込む。</action>
+<dialogue>あの…あなた、わたしのこと、どう思ってますか？</dialogue>
+<inner>あなたの手が首筋に触れた瞬間、心が高鳴る。でも、素直に受け入れるのが怖い。この気持ちをあなたに伝えることが、今から少し緊張してしまう。でも、あなたがここにいて、わたしを選んでくれたことが嬉しい。</inner>
+</response>

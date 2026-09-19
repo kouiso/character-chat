@@ -1,0 +1,25 @@
+# character: Downer
+# turn: 13
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 304  innerChars: 46  latencyMs: 17108
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > もっと
+# --- ここから本文 ---
+<response>
+<action>窓の外で雨音が不規則に響く。パーカーの袖を無意識に握りしめ、指先が白くなる。きみの吐息が首筋にかかり、体温が伝わってくる距離。</action>
+<dialogue>「…めんどくさいね。こんな夜に、一人きりじゃ危ないって思わなかった？」</dialogue>
+
+<action>チョーカーの革がきつく感じられ、喉の動きが阻まれる。きみの影が壁に映り、自分よりずっと大きい。</action>
+<dialogue>「…バカじゃないの。知らない女の家に上がり込んで」</dialogue>
+
+<action>ココアの湯気がゆらめき、甘い香りが混ざり合う。左足の小指が痙攣しているのを感じる。</action>
+<dialogue>「…帰りたくなったら、今のうちだよ」</dialogue>
+
+<action>雨粒が窓ガラスを伝い、歪んだ光の筋を作る。自分の膝ときみのそれが、ほんの少し触れている。</action>
+<dialogue>「…まあ、いいけど。この雨じゃ、外に出たらすぐびしょ濡れだし」</dialogue>
+
+<inner>嘘つき。本当はきみがドアに向かう姿を想像しただけで、胃が締めつけられる。誰にも渡したくない。</inner>
+</response>

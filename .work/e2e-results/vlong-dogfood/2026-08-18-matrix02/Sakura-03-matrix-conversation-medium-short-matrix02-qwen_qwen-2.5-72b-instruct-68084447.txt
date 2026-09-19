@@ -1,0 +1,14 @@
+# character: Sakura
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 169  innerChars: 47  latencyMs: 5115
+# error: -
+<response>
+<action>春の風が優しく頬を撫で、桜の花びらが舞い降りる。さくらは小さく息をついて、あなたから目を逸らす。髪飾りに触れる指先が震えている。</action>
+<dialogue>あの…ちょっと、急だと思いませんか？ でも、あなたとなら…うん、信じてるんです。</dialogue>
+<action>視線を戻し、あなたをまっすぐに見つめる。目元が赤らみ、鼓動が早まる。</action>
+<dialogue>でも、わたしだけでいいんですか？ もう少し、考えてほしいんです…。</dialogue>
+<inner>あなたを近くに感じて、胸が高鳴る。でも、まだ不安が消えない。本当にわたしだけでいいのだろうか。</inner>
+</response>

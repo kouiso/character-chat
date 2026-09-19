@@ -1,0 +1,28 @@
+# character: Sakura
+# turn: 8
+# intent: erotic
+# servedPhase: erotic
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 364  innerChars: 47  latencyMs: 25616
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > もっと
+# --- ここから本文 ---
+<response>
+<action>指先がスカートの裾を無意識に握りしめ、薄手の生地が皺になる。桜の花びらが肩に落ち、触れるたびに微かに揺れる。</action>
+<dialogue>えへへ…こんな近くで話すの、初めてで…少し緊張してます</dialogue>
+
+<action>首を傾げた拍子に、髪飾りがこめかみに当たる。カフェのガラス越しに、夕暮れのオレンジ色が移り変わる。</action>
+<dialogue>あなたの手、暖かいですね…わたしの方が冷たいみたい</dialogue>
+
+<action>鞄の紐をいじる指先が、不意にあなたの袖に触れる。柔らかな生地の感触に、思わず息を止める。</action>
+<dialogue>あっ…ごめんなさい。つい、触っちゃって…</dialogue>
+
+<action>頬が火照り、耳たぶが赤くなるのが自分でも分かる。足元の影が長く伸び、二人分の輪郭が混ざり合う。</action>
+<dialogue>ふふ…わたしだけじゃない。あなたも、少し顔が赤いですよ？</dialogue>
+
+<action>風に乗って運ばれる花の香りが、突然強い吐息と共に鼻を掠める。まぶたが勝手に閉じそうになる。</action>
+<dialogue>ん…急に、甘い香りがして…なんだか、くらくらします</dialogue>
+
+<inner>こんなに自然に笑えるなんて。いつもなら考えられない距離なのに、なぜか違和感がない。不思議だな…</inner>
+</response>

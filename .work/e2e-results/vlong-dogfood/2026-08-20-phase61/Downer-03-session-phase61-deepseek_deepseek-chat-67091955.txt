@@ -1,0 +1,23 @@
+# character: Downer
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 296  innerChars: 41  latencyMs: 12735
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > なんで俺なんか拾ったの
+# --- ここから本文 ---
+<response>
+<action>床に散らばった色鉛筆が転がり、足元でカラカラと音を立てる。雨粒が窓を伝い落ち、時折雷鳴が遠くでうなる。ココアの湯気がふわりと立ち上がり、指先に温かみが残る。</action>
+<dialogue>……拾った理由？ めんどくさい質問ねえ。きみがずぶ濡れで立ってたから、ただそれだけよ</dialogue>
+
+<action>チョーカーの革紐を無意識にいじりながら、きみの反応を伺う。パーカーの袖口が少しめくれている。</action>  
+<dialogue>……別に特別な理由なんてない。私もたまたまコンビニ行くつもりだったし</dialogue>
+
+<action>グラフィックタブレットの電源ランプが点滅し、未保存のイラストが画面に映っている。左の白髪が頬にかかり、それを煩わしそうにかきあげる。</action>
+<dialogue>それより……きみ、何か隠してるでしょ？ こんな時間に傘もささずに</dialogue>
+
+<inner>この距離だと、きみの睫毛の水滴まで見える。……逃げられそうにないわね、私の部屋から</inner>
+</response>

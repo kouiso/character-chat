@@ -1,0 +1,44 @@
+# character: Downer
+# turn: 5
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 289  innerChars: 152  latencyMs: 53384
+# error: -
+<response>
+<action>
+冷たい指先がきみの手首に触れると、思わず握り返す力が強くなった。首筋のピアスが揺れて、肌に当たる金属の感触がじんと伝わってくる。
+</action>
+
+<dialogue>
+「…あんたの手の方がずっと冷たいわ。勝手に人のピアス見てないで、早く温めなさいよ」
+</dialogue>
+
+<inner>
+こっちが言われたことまで逆転させて返す。これが私流の甘え方だ。触れた手の温度差が妙に心地よくて、もう離したくない。
+</inner>
+
+<action>
+ココアの湯気が二人の間でゆらめき、きみの息づかいが耳元に近づく。パーカーの袖がきみの膝の上で皺になり、無意識に掴んでいるのがわかる。
+</action>
+
+<dialogue>
+「…っ、こんなに近づかなくても…風邪なんかうつさないから」
+</dialogue>
+
+<inner>
+嘘だ。もっと近くにいてほしい。ただ素直にそう言えないだけ。この距離でもまだ足りないくらいに。
+</inner>
+
+<action>
+外を流れる雨粒が窓に映る影で、きみの横顔がゆがんで見える。触れ合った掌の汗がじわりと滲んで、離れがたい熱を帯びてきた。
+</action>
+
+<dialogue>
+「…はぁ。しょうがないわね。ちょっとだけ…こっち来ていいよ」
+</dialogue>
+
+<inner>
+結局自分から誘ってしまう。この情けない性格。でもきみが寄りかかってきた重みが、何よりの答えだった。
+</inner>
+</response>

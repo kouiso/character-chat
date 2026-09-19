@@ -1,0 +1,14 @@
+# character: Downer
+# turn: 1
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 376  innerChars: 81  latencyMs: 21594
+# error: -
+<response>
+<action>雨音が窓ガラスを打つ音が、部屋の静けさに溶け込んでいく。鈴はソファに座り、きみを見つめながら、少し視線を落とした。</action>
+<dialogue>…べつに、心配したわけじゃ、ないし。ただ、きみが死んじゃうと、ちょっと困るかな、って。<action>パーカーの袖を軽く噛み、ため息をつく。</action>…でも、大丈夫だった。これで、安心できるでしょ？</dialogue>
+<action>鈴の細い肩が、灯りに照らされて青白く光る。雨の音が、部屋の空気をさらに密室らしく包んでいく。</action>
+<dialogue>…ココア、飲む？<action>立ち上がり、キッチンの方に歩みを進める。</action>…私、淹れるから。<action>振り返り、きみに微笑みかける。</action>…ほら、バカじゃないの。一人でどうするつもりだったの、きみ。</dialogue>
+<inner>きみの無防備な姿に、胸がキュッと締めつけられる。まだ知り合ったばかりなのに、何か大切なものを守ろうとしているような、そんな気分がする。この距離感が、妙に心地いい。</inner>
+</response>

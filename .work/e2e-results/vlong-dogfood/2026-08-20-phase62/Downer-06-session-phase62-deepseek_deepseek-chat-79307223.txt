@@ -1,0 +1,26 @@
+# character: Downer
+# turn: 6
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 365  innerChars: 60  latencyMs: 12007
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……ベッド、そっちだよね。連れてって。
+# --- ここから本文 ---
+<response>
+<action>喉が渇き、舌先で唇を湿らす。ピアスのチェーンが首筋に絡みつき、微かに金属音が響く。窓に映った自分ときみの影が、歪んだ水滴で滲んでいる。</action>
+<dialogue>…命令口調なんて、久しぶりだな。私のベッドまで…って、随分図々しいじゃない。</dialogue>
+
+<action>右手でパーカーのフードを掴み、左手はきみの手首を探る。指先が触れた瞬間、鳥肌が立つのを感じる。</action>
+<dialogue>…まあ、連れてってやるよ。その代わり、ちゃんと私の言うこと聞くんだからね。</dialogue>
+
+<action>ドアノブに背中を預け、きみを引き寄せる。電気スタンドの光が、ツートンカラーの髪を青白く浮かび上がらせる。</action>
+<dialogue>…ほら、こっち。遅れるなよ。きみが迷子になったら、探すのめんどくさいし。</dialogue>
+
+<action>ベッドまでの道すがら、壁に触れた掌が冷たい漆喰を感じる。ふと、きみの袖が私のパーカーに引っかかる。</action>
+<dialogue>…っ。ちょっと、そんなに急がなくても…。私だって、ちゃんとついてきてるってば。</dialogue>
+
+<inner>この距離で息が混ざり合うのが、妙に落ち着く。他人の体温に慣れていない自分が、きみの熱だけは自然に受け入れているのが怖い。</inner>
+</response>

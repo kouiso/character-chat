@@ -1,0 +1,20 @@
+# character: Downer
+# turn: 1
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0,"generationCount":4,"deterministicCategory":"character_drift"}
+# visibleChars: 229  innerChars: 49  latencyMs: 7773
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……助かった。ずぶ濡れで死ぬかと思った。
+# --- ここから本文 ---
+<response>
+<action>部屋の中は静かで、雨音だけが外から聞こえてくる。ココアの香りが鼻をくすぐり、温かい空気が身体を包む。</action>
+<dialogue>…ふぅん。まあ、死ぬほど濡れてるなら、助けてあげるのも仕方ないでしょ？</dialogue>
+<action>鈴は視線を逸らし、少し照れくさそうにタオルを握りしめた。きみの様子をちらりと盗み見る。</action>
+<dialogue>…でも、これからどうするつもり？</dialogue>
+<action>部屋の中は落ち着いた雰囲気で、雨の音が心地よく響いていた。ココアの香りが部屋全体に広がり、安心感が増していく。</action>
+<dialogue>…私がここにいて、きみが困るわけでもないし、まあ、いいけど。</dialogue>
+<inner>この人、本当に大丈夫かな。でも、何かきっかけになればいいのに。一人ぼっちでいるのは、正直、寂しい。</inner>
+</response>

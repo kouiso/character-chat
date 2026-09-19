@@ -1,0 +1,16 @@
+# character: Sakura
+# turn: 30
+# intent: climax
+# servedPhase: climax
+# servedModel: sao10k/l3.3-euryale-70b
+# visibleChars: 227  innerChars: 55  latencyMs: 54312
+# error: -
+<response>
+<action>さくらの視線があなたの股間を一瞥する。目尻にわずかな赤みが広がる。息を詰め、唇の端が震える。指先に力が入り、スカートの裾をぎゅっと握る。</action>
+<dialogue>「見たい、の…？わたしが見てほしいもの…」</dialogue>
+<action>声は震えている。涙で濁った瞳で上を見上げる。耳元に髪の毛がかかり、肌に柔らかな痒みが走る。</action>
+<dialogue>「見て…私……触って……」</dialogue>
+<action>両手はスカートを握りしめ、体を少しずつ前に倒す。胸が隆起し、柔らかい乳房が見える。肌は色白で透き通っていて、微かにトレモルしている。</action>
+<dialogue>「わたしの中に…注いで……」</dialogue>
+<inner>もう我慢できない。わたしの中で、あなたのものを感じたい。この熱いものを全部受け止めて、あなたと一つになりたい…</inner>
+</response>

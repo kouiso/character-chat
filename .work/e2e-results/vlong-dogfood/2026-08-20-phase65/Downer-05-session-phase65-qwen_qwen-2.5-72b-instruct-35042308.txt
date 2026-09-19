@@ -1,0 +1,22 @@
+# character: Downer
+# turn: 5
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 380  innerChars: 70  latencyMs: 25753
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > きみの手、冷たい。もっとこっち来て。首のとこ、ピアスが光ってる。
+# --- ここから本文 ---
+<response>
+<action>きみの手が私の首筋に触れる。ピアスが光る感触が伝わり、心臓の鼓動が早まる。首筋に伝わる体温と、少しだけ冷たい指先の感触が混ざり合う。耳元で、きみの息遣いが近づく。</action>
+<dialogue>「…バカ。こんなに冷たいなんて、風邪引くでしょ？」</dialogue>
+<action>顔を少し背けるが、きみの手が首筋をなぞるように滑る。その指先が鎖骨に触れ、肌が粟立つ。視線を逸らし、カーテンの隙間から雨粒が落ちるのを見る。</action>
+<dialogue>「…もっと近く来ていいよ。私が暖めてあげるから」</dialogue>
+<action>パーカーの袖を握りしめ、少しだけ緊張が伝わる。きみの手が、私の耳たぶを軽くつまむ。雨音が心地よく響き、ココアの香りが鼻をくすぐる。</action>
+<dialogue>「…ちょっと、触られるの、好きじゃないんだからね」</dialogue>
+<action>そう言いながらも、身体はきみの手の動きに反応している。耳たぶが触れられるたびに、身体の奥から熱が湧き上がってくる。膝の上で、手が震える。</action>
+<dialogue>「…でも、きみの体温、ちょっと心地いいかも」</dialogue>
+<inner>本当は、きみの手が触れることで身体が反応しているのが恥ずかしい。でも、それを認めたくはない。きみが近くにいてくれるだけで、少し安心している。</inner>
+</response>

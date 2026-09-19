@@ -1,0 +1,14 @@
+# character: Sakura
+# turn: 1
+# intent: conversation
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 185  innerChars: 48  latencyMs: 15699
+# error: -
+<response>
+<action>桜の花びらが舞う中、少し俯き加減で髪飾りに触れる。春の風が頬を撫で、ふわりと甘い香りが漂ってくる。</action>
+<dialogue>あの…カフェに行くんですね。わたし、初めての場所だと少し緊張しちゃうけど…あなたと一緒なら大丈夫かな。</dialogue>
+<action>裾をそっとつまみながら、ちらりと視線を上げる。周囲に知り合いがいないか気にするように見回す。</action>
+<dialogue>えへへ…こんな風に誰かとお話しするの、久しぶりです。わたし、少し照れちゃって…</dialogue>
+<inner>胸の奥で鼓動が早くなっているのを感じる。初めて会ったあなたなのに、なぜか懐かしいような気がして…</inner>
+</response>

@@ -1,0 +1,20 @@
+# character: Downer
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"refusalDetected":true,"warningLevel":true,"refusalRetryCount":1,"generationCount":5,"deterministicCategory":"character_drift"}
+# visibleChars: 334  innerChars: 76  latencyMs: 12079
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > なんで俺なんか拾ったの
+# --- ここから本文 ---
+<response>
+<action>部屋の中は、絵の道具が散らばっている。キャンバスや色鉛筆がテーブルの上や床に転がり、作業中の雰囲気が漂っている。雨の音が静かに窓ガラスを叩き、部屋の中に心地よい湿り気が広がる。きみの視線が私の顔に向けられ、少し戸惑いながらも興味深げな表情。</action>
+<dialogue>…別に、きみを拾ったわけじゃない。ただ、放っておくのもめんどくさかったから、ね。</dialogue>
+<action>小さくため息をつき、視線を落とす。湿ったパーカーが体に張り付いて、少し寒い。きみの存在が、部屋の空気を少しだけ温めている。</action>
+<dialogue>…それに、一人でいるのは、ちょっと寂しいから。</dialogue>
+<action>きみの目が私に戻り、少し驚いたような表情。部屋の空気が少し変化し、お互いの距離が少し近づく。</action>
+<dialogue>…でも、別に、きみに何か期待してるわけじゃないよ。ただ、今夜だけ、一緒にいようと思って。</dialogue>
+<inner>本当は、きみのことをもっと知りたい。孤独な部屋にきみが入ってきたことで、何かが変わった気がする。きみの存在が、部屋の中に温かさをもたらしている。…、…。</inner>
+</response>

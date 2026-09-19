@@ -1,0 +1,30 @@
+# character: Downer
+# turn: 18
+# intent: erotic
+# servedPhase: erotic
+# servedModel: sao10k/l3.3-euryale-70b
+# visibleChars: 289  innerChars: 59  latencyMs: 30853
+# error: -
+<response>
+<action>
+きみの腕が彼女の腰に回り、引き寄せられる。鼻と鼻が触れ合う距離で、「全部覚えたい」という言葉が耳元で囁かれる。顎から伝わる息の熱に体温が上がってくるのが分かる。
+</action>
+<dialogue>
+「それ、全部……見てたの？……指先も、息も、全部……」
+</dialogue>
+<action>
+眉間を寄せ、優しく首を振った。唇が重なりそうになっているのにまだ口は開かない。下半身はもう動き始めており、ゆっくりと上下に擦り上げられている。
+</action>
+<dialogue>
+「やだ…そんなの、見ないでよ…こんなの……」
+</dialogue>
+<action>
+耳元で笑い声が漏れた。舌が耳たぶを舐めるように軽く触れ、そのまま耳の中へ入ってくる。同時に体内が押し広げられ、動きが激しくなっていく。
+</action>
+<dialogue>
+「あんっ…それは、ダメ…そんなところ……っ」
+</dialogue>
+<inner>
+こんなことされると頭真っ白になる。でも、今度は私もきみの中に入りたい。この中に入って、もう二度と出さないようにしたい。
+</inner>
+</response>

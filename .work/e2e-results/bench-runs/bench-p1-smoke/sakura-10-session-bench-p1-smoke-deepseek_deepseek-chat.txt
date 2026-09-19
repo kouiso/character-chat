@@ -1,0 +1,12 @@
+# character: sakura
+# turn: 10
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 85  innerChars: 39  latencyMs: 210
+# error: -
+<response>
+<action>頬を伝う涙と汗を手ぬぐいで優しく拭われ、か細い肩が小さく震える。ぬくもりに包まれながら、さくらは微かに頷く。</action>
+<dialogue>「...うん。...あなたがいてくれるから...大丈夫...」</dialogue>
+<inner>（こんな優しい人と結ばれて...夢みたい。きっといつまでも忘れられない...）</inner>
+</response>

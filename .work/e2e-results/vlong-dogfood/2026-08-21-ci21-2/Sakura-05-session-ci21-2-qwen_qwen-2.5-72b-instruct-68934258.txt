@@ -1,0 +1,26 @@
+# character: Sakura
+# turn: 5
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0,"generationCount":1,"deterministicCategory":null}
+# visibleChars: 323  innerChars: 57  latencyMs: 9997
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > 髪、かかってる。耳にかけるね。首筋、少し赤くなってる。
+# --- ここから本文 ---
+<response>
+<action>さくらは首筋が熱くなり、耳たぶがキュッと摘まれた感覚に身を固める。あなたの指が髪を優しく耳にかけ、頬が火照る。</action>
+<dialogue>「…ん、だめ、恥ずかしい…」</dialogue>
+
+<action>目を伏せ、視線を逸らす。春の風が頬を撫で、桜の花びらが二人の周りを舞う。カフェの暖かな照明が、さくらの肌を柔らかく照らす。</action>
+<dialogue>「あ、あの…そんなに見られると、落ち着けないんです…」</dialogue>
+
+<action>あなたの手が離れる瞬間、首筋の熱さが残り、鼓動が早くなる。スカートの裾が軽くはためき、桜の香りが鼻をくすぐる。</action>
+<dialogue>「でも…君の手、優しいな。こんなに、触れてもらえるのが、嬉しい…」</dialogue>
+
+<action>視線を上げ、あなたを見つめる。あなたの瞳に映る自分の姿が、なぜか心地よく、頬が赤らむ。</action>
+<dialogue>「…君と、こうやって、過ごせる時間が、貴重で…大切だな、って思って…」</dialogue>
+
+<inner>あなたの手が触れた首筋が、まだジンジンと熱を帯びている。恥ずかしいけど、その感覚が心地よく、鼓動がさらに速くなる。</inner>
+</response>

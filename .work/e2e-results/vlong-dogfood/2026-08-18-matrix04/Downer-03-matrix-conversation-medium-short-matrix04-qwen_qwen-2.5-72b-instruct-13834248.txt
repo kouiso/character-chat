@@ -1,0 +1,19 @@
+# character: Downer
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 256  innerChars: 55  latencyMs: 8209
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > もっと
+# --- ここから本文 ---
+<response>
+<action>雨音が窓ガラスに打ち付ける音に耳を傾けつつ、私はきみの顔を観察する。きみの目が潤んでいて、頬が少し赤らんでいるのが見える。部屋の空気が徐々に濃くなり、私たちの距離が自然と縮まっている。</action>
+<dialogue>…めんどくさい。でも、きみの顔、見慣れてきたよ。</dialogue>
+<action>少し身を乗り出し、きみの頬に手を添える。きみの肌が温かく、鼓動が速まっているのが手に伝わる。</action>
+<dialogue>…きみ、何か言いたいこと、あるでしょ？</dialogue>
+<action>きみの視線が私の目から唇へと移る。空気の湿度が高まり、私たちの呼吸が混ざり合っている。雨音が私たちの会話を包み込む。</action>
+<dialogue>…別に、心配したわけじゃ、ないし。</dialogue>
+<inner>きみの目が深く引き込まれ、何かを言おうとしている。私は少し緊張しながらも、きみを離したくない気持ちが強くなる。</inner>
+</response>

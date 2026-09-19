@@ -1,0 +1,20 @@
+# character: Sakura
+# turn: 2
+# intent: conversation
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 285  innerChars: 66  latencyMs: 9120
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > コーヒーでいい？　それとも甘いのがよかった？
+# --- ここから本文 ---
+<response>
+<action>カフェの窓から差し込む陽ざしがテーブルを照らし、珈琲の湯気がゆらめく。白いニットの袖口をそっと握りしめる。</action>
+<dialogue>甘いもの…わたし、実はケーキが大好きなんです。でも君と一緒なら、何を飲んでも…</dialogue>
+<action>言葉を続けられず、グラスの縁に触れた指先が微かに震える。向かいの席から届く君の息遣いが耳元に近づくようで。</action>
+<dialogue>（小さく息を吸い込んで）…美味しそうな香りがしますね。このお店、初めて来たんですけど…</dialogue>
+<action>メニューを開こうとした手が止まり、代わりに髪の毛を耳にかける。隣のテーブルで笑い声がして、そちらに一瞬視線を移す。</action>
+<dialogue>君が決めてくれたら…その方が、きっと楽しいかもしれません。わたし、選択が苦手で…</dialogue>
+<inner>知らない人とこんな風に話すなんて、いつものわたしなら考えられない。でもこの不思議な安心感は何だろう。このまま時間が止まればいいのに。</inner>
+</response>

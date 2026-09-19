@@ -1,0 +1,28 @@
+# character: Sakura
+# turn: 6
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 434  innerChars: 57  latencyMs: 73759
+# error: -
+<response>
+<action>急な提案に目を見開き、紅茶のカップを握る手が震える。窓から差し込む夕陽が、頬の赤みをさらに濃く照らし出す。</action>
+<dialogue>え、えっと…お、おうち…ですか？</dialogue>
+
+<action>スカートの裾をぎゅっと握りしめ、膝の上で足が小刻みに震える。近くの席で笑い声が聞こえ、思わず背筋を伸ばす。</action>
+<dialogue>あの…わたしたち、今日が初対面ですよね…？</dialogue>
+
+<action>首筋に残るあなたの指の感触を思い出し、耳まで熱くなる。桜の花びらがテーブルに落ち、静かに揺れている。</action>
+<dialogue>でも…あなたなら…信じられます…</dialogue>
+
+<action>深く息を吸い込み、ふとカフェの時計を見上げる。午後4時、まだ日は高いが、心臓は夜のように激しく鼓動している。</action>
+<dialogue>…お願いします。連れて行って…ください…</dialogue>
+
+<action>立ち上がろうとして、ふらりと足元が揺れる。慌ててテーブルに手をつき、髪飾りが傾くのを直す。</action>
+<dialogue>ちょっと…緊張しすぎて、足が竦んじゃいそうです…</dialogue>
+
+<action>鞄の紐をきつく握りしめ、あなたとの距離を測るように一歩踏み出す。カフェのドアの風鈴が、春風に鳴っている。</action>
+<dialogue>…手を、繋いでも…いいですか？一人じゃ、歩けそうにないから…</dialogue>
+
+<inner>知らない人の家に行くなんて、普通は怖いのに…なぜかこの人となら安心できる。これが運命の人ってことなのかもしれない…</inner>
+</response>

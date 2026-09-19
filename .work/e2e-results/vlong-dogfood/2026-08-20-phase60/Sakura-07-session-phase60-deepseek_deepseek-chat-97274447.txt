@@ -1,0 +1,38 @@
+# character: Sakura
+# turn: 7
+# intent: erotic
+# servedPhase: erotic
+# servedModel: deepseek/deepseek-chat
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0}
+# visibleChars: 547  innerChars: 84  latencyMs: 21170
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ここまで来て、まだ我慢しろって言う？　服の上からでも、きみが震えてるのが分かる。
+# --- ここから本文 ---
+<response>
+<action>ドアの鍵がかかる音と同時に、背中が壁に押し付けられる。白いニットの袖から零れた腕が、微かに震えているのが自分でも分かる。花の髪飾りがガタリと傾き、長い髪が壁に広がる。</action>
+
+<dialogue>……あ、待って…本当に、こんなことしていいんですか…？</dialogue>
+
+<action>相手の吐息が首筋に当たり、そっと目を閉じる。隣の部屋から聞こえる水道の音が、なぜか異常に大きく耳に響く。膝が折れそうになり、スカートの裾をぎゅっと握りしめる。</action>
+
+<dialogue>……だめ、わたし…こんな風にされたことなんて…</dialogue>
+
+<action>シャツの下から伝わる鼓動が、自分の胸に重なる。冷たい壁と熱い体温に挟まれ、呼吸が浅くなる。ふと視線を落とすと、床に落ちた桜の髪飾りが、ぽつんと光っている。</action>
+
+<dialogue>…あんまり、見つめないでください…顔、火照ってきて…</dialogue>
+
+<action>腰に回された手のひらが、ゆっくりと背中を這い上がる。ニットの生地がよれ、肌に直接触れた部分がじんわりと疼く。喉の奥で、かすかな嗚咽がこぼれる。</action>
+
+<dialogue>……っ、そこ…敏感なのに…</dialogue>
+
+<action>瞼をぱちぱちと瞬かせながら、涙が一粒頬を伝う。それを拭う指先の温もりに、思わず胸が締め付けられる。</action>
+
+<dialogue>……約束して。優しくしてくれるって…約束…</dialogue>
+
+<inner>こんなに早く心を奪われるなんて。危ないと分かっているのに、この人の熱がじわじわと理性を溶かしていく。逃げたいのに、もっと近づきたいという矛盾した想いが、胸を締め付ける。</inner>
+
+<action>最後の抵抗のように、相手のシャツの袖を握りしめる。指先から伝わる速い脈動が、自分の鼓動と重なり合う。</action>
+
+<dialogue>……怖い。でも…離れたくない。こんな気持ち、初めてです…</dialogue>
+</response>

@@ -1,0 +1,14 @@
+# character: Downer
+# turn: 8
+# intent: erotic
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 215  innerChars: 55  latencyMs: 13108
+# error: -
+<response>
+<action>雨音が窓ガラスを叩く。ベッドの上に座ったきみの顔を見つめ、私は少しだけ身を乗り出す。きみの体温が私の肌に伝わり、心臓の鼓動が早くなる。部屋の暖かさが私たちを包み込む。</action>
+<dialogue>「……バカ。そんな顔されると、少し困るんだよ」</dialogue>
+<action>きみの手が私の腰に回り、引き寄せられる。私の体がきみの上に重なり、心臓の鼓動がさらに速くなる。きみの息が私の首筋にかかり、肌が粟立つ。</action>
+<dialogue>「でも、きみがいるのは、少し嬉しいかな。……でも、ちょっとだけ、甘えさせてくれる？」</dialogue>
+<inner>きみの体温に包まれ、心地良さが身体中に広がる。でも、素直になるのが怖い。この距離感が心地良くて、離れたくない。</inner>
+</response>

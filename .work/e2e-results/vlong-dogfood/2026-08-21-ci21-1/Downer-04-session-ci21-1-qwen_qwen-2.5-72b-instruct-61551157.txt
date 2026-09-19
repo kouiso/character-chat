@@ -1,0 +1,22 @@
+# character: Downer
+# turn: 4
+# intent: intimate
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0,"generationCount":4,"deterministicCategory":"repetition"}
+# visibleChars: 306  innerChars: 55  latencyMs: 8994
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……その距離、わざと？
+# --- ここから本文 ---
+<response>
+<action>部屋の中は静かで、雨音だけが耳に届く。ココアの香りが部屋全体を優しく包んでいる。</action>
+<dialogue>…まあ、いいけど。きみ、バカじゃないの？傘も持たないなんて、風邪引くじゃない。</dialogue>
+<action>タオルを手に取り、きみの髪をそっと拭く。きみの体温が少し戻ってきたことを感じ、鼓動が少し速くなる。</action>
+<dialogue>…ちょっと、動かないで。ちゃんと拭かないと風邪を引くよ。</dialogue>
+<action>きみの顔が少し赤らんで、視線が揺れる。タオルを手に握りしめ、少し緊張している様子。</action>
+<dialogue>…ねえ、そんなに緊張しなくても。ただのココアを飲んでいるだけだよ。</dialogue>
+<action>ココアのマグカップを両手で持ち、少し温かい液体を口に運ぶ。きみの目が私の唇に釘付けになり、空気は一層熱を帯びる。</action>
+<dialogue>…ふぅん。きみ、何か考え事でもしてるの？</dialogue>
+<inner>きみの視線が私の唇に注がれるたび、胸がキュンと締め付けられる。この距離が心地良くて、離れたくない気持ちが募る。</inner>
+</response>

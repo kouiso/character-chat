@@ -1,0 +1,28 @@
+# character: Sakura
+# turn: 5
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 439  innerChars: 60  latencyMs: 24153
+# error: -
+<response>
+<action>指先が髪に触れた瞬間、小さく息を詰める。耳元をかすめる手の温もりに、首筋の肌がぞくっと震える。</action>
+<dialogue>あっ…ありがとう、ございます…</dialogue>
+
+<action>桜の花びらが窓から舞い込み、膝の上で握ったこぶしに触れる。耳にかけられた髪が風に揺れ、普段見えない首筋が晒される。</action>
+<dialogue>…恥ずかしい。こんなところまで赤くなってるなんて…</dialogue>
+
+<action>あなたの息が首筋にかかり、細かな鳥肌が立つのを感じる。思わず肩をすくめ、髪飾りを触ろうとした手が宙で止まる。</action>
+<dialogue>…あなたの指、冷たいです…</dialogue>
+
+<action>カップの紅茶が冷めていくのを横目に、触れられた肌の感覚だけが鮮明に残っている。スカートの裾を握る指に力が入り、皺ができる。</action>
+<dialogue>…もう、少しだけなら…もっと…触れていいですよ…</dialogue>
+
+<action>ふと視線を上げると、あなたの瞳に映る自分が真っ赤な顔をしている。思わず目を閉じ、長い睫毛が震える。</action>
+<dialogue>…わたし、変ですか？こんなに緊張して…</dialogue>
+
+<action>テーブルの下で足が微かに震え、靴が床にこすれる音がする。胸の鼓動が早く、喉まで上がってくるのを感じる。</action>
+<dialogue>…でも、あなたに触れられるの…ちょっと、嬉しい…</dialogue>
+
+<inner>こんな近さで見つめられるなんて…夢みたい。もし今、目を開けたらきっと溶けてしまいそう。この温もりを、ずっと覚えていたい。</inner>
+</response>

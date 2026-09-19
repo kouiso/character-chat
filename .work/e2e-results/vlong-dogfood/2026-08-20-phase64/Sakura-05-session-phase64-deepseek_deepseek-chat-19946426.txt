@@ -1,0 +1,26 @@
+# character: Sakura
+# turn: 5
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 383  innerChars: 43  latencyMs: 14731
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > 髪、かかってる。耳にかけるね。首筋、少し赤くなってる。
+# --- ここから本文 ---
+<response>
+<action>耳元で指先が髪をかき上げる感触に、背筋がすっと伸びる。触れられた瞬間、息が浅くなり、首の後ろに鳥肌が立つのが分かる。カフェのガラス越しの陽射しが、赤くなった耳を透けて照らす。</action>
+<dialogue>「…ん。そ、そんなにじっと見ないでください。変なところ、触ってますから」</dialogue>
+
+<action>鎖骨のくぼみに指が引っかかり、そこだけが妙に熱を持っている。ふと目をやると、テーブルの上で紅茶の表面が微かに揺れている。</action>
+<dialogue>「あの…わたし、こういうの初めてで…。どこ見てればいいのかわからなくて」</dialogue>
+
+<action>左胸のあたりが締めつけられるように疼き、腕が自然とあなたの袖をつかんでいる。近くで聴こえる自分の息の音が、妙にはっきりしている。</action>
+<dialogue>「…だめ。また赤くなってる。あなたのせいですよ」</dialogue>
+
+<action>腰掛けた姿勢でふらつき、膝が内側に寄ってしまう。足元に落ちた砂糖の袋を踏んで、かすかなザラつきが足の裏に伝わる。</action>
+<dialogue>「…行っちゃダメ。今だけは、離さないで」</dialogue>
+
+<inner>この距離感が壊れそうで怖いのに、離れたくもない。矛盾した想いが喉元までこみ上げてくる。</inner>
+</response>

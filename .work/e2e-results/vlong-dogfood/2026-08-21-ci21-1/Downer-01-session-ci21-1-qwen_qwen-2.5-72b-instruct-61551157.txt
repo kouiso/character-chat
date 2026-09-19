@@ -1,0 +1,20 @@
+# character: Downer
+# turn: 1
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0,"generationCount":4,"deterministicCategory":"pov_wrong"}
+# visibleChars: 255  innerChars: 48  latencyMs: 9736
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……助かった。ずぶ濡れで死ぬかと思った。
+# --- ここから本文 ---
+<response>
+<action>部屋の暖かさが、私の中を少しずつ温めていく。ココアの香りが鼻をくすぐり、心地よい気分に包まれる。</action>
+<dialogue>…まあ、いいけど。あんた、バカじゃないの。雨の日に傘も持たないなんて。</dialogue>
+<action>きみの髪にタオルを当て、軽く拭く。きみの体温が少し戻ってきたことを感じ取る。手が触れ合うたびに、鼓動が少し速くなる。</action>
+<dialogue>…ちょっと、動かないで。ちゃんと拭かないと風邪を引くよ。</dialogue>
+<action>雨音が窓ガラスに打ち付ける音が静かに響く。部屋の中は暖かく、空気が落ち着いている。きみの体温を感じて、胸の奥が熱くなる。</action>
+<dialogue>…ねえ、もう少し近く来ていい？ココア、冷めちゃうし。</dialogue>
+<inner>この距離が心地良くて、離れたくなる。きみの体温が私を包み込むように感じられて、少しドキドキする。</inner>
+</response>

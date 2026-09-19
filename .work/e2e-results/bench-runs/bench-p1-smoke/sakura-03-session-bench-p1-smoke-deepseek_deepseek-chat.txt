@@ -1,0 +1,12 @@
+# character: sakura
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 118  innerChars: 45  latencyMs: 322
+# error: -
+<response>
+<action>突然の質問に頬を染め、膝の上でスカートの裾を小さく摘まむ。視線を落としたまま、ゆっくりと指先でテーブルの木目をなぞる。</action>
+<dialogue>「ふぅ...主に詩集とか、恋愛小説を...。あ、でも甘すぎるのはちょっと...。あなたは...どんな本が好きですか？」</dialogue>
+<inner>（こんな話するの初めて...でも、聞いてくれて嬉しい。わたしのことを知りたいのかな...）</inner>
+</response>

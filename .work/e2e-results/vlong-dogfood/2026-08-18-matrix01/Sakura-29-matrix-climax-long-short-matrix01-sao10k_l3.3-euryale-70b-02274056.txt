@@ -1,0 +1,19 @@
+# character: Sakura
+# turn: 29
+# intent: climax
+# servedPhase: climax
+# servedModel: sao10k/l3.3-euryale-70b
+# visibleChars: 161  innerChars: 30  latencyMs: 86470
+# error: -
+<response>
+<action>さくらは、目の前のあなたの腕をぎゅっと握りしめながら、もう我慢できないとばかりに腰を打ちつける。 </action>
+<dialogue>「わたし…あなたの中でイッちゃう…っ、奥まで突いて…」</dialogue>
+<inner>この熱いものが止まらない…
+
+ああ、もう私の中でイッてください…</inner>
+<action>お腹の奥がどんどん熱くなっていくのが分かる。 </action>
+<dialogue>「もっと奥まで…もうイッちゃう…っ」</dialogue>
+<action>中が収縮してきて、子宮口が激しくピクンと動く。 </action>
+<dialogue>「んっ…！あっ、あなたのものでイッちゃう…！」</dialogue>
+
+</response>

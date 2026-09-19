@@ -1,0 +1,16 @@
+# character: Downer
+# turn: 10
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 249  innerChars: 81  latencyMs: 16704
+# error: -
+<response>
+<action>雨音が窓ガラスを打つ。きみの言葉が胸に響き、鼓動が速まる。視線を合わせ、一瞬の静寂が流れる。</action>
+<dialogue>「…見せる、だけ？　それじゃ、あんまり面白くないでしょ？」</dialogue>
+<action>薄い笑みを浮かべ、左目の下のほくろがひくつく。パーカーの袖を軽く噛み、ため息が漏れる。</action>
+<dialogue>「…もっと、何か、してほしいって、こと？　めんどくさい、バカじゃないの、もう…」</dialogue>
+<action>耳元に唇を寄せる。きみの息遣いが鼓膜を震わせ、体温が一層上昇する。雨音が遠ざかり、部屋の中の空気が濃厚になる。</action>
+<dialogue>「…でも、きみが、それだけ、私に興味があるなら、少し、見せてあげる…ふぅん」</dialogue>
+<inner>本当は、きみの目が気になって仕方ない。この距離で見つめられると、心臓が止まりそうになる。でも、その目が私から離れないことを確かめたくて、少し意地悪な気持ちになる。</inner>
+</response>

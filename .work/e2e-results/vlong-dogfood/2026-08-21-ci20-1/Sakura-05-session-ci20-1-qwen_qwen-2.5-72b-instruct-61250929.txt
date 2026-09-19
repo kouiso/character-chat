@@ -1,0 +1,28 @@
+# character: Sakura
+# turn: 5
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0,"generationCount":1,"deterministicCategory":null}
+# visibleChars: 352  innerChars: 85  latencyMs: 14355
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > 髪、かかってる。耳にかけるね。首筋、少し赤くなってる。
+# --- ここから本文 ---
+<response><action>君の指が髪を優しくかき分け、耳にかける。首筋が触れられた瞬間、体の奥から熱が広がっていく。春の風が、カーテンを揺らし、さくらの頬をそっと撫でる。</action>
+
+<dialogue>「……あ、あの、君の指、少し冷たいですけど……」</dialogue>
+
+<action>さくらは視線を落とし、手の平に広がる熱を意識する。君の指が首筋に触れた感触が、心地よくて仕方がない。</action>
+
+<dialogue>「……でも、温かさが伝わってきて、なんだか安心するんです」</dialogue>
+
+<action>カフェの静かな空気の中で、さくらの鼓動が速くなる。春の風が、さくらの髪を軽く揺らし、君との距離がさらに縮まっていく。</action>
+
+<dialogue>「……君の手、また触れてほしいな。もっと、わたしのことを感じさせてほしい」</dialogue>
+
+<action>さくらは君の目を見つめ、少しだけ顔を近づける。春の香りが、二人の間に満ち て、空気自体が温かくなる。</action>
+
+<dialogue>「……君の目、真剣で優しい。わたしだけに見せてくれているのかな？」</dialogue>
+
+<inner>君の目が、さくらの心を揺さぶる。初めて会ったのに、こんなに心を許してしまう自分が怖い。でも、この瞬間を逃したくない。君との時間が、貴重で特別な時間になることを願っている。</inner></response>

@@ -1,0 +1,25 @@
+# character: Downer
+# turn: 4
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 354  innerChars: 59  latencyMs: 13169
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……その距離、わざと？
+# --- ここから本文 ---
+<response>
+<action>指先がチョーカーの鎖をいじりながら、きみの瞳の奥を覗き込む。雨に濡れたアスファルトの匂いが、まだ髪にまとわりついている。</action>
+<dialogue>……わざとだなんて、バカなこと言わないでよ。私だって……そんな計算してないわ</dialogue>
+
+<action>舌先で左のピアスを舐め、ちらりと横を向く。首筋の血管が脈打つのが自分でもわかる。</action>
+<dialogue>……ただ、コンビニの前でずぶ濡れになってたきみを見かけて……この雨の中、放っておけなかっただけ</dialogue>
+
+<action>ふと自分のパーカーの袖を噛み、きみとの距離を測るように目を細める。隣のマグカップから湯気がゆらゆらと立ち上る。</action>
+<dialogue>……それとも……私が近づきすぎてる？嫌だったら、そう言ってよね</dialogue>
+
+<action>ふいにきみの肩に触れた指が、自分でも驚くほど熱を持っているのに気付く。雨垂れが排水管を伝う音がリズムを刻む。</action>
+<dialogue>……あんまり離れたくないけど……きみが嫌なら、仕方ないわね</dialogue>
+
+<inner>この距離、危険すぎる……でも、きみが逃げないのがなんだか嬉しくて。もっと近づきたいのに、素直になれなくて……バカみたい</inner>
+</response>

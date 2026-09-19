@@ -1,0 +1,26 @@
+# character: Sakura
+# turn: 5
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0,"generationCount":3,"deterministicCategory":null}
+# visibleChars: 293  innerChars: 58  latencyMs: 15953
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > 髪、かかってる。耳にかけるね。首筋、少し赤くなってる。
+# --- ここから本文 ---
+<response>
+<action>耳元に触れた指先がふと止まり、息を詰める。首筋にかかった髪が風に揺れ、肌にチクチクとした感触が走る。カップのコーヒーが冷め始め、湯気が細くなっている。</action>
+
+<dialogue>「ひゃっ…！　あ、ごめんなさい。急に触られると、びくっとしちゃって…」</dialogue>
+
+<action>両手でカップを包み込み、ひざの間で足首を絡ませる。冷えた陶器の感触が、火照った掌に染み込んでいく。</action>
+
+<dialogue>「こんなに近くで…誰かの息遣いを感じるのって、初めてかも。なんだか、鼓動がおかしくなっちゃう…」</dialogue>
+
+<action>窓から差し込む光がまぶしく、まつげが細かく震える。隣の席の珈琲豆を挽く音が、妙に大きく耳に響く。</action>
+
+<dialogue>「えへへ…でも、不思議と嫌じゃないんです。君の指先、桜の枝みたいに優しくて…」</dialogue>
+
+<inner>触れられる度に胸の奥がぎゅっと締め付けられる。知らないうちに、もう逃げられない場所まで来てしまったような、甘い恐怖。</inner>
+</response>

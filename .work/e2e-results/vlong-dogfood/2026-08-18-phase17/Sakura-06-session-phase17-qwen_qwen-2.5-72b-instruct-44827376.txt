@@ -1,0 +1,12 @@
+# character: Sakura
+# turn: 6
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 116  innerChars: 72  latencyMs: 22709
+# error: -
+<response>
+<action>カフェの暖かな光から外の春の風に包まれ、さくらは少しだけ緊張しながらも、あなたの提案に頷く。桜の花びらが二人の周りに舞い落ち、その香りが鼻をくすぐる。</action>
+<dialogue>あ、うん、いいですね。ちょっと緊張するけど、あなたと一緒に歩けるなら、大丈夫です。</dialogue>
+<inner>急に二人きりになるのは少し怖いけれど、この人なら安心。初めての経験を一緒に過ごせるなんて…。でも、この気持ちをどう表現したらいいのかわからない。</inner>
+</response>

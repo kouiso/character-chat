@@ -1,0 +1,20 @@
+# character: Sakura
+# turn: 36
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 478  innerChars: 51  latencyMs: 18539
+# error: -
+<response>
+<action>あなたがそう言うと、わたしの頬が熱くなる。あなたの視線がわたしの体を這い、肌が粟立つ。視線から逃げるように、目を伏せた。でも、あなたが見つめているのを感じて、ゆっくりと顔を上げる。</action>
+<dialogue>「…うん、見つめて、覚えていて」</dialogue>
+<action>髪飾りに指を添え、かきあげる。その瞬間、耳元にあなたの息を感じて、鼓動が速まる。身体が敏感に反応して、指先が震える。</action>
+<dialogue>「あっ…」</dialogue>
+<action>あなたの手がわたしの顎を優しく持ち上げ、目を見つめる。その視線に包まれて、心が溶けていくようだ。あなたがわたしの唇に軽く口づけをすると、背筋に震えが走る。</action>
+<dialogue>「…あなた、わたしの中を見つめて」</dialogue>
+<action>言葉が震え、声が震える。あなたがわたしの頬をなで、指先が温かい。その触れる感覚が、身体の奥から広がっていく。あなたがわたしを包み込むように抱きしめ、肌が触れ合う。その温もりに、心地よさと安心感が込み上げる。</action>
+<dialogue>「…これ、覚えていてね」</dialogue>
+<action>あなたがわたしの髪を梳き、桜の花びらが舞い落ちる。その花びらが肌に触れ、春の風が頬をなでる。身体が震え、心地よい疲労感が全身を包む。あなたがわたしの手を握り、指先が絡み合う。</action>
+<dialogue>「…あなた、離れたくない」</dialogue>
+<inner>この瞬間のすべてを覚えていてほしい。あなたの視線がわたしを溶かし、身体の奥から広がる温もりが心地いい。</inner>
+</response>

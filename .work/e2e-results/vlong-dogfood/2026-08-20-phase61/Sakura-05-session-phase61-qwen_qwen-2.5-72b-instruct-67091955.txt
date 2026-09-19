@@ -1,0 +1,22 @@
+# character: Sakura
+# turn: 5
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0}
+# visibleChars: 427  innerChars: 107  latencyMs: 15395
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > 髪、かかってる。耳にかけるね。首筋、少し赤くなってる。
+# --- ここから本文 ---
+<response>
+<action>あなたの手が髪を耳にかける。その瞬間、首筋に触れる指先の温もりが、身体の奥深くまで届くように感じる。首筋が赤くなったのが、自分でも分かる。心臓の鼓動が早まり、息が浅くなる。</action>
+<dialogue>あっ…。ちょっと、待ってください。恥ずかしいです…</dialogue>
+<action>視線を落とし、膝の上にあるスカートの裾をつまむ。あなたの手が首筋から離れた後も、その感触が残っているように感じる。カフェの光が、テーブルの上に優しく差し込み、周囲の音が遠くに聞こえる。</action>
+<dialogue>あの…あなた、ちょっと、優しすぎる…</dialogue>
+<action>あなたを見つめ、頬がさらに熱くなる。あなたの目が、わたしの目を見つめているのが分かる。その視線が、身体の奥深くまで届くように感じる。</action>
+<dialogue>でも、そんなに見つめられると、わたし、もう…</dialogue>
+<action>身体が自然と動いて、あなたの手に触れてしまう。あなたの手が、わたしの手を包み込む。その温もりが、心地よく感じられる。カフェの光が、テーブルの上に優しく差し込み、春の風が窓から吹き込んでくる。</action>
+<dialogue>あなた、わたしのことを、どう思ってるんですか？</dialogue>
+<inner>あなたの手が触れるだけで、心臓が早鐘を打つ。この感覚が、少し恥ずかしいけど、同時に嬉しい。あなたの目を見つめていると、胸の奥が温かくなる。でも、素直になるのが怖い。この気持ちに名前をつけたら、もう引き返せなくなる。</inner>
+</response>

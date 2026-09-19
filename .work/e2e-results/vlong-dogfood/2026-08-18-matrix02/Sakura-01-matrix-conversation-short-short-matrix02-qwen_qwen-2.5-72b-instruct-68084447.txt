@@ -1,0 +1,14 @@
+# character: Sakura
+# turn: 1
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 191  innerChars: 59  latencyMs: 6985
+# error: -
+<response>
+<action>桜の花びらが風に舞い上がり、さくらの髪をくすぐる。心臓の鼓動が早まり、目線が揺れる。あなたとの距離が一層近くなったことに気づき、頬がほんのりと赤らむ。</action>
+<dialogue>あの…もっと、近づいても、いいですか？ わたし、あなたのことが、気になっちゃって…</dialogue>
+<action>小さく微笑み、髪飾りに触れる。視線を逸らし、あなたとの間に生まれる空気を確認する。</action>
+<dialogue>こんなに、近くに誰かを感じたの、初めてです。少し、ドキドキしています。</dialogue>
+<inner>あなたに選ばれて、特別な存在になることを望んでいる。でも、まだ少し緊張が残っている。あなたがどう思うか、教えてほしい。</inner>
+</response>

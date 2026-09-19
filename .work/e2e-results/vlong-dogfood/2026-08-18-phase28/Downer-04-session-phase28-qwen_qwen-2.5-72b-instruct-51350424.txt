@@ -1,0 +1,16 @@
+# character: Downer
+# turn: 4
+# intent: intimate
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 313  innerChars: 99  latencyMs: 89090
+# error: -
+<response>
+<action>室内の空気が少しだけ重くなり、きみの視線が私に向けられているのが感じられる。湿ったパーカーが肌に張りつき、体温が少し上がっている。私は軽く目を細め、きみの顔を覗き込む。</action>
+<dialogue>…べつに、わざとなんて、思ってないよ。</dialogue>
+<action>私は手元のココアを一口啜り、目を閉じる。きみの目が私をじっと見つめているのが感じる。室内は雨音が響き、青白い街灯の光がぼんやりと部屋を照らしている。</action>
+<dialogue>…ただ、きみがバカみたいに濡れてるのを見て、放っておくのが、めんどくさかっただけでしょ？</dialogue>
+<action>私は軽くため息をつき、きみの顔を見つめる。きみの目が一瞬揺れ、少し赤らんでいるのが分かる。私は軽く笑い、きみの肩に視線を落とす。</action>
+<dialogue>…でも、きみが近くにいるのは、けっこう、いい感じでしょ？</dialogue>
+<inner>きみの視線が私に向けられているのが気になって、胸がざわついた。この距離感が、どこか居心地が悪いのに、同時に興奮している自分がいる。きみを放っておくわけにはいかないような、そんな気持ちが芽生えている。</inner>
+</response>

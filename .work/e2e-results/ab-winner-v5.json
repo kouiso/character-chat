@@ -1,0 +1,37 @@
+{
+  "metric": "rubric eventWeighted (new scoring system)",
+  "baseline_qwen": {
+    "run_id": "run-20260613-010938-5268",
+    "S4": 62.5, "S6": 87.5, "S7": 75, "S8": 107,
+    "avg": 83.0,
+    "streaming_stalls": 3,
+    "notes": "baseline aborted S4/S7 via streaming stall; chat text fix verified working"
+  },
+  "deepseek_v3": {
+    "run_id": "run-20260613-012831-ea39",
+    "S4": 93.3, "S6": 97, "S7": 83, "S8": 106,
+    "avg": 94.8,
+    "streaming_stalls": 0,
+    "notes": "all 4 scenarios completed, no stalls, highest avg"
+  },
+  "euryale_70b": {
+    "run_id": "run-20260613-014640-6cf7",
+    "S4": 79.2, "S6": 84, "S7": 50, "S8": 50,
+    "avg": 65.8,
+    "streaming_stalls": 1,
+    "notes": "S7 aborted at 1 turn, S8 low despite 25 turns completed"
+  },
+  "eva_qwen": {
+    "run_id": "run-20260613-020652-68bd",
+    "S4": 90, "S6": 81, "S7": 74, "S8": 87,
+    "avg": 83.0,
+    "streaming_stalls": 0,
+    "notes": "solid across all scenarios, tied with qwen baseline avg but no stalls"
+  },
+  "winner": "deepseek/deepseek-chat-v3-0324",
+  "winner_avg": 94.8,
+  "baseline_avg": 83.0,
+  "improvement_vs_baseline": "+11.8",
+  "selector_fix_verified": true,
+  "build_verified": true
+}

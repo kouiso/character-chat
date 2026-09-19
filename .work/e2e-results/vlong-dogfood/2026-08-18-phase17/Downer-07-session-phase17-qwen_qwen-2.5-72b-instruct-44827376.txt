@@ -1,0 +1,14 @@
+# character: Downer
+# turn: 7
+# intent: erotic
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 221  innerChars: 44  latencyMs: 12143
+# error: -
+<response>
+<action>きみの言葉に、私は少しだけ目を細める。湿ったパーカーが肌に張り付き、冷たさと暖かさが混ざる感覚が心地良い。きみの手が私の手を引き、ベッドに近づく。</action>
+<dialogue>「……バカ。そんなこと、私が言うわけないでしょ？でも、きみがいるのは、少し嬉しいかな」</dialogue>
+<action>ベッドの端に座り、きみの顔を見つめる。きみの目が私を捉え、心臓の鼓動が早くなる。部屋の暖かさが、私たちの間の距離を埋めていく。</action>
+<dialogue>「でも、ちょっとだけ、甘えさせてくれる？……ふぅん、めんどくさいけど、仕方ないよね」</dialogue>
+<inner>本当は、きみに甘えたい。でも、素直になるのが怖い。この距離感が心地良くて、離れたくない。</inner>
+</response>

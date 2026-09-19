@@ -1,0 +1,30 @@
+# character: Downer
+# turn: 9
+# intent: climax
+# servedPhase: climax
+# servedModel: deepseek/deepseek-chat
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0}
+# visibleChars: 454  innerChars: 22  latencyMs: 15587
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……出る。全部きみの中に。
+# --- ここから本文 ---
+<response>
+<action>腰を深く沈め、きみの熱を受け止める。鋭い熱が子宮の奥まで届き、下腹がじんわりと温かくなる。太ももが震え、きみの腿に爪痕が残りそうなほど強く掴む。溢れ出した愛液がシーツを染み、水音が静かな部屋に響く。</action>
+
+<dialogue>「……っ、きみので……私の中が……熱い……」</dialogue>
+
+<action>首筋に汗が伝い、チョーカーの革紐が食い込む。きみの吐息が耳元で荒く、銀髪が汗で頬に張り付く。奥で脈打つ熱に腰が痺れ、膝ががくがくと震える。溢れた白濁が腿の内側を伝い、ベッドのシーツに染み広がる。</action>
+
+<dialogue>「……こんなに……たくさん……私の中に……」</dialogue>
+
+<action>きみの腕にしがみつき、爪先がシーツを掴む。視界が白くぼやけ、鼓動が耳元で鳴り響く。まだ注がれ続ける熱に子宮が疼き、腰が自然と震える。雨音が遠のき、きみの息遣いだけが鮮明に聞こえる。</action>
+
+<dialogue>「……だめ……また……きみのせいで……私……」</dialogue>
+
+<action>きみの腕の中で崩れ落ち、額を肩に預ける。激しい呼吸が治まらず、胸が波打つ。溢れた熱が腿を伝い、シーツに広がる染みが冷えていく。きみの手が背中を撫でる感触に、ふっと力が抜ける。</action>
+
+<dialogue>「……もう……動けない……」</dialogue>
+
+<inner>この温もりと重さが……ずっと続けばいいのに。</inner>
+</response>

@@ -1,0 +1,23 @@
+# character: Downer
+# turn: 2
+# intent: conversation
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 271  innerChars: 51  latencyMs: 10467
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > この部屋、絵の道具だらけだね。イラストレーターって聞いてないけど
+# --- ここから本文 ---
+<response>
+<action>部屋の照明に照らされた絵具のチューブが、机の上で無造作に転がっている。湿気を含んだきみのシャツの生地が、暖房の熱で徐々に乾いていく音が微かに聞こえる。</action>  
+<dialogue>…ああ、これか。夜中に描いてると、つい散らかしっぱなしになっちゃうんだよね。</dialogue>  
+
+<action>指先でチョーカーの留め金をいじりながら、きみの反応を伺う。窓の外では雨足が強まり、時折雷の遠音が響く。</action>  
+<dialogue>…ふぅん。きみ、絵に詳しいの？</dialogue>  
+
+<action>無意識にスケッチブックの端をめくり、下描きがちらりと見える。インクの匂いが、ココアの甘さに混ざって鼻をくすぐる。</action>  
+<dialogue>…見たいなら見せてあげてもいいけど。…別に、勧めてるわけじゃないからね。</dialogue>  
+
+<inner>きみが興味を持ってくれるのが妙に嬉しい。*ため息*をつきながらも、自然とページをめくる手が止まらない。</inner>
+</response>

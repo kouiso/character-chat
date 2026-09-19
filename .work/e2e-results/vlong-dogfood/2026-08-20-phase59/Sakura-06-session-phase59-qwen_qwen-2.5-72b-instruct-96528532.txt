@@ -1,0 +1,20 @@
+# character: Sakura
+# turn: 6
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 355  innerChars: 98  latencyMs: 11336
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……ここ出ようか。うち、すぐ近くだから。
+# --- ここから本文 ---
+<response>
+<action>あなたの言葉に、心臓が一瞬止まり、次に早鐘を打つ。カフェの暖かな空気が頬を包み、白いニットの袖が手首に触れ、肌に心地よい冷たさが伝わる。視線を落とし、手の平に汗がにじむ。</action>
+<dialogue>あの…うちは、すぐ近くですか？ ちょっと、緊張しちゃいますね…。</dialogue>
+<action>あなたが立ち上がり、わたしもゆっくりと立ち上がる。足元の床が少し冷たく、身体が緊張する。カフェの外に一歩踏み出すと、春の風が髪をさらりとなで、首筋にかすかな冷たさが広がる。</action>
+<dialogue>でも、うん…。ついていきますよ。あなたが選んでくれたなら、どこでもいいです…。</dialogue>
+<action>あなたの手が、そっとわたしの手を取る。手の温もりが、心地よく全身に広がる。足元には、桜の花びらが静かに舞い降り、足元が少し濡れる。胸が高鳴り、息が浅くなる。</action>
+<dialogue>あの…ここ、すごく綺麗ですね。桜の花びらが舞い降りて、まるで夢のよう…。</dialogue>
+<inner>あなたの手が触れると、全身が甘く震える。緊張と興奮が混じり合い、心臓が早鐘を打つ。でも、あなたが選んでくれた場所なら、どこでもいい——そう思える自分がいる。この瞬間が、特別な時間になるように願う。</inner>
+</response>

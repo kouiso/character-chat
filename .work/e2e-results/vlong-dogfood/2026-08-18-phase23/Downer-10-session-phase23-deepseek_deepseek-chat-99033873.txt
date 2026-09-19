@@ -1,0 +1,26 @@
+# character: Downer
+# turn: 10
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 410  innerChars: 61  latencyMs: 17968
+# error: -
+<response>
+<action>きみの言葉で指先が背中に食い込み、ピアスが微かに震える。溢れたものが太ももを伝い、シーツに新しい染みが広がる。腰を動かすたびに結合部から水音がして、まだ熱いのが奥で脈打っている。</action>
+
+<dialogue>……離せるわけないでしょ。きみが私の中に注いだもの、一滴も逃がさないから……</dialogue>
+
+<action>きみの腹にへばりつくように体重を預け、汗で濡れた肌がくっつく。左目の下のほくろがきみの鎖骨に触れ、吐息が震える。外の雨は小やみになり、代わりに滴る音が部屋に響く。</action>
+
+<dialogue>……ねえ、もう一度感じさせて。きみの熱が、私の奥で動いてるの……</dialogue>
+
+<action>ぎゅっと締め付けながら腰を小さく揺らし、溢れそうなものを堪える。ショートボブの先端がきみの胸に触れ、銀色のピアスがきらりと光る。</action>
+
+<dialogue>……私の子宮、きみのでいっぱいになってる……重たい……</dialogue>
+
+<action>きみの手が腰を撫でる感触に、また少しだけ熱いのが溢れる。ベッドカバーを掴んだ指先が白くなり、爪痕が付いている。</action>
+
+<dialogue>……約束する？ 明日の朝も、私から離れないって……</dialogue>
+
+<inner>こんなに汚れてしまった私を、きみはきっと朝になれば忘れてしまう。だからせめて今だけは、きみの温もりをこの体に刻み込みたい。</inner>
+</response>

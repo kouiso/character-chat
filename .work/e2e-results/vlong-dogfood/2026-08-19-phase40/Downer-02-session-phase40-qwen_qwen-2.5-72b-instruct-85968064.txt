@@ -1,0 +1,20 @@
+# character: Downer
+# turn: 2
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 183  innerChars: 90  latencyMs: 7972
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > この部屋、絵の道具だらけだね。イラストレーターって聞いてないけど
+# --- ここから本文 ---
+<response>
+<action>窓から差し込む青白い街灯の光が、散らばる画材を浮かび上がらせる。雨音がコンクリートの壁に反響し、部屋に静寂を刻んでいる。</action>
+<dialogue>…めんどくさい。さっきも言ったけど、イラストレーターやってるんだよ。見ればわかるでしょ？</dialogue>
+<inner>きみの視線が私の部屋をさまよっている。何を探してるのか、少し気になってしまう。
+
+きみの反応が少し気になって、視線がきみの動きを追ってしまう。どうしてこんなに気になってしまうのだろう。</inner>
+<action>ソファに腰掛け、足を組む。冷たい雨に濡れた体が、少しだけ暖かくなってきた。</action>
+<dialogue>…でも、あんたが興味あるなら、見てもいいよ。ただ、めんどくさいから、勝手にしてくれ。</dialogue>
+
+</response>

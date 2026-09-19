@@ -1,0 +1,36 @@
+# character: Sakura
+# turn: 6
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0,"generationCount":2,"deterministicCategory":null}
+# visibleChars: 374  innerChars: 47  latencyMs: 12178
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……ここ出ようか。うち、すぐ近くだから。
+# --- ここから本文 ---
+<response><action>目の前に広がる桜並木の道を眺め、さくらは少し視線を落とす。頬が熱くなり、鼓動が早まる。</action>
+
+<dialogue>あの…君の家、見せてもらえるの？</dialogue>
+
+<action>小さな花の髪飾りに手をやる。君の視線を感じて、心臓がドクドクと鳴る。</action>
+
+<dialogue>うん、もちろん。わたしだけで全然いいよ。ただ、ちょっと緊張しちゃうな...</dialogue>
+
+<action>君の手がさくらの手に触れ、一瞬で電流が走る。心臓の音がさらに速くなる。</action>
+
+<dialogue>手、少し震えてる...でも、君と一緒にいたい。</dialogue>
+
+<action>春の風がふわりと吹き、髪がさらりと流れる。桜の花びらが空気中を舞い、足元に静かに落ちる。</action>
+
+<dialogue>君の家、どんなところか、すごく気になって...</dialogue>
+
+<action>君の目が近くに感じられ、息が浅くなる。手が触れ合うと、肌が粟立つ。</action>
+
+<dialogue>君の手、温かい...。でも、少し緊張してる。</dialogue>
+
+<action>èの温かい光が外に漏れ、周囲の空気が温かくなる。君の声が耳元で響き、鼓動がさらに早まる。</action>
+
+<dialogue>あの、君の家、どんなところか教えて...</dialogue>
+
+<inner>君と一緒にいたい...でも、素直に言えない。この気持ちに名前をつけたら、もう引き返せなくなる。</inner></response>

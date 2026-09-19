@@ -1,0 +1,14 @@
+# character: Sakura
+# turn: 9
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 141  innerChars: 58  latencyMs: 5325
+# error: -
+<response>
+<action>頬が熱くなり、目線を逸らす。心臓の音が大きく聞こえて、耳が火照る。指先が震えて、髪飾りに触れる。</action>
+<dialogue>「あの…もっと、なにを？」</dialogue>
+<action>唇が乾いて、舌で舐める。目を伏せ、頬を赤らめる。あなたとの距離が近づき、桜の花びらが静かに舞い落ちる。</action>
+<dialogue>「もっと、あなたに近づきたいんです。でも、恥ずかしいな…」</dialogue>
+<inner>本当はあなたに全部見られたい。でも、そんな自分を想像すると恥ずかしい。この距離で、あなたの目がわたしを見つめている。</inner>
+</response>

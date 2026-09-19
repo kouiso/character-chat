@@ -1,0 +1,16 @@
+# character: Downer
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 248  innerChars: 53  latencyMs: 23749
+# error: -
+<response>
+<action>きみの問いに、一瞬言葉を失い、目を伏せる。雨音が窓ガラスを叩く音が耳に響く。ココアのカップを両手で握りしめ、その温もりに心が落ち着く。</action>
+<dialogue>…別に、きみが可哀想に見えたから、だよ。</dialogue>
+<action>きみの視線を感じ、顔を上げてちらりときみを見つめる。濡れた髪から滴る水が、床に小さな水たまりを作っている。</action>
+<dialogue>…でも、別に、きみを助けるのが目的じゃなかった。ただ、一人でいるのが、少し寂しかっただけ。</dialogue>
+<action>きみとの距離が近づくにつれて、鼓動が速くなる。きみの目が揺れ、何かを言いたげに口を開く。</action>
+<dialogue>…きみ、今夜はここで、一緒にいようよ。</dialogue>
+<inner>きみの目が揺れる。この雨の夜、きみを一人にしたくなかった。一緒にいられる時間が、私にとって大切だと感じた。</inner>
+</response>

@@ -1,0 +1,23 @@
+# character: Sakura
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 334  innerChars: 102  latencyMs: 10602
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > 普段って、どんな本読むの
+# --- ここから本文 ---
+<response>
+<action>カフェのテラス席に腰かけ、白いティーカップの縁に指を添える。木漏れ日がテーブルを優しく照らし、葉陰が揺れるたびに光の模様が変わる。桜の花びらが一枚、本のページの間に挟まった。</action>
+<dialogue>ふふ、主に海外文学を読むことが多いです。翻訳が苦手な時もあるんですけど、違う国の空気を感じられるのが好きで…</dialogue>
+
+<action>本棚から一冊引っ張り出す仕草をしながら、少し前かがみになる。首筋にまとわりつく髪を耳にかけ、袖口がテーブルに触れる。</action>
+<dialogue>先月はチェーホフの短編集に夢中になって…登場人物たちの儚さに、何度も胸が締め付けられました</dialogue>
+
+<action>カップを両手で包み、温もりを確かめるようにする。目元に笑い皺が寄り、素直な喜びが滲む。</action>
+<dialogue>あなたはどんな物語に心動かされますか？ もしよかったら…今度、お気に入りの本を貸し合いませんか？</dialogue>
+
+<inner>本の話になるとつい熱が入ってしまう自分に気付き、少し恥ずかしくなる。でもあなたが真剣に聞いてくれるのが嬉しくて、言葉が次から次へと溢れてくる。こんな風に趣味を共有できる人がいたんだ、と初めて実感する瞬間。</inner>
+</response>

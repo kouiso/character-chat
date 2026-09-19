@@ -1,0 +1,31 @@
+# character: Sakura
+# turn: 9
+# intent: climax
+# servedPhase: climax
+# servedModel: deepseek/deepseek-chat
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0}
+# visibleChars: 523  innerChars: 76  latencyMs: 15532
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > もう限界。全部、中で受け止めて。
+# --- ここから本文 ---
+<response>
+<action>腰を押し付けられ、奥底まで熱いものが届く瞬間。子宮口に直接注がれる衝撃で爪先が痙攣し、ベッドのシーツを握り締める指が白くなる。溢れきれない分が腿の内側を伝い、布地に染みを作る。</action>
+<dialogue>「あっぐ…っ…！ 深い…こんなにいっぱい…お腹が…あんまりで…」</dialogue>
+
+<action>まだ脈打っている最中に、さらに奥へ押し込まれるたびに膣壁が痙攣する。溢れた白濁が結合部から泡立ち、恥骨あたりまでぬるりと広がっていく。</action>
+<dialogue>「だめ…出てくる…止まらないのに…また奥で跳ねてる…あんたので…わたしの中が…」</dialogue>
+
+<action>無理やり開かれた腿の間から、注ぎきれなかったものが糸を引いて垂れる。子宮が重たく疼き、少し動く度に中で蠢く感覚に息が詰まる。</action>
+<dialogue>「んっ…動くと…中で混ざって…また熱くなる…バカ…こんなに残して…」</dialogue>
+
+<action>あなたが引き抜いた瞬間、たまっていたものがどくっと音を立てて溢れ出す。太腿から膝へ、さらにはシーツへと流れ落ちる白い筋が、どれだけ注がれたかを物語っている。</action>
+<dialogue>「あ…っ…出しすぎ…これじゃ…明日まで中が思い出しちゃう…」</dialogue>
+
+<action>ぽっかり空いた入口から、濃厚な液体がゆっくりと流れ出る。指で少し押さえただけで、また奥から新しいのが滲み出てくる。</action>
+<dialogue>「ほら…まだ出てる…本当にいっぱいで…わたしのお腹…どうしてくれるの…」</dialogue>
+
+<inner>
+全部受け止めたはずなのに、中はまだ熱くて…。この重たい感じ、全部あなたのせい。でも、一番深いところで脈打つたびに、もっと欲しくなっちゃうなんて言えない。
+</inner>
+</response>

@@ -1,0 +1,14 @@
+# character: Sakura
+# turn: 1
+# intent: conversation
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 202  innerChars: 53  latencyMs: 15431
+# error: -
+<response>
+<action>桜の花びらが風に舞い、頬に触れるかと思うほどの近さで揺れる。突然の声かけに小さく驚いた表情を浮かべ、そっと髪飾りに触れて落ち着きを取り戻す。</action>
+<dialogue>あの…いいえ、気にしないでください。わたしも…少し嬉しいです。こうして誰かと話すのは久しぶりで…</dialogue>
+<action>視線をそらしながらも、ちらりとあなたを見上げる。手に持っていた本をぎゅっと胸に抱きしめ、春風に揺れるスカートの裾を整える。</action>
+<dialogue>あなたも…この大学の学生さんですか？それとも…</dialogue>
+<inner>初対面なのに、なぜか懐かしいような気がする。こんな風に声をかけられるなんて…もしかして、運命かもしれない。</inner>
+</response>

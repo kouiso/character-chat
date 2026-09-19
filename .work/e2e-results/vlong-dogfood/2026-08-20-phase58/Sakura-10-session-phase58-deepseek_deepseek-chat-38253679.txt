@@ -1,0 +1,31 @@
+# character: Sakura
+# turn: 10
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: deepseek/deepseek-chat
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 458  innerChars: 67  latencyMs: 13513
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……大丈夫？　汗、拭こうか。
+# --- ここから本文 ---
+<response>
+<action>あなたの手が汗ばんだ額に触れ、ひんやりとしたタオルの感触が広がる。まだ震えている指先がシーツを掴み、白く染まった布地が皺になる。</action>
+<dialogue>「…ありがとう。でも、まだ体中が熱くて…あんなに、出し切ったはずなのに…」</dialogue>
+
+<action>タオルが首筋をなでるたび、微かに残った吐息が漏れる。腿の内側を伝った液体が冷え始め、ひやりとした感触に膝が震える。</action>
+<dialogue>「あっ…そこは…まだ拭かないで。だって、ちょっと敏感すぎて…ん…」</dialogue>
+
+<action>腰を浮かせようとした瞬間、奥から温かいものがにじみ出る。慌てて腿を閉じると、かすかな水音が寝室に響く。</action>
+<dialogue>「もう…本当に…中から溢れてきちゃう…あなたのせいよ…」</dialogue>
+
+<action>タオルが胸元に触れ、汗で張り付いたニットが剥がれる音がする。乳首が擦れて思わず背筋を反らせ、あなたの肩に倒れ込む。</action>
+<dialogue>「ふぅ…まだ触られたくないくらい、びりびりしてる…あんまり強く拭かないで…」</dialogue>
+
+<action>優しく拭われる背中に、桜の花びらが舞い落ちる。開け放たれた窓から、春の風が熱くなった肌をなでていく。</action>
+<dialogue>「…こんな時間まで、わたしのこと構ってくれて。でも、もう少しだけ…このままでいたいな」</dialogue>
+
+<inner>
+体中に残るあなたの痕跡が、少しずつ冷めていくのが惜しい。もっと長くこの熱を覚めさせないでほしいって、素直に言えたらどんなにいいだろう。
+</inner>
+</response>

@@ -1,0 +1,22 @@
+# character: Downer
+# turn: 5
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 351  innerChars: 64  latencyMs: 11215
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > きみの手、冷たい。もっとこっち来て。首のとこ、ピアスが光ってる。
+# --- ここから本文 ---
+<response>
+<action>きみの冷たい手が私の首筋に触れる。ピアスが光り、冷たさが皮膚を伝わる。膝を抱き締めた指先が震え、肌が粟立つ。</action>
+<dialogue>「…バカ。そんなに冷たい手で触られたら、びっくりするでしょ？」</dialogue>
+<action>首筋の冷たさが心地よく、視線を落とす。膝に組んだ指が震え、パーカーの袖が濡れた髪に触れ合う。</action>
+<dialogue>「…でも、きみが触れるなら、少しは我慢できるかな。」</dialogue>
+<action>きみがさらに近づき、部屋の空気が引き締まる。冷たい手が肩に触れ、肌が粟立つ。首元のダークグレーのチョーカーが冷たく感じられる。</action>
+<dialogue>「…もっと近く来ていいよ。私、少しは安心するから。」</dialogue>
+<action>きみの息が耳元にかかって、心臓の鼓動が早まる。視線を逸らし、頬が熱くなる。</action>
+<dialogue>「…でも、そんなに近づかれると、少し恥ずかしいな。」</dialogue>
+<action>膝を抱き締めた指先が震え、首筋の冷たさが心地よい。きみの存在が、少しだけ心を温める。</action>
+<inner>きみの手が触れるたびに、身体が反応してしまう。でも、素直になるのが怖い。この気持ちを表に出したら、もう引き返せないかもしれない。</inner>
+</response>

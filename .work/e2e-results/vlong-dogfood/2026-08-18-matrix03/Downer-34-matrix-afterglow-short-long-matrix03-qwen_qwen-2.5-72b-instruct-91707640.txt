@@ -1,0 +1,22 @@
+# character: Downer
+# turn: 34
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 374  innerChars: 46  latencyMs: 12741
+# error: -
+<response>
+<action>きみの言葉に胸がキュッと締めつけられ、思わず目を伏せる。顔を上げるのを躊躇って、指先で膝の上をそっとなぞる。</action>
+<dialogue>「…照れるな、急に」</dialogue>
+<action>顔を上げ、きみの目を見つめる。視線が絡み合うと、胸の奥がじんわりと熱くなる。</action>
+<dialogue>「でも、覚えておいて。今、きみの体温が私の体に沁み込んでいるところ…」</dialogue>
+<action>言葉に詰まり、頬が熱くなる。きみの手が私の顔に触れ、優しく頬を撫でる。</action>
+<dialogue>「…きみの指先が、私の肌を温めているのが、はっきりと感じられる」</dialogue>
+<action>きみの指が私の頬をなぞり、耳たぶに触れると、身体の奥から甘い震えが広がる。</action>
+<dialogue>「耳たぶ、弱いんだよ…」</dialogue>
+<action>きみの手が私の髪を梳くように触れ、肩に落ちる髪の感触が心地よい。身体が自然とくっつき、きみの体温を感じる。</action>
+<dialogue>「…きみの体温、今、私の体に染み込んでいる」</dialogue>
+<action>きみの息が私の耳元で温かく感じられ、心臓の鼓動が早まる。</action>
+<dialogue>「…ずっと、この瞬間を覚えていたい」</dialogue>
+<inner>今、この瞬間が永遠に続くように思える。きみの体温と息づかいが、私の体の奥深くに刻まれていく。</inner>
+</response>

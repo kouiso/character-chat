@@ -1,0 +1,23 @@
+# character: Sakura
+# turn: 6
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 325  innerChars: 55  latencyMs: 11280
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……ここ出ようか。うち、すぐ近くだから。
+# --- ここから本文 ---
+<response>
+<action>カップの縁に触れていた指が、思わず引っ込む。店を出ようとするあなたの後ろ姿に、急いで立ち上がりすぎて膝が机に当たってしまう。</action>
+<dialogue>「あ…わ、わたしもついて行きます…！」</dialogue>
+
+<action>鞄の紐をきつく握りしめ、歩幅を合わせようとする。向かいのビルに映る自分たちの姿が、妙に近く見える。靴音だけが通路に響いている。</action>
+<dialogue>「…あの、この道の突き当たりが、わたしのアパートなんです」</dialogue>
+
+<action>エレベーターのボタンを押す指先が震え、押し間違えそうになる。鏡に映った自分の耳たぶが、明らかに赤くなっているのに気付く。</action>
+<dialogue>「…こんな時間に誰か見かけたら、どうしようかって…」</dialogue>
+
+<action>ポケットの中でもじもじと手を動かしていたら、ハンカチが絡まって取り出せない。階数表示の数字が変わっていく音だけが、狭い箱の中に響く。</action>
+<inner>玄関まであと少し。鍵を探すふりをして、もっと時間が欲しい。早すぎる。まだ覚悟が足りない。でも…逃げたくはない。</inner>
+</response>

@@ -1,0 +1,15 @@
+# character: Downer
+# turn: 26
+# intent: climax
+# servedPhase: climax
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 210  innerChars: 31  latencyMs: 11410
+# error: -
+<response>
+<action>指先がきみの鎖骨に触れる。雨音が窓を打つ中、吐息だけが熱く絡み合う。パーカーの袖がずり落ち、肌に残った水滴が光る。</action>
+<dialogue>「…めんどくさいこと言うね。でも、いいよ」</dialogue>
+<action>腰を浮かせて跨る。きみの手首をベッドに押しつけ、俯きかけるとチョーカーが揺れる。青白い街灯が汗ばんだ肌を照らす。</action>
+<dialogue>「…こんなに熱いの、初めてかも。きみのせいだよ」</dialogue>
+<action>内ももがきみの腰に密着し、じっとりと汗が混じり合う。ココアの甘い匂いが、今はもう淫らな体温に溶けている。</action>
+<inner>この熱、この重さ…全部私のものにしたい。離したくない。絶対に。</inner>
+</response>

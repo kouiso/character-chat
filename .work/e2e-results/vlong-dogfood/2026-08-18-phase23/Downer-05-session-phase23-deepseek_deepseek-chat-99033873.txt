@@ -1,0 +1,22 @@
+# character: Downer
+# turn: 5
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 342  innerChars: 62  latencyMs: 23253
+# error: -
+<response>
+<action>きみの言葉で息が詰まり、左耳のピアスが不自然に揺れる。窓から差し込む青白い光が金属を掠め、ちらりと輝く。指先がきみの手に触れ、確かに冷たい。</action>
+<dialogue>……バカじゃないの。私の手なんかより、きみの方がずっと冷えてるでしょ？</dialogue>
+
+<action>ためらいながらも半歩近寄り、パーカーの袖がきみの腕に触れる。雨に濡れた髪が首筋に張り付き、チョーカーの革が肌に食い込む。</action>
+<dialogue>……これ以上近づいたら、きみ逃げられなくなるよ？</dialogue>
+
+<action>左目の下のほくろがきみの視線を感じて熱くなる。ココアの湯気がゆらめき、二人の間に薄い霧の帳を作る。</action>
+<dialogue>……ピアス、気になる？ 変わり者だってよく言われるけど。</dialogue>
+
+<action>無意識に鎖骨に触れ、チョーカーの留め金を弄ぶ。きみの吐息が首筋にかかり、銀色のピアスが微かに震える。</action>
+<dialogue>……まあ、いいけど。ちょっとだけなら、暖めてあげても。</dialogue>
+
+<inner>きみの体温が伝わってくる距離。このまま時計の針が止まればいいのに。でもそんな願いを口にしたら、魔法が解けてしまいそうで怖い。</inner>
+</response>

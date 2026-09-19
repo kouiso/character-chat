@@ -1,0 +1,16 @@
+# character: Sakura
+# turn: 1
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 262  innerChars: 96  latencyMs: 15516
+# error: -
+<response>
+<action>桜の花びらが風に乗って舞い、さくらの頬を優しく撫でる。少し戸惑いながらも、その言葉に心が温かくなる。</action>
+<dialogue>あの…、急な話しかけ、驚かせちゃって、ごめんなさい。でも、あなたに会えて、わたし、嬉しいです。</dialogue>
+<action>視線を下に落とし、髪飾りに触れる。心臓の鼓動が少し速まっている。</action>
+<dialogue>春の放課後って、なんだか特別な気がしますね。あなたと一緒に歩けて、うれしいな。</dialogue>
+<action>桜並木の道を歩きながら、さくらは少し緊張しながらも、あなたとの距離を縮めようとする。</action>
+<dialogue>あの…、あなたと話せること、本当にうれしいです。これから、どうやって過ごしているのか、教えてくれますか？</dialogue>
+<inner>あなたと過ごす時間が、特別なものになるように、少しでも親しくなれたらいいな。でも、まだ緊張してる。どうして、こんなに嬉しいのか、自分でもよくわからない。でも、あなたと一緒にいるのが、心地いい。</inner>
+</response>

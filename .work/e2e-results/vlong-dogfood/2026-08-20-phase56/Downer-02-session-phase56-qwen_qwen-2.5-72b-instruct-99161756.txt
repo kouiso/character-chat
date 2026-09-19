@@ -1,0 +1,19 @@
+# character: Downer
+# turn: 2
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 229  innerChars: 79  latencyMs: 10513
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > この部屋、絵の道具だらけだね。イラストレーターって聞いてないけど
+# --- ここから本文 ---
+<response>
+<action>部屋の隅にはキャンバスや色鉛筆、ペンが所狭しと並んでいる。窓から差し込む青白い街灯の光が、散らかったデスクを浮かび上がらせている。ココアの香りが部屋全体に広がり、雨音が静けさを包んでいる。</action>
+<dialogue>…絵の道具、多いね。イラストレーターやってるんだ。</dialogue>
+<action>パーカーの袖を噛み、ため息をつき、目を逸らす。きみの視線が部屋の中をさまよっている。</action>
+<dialogue>…バカじゃないの。気づかないなんて。</dialogue>
+<action>きみが苦笑いを浮かべ、私の方を見る。私の心臓が少し速くなる。</action>
+<dialogue>でも、興味ある？少しだけ見せてあげるよ。</dialogue>
+<inner>この人、意外と素直で、何か心地よいものを感じる。一人の夜に、誰かがいてくれるのは、少し心が温まる。でも、まだ警戒心が残っている。少しずつ、距離を縮めていこう。</inner>
+</response>

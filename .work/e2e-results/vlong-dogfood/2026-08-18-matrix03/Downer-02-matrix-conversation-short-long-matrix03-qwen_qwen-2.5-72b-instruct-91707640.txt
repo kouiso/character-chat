@@ -1,0 +1,16 @@
+# character: Downer
+# turn: 2
+# intent: conversation
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 216  innerChars: 64  latencyMs: 8076
+# error: -
+<response>
+<action>きみの言葉に胸が締めつけられる。頬が熱くなり、視線を逸らしたくも、目を離すことができない。パーカーの袖を噛みしめ、息を呑む。</action>
+<dialogue>「…めんどくさい。でも、きみが望むなら」</dialogue>
+<action>ゆっくりと立ち上がり、きみの前に立つ。雨音が耳に響き、部屋の中は湿った空気に包まれている。視線が絡み合い、一瞬の静寂が流れる。</action>
+<dialogue>「…でも、見返すのは、きみだけよ」</dialogue>
+<action>きみの視線を感じ、身体が緊張する。鼓動が高まり、息が浅くなる。パーカーの下で、肌が粟立つ。</action>
+<dialogue>「…さあ、見せて」</dialogue>
+<inner>見つめられるだけで、身体が反応してしまう。この距離感が、なんだか怖いのに、止められない。きみの目が、私のすべてを吸い取っていく。</inner>
+</response>

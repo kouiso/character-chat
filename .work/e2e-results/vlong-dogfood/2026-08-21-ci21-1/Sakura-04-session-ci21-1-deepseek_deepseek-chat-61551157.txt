@@ -1,0 +1,34 @@
+# character: Sakura
+# turn: 4
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0,"generationCount":3,"deterministicCategory":null}
+# visibleChars: 296  innerChars: 68  latencyMs: 11538
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……近いね。少しだけ、手に触れてもいい？
+# --- ここから本文 ---
+<response>
+<action>
+手が差し伸べられた瞬間、指先が小さく震える。カフェの窓から差し込む光が交差した指を優しく照らし、影がテーブルに長く伸びる。喉の奥が少し締まり、息を整えるのが精一杯だ。
+</action>
+<dialogue>
+「……君の手、温かいですね」
+</dialogue>
+<action>
+触れ合った指先から電流のような感覚が伝わり、肩の力が自然に抜けていく。耳元で聞こえるのは、自分のかすかな息遣いと、遠くから聞こえる珈琲カップの音だけ。
+</action>
+<dialogue>
+「こんな風に触れ合うの…初めてかも。少し、不思議な気分です」
+</dialogue>
+<action>
+手のひらがぽっと熱くなり、触れている部分だけが特別な感覚に包まれる。カフェのざわめきが一瞬遠のき、二人の間だけ時間がゆっくりと流れているように感じる。
+</action>
+<dialogue>
+「……恥ずかしいけど、離れたくないな」
+</dialogue>
+<inner>
+触れるたびに広がるこの甘い感覚、初めて知った。もっと近づきたいのに、それ以上は怖くて。ただ手を繋いでいるだけで、胸がいっぱいになりそう。
+</inner>
+</response>

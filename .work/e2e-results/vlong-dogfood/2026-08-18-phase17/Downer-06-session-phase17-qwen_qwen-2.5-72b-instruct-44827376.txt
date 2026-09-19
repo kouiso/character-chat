@@ -1,0 +1,14 @@
+# character: Downer
+# turn: 6
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 229  innerChars: 75  latencyMs: 80525
+# error: -
+<response>
+<action>雨音が窓ガラスを叩く。部屋の暖かさが、きみの冷たい体と対比される。私は少しため息をつき、きみの手を取る。冷たい手が私の手に触れる感触が心地良い。</action>
+<dialogue>「……バカ。でも、仕方ないでしょ？ベッドに連れてくから、ちゃんと温まるんだよ」</dialogue>
+<action>きみの手を引いて、ベッドの方向へ歩き始める。歩みが重いのが感じられるが、私はきみの手を離さない。ベッドに近づくにつれて、部屋の空気がより暖かくなり、きみの体温も少しずつ上がっていく。</action>
+<dialogue>「さあ、ここだよ。ベッドに座って、ゆっくり温まるんだ」</dialogue>
+<inner>きみの体温が少しずつ上がっていくのが嬉しい。でも、あまり素直になるのも困る。でも、きみがいてくれるのは心地良い。この距離感が心地良くて、離れたくない。</inner>
+</response>

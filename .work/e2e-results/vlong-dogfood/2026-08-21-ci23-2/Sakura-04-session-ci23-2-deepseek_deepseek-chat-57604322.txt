@@ -1,0 +1,19 @@
+# character: Sakura
+# turn: 4
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0,"generationCount":3,"deterministicCategory":null}
+# visibleChars: 157  innerChars: 43  latencyMs: 9099
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……近いね。少しだけ、手に触れてもいい？
+# --- ここから本文 ---
+<response>
+<action>息を詰め、指先が微かに震える。触れられそうな距離に影が重なり、昼下がりの光が柔らかい輪郭を描く。</action>
+<dialogue>...ん。いいよ。</dialogue>  
+<action>瞬きの回数が増え、喉の奥が乾く。向かい側から伝わる体温が、肌の感覚を研ぎ澄ませる。</action>  
+<dialogue>君の手、少し冷たいみたい。春なのに...</dialogue>
+<action>無意識に小指が跳ね、触れ合う直前で静止する。隣の席から珈琲の香りが漂ってくる。</action>
+<inner>この距離からは香水の匂いもわかる。柑橘系かな...抑えた香りが、なぜか胸を締めつける。</inner>
+</response>

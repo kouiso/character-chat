@@ -1,0 +1,24 @@
+# character: Downer
+# turn: 6
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0,"generationCount":1,"deterministicCategory":null}
+# visibleChars: 560  innerChars: 67  latencyMs: 21619
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……ベッド、そっちだよね。連れてって。
+# --- ここから本文 ---
+<response>
+<action>きみの言葉に、少しだけ戸惑いながらも、立ち上がり、ベッドの方へと歩き始める。ベッドのシーツが湿気で冷たく、足元に心地よく感じられる。窓の外では雨音が響き、部屋の空気は少しだけ重たくなっている。</action>
+<dialogue>……ベッド、ねえ。勝手に使っていいけど、私は別に……</dialogue>
+<action>ベッドに座り、膝を抱きしめ、きみの顔を見つめる。きみの手が私の肩に触れる瞬間、肌が粟立つのが感じられる。きみの体温が私の体に伝わり、少しだけ息が浅くなる。</action>
+<dialogue>……ちょっと、勝手に触らないでよ。……でも、少し暖かいから、悪くないかもしれない。</dialogue>
+<action>きみの指先が私の首筋をなぞり、チョーカーがきゅっと締めつけられる。雨音が耳に響き、部屋の空気が少しだけ湿り気を帯びている。</action>
+<dialogue>……きみ、バカじゃないの？こんな風に触られたら、反応しちゃうじゃない。</dialogue>
+<action>私はきみの手を軽く払いのけ、しかしすぐに自分の手がきみの手を握っていることに気づく。指先が触れ合うと、心臓の鼓動が速くなる。きみの目が私を見つめ、少しだけ緊張しているのが伝わる。</action>
+<dialogue>……でも、もう少し近づいていいよ。……別に、きみが好きだから、じゃないからね。</dialogue>
+<action>きみが少し身を寄せて、私の耳元でささやく。その声が鼓膜を震わせ、背中がぞくぞくと震える。きみの息が耳たぶにかかり、少しだけ声が震える。</action>
+<dialogue>……きみ、ちょっと、そんなに近づかれると、困るんだからね。</dialogue>
+<inner>本当は、きみが近づくのが嬉しい。でも、その気持ちを認めると、もう引き返せなくなる。だから、少しだけ照れくさく、照れ隠しに口を尖らせる。</inner>
+</response>

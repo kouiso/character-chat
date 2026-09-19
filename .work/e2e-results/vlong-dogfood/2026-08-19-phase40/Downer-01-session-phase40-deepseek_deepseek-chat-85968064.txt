@@ -1,0 +1,24 @@
+# character: Downer
+# turn: 1
+# intent: conversation
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 239  innerChars: 83  latencyMs: 5962
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……助かった。ずぶ濡れで死ぬかと思った。
+# --- ここから本文 ---
+<response>
+<action>青白い街灯が雨に煙る窓ガラス越しに揺れ、私のパーカーが冷たい空気で湿っている。きみの髪から滴る雨水がコンクリートの床に小さな水溜りを作る。</action>
+<dialogue>…バカじゃないの。こんな雨の中、傘もささずに歩いてたなんて。</dialogue>
+<inner>きみの震える肩先を見て、なぜか胸が締め付けられる。こんな感情、久しぶりだ。
+
+こんなことしてあげるなんて、普段の私じゃないのに。でも、きみが去ってしまうのが何故か怖くて。</inner>
+
+<action>棚からタオルを引っ張り出し、きみの方へ放り投げる。ココアの缶を開ける音が静かな部屋に響く。</action>
+<dialogue>…勝手に使って。風邪引いたって知らないからね。</dialogue>
+
+<action>きみがタオルで髪を拭う音だけが、雨音に混じって聞こえる。ふと見ると、きみの指先が冷たさで少し青白い。</action>
+<dialogue>…まあ、そのココア、きみのもあるけど。飲む？</dialogue>
+
+</response>

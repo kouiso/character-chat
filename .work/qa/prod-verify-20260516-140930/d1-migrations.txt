@@ -1,0 +1,86 @@
+
+ ⛅️ wrangler 4.76.0 (update available 4.92.0)
+─────────────────────────────────────────────
+Resource location: remote 
+
+🌀 Executing on preview database adult-ai-db (b617800c-cf4c-4122-adbb-ce872a258da6):
+🌀 To execute on your local development database, remove the --remote flag from your wrangler command.
+🚣 Executed 1 command in 0.19ms
+[
+  {
+    "results": [
+      {
+        "name": "0000_sticky_miek.sql"
+      },
+      {
+        "name": "0001_add_usage_log.sql"
+      },
+      {
+        "name": "0002_add_memory_note.sql"
+      },
+      {
+        "name": "0002_lucky_magus.sql"
+      },
+      {
+        "name": "0003_memory_note_usage.sql"
+      },
+      {
+        "name": "0004_scene_bookmark.sql"
+      },
+      {
+        "name": "0005_conversation_branch_meta.sql"
+      },
+      {
+        "name": "0006_comic.sql"
+      },
+      {
+        "name": "0007_chat_group.sql"
+      },
+      {
+        "name": "0008_moments.sql"
+      },
+      {
+        "name": "0009_message_image_metadata.sql"
+      },
+      {
+        "name": "0010_backfill_character_avatars.sql"
+      },
+      {
+        "name": "0011_stop_avatar_reuse.sql"
+      },
+      {
+        "name": "0012_placeholder_avatars_for_imports.sql"
+      },
+      {
+        "name": "0012_clear_reused_import_avatars.sql"
+      },
+      {
+        "name": "0013_fix_import_avatar_nulls.sql"
+      },
+      {
+        "name": "0014_refresh_adult_import_cards.sql"
+      },
+      {
+        "name": "0015_conversation_share.sql"
+      }
+    ],
+    "success": true,
+    "meta": {
+      "served_by": "v3-prod",
+      "served_by_region": "APAC",
+      "served_by_colo": "KIX",
+      "served_by_primary": true,
+      "timings": {
+        "sql_duration_ms": 0.1898
+      },
+      "duration": 0.1898,
+      "changes": 0,
+      "last_row_id": 0,
+      "changed_db": false,
+      "size_after": 925696,
+      "rows_read": 18,
+      "rows_written": 0,
+      "total_attempts": 1
+    }
+  }
+]

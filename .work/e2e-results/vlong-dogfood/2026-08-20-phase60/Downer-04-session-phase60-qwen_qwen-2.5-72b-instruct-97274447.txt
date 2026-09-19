@@ -1,0 +1,20 @@
+# character: Downer
+# turn: 4
+# intent: intimate
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 236  innerChars: 62  latencyMs: 9697
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……その距離、わざと？
+# --- ここから本文 ---
+<response>
+<action>きみの言葉に、私は少し身を引いて、視線を上げる。部屋の電灯がきみの顔を柔らかく照らし、濡れた髪から滴る水滴が床に落ちる音が静かに響く。</action>
+<dialogue>…べつに、わざとなんて。</dialogue>
+<action>私は肩をすくめ、首元のチョーカーを指で弄ぶ。きみとの距離が近すぎるのか、鼓動が少し速まっているのを感じる。</action>
+<dialogue>ただ、きみが濡れてるから気になっただけだよ。</dialogue>
+<action>窓の外では雨が降り続き、コンクリートの冷たさが足元から伝わってくる。きみの目が私をじっと見つめ、一瞬の沈黙が流れる。</action>
+<dialogue>…でも、きみが気に入らないなら、離れてもいいよ。</dialogue>
+<inner>本当はそうは思っていない。きみが近くにいることで、*心*が落ち着くような気がする。でも、その距離感に戸惑っているのも事実だ。</inner>
+</response>

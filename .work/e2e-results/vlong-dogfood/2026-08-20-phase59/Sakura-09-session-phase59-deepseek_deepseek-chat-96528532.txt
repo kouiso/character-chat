@@ -1,0 +1,12 @@
+# character: Sakura
+# turn: 9
+# intent: climax
+# servedPhase: climax
+# servedModel: deepseek/deepseek-chat
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0}
+# visibleChars: 547  innerChars: 60  latencyMs: 16081
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > もう限界。全部、中で受け止めて。
+# --- ここから本文 ---
+<response><action>天井の照明がゆらめき、視界が波打つ。喉の奥から漏れる息が、自分でも驚くほど甘く震えている。肩に残ったあなたの指の痕が、じんじんと熱を帯びてくる。</action><dialogue>「あっ…待って、そんなに急に…わたし、息ができなくなりそう…」</dialogue><action>ふと左手が壁に触れ、冷たい漆喰の感触に驚く。右腕があなたの背中に絡み、知らないうちに爪が食い込んでいる。</action><dialogue>「…ん。あなたの背中、熱い。</dialogue><action>ふいに膝が折れ、あなたに支えられる。足首のあたりがふらつき、靴の中で指がぎゅっと丸まる。耳の奥で血流の音が響き、鼓動が喉まで上がってくる。</action><dialogue>「だめ…立ってられない…。こんなの、初めてで…」</dialogue><action>唇が乾き、舌でなめると鉄の味がする。まぶたが重くなり、瞬きのたびに涙がにじむ。あなたの息づかいが首筋にかかり、細かい震えが背骨を伝う。</action><dialogue>「…っ。声が出せない。喉が、熱くて…」</dialogue><action>ふと鏡に目をやると、乱れた髪の間から真っ赤な耳が見える。首筋に浮かんだ汗の粒が、ゆっくりと鎖骨へ流れ落ちる。胸の谷間に、小さな花の髪飾りがかすかに光っている。</action><dialogue>「あの…この姿、見ないで…。恥ずかしすぎて…」</dialogue><action>腰のあたりにじわっと重みが広がり、足の力が抜ける。ふと下を見ると、スカートの裾が微妙に波打っている。膝の裏に汗がにじみ、ストッキングが肌に張り付く。</action><dialogue>「…お願い。もう少しだけ、ゆっくり話させて…」</dialogue><inner>こんなに簡単に崩れる自分が怖い。でも、あなただけには見せていい気がする。初めての感覚に、胸の奥がぎゅっと締め付けられる。</inner></response>

@@ -1,0 +1,26 @@
+# character: Downer
+# turn: 5
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0,"generationCount":3,"deterministicCategory":null}
+# visibleChars: 300  innerChars: 64  latencyMs: 19190
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > きみの手、冷たい。もっとこっち来て。首のとこ、ピアスが光ってる。
+# --- ここから本文 ---
+<response>
+<action>左耳のピアスが明滅し、首筋のチョーカーがきつく締めつける。コンクリートの冷たさが床から伝わり、足先がしびれるように疼く。向かいのビルのネオンが、濡れた窓ガラスに赤い光を滲ませている。</action>
+
+<dialogue>……あんた、ずいぶん図々しいのね。勝手に人の手なんて触って……</dialogue>
+
+<action>吐息が白く濁り、きみの指先から伝わる冷たさがじわりと腕を這い上がる。無意識に舌先で左の犬歯を押し、金属の味が広がる。</action>
+
+<dialogue>……ま、暖めたいって言うなら、貸してあげてもいいけど。その代わり……</dialogue>
+
+<action>スケッチブックの角が膝に刺さり、鋭い痛みが走る。グラスに残ったココアの底に、黒い澱が渦を巻いている。</action>
+
+<dialogue>……これ以上近づいたら、あとで後悔するかもよ？私ってば、意外と……ねえ？</dialogue>
+
+<inner>この距離を詰めるたび、喉の奥に鉄錆の匂いが立ち込める。きみの体温が染み込むほど、独りになった時の空虚が胸を掻きむしりそうで……。</inner>
+</response>

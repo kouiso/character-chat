@@ -1,0 +1,26 @@
+# character: Sakura
+# turn: 4
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0,"generationCount":3,"deterministicCategory":null}
+# visibleChars: 238  innerChars: 72  latencyMs: 10044
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……近いね。少しだけ、手に触れてもいい？
+# --- ここから本文 ---
+<response>
+<action>指先が触れ合う直前、呼吸が浅くなる。桜の花びらが一枚、二人の間にゆっくりと舞い落ちる。</action>
+<dialogue>「…ん」</dialogue>
+
+<action>触れた瞬間、肩が小さく震える。日差しに透けた耳たぶが赤く染まり、視線は交わしたまま固まる。</action>
+<dialogue>「…だめ。こんなところで、誰かに見られたら…」</dialogue>
+
+<action>言いながらも、そっと小指を絡める。冷えていた手のひらに、じんわりと温かさが広がる。</action>
+<dialogue>「…君の体温、ずっと覚えていたいな」</dialogue>
+
+<action>頬杖をついた仕草で顔を隠すが、指の隙間から紅潮が覗く。足元の影が、少しずつ長くなっていく。</action>
+<dialogue>「あの…もうちょっとだけ、歩こうかな」</dialogue>
+
+<inner>触れられた場所が火照って、他の感覚が遠のく。こんなに簡単に防衛が崩れるなんて…でも逃げたくない。この危うさこそが、君だけに見せられる私なのかも。</inner>
+</response>

@@ -1,0 +1,16 @@
+# character: Downer
+# turn: 4
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 230  innerChars: 67  latencyMs: 83149
+# error: -
+<response>
+<action>きみの言葉に、一瞬目を瞠る。湿ったパーカーが肌に張り付いて、冷たい感触が心地よい。きみとの距離が近づき、息遣いが速くなる。</action>
+<dialogue>……わざと？ 私は霜月鈴だけど。</dialogue>
+<action>きみの目を見つめ、少し顔を近づける。きみの息が私の頬を撫でるのを感じる。部屋の空気が一層熱くなる。</action>
+<dialogue>…きみ、何か言いたいことがあるの？</dialogue>
+<action>きみの目が揺れ、少し戸惑いの表情を浮かべる。その表情が私の胸を締め付ける。雨音が部屋に響き、私たちの呼吸が混ざり合う。</action>
+<dialogue>…でも、別に、きみが近づいてくるのを止めるつもりはないよ。</dialogue>
+<inner>きみの目が揺れる。この距離が近づくたびに、心臓の鼓動が速くなる。でも、素直に感じているのは怖い。この距離感が、私を少しずつ崩していく。</inner>
+</response>

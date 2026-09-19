@@ -1,0 +1,25 @@
+# character: Sakura
+# turn: 5
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 329  innerChars: 52  latencyMs: 34112
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > 髪、かかってる。耳にかけるね。首筋、少し赤くなってる。
+# --- ここから本文 ---
+<response>
+<action>桜の花びらが舞い落ちる中、あなたの指先が髪に触れる。耳元に流れ込む息遣いが、普段気づかない部分の肌を敏感にさせる。</action>
+<dialogue>ひゃ…っ。あの、そこ…少し、くすぐったくて…</dialogue>
+
+<action>首筋を伝う汗の気配と、白いニットの襟元がこすれる感触が混ざり合う。足元に落ちた花びらを踏む音が、妙にはっきり聞こえる。</action>
+<dialogue>こんな近くで…わたしの変なところ、見えちゃってますか…？</dialogue>
+
+<action>鎖骨の上を流れる空気の動きに意識が集中し、肩が自然にすくむ。カップの水滴がテーブルに落ちるリズムと、自分の鼓動が重なる。</action>
+<dialogue>でも…あなたが触れてくれるの、嫌いじゃないです…</dialogue>
+
+<action>ふと目を上げると、ガラス越しの夕陽があなたの輪郭を柔らかく縁取っている。いつもより長いまつ毛の影が頬に落ちる。</action>
+<dialogue>あの…もしよかったら、もっと近くで…話したいです</dialogue>
+
+<inner>知らないうちに、あなたの手の温もりを求めている自分がいる。この距離が、自然に感じられるようになるなんて…</inner>
+</response>

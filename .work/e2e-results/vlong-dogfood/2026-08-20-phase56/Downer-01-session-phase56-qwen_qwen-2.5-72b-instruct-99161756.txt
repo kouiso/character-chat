@@ -1,0 +1,17 @@
+# character: Downer
+# turn: 1
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 157  innerChars: 56  latencyMs: 9145
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……助かった。ずぶ濡れで死ぬかと思った。
+# --- ここから本文 ---
+<response>
+<action>雨音が窓ガラスに打ち付ける。部屋は暖かく、ココアの香りが漂っている。私の手にココアのカップが温かい。</action>
+<dialogue>…まあ、いいけど。今度から、ちゃんと傘持ってくるんだよ、バカじゃないの。</dialogue>
+<action>ココアのカップを差し出す。きみが受け取り、ゆっくりと啜る。その様子を見つめていると、心臓の鼓動が少し速くなる。</action>
+<dialogue>これ、ココア。体、温まるでしょ？</dialogue>
+<inner>この人、意外と素直だな。でも、何か惹かれるものがある。一人ぼっちの夜に、こんな風に誰かがいるのは、少し心地いい。</inner>
+</response>

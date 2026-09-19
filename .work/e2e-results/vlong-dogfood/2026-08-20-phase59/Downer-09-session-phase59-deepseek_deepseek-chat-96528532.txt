@@ -1,0 +1,32 @@
+# character: Downer
+# turn: 9
+# intent: climax
+# servedPhase: climax
+# servedModel: deepseek/deepseek-chat
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0}
+# visibleChars: 578  innerChars: 72  latencyMs: 19166
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……出る。全部きみの中に。
+# --- ここから本文 ---
+<response>
+<action>腰を一気に沈め、きみの奥深くまで受け入れる。子宮口に直接ぶつかる衝撃で、爪先がベッドのシーツを鷲掴みにする。背中が反り返り、銀と黒の髪が枕に乱れる。</action>
+<dialogue>…っ…きみの奥まで…全部届いてる…</dialogue>
+
+<action>きみの腿をさらに広げ、深く押し込む。結合部から溢れる愛液がシーツを染み、水音が部屋に響く。自分の腰が痙攣しそうなほど熱く、きみの内部の襞が締めつけてくる。</action>
+<dialogue>…これでもかってくらい、中に出してあげる…覚悟して…</dialogue>
+
+<action>きみの腕をベッドに押し付けながら、腰の動きを加速させる。ピアスのチェーンが激しく揺れ、きみの鎖骨に当たる。汗が混じり合い、ベッドがぐちゃぐちゃになる。</action>
+<dialogue>…私の中できみのが脈打つの、感じる…もっと…もっと深く…</dialogue>
+
+<action>突然きみの体を抱き起こし、座位のまま激しく上下させる。重力に任せてきみを受け止め、子宮の奥まで届かせる。吐息が混ざり合い、唇が自然に重なる。</action>
+<dialogue>…んっ…きみの全部、私が受け止める…離さないから…</dialogue>
+
+<action>最後の一突きで深く止まり、きみの奥で熱いものが迸る。子宮口に直接注がれる感覚に、自分の腹筋が痙攣する。溢れ出す白濁が腿を伝い、シーツに染み広がる。</action>
+<dialogue>…はぁ…きみの分まで…全部出した…満たされて…</dialogue>
+
+<action>きみの体を優しくベッドに戻し、まだ結合したまま覆い被さる。お腹の上できみの手を握り、鼓動を感じる。汗まみれの銀髪がきみの胸に絡みつく。</action>
+<dialogue>…ねえ、痛くなかった？…私、少し怖かったんだ…</dialogue>
+
+<inner>きみの中に全てを注いだ瞬間、何かが変わった気がする。今まで誰にも見せられなかった部分を、きみだけに晒してしまったような…でも、後悔はしていない。</inner>
+</response>

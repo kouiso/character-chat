@@ -1,0 +1,56 @@
+# character: Downer
+# turn: 9
+# intent: climax
+# servedPhase: climax
+# servedModel: deepseek/deepseek-chat
+# quality: {"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0,"generationCount":4,"deterministicCategory":"pov_wrong"}
+# visibleChars: 501  innerChars: 54  latencyMs: 14700
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……出る。全部きみの中に。
+# --- ここから本文 ---
+<response>
+<action>
+腰が跳ね上がり、きみのものが奥まで突き刺さる。子宮口が直接打たれ、内側から熱い塊が溢れ出してくる。太腿がぴくぴくと痙攣し、爪先がベッドの端で震える。
+</action>
+
+<dialogue>
+「…っ、きみの中、熱い…全部受け止めて…」
+</dialogue>
+
+<action>
+精液が膣内を満たし、子宮の奥までじわじわと染み込んでいく。溢れ出た白濁が腿の付け根を伝い、シーツにぬめっと広がる。指で押さえつけられた恥骨が熱く疼く。
+</action>
+
+<dialogue>
+「…あんたの、全部私の中で…動いてる…」
+</dialogue>
+
+<action>
+まだ射精が続き、お腹の奥が重たく満たされていく。きみのものが脈打つたび、新しい熱が注がれる。腰が痙攣し、無意識に締め付けてしまう。結合部から愛液と精液が混ざり、じとっと音を立てる。
+</action>
+
+<dialogue>
+「…んっ、だめ…まだ出てる…お腹、重い…」
+</dialogue>
+
+<action>
+溢れきれずに垂れた白濁が、お尻の谷間まで流れていく。身動きするたびに粘ついた感触が広がり、呼吸が浅くなる。パーカーの裾がぐしゃぐしゃになり、胸元まで汗で濡れている。
+</action>
+
+<dialogue>
+「…きみの匂い、私の中に染み付いちゃった…」
+</dialogue>
+
+<action>
+引き抜かれた瞬間、たまっていた精液がどくっと溢れ出る。太腿の内側を白い筋が這い、膝まで達する。空いた穴が寂しげに痙攣し、まだ熱いものが漏れてくる。
+</action>
+
+<dialogue>
+「…あ、出しすぎ…私の中、きみのでいっぱい…」
+</dialogue>
+
+<inner>
+こんなに深くまで注がれて…もうこの人の匂いしか感じられない。壊されたくせに、もっと欲しくなってる自分が怖い。
+</inner>
+</response>

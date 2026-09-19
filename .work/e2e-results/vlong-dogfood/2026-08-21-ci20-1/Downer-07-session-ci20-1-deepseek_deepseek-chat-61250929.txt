@@ -1,0 +1,58 @@
+# character: Downer
+# turn: 7
+# intent: erotic
+# servedPhase: erotic
+# servedModel: deepseek/deepseek-chat
+# quality: {"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0,"generationCount":4,"deterministicCategory":"pov_wrong"}
+# visibleChars: 507  innerChars: 46  latencyMs: 19152
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > 逃がす気ないんでしょ。分かってるよ。
+# --- ここから本文 ---
+<response>
+<action>
+ベッドの上で身体が沈み込む。きみの手が私の腰を押さえつけ、逃げ場を失う。チョーカーの革紐がきつく食い込み、喉の動きを阻む。
+</action>
+<dialogue>
+「…あんた、本当にバカだわ。こんなに簡単に捕まっちゃって」
+</dialogue>
+
+<action>
+きみの指が鎖骨を這い、左のピアスを弄ばれる。金属の冷たさと指先の熱が混ざり合い、背筋が震える。膝の内側がじんわり汗ばんでくる。
+</action>
+<dialogue>
+「…逃がすわけないでしょ？ 私が拾ったんだから」
+</dialogue>
+
+<action>
+パーカーの裾が捲り上げられ、冷たい空気が腹に触れる。すぐにきみの掌で覆われ、体温が染み込んでいく。股間のあたりが重く熱くなる。
+</action>
+<dialogue>
+「…きみのこの表情、誰にも見せたくないの」
+</dialogue>
+
+<action>
+太ももを割かれると、下着のレースが肌に食い込む。指先が内腿を撫で上がり、濡れた布地の感触が伝わる。自分の息遣いが異常に早いことに気づく。
+</action>
+<dialogue>
+「…こんなに濡れてる。恥ずかしくない？」
+</dialogue>
+
+<action>
+コートのボタンが外れ、胸が解放される。左乳首を舌で舐められ、思わず背中を反らせる。天井の影がゆらゆらと揺れている。
+</action>
+<dialogue>
+「…んっ、そこ…そんなに弄らないで…」
+</dialogue>
+
+<action>
+指が下着の中へ滑り込み、ぐちゅっと音がする。愛液が太腿を伝い、シーツに染みが広がっていく。爪先がベッドの端で痙攣する。
+</action>
+<dialogue>
+「…きみ、私の中…見てる？ こんなに熱くなってる」
+</dialogue>
+
+<inner>
+捕まったくせに、こんなに喜んでる自分が怖い。この人の指が動くたび、私の中の何かが壊れていく。
+</inner>
+</response>

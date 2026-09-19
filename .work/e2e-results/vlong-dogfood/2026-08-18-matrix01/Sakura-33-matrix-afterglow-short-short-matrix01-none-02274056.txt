@@ -1,0 +1,7 @@
+# character: Sakura
+# turn: 33
+# intent: afterglow
+# servedPhase: (none)
+# servedModel: (none)
+# visibleChars: 0  innerChars: 0  latencyMs: 12261
+# error: HTTP 503: Your worker restarted mid-request. Please try sending the request again. Only GET or HEAD requests are retried automatically.

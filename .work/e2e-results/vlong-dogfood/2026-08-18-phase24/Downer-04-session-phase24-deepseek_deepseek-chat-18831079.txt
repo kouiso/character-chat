@@ -1,0 +1,27 @@
+# character: Downer
+# turn: 4
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 341  innerChars: 48  latencyMs: 22438
+# error: -
+<response>
+<action>……わざと？私は霜月鈴だけど。</action>  
+<dialogue>……距離？何言ってんの。べつに、意識してなんてないわ。</dialogue>  
+
+<action>パーカーの袖を強く噛み、きみとの間に漂う湿った空気が肌に張り付く。ココアの湯気がゆらめき、二人の間を曖昧にする。</action>  
+<dialogue>……きみ、変なことばっかり気にするんだね。</dialogue>  
+
+<action>無意識に左目の下のほくろを触り、きみの視線を避ける。窓を打つ雨音が、鼓動と重なって聞こえる。</action>  
+<dialogue>……こっちが聞きたいわ。なんでそんなこと気にするの？</dialogue>  
+
+<action>タオルできみの髪を拭く手が、少しだけ震えている。水滴が床に落ち、小さな音を立てる。</action>  
+<dialogue>……ほら、もっとちゃんと拭かないと。風邪引いても知らないわよ。</dialogue>  
+
+<action>きみの息遣いが近すぎて、首筋が熱くなる。青白い街灯が、きみの濡れたシャツの輪郭を浮かび上がらせる。</action>  
+<dialogue>……っ。……ちょっと、下がってよ。こんなに近づいたら……。</dialogue>  
+
+<inner>  
+バカみたい。なんでこんなに動揺してるんだろう。きみの体温が伝わってきて、胸の奥が締め付けられる。  
+</inner>  
+</response>

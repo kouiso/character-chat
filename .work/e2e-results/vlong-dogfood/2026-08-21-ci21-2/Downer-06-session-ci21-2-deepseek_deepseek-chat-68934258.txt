@@ -1,0 +1,29 @@
+# character: Downer
+# turn: 6
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0,"generationCount":3,"deterministicCategory":null}
+# visibleChars: 352  innerChars: 39  latencyMs: 12581
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……ベッド、そっちだよね。連れてって。
+# --- ここから本文 ---
+<response>
+<action>雨粒が窓を伝う音と共に、きみの指先が私の手首を掴んだ。左耳のピアスが揺れ、金属の冷たさが頬に触れる。</action>
+<dialogue>…急に何言い出すんだよ。ベッドなんて…めんどくさい。</dialogue>
+
+<action>立ち上がると同時にきみの体温が背中に伝わり、格子柄のチョーカーが首筋に食い込む。吐息が白く浮かび、消える。</action>
+<dialogue>…勝手に人の部屋で指示出すなんて…まあ、いいけど。</dialogue>
+
+<action>足を進めるたびに、古い床板が軋む。ドレスの裾がきみの足に触れ、すぐに離れる。</action>
+<dialogue>…そんなに引っ張られたら転ぶでしょ。バカじゃないの。</dialogue>
+
+<action>ベッドの端に腰かけ、きみの膝が私の腿に当たる。ココアのカップが揺れ、液体の表面に歪んだ影が映る。</action>
+<dialogue>…ほら、着いたよ。…満足？</dialogue>
+
+<action>きみの視線が左目の下のほくろを捉え、無意識に舌で下唇を湿らせる。パーカーの袖が皺だらけになっているのに気付く。</action>
+<dialogue>…なんでそんなに見てるの。変なとこ…</dialogue>
+
+<inner>この異常な親密さ。他人とこんなに近づくなんて、いつもの私ならあり得ないのに…。</inner>
+</response>

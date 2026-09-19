@@ -1,0 +1,24 @@
+# character: Sakura
+# turn: 5
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0,"generationCount":3,"deterministicCategory":null}
+# visibleChars: 457  innerChars: 55  latencyMs: 15316
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > 髪、かかってる。耳にかけるね。首筋、少し赤くなってる。
+# --- ここから本文 ---
+<response>
+<action>君の指がさくらの髪を優しく耳にかけ、首筋に触れる。その瞬間、さくらの身体がわずかに硬直し、背中に電流が走る。カフェの暖かな空気が頬を撫で、心地よい緊張感が広がる。</action>
+<dialogue>あ、あの…少し、恥ずかしいです…。でも、君の手が、優しくて…。</dialogue>
+<action>さくらは視線を下に落とし、膝の上で指先が絡み合う。心臓の鼓動が速まり、首筋が熱くなる。春の風が窓から吹き込み、さくらの髪をそよがせる。</action>
+<dialogue>君、本当に、わたしのことを、好きでいてくれるんですか…？</dialogue>
+<action>君の顔が近づき、さくらの頬に温もりが伝わる。カフェの香りと春の風が混ざり合い、空気が高揚感に満ちている。</action>
+<dialogue>ふふ、少し緊張してるんだね…。でも、大丈夫だよ。わたしも、君のことを、好きだから…。</dialogue>
+<action>君の手がさくらの首筋に触れ、指先がゆっくりと動く。さくらの身体がさらに熱くなり、鼓動がさらに速まる。</action>
+<dialogue>あ、あの…君の手が、首筋に触れるの、すごく…。</dialogue>
+<action>さくらの目が潤み、頬がさらに赤らむ。春の風がさくらの髪をなびかせ、カフェの暖かな空気が二人を包み込む。</action>
+<dialogue>君の手が触れるだけで、心が高鳴る。でも、少し、恥ずかしいです…。</dialogue>
+<inner>君の手が触れるたびに、首筋が熱くなる。恥ずかしいのに、この感じが止められない。でも、素直に受け入れるのが怖い。</inner>
+</response>

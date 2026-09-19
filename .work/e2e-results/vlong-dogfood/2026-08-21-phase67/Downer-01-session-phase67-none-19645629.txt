@@ -1,0 +1,11 @@
+# character: Downer
+# turn: 1
+# intent: conversation
+# servedPhase: (none)
+# servedModel: (none)
+# quality: (none)
+# visibleChars: 0  innerChars: 0  latencyMs: 27
+# error: HTTP 502: {"error":"upstream service error","code":"upstream_error"}
+# --- そのターンで送った相手の発言 ---
+# > ……助かった。ずぶ濡れで死ぬかと思った。
+# --- ここから本文 ---

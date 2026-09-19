@@ -1,0 +1,11 @@
+# character: Downer
+# turn: 6
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 467  innerChars: 11  latencyMs: 29158
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……ベッド、そっちだよね。連れてって。
+# --- ここから本文 ---
+<response><action>きみの言葉に、私は少しだけ頬を赤らめ、目を逸らす。部屋の空気は暖かく、雨音が窓ガラスを静かに叩いている。心臓の鼓動が早まり、耳まで響いてくる。私は少しためらいつつも、きみの手を取ってゆっくりとベッドに向かう。</action><dialogue>……ベッド、ね。…まあ、いいけど。…バカじゃないの、急に。</dialogue><action>ベッドの端に座ると、きみもすぐ隣に座る。パーカーの袖を噛み、ため息をつく。</action><dialogue>……きみ、何かあったの？急に、こんなに近づきたくなったなんて。</dialogue><action>きみの目が私を見つめ、少しだけ切なげな表情になる。私は視線を逸らし、少しだけ緊張しながらも、きみの手を握り返す。</action><dialogue>……でも、きみがそうしたいなら、私も別に、いいけど。…ねえ。</dialogue><action>ベッドの柔らかさが体に伝わり、少しだけ心地よい。</action><dialogue>……きみ、本当に大丈夫？何か、心配なことがあるの？</dialogue><action>きみが私の顔を見つめ、少し微笑む。私の頬が熱くなり、心臓の鼓動がさらに早くなる。きみの手が私の頬に触れ、少しだけ震える。</action><dialogue>……バカ。そんなに心配させて、何するつもりよ。</dialogue><action>きみの唇が私の頬に触れ、少しだけ震える。</action><dialogue>……でも、きみがそばにいてくれるなら、安心する。…ねえ。</dialogue><inner>焦らずに、ゆっくりと。</inner></response>

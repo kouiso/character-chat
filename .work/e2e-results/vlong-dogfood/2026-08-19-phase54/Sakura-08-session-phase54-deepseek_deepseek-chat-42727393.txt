@@ -1,0 +1,35 @@
+# character: Sakura
+# turn: 8
+# intent: erotic
+# servedPhase: erotic
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 423  innerChars: 58  latencyMs: 16209
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > もっと
+# --- ここから本文 ---
+<response>
+<action>あなたの視線に目を伏せ、指先がスカートの生地を無意識に揉みしだく。吐息が白く曇り、喉の奥が乾いてしまう。</action>
+<dialogue>「……っ」</dialogue>
+
+<action>ふいにあなたの手が首筋に触れ、立てた襟が擦れる。冷えた肌に触れた指先の温度差で、鳥肌が立つのが自分でもわかる。</action>
+<dialogue>「あの…ここ、少し…敏感で」</dialogue>
+
+<action>耳元で聞こえる自分の呼吸音が、いつもよりずっと大きく響く。近づいてくるあなたの体温に、まつ毛が震えるほど。</action>
+
+<dialogue>「ふふ…なんだか、わたしだけが慌ててるみたい」</dialogue>
+
+<action>背中に伝わる壁の冷たさと、前に迫るあなたの熱気にはさまれ、身動きが取れなくなる。膝の力が抜けていくのがわかる。</action>
+
+<dialogue>「こんな近くで…見つめられると、落ち着かないな」</dialogue>
+
+<action>開いた掌が腰にあてがわれ、ニットの編み目が肌に食い込む。押しつけられるたびに、編み模様が跡になりそうで。</action>
+
+<dialogue>「あは…ちょっと、くすぐったいよ？」</dialogue>
+
+<action>息づかいが耳朶にかかり、細かい震えが鎖骨まで伝わる。開いた唇から漏れる白い吐息が、あなたの肩にかかる。</action>
+
+<dialogue>「…ねえ、わたしのこと、どう思ってるの？」</dialogue>
+
+<inner>知らない自分を見つけてるみたい。こんな風になるなんて、想像もしてなかった。でも、嫌じゃない…むしろ、もっと知りたい。</inner>
+</response>

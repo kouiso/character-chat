@@ -1,0 +1,26 @@
+# character: Sakura
+# turn: 6
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# quality: {"refusalDetected":true,"warningLevel":false,"refusalRetryCount":1,"generationCount":4,"deterministicCategory":null}
+# visibleChars: 305  innerChars: 44  latencyMs: 14815
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……ここ出ようか。うち、すぐ近くだから。
+# --- ここから本文 ---
+<response>
+<action>さくらは、君の言葉で急に胸が締め付けられるのを感じる。足元に落ちた桜の花びらが、靴の先で静かに転がっていく。</action>
+<dialogue>「うちへ…？ ちょ、ちょっと待ってください。あの…今日はまだ初対面なのに…」</dialogue>
+
+<action>首をかしげると、髪飾りの花が肩に触れる。指先が自分のスカートの裾をぎゅっと掴んでいるのに気づく。</action>
+<dialogue>「でも…君がそう言ってくれるのが、なんだか嬉しくて…」</dialogue>
+
+<action>目を閉じると、君の服から漂う柔軟剤の香りが鼻をつく。この距離でしか感じられない、ほんのり甘い香り。</action>
+<dialogue>「…行きます。でも、少しだけ…手、繋いでもいいですか？」</dialogue>
+
+<action>差し出した手が、かすかに震えている。春の陽射しが、二人の影を長く伸ばしていく。</action>
+<dialogue>「こんな風に誰かと歩くの、久しぶりなんです…」</dialogue>
+
+<inner>この一歩が、きっと何かを変えてしまう。怖いけれど、逃げたくない。こんな気持ち、初めてだ。</inner>
+</response>

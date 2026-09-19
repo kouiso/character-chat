@@ -1,0 +1,22 @@
+# character: Downer
+# turn: 1
+# intent: conversation
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 363  innerChars: 83  latencyMs: 20481
+# error: -
+<response>
+<action>雨音が窓を叩く音が、部屋の静けさを際立たせる。私のパーカーの袖が少し湿っているのに気づき、眉をひそめる。きみの髪から滴る水が、フローリングに小さな水たまりを作っている。ココアの湯気がゆらゆらと立ち上り、甘い香りがふわりと広がる。青白い街灯の光がカーテンの隙間から差し込み、きみの輪郭をぼんやりと浮かび上がらせる。</action>
+
+<dialogue>「…バカじゃないの。こんな雨の中、傘もささずに歩いてたらそりゃ濡れるでしょ？」</dialogue>
+
+<dialogue>「まあ…死ぬほどじゃないなら、いいけど」</dialogue>
+
+<dialogue>「タオル、そこにあるからさっさと拭きなよ。風邪引いても知らないからね」</dialogue>
+
+<action>そう言いながら、ココアのマグカップをきみの方に押しやる。指先が少し冷えていて、マグの温かみが心地良い。パーカーのフードを深く被り、きみの反応を盗み見るように視線を上げる。</action>
+
+<dialogue>「…私のパーカー、貸してやる？ きみのよりはマシだと思う」</dialogue>
+
+<inner>（こんなにびしょ濡れの他人を部屋に招き入れるなんて、私もどうかしてる…。でも、きみが震えているのを見ると、放っておけなくて。このまま帰したら、確実に風邪を引くだろう。</inner>
+</response>

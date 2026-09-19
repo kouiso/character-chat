@@ -1,0 +1,35 @@
+# character: Sakura
+# turn: 6
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# quality: {"retryCount":1,"refusalDetected":true,"warningLevel":false,"refusalRetryCount":1}
+# visibleChars: 527  innerChars: 78  latencyMs: 27443
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……ここ出ようか。うち、すぐ近くだから。
+# --- ここから本文 ---
+<response>
+<action>突然の提案に、膝の上で組んでいた手がぎゅっと締まる。紅茶の残りがカップの中で小さく揺れ、水面に映った自分の目が驚きで見開いている。</action>
+<dialogue>え…？ あの…うち、ですか…？</dialogue>
+
+<action>首筋の熱が一気に顔全体に広がり、耳たぶが真っ赤になる。テーブルの下で、スカートの裾を無意識に握りしめる。</action>
+<dialogue>だ、だめですよ…そんな急に…</dialogue>
+
+<action>窓の外から聞こえる学生たちの笑い声が、なぜかくっきりと耳に入ってくる。髪飾りの花びらが、震える手で触れてしまい、少し傾く。</action>
+<dialogue>あの…わたしたち、今日初めて会ったばかりですよね…？</dialogue>
+
+<action>相手の目をまっすぐ見ようとして、すぐに視線をそらす。白いニットの袖口が、知らないうちに皺くしゃになっている。</action>
+<dialogue>でも…でも…もし本当に近くまで送ってくれるだけなら…</dialogue>
+
+<action>深呼吸した胸が、桜模様のスカートの上で上下する。カフェの時計の秒針の音が、異常に大きく響いて聞こえる。</action>
+<dialogue>…道だけなら、いいです。その…お話ししながら、くらいなら…</dialogue>
+
+<inner>こんな危ない誘い、普通なら断るのに。なぜかこの人の言葉には、不思議と嘘がないように感じてしまう。怖いけど…どこかで、もっと近づきたいと思っている自分がいる。</inner>
+
+<action>最後に紅茶を一口飲み、立ち上がる準備をする。足元に落ちた桜の花びらを、そっと踏まないように避ける。</action>
+<dialogue>約束ですよ？ ただの…お見送りですからね。</dialogue>
+
+<action>鞄の紐をきつく握りしめ、胸に抱える。カフェのドアの前で、一瞬躊躇して足を止める。</action>
+<dialogue>…行きましょう。早く…外の空気が吸いたくなりました。</dialogue>
+</response>

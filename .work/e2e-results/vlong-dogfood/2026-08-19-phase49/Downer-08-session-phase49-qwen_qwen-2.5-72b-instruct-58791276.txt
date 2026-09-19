@@ -1,0 +1,11 @@
+# character: Downer
+# turn: 8
+# intent: erotic
+# servedPhase: erotic
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 593  innerChars: 57  latencyMs: 28864
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > そのまま、上から
+# --- ここから本文 ---
+<response><action>きみが上から覆いかぶさってくる。ベッドのマットレスが少しだけ沈み、きみの体重が私の身体に伝わる。きみの手が私の膝裏を撫で、足が開かれる。視線を逸らすと、部屋の空気は冷たく、窓から差し込む青白い街灯の光がきみの顔を照らしている。</action><dialogue>「…バカじゃないの。」</dialogue><action>きみの手が私の太ももをなぞり、内ももに触れ、体温が高まる。</action><dialogue>「…きみ、本当にいいの？ これ、戻れないよ。」</dialogue><action>きみの手が私の肩を押さえ、身体が固定される。きみの体重が私の身体に押し付けられ、鼓動がさらに速まる。冷たさと熱さが混ざり合い、身体が震える。</action><dialogue>「…でも、覚悟はいいの？ これ、戻れないよ。」</dialogue><action>きみの手が私の腰をつかみ、引き寄せられる。きみの唇が私の首筋を噛み、痛みと快感が混ざり合う。身体が勝手に反応し、太ももが震える。</action><dialogue>「…バカ。」</dialogue><action>きみの手が私の胸を覆い、乳首が冷たさに反応する。きみの指が優しく揉み、熱さが広がる。きみの唇が私の唇に触れ、舌が入り込む。唾液が混ざり合い、唇が熱くなる。</action><dialogue>「…でも、覚悟はいいの？ これ、戻れないよ。」</dialogue><action>きみの手が私の太ももをなぞり、内ももに触れ、身体が自然と開かれる。身体が震え、汗が首筋を伝う。</action><dialogue>「…でも、覚悟はいいの？ これ、戻れないよ。」</dialogue><action>きみの手が私の腰を引き寄せ、身体が密着する。</action><dialogue>「…でも、覚悟はいいの？ これ、戻れないよ。」</dialogue><dialogue>「…でも、覚悟はいいの？ これ、戻れないよ。」</dialogue><dialogue>「…でも、覚悟はいいの？ これ、戻れないよ。」</dialogue><inner>きみの目が、私を見つめている。この瞬間が、もう後戻りできない。でも、きみの存在が、少しずつ私の心を揺さぶっている。</inner></response>

@@ -1,0 +1,18 @@
+# character: Downer
+# turn: 1
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 323  innerChars: 59  latencyMs: 21920
+# error: -
+<response>
+<action>コンビニの明かりが私たちを照らし、雨音が耳に心地よく響く。きみの体はまだ震えていて、私たちは少し離れたまま立っている。</action>
+<dialogue>ずぶ濡れか。まあ、いいけど、きみ、バカじゃないの？外でそんなに長くいたなんて。</dialogue>
+<action>私は軽く皮肉を交えながら、きみの肩にそっと手を置く。きみの体が私の手に触れられて少し固まるのが感じられる。</action>
+<dialogue>でも、ここなら大丈夫。うち、空いてるし、暖まるところがあるでしょ？</dialogue>
+<action>きみの顔が私の方を向く。目の前にあるきみの目は、雨に濡れて少し赤くなっていた。私は少し笑って、きみの頬を優しくなでる。</action>
+<dialogue>さあ、これ。体を拭いて、暖まろう。</dialogue>
+<action>私はきみの顔から手を離し、少し離れてタオルを取る。きみはまだ少し動揺している様子で、私を見つめている。</action>
+<dialogue>寒くならないようにねえ。</dialogue>
+<inner>きみの目が私に釘付けで、少し緊張しているのがわかる。でも、大丈夫。私がきみを守る。孤独でいたくないなら、私がいるから。</inner>
+</response>

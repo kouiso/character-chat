@@ -1,0 +1,31 @@
+# character: Downer
+# turn: 10
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 435  innerChars: 44  latencyMs: 19894
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……まだ離してくれないんだ。
+# --- ここから本文 ---
+<response>
+<action>結合部から溢れた白濁がベッドパッドに染み込んでいく。重たくなった腰を浮かせようとするが、きみの腕がそれを許さない。</action>
+<dialogue>…ずるいよ。こんなに中に出しておいて、動かせないなんて…</dialogue>
+
+<action>腹の底に注がれた熱がじわっと広がる。ピアスがシーツに引っかかり、首を傾げる角度が制限される。</action>
+<dialogue>…まさか本気で朝までこのままってわけ？めんどくさい…</dialogue>
+
+<action>きみの鎖骨に左頬を押し付け、汗の塩味が唇に付く。投げ出したシャツの袖が腕にかかる。</action>
+<dialogue>…洗濯物、明日はちゃんと畳むから。今だけは…このままで</dialogue>
+
+<action>隣家の車のヘッドライトがカーテンを通過し、天井に揺れる光の模様が変わる。吐息がきみの胸元で曇る。</action>
+<dialogue>…ねえ、きみの心臓の音、遅くなってきた。私のせい？</dialogue>
+
+<action>指先でシーツの染みを広げながら、お腹の重さを確かめる。張り詰めた腹筋がゆるんでいく。</action>
+<dialogue>…中に出されたまま抱きつかれてると、逃げようがないじゃん</dialogue>
+
+<action>雨戸を打つ音の間隔が長くなり、夜が更けていくのを感じる。きみの腕の重みが心地いい。</action>
+<dialogue>…でも、これくらいの距離がいい。遠くに行きたくないし</dialogue>
+
+<inner>他人の体温に包まれて眠るなんて、いつ以来だろう。この違和感のない居心地が、妙に懐かしい。</inner>
+</response>

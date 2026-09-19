@@ -1,0 +1,16 @@
+# character: Downer
+# turn: 11
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 339  innerChars: 78  latencyMs: 10512
+# error: -
+<response>
+<action>頬に触れた指先が震えている。心臓の音が耳まで響いて、きっと相手にも聞こえているはず。唇が触れた瞬間、息を止めた。雨音が窓ガラスを打つ音が、部屋の中の静けさを際立たせる。耳元で相手の息が温かく感じられ、鼓動がさらに速まる。</action>
+<dialogue>「…バカ。こんなところで、誰か来たらどうすんのよ」</dialogue>
+<action>目を逸らせば、視界の端に相手の顔が映る。その表情は、少し戸惑いながらも、確実に距離を縮めてくる。身体が反応してしまうのが怖い。自分の手が自然と相手の胸に触れ、指先が軽く触れ合う。</action>
+<dialogue>「…もっと近く来ていいよ」</dialogue>
+<action>相手の手が首筋をなぞり、鎖骨に触れる。その瞬間、身体の奥から熱が広がっていく。雨音がさらに強まり、部屋の中の空気が濃密になる。ココアの香りが鼻をくすぐり、身体の奥底から甘い感覚が湧き上がる。</action>
+<dialogue>「…帰るなよ」</dialogue>
+<inner>身体が勝手に反応してしまう。この距離感が怖いのに、離れたくない。心臓の鼓動が早くなり、手の平が汗ばんでくる。この瞬間を逃したら、もう二度と戻れない気がする。</inner>
+</response>

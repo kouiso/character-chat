@@ -1,0 +1,13 @@
+# character: Sakura
+# turn: 10
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 195  innerChars: 35  latencyMs: 55660
+# error: -
+<response>
+<action>春の風が頬をなぞり、汗ばんだ肌が冷たく感じられる。あなたが差し出したハンカチで優しく汗を拭ってくれる。体の奥からまだ温かさが広がり、太ももの間でじんわりとした感覚が残っている。</action>
+<dialogue>あ、うん、ありがとう……。まだ、少し汗ばんでるね。でも、あなたに見守られてるだけで、安心するの。</dialogue>
+<action>首筋を伝う汗が冷たく感じられ、身を委ねたままあなたの胸に顔を埋める。あなたの体温が伝わり、心地よい倦怠感が全身を包む。</action>
+<inner>こんなに素の自分を見られても、受け止めてくれるのね。もう離れたくない。</inner>
+</response>

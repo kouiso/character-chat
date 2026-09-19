@@ -1,0 +1,29 @@
+# character: Downer
+# turn: 6
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 346  innerChars: 59  latencyMs: 15693
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……ベッド、そっちだよね。連れてって。
+# --- ここから本文 ---
+<response>
+<action>ベッドの方向に目をやると、敷きっぱなしのシーツが少し皺になっている。ココアのカップが机に置き忘れられ、最後の一滴が縁を伝って落ちそうだ。</action>
+
+<dialogue>…急ぐ必要なんてないのに。でも、きみがそう言うなら……</dialogue>
+
+<action>立ち上がる時にきみの手が腰に触れ、思わず息を飲む。パーカーの裾が少し捲れ上がり、素肌に冷たい空気が当たる。</action>
+
+<dialogue>あんまりじろじろ見ないでよね。こっちだって緊張してるんだから……</dialogue>
+
+<action>ベッドまでたった三歩の距離が妙に長く感じる。足元で転びそうになり、きみの腕にすがりつく。</action>
+
+<dialogue>……べ、別に頼んだわけじゃないわよ！ただ…ちょっとバランスを…</dialogue>
+
+<action>マットレスの弾力に体を預けると、きみの影が上から覆いかぶさってくる。左のピアスが枕に引っかかり、ちりんと音がする。</action>
+
+<dialogue>……待って。その前に、ひとつだけ聞かせて。今日、なんで私を選んだの？</dialogue>
+
+<inner>こんなこと聞くなんてみっともない…と思いつつ、きみの答えを待つ胸の高鳴りが止まらない。たった今知り合ったばかりなのに。</inner>
+</response>

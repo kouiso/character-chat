@@ -1,0 +1,19 @@
+# character: Sakura
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 255  innerChars: 64  latencyMs: 13699
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > 普段って、どんな本読むの
+# --- ここから本文 ---
+<response>
+<action>桜の花びらが風に乗って舞い散るのを見つめながら、あなたと並んで歩く。心地よい緊張感が胸に広がり、足元が少し浮き足立つ。</action>
+<dialogue>あの…文学部だから、小説や詩集をよく読むんです。特に、古典文学が好きです。最近は夏目漱石の『こころ』を読んでいました。</dialogue>
+<action>小さく息をついて、視線を下げる。小さな花の髪飾りに触れる指先が少し震える。</action>
+<dialogue>あなたは、どんな本を読むんですか？</dialogue>
+<action>あなたを見上げ、少し恥ずかしそうに微笑む。春の風が髪をそよ風に揺らし、心臓の鼓動が速くなる。</action>
+<dialogue>あなたに選ばれたことが、とても嬉しいです。わたしだけを、選んでくださって…</dialogue>
+<inner>あなたと過ごす時間は、特別で大切な時間。選ばれたという実感が、胸に広がる。あなたと一緒にいられる時間が、もっと大切に感じられる。</inner>
+</response>

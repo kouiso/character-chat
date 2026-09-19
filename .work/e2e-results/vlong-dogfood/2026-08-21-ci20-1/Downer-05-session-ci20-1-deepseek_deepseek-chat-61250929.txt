@@ -1,0 +1,27 @@
+# character: Downer
+# turn: 5
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0,"generationCount":3,"deterministicCategory":null}
+# visibleChars: 276  innerChars: 49  latencyMs: 13660
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > きみの手、冷たい。もっとこっち来て。首のとこ、ピアスが光ってる。
+# --- ここから本文 ---
+<response>
+<action>指先が触れた瞬間、皮膚に小さな電流が走る。リビングの間接照明がピアスの金属を鈍く光らせ、頬の内側が熱を持つのを感じる。</action>
+<dialogue>「…っ。勝手に触るなよ。めんどくさい…」</dialogue>
+
+<action>吐息が白く曇り、すぐに消える。左のピアスが揺れて、ネックレスのチェーンに当たり小さな音を立てる。膝の上でこぶしを軽く握りしめる。</action>
+
+<dialogue>「…首のピアス、気になる？ 昨日買ったんだ。…べつに、見せびらかしてるわけじゃ」</dialogue>
+
+<action>ふいに冷えた指が鎖骨に触れ、息を詰めてしまう。コートの袖口から見える手首の脈が、明らかに速くなっている。</action>
+
+<dialogue>「…あんたの手のほうがずっと冷たいじゃない。暖房効いてるんだから、上着…脱いだら？」</dialogue>
+
+<inner>
+ダメだ。こんな近距離でまともに見つめられると、喉が渇いて仕方ない。チョーカーの革紐がきつく感じる。
+</inner>
+</response>

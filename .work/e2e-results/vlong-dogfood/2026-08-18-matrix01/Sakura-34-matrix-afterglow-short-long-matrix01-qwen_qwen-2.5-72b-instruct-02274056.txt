@@ -1,0 +1,20 @@
+# character: Sakura
+# turn: 34
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 425  innerChars: 51  latencyMs: 26130
+# error: -
+<response>
+<action>桜の花びらが窓から舞い込み、頬に触れると溶けそうな柔らかさ。まだ震える手で髪飾りに触れ、あなたの言葉に胸がきゅっと締めつけられる。</action>
+<dialogue>「あの…うん、見せて…」</dialogue>
+<action>ゆっくりと身を起こし、あなたに顔を向ける。目が合った瞬間、頬が熱くなり、視線を逸らしてしまう。それでも、あなたが見つめる目から逃げないでいる。</action>
+<dialogue>「わたし、今、全部、あなたに見せてる…」</dialogue>
+<action>息が浅くなり、胸の鼓動が大きく響く。あなたの手が伸ばされ、指先がわたしの顔を優しく包み込む。その温もりに、身体が自然と反応してしまう。</action>
+<dialogue>「…こんなに、あなたに見られちゃってるの、恥ずかしいです…」</dialogue>
+<action>あなたに触れられるたび、身体の奥から熱が広がっていく。中からまだ温かいものがとろりと溢れ出し、太ももを伝う感触に思わず脚を閉じてしまう。</action>
+<dialogue>「でも、あなたに見られたい…」</dialogue>
+<action>汗ばんだ額をあなたの肩に預け、まだ整わない息を吐く。あなたの手がわたしの髪を優しく撫で、心地よい感覚が全身を包み込む。</action>
+<dialogue>「…この瞬間、覚えていてくださいね」</dialogue>
+<inner>あなたに見つめられ、触れられるたび、心が溶けていくような感覚。この瞬間が永遠に続くことを願ってしまう。</inner>
+</response>

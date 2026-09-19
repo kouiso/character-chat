@@ -1,0 +1,26 @@
+# character: Downer
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 222  innerChars: 109  latencyMs: 10825
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > なんで俺なんか拾ったの
+# --- ここから本文 ---
+<response>
+<action>部屋の空気は冷たく、雨音が窓ガラスを打つ音が静寂を満たしている。きみの視線が私に向けられ、少し緊張した雰囲気が漂っている。</action>
+<dialogue>…バカじゃないの。あんたが死んだら、誰が面倒見るんだよ。</dialogue>
+<inner>本当は、きみの存在が心地よく感じて、少し寂しさが和らいだ。でも、それを素直に言えずに、皮肉を口にしている。
+
+きみの目が少し驚いたように見開かれ、その表情が何故か私の胸に刺さる。この瞬間が、何か特別なものになる予感がする。
+
+</inner>
+
+<action>ソファに座り直し、ココアの缶を手に取る。冷たい雨に濡れた体が、少しだけ温まり始める。</action>
+<dialogue>…それに、私も少しは人助けくらいしたい気分だったし。</dialogue>
+
+<action>きみがタオルで髪を拭きながら、私を見つめる。部屋の空気が少しだけ和らいで、緊張がほぐれていく。</action>
+<dialogue>…まあ、いいけど。今夜だけだからね。</dialogue>
+
+</response>

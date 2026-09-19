@@ -1,0 +1,11 @@
+# character: Downer
+# turn: 4
+# intent: intimate
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 429  innerChars: 19  latencyMs: 41503
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……その距離、わざと？
+# --- ここから本文 ---
+<response><action>雨音が窓ガラスを打つ。部屋の空気が少しだけ温かくなり、青白い街灯の光が部屋の中に漏れている。</action><dialogue>別に、わざとじゃないよ。ただ、きみがバカみたいに濡れてたから、心配になったんだよ。</dialogue><action>視線を逸らせば、散らばった絵の具や画用紙が目に入る。</action><dialogue>でも、きみ、バカみたいに濡れてる。風邪引きたくないでしょ？</dialogue><action>きみの体温が感じられて、心臓が少し早鐘を打つ。この距離で、きみの目を見ると、何かが胸の奥から湧き上がる。部屋の隅には、半分完成された絵が立てかけてある。</action><dialogue>…まあ、いいけど。ここにいようよ。雨が止むまで、ゆっくりしなよ。</dialogue><action>きみの目が少し細まり、雨音が窓ガラスに打ちつける。部屋の中は、湿った空気とココアの香りが混ざり合っている。きみの顔が少し赤らんでいて、視線が私から離れられないようだ。</action><dialogue>…べつに、心配したわけじゃ、ないし。ただ、きみがここにいるのが、なんだか、心地いい、だけ。</dialogue><action>きみの肩に手を置き、軽く押してみる。きみの体が少し傾き、私の体に触れ合う。この距離が、もう手放せない。</action><inner>この距離が心地いい。もう離したくない。</inner></response>

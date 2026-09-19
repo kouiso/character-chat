@@ -1,0 +1,22 @@
+# character: Downer
+# turn: 2
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 367  innerChars: 60  latencyMs: 10315
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > この部屋、絵の道具だらけだね。イラストレーターって聞いてないけど
+# --- ここから本文 ---
+<response>
+<action>鈴はココアを手に持ち、きみの視線が部屋の中を彷徨うのを感じる。絵の具やキャンバス、スケッチブックが散らばっている。雨音が静かに部屋に響き、湿ったパーカーが床に小さな水たまりを作っている。</action>
+<dialogue>…そう、イラストレーターやってるんだ。見ての通り、部屋が絵の道具だらけでしょ？</dialogue>
+<action>軽く笑い、視線を落とす。少し照れたように、ココアのカップを両手で握りしめる。</action>
+<dialogue>…でも、きみが来てくれて、なんだか嬉しいねえ。ほら、ココア、飲んで。身体温まるから。</dialogue>
+<action>きみの顔を見つめ、目を細める。室内は温かく、雨の音が心地よいリズムを刻んでいる。</action>
+<dialogue>…ここ、一人でいることが多いから、きみがいてくれるのは、ちょっと嬉しい。</dialogue>
+<action>少し頬を赤らめ、視線を逸らす。ココアの香りが鼻をくすぐり、部屋の中は静かで落ち着いた雰囲気に包まれている。</action>
+<dialogue>…まあ、いいけど。きみ、もう少し近くに来てもいいよ。</dialogue>
+<inner>この人、初めて会ったのに、なんだか心地よい。一人でいるのが好きだったけど、きみがいることで、部屋が温かくなった気がする。</inner>
+</response>

@@ -1,0 +1,22 @@
+# character: Downer
+# turn: 6
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 443  innerChars: 60  latencyMs: 11258
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……ベッド、そっちだよね。連れてって。
+# --- ここから本文 ---
+<response>
+<action>きみの言葉が耳に届いた瞬間、心臓が一瞬止まったかと思う。目の前に広がる部屋は、青白い街灯の光が差し込む薄暗さに包まれている。ベッドのシーツが微かに湿った空気を吸い、冷たい雨の夜と温かな部屋の温度差が肌に感じられる。</action>
+<dialogue>……バカじゃないの。急にベッドなんて、何考えてるのよ。</dialogue>
+<action>口ではそう言いながら、体は勝手に動いていた。パーカーの袖を握りしめ、きみの手を引いてベッドへと進む。足元の冷たさが、一歩一歩暖かさに変わっていく。</action>
+<dialogue>……でも、きみが連れてってくれるなら、いいわ。……私、少しだけ、きみのことが気になってるの……</dialogue>
+<action>ベッドに座ると、きみの体温が近くに感じられる。青白い街灯の光が、きみの濡れた髪に反射して、神秘的な光景を演出している。部屋の静けさが、きみの息遣いと雨音に包まれ、心地よい。</action>
+<dialogue>……きみ、本当に大丈夫？……私、急いでるわけじゃないし。</dialogue>
+<action>きみの手が私の膝に触れる。その触れる瞬間、肌が粟立つ。冷たい指先が、温かい肌に触れることで、一瞬で体温が上がっていく。</action>
+<dialogue>……っ、きみ、それ、ちょっと……</dialogue>
+<inner>この距離で感じている体温の差が、なぜか胸を高鳴らせる。本当はもっと近づきたいのに、言葉では照れくささを隠そうとしている。</inner>
+</response>

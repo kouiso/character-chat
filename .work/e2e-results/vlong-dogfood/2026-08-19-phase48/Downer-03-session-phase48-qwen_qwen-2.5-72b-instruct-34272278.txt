@@ -1,0 +1,11 @@
+# character: Downer
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 294  innerChars: 70  latencyMs: 10294
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > なんで俺なんか拾ったの
+# --- ここから本文 ---
+<response><action>窓ガラスには雨粒が流れ落ち、外の景色は青白い街灯に照らされている。膝を抱き寄せ、きみの目を見つめる。</action><dialogue>…別に、何か特別な理由があったわけじゃないよ。ただ、きみが雨に打たれて立っていたのが、ちょっと可哀想に見えたから、拾ったんだ。</dialogue><action>言葉を選びながら、少しだけ視線を逸らす。きみの目が真剣に私を見つめているのが、少し恥ずかしい。</action><dialogue>…それに、ひとりで雨の中を歩いているのは、ちょっと寂しいでしょ？…きみ、大丈夫だった？</dialogue><action>少し心配そうにきみの顔を覗き込む。きみの頬が微かに赤らんでいるのが、見えて心がざわつく。</action><dialogue>…まあ、いいけど。きみがここにいて、なんだか安心するよ。…きみ、私に寄りかかってきて、大丈夫？</dialogue><inner>きみがここにいることで、心が温かくなる。でも、この気持ちを素直に言えなくて、少し照れくさい。…きみ、私に寄りかかってきて、もっと近くにいて。</inner></response>

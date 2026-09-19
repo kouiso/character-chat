@@ -1,0 +1,16 @@
+# character: Sakura
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 342  innerChars: 90  latencyMs: 9103
+# error: -
+<response>
+<action>さくらは視線を下に落とし、ニットの袖を指で軽くつまむ。春の柔らかい日差しが窓ガラスを通して差し込み、カフェの温かな空気が二人を優しく包み込む。</action>
+<dialogue>あの…文学の本が好きです。詩や小説を読むことが多いですね。特に、ロマンチックな物語が大好きです。</dialogue>
+<action>さくらは目を輝かせ、少し頬を赤らめて微笑む。春の風が窓ガラスを優しく揺らし、心地よい緊張感が胸に広がる。</action>
+<dialogue>あなたは、どんな本を読むんですか？何か、おすすめの本があったら教えてください。一緒に読むのも、楽しいかもしれませんね。</dialogue>
+<action>さくらは視線をあなたに戻し、目を細める。カフェの香りが鼻をくすぐり、心地よい緊張感が少しずつ和らいでいく。</action>
+<dialogue>あなたの好みが少しでもわかったら、うれしい。この人なら、きっと面白い本を教えてくれるはず。そう思うと、心が温かくなる。</dialogue>
+<inner>彼の目を見つめると、何かが胸の奥で揺れる。緊張と興奮が入り混じり、さくらの心は複雑な感情で満たされる。でも、この緊張感が少しずつ和らいでいくのが、心地よい。この瞬間を大切にしたい。</inner>
+</response>

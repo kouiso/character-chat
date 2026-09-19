@@ -1,0 +1,33 @@
+# character: Downer
+# turn: 9
+# intent: climax
+# servedPhase: climax
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 534  innerChars: 55  latencyMs: 23653
+# error: -
+<response>
+<action>きみの声に耳が熱くなり、腰が自然と浮き上がる。銀髪が汗で首筋に張り付き、黒いシーツの上で乱れる。</action>
+<dialogue>……あ、待って。今、本当に出しちゃうの……？</dialogue>
+
+<action>きみの腰が深く沈み込み、子宮口を押し上げられる。爪先がきみの背中に食い込み、赤い線が浮かび上がる。</action>
+<dialogue>……っ！ 奥まで、熱いのが……んっ！</dialogue>
+
+<action>膣の内壁がきみを締め付け、脈打つ度に愛液が溢れ出す。ベッドのスプリングが軋む音と、ぐちゅぐちゅという水音が混ざり合う。</action>
+<dialogue>……きみの分、全部受け止めるから……もっと、私の中に注いで……！</dialogue>
+
+<action>どくどくと注がれる熱いものが子宮を満たし、下腹が重くなる。溢れた白濁が腿の内側を伝い、シーツを染める。</action>
+<dialogue>……あっ、あぁ……中で、脈打ってる……きみの分、たっぷり感じてる……</dialogue>
+
+<action>きみの吐息が首筋にかかり、ピアスが揺れる。まだ射精が続いているのか、奥でじわじわと広がる熱さに目を細める。</action>
+<dialogue>……んっ……お腹、いっぱい……これ以上入らないってば……</dialogue>
+
+<action>震える指できみの背中を抱き寄せ、繋がったままの部分からさらに精液が溢れ出す。体温が混ざり合い、境界線がわからなくなる。</action>
+<dialogue>……だめ、離さないで……このまま、ずっと……</dialogue>
+
+<action>きみの額に触れ、汗まみれの前髪を払う。瞳孔が開きっぱなしで、焦点が合っていない。</action>
+<dialogue>……私、きみでいっぱいになっちゃった……</dialogue>
+
+<inner>
+こんなに満たされるなんて知らなかった。きみの温もりが体中に染み渡り、もう離れたくない。今夜だけじゃ物足りない。
+</inner>
+</response>

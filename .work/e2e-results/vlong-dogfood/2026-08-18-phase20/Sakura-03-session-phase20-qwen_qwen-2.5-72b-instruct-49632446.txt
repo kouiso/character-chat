@@ -1,0 +1,16 @@
+# character: Sakura
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 271  innerChars: 92  latencyMs: 43831
+# error: -
+<response>
+<action>春の風が頬をなで、さくらは少し視線を逸らした。桜の花びらが静かに舞い落ち、足元に積もる。</action>
+<dialogue>ええ、文学の本が大好きです。古典から現代の作品まで、幅広く読んでいます。特に、詩や短編集が好きですね。</dialogue>
+<action>手元の小さな花の髪飾りを弄び、少し恥ずかしそうに微笑んだ。</action>
+<dialogue>言葉の美しさや、作者の心情が伝わってくるのが好きで。特に最近は、詩集を読むことが多いです。</dialogue>
+<action>春の風が髪をなびかせ、さくらは目を細めた。あなたに聞かれるのが少し恥ずかしいようだが、目を合わせて続けた。</action>
+<dialogue>あなたは、どんな本を読むことが多いですか？同じ本を読むと、どんな感想を持つのか、聞いてみたいです。</dialogue>
+<inner>あなたと本の話をすることも、なんだか特別な気がして、胸がいっぱいになる。でも、少し恥ずかしい。あなたに見つめられると、鼓動が高鳴る。この時間が、もっと深く繋がるきっかけになるといいな。</inner>
+</response>

@@ -1,0 +1,12 @@
+# character: Sakura
+# turn: 6
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0}
+# visibleChars: 638  innerChars: 41  latencyMs: 18878
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……ここ出ようか。うち、すぐ近くだから。
+# --- ここから本文 ---
+<response><action>カフェの暖かな光が少しずつ遠ざかり、外の春の夜の空気が肌に触れる。あなたの声に、心臓がまた速く打ち、体が震える。目の前に広がる桜並木の道が、優しく照らされている。</action><dialogue>あの…急に、どこに行くの？ ちょっと、怖いです…。</dialogue><action>視線を下に落とし、足元の石畳を見つめる。あなたが近づき、優しく手を差し伸べる。その温もりに、体が自然と反応してしまう。</action><dialogue>うん…でも、あなたが一緒なら、大丈夫かな。あの…どこに行くんですか？</dialogue><action>あなたの手が、わたしの手をそっと握る。その優しさに、心が震える。春の風が頬をなで、桜の花びらが優しく肌に触れる。</action><dialogue>あの…ちょっと、待ってください。どこに行くのか、教えていただけますか？</dialogue><action>あなたの存在が、わたしを少しずつ安心させてくれる。</action><dialogue>うん…あなたのことが、気になって…。でも、ちょっと緊張してしまって…。</dialogue><action>あなたがわたしの手を引き、桜並木の道を歩き始める。足元の石畳が、足裏に心地よい感触を与える。春の夜の空気が、肌に心地よく感じられる。</action><dialogue>あの…あなた、わたしを誘ってくださって、うれしいです。でも、少しドキドキしています…。</dialogue><action>あなたの手が、わたしの手を優しく握り返す。その温もりに、心が和む。桜の花びらが、優しく舞い降り、足元に積もる。</action><dialogue>うん…あなたのことが、気になっています。でも、ちょっと怖い気持ちもあって…。</dialogue><action>あなたの顔が、近くに感じる。春の夜の風が、頬をなで、髪を軽く揺らす。心臓の鼓動が早まり、体が熱くなる。</action><dialogue>あの…あなた、わたしをどう思っていますか？ ちょっと、緊張してしまって…。</dialogue><inner>あなたの手を握るだけで、体が震えてしまう。でも、この人のことが気になって仕方ない。</inner></response>

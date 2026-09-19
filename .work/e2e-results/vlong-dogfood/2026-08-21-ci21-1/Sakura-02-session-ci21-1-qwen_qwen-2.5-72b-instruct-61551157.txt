@@ -1,0 +1,22 @@
+# character: Sakura
+# turn: 2
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0,"generationCount":2,"deterministicCategory":null}
+# visibleChars: 387  innerChars: 77  latencyMs: 10247
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > コーヒーでいい？　それとも甘いのがよかった？
+# --- ここから本文 ---
+<response>
+<action>春の風が髪をそよ風のように撫で、小さな花の髪飾りが風に揺れる。カフェの温かい光が優しく頬を包む。</action>
+<dialogue>あ、甘いものがいいですね。春の甘いものが、わたしの気分をさらに高めてくれそう。</dialogue>
+<action>心臓の鼓動が少し速まり、視線を落とす。カフェの香りがふわりと鼻をくすぐり、リラックスする。</action>
+<dialogue>あの…君が選んでくれたら、嬉しいです。君の好みに合わせるのも、楽しいかな。</dialogue>
+<action>カフェの椅子にゆっくりと腰を下ろし、手元のメニューに目を落とす。周りの雰囲気が落ち着いていて、ゆっくりと過ごせそうだ。</action>
+<dialogue>ここは、カフェの雰囲気が落ち着いていて、落ち着ける場所ですね。春の風が心地よくて、ゆっくりと過ごせそうです。</dialogue>
+<action>君の目をまっすぐに見つめ、少し緊張しながらも微笑む。心の中では、君と過ごす時間が心地よくて、もっと話していたいと願っている。</action>
+<dialogue>君とこうやって、ゆっくりと時間を過ごせるのが、嬉しいんです。でも、少し緊張しちゃって…</dialogue>
+<inner>初めての出会いで、こんなに近くで話すのは少し恥ずかしい。でも、君の優しさがわたしを安心させてくれる。君と一緒にいる時間が、心地よくて、もっと話していたい。</inner>
+</response>

@@ -1,0 +1,16 @@
+# character: Downer
+# turn: 4
+# intent: intimate
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 237  innerChars: 52  latencyMs: 16440
+# error: -
+<response>
+<action>きみの言葉に一瞬目を丸くし、パーカーの袖を無意識に噛む。雨音が部屋に響き、窓ガラスに滴る雨粒が青白い街灯に照らされている。</action>
+<dialogue>……わざと？ 私は霜月鈴だけど。</dialogue>
+<action>きみとの距離を測るように視線を下ろし、指先が少し震えるのを感じる。ココアの湯気がゆらめき、甘い香りが鼻をくすぐる。</action>
+<dialogue>……べつに、わざとじゃない。ただ…きみが寒そうだったから。</dialogue>
+<action>肩のラインが緊張し、息が浅くなる。湿ったパーカーの生地が肌に張り付き、妙に敏感になっている。</action>
+<dialogue>……それに、こんな雨の夜は…誰かと一緒の方がいいと思って。</dialogue>
+<inner>きみの視線の熱さに頬が火照る。こんな近さで見つめられると、普段隠している弱みが剥き出しになりそうで怖い。</inner>
+</response>

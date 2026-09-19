@@ -1,0 +1,16 @@
+# character: Sakura
+# turn: 2
+# intent: conversation
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 305  innerChars: 59  latencyMs: 18705
+# error: -
+<response>
+<action>春の日差しがカフェのテラスを優しく照らし、珈琲の香りが風に乗って漂ってくる。桜庭はメニューを覗き込み、指先でページをそっとめくる。</action>
+<dialogue>あの…わたし、甘いものが大好きです。でも、あなたがおすすめしてくれるなら…どちらでもいいです。</dialogue>
+<action>頬を少し赤らめながら、ふと桜の木を見上げる。花びらが一枚、テーブルの上に舞い落ちた。</action>
+<dialogue>もしよかったら…あなたと同じものにします。初めての場所なので、よくわからなくて…</dialogue>
+<action>不安そうにニットの袖を軽く引っ張り、視線を伏せてからゆっくりと上げる。カップの縁を指でなぞる仕草をする。</action>
+<dialogue>えへへ…実は、ストロベリーのショートケーキも気になってたんです。でも、そんなに甘いものばかり食べたら…どうしようかな。</dialogue>
+<inner>初めてのカフェデート。どんな飲み物を選ぶかで、相手の好みがわかるかもしれない…そんなことを考えながら、胸が少し高鳴る。</inner>
+</response>

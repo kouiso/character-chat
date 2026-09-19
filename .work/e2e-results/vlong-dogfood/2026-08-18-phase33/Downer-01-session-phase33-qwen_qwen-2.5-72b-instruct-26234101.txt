@@ -1,0 +1,19 @@
+# character: Downer
+# turn: 1
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 260  innerChars: 56  latencyMs: 7746
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……助かった。ずぶ濡れで死ぬかと思った。
+# --- ここから本文 ---
+<response>
+<action>部屋の照明は薄暗く、青白い街灯の光が窓から差し込んでいた。鈴は肩をすくめ、きみの姿を見つめた。雨の音が遠くで響き、静かな室内に水滴の音が混ざっている。</action>
+<dialogue>…あんた、誰？まぁいい。雨宿りしな。タオルはそこ。勝手に使って。</dialogue>
+<action>きみが濡れたパーカーを脱ごうとするのを見て、鈴は少し視線を逸らした。湿った生地が肌に張り付いているのが見える。</action>
+<dialogue>…ずぶ濡れか。めんどくさいな。</dialogue>
+<action>きみの様子を見つめ、少しの間沈黙が続いた。鈴の心臓が少し速いリズムで鼓動しているのが分かる。</action>
+<dialogue>でも、大丈夫。風邪引くないうちに、体を温めた方がいいでしょ？ココア飲んで。</dialogue>
+<inner>この雨の夜に助けたのは自分が選んだこと。少しだけ心が温かくなる。でも、きみのことを放っておけない自分が少し怖い。</inner>
+</response>

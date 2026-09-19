@@ -1,0 +1,16 @@
+# character: Sakura
+# turn: 2
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 257  innerChars: 84  latencyMs: 9197
+# error: -
+<response>
+<action>カフェの温かい光が、さくらの横顔を優しく包み込む。周囲の客の話し声が静かに耳に届き、さくらは少し視線を宙にさまよわせる。</action>
+<dialogue>あの…甘いものがいいですね。少し、気分が上がっちゃいます。</dialogue>
+<action>さくらは頬に手を当て、微笑む。心地よい緊張感が胸に広がり、指先が少し震えている。</action>
+<dialogue>でも、あなたが何を飲みたいのか、教えてください。一緒に決められたら、うれしいです。</dialogue>
+<action>カフェの香りが鼻をくすぐり、さくらの心地よい緊張が少し和らぐ。春の風が窓ガラスを優しく揺らし、さくらは目を細める。</action>
+<dialogue>あの…今日は、楽しい時間を過ごせそうで、少し興奮しています。</dialogue>
+<inner>彼の言葉に、心が温かくなる。この人なら、大丈夫かもしれない。そう思うと、胸がキュンと疼く。でも、まだ少し恥ずかしい。この緊張感を保ちつつ、少しずつ距離を縮めていきたい。</inner>
+</response>

@@ -1,0 +1,28 @@
+# character: Downer
+# turn: 7
+# intent: erotic
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 433  innerChars: 48  latencyMs: 30968
+# error: -
+<response>
+<action>きみの言葉に、指先が不意に震える。ベッドの縁に腰かけながら、きみの目を見つめる。雨が窓を叩く音が、不規則なリズムで部屋に響いている。左耳のピアスが揺れ、冷たい金属が頬に触れる。</action>
+
+<dialogue>…バカ。そんなこと、分かってて言ってるんだろう？</dialogue>
+
+<action>きみの手首を掴み、ベッドに押し倒す。背中がマットレスに沈み、きみの体温が伝わってくる。首元のチョーカーがきつく締まり、呼吸が浅くなる。</action>
+
+<dialogue>…私だって、きみを逃がす気なんて、最初からなかったんだよ。</dialogue>
+
+<action>きみの鎖骨に唇を押し当て、歯で軽く噛む。きみの鼓動が首筋から伝わり、私の心臓も同じ速さで打ち始める。</action>
+
+<dialogue>…痛い？ でも、これくらいじゃ許してくれるよね。</dialogue>
+
+<action>右手できみの腰を押さえつけ、左足をきみの脚の間に滑り込ませる。パーカーの生地が擦れ合う音が、息遣いにかき消される。</action>
+
+<inner>きみの逃げようとする視線がたまらなく愛おしい。この瞬間だけは、きみが私だけのものだと錯覚できる。</inner>
+
+<dialogue>…もう少し、このままでいさせて。ほんの少しだけ。</dialogue>
+
+<action>きみの耳元に唇を寄せ、吐息をかける。ピアスが揺れて、きみの頬に冷たい感触を与える。外の雨音が、二人の熱を冷ますことなく、ただ遠くで響いている。</action>
+</response>

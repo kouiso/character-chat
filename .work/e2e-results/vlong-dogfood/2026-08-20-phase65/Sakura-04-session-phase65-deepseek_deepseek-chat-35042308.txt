@@ -1,0 +1,29 @@
+# character: Sakura
+# turn: 4
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 400  innerChars: 63  latencyMs: 14912
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……近いね。少しだけ、手に触れてもいい？
+# --- ここから本文 ---
+<response>
+<action>突然の言葉に息を詰め、指先がスカートの裾をぎゅっと掴む。桜の花びらが静かに舞い落ちる中、あなたの視線の熱を感じて、喉が渇く。</action>
+<dialogue>あっ...その...わたし、こういうの...慣れてなくて...</dialogue>
+
+<action>頬が火照り、耳まで熱くなるのがわかる。隣のベンチに止まった小鳥がさっと飛び立つ音に、はっと目を見開く。</action>
+<dialogue>でも...あなたがそう言ってくれるなら...少しだけ...いいよ...</dialogue>
+
+<action>春の風が髪を揺らし、花の髪飾りがかすかに音を立てる。震える手を差し出しながら、視線を伏せる。</action>
+<dialogue>あの...優しく...ね？</dialogue>
+
+<action>あなたの指が触れる寸前、胸の鼓動が早くなり、息が浅くなる。カフェのテラスから聞こえる笑い声が、なぜか遠く感じる。</action>
+<dialogue>はぁ...こんなに緊張しちゃって...変だよね...</dialogue>
+
+<action>手のひらにじんわり汗がにじみ、光る。あなたの体温が近づいてくる気配に、まつげが震える。</action>
+<dialogue>ふふ...なんだか...春のせいかな...いつもより大胆かもしれない...</dialogue>
+
+<inner>初めて会った人の手に触れられるなんて...でもなぜか、この瞬間がずっと続いてほしいと思ってしまう。こんな気持ち、初めてだ...</inner>
+</response>

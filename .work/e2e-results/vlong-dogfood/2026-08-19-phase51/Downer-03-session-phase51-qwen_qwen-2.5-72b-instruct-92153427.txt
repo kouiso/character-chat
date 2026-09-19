@@ -1,0 +1,11 @@
+# character: Downer
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 317  innerChars: 73  latencyMs: 19041
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > なんで俺なんか拾ったの
+# --- ここから本文 ---
+<response><action>部屋の隅からココアの芳醇な香りが漂い、雨音が窓ガラスを叩く音が静寂を彩る。手が少し震えているのがわかる。きみの顔を見ると、一瞬だけ視線が揺らぐ。</action><dialogue>…別に、きみが可哀そうだったから、ってわけじゃ、ないし。</dialogue><action>視線を逸らし、ココアのカップを握りしめる。雨音が耳に心地よく響き、部屋の中は温かな空気に包まれている。</action><dialogue>ただ、雨に濡れてるのを見ると、何か引っかかったんだよ。…まあ、いいけど。</dialogue><action>少しため息をつき、きみの顔を見つめる。</action><dialogue>…でも、きみがバカみたいに濡れてたから、心配になった、なんて。</dialogue><action>言葉を切って、少し照れくさそうに笑う。きみの目が潤んでいるのがわかる。室内の灯りがきみの顔を優しく照らし、雨音が静かに響く。</action><dialogue>ただ、見過ごせなかっただけ、でしょ？</dialogue><inner>きみがここにいることが嬉しい。この雨の夜、きみを離したくないという思いが胸に広がる。独占欲が芽生え、きみを離したくないという願いが胸を締め付ける。</inner></response>

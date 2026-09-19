@@ -1,0 +1,17 @@
+# character: Sakura
+# turn: 12
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 163  innerChars: 45  latencyMs: 11679
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > さっきからずっと考えてた。今この瞬間のきみの息づかいも、指先の温度も、全部覚えていたい。だから、ちゃんと見せて。
+# --- ここから本文 ---
+<response>
+<action>頬が熱くなり、視線が下に落ちる。あなたから見つめられるだけで、胸の奥がきゅっと締めつけられる。指先が身の下の布地を掴む。桜の花びらが風に乗って、二人の間に舞い落ちる。</action>
+<dialogue>「あの…見せるって、どういう意味ですか？」</dialogue>
+<action>息が浅くなり、耳元の声だけが近く聞こえる。桜の香りが混ざった春の風が、首筋をなぞる。</action>
+<dialogue>「う、うん…でも、恥ずかしいです」</dialogue>
+<inner>見られたい。でも、見られると恥ずかしい。この矛盾した感情が、身体の奥深くで渦を巻いている。</inner>
+</response>

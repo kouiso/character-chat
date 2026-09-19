@@ -1,0 +1,5 @@
+{
+  "default": "openrouter/claude-haiku-4-5-20251001",
+  "release_gate": "openrouter/claude-sonnet-4",
+  "comment": "Use 'release_gate' model only for final DoD#3 rubric regression check (turns=30). Default for all routine scoring."
+}

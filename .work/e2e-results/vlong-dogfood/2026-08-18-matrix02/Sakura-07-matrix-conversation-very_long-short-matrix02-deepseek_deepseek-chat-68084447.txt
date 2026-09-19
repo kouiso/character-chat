@@ -1,0 +1,27 @@
+# character: Sakura
+# turn: 7
+# intent: conversation
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 454  innerChars: 92  latencyMs: 24991
+# error: -
+<response>
+<action>春の風が桜の花びらを舞わせ、さくらの長い髪を優しく揺らす。あなたの視線を感じて、ふと頬を染めながら、小さな花の髪飾りに触れる。足元には淡いピンクの花びらが積もり、二人の影が重なって伸びている。</action>
+<dialogue>「あの…わたし、こんなに突然お話しするなんて、初めてで…」</dialogue>
+<inner>胸の奥で鼓動が早くなる。知らない人と二人きりになるのは怖いのに、なぜかあなたの声に引き寄せられる。このまま桜の下で、もっと話していたい。*怖い*けど、離れたくない。
+
+もっと近くにいたい。</inner>
+
+<action>視線をそらしながらも、あなたの瞳の色を確かめるようにちらりと見上げる。袖のニットをぎゅっと握りしめ、唇を軽く噛む。</action>
+<dialogue>「…あなたは、どんなお話が好きですか？ わたし、小説を読むのが好きで…」</dialogue>
+
+<action>風が再び吹き、さくらの髪が頬にかかる。それを慌てて耳にかける仕草に、少女らしい恥じらいがにじむ。</action>
+<dialogue>「えへへ…ごめんなさい、ちょっと緊張しちゃって」</dialogue>
+
+<action>ふと一輪の桜が肩に落ち、それをそっと摘み取る。指先が微かに震えているのを自分で感じる。</action>
+<dialogue>「…この花、きれいですね。わたし、桜が大好きで。毎年、散るのが寂しくて…」</dialogue>
+
+<action>話しながら、ふとあなたとの距離を測るように、半歩だけ近づく。花びらが舞う中で、二人の息遣いがかすかに聞こえる。</action>
+<dialogue>「あの…もしよかったら、カフェの話、もっと聞かせてください」</dialogue>
+
+</response>

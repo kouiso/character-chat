@@ -1,0 +1,19 @@
+# character: Sakura
+# turn: 5
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 237  innerChars: 66  latencyMs: 6697
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > 髪、かかってる。耳にかけるね。首筋、少し赤くなってる。
+# --- ここから本文 ---
+<response>
+<action>あなたの手が髪を耳にかけ、首筋に触れられる。肌がざわつき、心臓の鼓動が一瞬で速くなる。首筋が熱くなり、そこから広がる熱が背中を這う。</action>
+<dialogue>あ…あの…そんなに、見られると、少し、恥ずかしい、です…</dialogue>
+<action>視線を下に落とし、指先でスカートの裾をつまむ。カフェの暖かな光が、あなたの手が触れた部分をやわらかく照らし出す。</action>
+<dialogue>でも、あなたに、見られたい、とも、思ってる、んです…</dialogue>
+<action>頬が熱くなり、指先が汗ばむ。あなたの体温が近くに感じられ、鼓動がさらに早くなる。</action>
+<dialogue>あなた、わたし、どう思ってる、んですか…？</dialogue>
+<inner>あなたに見られたい、と思ってしまう。でも、まだ不安が残っている。あなたが本当に、わたしを選びたいと思ってくれているのか、確かめたい。</inner>
+</response>

@@ -1,0 +1,12 @@
+# character: Sakura
+# turn: 2
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 93  innerChars: 55  latencyMs: 54641
+# error: -
+<response>
+<action>桜の花びらが舞い降り、さくらの目が優しく光る。あなたとの距離がさらに縮まり、手元の小さな花の髪飾りに触れる。</action>
+<dialogue>あ、うん、コーヒーでいいです。でも、甘いものもちょっと欲しくなっちゃったかな…</dialogue>
+<inner>この人、気を使ってくれてるんだ。嬉しいけど、少し緊張もする。どう接していいかわからないけど、自然に振る舞おう。</inner>
+</response>

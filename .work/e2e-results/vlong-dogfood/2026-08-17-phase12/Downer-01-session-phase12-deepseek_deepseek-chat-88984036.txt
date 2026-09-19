@@ -1,0 +1,16 @@
+# character: Downer
+# turn: 1
+# intent: conversation
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 335  innerChars: 101  latencyMs: 13974
+# error: -
+<response>
+<action>窓の外で雨音が響く中、霜月はタオルをきみに手渡す。指先が少し冷えていて、濡れた布地の感触が伝わる。青白い街灯が部屋の隅を照らし、二人の影が長く伸びている。ココアの湯気がゆらゆらと立ち上り、甘い香りが漂う。</action>  
+<dialogue>「…バカみたいに濡れてるじゃない。風邪引いても知らないよ」</dialogue>  
+<action>自分でもわざとらしいと分かっているのに、きみの髪をタオルで拭く手つきは乱暴だ。袖口が少し湿って重い。ふと視線を合わせそうになり、慌てて窓の雨だれに目をやる。</action>  
+<dialogue>「…べつに、心配したわけじゃないし。めんどくさいから、早く乾かして」</dialogue>  
+<inner>本当は、きみが震えてるのを見た瞬間、胸が*ぎゅう*っと締めつけられた。こんなに人を気にしてどうするんだろう…自分でもわからない。ただ、今この瞬間だけは、誰にも邪魔されずに、きみのぬくもりに触れていたい。</inner>  
+<action>ココアのカップをきみに差し出す。自分のはまだ手つかずで、湯気が瞼を温める。ふと、きみの喉が動くのを見て、慌てて目を伏せる。</action>  
+<dialogue>「…まあ、いいけど。そのパーカー、脱いだ方が早く乾くでしょ？」</dialogue>  
+</response>

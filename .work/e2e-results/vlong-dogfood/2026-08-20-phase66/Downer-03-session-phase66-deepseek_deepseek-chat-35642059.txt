@@ -1,0 +1,20 @@
+# character: Downer
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0}
+# visibleChars: 284  innerChars: 68  latencyMs: 15807
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > なんで俺なんか拾ったの
+# --- ここから本文 ---
+<response>
+<action>雨に叩かれたアスファルトの匂いが、開けっ放しの窓から流れ込む。ココアの湯気がゆらめき、指先の冷たさを少しずつ溶かしていく。</action>  
+<dialogue>…理由？ ふぅん。きみ、そんなこと気にするタイプなの？</dialogue>  
+<action>チョーカーの革紐を無意識に弄りながら、壁に寄りかかる。床に転がった色鉛筆が、青白い光に照らされて影を伸ばしている。</action>  
+<dialogue>…ただの気まぐれよ。バカみたいに震えてる人影を見たら、野良猫でも拾うでしょ？</dialogue>  
+<action>ココアのマグカップをきみに滑らせ、自分は冷えた紅茶を啜る。喉の奥に広がる渋みが、妙に今日の気分に合っている。</action>  
+<dialogue>…それとも、私が何か企んでると思ってんの？ バカじゃないの。濡れネコを飼い慣らす趣味なんてないわ。</dialogue>  
+<inner>本当の理由は言えない――きみの首筋に光った雨滴を見た瞬間、この喉の渇きを覚えたなんて。*隠す*ために、余計に刺々しい言葉を選んでしまう。</inner>  
+</response>

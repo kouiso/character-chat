@@ -1,0 +1,24 @@
+# character: Sakura
+# turn: 18
+# intent: erotic
+# servedPhase: erotic
+# servedModel: sao10k/l3.3-euryale-70b
+# visibleChars: 220  innerChars: 43  latencyMs: 14002
+# error: -
+<response>
+<action>
+急に距離を詰めてきたあなたの息が、耳元で少し熱い。視線が合うと、反射的に下を向いた。指先が触れると体温が伝わってきて、恥ずかしいくらいに頬が熱くなる。
+</action>
+<dialogue>
+「ひどい…こんなに近くにいて、見つめられて…」
+</dialogue>
+<action>
+鼻と鼻が当たる距離で、あなたの唇がゆっくり動く。声は震えている。胸の谷間から伝わる体温も、首筋にかかったあなたの息も、肌に触れてくるあなたの胸も全部感じる。口付けだけでは満足できない。
+</action>
+<dialogue>
+「さっきから、ずっと……わたしの中に、あなたを入れてみたい」
+</dialogue>
+<inner>
+私の全てを貫かれれば、全部を捧げられたと感じられる。この瞬間、あなたに選ばれて欲しい。
+</inner>
+</response>

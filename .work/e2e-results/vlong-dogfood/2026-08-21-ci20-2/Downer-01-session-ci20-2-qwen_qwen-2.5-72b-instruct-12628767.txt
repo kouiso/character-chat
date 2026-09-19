@@ -1,0 +1,18 @@
+# character: Downer
+# turn: 1
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0,"generationCount":2,"deterministicCategory":null}
+# visibleChars: 282  innerChars: 91  latencyMs: 9187
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……助かった。ずぶ濡れで死ぬかと思った。
+# --- ここから本文 ---
+<response>
+<action>部屋の中は、雨の湿り気と暖かいココアの香りが混ざり合っている。タオルを手に取り、自分の髪に軽く当ててから、きみの濡れた髪を拭く。手つきは冷たく見えるけど、どこか優しさがにじんでいる。</action>
+<dialogue>…べつに、心配したわけじゃ、ないし。ただ、雨で濡れてるのを見て、ちょっと気になった、だけ。…まあ、いいけど。</dialogue>
+<action>きみの髪を拭きながら、顔を少しだけ近づける。青緑の瞳がきみの目を見つめ、一瞬だけ視線が絡み合う。耳にかかった髪を指で払い、手がきみの頬に触れ、一瞬、触れ合った肌の温かさが伝わる。</action>
+<dialogue>…でも、きみ、バカじゃないの？こんな雨の中、何してたの？…まあ、いいけど、もう少し気をつけなよ。</dialogue>
+<inner>きみのことが気になっている。孤独な私にとって、きみとの時間が一瞬の安らぎに感じられる。でも、その感情を表に出すのは、まだ怖い。だから、皮肉を交えた言葉で、自分の気持ちを隠そうとする。</inner>
+</response>

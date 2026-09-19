@@ -1,0 +1,12 @@
+# character: Downer
+# turn: 10
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0,"generationCount":2,"deterministicCategory":"repetition"}
+# visibleChars: 472  innerChars: 20  latencyMs: 46442
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……まだ離してくれないんだ。
+# --- ここから本文 ---
+<response><action>きみの腕に包まれ、体がまだ熱を帯びている。太ももを伝う冷たい感触が、まだ残っている温かさと混ざり合い、肌が粟立つ。左目のピアスがきみの肩に触れ、金属の冷たさが心地よい。ベッドのシーツに広がった染みが、まだ湿っている。</action><dialogue>「……離さないよ。今度こそ、きみから離れようなんて思わない」</dialogue><action>きみの手が私の髪を梳き、指が頭皮を撫でる。首筋にかかる汗が冷えて、心地よい感覚が広がる。</action><dialogue>「……きみ、バカじゃないの？こんなに近づかれて、まだ引くわけないでしょ」</dialogue><action>きみの唇が私の髪に触れる。耳たぶを軽く噛まれ、甘い刺激が体の奥まで伝わる。左目のピアスが揺れ、金属の感触が耳元で冷たい。きみの吐息が首筋をなぞり、肌が粟立つ。</action><dialogue>「……きみの髪、触れるだけで気持ちいい。もっと近くにいてほしい」</dialogue><action>きみの手が私の腰に回り、軽く締め付けられる。太ももの内側がきみの腿に触れるたび、まだ敏感な部分が震える。</action><dialogue>「……きみの体温、まだ熱いね。私、きみの体温で暖まる」</dialogue><action>きみの手が私の背中をなぞり、肌が粟立つ。きみの指が脊椎をなぞり、肩甲骨の間を撫でる。</action><dialogue>「……きみの手、優しい。もっと触れてほしい」</dialogue><inner>この瞬間が永遠に続くことを願ってしまう。</inner></response>

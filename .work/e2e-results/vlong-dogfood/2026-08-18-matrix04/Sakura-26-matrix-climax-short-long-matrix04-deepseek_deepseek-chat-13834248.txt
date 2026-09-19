@@ -1,0 +1,38 @@
+# character: Sakura
+# turn: 26
+# intent: climax
+# servedPhase: climax
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 255  innerChars: 53  latencyMs: 9437
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > さっきからずっと考えてた。今この瞬間のきみの息づかいも、指先の温度も、全部覚えていたい。だから、ちゃんと見せて。
+# --- ここから本文 ---
+<response>
+<action>
+指先が震え、息が浅くなる。あなたの視線に頬が火照り、俯いた睫毛の先から涙が一粒零れる。花の髪飾りが揺れて、桜の香りがほのかに漂う。
+</action>
+<dialogue>
+「あの…こんなにじっと見られてると、わたし…恥ずかしくて…」
+</dialogue>
+
+<action>
+首筋に触れたあなたの手のひらが熱く、その温もりに胸の奥が締めつけられる。制服のスカートの裾を無意識に掴み、皺が寄る。
+</action>
+
+<dialogue>
+「でも…あなたが覚えててくれるなら、全部…見せたいです」
+</dialogue>
+
+<action>
+春風がカーテンを揺らし、光がゆらめく。制服の白いブラウス越しに、鼓動が伝わるほど近くに寄り添う。
+</action>
+
+<dialogue>
+「ふふ…ちょっと、変ですかね？こんなに緊張してて…」
+</dialogue>
+
+<inner>
+あなたの瞳に映るわたしは、どんな風に見えてるんだろう。怖がりで不器用なだけの女の子に…見えてないといいな。
+</inner>
+</response>

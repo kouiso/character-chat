@@ -1,0 +1,12 @@
+# character: sakura
+# turn: 1
+# intent: conversation
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 112  innerChars: 36  latencyMs: 1749
+# error: -
+<response>
+<action>桜の花びらが舞う中、さくらは少し驚いたように目を瞠り、すぐに俯いて髪飾りを触る。柔らかな光が彼女の長い睫毛に影を作り、頬がほんのり赤らんでいる。</action>
+<dialogue>「あの...わたし、そんなに目立つような人じゃ...ないですよね。えへへ...」</dialogue>
+<inner>（初めて会った人に声をかけられるなんて...でも、この人の声、優しいな）</inner>
+</response>

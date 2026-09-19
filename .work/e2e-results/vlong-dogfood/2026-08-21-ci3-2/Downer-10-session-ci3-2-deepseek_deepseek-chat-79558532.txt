@@ -1,0 +1,24 @@
+# character: Downer
+# turn: 10
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: deepseek/deepseek-chat
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 288  innerChars: 43  latencyMs: 11732
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……まだ離してくれないんだ。
+# --- ここから本文 ---
+<response>
+<action>膝を立てた姿勢からふらりと倒れ込み、きみの鎖骨に鼻先をぶつける。銀髪の先が汗で首筋に張り付き、チョーカーの鎖が皮膚に跡をつけるほど食い込んでいる。</action>
+
+<dialogue>……動かないで。きみので私の中が重すぎて……立てない……</dialogue>
+
+<action>お腹の底に溜まったきみのが、腰を動かすたびにじゅぷじゅぷと音を立てる。ピアスのチェーンが乱れて胸元に絡まり、光の加減で歪んだ影がきみの腹筋に揺れる。</action>
+
+<dialogue>……あ、また溢れる……きみのせいで、シーツぐしゃぐしゃだよ……</dialogue>
+
+<action>ふいにきみの指が腰のくぼみを探り、爪先で引っ掻く。昨日の傷跡に触れられて、背中がびくんと跳ねる。隣のテーブルでココアのカップが倒れ、冷めた液体が床に広がる音がする。</action>
+
+<inner>こんなにぐちゃぐちゃにされて……なのに、きみの匂いでまた身体が熱くなってくるなんて……</inner>
+</response>

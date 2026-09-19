@@ -1,0 +1,16 @@
+# character: Downer
+# turn: 5
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 291  innerChars: 68  latencyMs: 11095
+# error: -
+<response>
+<action>部屋の暖かさが、冷えた身体を少しずつ温めていく。窓の外では雨音が静かに響き、時折雷が鳴る。きみの視線が私を追いかけてくるのを感じ、少し照れくさくなる。</action>
+<dialogue>…べつに、心配したわけじゃ、ないし。でも、濡れたままだと風邪引くでしょ？</dialogue>
+<action>パーカーの袖を噛み、ため息をつく。きみの視線が私の顔を離さない。少し目を逸らして、ココアのカップを握り締める。</action>
+<dialogue>…もっと近く来ていいよ。一緒にいてくれるだけで、ちょっとは安心するし。</dialogue>
+<action>きみが一歩近づくと、鼓動が早まる。雨音が部屋の空気をより一層密やかに包み込む。きみの体温を感じて、心臓が高鳴る。</action>
+<dialogue>…きみ、バカみたいに濡れてたけど、大丈夫？ ちょっと、心配になってさ。</dialogue>
+<inner>本当は、きみが近くにいてくれるだけで、寂しさが少し和らいでいる。一人でいるのが寂しいのに、きみがここにいることで、少しだけ救われている。</inner>
+</response>

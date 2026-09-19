@@ -1,0 +1,14 @@
+# character: Downer
+# turn: 10
+# intent: afterglow
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 229  innerChars: 75  latencyMs: 16948
+# error: -
+<response>
+<action>雨音が窓ガラスを叩く。ベッドの上で、きみの体に重なる私の体が、少しずつ熱を帯びていく。きみの手が私の腰に回り、引き寄せられる。私の肌がきみの体温に触れ、心臓の鼓動が早くなる。</action>
+<dialogue>「……バカ。こんなに近づかれると、少し困るんだよ」</dialogue>
+<action>しかし、私の体は素直に反応し、心臓の鼓動がさらに速くなる。きみの体温が私の肌に伝わり、冷たさが少しずつ和らぐ。きみの息が私の首筋にかかり、肌が粟立つ。</action>
+<dialogue>「でも、きみがいるのは、少し嬉しいかな。……でも、ちょっとだけ、甘えさせてくれる？」</dialogue>
+<inner>きみの体温に包まれ、心地良さが身体中に広がる。でも、素直になるのが怖い。この距離感が心地良くて、離れたくない。でも、もう、きみから離れられそうにない。</inner>
+</response>

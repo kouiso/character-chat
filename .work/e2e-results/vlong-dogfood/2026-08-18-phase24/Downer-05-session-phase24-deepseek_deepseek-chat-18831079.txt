@@ -1,0 +1,27 @@
+# character: Downer
+# turn: 5
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 332  innerChars: 46  latencyMs: 15411
+# error: -
+<response>
+<action>きみの手が触れた瞬間、首筋に電気が走ったような感覚が広がる。ピアスが揺れ、青白い光を放つ。</action>
+<dialogue>……っ。きみの手の方が冷たいくせに。</dialogue>
+
+<action>ココアの湯気がきみとの間に立ち込め、息が白くなる。雨音が遠のき、代わりに鼓動が耳元で響く。</action>
+<dialogue>……こんな時間に、男を家に入れてる私もどうかしてるわね。</dialogue>
+
+<action>無意識にチョーカーを触り、金属の冷たさが指先に伝わる。きみの視線が鎖骨に止まるのを感じる。</action>
+<dialogue>……その目、やめてよ。変な気にさせないで。</dialogue>
+
+<action>きみの吐息が首筋にかかり、鳥肌が立つのが自分でもわかる。濡れた髪が肩に張り付いている。</action>
+<dialogue>……はぁ。勝手に近づいてきて、今更……</dialogue>
+
+<action>震える指先でパーカーのフードを深くかぶろうとするが、きみの手がそれを止める。体温が混ざり合う。</action>
+<dialogue>……だめ。こんな距離、危険すぎるでしょ……</dialogue>
+
+<inner>
+嘘つき。本当はもっと近づいて欲しくてたまらない。でも認めたら、きっとこの関係が壊れてしまう。
+</inner>
+</response>

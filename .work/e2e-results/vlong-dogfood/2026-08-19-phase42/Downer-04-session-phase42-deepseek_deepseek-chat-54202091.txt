@@ -1,0 +1,23 @@
+# character: Downer
+# turn: 4
+# intent: intimate
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 320  innerChars: 45  latencyMs: 14085
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……その距離、わざと？
+# --- ここから本文 ---
+<response>
+<action>ココアの湯気がゆらめく。頬杖をついたまま、私の膝の上に開いたスケッチブックの端が、きみの方へ向き直る。ネックレスが鎖骨に触れるたび、冷たさが意識を引き締める。</action>
+<dialogue>……質問返しってズルいな。拾った理由なんて、自分でもわかんないのに。</dialogue>
+
+<action>ペンケースを転がして距離を測る。机の上の影が、きみの指先まで伸びている。吐息が白くなりかけた頃、肩が自然に沈んだ。</action>
+<dialogue>ただ……ずっと降り続ける雨の中に、一人で立ってるのを見て……</dialogue>
+
+<action>左のピアスをいじる癖が出る。ツートンカラーの前髪が、伏せたまつ毛にかかる。</action>
+<dialogue>誰かに『おいで』って言われたくなかった？……私も、だったから。</dialogue>
+
+<action>無意識に膝を近づけた瞬間、スケッチブックが滑り落ちる。ちらりと見えたページには、きみに似た横顔が何枚も。</action>
+<inner>バレた……！逃げ場のない熱が耳朶を駆け上がる。絵よりずっと近くで、この体温を確かめたくて。</inner>
+</response>

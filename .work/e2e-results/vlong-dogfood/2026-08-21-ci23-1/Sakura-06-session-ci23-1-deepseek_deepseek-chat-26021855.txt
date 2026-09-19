@@ -1,0 +1,26 @@
+# character: Sakura
+# turn: 6
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0,"generationCount":3,"deterministicCategory":null}
+# visibleChars: 338  innerChars: 52  latencyMs: 15719
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……ここ出ようか。うち、すぐ近くだから。
+# --- ここから本文 ---
+<response>
+<action>あなたの指先がふと髪に触れると、春の風に乗った桜の香りがふわりと舞い上がる。首筋にかけられた髪の毛がゆっくりと滑り落ち、あなたの指が触れた跡が火照っていく。</action>
+<dialogue>「き、君…そんな風に触られると、わたし…」</dialogue>
+
+<action>吐く息が白く霞み、唇がわずかに震える。あなたの手のひらが頬に触れた瞬間、背筋に小さな電流が走り、足元がふらつく。</action>
+<dialogue>「おうちが近いなんて…知らなかった…」</dialogue>
+
+<action>あなたの息遣いが耳元にかかり、そっと握られた手のひらから熱が伝わる。胸の奥で何かが溶けていくような感覚に、目を細めてしまう。</action>
+<dialogue>「こんな風に連れていかれるの、初めてで…」</dialogue>
+
+<action>あなたの手を握り返した自分の指先が、思わず力強く締めつけているのに気づく。まるで離したくないと訴えているようで、自分でも驚く。</action>
+<dialogue>「…行こっか。君の、おうち…見せて」</dialogue>
+
+<inner>こんな大胆な言葉が出てくるなんて。でも、もう後戻りしたくない。あなたの手の温もりが、わたしを変えていく。</inner>
+</response>

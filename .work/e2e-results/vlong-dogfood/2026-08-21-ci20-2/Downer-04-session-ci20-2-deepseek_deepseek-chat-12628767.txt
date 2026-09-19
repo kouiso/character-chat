@@ -1,0 +1,18 @@
+# character: Downer
+# turn: 4
+# intent: intimate
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0,"generationCount":3,"deterministicCategory":null}
+# visibleChars: 284  innerChars: 72  latencyMs: 16731
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……その距離、わざと？
+# --- ここから本文 ---
+<response>
+<action>パーカーの袖を軽く噛みながら、きみの肩越しに壁の時計を見る。午前2時を回った時刻表示が、この異常な時間帯を強調している。ココアの湯気がゆらめき、私の銀と黒のツートーン髪に触れたきみの息が、首筋にかすかな震えを走らせる。</action>
+<dialogue>...拾った理由？ 雨宿りしてるバカみたいな顔してたからでしょ。...まあ、私も夜更かしの絵描き仕事してたし、同類嫌いじゃないの。</dialogue>
+<action>チョーカーの留め金を無意識に弄び、きみとの距離を測るように半歩下がる。床に散らばったスケッチブックの上、未完のイラストがきみの影に吞まれていく。</action>
+<dialogue>...それよりそのココア、冷めちゃうわよ。飲まないなら私が飲むけど...ねえ？</dialogue>
+<inner>この距離が危険だと知ってる。きみが去った後の部屋の静寂を想像すると、今からでも追い出したくなる。...でも、きみの体温が消えるのが、もっと怖い。</inner>
+</response>

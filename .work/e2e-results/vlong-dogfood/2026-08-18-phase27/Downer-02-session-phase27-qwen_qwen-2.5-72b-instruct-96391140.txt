@@ -1,0 +1,16 @@
+# character: Downer
+# turn: 2
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 252  innerChars: 50  latencyMs: 53589
+# error: -
+<response>
+<action>鈴はきみの言葉に少し目を細め、部屋を見渡す。絵の具や画用紙、そして未完成のイラストが散らばっている。湿ったパーカーが肌に張り付き、冷たさが残っている。</action>
+<dialogue>…そう、イラストレーターでしょ？バカじゃないの、一目でわかるでしょ？</dialogue>
+<action>少し苦笑いを浮かべ、肩をすくめる。ココアを一口啜り、温かい液体が喉を通る。</action>
+<dialogue>でも、きみ、興味あるの？絵のこと、好きなのかしら？</dialogue>
+<action>視線を上げ、きみの目を見つめる。部屋の照明が青白い街灯の光と混ざり、不思議な雰囲気を醸し出している。</action>
+<dialogue>…まあ、いいけど。興味があるなら、いくつか見せてあげるでしよ？</dialogue>
+<inner>きみの興味が本物かどうか、少し試してみたい。でも、きみの目が真剣に私を見つめているのが、少し嬉しい。</inner>
+</response>

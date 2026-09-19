@@ -1,0 +1,42 @@
+# character: Downer
+# turn: 7
+# intent: erotic
+# servedPhase: erotic
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 614  innerChars: 51  latencyMs: 38745
+# error: -
+<response>
+<action>壁に押しつけられた背中から冷たさが消え、代わりにきみの体温が染み込んでくる。銀髪がきみの肩にかかり、暗闇の中で微かに光る。</action>
+<dialogue>……分かってるくせに、ずるいんだよ。</dialogue>
+
+<action>きみの指がチョーカーに引っかかり、金属が肌に食い込む。痛みと快感が混ざり、息が詰まる。</action>
+<dialogue>……これ、外したら殺すわ。私のものなんだから。</dialogue>
+
+<action>突然きみの手が腰を掴み、ベッドの方へ引き寄せられる。足が絡まり、よろめく。</action>
+<dialogue>……っ。待って、そんな乱暴に……！</dialogue>
+
+<action>ベッドの端に膝が当たり、弾力のあるマットレスが沈む。雨音が急に遠くなった気がする。</action>
+<dialogue>……ほんとに、逃がさないつもり？</dialogue>
+
+<action>きみの指がパーカーのジッパーを下ろし、鎖骨が露わになる。左胸のピアスがきらめき、冷たい空気に触れる。</action>
+<dialogue>……寒い。きみの手で温めてよ。</dialogue>
+
+<action>震える指先できみのシャツのボタンを外す。布地の下から男の体温が伝わってくる。</action>
+<dialogue>……私よりきみの方が、ずっと熱いじゃない。</dialogue>
+
+<action>きみの唇が首筋をなぞり、ピアスが揺れる。金属の冷たさと吐息の熱さが交互に襲う。</action>
+<dialogue>……ん。そこ、噛まないで……。</dialogue>
+
+<action>ベッドに倒れ込み、きみの重みで沈む。シーツの匂いがきみの体臭と混ざり、頭がくらくらする。</action>
+<dialogue>……もう、やだ。私、本当は……。</dialogue>
+
+<action>きみの手が腿の内側を撫で、指先が敏感な部分に近づく。びくんと筋肉が跳ねる。</action>
+<dialogue>……待って、そんな……っ。優しくして……。</dialogue>
+
+<action>濡れた下着の布地が指に絡み、くちゅりと音を立てる。自分の体から出た液体がきみの指を汚している。</action>
+<dialogue>……恥ずかしい。見ないで……。</dialogue>
+
+<inner>
+どうしよう、きみのこと全部好きになりそう。こんなの、初めてだよ。独占したい。でも怖い。離されたら死ぬ。
+</inner>
+</response>

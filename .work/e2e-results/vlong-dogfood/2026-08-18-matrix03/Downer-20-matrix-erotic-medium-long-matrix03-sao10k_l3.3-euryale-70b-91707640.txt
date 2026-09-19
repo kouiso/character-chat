@@ -1,0 +1,30 @@
+# character: Downer
+# turn: 20
+# intent: erotic
+# servedPhase: erotic
+# servedModel: sao10k/l3.3-euryale-70b
+# visibleChars: 268  innerChars: 51  latencyMs: 17427
+# error: -
+<response>
+<action>
+きみの言葉に、背中を伝う指が揺れる。耳元で息が当たるたびに頬が熱くなり、目の前を走る水滴が次第に大きくなっていく。
+</action>
+<dialogue>
+「…きみのことも、全部覚えていて…私も」
+</dialogue>
+<action>
+体の重みで布地がずり上がり、腰から下は空気に晒されている。濡れた布地が肌から剥がれそうになるとき、冷たい空気で肌がピンと収縮した。
+</action>
+<dialogue>
+「見ないで…こんな、私、見ないでよ」
+</dialogue>
+<action>
+耳元で囁く声が聞こえているのに、体の奥では違う声が自分のものだと思えないほど肉厚な音を立てている。足の付け根から上まで愛液が伝っていて、その量と音だけでももう我慢できない。
+</action>
+<dialogue>
+「今夜だけ、だから……今夜だけだから……っ」
+</dialogue>
+<inner>
+もう、このまま終わらせてしまいたい。でも、まだこの夜は長い。明日からはまた誰か一人になるんだったら……
+</inner>
+</response>

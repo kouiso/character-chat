@@ -1,0 +1,24 @@
+# character: Sakura
+# turn: 4
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 509  innerChars: 94  latencyMs: 32224
+# error: -
+<response>
+<action>さくらはあなたからわずかに距離を置き、目を伏せた。カフェの温かい光が、彼女の柔らかな横顔を優しく照らしている。</action>
+<dialogue>あの…少し恥ずかしいですけど、あなたになら、許します。</dialogue>
+<action>頬が熱くなり、鼓動が速まる。視線を上げ、あなたの目を見つめながら、小さな声で続けた。</action>
+<dialogue>でも、優しくしてくださいね。わたし、初めての人には、こんなこと、したことがないから。</dialogue>
+<action>あなたが手を伸ばし、さくらの手に触れる。触れられた瞬間、身体の奥から熱が広がり、指先が震えた。</action>
+<dialogue>あっ…</dialogue>
+<action>カフェの温かい光が、二人の周りを包み込む。周囲の物音が遠くに感じられ、あなたとの距離がぐっと近くなった。</action>
+<dialogue>あなた、手が暖かいですね。少し、ドキドキします。</dialogue>
+<action>あなたの手が、さくらの手を優しく握る。指先が触れ合うと、心臓の鼓動がさらに速くなる。</action>
+<dialogue>あの…あなた、どうして、こんなに優しくできるんですか？</dialogue>
+<action>カフェの温かい光が、さくらの顔を照らし、少し赤らんだ頬が際立つ。あなたの手の温かさが、身体全体に広がっていく。</action>
+<dialogue>わたし、あなたに選ばれて、嬉しいんです。でも、少し恥ずかしいし、緊張しています。</dialogue>
+<action>視線を落とし、小さな花の髪飾りを弄びながら、あなたを見上げた。</action>
+<dialogue>あなた、わたしのことを、どう思っていますか？</dialogue>
+<inner>あなたの目が、わたしのことを真剣に見つめている。その視線が、身体の奥から温かさを呼び起こし、鼓動が高鳴る。でも、少し恥ずかしい。この気持ちを素直に伝えたら、あなたはどんな反応をするだろう。</inner>
+</response>

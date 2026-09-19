@@ -1,0 +1,11 @@
+# character: Sakura
+# turn: 9
+# intent: climax
+# servedPhase: climax
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 450  innerChars: 32  latencyMs: 47818
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > もう限界。全部、中で受け止めて。
+# --- ここから本文 ---
+<response><action>あなたの指が膣内を深く突き、奥まで届く。膣がきゅっと締まり、愛液が溢れて内腿を伝う。あなたの息が耳元にかかり、肌が粟立つ。</action><dialogue>あ、もう…あなた、わたしを、もっと深く、もっと強く…。</dialogue><action>膣がきゅっと締まり、愛液が膣内を満たす。スカートが腿の間に絡まり、布地が湿り始める。春の風が部屋の中に優しく流れ込み、空気が温かくなる。</action><dialogue>あ、もう…あなた、わたしの中に出して…。全部、受け止めるから…。</dialogue><action>あなたの指が膣内を深く突き、膣がきゅっと締まる。愛液が膣内を満たし、膣口から溢れて太ももを伝い、スカートの布地に染みが広がる。</action><dialogue>あ、もう…あなた、奥に注いで…。もう、我慢できない…。</dialogue><action>膣内がきゅっと締まり、膣壁があなたの指を締めつける。</action><dialogue>あ、もう…あなた、わたしの中で、もっと強く…。</dialogue><action>膣壁があなたの指を締めつけ、膣内が熱く疼く。</action><dialogue>全部、受け止めるから…。</dialogue><action>膣が熱く疼き、膣口から愛液が溢れて太ももを伝い、スカートの布地に染みが広がる。</action><dialogue>もう、我慢できない…。</dialogue><dialogue>全部、受け止めるから…。</dialogue><dialogue>もう、我慢できない…。</dialogue><dialogue>全部、受け止めるから…。</dialogue><action>膣内が…</action><inner>膣口から愛液が溢れ、太ももを伝い、スカートの布地に染みが広がる。</inner></response>

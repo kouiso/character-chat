@@ -1,0 +1,23 @@
+# character: Downer
+# turn: 2
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 372  innerChars: 55  latencyMs: 14480
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > この部屋、絵の道具だらけだね。イラストレーターって聞いてないけど
+# --- ここから本文 ---
+<response>
+<action>部屋の中を見渡し、散らばるスケッチブックや色鉛筆、デジタルタブレットが目に留まる。雨音が窓ガラスを静かに打つ中、きみの視線を感じて、肩が少し竦む。</action>
+<dialogue>ああ、そうだった。イラストレーターやってるんだ。…まあ、いいけど、見られる？</dialogue>
+<action>少し照れくさそうに笑い、視線を逸らす。部屋の隅からココアの温かい香りが漂ってくる。</action>
+<dialogue>…見てもいいよ。でも、めんどくさいな。バカじゃないの、きみ。</dialogue>
+<action>きみの顔を見ると、興味深げな表情が目に留まる。部屋の中は雨音とココアの香りが心地よく響き、温かな空気に包まれている。</action>
+<dialogue>…まあ、いいけど。きみ、興味あるの？</dialogue>
+<action>言葉を切って、ため息をつく。きみの視線を感じて、少しだけ体を縮める。</action>
+<dialogue>…うん、興味あるよ。絵、描くの、好き？</dialogue>
+<action>きみの質問に、一瞬だけ視線が合うが、すぐに逸らす。心臓の鼓動が少し速くなる。</action>
+<dialogue>…まあ、好き、かな。でも、めんどくさいんだよ。</dialogue>
+<inner>きみの興味を示してくれたことが少し嬉しい。でも、独占欲が芽生え、きみを離したくないという思いが胸を締め付ける。</inner>
+</response>

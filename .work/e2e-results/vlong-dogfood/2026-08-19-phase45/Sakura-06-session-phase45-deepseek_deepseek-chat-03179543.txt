@@ -1,0 +1,35 @@
+# character: Sakura
+# turn: 6
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 269  innerChars: 50  latencyMs: 38731
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……ここ出ようか。うち、すぐ近くだから。
+# --- ここから本文 ---
+<response>
+<action>
+目を伏せたまま、カップの取っ手に指先がすべる。コーヒーの表面に映った自分の顔が、はにかんだ表情でゆらめいている。ひざの上で左手がこぶしを握り、爪先が床を軽く叩く。
+</action>
+
+<dialogue>
+「あの…わたし、初めてで…。おうちに招かれるなんて、考えたこともなくて…」
+</dialogue>
+
+<action>
+舌先が上あごにつき、唾液を飲み込む音が自分で聞こえるほど静かだ。肩に掛かった髪の毛一本が、首筋を這うように落ちてくる。
+</action>
+
+<dialogue>
+「でも…行きたいです。あなたが案内してくれるなら、きっと大丈夫だよね…？」
+</dialogue>
+
+<action>
+ふいに立ち上がろうとして、ひざがテーブルにぶつかる。痛みよりも、恥ずかしさが先に来て、耳たぶがじんと熱くなる。
+</action>
+
+<inner>
+知らない場所へ連れていかれる恐怖より、彼を疑えない不思議な安心感の方が強い。こんな気持ち、初めてだ…
+</inner>
+</response>

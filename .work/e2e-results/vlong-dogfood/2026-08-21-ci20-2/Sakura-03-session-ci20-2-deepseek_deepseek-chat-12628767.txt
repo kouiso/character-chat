@@ -1,0 +1,21 @@
+# character: Sakura
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0,"generationCount":3,"deterministicCategory":null}
+# visibleChars: 248  innerChars: 71  latencyMs: 14093
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > 普段って、どんな本読むの
+# --- ここから本文 ---
+<response>
+<action>カフェの窓辺の席で、ミルクの入ったコーヒーが湯気を立てている。さくらはカップの縁を指でなぞり、視線を泳がせる。</action>
+<dialogue>えっと...主に詩集や恋愛小説を読んでいます。登場人物の気持ちに共感するのが好きで...特に悲恋ものに涙してしまうんです</dialogue>
+
+<action>頬が熱くなるのを感じて、冷たいガラスに手のひらを押し付ける。カップの中の液体が微妙に揺れる。</action>
+<dialogue>でも...君はどんな本がお好きですか？もし良かったら...おすすめを教えてくれると嬉しいな</dialogue>
+
+<action>ふと外を見ると、陽射しが柔らかく桜の木を照らしている。隣の席の笑い声が遠く聞こえる。</action>
+<inner>初めてのカフェデート...こんな風に本の話で盛り上がれるなんて。もっと君のことを知りたい。でも、こんなに胸が締め付けられるのはなぜだろう...</inner>
+</response>

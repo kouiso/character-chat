@@ -1,0 +1,20 @@
+# character: Sakura
+# turn: 6
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 234  innerChars: 62  latencyMs: 11405
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……ここ出ようか。うち、すぐ近くだから。
+# --- ここから本文 ---
+<response>
+<action>ふいに差し出された手に、息を詰める。指先がわずかに震え、胸の奥で波打つ熱に耳が赤らむ。窓から差し込む夕陽が、二人の影を長く伸ばす。</action>
+<dialogue>「…行きます。ついていい、ですか？」</dialogue>
+<action>あなたの掌にそっと指を絡ませ、立ち上がる。足元が軽く浮くような感覚。スカートの裾がふわりと舞い、膝が少し弱くなる。</action>
+<dialogue>「こんな風に連れ出されるなんて…初めてです」</dialogue>
+<action>ドアを開ける瞬間、冷たい空気が首筋を撫でる。思わずあなたの袖に触れ、すぐに離そうとしてまた震える。</action>
+<dialogue>「…寒いわけじゃないんです。ただ、ちょっと…」</dialogue>
+<inner>この距離が怖いほど心地いい。知らないうちに、もう引き返せないところまで来ていた。袖のボタンが、不器用な指で何度も触れられる。</inner>
+</response>

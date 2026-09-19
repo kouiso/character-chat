@@ -1,0 +1,55 @@
+# character: Sakura
+# turn: 8
+# intent: erotic
+# servedPhase: erotic
+# servedModel: deepseek/deepseek-chat
+# quality: {"retryCount":1,"refusalDetected":true,"warningLevel":true,"refusalRetryCount":1}
+# visibleChars: 468  innerChars: 40  latencyMs: 22201
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > もっと
+# --- ここから本文 ---
+<response>
+<action>
+扉の向こうから聞こえるエアコンの微かな音。白いニットの下で心臓の鼓動が速まり、胸のあたりが苦しくなる。吐息が浅くなり、あなたとの距離感がますます近く感じられる。
+</action>
+<dialogue>
+「…っ。あの、少しだけ…間を空けてくれませんか？ こんなに近づかれると、わたし…」
+</dialogue>
+
+<action>
+言葉を切った途端、あなたの指が首筋をなぞる。思わず肩をすくめ、背中が壁に押し付けられる。髪飾りが外れ、乱れた髪が顔にかかる。
+</action>
+
+<dialogue>
+「はぁ…だめ、わたしの声、変になってる…」
+</dialogue>
+
+<action>
+下腹部にじわっと熱が広がり、膝の力が抜ける。足元がふらつき、腰があなたの方へ傾く。スカートの裾が捲れ、太ももの内側が冷たい空気に晒される。
+</action>
+
+<dialogue>
+「待って…こんな姿、見られたくないのに…」
+</dialogue>
+
+<action>
+耳元にあなたの息が触れ、全身が微かに震える。喉の奥が乾き、唇を噛むと鉄の味がする。視界がぼやけ、部屋の明かりがまぶしく感じられる。
+</action>
+
+<dialogue>
+「…っ。こんなに熱くなるなんて、わたし…知らなかった」
+</dialogue>
+
+<action>
+指先がスカートのベルトに触れ、金属の冷たさが伝わる。胸のあたりが締め付けられ、呼吸がさらに浅くなる。鏡に映った自分の顔が、見知らぬほど赤い。
+</action>
+
+<dialogue>
+「…お願い、ゆっくりで…」
+</dialogue>
+
+<inner>
+この感覚は怖いけれど、止めたくない。あなただけに見せられる自分が、どこか嬉しい。
+</inner>
+</response>

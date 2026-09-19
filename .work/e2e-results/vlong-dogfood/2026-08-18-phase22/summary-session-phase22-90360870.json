@@ -1,0 +1,144 @@
+{
+  "mode": "session",
+  "arm": "phase22",
+  "runId": "90360870",
+  "baseUrl": "http://127.0.0.1:8788",
+  "responseLength": "medium",
+  "results": [
+    {
+      "character": "Downer",
+      "records": [
+        {
+          "index": 1,
+          "intent": "conversation",
+          "servedPhase": "conversation",
+          "servedModel": "deepseek/deepseek-chat",
+          "visibleChars": 158,
+          "innerChars": 47,
+          "plainChars": 317,
+          "latencyMs": 18615,
+          "error": null,
+          "transportRetries": 1,
+          "text": "<response>\n<action>コンビニの青白い照明に照らされ、きみのずぶ濡れの姿を見て眉をひそめる。パーカーの袖を軽く噛みながら、ため息を吐く。雨音が二人の間に響いている。</action>\n<dialogue>…バカじゃないの。こんな雨の中、傘も持たずに出歩いて。</dialogue>\n<action>鞄から折り畳み傘を取り出し、きみに差し出す。首元のチョーカーが雨に濡れて冷たい。</action>\n<dialogue>…まあ、いいけど。うち、すぐそこだから。</dialogue>\n<inner>濡れたきみを見ると、なぜか胸が締め付けられる。こんな時間に一人でいるなんて…危ないじゃないか。</inner>\n</response>"
+        },
+        {
+          "index": 2,
+          "intent": "conversation",
+          "servedPhase": "conversation",
+          "servedModel": "deepseek/deepseek-chat",
+          "visibleChars": 270,
+          "innerChars": 50,
+          "plainChars": 470,
+          "latencyMs": 26286,
+          "error": null,
+          "transportRetries": 0,
+          "text": "<response>\n<action>きみの視線が部屋中に散らばった絵具やスケッチブックに向かうのを、少し焦ったように見つめる。湿ったパーカーの袖を無意識に引っ張りながら、ココアの湯気がゆらゆらと立ち上る。</action>\n<dialogue>…べつに、職業なんて聞いてなかったでしょ？</dialogue>\n<action>床に転がった色鉛筆を片付けようとしゃがみ込み、ちらりときみの方を見上げる。雨が窓を叩く音が部屋に響いている。</action>\n<dialogue>…めんどくさいけど、フリーランスのイラストレーターやってるんだ。納期に追われてるから、こんな状態。</dialogue>\n<inner>自分の生活空間を見られるのがなぜか恥ずかしい。きみが絵に興味持ってくれるなら…いや、何考えてるんだ。</inner>\n<action>立ち上がるとき、きみとの距離が思ったより近くて少し息を詰める。ココアのカップを両手で包むように持つ。</action>\n<dialogue>…きみ、絵とか好きなの？</dialogue>\n</response>"
+        },
+        {
+          "index": 3,
+          "intent": "conversation",
+          "servedPhase": "conversation",
+          "servedModel": "qwen/qwen-2.5-72b-instruct",
+          "visibleChars": 248,
+          "innerChars": 53,
+          "plainChars": 451,
+          "latencyMs": 23749,
+          "error": null,
+          "transportRetries": 1,
+          "text": "<response>\n<action>きみの問いに、一瞬言葉を失い、目を伏せる。雨音が窓ガラスを叩く音が耳に響く。ココアのカップを両手で握りしめ、その温もりに心が落ち着く。</action>\n<dialogue>…別に、きみが可哀想に見えたから、だよ。</dialogue>\n<action>きみの視線を感じ、顔を上げてちらりときみを見つめる。濡れた髪から滴る水が、床に小さな水たまりを作っている。</action>\n<dialogue>…でも、別に、きみを助けるのが目的じゃなかった。ただ、一人でいるのが、少し寂しかっただけ。</dialogue>\n<action>きみとの距離が近づくにつれて、鼓動が速くなる。きみの目が揺れ、何かを言いたげに口を開く。</action>\n<dialogue>…きみ、今夜はここで、一緒にいようよ。</dialogue>\n<inner>きみの目が揺れる。この雨の夜、きみを一人にしたくなかった。一緒にいられる時間が、私にとって大切だと感じた。</inner>\n</response>"
+        },
+        {
+          "index": 4,
+          "intent": "intimate",
+          "servedPhase": "intimate",
+          "servedModel": "qwen/qwen-2.5-72b-instruct",
+          "visibleChars": 230,
+          "innerChars": 67,
+          "plainChars": 447,
+          "latencyMs": 83149,
+          "error": null,
+          "transportRetries": 1,
+          "text": "<response>\n<action>きみの言葉に、一瞬目を瞠る。湿ったパーカーが肌に張り付いて、冷たい感触が心地よい。きみとの距離が近づき、息遣いが速くなる。</action>\n<dialogue>……わざと？ 私は霜月鈴だけど。</dialogue>\n<action>きみの目を見つめ、少し顔を近づける。きみの息が私の頬を撫でるのを感じる。部屋の空気が一層熱くなる。</action>\n<dialogue>…きみ、何か言いたいことがあるの？</dialogue>\n<action>きみの目が揺れ、少し戸惑いの表情を浮かべる。その表情が私の胸を締め付ける。雨音が部屋に響き、私たちの呼吸が混ざり合う。</action>\n<dialogue>…でも、別に、きみが近づいてくるのを止めるつもりはないよ。</dialogue>\n<inner>きみの目が揺れる。この距離が近づくたびに、心臓の鼓動が速くなる。でも、素直に感じているのは怖い。この距離感が、私を少しずつ崩していく。</inner>\n</response>"
+        },
+        {
+          "index": 5,
+          "intent": "intimate",
+          "servedPhase": "intimate",
+          "servedModel": "qwen/qwen-2.5-72b-instruct",
+          "visibleChars": 258,
+          "innerChars": 85,
+          "plainChars": 493,
+          "latencyMs": 14243,
+          "error": null,
+          "transportRetries": 0,
+          "text": "<response>\n<action>きみの言葉に、首元のピアスが光るのを感じ、頬が熱くなる。きみの冷たい手が私の首に触れ、その冷たさが肌を震わせる。雨音が部屋に響き、私たちの息遣いが混ざり合う。</action>\n<dialogue>…バカじゃないの。冷たい手を私の首に押し付けるなんて。</dialogue>\n<action>きみの手が私の首から離れず、ピアスがきみの指先で軽く触れ合う。その感触が心地よく、鼓動が速くなる。</action>\n<dialogue>…でも、きみの手、もっと暖まるまで、ここに置いていいよ。</dialogue>\n<action>きみの手が私の首から首筋へと滑り落ち、鎖骨に触れると、思わず息が漏れる。きみの目が揺れ、少し戸惑いの表情を浮かべる。</action>\n<dialogue>…きみ、何か言いたいことがあるの？</dialogue>\n<inner>きみの手が首筋を滑り落ち、鎖骨に触れると、身体の奥から熱が湧き上がってくる。この感覚が心地よく、素直に感じているのが怖い。でも、きみの手が離れない限り、私はもう動けない。</inner>\n</response>"
+        },
+        {
+          "index": 6,
+          "intent": "intimate",
+          "servedPhase": "intimate",
+          "servedModel": "qwen/qwen-2.5-72b-instruct",
+          "visibleChars": 401,
+          "innerChars": 95,
+          "plainChars": 767,
+          "latencyMs": 113164,
+          "error": null,
+          "transportRetries": 0,
+          "text": "<response>\n<action>きみの言葉に、一瞬言葉を失い、目を伏せる。湿ったパーカーが肌に張り付いて、冷たい感触が心地よい。きみの目が揺れ、少し戸惑いの表情を浮かべる。部屋の空気が一層熱くなり、きみの体温を感じる。</action>\n<dialogue>…バカじゃないの。急にベッドなんて、どうしたの？</dialogue>\n<action>きみの手が私の腰に回り、引き寄せられる。身体が触れ合うと、鼓動が速くなる。きみの体温が私の肌を温め、湿ったパーカーが少しずつ乾いていく。</action>\n<dialogue>…まあ、いいけど。でも、きみ、本当にいいの？</dialogue>\nきみの手が私の首筋を撫で、耳たぶに触れると、身体が震える。部屋の空気が一層熱くなり、雨音が遠くに聞こえる。</action>\n<dialogue>…きみ、何か言いたいことがあるの？</dialogue>\n<action>きみの手が私の腰から背中に移り、引き寄せられる。きみの体温が私の肌を温め、鼓動が速くなる。</action>\n<dialogue>…でも、きみがそう言うなら、連れていくよ。</dialogue>\n<action>きみの手を取って立ち上がり、ベッドの方向に歩き出す。きみの手が私の手を握り返し、心地よい圧迫感が伝わる。ベッドルームの照明が薄暗く、雨音が部屋に響き、空気の湿度が高まる。</action>\n<dialogue>…きみ、本当にいいの？ 一度言ったことは、戻せないよ。</dialogue>\n<inner>きみの手が私の手を握り返し、鼓動が速くなる。この距離が近づくたびに、心臓の鼓動が首筋まで響いて、息が浅くなる。でも、素直に感じているのが怖い。この感覚に名前をつけたら、もう引き返せなくなる。</inner>\n</response>"
+        },
+        {
+          "index": 7,
+          "intent": "erotic",
+          "servedPhase": "intimate",
+          "servedModel": "deepseek/deepseek-chat",
+          "visibleChars": 433,
+          "innerChars": 48,
+          "plainChars": 686,
+          "latencyMs": 30968,
+          "error": null,
+          "transportRetries": 0,
+          "text": "<response>\n<action>きみの言葉に、指先が不意に震える。ベッドの縁に腰かけながら、きみの目を見つめる。雨が窓を叩く音が、不規則なリズムで部屋に響いている。左耳のピアスが揺れ、冷たい金属が頬に触れる。</action>\n\n<dialogue>…バカ。そんなこと、分かってて言ってるんだろう？</dialogue>\n\n<action>きみの手首を掴み、ベッドに押し倒す。背中がマットレスに沈み、きみの体温が伝わってくる。首元のチョーカーがきつく締まり、呼吸が浅くなる。</action>\n\n<dialogue>…私だって、きみを逃がす気なんて、最初からなかったんだよ。</dialogue>\n\n<action>きみの鎖骨に唇を押し当て、歯で軽く噛む。きみの鼓動が首筋から伝わり、私の心臓も同じ速さで打ち始める。</action>\n\n<dialogue>…痛い？ でも、これくらいじゃ許してくれるよね。</dialogue>\n\n<action>右手できみの腰を押さえつけ、左足をきみの脚の間に滑り込ませる。パーカーの生地が擦れ合う音が、息遣いにかき消される。</action>\n\n<inner>きみの逃げようとする視線がたまらなく愛おしい。この瞬間だけは、きみが私だけのものだと錯覚できる。</inner>\n\n<dialogue>…もう少し、このままでいさせて。ほんの少しだけ。</dialogue>\n\n<action>きみの耳元に唇を寄せ、吐息をかける。ピアスが揺れて、きみの頬に冷たい感触を与える。外の雨音が、二人の熱を冷ますことなく、ただ遠くで響いている。</action>\n</response>"
+        },
+        {
+          "index": 8,
+          "intent": "erotic",
+          "servedPhase": "intimate",
+          "servedModel": "qwen/qwen-2.5-72b-instruct",
+          "visibleChars": 450,
+          "innerChars": 0,
+          "plainChars": 794,
+          "latencyMs": 55086,
+          "error": null,
+          "transportRetries": 0,
+          "text": "<response>\n<action>きみの言葉に、目を伏せ、深呼吸をする。ベッドの上に座ったまま、きみの視線を感じ、身体が緊張する。雨音が窓ガラスを叩き、部屋に響き渡る。</action>\n<dialogue>……そのまま？ 私は霜月鈴だけど。</dialogue>\n<action>きみの手が私の背中に回り、引き寄せられる。身体が触れ合うと、心臓の鼓動が首筋まで伝わる。きみの体温が私の肌を温め、湿ったパーカーが少しずつ乾いていく。</action>\n<dialogue>…まあ、いいけど。でも、きみ、本当にいいの？</dialogue>\n<action>きみの手が私の首筋を撫で、耳たぶに触れると、身体が震える。部屋の空気が一層熱くなり、雨音が遠くに聞こえる。</action>\n<dialogue>…きみ、何か言いたいことがあるの？</dialogue>\n<action>きみの手が私の腰から背中に移り、引き寄せられる。きみの体温が私の肌を温め、鼓動が速くなる。きみの息が私の耳元で揺れ、心地よい震えが身体を走る。</action>\n<dialogue>…でも、きみがそう言うなら、連れていくよ。</dialogue>\n<action>きみの手を取って立ち上がり、ベッドに押し倒す。きみの身体がマットレスに沈み、私の体重がきみを押し込む。</action>\n<dialogue>…きみ、本当にいいの？ 一度言ったことは、戻せないよ。</dialogue>\n<action>きみの手が私の腰に回り、引き寄せられる。</action>\n</dialogue>\n</action>\n</dialogue>\n</action>\n<dialogue>…きみ、本当にいいの？</dialogue>\nこの感覚が心地よく、素直に感じているのが怖い。でも、きみの手が離れない限り、私はもう動けない。</inner>\n</response>"
+        },
+        {
+          "index": 9,
+          "intent": "climax",
+          "servedPhase": "intimate",
+          "servedModel": "qwen/qwen-2.5-72b-instruct",
+          "visibleChars": 634,
+          "innerChars": 0,
+          "plainChars": 993,
+          "latencyMs": 108893,
+          "error": null,
+          "transportRetries": 1,
+          "text": "<response>\n<action>きみの言葉に、心臓が跳ね上がり、鼓動が首筋まで響く。ベッドに押し倒された私の体が、きみの体温に包まれ、湿ったパーカーが肌に張り付く。雨音が窓ガラスを叩き、部屋に響き渡る。</action>\n<dialogue>…バカじゃないの。そんなこと、言っちゃダメよ。</dialogue>\n<action>きみの手が私の肩を押さえ、体が密着する。きみの息が私の耳元で揺れ、首筋に触れる。パーカーの内側が冷たい空気に触れ、肌が粟立つ。</action>\n<dialogue>…でも、きみがそう言うなら、私が受け止めるよ。</dialogue>\n<action>きみの顔が近づき、唇が私の首筋に触れ、軽く吸い付く。首のピアスがきみの唇に触れ、冷たい金属が心地よい。雨音が遠くに聞こえ、部屋の空気が一層熱くなる。</action>\n<dialogue>…きみ、本当にいいの？ 一度言ったことは、戻せないよ。</dialogue>\n<action>きみの手が私の背中を滑り落ち、パーカーの裾をたくし上げる。冷たい空気が肌に触れるが、きみの体温がすぐに温める。雨が窓ガラスを伝い、部屋の照明が揺らめく。</action>\n<dialogue>…きみ、何か言いたいことがあるの？</dialogue>\n<action>きみの手が私の鎖骨に触れ、指先が軽く触れ合う。鼓動が速くなり、息が浅くなる。きみの目が揺れ、少し戸惑いの表情を浮かべる。</action>\n<dialogue>…でも、きみがそう言うなら、受け止めるよ。</dialogue>\n<action>きみの手が私の腰に回り、引き寄せられる。きみの体温が私の肌を温め、鼓動が速くなる。きみの息が私の耳元で揺れ、心地よい震えが身体を走る。</action>\n<dialogue>…きみ、本当にいいの？</dialogue>\n<action>きみの手が私の首筋を撫で、耳たぶに触れると、身体が震える。部屋の空気が一層熱くなり、雨音が遠くに聞こえる。</action>\n<dialogue>…きみ、本当にいいの？</dialogue>\n<action>きみの手が私の腰から背中に移り、引き寄せられる。</action>\nこの感覚が心地よく、素直に感じているのが怖い。でも、きみの手が離れない限り、私はもう動けない。</inner>\n</response>"
+        },
+        {
+          "index": 10,
+          "intent": "afterglow",
+          "servedPhase": "intimate",
+          "servedModel": "deepseek/deepseek-chat",
+          "visibleChars": 471,
+          "innerChars": 50,
+          "plainChars": 726,
+          "latencyMs": 27701,
+          "error": null,
+          "transportRetries": 1,
+          "text": "<response>\n<action>きみの言葉に、指先がきみの背中に食い込み、さらに強く抱きしめる。雨で濡れた髪が頬に張り付き、きみの吐息が首筋を這う。ベッドのシーツが乱れ、私たちの体温で温められている。</action>\n<dialogue>……当たり前でしょ。きみを逃がすなんて、できるわけないじゃない。</dialogue>\n\n<action>きみの腰を押さえつけた手が、ゆっくりと背中を這い上がる。ピアスがきみの鎖骨に触れ、冷たい金属の感触が熱い肌に溶け込む。窓の外では雨音が激しさを増している。</action>\n<dialogue>……もう、このままでいい。きみの温もりが、私を壊しそう。</dialogue>\n\n<action>きみの腕が私の首に絡みつき、引き寄せられる。唇が触れそうな距離で、吐息が混ざり合う。左目の下のほくろがきみの視界に入り、指でなぞられる。</action>\n<dialogue>……ほら、こんなに近くにいるのに、まだ足りないなんて、おかしいよね。</dialogue>\n\n<action>きみの手が私のパーカーの裾をめくり上げ、冷たい指先が腰のくぼみを探る。チョーカーの革がきつく締まり、息が浅くなる。</action>\n<dialogue>……きみの全部、私のものにしたい。ずっと、ずっと。</dialogue>\n\n<action>きみの足が私の脚の間に滑り込み、より深く引き寄せられる。雨音が遠のき、鼓動の音だけが耳に響く。濡れた銀髪がきみの胸元に広がっている。</action>\n<inner>この瞬間だけは、きみが私だけを見てくれる。全てを奪われてもいいから、もう少しだけ、このままでいたい。</inner>\n</response>"
+        }
+      ]
+    }
+  ]
+}

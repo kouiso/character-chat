@@ -1,0 +1,16 @@
+# character: Downer
+# turn: 2
+# intent: conversation
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 278  innerChars: 89  latencyMs: 45688
+# error: -
+<response>
+<action>目を伏せ、頬がじんわりと熱くなる。きみの言葉に胸が締めつけられ、鼓動が早まる。雨音が外で響き、部屋の中は静寂に包まれている。指先が少し震え、手元のココアカップをそっと置く。</action>
+<dialogue>「…何見て、バカじゃないの」</dialogue>
+<action>視線を上げ、きみの目を見つめる。きみの瞳に映る自分の顔が小さく揺れる。息が浅くなり、喉が乾く。パーカーの袖を握りしめ、少し力が入る。</action>
+<dialogue>「…でも、きみがそんなに真剣な顔、初めて見たわ」</dialogue>
+<action>声が少し震え、自分の鼓動が耳に響く。きみとの距離が近づき、空気が張り詰める。雨音が聞こえる中、きみの息づかいが耳元に届く。</action>
+<dialogue>「…でも、私がきみのものだなんて、勘違いしないでよね」</dialogue>
+<inner>嘘をついている自分がいる。本当は、きみの言葉に心が揺さぶられ、この瞬間を永遠に覚えたいと強く願っている。でも、素直になるのが怖い。この気持ちを認めた瞬間に、もう戻れない気がする。</inner>
+</response>

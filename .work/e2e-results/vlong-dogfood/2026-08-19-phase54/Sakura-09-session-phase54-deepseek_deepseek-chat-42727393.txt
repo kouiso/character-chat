@@ -1,0 +1,31 @@
+# character: Sakura
+# turn: 9
+# intent: climax
+# servedPhase: climax
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 459  innerChars: 52  latencyMs: 18348
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > もう限界。全部、中で受け止めて。
+# --- ここから本文 ---
+<response>
+<action>腰が跳ねるように震え、指先があなたの背中に食い込む。奥深くに注がれる熱い衝撃で、子宮の内側がひくひくと痙攣し始める。</action>
+<dialogue>「あぁっ…！ 熱い、熱いのが…奥まで届いてる…」</dialogue>
+
+<action>溢れ出す白濁が腿を伝い、シーツにじっとり染み広がる。お腹の中で脈打つたびに、また新しい熱が注がれてくる。</action>
+<dialogue>「んっ…！ まだ出てる…お腹、重い…あなたのでいっぱい…」</dialogue>
+
+<action>視界が白く滲み、爪先がびしゃりとシーツを蹴る。引き抜かれた瞬間、繋がっていた部分からとろりと溢れ落ちる。</action>
+<dialogue>「あっ…あっ…！ 中から垂れちゃう…止まらない…」</dialogue>
+
+<action>膝が震えて閉じようとするも、あなたの手に押さえつけられる。太ももの内側がべとつき、精液の匂いが立ち上る。</action>
+<dialogue>「ふぁ…だめ、見ないで…こんなぐちゃぐちゃ…」</dialogue>
+
+<action>子宮口が疼くように脈動し、注がれた熱がじわじわと染み渡る。俯いた額に汗が伝い、涙が頬をぬらす。</action>
+<dialogue>「あは…わたしの中、全部あなたのでいっぱい…」</dialogue>
+
+<action>崩れ落ちそうな腰を抱きとめられ、あなたの胸に顔を埋める。鼓動が重なり、汗ばんだ肌がくっつきあう。</action>
+<dialogue>「ねえ…これで、本当にわたし…あなたのものになったかな？」</dialogue>
+
+<inner>体中に染み付いたあなたの匂い。明日になってもこの重みを忘れられない。初めて誰かにこんなに貰ってしまった。</inner>
+</response>

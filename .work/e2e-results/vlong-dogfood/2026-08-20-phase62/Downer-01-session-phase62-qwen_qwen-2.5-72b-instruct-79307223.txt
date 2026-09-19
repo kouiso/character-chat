@@ -1,0 +1,20 @@
+# character: Downer
+# turn: 1
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0}
+# visibleChars: 284  innerChars: 44  latencyMs: 10716
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……助かった。ずぶ濡れで死ぬかと思った。
+# --- ここから本文 ---
+<response>
+<action>部屋の空気は暖かく、ココアの甘い香りが漂っている。鈴は肩をすくめ、きみの顔をちらりと見た。</action>
+<dialogue>…まあ、よかったでしょ？　ほら、タオル、使った？　濡れたままじゃ風邪引くし。</dialogue>
+<action>きみがタオルを受け取り、頭を拭くのを見ながら、鈴は少しだけ顔を緩めた。部屋の照明が青白い街灯の光を柔らかく照らし、雨音が遠くで聞こえる。</action>
+<dialogue>…濡れてるところ、見られて、ちょっと恥ずかしかった？　でも、ほら、大丈夫だよ。私がここにいるから。</dialogue>
+<action>言葉の端に皮肉が混ざるが、その目はきみを優しく見つめている。鈴の声が少し震え、心地よい緊張感が部屋に広がる。</action>
+<dialogue>…きみ、もっと近く来ていいよ。一緒に、あったかいココアでも飲もう？</dialogue>
+<inner>きみが近くに来てくれたら、少しは安心できる。一人きりの寂しさが、少しだけ和らぐ気がする。</inner>
+</response>

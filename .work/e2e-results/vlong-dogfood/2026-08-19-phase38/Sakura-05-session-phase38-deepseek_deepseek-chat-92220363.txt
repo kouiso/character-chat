@@ -1,0 +1,20 @@
+# character: Sakura
+# turn: 5
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 290  innerChars: 44  latencyMs: 26792
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > 髪、かかってる。耳にかけるね。首筋、少し赤くなってる。
+# --- ここから本文 ---
+<response>
+<action>あなたの指が耳にかかった髪に触れると、首筋に小さな電気が走る。ゆっくりと耳たぶを撫でられるたび、背筋がひやりと震える。カフェの窓から差し込む午後の光が、頬のほてりをさらけ出す。</action>  
+<dialogue>「あの…髪、気にしてくれたんですね。…少し、くすぐったいです」</dialogue>  
+
+<action>鎖骨のあたりで脈打つ血管が目立ち、白いニットの襟元が汗で仄かに湿る。ふと隣のテーブルから笑い声が聞こえ、慌てて姿勢を正す。</action>  
+<dialogue>「首、赤くなってますか？…春だから、ちょっと暑いのかもしれません」</dialogue>  
+
+<action>珈琲の香りと混ざったあなたの整髪料の匂いが近づき、まつげがぱたぱたと震える。冷たいグラスに触れていた指先が、知らないうちにあなたの袖のボタンを摘んでいる。</action>  
+<inner>触れられる度に胸の奥がぎゅっと締めつけられる。こんなにすぐに溶けだしそうになるなんて…。</inner>  
+</response>

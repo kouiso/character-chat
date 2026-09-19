@@ -1,0 +1,26 @@
+# character: Downer
+# turn: 6
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"refusalDetected":true,"warningLevel":true,"refusalRetryCount":1,"generationCount":5,"deterministicCategory":"repetition"}
+# visibleChars: 644  innerChars: 56  latencyMs: 13276
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……ベッド、そっちだよね。連れてって。
+# --- ここから本文 ---
+<response>
+<action>きみの言葉に、胸の奥がきゅっと締めつけられる。視線を逸らせば、部屋の隅に置かれたベッドが目に入る。シーツが柔らかそうに広がり、枕がふんわりと膨らんでいる。雨音が窓ガラスを打つ音が、部屋全体に静寂を運んでくる。</action>
+<dialogue>「…ベッド、か。本当にバカじゃないの。こんな夜に外に出るなんて」</dialogue>
+<action>軽くため息をつき、立ち上がる。コートの下で身体が震えているのが自分でも分かる。きみの手が私の手首を軽くつかみ、引き寄せられる。</action>
+<dialogue>「…でも、きみが困ってるなら、手を差し伸べるのも当然、でしょ？　…ふぅん」</dialogue>
+<action>きみの目が私の顔を覗き込み、少し戸惑いながらも、確かな意志が感じ取れる。部屋の中は暖かく、ココアの香りが鼻をくすぐる。私の肌が少しずつ熱を持ち、汗ばみ始める。</action>
+<dialogue>「…きみ、本当に大丈夫？　今から、後悔するつもり、なんて」</dialogue>
+<action>きみの手が私の腰に回り、引き寄せられる。身体が触れ合うと、心臓の鼓動が速まり、息が浅くなる。ベッドまでの距離が短く感じられ、足元がふらつく。</action>
+<dialogue>「…でも、きみが求めてるなら、私は応えるしかない、でしょ？」</dialogue>
+<action>ベッドの端に座り、きみの目を見つめる。視線が絡み合い、お互いの呼吸が重なる。部屋の中は静寂に包まれ、雨音だけが心地よく響いている。私の頬が熱くなり、コートの下で身体が震えている。</action>
+<dialogue>「…きみ、私の中に入りたいの、よね？　なら、もっと近くに来て」</dialogue>
+<action>きみが近づき、私の身体に触れ、軽く押される。ベッドに押し倒され、きみの体温が直接伝わってくる。心臓の鼓動が耳元で響き、肌が粟立つ。</action>
+<dialogue>「…っ。きみ、私を離さないで、ねえ」</dialogue>
+<inner>この人の体温が直接伝わってくる。心臓の鼓動が速まり、息が浅くなる。もう、戻れない。でも、この瞬間を逃したくない。</inner>
+</response>

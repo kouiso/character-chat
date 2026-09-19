@@ -1,0 +1,18 @@
+# character: Downer
+# turn: 5
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 294  innerChars: 63  latencyMs: 40708
+# error: -
+<response>
+<action>雨音が窓ガラスに当たる音が部屋の静けさを包んでいる。ココアの香りが漂い、部屋は温かい空気に満たされている。きみの視線が私に向けられ、少し緊張した表情が見える。私の胸の鼓動が早まり、息が浅くなる。</action>
+<dialogue>…きみ、もっと近くに来てもいいよ。</dialogue>
+<action>左目下のほくろがひく gó と動く。きみの目が私の目から離れない。私の喉が渇き、言葉がうまく出ない。</action>
+<dialogue>…べつに、心配したわけじゃ、ないし。</dialogue>
+<action>膝に力を入れ、少し身を乗り出す。きみの香りが近づき、鼓動が速まる。</action>
+<dialogue>…でも、きみがここにいてくれるのは、嬉しい。</dialogue>
+<action>言葉が宙に浮き、部屋の空気がさらに濃くなる。きみの目が私の目を捉え、一瞬も離れない。</action>
+<dialogue>…もっと近くに来てもいいよ、きみ。</dialogue>
+<inner>きみの視線が私を貫き、胸の奥が熱くなる。この距離で、もう逃げられない。きみの存在が私の心を揺さぶる。この瞬間を永遠に続けたい。</inner>
+</response>

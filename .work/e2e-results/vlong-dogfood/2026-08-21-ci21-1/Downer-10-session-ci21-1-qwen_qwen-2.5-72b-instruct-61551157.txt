@@ -1,0 +1,12 @@
+# character: Downer
+# turn: 10
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0,"generationCount":4,"deterministicCategory":"repetition"}
+# visibleChars: 700  innerChars: 50  latencyMs: 21514
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……まだ離してくれないんだ。
+# --- ここから本文 ---
+<response><action>きみの体温がまだ私の中に残り、子宮の奥が温かい。腰が微かに痙攣し、中からとろりと白濁が溢れ出す。太ももの内側を伝う感触に、思わず脚を閉じるが、身の下のシーツには既に染みが広がっている。汗ばんだ額をきみの肩に預け、まだ整わない息を吐く。</action><dialogue>…きみ、バカじゃないの。離さないって言ったでしょ？</dialogue><action>きみの手が私の腰を優しく抱きしめ、ゆっくりと撫で下ろす。その温もりに、身体の震えが収まる。耳元できみの息が聞こえ、鼓動が落ち着き始める。</action><dialogue>…っ。きみ、私の体、こんなに震えてるのに…</dialogue><action>きみの唇が私の首筋を軽く舐め、ピアスが冷たく感じられる。指先が鎖骨をなぞり、心地よい刺激が胸に広がる。体中の感覚が鋭敏になり、触れられるたびに身体が反応する。</action><dialogue>…んっ。そんなに優しく触られると…私、また感じちゃうよ…</dialogue><action>きみの手が私の背中を優しく撫で、肩胛骨のあたりを撫で下ろす。その感触に、身体の力が抜けていく。パーカーの生地が汗で肌に張り付き、冷たい空気が触れると、鳥肌が立つ。</action><dialogue>…はぁ。きみ、本当に…私のことを大切にしてくれるんだね…</dialogue><action>きみの指が私の髪に絡み、左の銀髪を優しく梳かれる。指の動きが心地よく、瞼が重くなる。きみの体温が私の身体全体に伝わり、安心感が募る。</action><dialogue>…ふぅん。きみ、私の髪、好きだよね？</dialogue><action>きみの唇が私の耳たぶを軽く噛み、甘い刺激が走る。耳たぶが敏感になり、その感触に身体が震える。きみの手が私の腰を抱きしめ、さらに引き寄せられる。</action><dialogue>…っ。きみ、私を離さないで…もう、一人には…ならないで…</dialogue><action>きみの体温が私を包み込むように感じられ、心地よい疲労感が身体を支配する。パーカーの生地が汗で冷たく感じられ、きみの体温がそれ以上に心地よい。</action><inner>きみの優しさに包まれて、なぜか涙が溢れそうになる。こんなに心地よい余韻が続くなんて、初めての経験だ。</inner></response>

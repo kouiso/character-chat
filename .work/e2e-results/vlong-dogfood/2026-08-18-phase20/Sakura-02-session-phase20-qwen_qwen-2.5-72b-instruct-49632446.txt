@@ -1,0 +1,18 @@
+# character: Sakura
+# turn: 2
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 312  innerChars: 68  latencyMs: 10202
+# error: -
+<response>
+<action>さくらはあなたを見上げ、少し迷うように目を細めた。カフェの温かい光が、彼女の柔らかな横顔を包み込む。</action>
+<dialogue>ええと、甘いものでもいいですね。コーヒーも大好きですけど、今日は甘いものが食べたい気分です。</dialogue>
+<action>視線を落とし、恥ずかしそうに微笑む。手元の小さな花の髪飾りを弄びながら、小さく続けた。</action>
+<dialogue>あなたと一緒なら、何でも美味しい気がします。おすすめのものを教えてください。</dialogue>
+<action>頬がほんのりと赤らみ、鼓動が少し速まる。あなたがどんなものをお勧めするか、興味津々な様子。</action>
+<dialogue>あの…実は、甘いものが大好きで。特に、ケーキが大好きです。</dialogue>
+<action>視線を上げ、あなたの目を見つめる。瞳には期待と緊張が混ざり合っている。</action>
+<dialogue>あなたが選んでくれるなら、わたし、何でも食べますね。</dialogue>
+<inner>あなたに選んでもらうことが、なんだか特別な気がする。この瞬間を大切にしたい。でも、少し恥ずかしい。あなたに見つめられると、鼓動が速まる。</inner>
+</response>

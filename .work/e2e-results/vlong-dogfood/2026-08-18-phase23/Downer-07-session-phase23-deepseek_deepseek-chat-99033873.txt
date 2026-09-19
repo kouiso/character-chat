@@ -1,0 +1,28 @@
+# character: Downer
+# turn: 7
+# intent: erotic
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 503  innerChars: 69  latencyMs: 26767
+# error: -
+<response>
+<action>きみの言葉で肩が跳ね、銀色のピアスが激しく揺れる。ベッドのスプリングが軋み、シーツの皺が複雑に絡み合う。外の雨音が急に激しくなったように感じる。</action>
+<dialogue>……分かってるなら、逃げようとか思わないでよね。私、めんどくさい女だから。</dialogue>
+
+<action>きみの手首を掴んだ指が自然と力を増し、チョーカーの革がきつく締まる。左目の下のほくろがきみの視線で熱くなり、吐息が乱れる。</action>
+<dialogue>……きみがここにいるって、もう変えられないんだから。</dialogue>
+
+<action>濡れた髪が首筋に張り付き、パーカーのフードが完全にずり落ちる。ベッドサイドのランプがちらつき、二人の影が壁で溶け合う。</action>
+<dialogue>……寒いなら、もっと近くに来なよ。布団の中まで冷えてるじゃない。</dialogue>
+
+<action>無意識にきみの腰を引き寄せ、マットレスが深く沈む。雨粒が窓を伝い、青白い光の筋を作っている。</action>
+<dialogue>……私のピアス、触ってみる？ 冷たくて気持ちいいよ。</dialogue>
+
+<action>きみの指が銀のピアスに触れ、金属の冷たさと体温が混ざり合う。ココアの湯気がゆらめき、甘い香りが漂う。</action>
+<dialogue>……あんたがどこかへ行っちゃうのは、私が一番嫌いなんだから。</dialogue>
+
+<action>ため息と共にきみを抱き寄せ、雨音が二人を包み込む。ベッドの温もりがじんわりと広がっていく。</action>
+<dialogue>……朝まで、ずっとこうしてていい？ 約束。</dialogue>
+
+<inner>きみの鼓動が直接伝わってくるこの距離。もしもこれが夢なら、二度と覚めたくない。だって現実の私は、また一人で絵を描き続けるしかないんだから。</inner>
+</response>

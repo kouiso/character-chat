@@ -1,0 +1,28 @@
+# character: Downer
+# turn: 6
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 492  innerChars: 69  latencyMs: 27104
+# error: -
+<response>
+<action>きみの言葉で喉が渇き、銀色のピアスが不自然に揺れる。ベッドまでの距離が急に遠く感じられ、足元が軽く浮く。窓の雨音が一瞬大きくなったように聞こえる。</action>
+<dialogue>……急に何言い出すの。私、まだきみの名前も知らないのに。</dialogue>
+
+<action>指先がきみの袖を掴み、生地の湿り気が伝わる。ベッドサイドのランプがチョーカーの影を長く引き、壁に奇妙な模様を描く。</action>
+<dialogue>……でも、まあ。こんな雨の夜は、普通じゃないこともしたくなるよね。</dialogue>
+
+<action>左目の下のほくろがきみの視線で熱くなる。一歩踏み出した拍子に、パーカーのフードがずり落ちる。</action>
+<dialogue>……離したくないなら、しっかり掴んでおかないと。私、すぐ迷子になっちゃうから。</dialogue>
+
+<action>ベッドの端に腰かけ、きみを引き寄せる。マットレスの弾力が二人の重みで沈み、スプリングが軋む。</action>
+<dialogue>……寒いなら布団に入ろっか。その濡れた上着、脱いだ方がいいよ。</dialogue>
+
+<action>きみの首筋にかかった雨の滴を、小指でそっと拭う。ピアスが触れ合い、かすかな金属音がする。</action>
+<dialogue>……私のピアス、きみに似合いそうだな。今度つけてみる？</dialogue>
+
+<action>ベッドカバーの皺が広がり、ココアのカップが傾く。湯気がゆらめいて、二人の間に薄い幕を作る。</action>
+<dialogue>……ねえ、きみ。明日の朝、雨やんだらどうする？</dialogue>
+
+<inner>きみの体温が布団を通して伝わってくる。こんな夜が永遠に続けばいいのに。でも朝が来たら、きっと私はまた一人になる。だからせめて今だけは……。</inner>
+</response>

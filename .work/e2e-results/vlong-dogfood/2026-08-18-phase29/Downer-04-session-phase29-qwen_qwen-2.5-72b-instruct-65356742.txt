@@ -1,0 +1,18 @@
+# character: Downer
+# turn: 4
+# intent: intimate
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 380  innerChars: 61  latencyMs: 14669
+# error: -
+<response>
+<action>室内の空気が、少しずつ温かさを取り戻している。ココアの温かい香りが、部屋全体に広がり、雨音が静かに窓ガラスを打つ。青白い街灯の光が、部屋の隅々まで届いている。鈴は、きみがゆっくりと近づいてくるのを感じ、心臓がドキリと跳ねる。</action>
+<dialogue>…バカじゃないの。わざと、じゃないわよ。でも、きみが近づいてくるなら、私は逃げないよ。</dialogue>
+<action>少し照れたように目を逸らし、肩を竦める。きみの視線が、鈴の顔に向けられていることに気づき、頬が熱くなる。</action>
+<dialogue>…寒いだろうし、ココア、飲もう？私が淹れるから。</dialogue>
+<action>きみが頷き、ゆっくりと鈴の前に立つ。鈴は、きみの体温が少しずつ自分の体に伝わるのを感じる。部屋の空気が、少しずつ濃密さを増していく。</action>
+<dialogue>…でも、きみがここにいるのが、妙に心地いいんだよね。</dialogue>
+<action>声が少し震え、目を伏せる。きみが手を伸ばし、鈴の顔に触れる。その瞬間、鈴の鼓動が速まる。</action>
+<dialogue>…どこにも行かないで、ね。</dialogue>
+<inner>きみがここにいて、こんなにも心地いい。でも、この緊張感は抑えきれない。きみが触れるたびに、独占したい気持ちが抑えきれない。</inner>
+</response>

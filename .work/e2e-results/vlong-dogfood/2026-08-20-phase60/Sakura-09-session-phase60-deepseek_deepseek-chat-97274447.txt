@@ -1,0 +1,12 @@
+# character: Sakura
+# turn: 9
+# intent: climax
+# servedPhase: climax
+# servedModel: deepseek/deepseek-chat
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0}
+# visibleChars: 525  innerChars: 66  latencyMs: 34133
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > もう限界。全部、中で受け止めて。
+# --- ここから本文 ---
+<response><action>腰を押し付けられ、ぐっと深くまで貫かれる。</action><dialogue>あっ！…ま、待って…そんな急に奥まで…んんっ！</dialogue><action>内壁が締まり、熱いものが子宮の入り口に当たる。お腹の奥がじんわりと熱くなり、腰が震え始める。乳首が擦れたブラウスの生地でさらに硬くなり、ピンク色に腫れ上がる。</action><dialogue>だめ…わたし…もう限界…あっ、あんまり動かないで…んぁっ！</dialogue><action>激しいピストンに合わせて胸が揺れ、乱れた髪が汗で首筋に張り付く。子宮口を直接抉られるような刺激に、視界が白く霞んでいく。腿の内側が痙攣し、愛液が泡立つ。</action><dialogue>あ、あぁ…お腹の中…熱い…すごく…きみので…いっぱい…</dialogue><action>最後の一突きで子宮の奥まで届き、どくどくと注がれる。熱い液体が子宮を満たし、溢れ出るたびに腰が跳ねる。お腹がぽっこりと膨らむほど、中で脈打つ感触がある。</action><dialogue>はぁ…はぁ…あっ…まだ出てる…中で…んっ…熱いのが…</dialogue><action>中で混ざり合う液体の重さを感じながら、涙が頬を伝う。花柄の髪飾りがベッドの下に落ち、静かに光っている。</action><dialogue>…全部、受け止めたよ…あなたのもの…全部…</dialogue><action>抱きしめられたまま、子宮の奥でじわじわと広がる熱を感じる。溢れ出た白濁が腿を伝い、シーツに染みを作っていく。指先が震えながら、あなたのシャツの襟を掴む。</action><dialogue>…離さないで…もう少しだけ…このままで…</dialogue><inner>こんなに深くまで満たされるなんて。怖いくらいに幸せで、この瞬間だけは永遠に続いてほしいと思う。初めて誰かに全てを預けられた気がする。</inner></response>

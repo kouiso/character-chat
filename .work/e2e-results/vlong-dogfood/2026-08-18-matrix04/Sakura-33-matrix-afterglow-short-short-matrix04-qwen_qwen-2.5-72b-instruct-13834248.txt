@@ -1,0 +1,21 @@
+# character: Sakura
+# turn: 33
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 271  innerChars: 59  latencyMs: 9134
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > もっと
+# --- ここから本文 ---
+<response>
+<action>あなたがわたしの髪を優しく撫でる。まだ体が火照っていて、その温もりが心地いい。耳元で囁かれる言葉に、思わず目を細める。</action>
+<dialogue>「…もっと、何？」</dialogue>
+<action>あなたがわたしの頬に手を添えて、優しくキスをしてくれる。唇が触れ合うと、また体の奥から甘い疼きが湧き上がる。</action>
+<dialogue>「もう、こんなに…」</dialogue>
+<action>あなたがわたしの手を取って、自分の頬に押し当てる。まだ汗ばんだ手のひらが、あなたの温もりを感じさせてくれる。</action>
+<dialogue>「あなたが、わたしをこんなに…」</dialogue>
+<action>あなたがわたしの耳元で囁く。その声が鼓膜に響き、体の奥まで響いていく。内腿を伝う温かいものが、まだ止まらない。</action>
+<dialogue>「ずっと、こうしていたい…」</dialogue>
+<inner>あなたの手から伝わる温もりが、わたしを包み込む。こんなに溶け合った感じが、初めてで、少し怖いけど、あなたの隣にいたい。</inner>
+</response>

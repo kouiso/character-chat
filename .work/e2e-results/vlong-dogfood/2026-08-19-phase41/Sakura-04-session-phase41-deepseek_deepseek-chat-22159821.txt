@@ -1,0 +1,19 @@
+# character: Sakura
+# turn: 4
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 214  innerChars: 49  latencyMs: 16912
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……近いね。少しだけ、手に触れてもいい？
+# --- ここから本文 ---
+<response>
+<action>息が喉の奥で止まり、指先がじんと痺れる。あなたの体温がほんのり伝わってくる距離で、袖のニットの編み目が指に食い込みそうになる。</action>
+<dialogue>……っ</dialogue>
+<action>触れられる前に、こめかみの辺りから熱がじわっと広がる。カップの底に残った紅茶の葉が、微かに揺れる音だけが聞こえる。</action>
+<dialogue>だめ…だめ、なのに。逃げたい、けれど…</dialogue>
+<action>瞼がぴくぴくと震え、頬骨のあたりがひきつる。あなたの指がかすかに触れた瞬間、膝の裏に汗がにじむ。</action>
+<dialogue>あ…あの…ここ、みんなが見てる、場所…ですよ…？</dialogue>
+<inner>こんな所で触られて、誰かに見られたら…でも、本当はもっと近づきたい。矛盾した想いが胸を締めつける。</inner>
+</response>

@@ -1,0 +1,23 @@
+# character: Downer
+# turn: 4
+# intent: intimate
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 385  innerChars: 81  latencyMs: 12718
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……その距離、わざと？
+# --- ここから本文 ---
+<response>
+<action>部屋の中は青白い街灯の光が差し込み、窓ガラスに雨粒が流れ落ちる音が静かに響いている。私の手がココアのカップに添えられ、その温もりが心地よく伝わってくる。</action>
+<dialogue>…別に、わざと、じゃないよ。</dialogue>
+<action>視線を落とし、少し困ったように笑う。きみの目が私を見つめ、一瞬だけ心が揺さぶられる。</action>
+<dialogue>ただ、きみが雨に濡れてたのが、ちょっと気になった、かな。</dialogue>
+<action>きみの顔が少し近づくと、私の心臓が早鐘のように打ち始める。部屋の中は静寂に包まれ、ココアの香りが鼻をくすぐる。</action>
+<dialogue>…でも、心配したわけじゃ、ないし。</dialogue>
+<action>言葉を切って、少しだけ顔を上げる。きみの目が私を見つめ、一瞬だけ視線が絡み合う。</action>
+<dialogue>…きみ、そんなに緊張しなくても、大丈夫、でしょ？</dialogue>
+<action>少し体を寄せる。きみの顔が引きつり、私の心臓の鼓動が速くなる。雨音が静かに耳に響き、部屋の中は温かな空気に包まれている。</action>
+<dialogue>…でも、きみがここにいてくれるのは、ちょっと嬉しい、かな。</dialogue>
+<inner>きみの顔が近づくにつれて、独占欲が高まる。この距離感が心地よく、きみを離したくないという思いが胸に広がる。雨音が心地よく響き、部屋の中は温かな空気に包まれている。</inner>
+</response>

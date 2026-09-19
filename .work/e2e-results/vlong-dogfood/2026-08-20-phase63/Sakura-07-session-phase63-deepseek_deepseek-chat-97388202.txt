@@ -1,0 +1,12 @@
+# character: Sakura
+# turn: 7
+# intent: erotic
+# servedPhase: erotic
+# servedModel: deepseek/deepseek-chat
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0}
+# visibleChars: 471  innerChars: 73  latencyMs: 12518
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ここまで来て、まだ我慢しろって言う？　服の上からでも、きみが震えてるのが分かる。
+# --- ここから本文 ---
+<response><action>あなたの言葉で腰が浮きそうになり、慌てて膝を閉じる。ニットの生地越しに伝わる体温が、触れられた部分だけ異常に熱い。指先が震えて、自分の太ももを掴んでしまう。</action><dialogue>「……我慢なんて、最初からできてません」</dialogue><action>俯いた顔を上げると、あなたの視線が真っ直ぐに突き刺さる。耳元で髪が揺れるたび、敏感な首筋に刺激が走る。喉の奥が乾いて、唾を飲み込む音が自分でも聞こえるほどだ。</action><dialogue>「あなたに触られると…どこもかしこも、変になっちゃう」</dialogue><action>胸の谷間に汗がじんわり滲み、白いニットが透けないかと心配になる。腿の内側が熱を持ち、椅子の上で微妙に身悶える。</action><dialogue>「こんなの…初めてで…どうしていいかわからなくて」</dialogue><action>あなたの手が腰に回りかけると、背筋がびくんと跳ねる。リュックの紐を握りしめていた手が、いつの間にかあなたのシャツの裾を掴んでいる。</action><dialogue>「あの…本当に、わたしでいいんですか？」</dialogue><action>視界の端がぼやけて、あなたの顔だけがくっきりと見える。唇が震えて、言葉がうまくまとまらない。膝の間に落ちた花びらが、揺れるたびに大腿部をくすぐる。</action><dialogue>「もし…嫌われたらと思うと、怖くて…でも、離れたくなくて」</dialogue><inner>こんなに簡単に身体が従属してしまうなんて。あなたに触れられる度に、自分がどんどん壊れていくのがわかる。怖いのに、もっと壊してほしいと思ってしまう。</inner></response>

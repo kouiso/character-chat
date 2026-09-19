@@ -1,0 +1,7 @@
+# character: Sakura
+# turn: 21
+# intent: erotic
+# servedPhase: erotic
+# servedModel: (none)
+# visibleChars: 0  innerChars: 0  latencyMs: 70037
+# error: stream error: upstream_error

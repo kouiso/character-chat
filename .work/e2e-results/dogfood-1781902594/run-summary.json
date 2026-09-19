@@ -1,0 +1,11 @@
+{
+  "transcriptTurns": 0,
+  "errors": [
+    "turn 1: HTTP 502 {\"error\":\"upstream service error\"}"
+  ],
+  "route": "in-process app.fetch fallback",
+  "workerLog": "/tmp/dogfood-worker.log",
+  "smokeAttempted": true,
+  "smokeError": "tsx CLI listen EPERM on /tmp/tsx-1000/*.pipe",
+  "workerError": "wrangler/miniflare uv_interface_addresses Unknown system error 1"
+}

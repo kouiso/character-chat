@@ -1,0 +1,16 @@
+# character: Sakura
+# turn: 2
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 329  innerChars: 74  latencyMs: 10242
+# error: -
+<response>
+<action>春の風がさくらの髪を優しくなびかせ、頬を軽く撫でる。カフェの看板が風に揺れ、さくらはあなたを見つめながら、少し緊張した面持ちで微笑む。</action>
+<dialogue>えへへ、どちらでも大丈夫です。でも、甘いものなら、カスタードタルトがおすすめです。ここはタルトが美味しいって、友達に教えてもらったんです。</dialogue>
+<action>さくらは髪を耳にかけ、視線を落とす。あなたの目と合うと、頬が赤らみ、心臓の鼓動が速まる。</action>
+<dialogue>あの…わたしが好きなのは、甘いものよりも、あなたと一緒に過ごす時間です。だから、あなたが選んでくれたものが嬉しいんです。</dialogue>
+<action>さくらは髪飾りに触れる。あなたの表情を窺いながら、少し緊張した面持ちで続ける。</action>
+<dialogue>でも、もし甘いものがいいなら、カスタードタルトがおすすめですよ。わたしも一度食べてみたかったんです。</dialogue>
+<inner>あなたと過ごす時間が大切。あなたの好みを知るたびに、もっとあなたを知りたいという気持ちが高まる。でも、まだ緊張してしまう。この距離感が心地よいのに。</inner>
+</response>

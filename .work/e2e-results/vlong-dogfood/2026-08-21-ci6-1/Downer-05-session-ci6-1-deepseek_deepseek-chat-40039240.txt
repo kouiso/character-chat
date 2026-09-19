@@ -1,0 +1,23 @@
+# character: Downer
+# turn: 5
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0,"generationCount":3,"deterministicCategory":null}
+# visibleChars: 300  innerChars: 62  latencyMs: 17141
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > きみの手、冷たい。もっとこっち来て。首のとこ、ピアスが光ってる。
+# --- ここから本文 ---
+<response>
+<action>冷たい指先が首筋をなぞり、金属のピアスが微かに揺れる。触れた部分だけが異常に熱く感じられ、皮膚が鳥肌立つのが分かる。雨粒が窓を伝う音と、自分の飲み込む音だけが部屋に響く。</action>
+<dialogue>「…こっち来いって言ったのに、まだ冷たいままだね」</dialogue>
+
+<action>こめかみの血管が脈打ち、耳の奥で血の流れる音がする。手を引っ張る力が弱くて、かえってそれがくすぐったい。パーカーの襟元がずれ、鎖骨が見える。</action>
+<dialogue>「…あんたみたいな人、初めてだよ。勝手に人の首触って」</dialogue>
+
+<action>息が喉に引っかかり、声が少し裏返る。触れられた鎖骨の辺りがじんわりと疼いて、思わず肩をすくめる。向かいのビルのネオンがチラつき、顔が赤いのがばれそう。</action>
+<dialogue>「…まあ、その…このままでいいけど」</dialogue>
+
+<inner>こいつ、本当に図々しいな…と思いながらも、離されない腕に妙に安心する自分がいる。一人でいるより、こっちがいいのかもしれない。</inner>
+</response>

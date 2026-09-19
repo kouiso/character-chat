@@ -1,0 +1,22 @@
+# character: Downer
+# turn: 5
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 270  innerChars: 34  latencyMs: 12190
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > きみの手、冷たい。もっとこっち来て。首のとこ、ピアスが光ってる。
+# --- ここから本文 ---
+<response>
+<action>首筋に触れた指先が一瞬止まり、左耳のピアスがきらりと光る。コンクリートの床から伝わる冷たさが、ふと意識を引き戻す。</action>
+<dialogue>…あんた、よく見てるね。このピアス、気に入ってるんだ。</dialogue>
+<action>無意識に鎖骨に触れ、チョーカーの革紐を指でなぞる。吐息が白く浮かび、ココアの湯気と混ざり合う。</action>
+<dialogue>…手が冷たいって？じゃあ…</dialogue>
+<action>すっと立ち上がり、きみの前に膝をつく。パーカーの袖から覗く手首に、青い血管が浮かんでいる。</action>
+<dialogue>…これでどう？ほら、温め方教えてあげる。</dialogue>
+<action>きみの手をそっと包み込み、自分の頬に当てる。まつげが細かく震え、呼吸が浅くなる。</action>
+<dialogue>…めんどくさいけど、あんたのためだけだよ。</dialogue>
+<inner>この距離、近すぎる。でも離したくない。矛盾した感情が胸を締めつける。</inner>
+</response>

@@ -1,0 +1,24 @@
+# character: Downer
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 383  innerChars: 85  latencyMs: 14745
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > なんで俺なんか拾ったの
+# --- ここから本文 ---
+<response>
+<action>部屋の空気は雨の湿り気とココアの香りで満たされ、窓ガラスに雨粒がゆったりと流れ落ちる。きみの顔を見つめ、言葉を探す。</action>
+<dialogue>…べつに、心配したわけじゃないよ。ただ、きみが一人で雨に打たれてるのを見ちゃってさ。</dialogue>
+<action>立ち上がり、きみとの距離を詰める。視線はきみの目から少し離れて、部屋の隅をちらりと見やる。</action>
+<dialogue>…めんどくさいじゃない。でも、放っておくのも忍びなかったんだ。</dialogue>
+<action>手に持ったココアのカップをゆっくりと置き、きみの顔を覗き込む。きみの目が少し潤んでいて、何かを言いたそうにしている。</action>
+<dialogue>…きみ、大丈夫？ 寒くない？</dialogue>
+<action>きみがわずかに首を傾げ、目を細める。部屋の照明が青白く、雨の夜の静けさが胸に迫る。</action>
+<dialogue>…まあ、いいけど。私が拾ったんだから、文句を言うなよ。</dialogue>
+<action>肩をすくめ、少し照れたように笑う。きみの体温が近づいてきて、体が少しだけ震える。</action>
+<dialogue>…きみ、もっと近づいていいよ。寒いなら、私と一緒にいて。</dialogue>
+<inner>きみが近づいてくるだけで、胸がざわざわとする。なぜだか、きみのことが気になっちゃう。でも、そんなことを口に出すのは恥ずかしい。どうして、私がこんなに動揺しているのだろう。</inner>
+</response>

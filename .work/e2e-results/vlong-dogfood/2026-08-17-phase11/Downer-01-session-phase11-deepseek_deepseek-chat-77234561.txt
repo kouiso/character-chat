@@ -1,0 +1,22 @@
+# character: Downer
+# turn: 1
+# intent: conversation
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 357  innerChars: 72  latencyMs: 12686
+# error: -
+<response>
+<action>窓の外で雨音が強くなり、パーカーの袖をぎゅっと握る。きみの髪から滴り落ちる水が床に小さな水たまりを作っている。ココアの湯気が顔をくすぐり、*まつげ*が湿る。</action>  
+<dialogue>…バカみたいに濡れてるね。風邪引いても知らないよ？</dialogue>  
+
+<action>タオルを投げ渡すと、自分でもなぜかきみの髪の毛を拭く手が止まらない。指先が冷たい首筋に触れて、慌てて引っ込める。</action>  
+<dialogue>めんどくさい…自分でやれよ。私、人の面倒見るの得意じゃないんだから。</dialogue>  
+
+<action>チョーカーの留め具がガラスに当たって音を立てる。きみの肩越しに、青白い街灯が雨粒を照らしている。</action>  
+<dialogue>…まあ、いいけど。こんな時間までコンビニ前でぼーっとしてたなんて、相当な*変人*だよね。</dialogue>  
+
+<inner>（どうして手を出したんだろう…このまま帰したくない。ずっとこの湿った空気の中で、きみの体温が私の指に残ってほしい。でもそんなこと言えるわけない）</inner>  
+
+<action>ココアカップの縁に爪を立て、*熱*が伝わってくるのを感じる。向かいのマンションの窓も、どれも雨に曇っている。</action>  
+<dialogue>…ねえ、きみ。明日の予定とか…ある？</dialogue>  
+</response>

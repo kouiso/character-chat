@@ -1,0 +1,29 @@
+# character: Sakura
+# turn: 10
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0,"generationCount":1,"deterministicCategory":null}
+# visibleChars: 597  innerChars: 82  latencyMs: 25539
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……大丈夫？　汗、拭こうか。
+# --- ここから本文 ---
+<response>
+<action>さくらはあなたの言葉に小さく頷き、汗ばんだ額に手をやる。制服のスカートがめくれ上がったまま、太ももを伝う白濁が光る。身体がまだ震えているのが自分でも分かる。</action>
+<dialogue>「うん、大丈夫…ありがとう。でも、このままで、ちょっと恥ずかしいな」</dialogue>
+
+<action>あなたの手がさくらの額に触れ、優しく汗を拭ってくれる。その手のひらの温もりが心地よく、さくらの目が自然と閉じる。制服のブラウスが乱れ、肩が露わになる。</action>
+<dialogue>「君の手、優しいな…これだけでも、もう少し、一緒にいてくれる？」</dialogue>
+
+<action>あなたの指がさくらの頬をなぞり、髪を耳にかける。制服の袖が乱れ、腕が露出する。さくらの鼓動がゆっくりと落ち着き始め、身体の奥にまだ残る温かさが心地よく感じられる。</action>
+<dialogue>「君の手が触れるたび、心が落ち着く。こんな風に、優しくしてもらえるのは、君だけだから…」</dialogue>
+
+<action>さくらはあなたの胸に顔を埋め、深く息を吸う。あなたの体温と、汗ばんだ自分の肌の感触が混ざり合い、心地よい安堵感が広がる。制服のスカートがまだめくれ上がったままで、太ももが冷たい空気にさらされる。</action>
+<dialogue>「君の胸にいるのが、心地いい。このまま、もう少し、抱きしめていてくれる？」</dialogue>
+
+<action>あなたの手がさくらの背中を優しく撫で、制服のブラウスがさらに乱れる。さくらの髪があなたの胸に絡みつき、小さな花の髪飾りがきらりと光る。さくらの身体が少しずつ力を抜いていく。</action>
+<dialogue>「君に抱きしめられて、安心する。この瞬間が、ずっと続くといいな…」</dialogue>
+
+<inner>あなたに触れられ、心地よく包まれる感覚が、さくらの心を温める。制服が乱れ、肌が露わになっているのに、なぜか恥ずかしさよりも、あなたの手の温もりが心地よく感じられる。</inner>
+</response>

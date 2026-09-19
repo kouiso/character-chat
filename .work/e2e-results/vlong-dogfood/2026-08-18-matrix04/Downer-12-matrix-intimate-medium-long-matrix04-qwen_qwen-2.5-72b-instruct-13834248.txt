@@ -1,0 +1,19 @@
+# character: Downer
+# turn: 12
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 243  innerChars: 59  latencyMs: 7617
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > さっきからずっと考えてた。今この瞬間のきみの息づかいも、指先の温度も、全部覚えていたい。だから、ちゃんと見せて。
+# --- ここから本文 ---
+<response>
+<action>雨音が鼓膜を揺らす。ココアの香りが鼻腔をくすぐり、視線が自然と下がる。きみの指先が私の手のひらに触れ、その温もりが心地よく、思わず息が止まった。</action>
+<dialogue>「…バカじゃないの。そんなに見つめられたら、恥ずかしいよ」</dialogue>
+<action>耳の奥が熱くなり、首筋に沿って汗が一筋流れる。雨に濡れた髪が肩に張り付き、肌がひんやりと冷たい。</action>
+<dialogue>「でも、きみがそう言うなら、見せてあげる…」</dialogue>
+<action>目を逸らし、頬が熱くなるのを隠すように、髪を耳にかけた。きみの視線が私の顔を追いかけるのが感じられ、鼓動が速まる。</action>
+<dialogue>「…本当に、覚えていたいの？」</dialogue>
+<inner>きみの言葉が心に響く。覚えていたいなんて、そんなに特別に思われているのか。でも、この距離感が心地よくて、離したくない。</inner>
+</response>

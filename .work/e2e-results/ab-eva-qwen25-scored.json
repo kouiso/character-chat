@@ -1,0 +1,47 @@
+{
+  "model": "eva-unit-01/eva-qwen2.5-72b",
+  "runDir": ".work/e2e-results/runs/run-20260612-224810-b524",
+  "status": "completed",
+  "terminationReason": null,
+  "scenarios": [
+    {
+      "scenarioId": "S4",
+      "status": "completed",
+      "terminationReason": null,
+      "eroticDensity": 0,
+      "charConsistency": 20,
+      "eventWeightedTotal": 35.83333333333333,
+      "rawTotal": 55.83333333333333
+    },
+    {
+      "scenarioId": "S6",
+      "status": "completed",
+      "terminationReason": null,
+      "eroticDensity": 0,
+      "charConsistency": 20,
+      "eventWeightedTotal": 37,
+      "rawTotal": 57
+    },
+    {
+      "scenarioId": "S7",
+      "status": "completed",
+      "terminationReason": null,
+      "eroticDensity": 0,
+      "charConsistency": 20,
+      "eventWeightedTotal": 37,
+      "rawTotal": 57
+    },
+    {
+      "scenarioId": "S8",
+      "status": "completed",
+      "terminationReason": null,
+      "eroticDensity": 0,
+      "charConsistency": 20,
+      "eventWeightedTotal": 37,
+      "rawTotal": 57
+    }
+  ],
+  "avg_eroticDensity": 0,
+  "avg_charConsistency": 20,
+  "notes": "Completed; repeated Claude suggestions 401/503 and image probe degradation/CSP warnings; no system prompt leakage observed in e2e stdout."
+}

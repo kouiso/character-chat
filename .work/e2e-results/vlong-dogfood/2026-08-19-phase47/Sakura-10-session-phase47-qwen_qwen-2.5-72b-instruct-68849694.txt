@@ -1,0 +1,11 @@
+# character: Sakura
+# turn: 10
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 523  innerChars: 47  latencyMs: 22540
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……大丈夫？　汗、拭こうか。
+# --- ここから本文 ---
+<response><action>あなたが優しく手を伸ばし、額の汗を拭ってくれる。その温もりに、身体の奥から安堵が広がる。身の下の布地に広がる染みを感じつつ、ゆっくりと目を閉じる。</action><dialogue>「うん…大丈夫です。ありがとう…」</dialogue><action>あなたの手が頬を優しく撫で、首筋に触れられる。その刺激に、身体が自然と反応し、内腿が震える。春の風が窓から入ってきて、髪飾りが軽く揺れる。</action><dialogue>「あの…あなた、いつも、わたしのことを…」</dialogue><action>あなたの手がわたしの手を握り、優しく引き寄せてくれる。身体が触れ合うと、心臓の鼓動がさらに速まり、息が浅くなる。膣の奥からまだ温かいものが溢れ出し、太ももを伝う。</action><dialogue>「あ、っ…あなた、わたしのことを、大切に思ってくれてるんですか？」</dialogue><action>あなたの唇がわたしの額に触れ、優しくキスをする。その瞬間、身体が震え、心地よい温かさが広がる。</action><dialogue>「うん…あなた、わたしのことを…」</dialogue><action>あなたの手がわたしの髪を優しく梳かし、耳元で囁く。その声に、身体が自然と反応し、膣の奥がきゅっと締まる。汗ばんだ肌が触れ合う感触が心地よく、心臓の鼓動が落ち着いていく。</action><dialogue>「あなた、いつも、わたしのことを、大切に思ってくれてるんですか？」</dialogue><action>あなたの手がわたしの腰を優しく撫で、引き寄せてくれる。</action><dialogue>「あ、っ…あなた、もっと、近くにいて…」</dialogue><dialogue>」</dialogue><inner>あなたの優しさに、心が温かくなる。あなたの手がわたしの髪を梳かす感触が、心地よくてたまらない。</inner></response>

@@ -1,0 +1,46 @@
+# character: Downer
+# turn: 7
+# intent: erotic
+# servedPhase: erotic
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 324  innerChars: 35  latencyMs: 24898
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > 逃がす気ないんでしょ。分かってるよ。
+# --- ここから本文 ---
+<response>
+<action>
+ベッドの金属枠が軋む音と共に、きみの歯が鎖骨に食い込む。ピアスの鎖が揺れて、冷たい金属が乳房の谷間に触れる。
+</action>
+<dialogue>
+「…っ、痛いよ。そんなに縄張り主張しなくても…逃げたりしないって」
+</dialogue>
+
+<action>
+左腕を無理やりベッドの柵に押し付けられ、反対の手できみの背中を掻きむしる。ネイルが皮膚に痕を残す感触。
+</action>
+<dialogue>
+「バカじゃないの…私より先にイカせようとして…んっ」
+</dialogue>
+
+<action>
+腰を浮かせた拍子に、きみの舌がへそへと滑り落ちる。腹筋が痙攣し、へそのピアスがきみの歯に引っ掛かる。
+</action>
+<dialogue>
+「あ…だめ、そこ噛んだら…壊れちゃう…」
+</dialogue>
+
+<action>
+腿裏から滴り落ちた汗がシーツに染み、きみの指紋が太腿の内側に転写される。 
+</action>
+<dialogue>
+「私の匂い、染み付かせて…満足？」
+</dialogue>
+
+<action>
+天井のひび割れが視界に入り、腰を掴まれた衝撃でピンと伸びた背中が弧を描く。
+</action>
+<inner>
+この痛みも快感も全部私のもの。きみが吐く息の熱さまで、独り占めしたい。
+</inner>
+</response>

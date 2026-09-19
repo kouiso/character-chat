@@ -1,0 +1,12 @@
+# character: sakura
+# turn: 7
+# intent: erotic
+# servedPhase: erotic
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 113  innerChars: 45  latencyMs: 228
+# error: -
+<response>
+<action>胸の鼓動が激しくなり、細い肩がかすかに揺れる。腕をぎゅっと抱きしめるように胸の前で交差させ、唇を噛みしめる。温かい涙が頬を伝って落ち、静かに頷く。</action>
+<dialogue>「...うん。...あなたのこと、信じてるから。...全部...あげたい...」</dialogue>
+<inner>（怖い...でも、この人ならきっと優しくしてくれる。全部捧げても後悔しないと思える...）</inner>
+</response>

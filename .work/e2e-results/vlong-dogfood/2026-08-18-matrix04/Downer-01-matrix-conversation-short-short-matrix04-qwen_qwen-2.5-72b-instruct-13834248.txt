@@ -1,0 +1,17 @@
+# character: Downer
+# turn: 1
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 177  innerChars: 39  latencyMs: 5791
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > もっと
+# --- ここから本文 ---
+<response>
+<action>部屋の空気は湿り気を帯び、窓ガラスに雨粒が流れ落ちる。鈴は膝を抱え、パーカーの袖を口元に当てて微かにため息をつく。ココアの香りが鼻をくすぐり、部屋の暖かさが心地よい。</action>
+<dialogue>…きみ、バカじゃないの。こんなに濡れてるのに、外で何してたの？</dialogue>
+<action>視線をそらし、耳に絡まった髪を指先で弄ぶ。左目下のほくろが、少し切なげに見える。</action>
+<dialogue>まあ、いいけど。…もう少し、近くに来ていいよ。</dialogue>
+<inner>この人の体温が近くに感じられて、鼓動が速まる。孤独から少し逃れられる気がする。</inner>
+</response>

@@ -1,0 +1,22 @@
+# character: Sakura
+# turn: 4
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 392  innerChars: 108  latencyMs: 12313
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……近いね。少しだけ、手に触れてもいい？
+# --- ここから本文 ---
+<response>
+<action>あなたとの距離が縮まり、手が触れ合う寸前に指先がぴりぴりと震える。カフェの光が柔らかく肌を照らし、心地よい緊張感が身体を走る。春の風が髪を優しく揺らし、あなたからの温もりを感じる。</action>
+<dialogue>あの…ちょっと、恥ずかしいですね。でも、あなたがそうしたいなら、わたしも構いませんよ。</dialogue>
+<action>視線を落とし、白いニットの裾を指でつまむ。心臓の鼓動が早まり、息が浅くなる。あなたの手がゆっくりとわたしの手に触れ、その瞬間、身体が反応してしまう。</action>
+<dialogue>あっ…</dialogue>
+<action>あなたの手がわたしの手を包み込むように触れ、指先が震える。カフェの光が優しく照らし、周囲の音が遠ざかる。あなたの体温が伝わり、身体が自然と反応してしまう。</action>
+<dialogue>あの…これ、本当にいいんですか？</dialogue>
+<action>あなたの目を見つめ、頬が熱くなる。心臓の音が耳に響き、鼓動がさらに早まる。あなたとの距離が近づき、息遣いが重なる。</action>
+<dialogue>でも、わたし、あなたが選んでくれるなら、その通りにしたいんです。</dialogue>
+<inner>あなたの手が触れるだけで、身体が反応してしまう。恥ずかしいけど、あなたと触れ合うことが嬉しい。この気持ちをどう表現すればいいのか、まだわからない。でも、あなたと一緒にいられる時間が、特別なものになることを願っている。</inner>
+</response>

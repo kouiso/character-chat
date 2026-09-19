@@ -1,0 +1,16 @@
+# character: Sakura
+# turn: 4
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 297  innerChars: 100  latencyMs: 41697
+# error: -
+<response>
+<action>春の風が髪を軽く揺らし、頬を撫でる。あなたとわたしの距離が、少しずつ近づいていく。手が触れ合う寸前で、わたしは息を呑む。</action>
+<dialogue>あの…わたしだけが、あなたを特別に扱うなら、少しだけ、手に触れてもいいかな？ でも、もし嫌なら、すぐにやめるから…。</dialogue>
+<action>視線を落とし、あなたの手を見つめる。心臓の鼓動が早まり、指先がぴくぴくと震える。</action>
+<dialogue>あなたがわたしの手を取ってくれるなら、それは特別な意味があるんだよね…。</dialogue>
+<action>あなたの手が、ゆっくりとわたしの手に触れ、指先が絡み合う。春の風が頬を撫で、桜の花びらが軽やかに舞う。指先が触れ合う瞬間、身体の奥から熱が広がる。</action>
+<dialogue>ふふ、手が震えてる…。でも、あなたの手が温かいから、安心する。</dialogue>
+<inner>あなたの手が触れ合った瞬間、身体の奥から熱が広がっていく。手が震えるのは、あなたと触れ合っていることが嬉しいから。でも、素直に言えない。この瞬間が特別な意味を持つことを、あなたに気づかれてほしくない。</inner>
+</response>

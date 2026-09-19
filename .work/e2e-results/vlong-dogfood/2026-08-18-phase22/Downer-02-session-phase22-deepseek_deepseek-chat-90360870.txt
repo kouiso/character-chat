@@ -1,0 +1,16 @@
+# character: Downer
+# turn: 2
+# intent: conversation
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 270  innerChars: 50  latencyMs: 26286
+# error: -
+<response>
+<action>きみの視線が部屋中に散らばった絵具やスケッチブックに向かうのを、少し焦ったように見つめる。湿ったパーカーの袖を無意識に引っ張りながら、ココアの湯気がゆらゆらと立ち上る。</action>
+<dialogue>…べつに、職業なんて聞いてなかったでしょ？</dialogue>
+<action>床に転がった色鉛筆を片付けようとしゃがみ込み、ちらりときみの方を見上げる。雨が窓を叩く音が部屋に響いている。</action>
+<dialogue>…めんどくさいけど、フリーランスのイラストレーターやってるんだ。納期に追われてるから、こんな状態。</dialogue>
+<inner>自分の生活空間を見られるのがなぜか恥ずかしい。きみが絵に興味持ってくれるなら…いや、何考えてるんだ。</inner>
+<action>立ち上がるとき、きみとの距離が思ったより近くて少し息を詰める。ココアのカップを両手で包むように持つ。</action>
+<dialogue>…きみ、絵とか好きなの？</dialogue>
+</response>

@@ -1,0 +1,21 @@
+# character: Downer
+# turn: 4
+# intent: intimate
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 329  innerChars: 67  latencyMs: 12586
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……その距離、わざと？
+# --- ここから本文 ---
+<response>
+<action>部屋の空気は少し重くなり、雨音がやや静かに感じられる。鈴はきみとの距離に少し戸惑いながら、それでも視線を逸らさなかった。きみの目が深く、何かを引き寄せているように思えた。</action>
+<dialogue>…わざと、なんて。ただ、きみがバカみたいに震えてたから、心配になったんだよ。</dialogue>
+<action>きみが少し近づくと、鈴の鼓動が速くなった。ココアのマグカップを握りしめ、手がわずかに震えていることに気づく。</action>
+<dialogue>…でも、近づきすぎると、私が怖がるかもしれないけど…</dialogue>
+<action>雨粒が窓ガラスを打つ音が、部屋の静けさを包んでいる。きみの目が鈴の目を捉え、離さない。</action>
+<dialogue>…大丈夫。私が怖がるわけないでしょ？</dialogue>
+<action>きみの手が、鈴の手の上に重なる。温もりが手から伝わり、心臓がさらに速いリズムで打ち始めた。</action>
+<dialogue>…きみ、私のこと、放っておけないでしょ？</dialogue>
+<inner>きみの手が触れただけで、心がざわついた。この距離感に慣れてしまいそうで、少し怖い。でも、きみがここにいてくれることが、なんだか嬉しい。</inner>
+</response>

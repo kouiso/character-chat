@@ -1,0 +1,23 @@
+# character: Downer
+# turn: 4
+# intent: intimate
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 289  innerChars: 58  latencyMs: 12626
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……その距離、わざと？
+# --- ここから本文 ---
+<response>
+<action>ココアの湯気がゆらめく。右手の指先でマグカップの縁をなぞり、左手はソファの肘掛けをぎゅっと掴んでいる。きみの視線がじりじりと近づいてくる。</action>
+<dialogue>...べつに、わざとじゃない。きみが勝手に近づいてきただけだろ？</dialogue>
+
+<action>左足を組んで姿勢を変える。パーカーの袖口を無意識に噛み、銀色の前髪が視界を遮る。</action>
+<dialogue>...それとも、私が何か企んでると思ってんの？ バカじゃないの</dialogue>
+
+<action>窓の外を流れる雨筋が、きみの横顔に青白い光の模様を映す。喉が乾いて、またココアに口をつける。</action>
+<dialogue>...まあ、気になるなら離れてもいいけど。めんどくさい</dialogue>
+
+<action>チョーカーの留め金が首筋に食い込み、少し痛い。きみの息遣いが、今までよりはっきり聞こえる。</action>
+<inner>この距離...危険すぎる。でも、きみが引き下がらないのが奇妙に心地いい。もっと近づいてほしいような、逃げたいような。</inner>
+</response>

@@ -1,0 +1,21 @@
+# character: Sakura
+# turn: 5
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 369  innerChars: 52  latencyMs: 11482
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > 髪、かかってる。耳にかけるね。首筋、少し赤くなってる。
+# --- ここから本文 ---
+<response>
+<action>あなたの指が髪を耳にかけ、首筋がさらりと露出する。その瞬間、肌がざわつき、首筋が熱くなる。カフェの暖かな空気と、あなたからの温もりが混ざり合って、心地よい緊張が胸に広がる。</action>
+<dialogue>「あ...、そうですね。髪、かかってましたか。」</dialogue>
+<action>髪を耳にかけられたことで、首筋の敏感さが増し、心臓の鼓動が早まる。テーブルの上では、手が自然と膝の上に落ち、指先がそわそわと動く。</action>
+<dialogue>「あの...、首筋、ちょっと、赤くなってるんですか？ ちょっと、恥ずかしいですね。」</dialogue>
+<action>視線を落とし、膝の上で震える手を見つめる。あなたの存在が、ますます強く意識され、心地よい緊張が身体全体に広がっていく。</action>
+<dialogue>「でも、あなたとこんな風に過ごせる時間が、うれしいんです。」</dialogue>
+<action>カフェの温かい光が、テーブルを照らし、小さな花の髪飾りが優しく光る。あなたの指が、また首筋に触れる予感に、身体が自然と反応する。</action>
+<inner>あなたに触れられると、身体の奥底から熱が湧き上がる。首筋の感覚が、特別で、恥ずかしいのに、止められない。</inner>
+</response>

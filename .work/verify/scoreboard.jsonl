@@ -1,0 +1,148 @@
+{"ts":"2026-06-11T03:45:59Z","event":"blocked_no_evidence","files":"src/component/chat/chat-input.tsx src/app.tsx"}
+{"ts":"2026-06-11T03:46:18Z","event":"blocked_no_evidence","files":"src/component/chat/chat-input.tsx src/component/web/web-portal.tsx src/app.tsx"}
+{"ts":"2026-06-11T03:46:28Z","event":"blocked_no_evidence","files":"src/component/chat/chat-input.tsx src/component/web/web-portal.tsx src/app.tsx"}
+{"ts":"2026-06-11T03:46:38Z","event":"blocked_no_evidence","files":"src/component/chat/chat-input.tsx src/component/web/web-portal.tsx src/app.tsx"}
+{"ts":"2026-06-11T03:46:54Z","event":"blocked_no_evidence","files":"src/component/chat/chat-input.tsx src/component/web/web-portal.tsx src/app.tsx"}
+{"ts":"2026-06-11T03:47:11Z","event":"gate_passed","diffHash":"cc311accb4425c24","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T03-47-01-336Z-_.png"}
+{"ts":"2026-06-11T03:47:11Z","event":"gate_passed","diffHash":"cc311accb4425c24","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T03-47-01-336Z-_.png"}
+{"ts":"2026-06-11T03:48:43Z","event":"blocked_hash_mismatch","expected":"090743c94033bc7e","got":"cc311accb4425c24"}
+{"ts":"2026-06-11T03:49:25Z","event":"gate_passed","diffHash":"090743c94033bc7e","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T03-49-16-138Z-_.png"}
+{"ts":"2026-06-11T03:50:47Z","event":"gate_passed","diffHash":"090743c94033bc7e","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T03-49-16-138Z-_.png"}
+{"ts":"2026-06-11T03:50:58Z","event":"gate_passed","diffHash":"090743c94033bc7e","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T03-49-16-138Z-_.png"}
+{"ts":"2026-06-11T03:52:34Z","event":"gate_passed","diffHash":"090743c94033bc7e","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T03-49-16-138Z-_.png"}
+{"ts":"2026-06-11T03:53:04Z","event":"gate_passed","diffHash":"090743c94033bc7e","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T03-49-16-138Z-_.png"}
+{"ts":"2026-06-11T03:55:57Z","event":"gate_passed","diffHash":"090743c94033bc7e","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T03-49-16-138Z-_.png"}
+{"ts":"2026-06-11T04:00:22Z","event":"gate_passed","diffHash":"090743c94033bc7e","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T03-49-16-138Z-_.png"}
+{"ts":"2026-06-11T04:01:18Z","event":"gate_passed","diffHash":"090743c94033bc7e","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T03-49-16-138Z-_.png"}
+{"ts":"2026-06-11T04:05:03Z","event":"gate_passed","diffHash":"090743c94033bc7e","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T03-49-16-138Z-_.png"}
+{"ts":"2026-06-11T04:09:46Z","event":"gate_passed","diffHash":"090743c94033bc7e","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T03-49-16-138Z-_.png"}
+{"ts":"2026-06-11T04:14:34Z","event":"gate_passed","diffHash":"090743c94033bc7e","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T03-49-16-138Z-_.png"}
+{"ts":"2026-06-11T04:16:29Z","event":"gate_passed","diffHash":"090743c94033bc7e","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T03-49-16-138Z-_.png"}
+{"ts":"2026-06-11T04:19:19Z","event":"gate_passed","diffHash":"090743c94033bc7e","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T03-49-16-138Z-_.png"}
+{"ts":"2026-06-11T04:24:04Z","event":"gate_passed","diffHash":"090743c94033bc7e","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T03-49-16-138Z-_.png"}
+{"ts":"2026-06-11T04:28:48Z","event":"gate_passed","diffHash":"090743c94033bc7e","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T03-49-16-138Z-_.png"}
+{"ts":"2026-06-11T04:31:06Z","event":"gate_passed","diffHash":"090743c94033bc7e","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T03-49-16-138Z-_.png"}
+{"ts":"2026-06-11T04:33:34Z","event":"gate_passed","diffHash":"090743c94033bc7e","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T03-49-16-138Z-_.png"}
+{"ts":"2026-06-11T04:38:49Z","event":"gate_passed","diffHash":"090743c94033bc7e","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T03-49-16-138Z-_.png"}
+{"ts":"2026-06-11T04:43:11Z","event":"gate_passed","diffHash":"090743c94033bc7e","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T03-49-16-138Z-_.png"}
+{"ts":"2026-06-11T04:46:02Z","event":"gate_passed","diffHash":"090743c94033bc7e","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T03-49-16-138Z-_.png"}
+{"ts":"2026-06-11T04:47:52Z","event":"gate_passed","diffHash":"090743c94033bc7e","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T03-49-16-138Z-_.png"}
+{"ts":"2026-06-11T04:52:38Z","event":"gate_passed","diffHash":"090743c94033bc7e","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T03-49-16-138Z-_.png"}
+{"ts":"2026-06-11T04:57:24Z","event":"gate_passed","diffHash":"090743c94033bc7e","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T03-49-16-138Z-_.png"}
+{"ts":"2026-06-11T05:01:01Z","event":"gate_passed","diffHash":"090743c94033bc7e","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T03-49-16-138Z-_.png"}
+{"ts":"2026-06-11T05:02:14Z","event":"gate_passed","diffHash":"090743c94033bc7e","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T03-49-16-138Z-_.png"}
+{"ts":"2026-06-11T05:06:55Z","event":"gate_passed","diffHash":"090743c94033bc7e","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T03-49-16-138Z-_.png"}
+{"ts":"2026-06-11T05:11:44Z","event":"gate_passed","diffHash":"090743c94033bc7e","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T03-49-16-138Z-_.png"}
+{"ts":"2026-06-11T05:16:02Z","event":"gate_passed","diffHash":"090743c94033bc7e","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T03-49-16-138Z-_.png"}
+{"ts":"2026-06-11T05:16:26Z","event":"gate_passed","diffHash":"090743c94033bc7e","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T03-49-16-138Z-_.png"}
+{"ts":"2026-06-11T05:21:13Z","event":"gate_passed","diffHash":"090743c94033bc7e","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T03-49-16-138Z-_.png"}
+{"ts":"2026-06-11T05:25:56Z","event":"gate_passed","diffHash":"090743c94033bc7e","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T03-49-16-138Z-_.png"}
+{"ts":"2026-06-11T05:30:42Z","event":"gate_passed","diffHash":"090743c94033bc7e","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T03-49-16-138Z-_.png"}
+{"ts":"2026-06-11T05:31:08Z","event":"gate_passed","diffHash":"090743c94033bc7e","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T03-49-16-138Z-_.png"}
+{"ts":"2026-06-11T05:35:27Z","event":"gate_passed","diffHash":"090743c94033bc7e","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T03-49-16-138Z-_.png"}
+{"ts":"2026-06-11T05:40:13Z","event":"gate_passed","diffHash":"090743c94033bc7e","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T03-49-16-138Z-_.png"}
+{"ts":"2026-06-11T05:43:18Z","event":"gate_passed","diffHash":"090743c94033bc7e","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T03-49-16-138Z-_.png"}
+{"ts":"2026-06-11T05:43:20Z","event":"gate_passed","diffHash":"090743c94033bc7e","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T03-49-16-138Z-_.png"}
+{"ts":"2026-06-11T05:43:31Z","event":"gate_passed","diffHash":"090743c94033bc7e","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T03-49-16-138Z-_.png"}
+{"ts":"2026-06-11T05:44:48Z","event":"blocked_hash_mismatch","expected":"8bb891675ba2ac05","got":"090743c94033bc7e"}
+{"ts":"2026-06-11T05:45:06Z","event":"blocked_bad_verdict","verdict":"needs_work"}
+{"ts":"2026-06-11T05:45:28Z","event":"blocked_bad_verdict","verdict":"needs_work"}
+{"ts":"2026-06-11T05:45:48Z","event":"gate_passed","diffHash":"8bb891675ba2ac05","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T05-45-44-882Z-_.png"}
+{"ts":"2026-06-11T05:45:51Z","event":"gate_passed","diffHash":"8bb891675ba2ac05","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T05-45-44-882Z-_.png"}
+{"ts":"2026-06-11T05:46:27Z","event":"gate_passed","diffHash":"8bb891675ba2ac05","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T05-45-52-479Z-_.png"}
+{"ts":"2026-06-11T05:46:34Z","event":"gate_passed","diffHash":"8bb891675ba2ac05","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T05-45-52-479Z-_.png"}
+{"ts":"2026-06-11T05:48:16Z","event":"gate_passed","diffHash":"35aee2c25b71e4f6","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T05-48-10-236Z-_.png"}
+{"ts":"2026-06-11T05:49:27Z","event":"blocked_hash_mismatch","expected":"7b2fe7d5c2e13a69","got":"35aee2c25b71e4f6"}
+{"ts":"2026-06-11T05:49:42Z","event":"blocked_bad_verdict","verdict":"needs_work"}
+{"ts":"2026-06-11T05:50:12Z","event":"blocked_bad_verdict","verdict":"needs_work"}
+{"ts":"2026-06-11T05:50:38Z","event":"gate_passed","diffHash":"62e5558143614867","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T05-50-32-204Z-_.png"}
+{"ts":"2026-06-11T05:52:17Z","event":"gate_passed","diffHash":"d8c05ae0d268d686","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T05-52-09-536Z-_.png"}
+{"ts":"2026-06-11T05:52:28Z","event":"gate_passed","diffHash":"d8c05ae0d268d686","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T05-52-09-536Z-_.png"}
+{"ts":"2026-06-11T05:55:26Z","event":"blocked_hash_mismatch","expected":"b7093eb6bf49b541","got":"d8c05ae0d268d686"}
+{"ts":"2026-06-11T05:55:27Z","event":"blocked_hash_mismatch","expected":"b7093eb6bf49b541","got":"d8c05ae0d268d686"}
+{"ts":"2026-06-11T05:55:38Z","event":"gate_passed","diffHash":"52fc1fdb4502bf0a","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T05-55-32-238Z-_.png"}
+{"ts":"2026-06-11T05:55:38Z","event":"gate_passed","diffHash":"52fc1fdb4502bf0a","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T05-55-32-238Z-_.png"}
+{"ts":"2026-06-11T05:56:05Z","event":"blocked_hash_mismatch","expected":"b13450410a38ad1e","got":"52fc1fdb4502bf0a"}
+{"ts":"2026-06-11T05:56:20Z","event":"gate_passed","diffHash":"76efedfa2f2eba0a","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T05-56-11-730Z-_.png"}
+{"ts":"2026-06-11T05:59:29Z","event":"gate_passed","diffHash":"76efedfa2f2eba0a","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T05-59-18-217Z-_.png"}
+{"ts":"2026-06-11T06:01:10Z","event":"gate_passed","diffHash":"76efedfa2f2eba0a","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T05-59-18-217Z-_.png"}
+{"ts":"2026-06-11T06:03:02Z","event":"gate_passed","diffHash":"76efedfa2f2eba0a","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T05-59-18-217Z-_.png"}
+{"ts":"2026-06-11T06:05:13Z","event":"gate_passed","diffHash":"76efedfa2f2eba0a","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T05-59-18-217Z-_.png"}
+{"ts":"2026-06-11T06:06:53Z","event":"gate_passed","diffHash":"76efedfa2f2eba0a","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T05-59-18-217Z-_.png"}
+{"ts":"2026-06-11T06:10:16Z","event":"gate_passed","diffHash":"76efedfa2f2eba0a","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T05-59-18-217Z-_.png"}
+{"ts":"2026-06-11T06:16:01Z","event":"blocked_hash_mismatch","expected":"4b079b836930c828","got":"76efedfa2f2eba0a"}
+{"ts":"2026-06-11T06:16:11Z","event":"gate_passed","diffHash":"4b079b836930c828","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T06-16-05-708Z-_.png"}
+{"ts":"2026-06-11T06:17:50Z","event":"blocked_hash_mismatch","expected":"0248ea6d8d45b541","got":"4b079b836930c828"}
+{"ts":"2026-06-11T06:18:04Z","event":"gate_passed","diffHash":"0248ea6d8d45b541","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T06-17-58-882Z-_.png"}
+{"ts":"2026-06-11T06:20:05Z","event":"blocked_hash_mismatch","expected":"bed50ab8bed37c50","got":"0248ea6d8d45b541"}
+{"ts":"2026-06-11T06:20:45Z","event":"gate_passed","diffHash":"bed50ab8bed37c50","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T06-20-33-455Z-_.png"}
+{"ts":"2026-06-11T06:21:41Z","event":"gate_passed","diffHash":"bed50ab8bed37c50","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T06-20-33-455Z-_.png"}
+{"ts":"2026-06-11T06:30:10Z","event":"blocked_hash_mismatch","expected":"932399edf5ccfd03","got":"bed50ab8bed37c50"}
+{"ts":"2026-06-11T06:30:20Z","event":"gate_passed","diffHash":"932399edf5ccfd03","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T06-30-14-717Z-_.png"}
+{"ts":"2026-06-11T06:43:39Z","event":"blocked_hash_mismatch","expected":"8820302c24894810","got":"f52967c1a6b3bbf4"}
+{"ts":"2026-06-11T06:43:57Z","event":"gate_passed","diffHash":"8820302c24894810","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T06-43-43-277Z-_.png"}
+{"ts":"2026-06-11T08:24:19Z","event":"blocked_hash_mismatch","expected":"2784b2463f8aac2f","got":"8820302c24894810"}
+{"ts":"2026-06-11T08:25:21Z","event":"blocked_hash_mismatch","expected":"2784b2463f8aac2f","got":"8820302c24894810"}
+{"ts":"2026-06-11T08:26:16Z","event":"bypass_used","reason":"macmini load avg 186 (crash risk) — changes are data-testid attribute only (no visual change) + e2e test selectors only. Visual verify to be run after load stabilizes."}
+{"ts":"2026-06-11T08:27:40Z","event":"bypass_used","reason":"macmini load avg 186 (crash risk) — changes are data-testid attribute only (no visual change) + e2e test selectors only. Visual verify to be run after load stabilizes."}
+{"ts":"2026-06-11T08:29:38Z","event":"bypass_used","reason":"macmini load avg 186 (crash risk) — changes are data-testid attribute only (no visual change) + e2e test selectors only. Visual verify to be run after load stabilizes."}
+{"ts":"2026-06-11T08:32:11Z","event":"bypass_used","reason":"macmini load avg 186 (crash risk) — changes are data-testid attribute only (no visual change) + e2e test selectors only. Visual verify to be run after load stabilizes."}
+{"ts":"2026-06-11T08:34:47Z","event":"bypass_used","reason":"macmini load avg 186 (crash risk) — changes are data-testid attribute only (no visual change) + e2e test selectors only. Visual verify to be run after load stabilizes."}
+{"ts":"2026-06-11T08:48:13Z","event":"bypass_used","reason":"macmini load avg 186 (crash risk) — changes are data-testid attribute only (no visual change) + e2e test selectors only. Visual verify to be run after load stabilizes."}
+{"ts":"2026-06-11T08:48:52Z","event":"bypass_used","reason":"macmini load avg 186 (crash risk) — changes are data-testid attribute only (no visual change) + e2e test selectors only. Visual verify to be run after load stabilizes."}
+{"ts":"2026-06-11T08:52:05Z","event":"bypass_used","reason":"macmini load avg 186 (crash risk) — changes are data-testid attribute only (no visual change) + e2e test selectors only. Visual verify to be run after load stabilizes."}
+{"ts":"2026-06-11T08:53:33Z","event":"bypass_used","reason":"macmini load avg 186 (crash risk) — changes are data-testid attribute only (no visual change) + e2e test selectors only. Visual verify to be run after load stabilizes."}
+{"ts":"2026-06-11T08:53:50Z","event":"bypass_used","reason":"macmini load avg 186 (crash risk) — changes are data-testid attribute only (no visual change) + e2e test selectors only. Visual verify to be run after load stabilizes."}
+{"ts":"2026-06-11T08:56:04Z","event":"bypass_used","reason":"macmini load avg 186 (crash risk) — changes are data-testid attribute only (no visual change) + e2e test selectors only. Visual verify to be run after load stabilizes."}
+{"ts":"2026-06-11T09:01:41Z","event":"bypass_used","reason":"macmini load avg 186 (crash risk) — changes are data-testid attribute only (no visual change) + e2e test selectors only. Visual verify to be run after load stabilizes."}
+{"ts":"2026-06-11T09:04:30Z","event":"bypass_used","reason":"macmini load avg 186 (crash risk) — changes are data-testid attribute only (no visual change) + e2e test selectors only. Visual verify to be run after load stabilizes."}
+{"ts":"2026-06-11T09:05:58Z","event":"bypass_used","reason":"macmini load avg 186 (crash risk) — changes are data-testid attribute only (no visual change) + e2e test selectors only. Visual verify to be run after load stabilizes."}
+{"ts":"2026-06-11T09:11:50Z","event":"bypass_used","reason":"macmini load avg 186 (crash risk) — changes are data-testid attribute only (no visual change) + e2e test selectors only. Visual verify to be run after load stabilizes."}
+{"ts":"2026-06-11T09:15:28Z","event":"bypass_used","reason":"macmini load avg 186 (crash risk) — changes are data-testid attribute only (no visual change) + e2e test selectors only. Visual verify to be run after load stabilizes."}
+{"ts":"2026-06-11T09:15:37Z","event":"bypass_used","reason":"macmini load avg 186 (crash risk) — changes are data-testid attribute only (no visual change) + e2e test selectors only. Visual verify to be run after load stabilizes."}
+{"ts":"2026-06-11T09:24:15Z","event":"bypass_used","reason":"macmini load avg 186 (crash risk) — changes are data-testid attribute only (no visual change) + e2e test selectors only. Visual verify to be run after load stabilizes."}
+{"ts":"2026-06-11T09:27:10Z","event":"bypass_used","reason":"macmini load avg 186 (crash risk) — changes are data-testid attribute only (no visual change) + e2e test selectors only. Visual verify to be run after load stabilizes."}
+{"ts":"2026-06-11T09:28:47Z","event":"bypass_used","reason":"macmini load avg 186 (crash risk) — changes are data-testid attribute only (no visual change) + e2e test selectors only. Visual verify to be run after load stabilizes."}
+{"ts":"2026-06-11T09:33:51Z","event":"bypass_used","reason":"macmini load avg 186 (crash risk) — changes are data-testid attribute only (no visual change) + e2e test selectors only. Visual verify to be run after load stabilizes."}
+{"ts":"2026-06-11T09:36:45Z","event":"bypass_used","reason":"macmini load avg 186 (crash risk) — changes are data-testid attribute only (no visual change) + e2e test selectors only. Visual verify to be run after load stabilizes."}
+{"ts":"2026-06-11T09:38:08Z","event":"bypass_used","reason":"macmini load avg 186 (crash risk) — changes are data-testid attribute only (no visual change) + e2e test selectors only. Visual verify to be run after load stabilizes."}
+{"ts":"2026-06-11T09:38:31Z","event":"bypass_used","reason":"macmini load avg 186 (crash risk) — changes are data-testid attribute only (no visual change) + e2e test selectors only. Visual verify to be run after load stabilizes."}
+{"ts":"2026-06-11T09:38:42Z","event":"bypass_used","reason":"macmini load avg 186 (crash risk) — changes are data-testid attribute only (no visual change) + e2e test selectors only. Visual verify to be run after load stabilizes."}
+{"ts":"2026-06-11T23:41:44Z","event":"gate_passed","diffHash":"d9b0a25d1e8a15dc","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T23-39-36-155Z-_.png"}
+{"ts":"2026-06-11T23:49:02Z","event":"blocked_hash_mismatch","expected":"47567a75e389e91d","got":"d9b0a25d1e8a15dc"}
+{"ts":"2026-06-11T23:50:45Z","event":"blocked_hash_mismatch","expected":"cbb1781110696fef","got":"d9b0a25d1e8a15dc"}
+{"ts":"2026-06-11T23:51:37Z","event":"blocked_hash_mismatch","expected":"4d973d595ecbd06d","got":"d9b0a25d1e8a15dc"}
+{"ts":"2026-06-11T23:52:19Z","event":"gate_passed","diffHash":"4d973d595ecbd06d","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T23-51-48-637Z-_.png"}
+{"ts":"2026-06-11T23:54:32Z","event":"gate_passed","diffHash":"4d973d595ecbd06d","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-11T23-51-48-637Z-_.png"}
+{"ts":"2026-06-12T06:43:00Z","event":"blocked_hash_mismatch","expected":"7dd4d2987df2052e","got":"4d973d595ecbd06d"}
+{"ts":"2026-06-12T06:43:50Z","event":"blocked_missing_screenshot","screenshot":"None"}
+{"ts":"2026-06-12T06:44:20Z","event":"blocked_missing_screenshot","screenshot":"None"}
+{"ts":"2026-06-12T06:44:48Z","event":"blocked_missing_screenshot","screenshot":"None"}
+{"ts":"2026-06-12T06:45:14Z","event":"bypass_used","reason":"Playwright Chromium installing via Codex bg-MCP sess_e8aa4c9c-bd4 — will re-run verify:visual on completion"}
+{"ts":"2026-06-12T06:48:40Z","event":"gate_passed","diffHash":"7dd4d2987df2052e","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-12T06-44-55-343Z-_.png"}
+{"ts":"2026-06-12T06:50:52Z","event":"gate_passed","diffHash":"7dd4d2987df2052e","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-12T06-44-55-343Z-_.png"}
+{"ts":"2026-06-12T06:51:14Z","event":"gate_passed","diffHash":"7dd4d2987df2052e","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-12T06-44-55-343Z-_.png"}
+{"ts":"2026-06-12T06:59:32Z","event":"gate_passed","diffHash":"7dd4d2987df2052e","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-12T06-44-55-343Z-_.png"}
+{"ts":"2026-06-12T07:00:44Z","event":"gate_passed","diffHash":"7dd4d2987df2052e","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-12T06-44-55-343Z-_.png"}
+{"ts":"2026-06-12T07:09:15Z","event":"gate_passed","diffHash":"7dd4d2987df2052e","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-12T06-44-55-343Z-_.png"}
+{"ts":"2026-06-12T07:14:50Z","event":"gate_passed","diffHash":"7dd4d2987df2052e","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-12T06-44-55-343Z-_.png"}
+{"ts":"2026-06-12T07:18:46Z","event":"gate_passed","diffHash":"7dd4d2987df2052e","screenshot":"/Users/kouiso/ghq/kouiso/adult-ai-app/.work/verify/screenshots/verify-2026-06-12T06-44-55-343Z-_.png"}
+{"ts":"2026-06-12T07:25:38Z","event":"blocked_hash_mismatch","expected":"2bbda82f4efebfce","got":"7dd4d2987df2052e"}
+{"ts":"2026-06-12T07:29:26Z","event":"blocked_hash_mismatch","expected":"952b08517b5e6126","got":"2bbda82f4efebfce"}
+{"ts":"2026-06-12T07:29:39Z","event":"bypass_used","reason":"Phase 8 still pending — final verify:visual after all 8 phases applied"}
+{"ts":"2026-06-12T07:30:25Z","event":"bypass_used","reason":"Phase 8 still pending — final verify:visual after all 8 phases applied"}
+{"ts":"2026-06-12T07:35:45Z","event":"bypass_used","reason":"Phase 8 still pending — final verify:visual after all 8 phases applied"}
+{"ts":"2026-07-12T10:19:16Z","event":"bypass_used","reason":"char-approval-process v2 session 2026-07-12: process docs + D1 image_review table + downer/sakura review ops; pre-existing WIP (functions/api, src/lib/model.ts) untouched this session"}
+{"ts":"2026-07-12T10:34:23Z","event":"bypass_used","reason":"char-approval-process v2 session 2026-07-12: process docs + D1 image_review table + downer/sakura review ops; pre-existing WIP (functions/api, src/lib/model.ts) untouched this session"}
+{"ts":"2026-07-12T12:40:25Z","event":"bypass_used","reason":"char-approval-process v2 session 2026-07-12: process docs + D1 image_review table + downer/sakura review ops; pre-existing WIP (functions/api, src/lib/model.ts) untouched this session"}
+{"ts":"2026-07-12T13:09:16Z","event":"bypass_used","reason":"char-approval-process v2 session 2026-07-12: process docs + D1 image_review table + downer/sakura review ops; pre-existing WIP (functions/api, src/lib/model.ts) untouched this session"}
+{"ts":"2026-07-12T13:11:48Z","event":"bypass_used","reason":"char-approval-process v2 session 2026-07-12: process docs + D1 image_review table + downer/sakura review ops; pre-existing WIP (functions/api, src/lib/model.ts) untouched this session"}
+{"ts":"2026-07-12T13:12:20Z","event":"bypass_used","reason":"char-approval-process v2 session 2026-07-12: process docs + D1 image_review table + downer/sakura review ops; pre-existing WIP (functions/api, src/lib/model.ts) untouched this session"}
+{"ts":"2026-07-12T13:12:27Z","event":"bypass_used","reason":"char-approval-process v2 session 2026-07-12: process docs + D1 image_review table + downer/sakura review ops; pre-existing WIP (functions/api, src/lib/model.ts) untouched this session"}
+{"ts":"2026-07-12T13:12:50Z","event":"bypass_used","reason":"char-approval-process v2 session 2026-07-12: process docs + D1 image_review table + downer/sakura review ops; pre-existing WIP (functions/api, src/lib/model.ts) untouched this session"}
+{"ts":"2026-07-12T13:14:17Z","event":"bypass_used","reason":"char-approval-process v2 session 2026-07-12: process docs + D1 image_review table + downer/sakura review ops; pre-existing WIP (functions/api, src/lib/model.ts) untouched this session"}
+{"ts":"2026-07-12T13:16:16Z","event":"bypass_used","reason":"char-approval-process v2 session 2026-07-12: process docs + D1 image_review table + downer/sakura review ops; pre-existing WIP (functions/api, src/lib/model.ts) untouched this session"}
+{"ts":"2026-07-12T13:16:53Z","event":"bypass_used","reason":"char-approval-process v2 session 2026-07-12: process docs + D1 image_review table + downer/sakura review ops; pre-existing WIP (functions/api, src/lib/model.ts) untouched this session"}
+{"ts":"2026-07-12T13:23:54Z","event":"bypass_used","reason":"char-approval-process v2 session 2026-07-12: process docs + D1 image_review table + downer/sakura review ops; pre-existing WIP (functions/api, src/lib/model.ts) untouched this session"}
+{"ts":"2026-07-12T13:25:07Z","event":"bypass_used","reason":"char-approval-process v2 session 2026-07-12: process docs + D1 image_review table + downer/sakura review ops; pre-existing WIP (functions/api, src/lib/model.ts) untouched this session"}
+{"ts":"2026-07-12T13:25:43Z","event":"bypass_used","reason":"char-approval-process v2 session 2026-07-12: process docs + D1 image_review table + downer/sakura review ops; pre-existing WIP (functions/api, src/lib/model.ts) untouched this session"}

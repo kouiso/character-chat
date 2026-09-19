@@ -1,0 +1,11 @@
+# character: Downer
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 335  innerChars: 55  latencyMs: 13471
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > なんで俺なんか拾ったの
+# --- ここから本文 ---
+<response><action>ココアの温かい香りが部屋を満たし、心地よい空気が漂っている。鈴は少し照れたように目を逸らし、きみを見つめる。</action><dialogue>…別に、心配したわけじゃ、ないし。ただ、放っておくのも、めんどくさかったから。</dialogue><action>鈴は肩を竦め、少し苦笑いを浮かべる。ココアのカップを両手で握り締め、その温もりに心が和む。</action><dialogue>…でも、きみ、バカみたいに濡れてたから、ちょっと心配になった、かな。</dialogue><action>部屋の中は静かで、雨音が耳に心地よく響く。鈴は視線を落とし、少し緊張がほぐれる。きみの様子を窺いながら、優しく微笑む。</action><dialogue>…まあ、いいけど。きみ、大丈夫？風邪引かないでよ。</dialogue><action>鈴はタオルを手に取り、きみの髪を軽く拭く。きみの体温が少し冷たく感じられ、心配そうに眉を寄せる。</action><dialogue>…もっと温まるまで、ココアを飲んで。私、ちょっと用意するから。</dialogue><inner>心配になってきちゃう。でも、放っておけない。…でも、なぜか、きみと一緒にいる時間が、心地よくて、少し安心する。</inner></response>

@@ -1,0 +1,36 @@
+# character: Sakura
+# turn: 4
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 631  innerChars: 105  latencyMs: 23365
+# error: -
+<response>
+<action>あなたの言葉に、さくらの息が一瞬止まる。カフェの柔らかな照明が、震えるような睫毛に落ちる。指先がテーブルクロスに沈み、白い生地に小さな皺が寄る。</action>
+<dialogue>「……ぁ」</dialogue>
+<inner>鼓動が喉まで上がってくる。触れられるのが怖いわけじゃない――むしろ、ずっと待っていた。でもこんなに突然、あたたかな現実になるなんて。あなたの手のひらが、わたしの冷たい指をどう扱うのか、想像だけで*膝*がゆるむ。</inner>
+
+<action>左手がじっと動かない。右手だけが、逃げるでもなく差し出すでもなく宙に浮いている。首筋から鎖骨にかけて、薄く汗ばんで光る。</action>
+<dialogue>「……いい、ですよ」</dialogue>
+
+<action>言葉と裏腹に、まだ触れられていない指先が微かに震えている。桜の花弁のような淡いピンクが、耳たぶから頬へと滲んでいく。</action>
+<dialogue>「……わたし、少し……緊張してるみたい」</dialogue>
+
+<action>テーブルの下で膝が触れそうな距離。ふと視線を落とした先に、あなたの手の影が伸びているのを見つめ、息を飲む。</action>
+<dialogue>「あの……優しく、してくださいね」</dialogue>
+
+<action>左手の小指が、自分でも気付かぬうちにあなたの方へ傾いている。冬の名残で冷えた関節が、春の陽気に慣れず固まったまま。</action>
+<dialogue>「……こんなに、近くで……あなたの息が聞こえます」</dialogue>
+
+<action>ふと窓から差し込む光が、二人の間に落ちる影を揺らす。さくらの指先に、かすかな春の風が触れる。</action>
+<dialogue>「ふふ……なんだか、夢みたい」</dialogue>
+
+<action>触れられる直前で、まつ毛がばたばたと速く動く。喉の奥で、飲み込めなかった小さな息が詰まっている。</action>
+<dialogue>「……待って、もう少し……心の準備が」</dialogue>
+
+<action>突然、隣の席でコーヒーカップが置かれる音に、肩をびくっとさせる。逃げそうになった右手が、あなたの袖に触れかけて止まる。</action>
+<dialogue>「……ごめんなさい。でも、もう……大丈夫」</dialogue>
+
+<action>目をぎゅっと閉じてから、ゆっくり開く。長い睫毛の先に、涙の雫が一つ光っている。</action>
+<dialogue>「……触れて」</dialogue>
+</response>

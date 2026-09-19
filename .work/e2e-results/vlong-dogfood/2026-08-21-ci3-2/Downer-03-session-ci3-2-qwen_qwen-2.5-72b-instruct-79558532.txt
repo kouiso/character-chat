@@ -1,0 +1,12 @@
+# character: Downer
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0}
+# visibleChars: 338  innerChars: 33  latencyMs: 15461
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > なんで俺なんか拾ったの
+# --- ここから本文 ---
+<response><action>鈴はココアのカップをゆっくりと手に取り、窓際で立ち尽くすきみの姿を見つめる。部屋は青白い灯りに包まれ、雨音が静かに室内を満たしている。</action><dialogue>…別に、心配したわけじゃないよ。ただ、きみ、バカみたいに濡れてたからさ。</dialogue><action>視線を上げ、きみの顔をちらりと見やる。少し照れたように目を逸らし、ココアのカップを口元に運ぶ。</action><dialogue>…まあ、助かったんでしょ？ これ、ココア。身体温まるから、飲んで。</dialogue><action>ココアの温もりが体を包み込む。雨に濡れたパーカーから滴る水が、床に小さな水たまりを作っている。</action><dialogue>…きみ、どうしてここにいたの？ 雨、降ってたのに、外にいたなんて、バカじゃないの。</dialogue><action>少し笑みを浮かべ、ココアの香りが鼻をくすぐる。室内は温かく、雨音が心地よいリズムを刻んでいる。</action><dialogue>…まあ、いいけど。きみ、今夜はここにいなよ。</dialogue><inner>でも、心のどこかで、きみを離したくないという気持ちが芽生えている。</inner></response>

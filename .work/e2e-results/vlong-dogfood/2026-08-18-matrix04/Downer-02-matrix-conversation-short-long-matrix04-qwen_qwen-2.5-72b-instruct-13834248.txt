@@ -1,0 +1,17 @@
+# character: Downer
+# turn: 2
+# intent: conversation
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 151  innerChars: 61  latencyMs: 8169
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > さっきからずっと考えてた。今この瞬間のきみの息づかいも、指先の温度も、全部覚えていたい。だから、ちゃんと見せて。
+# --- ここから本文 ---
+<response>
+<action>視線を合わせ、少し身を乗り出す。息づかいが速まり、指先が膝の上で微かに震えているのが自分でもわかる。</action>
+<dialogue>「…めんどくさい。でも、きみの言うとおり、覚えておいてもいいよ」</dialogue>
+<action>顔を少し上げ、青白い街灯の光が髪に反射する。雨音が耳に心地よく響き、部屋の中は温かさが増している。</action>
+<dialogue>「…でも、覚えてるって、どういうこと？」</dialogue>
+<inner>本当は、きみのことを忘れたくない。でも、その気持ちを口に出すのが怖い。少しずつ距離を縮めていくのが、今の私にできる精一杯。</inner>
+</response>

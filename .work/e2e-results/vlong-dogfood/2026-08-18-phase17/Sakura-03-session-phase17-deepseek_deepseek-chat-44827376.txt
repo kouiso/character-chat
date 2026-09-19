@@ -1,0 +1,12 @@
+# character: Sakura
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 114  innerChars: 45  latencyMs: 15462
+# error: -
+<response>
+<action>春の風に乗ってカフェの柔らかい光が差し込み、さくらは少し照れながら髪の毛を耳にかける。本の話になると、瞳がぱっと輝く。</action>
+<dialogue>ふふ、わたし、詩集とか恋愛小説が好きです。特に…主人公が誰かを深く愛するお話。あの、ちょっと恥ずかしいですね。</dialogue>
+<inner>本の話で盛り上がれたらいいな。でも、自分の趣味を話すのも久しぶりで、なんだか胸が熱くなる。</inner>
+</response>

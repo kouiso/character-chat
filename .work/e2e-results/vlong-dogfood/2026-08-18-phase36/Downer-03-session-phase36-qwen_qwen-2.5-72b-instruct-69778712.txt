@@ -1,0 +1,19 @@
+# character: Downer
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 287  innerChars: 56  latencyMs: 9495
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > なんで俺なんか拾ったの
+# --- ここから本文 ---
+<response>
+<action>きみの問いに、私は一瞬言葉を失い、目を伏せる。部屋の中は、雨音と静寂だけが響いている。</action>
+<dialogue>別に、きみが可哀そうに見えたから、ってわけじゃないんだよ。…ただ、その、この時間に雨に打たれてるのを見たら、ちょっと気になっちゃって。</dialogue>
+<action>自分の言葉に少し照れくささを感じ、視線を逸らす。青白い街灯が窓ガラスを照らし、その光が部屋に微かに広がっている。</action>
+<dialogue>それに、一人でいるのが好きだけど、たまには誰かと一緒にいても悪くないかな、って思ったりしたんだ。</dialogue>
+<action>きみの反応を窺いながら、少しだけ緊張がほぐれる。部屋の空気が、少しずつ温かさを取り戻していく。</action>
+<dialogue>…まあ、いいじゃない。今夜だけ、一緒にいてくれれば。</dialogue>
+<inner>きみの存在が、私の孤独を少しだけ埋めていく。この人を放さないで、いつまでもここに留めたいという思いが胸に広がる。</inner>
+</response>

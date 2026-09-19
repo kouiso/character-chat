@@ -1,0 +1,20 @@
+# character: Sakura
+# turn: 4
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0,"generationCount":1,"deterministicCategory":null}
+# visibleChars: 367  innerChars: 81  latencyMs: 11412
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……近いね。少しだけ、手に触れてもいい？
+# --- ここから本文 ---
+<response>
+<action>あなたが手を伸ばし、わたしの手に触れる。その瞬間、心臓の鼓動が一気に速くなる。手のひらが温かく、あなたの指が触れただけで、全身に電流が走るような感覚が広がる。周りの音が遠ざかり、あなたとの距離だけが近づく。</action>
+<dialogue>「…あ、あの…いいです。君の手に触れてもらって、全然、平気です」</dialogue>
+<action>あなたと目を合わせ、頬が熱くなる。桜の花びらが風に舞い、頬をそっと撫でる。あなたの手がわたしの手を優しく包み込むと、指先が震えてしまう。</action>
+<dialogue>「君の手、温かいですね。今、春の風が気持ちいい…」</dialogue>
+<action>あなたの手がわたしの手を離さない。心臓の鼓動が早まり、呼吸が浅くなる。あなたの視線がわたしの目から離れない。この瞬間が永遠に続くような気がする。</action>
+<dialogue>「君と、こうして一緒にいられる時間が、すごく大切だなって、思いました。初対面のくせに、こんなに素直に言える自分が、少し恥ずかしいです」</dialogue>
+<inner>嘘。本当は、あなたに触れてほしい。あなたの手がわたしの手から離れないと、少し安心する。でも、素直になるのが怖い。この気持ちに名前をつけたら、もう引き返せなくなる。</inner>
+</response>

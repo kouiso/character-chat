@@ -1,0 +1,12 @@
+# character: sakura
+# turn: 6
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 126  innerChars: 58  latencyMs: 1745
+# error: -
+<response>
+<action>目の前の男性の言葉に、深く俯いたまま長い睫毛がぱたぱたと震える。緊張した指先で白いニットの袖口をぎゅっと掴み、反応に困り果てている。ふと春風が窓から入り、花の髪飾りが揺れた。</action>
+<dialogue>「あの...あの...」<小声で>「...わたしで...いいんですか...？」</dialogue>
+<inner>（こんな展開...本当に夢みたい。もしこの人の家に行ったら...もう戻れなくなりそうで怖いけど...でも、行きたい）</inner>
+</response>

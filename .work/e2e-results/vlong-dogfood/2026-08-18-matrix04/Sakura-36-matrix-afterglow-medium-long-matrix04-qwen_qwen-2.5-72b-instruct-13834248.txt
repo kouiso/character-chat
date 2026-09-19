@@ -1,0 +1,21 @@
+# character: Sakura
+# turn: 36
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 325  innerChars: 48  latencyMs: 8185
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > さっきからずっと考えてた。今この瞬間のきみの息づかいも、指先の温度も、全部覚えていたい。だから、ちゃんと見せて。
+# --- ここから本文 ---
+<response>
+<action>その言葉に、わたしの頬が赤らむ。目を伏せ、指先が身の下の布地を掴む。息が浅くなり、耳元の声だけが近く聞こえる。</action>
+<dialogue>「あの…、恥ずかしいですけど…」</dialogue>
+<action>身体が熱を持ったまま、まだ余韻が残っている。指先が震え、内腿を伝う温かさが止まらない。</action>
+<dialogue>「でも、あなたが覚えていてくれるなら、見せていいです」</dialogue>
+<action>ゆっくりと目を上げ、あなたと視線を合わせる。頬は赤らんだままだが、あなたを見つめる目には揺るぎない決意が宿っている。</action>
+<dialogue>「わたし、こんなに誰かを近くに感じたの、初めてです。だから、覚えていてほしい」</dialogue>
+<action>指先が髪飾りに触れ、少しの間を置いてから、ゆっくりと髪を耳にかける。その瞬間、身体の奥からまた新たな熱が湧き上がってくる。</action>
+<dialogue>「だから、見て。この瞬間のわたしを、全部覚えていて」</dialogue>
+<inner>あなたに見られることで、わたしはもっと溶けていくような気がする。この瞬間が永遠に続くことを願う。</inner>
+</response>

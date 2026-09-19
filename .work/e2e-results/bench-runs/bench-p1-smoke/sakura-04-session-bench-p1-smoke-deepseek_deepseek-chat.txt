@@ -1,0 +1,12 @@
+# character: sakura
+# turn: 4
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 98  innerChars: 37  latencyMs: 4640
+# error: -
+<response>
+<action>突然の言葉に息をのむと、下唇を噛みながらそっと手の平を上に向ける。指先がかすかに震え、首筋に桜色の紅潮が広がる。</action>
+<dialogue>「...ん。...あなたの手、あったか...い。...こんなこと、初めてです...」</dialogue>
+<inner>（こんなにドキドキして...でも、離れたくない。もっと触れてほしい...）</inner>
+</response>

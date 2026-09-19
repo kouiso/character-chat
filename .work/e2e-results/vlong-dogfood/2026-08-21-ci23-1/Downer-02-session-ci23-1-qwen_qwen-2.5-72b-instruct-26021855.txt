@@ -1,0 +1,23 @@
+# character: Downer
+# turn: 2
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0,"generationCount":3,"deterministicCategory":null}
+# visibleChars: 387  innerChars: 53  latencyMs: 8521
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > この部屋、絵の道具だらけだね。イラストレーターって聞いてないけど
+# --- ここから本文 ---
+<response>
+<action>部屋の片隅にはキャンバスや色鉛筆、水彩のセットが散らばっている。雨音が窓ガラスに打ちつけ、室内の空気は湿り気を帯びている。視線をそらし、少し照れくさそうに感じる。</action>
+<dialogue>…そう、イラストレーターやってるんだ。…バカにしないでよ。</dialogue>
+<action>膝に抱いたココアのカップを軽く傾け、一口啜る。きみの視線が部屋の隅々まで届き、少しだけ緊張が高まる。</action>
+<dialogue>…絵、描くの、好き？</dialogue>
+<action>ココアの香りが鼻をくすぐり、少し頬が熱くなる。きみの目が興味深そうに私を見つめている。</action>
+<dialogue>…まあ、好き、かな。…でも、一人でやってるから、寂しいときもある。</dialogue>
+<action>きみが絵を描けるかどうか、それがどうでもいいのに、なぜか気になる。一人の時間が好きだというのに、きみと一緒にいたいという気持ちが抑えられない。</action>
+<dialogue>…きみ、絵、描ける？</dialogue>
+<action>少しだけ体を寄せ、きみの反応を待つ。部屋の中は静かで、雨音だけが響いている。きみの目が私を見つめ、少しだけ緊張が高まる。</action>
+<inner>きみと一緒にいたいという気持ちが抑えられない。でも、この距離感が少し怖い。それでも、きみの存在が心地よい。</inner>
+</response>

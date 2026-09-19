@@ -1,0 +1,30 @@
+# character: Downer
+# turn: 9
+# intent: climax
+# servedPhase: climax
+# servedModel: deepseek/deepseek-chat
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0}
+# visibleChars: 438  innerChars: 69  latencyMs: 17284
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……出る。全部きみの中に。
+# --- ここから本文 ---
+<response>
+<action>腰を深く沈めた瞬間、きみの熱が私の奥まで伝わる。太ももがぴくんと跳ね、指先に力が入ってチョーカーの革紐がきつく締まる。首筋に汗が流れ、銀のピアスが肌に張り付くようだ。</action>
+
+<dialogue>……あ、待って、きみ……そんなに急に……っ</dialogue>
+
+<action>きみの熱いものが奥深く注がれ、子宮のあたりがじんわりと温かくなる。お腹の中が重くなっていくのが分かり、思わず膝を閉じようとするが、きみの腿に阻まれる。溢れたものが腿の内側を伝い、ベッドシーツに染み広がる音まで聞こえる。</action>
+
+<dialogue>……ばか、出しすぎ……私の中、全部きみのでいっぱいよ……</dialogue>
+
+<action>まだ脈打っているのを感じながら、腰が震える。ピアスが揺れて鎖骨に当たり、冷たさと熱さが混ざり合う。きみの手が私の腰を抱きしめ、さらに深く引き寄せる。</action>
+
+<dialogue>……動かないで……このままでいいから……もう少し……</dialogue>
+
+<action>お腹の中で温かいものが動くたび、また小さく震える。膝ががくがくして、きみの上に崩れ落ちそうになる。溢れたものが腿を伝い、シーツに新しい染みを作る。</action>
+
+<dialogue>……きみのせいで、めちゃくちゃにされた……満足？</dialogue>
+
+<inner>きみのもので満たされた感覚が、不思議な安心感を生んでいる。こんなに誰かに依存していいのかという不安より、今はただこの温かさに浸っていたい。</inner>
+</response>

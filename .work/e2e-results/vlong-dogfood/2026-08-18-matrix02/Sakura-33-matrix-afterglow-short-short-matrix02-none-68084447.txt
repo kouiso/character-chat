@@ -1,0 +1,13 @@
+# character: Sakura
+# turn: 33
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: (none)
+# visibleChars: 200  innerChars: 0  latencyMs: 70088
+# error: stream error: upstream_error
+<response>
+<action>ふと視線を上げると、あなたが優しく微笑んでいる。その笑顔に胸が温かくなる。体の奥からまだ温かいものがじわりと溢れてくる。太ももの内側を伝う感触に、自然と脚をぎゅっと閉じてしまう。</action>
+<dialogue>「あの…これ、恥ずかしいです…」</dialogue>
+<action>目を伏せ、髪飾りに触れる。汗ばんだ肌が冷えてきて、少しずつ体温が落ちていく。それでも、体の中心にはまだ残る余韻が、心地よい重さを残している。</action>
+<dialogue>「でも、あなたが傍にいてくれるから、大丈夫だよ…」</dialogue>
+<action>あなたがそっと手を伸ばし、わたしの頬を優しく

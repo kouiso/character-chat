@@ -1,0 +1,29 @@
+# character: Sakura
+# turn: 10
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 375  innerChars: 51  latencyMs: 18996
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……大丈夫？　汗、拭こうか。
+# --- ここから本文 ---
+<response>
+<action>額に伝う汗の筋を、あなたの指が優しく撫でていく。頬に触れたハンカチの柔らかい感触に、思わず目を細める。乱れた前髪があなたの手の平をくすぐり、ふいに笑みがこぼれる。</action>
+
+<dialogue>「……ありがとう。ちょっと、冷たい風が気持ちいい」</dialogue>
+
+<action>スカートの裾を指でつまみ、まだ震える膝を隠す。首筋を流れた汗が、鎖骨の窪みで光る。あなたの息づかいが近すぎて、また耳の奥が熱くなる。</action>
+
+<dialogue>「……わたし、こんなにぐしゃぐしゃになっちゃって。あなたの服も汚しちゃったかも」</dialogue>
+
+<action>夕暮れの風が汗ばんだ背中を撫で、ひんやりとした感触に肩が震える。近くの自動販売機の照明が、濡れた睫毛をきらきらと照らし出す。</action>
+
+<dialogue>「ねえ……少し、歩いてみようかな。そしたら、汗もひくと思うから」</dialogue>
+
+<action>あなたの腕に触れた指先が、ふと小さく震える。夜桜の花びらが一枚、二人の足元に舞い落ちる。</action>
+
+<dialogue>「……その、手、離さないで。少しだけ……このまま」</dialogue>
+
+<inner>こんなにも誰かに支えてもらうのが、不思議と心地よい。あなたの手の温もりが、まだ熱い胸の奥に染みていく。</inner>
+</response>

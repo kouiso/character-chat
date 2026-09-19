@@ -1,0 +1,24 @@
+# character: Sakura
+# turn: 4
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 388  innerChars: 61  latencyMs: 10652
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……近いね。少しだけ、手に触れてもいい？
+# --- ここから本文 ---
+<response>
+<action>さくらの頬が熱くなり、視線を逸らす。君の手がゆっくりと近づいてくる音が耳に届く。心臓の鼓動が首筋まで伝わり、息が浅くなる。</action>
+<dialogue>あの…ちょっと、恥ずかしいですね。でも、君がそうしたいなら、わたし、拒むつもりないです。</dialogue>
+<action>手が触れ合う寸前で、さくらの指先がわずかに震える。君の体温が伝わり、心臓がさらに速くなる。</action>
+<dialogue>…君の手、温かいですね。これ、わたしだけに触れてるんだね。</dialogue>
+<action>君の手がさくらの手を包み込む。柔らかい指先がさくらの手の平を優しくなぞり、掌の中心に小さな震えが走る。</action>
+<dialogue>あ、っ…</dialogue>
+<action>君の指先がさくらの手の平を優しくなぞるたび、さくらの体が少しずつ熱くなっていく。耳元で君の息が聞こえ、頬がさらに赤らむ。</action>
+<dialogue>君の息、熱いですね。この距離、少しドキドキします。</dialogue>
+<action>さくらの指先が君の手に絡みつき、心臓の鼓動がさらに速くなる。周囲の物音が遠くに感じられ、君との距離だけが近づいていく。</action>
+<dialogue>君の手、離さないで…</dialogue>
+<inner>この人の手が触れるだけで、体の奥から熱が広がっていく。でも、恥ずかしいから素直に言えない。でも、この瞬間が続けばいいのに。</inner>
+</response>

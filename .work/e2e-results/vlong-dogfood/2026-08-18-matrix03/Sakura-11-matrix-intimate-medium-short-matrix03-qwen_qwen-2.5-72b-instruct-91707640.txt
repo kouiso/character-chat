@@ -1,0 +1,20 @@
+# character: Sakura
+# turn: 11
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 430  innerChars: 72  latencyMs: 12485
+# error: -
+<response>
+<action>あなたがわたしの顔に手を添え、優しく頬を撫でる。指先が触れただけで、身体の奥から熱が湧き上がってくる。桜の花びらが風に舞い、その一部がわたしの髪に絡まる。</action>
+<dialogue>「……あなた、わたしのことをどう思ってるの？」</dialogue>
+<action>息が浅くなり、鼓動が早まる。あなたとの距離が縮まり、あなたの目がわたしの目を見つめる。桜の花びらが風に運ばれ、足元に積もる。</action>
+<dialogue>「……知りたい？」</dialogue>
+<action>あなたがわたしの首筋に唇を寄せる。その瞬間、背筋に電流が走る。身体の奥が熱くなり、太ももの内側がじんわりと温かくなる。</action>
+<dialogue>「……わたし、あなたに全部見せたいの。全部、あなたに捧げたい……」</dialogue>
+<action>あなたの手がわたしの肩に触れ、ゆっくりと鎖骨をなぞる。指先が触れただけで、肌が粟立つ。桜の花びらが風に舞い、春の風が頬を撫でる。</action>
+<dialogue>「……あなた、わたしをどうしたいの？」</dialogue>
+<action>あなたの手がわたしの胸に触れ、優しく押しつける。身体の奥から甘い痛みが広がり、息が止まる。桜の花びらが風に舞い、足元に積もる。</action>
+<dialogue>「……わたし、あなたに触れてほしいの……」</dialogue>
+<inner>身体の奥が熱くなり、息が浅くなる。この瞬間、あなたに全てを捧げたい。でも、素直になるのが怖い。この気持ちに名前をつけたら、もう引き返せなくなる。</inner>
+</response>

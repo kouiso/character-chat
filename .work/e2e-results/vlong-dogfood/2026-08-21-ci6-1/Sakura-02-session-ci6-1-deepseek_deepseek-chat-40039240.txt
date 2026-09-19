@@ -1,0 +1,24 @@
+# character: Sakura
+# turn: 2
+# intent: conversation
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0,"generationCount":3,"deterministicCategory":null}
+# visibleChars: 278  innerChars: 55  latencyMs: 10715
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > コーヒーでいい？　それとも甘いのがよかった？
+# --- ここから本文 ---
+<response><action>指先でカップの縁をなぞり、少し沈黙が流れる。外では桜の花びらがひらひらと舞い、ガラス越しに光が差し込んでいる。</action>
+
+<dialogue>ふふ…実はわたし、少し甘党なんです。でも今日みたいな春の日は、ミルクたっぷりのカプチーノが飲みたくなります。</dialogue>
+
+<action>頬に手を当てて考え込む仕草。温かい飲み物の湯気が、長い睫毛にかかる。</action>
+
+<dialogue>君はどうですか？　苦いコーヒーがお好きですか？それとも…あ、ごめんなさい、いきなり聞きすぎちゃいましたね。</dialogue>
+
+<action>慌てて髪飾りに触れ、小さく咳払いする。カフェのがちょうど優しいピアノ曲に変わる。</action>
+
+<dialogue>えへへ…なんか、落ち着く場所だなって思って。こんな風に誰かとお茶するの、久しぶりかも。</dialogue>
+
+<inner>知らない人と会話する緊張より、この不思議な安心感の方が強い。彼の視線が優しすぎて、つい本音がこぼれそうになる。</inner></response>

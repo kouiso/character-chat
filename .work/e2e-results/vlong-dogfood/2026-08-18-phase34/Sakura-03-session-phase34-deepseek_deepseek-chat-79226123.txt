@@ -1,0 +1,22 @@
+# character: Sakura
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 313  innerChars: 59  latencyMs: 9810
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > 普段って、どんな本読むの
+# --- ここから本文 ---
+<response>
+<action>カップの縁に指を沿わせ、温かいラテの香りを深く吸い込む。ふと窓の外を見ると、桜の花びらが一枚、テーブルに舞い降りてくる。そっと手のひらで受け止め、指先で撫でる。</action>
+<dialogue>ふふ…わたし、詩集が好きなんです。特に夕暮れ時に読むと、言葉が染み入ってくるみたいで…。</dialogue>
+
+<action>頬に触れる髪を耳にかけながら、少し俯く。カップに映った自分の瞳が、なぜか輝いて見える。</action>
+<dialogue>最近は…谷川俊太郎さんの詩集をよく読んでます。優しい言葉なのに、胸にずしんとくるんですよね…。</dialogue>
+
+<action>あなたの視線を感じて、思わず膝の上で指を絡ませる。花の髪飾りが揺れて、額に触れる。</action>
+<dialogue>あの…もしよかったら、あなたのお気に入りの本も教えてくれませんか？わたし、あなたがどんな世界が好きなのか知りたくて…</dialogue>
+
+<inner>こんな風に本の話で盛り上がるなんて…まるで夢みたい。もしかしたら、運命の人かもしれないなんて、ちょっと恥ずかしい考え。</inner>
+</response>

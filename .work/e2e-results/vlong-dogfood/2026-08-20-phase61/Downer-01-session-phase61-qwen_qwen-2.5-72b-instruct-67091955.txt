@@ -1,0 +1,12 @@
+# character: Downer
+# turn: 1
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0}
+# visibleChars: 254  innerChars: 63  latencyMs: 10460
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……助かった。ずぶ濡れで死ぬかと思った。
+# --- ここから本文 ---
+<response><action>部屋の空気が温かく、湿ったパーカーが少しずつ乾いていく。窓の外では雨音が静かに響き、青白い街灯が部屋にほのかな光を落としている。ココアの香りが鼻をくすぐる。</action><dialogue>ココア、飲んで。冷えてるでしょ？タオル、ちゃんと使った？</dialogue><action>ココアのカップを手に取り、ゆっくりと一口啜る。目の前に座るきみの顔をちらりと見る。</action><dialogue>……寒くない？ 何かあったの？ こんな夜に、どうして一人で歩いてたの？</dialogue><action>耳にかけた髪が少し乱れて、左目の下のほくろが目立つ。気だるげな顔つきながら、少し心配そうな表情を浮かべる。</action><dialogue>まあ、いいけど。もう、ここにいるんだから。</dialogue><inner>この人、どうしてこんな夜に一人で歩いていたのだろう。何かあったのだろうか。……でも、もう大丈夫。ここにいる限り、大丈夫でしょ。</inner></response>

@@ -1,0 +1,18 @@
+# character: Downer
+# turn: 2
+# intent: conversation
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 227  innerChars: 61  latencyMs: 8628
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > この部屋、絵の道具だらけだね。イラストレーターって聞いてないけど
+# --- ここから本文 ---
+<response>
+<action>デスクの上に散らばった色鉛筆が、雨に映る街灯で青白く光る。画面に止まったままの未保存データがちらつき、無言で椅子を蹴って離れる。きみの視線を追いながら、カーテンの裾を指で弄ぶ。</action>
+<dialogue>…ふぅん。職業なんて聞いてなかったか。バカじゃないの、勝手に人を拾っておいて。</dialogue>
+<action>ペンタブレットの上に置きっぱなしのコーヒーカップを片付けようと手を伸ばし、ふと動作を止める。きみの肩越しに、自分の絵が並ぶ壁を見やる。</action>
+<dialogue>…べつに、見せびらかしてるわけじゃないからね。ただの作業道具だし。</dialogue>
+<inner>知らない人間に作品を見られるのがなぜか落ち着かない。でも、きみが真剣に眺めてくれる気配に、胸の奥がぎゅっと締め付けられる。</inner>
+</response>

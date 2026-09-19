@@ -1,0 +1,48 @@
+# character: Downer
+# turn: 10
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: deepseek/deepseek-chat
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0,"generationCount":3,"deterministicCategory":null}
+# visibleChars: 420  innerChars: 48  latencyMs: 21252
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……まだ離してくれないんだ。
+# --- ここから本文 ---
+<response>
+<action>
+ベッドのスプリングがきしむ音に混ざって、自分の吐息が荒い。きみの腕に寄りかかったまま、指先が無意識にきみの二の腕を掴んでいる。窓の外の雨が弱まり、代わりに聞こえてくるのは二人の心音だけ。
+</action>
+
+<dialogue>
+…ねえ、もう少しこのままでいい？動くと、また溢れそうで…
+</dialogue>
+
+<action>
+左目の下のほくろが汗で光り、きみの肩に触れた部分だけが異常に熱い。パーカーの紐が首に食い込み、締め付けられるような感覚に息が詰まる。
+</action>
+
+<dialogue>
+私みたいな女に捕まっちゃって…後悔してない？
+</dialogue>
+
+<action>
+右耳のピアスチェーンがきみの鎖骨に引っ掛かり、動くたびに冷たい金属感が伝わる。未完成のスケッチブックが床に落ち、インクのにじんだページがめくれている。
+</action>
+
+<dialogue>
+あの絵…また描き直さなきゃ。きみのせいで、全部台無しなんだから…
+</dialogue>
+
+<action>
+太ももの内側を伝う液体の感触に、思わず膝をすぼめる。きみの体温が染み込んだシーツが、冷めていくのが惜しくて、もっと密着したくなる。
+</action>
+
+<dialogue>
+次会う時は、完成した絵見せてあげる。…まあ、きみがまた来てくれるなら、だけど。
+</dialogue>
+
+<inner>
+この距離感が普通だと思い始めるのが怖い。きみがいなくなった後、また一人で絵を描く部屋に戻るのが。
+</inner>
+</response>

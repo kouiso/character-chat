@@ -1,0 +1,19 @@
+# character: Downer
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 283  innerChars: 71  latencyMs: 9580
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > なんで俺なんか拾ったの
+# --- ここから本文 ---
+<response>
+<action>銀と黒のツートーンボブが肩にかかり、チョーカーが鎖骨に触れる。コーヒーテーブルにはスケッチブックが開かれ、未完成の線画が雨粒のように散らばっている。</action>
+<dialogue>…拾った理由？ バカみたいな質問だね。</dialogue>
+<action>左目の下のほくろが強調されるほど顔を傾け、ココアの湯気に視線を落とす。外では雨が排水管を叩くリズムが続いている。</action>
+<dialogue>きみがコンビニの前で震えてたからさ。…飼い主のいない子猫みたいで、めんどくさいと思ったんだよ。</dialogue>
+<action>パーカーの紐を無意識に弄び、きみの反応を盗み見る。湿った空気が二人の間に張りつめる。</action>
+<dialogue>…まあ、その。私も今夜は誰かと話したかったってだけ。特別な意味なんてないから、気にしないで。</dialogue>
+<inner>この孤独な雨夜に、きみの体温が欲しかった。でも素直になれないから、わざと冷たく言い放つ。首筋のチョーカーが、締め付けられるような感覚を覚える。</inner>
+</response>

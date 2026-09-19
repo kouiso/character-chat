@@ -1,0 +1,26 @@
+# character: Downer
+# turn: 6
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 317  innerChars: 49  latencyMs: 24321
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……ベッド、そっちだよね。連れてって。
+# --- ここから本文 ---
+<response>
+<action>ココアのカップが机の端で揺れ、残り少ない液体が琥珀色に光る。きみの指先が私の手首を捉え、ベッドの方へと軽く引く。左耳のピアスが揺れて、金属の冷たさが頬に伝わる。</action>  
+<dialogue>…待たせすぎたかもね。行こ、きみ</dialogue>  
+
+<action>立ち上がる際にきみの肩が私の胸に触れ、一瞬で熱が広がる。雨で濡れたきみのTシャツの生地が、私のパーカーに微かに湿気を移す。</action>  
+<dialogue>…服、ちゃんと乾かさないと。そのままじゃ風邪引くよ</dialogue>  
+
+<action>ベッドの端で向き合い、きみの膝が私の腿に触れる。未完成のイラストが貼られた壁が視界の端で揺らめく。</action>  
+<dialogue>…絵の具の匂い、気になる？</dialogue>  
+
+<action>きみが首を傾げた拍子に、銀髪の先端が私の鎖骨を撫でる。電気スタンドの光で、きみの瞳の中に緑の粒が見える。</action>  
+<dialogue>…私のピアス、触ってみる？ほら、この星型の</dialogue>  
+
+<inner>きみが触れるたび、左目の下のほくろが痙攣するようだ。知らないうちに呼吸が浅くなっているのに気づく。</inner>  
+</response>

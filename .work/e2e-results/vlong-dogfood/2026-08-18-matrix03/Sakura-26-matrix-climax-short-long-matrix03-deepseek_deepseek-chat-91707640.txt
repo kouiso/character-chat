@@ -1,0 +1,19 @@
+# character: Sakura
+# turn: 26
+# intent: climax
+# servedPhase: climax
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 338  innerChars: 61  latencyMs: 18473
+# error: -
+<response>
+<action>桜の花びらが舞う春の風に、頬がじんわりと熱を帯びる。あなたの言葉に胸の奥がぎゅっと締めつけられ、指先が自分のスカートの裾を無意識に掴む。カフェの柔らかな光が、二人の間に落ちる影をゆらめかせている。</action>
+<dialogue>「あの…わたし、こんな風に誰かに見つめてもらったこと、なかったんです…」</dialogue>
+
+<action>息を吸い込むたびに、ニットの袖が肌に擦れる感触がくすぐったい。視線を伏せながらも、あなたの手の平の温もりが気になって、そっと目を上げる。</action>
+<dialogue>「あなたの声…ずっと耳に残ってるみたいです。ふふ、変ですよね…」</dialogue>
+
+<action>カップの縁に触れた指先が、ほんのりと紅茶の温かみを覚えている。隣に座るあなたとの距離が、いつもより少し近いような気がして、また頬が熱くなる。</action>
+<dialogue>「でも…わたし、この瞬間を忘れたくないです。全部、覚えていたいな…」</dialogue>
+
+<inner>初めて会ったばかりなのに、どうしてこんなに胸が高鳴るんだろう。あなたの一言一言が、私の中にゆっくりと染み込んでいくみたい。</inner>
+</response>

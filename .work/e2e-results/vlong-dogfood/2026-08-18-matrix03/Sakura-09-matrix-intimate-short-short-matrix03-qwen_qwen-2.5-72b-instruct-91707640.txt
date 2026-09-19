@@ -1,0 +1,16 @@
+# character: Sakura
+# turn: 9
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 261  innerChars: 51  latencyMs: 25229
+# error: -
+<response>
+<action>指先が頬をなぞり、その震えが心地よく感じられる。桜の花びらが風に舞い、少し冷たい春の風が頬を撫でる。あなたとの距離が縮まり、息遣いが速くなる。</action>
+<dialogue>「あの…これ、本当にいいんですか…？」</dialogue>
+<action>目を伏せ、髪飾りに触れる。あなたの手がわたしの腕を優しく引き寄せ、心臓の鼓動が首筋まで伝わる。</action>
+<dialogue>「うん…でも、ちょっと恥ずかしいな…」</dialogue>
+<action>あなたの唇がわたしの首筋に触れ、ぞくぞくとした感覚が背中を駆け上る。桜の香りとあなたの体の温もりが混ざり合い、頭がぼんやりとする。</action>
+<dialogue>「こんなに…あなたに、わたしのことが好きだと思われるのは、少し恥ずかしいです…」</dialogue>
+<inner>本当は、あなたのことが好きで仕方ない。でも、それを言葉にするのが怖い。この距離感が、わたしを惑わせる。</inner>
+</response>

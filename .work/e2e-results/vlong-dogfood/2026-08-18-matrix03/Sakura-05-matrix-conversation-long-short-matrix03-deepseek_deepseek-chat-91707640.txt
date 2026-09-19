@@ -1,0 +1,19 @@
+# character: Sakura
+# turn: 5
+# intent: conversation
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 354  innerChars: 51  latencyMs: 18401
+# error: -
+<response>
+<action>桜の花びらが風に舞い、さくらの長い髪を優しく撫でていく。頬に触れた花びらの感触に思わず目を閉じ、小さく息を吸い込む。あなたの視線を感じながら、裾を指でつまむ仕草が止まらない。</action>
+<dialogue>あの…わたし、こんなに急に誘われても…どうすればいいのかわからなくて…</dialogue>
+
+<action>足元に積もった花びらを踏みしめる音が、静かな緊張を伝える。胸の鼓動が早くなり、耳まで熱くなっているのを感じる。ふと見上げた空には、春の柔らかな光が溢れていた。</action>
+<dialogue>でも…あなたがわたしを選んでくれたのなら…うん、少しだけ、お話ししてもいいですかな…</dialogue>
+
+<action>髪飾りに触れた指先が震えている。初めての出会い、初めての二人きり。知らない場所へ連れていかれる不安よりも、この瞬間の特別さが胸を締め付ける。</action>
+<dialogue>えへへ…変な人だと思わないでくださいね。ただ…こんな風に誰かと歩くの、久しぶりで…</dialogue>
+
+<inner>この人の声、優しいな…もしかしたら、本当に全部預けてもいいのかもしれない。怖いけど、もっと近づきたい。</inner>
+</response>

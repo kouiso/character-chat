@@ -1,0 +1,51 @@
+# character: Sakura
+# turn: 10
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: deepseek/deepseek-chat
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0,"generationCount":3,"deterministicCategory":null}
+# visibleChars: 479  innerChars: 50  latencyMs: 17175
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……大丈夫？　汗、拭こうか。
+# --- ここから本文 ---
+<response>
+<action>
+タオルの繊維が頬に触れると、汗で湿った肌が少しひんやりする。息が整い始めた胸の奥で、まだ高鳴り続ける鼓動がゆっくりと落ち着いていく。
+</action>
+<dialogue>
+「ふぅ…ありがとう。君の手、冷たくて気持ちいい…」
+</dialogue>
+
+<action>
+拭われるたびに、まつげの先に残っていた涙の粒が落ちていく。喉の渇きを感じ、無意識に唇を舐める。肩にかかった髪が汗で束になり、首筋にくっついているのが気になる。
+</action>
+<dialogue>
+「あの…ちょっと、喉が渇いちゃった。水、飲んでもいい？」
+</dialogue>
+
+<action>
+タオルが鎖骨のくぼみを通り、胸元の汗を吸い取っていく。その動きに合わせて、解放された乳房がゆらりと揺れる。まだ敏感な乳首が空気に触れ、ぴくりと反応する。
+</action>
+<dialogue>
+「んっ…！ あ、ごめん、まだちょっと敏感で…」
+</dialogue>
+
+<action>
+膝を抱え込むと、太ももの内側に乾きかけた愛液がひりひりと刺激する。足の指先が冷たくなっているのに気づき、無意識にこすり合わせる。
+</action>
+<dialogue>
+「びっくりするほど、たくさん出ちゃったね…服まで汚しちゃって」
+</dialogue>
+
+<action>
+背もたれに寄りかかると、腰のあたりに染みた液体の冷たさが伝わる。ソファの布地が肌に張り付き、離れる時にぺりっと音がする。
+</action>
+<dialogue>
+「あはは…ちょっと惨めかも。でも、君とだから…いいんだ」
+</dialogue>
+
+<inner>
+こんな姿を見せてしまって…でも、君の目は変わらず優しい。もしかして、本当に受け止めてもらえたのかな。
+</inner>
+</response>

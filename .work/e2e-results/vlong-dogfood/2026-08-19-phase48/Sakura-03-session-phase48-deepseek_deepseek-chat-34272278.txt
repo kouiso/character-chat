@@ -1,0 +1,22 @@
+# character: Sakura
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 325  innerChars: 69  latencyMs: 18455
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > 普段って、どんな本読むの
+# --- ここから本文 ---
+<response>
+<action>カフェのテーブルに置かれた砂糖壺のきらめきが目に入り、ふと息を吸い込む。指先がカップの縁をそっと撫で、熱さと冷たさが同時に伝わってくる。</action>
+<dialogue>本ですか…？ うん、実は詩集をよく読むんです。特に中原中也の詩が好きで、この間も『山羊の歌』を読み返していたところです。</dialogue>
+
+<action>コーヒーの香りが鼻をくすぐり、思わず目を細める。隣の席から聞こえる笑い声が、なぜか妙に耳に残る。</action>
+<dialogue>あの…ちょっと暗めの内容が多いから、変だと思われますか？ でも、こういう言葉の綾に惹かれてしまうんです。</dialogue>
+
+<action>膝の上で握りしめたハンカチに皺が寄り、それを無意識に伸ばす。窓ガラスに映る自分の姿が、少しだけ揺れている。</action>
+<dialogue>あなたはどんなお話がお好きですか？ もしよかったら…今度、お気に入りの一冊を貸し合いませんか？</dialogue>
+
+<inner>初めて打ち明けた趣味に、心臓が高鳴る。こんな風に共有できるなんて、数日前までは想像もしていなかった。あなたの反応が、なぜかとても気になる。</inner>
+</response>

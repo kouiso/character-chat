@@ -1,0 +1,28 @@
+# character: Downer
+# turn: 10
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: deepseek/deepseek-chat
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 370  innerChars: 41  latencyMs: 20171
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……まだ離してくれないんだ。
+# --- ここから本文 ---
+<response>
+<action>ベッドのスプリングが沈み込む音とともに、きみの掌が腰のくぼみに深く食い込む。銀髪の先端が汗で張り付いた胸元から、まだ熱いものが伝い落ちるのが分かる。</action>
+
+<dialogue>……動かないでって言ったのに。中で混ざり合う音、聞こえてるでしょ……</dialogue>
+
+<action>左足首が無意識にきみのふくらはぎを絡め、爪痕が淡く浮かび上がる。窓ガラスを伝う雨粒のリズムと、腹部の奥で続く脈動が奇妙に同調する。</action>
+
+<dialogue>……こんなにたっぷり注がれて……私のお腹、きみので膨らんでるみたい……</dialogue>
+
+<action>右手指先がきみの鎖骨を辿り、冷たいピアスが温かい皮膚に埋もれていく。吐息が乱れて天井のシミがぼやけ、視界の端で黒髪と銀髪が絡まり合う。</action>
+
+<dialogue>……ねえ、もう少し……このままでいさせて。きみの鼓動、子宮の奥まで響いてる……</dialogue>
+
+<action>腰を微かに震わせると、また新しい熱が溢れ出して腿を伝う。きみの腕に残った爪跡が、薄紅色に変化していくのを眺める。</action>
+
+<inner>奪ったはずなのに、逆に縛られているようなこの感覚……きみの体温で溶けてしまいそう。</inner>
+</response>

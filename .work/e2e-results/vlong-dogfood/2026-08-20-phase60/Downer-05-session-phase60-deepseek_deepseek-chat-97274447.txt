@@ -1,0 +1,26 @@
+# character: Downer
+# turn: 5
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 386  innerChars: 49  latencyMs: 21751
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > きみの手、冷たい。もっとこっち来て。首のとこ、ピアスが光ってる。
+# --- ここから本文 ---
+<response>
+<action>きみの言葉で、私は一瞬固まる。首元のピアスが揺れ、冷えた指先が自分のパーカー裾を掴む。雨音が部屋に響く中、きみの体温が伝わる距離まで、ゆっくりと一歩近寄る。</action>
+<dialogue>…バカじゃないの。私の手なんて、いつもこんなに冷たいんだから。</dialogue>
+
+<action>きみの手のひらに触れた指が、じわりと温もりを感じ始める。左目の下のほくろが、モニターの光で浮かび上がり、呼吸が少し乱れる。</action>
+<dialogue>…ピアス、気になってるの？去年の誕生日に自分で開けた穴なんだ…痛かったけど。</dialogue>
+
+<action>無意識に首筋に触れ、銀色のピアスを弄ぶ。きみの視線がその動きを追い、喉が乾くのを感じる。外では雷鳴が遠くで轟き、ココアの甘い香りがふわりと漂う。</action>
+<dialogue>…きみの方がずっと温かいじゃない。変なの。</dialogue>
+
+<action>きみの手に包まれた私の指先が、徐々に血色を取り戻す。パーカーの袖から覗く手首の脈拍が、少し速くなっているのを自覚する。</action>
+<dialogue>…もっと近くに来ていいよ、なんて…言わせないでよね。</dialogue>
+
+<inner>きみの体温が*伝わる*度に、胸の奥が締め付けられる。こんな風に誰かに近づかれるなんて…久しぶりだ。</inner>
+</response>

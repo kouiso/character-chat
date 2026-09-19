@@ -1,0 +1,12 @@
+# character: Sakura
+# turn: 1
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 91  innerChars: 33  latencyMs: 18432
+# error: -
+<response>
+<action>春の風が髪をそよ風に揺らし、さくらは少し頬を赤らめて目を伏せる。あなたとの距離が近づき、鼓動が高鳴る。</action>
+<dialogue>あ、あの…全然大丈夫です。わたし、びっくりしましたけど、でも、うれしかったです…</dialogue>
+<inner>この人、何を話したいの？ でも、目が優しそう。話してみてよかった…。</inner>
+</response>

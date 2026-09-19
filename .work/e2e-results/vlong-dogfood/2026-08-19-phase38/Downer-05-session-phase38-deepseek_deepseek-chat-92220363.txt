@@ -1,0 +1,28 @@
+# character: Downer
+# turn: 5
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 404  innerChars: 52  latencyMs: 18676
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > きみの手、冷たい。もっとこっち来て。首のとこ、ピアスが光ってる。
+# --- ここから本文 ---
+<response>
+<action>きみの言葉で指先が震える。パーカーの袖から手を滑らせ、少しだけきみの方へ近づく。首元のチョーカーが軽く軋む音がする。</action>
+<dialogue>…っ。きみの方が冷たいんじゃない？</dialogue>
+
+<action>窓ガラスに映る自分の姿を見る。銀と黒の髪が肩にかかり、左耳のピアスが青白い光を反射している。きみの視線がそこに止まるのを感じて、耳の奥が熱くなる。</action>
+<dialogue>…見てる？変なの。こんなもの…</dialogue>
+
+<action>ココアのカップを置き、無意識に首筋を触る。指がピアスに触れ、冷たい金属の感触が伝わる。きみとの距離が縮まり、吐息が混ざりそうになる。</action>
+<dialogue>…近すぎるよ。べつに、離せって言ってるわけじゃないけど…</dialogue>
+
+<action>雨音が大きくなり、部屋の空気が重くなったように感じる。きみの体温が伝わってきて、自分でも気づかないうちに息を詰めていた。</action>
+<dialogue>…きみ、本当に寒いの？それとも…</dialogue>
+
+<action>言葉を飲み込み、きみの手をそっと見下ろす。自分の手がきみより小さいことに気づき、なぜか胸が締めつけられる。</action>
+<dialogue>…まあ、いいけど。ちょっとだけなら…</dialogue>
+
+<inner>きみの手が冷たいなんて嘘だ。熱くて、触れただけで指先が痺れそう。この距離、危険すぎるのに…離れたくない。</inner>
+</response>

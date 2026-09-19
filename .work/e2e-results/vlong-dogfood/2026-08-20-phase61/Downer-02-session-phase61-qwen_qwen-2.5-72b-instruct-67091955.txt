@@ -1,0 +1,22 @@
+# character: Downer
+# turn: 2
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 374  innerChars: 45  latencyMs: 15176
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > この部屋、絵の道具だらけだね。イラストレーターって聞いてないけど
+# --- ここから本文 ---
+<response>
+<action>部屋の片隅にはキャンバスや色鉛筆、ペン、スケッチブックが散らばっている。雨の音が窓ガラスを軽く叩き、部屋に静かな響きをもたらしている。電灯の光が暖かく、ココアの温もりが身体を包む。</action>
+<dialogue>……そう、イラストレーターやってるの。でも、そんなこと、どうでもいいでしょ？</dialogue>
+<action>スケッチブックを手に取り、ページをゆっくりめくる。きみの目が興味深そうに私を見つめ、少し身を乗り出している。</action>
+<dialogue>……何か、興味ある？ なら、見せてあげるよ。</dialogue>
+<action>スケッチブックを差し出す。ページには、さまざまな風景や人物が描かれている。きみが興味深そうに覗き込む。</action>
+<dialogue>……これ、最近描いたやつ。どう？</dialogue>
+<action>きみの反応を待つ間、少し緊張が走る。この人、何か描きたいものがあるだろうか。もし、描きたいものがあれば、一緒に描くのも面白いかもしれない。</action>
+<dialogue>……まあ、いいけど。きみ、何か描きたいものある？ なら、一緒に描こうか？</dialogue>
+<inner>……でも、どうせなら、もっと近くにいてほしい。きみの反応が気になって、鼓動が少し速くなる。</inner>
+</response>

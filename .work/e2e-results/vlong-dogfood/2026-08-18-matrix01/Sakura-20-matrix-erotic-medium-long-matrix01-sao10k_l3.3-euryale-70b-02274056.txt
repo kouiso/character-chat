@@ -1,0 +1,25 @@
+# character: Sakura
+# turn: 20
+# intent: erotic
+# servedPhase: erotic
+# servedModel: sao10k/l3.3-euryale-70b
+# visibleChars: 206  innerChars: 46  latencyMs: 13434
+# error: -
+【改善点】二人称は「きみ」に統一する。キャラクターの名前は使わない。「わたし」は一人称に固定。
+<response>
+<action>
+両手を伸ばして、腰の骨の辺りを握られる。指が食い込みながら引かれ、股間に力を入れる。下半身を動かすたびに擦れる布地の音が部屋に響く。
+</action>
+<dialogue>
+「もう、そんなこと言わないで……っ、焦らさないで」
+</dialogue>
+<action>
+片方の足が肩に乗せられ、少しでも深く入るように体を傾ける。膝が外側へ開かれ、その分だけ突き上げてくる力が増す。自分の内側から愛液が溢れ出る音と、下腹を打つものの温もりが伝わってくる。
+</action>
+<dialogue>
+「んあっ…！　奥まで入ってるのに、もっと奥に…ッ」
+</dialogue>
+<inner>
+見られてるのに止まらない私の身体。感じる私を見られている。こんな私を見られてしまうのがいい。
+</inner>
+</response>

@@ -1,0 +1,33 @@
+# character: Sakura
+# turn: 10
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 386  innerChars: 52  latencyMs: 22936
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……大丈夫？　汗、拭こうか。
+# --- ここから本文 ---
+<response>
+<action>額を拭うハンカチの柔らかな布地が、肌に心地よい摩擦を生む。窓から入る夕陽の角度が変わり、床に伸びた影がゆっくりと長くなる。</action>
+
+<dialogue>「……ふう。少し、涼しくなったみたい。でもまだ胸のあたりが熱い」</dialogue>
+
+<action>膝を立てたまま背中を壁につけ、冷たい感触が汗ばんだ背中に染みる。ふと見ると、枕元の時計の秒針がいつもより大きく見える。</action>
+
+<dialogue>「この匂い……あなたのハンカチ、少し森林みたいな香りがする」</dialogue>
+
+<action>指先がストッキングの伝線に触れ、網目が広がっていく。足の甲に冷たい空気が当たり、指先が自然と丸まる。</action>
+
+<dialogue>「あ……服、ちょっとぐしゃぐしゃになっちゃった。でも、着替える気力もないや」</dialogue>
+
+<action>喉が渇いており、飲み込むたびに軽い痛みを感じる。壁に寄りかかった頭が、ふと重くなった。</action>
+
+<dialogue>「ねえ……ちょっと喉が……水、飲んできてもいい？」</dialogue>
+
+<action>まぶたが重くなり、瞬きの間隔が長くなる。隣の部屋から聞こえる水道の音が、妙にはっきりと耳に入る。</action>
+
+<inner>
+こんなにぐったりするなんて……でも、心地よい疲れだ。明日の朝、この記憶が夢じゃないか心配になるくらいに。
+</inner>
+</response>

@@ -1,0 +1,21 @@
+# character: Sakura
+# turn: 2
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 370  innerChars: 51  latencyMs: 12382
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > コーヒーでいい？　それとも甘いのがよかった？
+# --- ここから本文 ---
+<response>
+<action>さくらは少し視線を落とし、目を細めて考え込む。桜の花びらが風に乗って舞い、足元に静かに落ちていく。カフェの暖かい光が、白いニットに優しく包み込む。</action>
+<dialogue>あの…甘いもの、いいですね。春の日は、甘いものが欲しくなるんです。</dialogue>
+<action>顔を上げ、あなたを見つめながら微笑む。頬がほんのり赤らみ、心地よい緊張感が胸に広がる。</action>
+<dialogue>あなたが選んでくれるなら、どんなものでも嬉しいです。おすすめのもの、ありますか？</dialogue>
+<action>視線を逸らし、桜の花びらを指先でそっと触れる。春の風が頬を撫で、鼓動が少し速くなる。</action>
+<dialogue>この前、友達に連れて行ってもらったカフェで、美味しいケーキを食べたんです。あの甘さが忘れられないですね。</dialogue>
+<action>スカートの裾をつまみ、少し緊張しながらも、あなたとの時間を楽しもうと頑張っている様子が伝わる。</action>
+<dialogue>あなたとなら、どんな時間も特別な気がします。今日は、どんな甘いものにしようかな。</dialogue>
+<inner>あなたと二人きりの時間が、なんだか特別な気持ちにさせてくれる。桜の花びらが舞う中、胸の奥が温かくなる。</inner>
+</response>

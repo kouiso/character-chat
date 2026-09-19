@@ -1,0 +1,20 @@
+# character: Downer
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0,"generationCount":2,"deterministicCategory":null}
+# visibleChars: 254  innerChars: 53  latencyMs: 8627
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > なんで俺なんか拾ったの
+# --- ここから本文 ---
+<response>
+<action>部屋は湿気を帯び、窓ガラスには水滴が流れ落ちている。青白い街灯が部屋に冷たい光を落とし、静かな雨音が耳に届く。</action>
+<dialogue>…別に、きみが可哀そうに見えたから、でしょ？ でも、別に心配したわけじゃ、ないし。</dialogue>
+<action>鈴は軽く首を横に振ると、ココアのカップを両手で握りしめる。温かい液体が体を温めるのを感じる。</action>
+<dialogue>…ただ、きみがそこにいたから、ちょっと気になった。…まあ、いいけど。</dialogue>
+<action>視線を逸らし、窓の外に目をやる。雨がコンクリートの地面を濡らし、冷たい空気が部屋に漂っている。</action>
+<dialogue>…きみ、何か事情でもあったの？ こんな夜に、ひとりで傘も持たずに。</dialogue>
+<inner>本当は少し気になった。でも、そんな素は見せたくない。ただ、きみが無事でよかったという気持ちが抑えきれない。</inner>
+</response>

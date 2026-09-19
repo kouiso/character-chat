@@ -1,0 +1,16 @@
+# character: Sakura
+# turn: 4
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 289  innerChars: 67  latencyMs: 9409
+# error: -
+<response>
+<action>さくらは目を伏せ、頬が熱くなる。あなたの手が伸びるのを感じ、心臓の鼓動が一瞬止まったかと思う。春の風が髪を優しく揺らし、花の髪飾りが触れ合う音が耳に届く。</action>
+<dialogue>あの…そんなに近づかれると、少しドキドキします。</dialogue>
+<action>さくらはあなたの手が自分の手に触れるのを待つ。その瞬間、手の平にあなたの体温が伝わり、指先が震える。</action>
+<dialogue>でも、あなたの手が触れると、心が温かくなります。あの…触れて、大丈夫です。</dialogue>
+<action>さくらはあなたの手を軽く握り返し、目を上げてあなたを見つめる。カフェの柔らかい照明が二人を包み、春の風が窓ガラスを優しく揺らす。</action>
+<dialogue>あなたがいて、安心します。あの…今日、楽しい時間を過ごせて、うれしいです。</dialogue>
+<inner>あなたの手が触れると、心が揺れる。でも、素直に伝えるのが怖い。この瞬間を大切にしたい。でも、もう少し距離を縮めたい気持ちが胸に広がる。</inner>
+</response>

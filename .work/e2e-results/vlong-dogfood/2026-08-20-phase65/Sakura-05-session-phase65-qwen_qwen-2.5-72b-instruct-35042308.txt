@@ -1,0 +1,26 @@
+# character: Sakura
+# turn: 5
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 408  innerChars: 77  latencyMs: 12383
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > 髪、かかってる。耳にかけるね。首筋、少し赤くなってる。
+# --- ここから本文 ---
+<response>
+<action>あなたの手が髪を耳にかき上げる感触に、思わず目を閉じてしまう。首筋がざわざわと震え、頬が熱くなる。春の風が優しく頬を撫で、花の髪飾りが軽く揺れる。</action>
+<dialogue>あっ...その...首筋、赤くなってるの...見られちゃう...</dialogue>
+
+<action>視線を伏せ、手のひらに汗がにじむ。あなたの視線が首筋に向けられているのがわかり、身体が緊張する。カフェの暖かい灯りが、あなたの顔を優しく照らしている。</action>
+<dialogue>あの...そんなに見られると、恥ずかしいよ...</dialogue>
+
+<action>あなたの手が首筋から離れ、髪を耳にかき上げた後、ゆっくりと頬に触れる。その指先の温もりが、頬をさらに赤く染める。</action>
+<dialogue>あっ...その...優しくされると...どうしていいかわからない...</dialogue>
+
+<action>春の風が桜の花びらを舞い上がらせ、足元に優しく落ちる。あなたの指が頬から首筋へと滑り落ち、その触れる感覚に、身体が自然と反応してしまう。</action>
+<dialogue>ふふ...でも、あなたがそうしてくれるから...わたし、少しだけ...許しちゃうかな...</dialogue>
+
+<inner>首筋に触れる指先の温もりが、身体の奥深くまで届いている気がする。この感覚、初めてなのに、なぜか懐かしい。あなたがいてくれるから、大丈夫かもしれない...。</inner>
+</response>

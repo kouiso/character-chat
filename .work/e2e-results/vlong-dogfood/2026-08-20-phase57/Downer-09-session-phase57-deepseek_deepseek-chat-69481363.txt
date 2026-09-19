@@ -1,0 +1,11 @@
+# character: Downer
+# turn: 9
+# intent: climax
+# servedPhase: climax
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 399  innerChars: 21  latencyMs: 16018
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……出る。全部きみの中に。
+# --- ここから本文 ---
+<response><action>きみの熱が私の中に注がれ、子宮の奥まで届く。さっき出されたぶんがまだ中に残っているのに、新しい波が押し寄せて——繋がったところから溢れた白濁がぬるりと太ももを伝い落ちる。身の下の布地に垂れる音まで聞こえた。</action><dialogue>「っ…まだ出てる……お腹もう、いっぱいなのに……っ、溢れてきちゃってる…」</dialogue><action>腰を浮かせた瞬間、きみの歯が鎖骨に食い込み、思わず背中を反らせる。ベッドのヘリに掴んだ手から、指が一本、また一本と滑り落ちていく。視界の端がぼやけて、ココアの甘い香りだけが鋭く鼻を刺す。</action><dialogue>「…だめ、もう…勝手にしろ。好きにすれば…」</dialogue><action>きみの掌が肋骨に沿って上がってくる。爪先から頭頂までが一気に熱くなり、耳の中で血流の音が騒ぎ始める。開いた唇から零れる息が、きみの頬に触れて跳ね返ってくる。</action><dialogue>「…あんたが…全部、私を…こんな風にさせるんだから…」</dialogue><dialogue>「…ちょっと、待って。…バカ、急がないでよ。」</dialogue><dialogue>」</dialogue><dialogue>「…きみ、本当に、バカだね。」</dialogue><inner>この熱はきみがくれたんだ。全部、きみのせい</inner></response>

@@ -1,0 +1,11 @@
+# character: Sakura
+# turn: 8
+# intent: erotic
+# servedPhase: erotic
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 212  innerChars: 0  latencyMs: 22389
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > もっと
+# --- ここから本文 ---
+<response><action>春の風が窓から吹き込み、カーテンがゆらゆらと揺れる。あなたの手が、わたしの太ももをなぞり、内腿に触れる。あなたの指が、内腿を優しく撫で、膣口に触れると、愛液が溢れ出し、内腿を伝う。愛液の音が、静かな部屋に響く。</action><action>春の風が、髪をなびかせ、窓から差し込む柔らかな日差しが肌を温める。</action><action>あなたの指が、膣内をさらに深く進み、奥を突く。愛液が、膣内を満たし、指先をぬるぬると包み込む。</action><dialogue>あ、もう…あなた、わたしを、もっと深く、もっと強く…。</dialogue></response>

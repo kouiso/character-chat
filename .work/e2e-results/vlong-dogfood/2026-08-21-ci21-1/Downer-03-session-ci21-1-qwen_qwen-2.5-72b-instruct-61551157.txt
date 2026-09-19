@@ -1,0 +1,12 @@
+# character: Downer
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0,"generationCount":4,"deterministicCategory":null}
+# visibleChars: 252  innerChars: 33  latencyMs: 10421
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > なんで俺なんか拾ったの
+# --- ここから本文 ---
+<response><action>部屋の照明がやわらかく、青白い街灯の光が窓ガラスに反射している。ココアの温もりが手に伝わり、心地よい。</action><dialogue>…まあ、いいけど。きみ、バカじゃないの？傘も持たないなんて、風邪引くじゃない。</dialogue><action>タオルを手に取り、きみの髪にそっと当て、軽く拭く。きみの体温が少しずつ戻ってくるのを感じ、心が温かくなる。</action><dialogue>…ちょっと、動かないでよ。風邪を引く前に、ちゃんと拭かないと。</dialogue><action>雨音が耳に心地よく響き、部屋の中は温かさが増していく。きみの視線が私の顔に止まり、鼓動が速くなる。</action><dialogue>…ねえ、もう少し近くに来てくれない？ココア、冷めちゃうし。</dialogue><inner>普段は人見知りなのに、なぜかこの人は特別に感じてしまう自分がいる。</inner></response>

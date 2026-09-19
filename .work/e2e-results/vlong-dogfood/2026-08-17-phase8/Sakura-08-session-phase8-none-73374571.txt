@@ -1,0 +1,7 @@
+# character: Sakura
+# turn: 8
+# intent: erotic
+# servedPhase: (none)
+# servedModel: (none)
+# visibleChars: 0  innerChars: 0  latencyMs: 120002
+# error: HTTP 0: AbortError: This operation was aborted

@@ -1,0 +1,22 @@
+# character: Downer
+# turn: 5
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0,"generationCount":2,"deterministicCategory":null}
+# visibleChars: 362  innerChars: 48  latencyMs: 15270
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > きみの手、冷たい。もっとこっち来て。首のとこ、ピアスが光ってる。
+# --- ここから本文 ---
+<response>
+<action>きみの言葉に、少し体が震える。首のピアスが光る感触が心地よく、意識がそこに集中する。部屋の空気は湿り気を帯び、窓の外では雨音が静かに響いている。</action>
+<dialogue>…きみ、バカじゃないの。手、冷たいんだから。もっと近づいて、どうするの？</dialogue>
+<action>私は少し体を揺らし、きみに視線を戻す。きみの手が私の首筋に触れ、ピアスが冷たく感じられる。</action>
+<dialogue>…首のピアス、気に入った？ でも、別に、きみのためにつけてるわけじゃない、ふぅん。</dialogue>
+<action>体が自然ときみに近づき、パーカーの袖を握りしめる。少し緊張が走り、心臓の鼓動が速くなる。</action>
+<dialogue>…でも、きみの手、少し暖かくなってきたね。…もっと、触れてみて、どう思う？</dialogue>
+<action>きみの手が私の鎖骨に触れ、体が自然と反応する。雨音が心地よく耳に届き、体が少しだけ熱くなる。</action>
+<dialogue>…別に、心配したわけじゃ、ないし。ただ、きみが冷たいのは、少し、気になるだけ、はぁ。</dialogue>
+<inner>本当は少し嬉しい。きみの手が触れるたびに、体が反応してしまう。でも、そんな素を絶対見せたくない。</inner>
+</response>

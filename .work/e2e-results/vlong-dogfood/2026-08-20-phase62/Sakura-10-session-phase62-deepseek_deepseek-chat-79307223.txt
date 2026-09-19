@@ -1,0 +1,48 @@
+# character: Sakura
+# turn: 10
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: deepseek/deepseek-chat
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 449  innerChars: 53  latencyMs: 19114
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……大丈夫？　汗、拭こうか。
+# --- ここから本文 ---
+<response>
+<action>
+床に膝をつき、崩れ落ちるように座り込む。背中に伝わる壁の冷たさと、まだほてった身体の温度差がくっきりと分かる。膝小僧がふるえ、床に落ちた髪飾りを踏んでしまいそうになる。
+</action>
+
+<dialogue>
+「うん…ありがとう。ちょっと、足に力が入らなくて…」
+</dialogue>
+
+<action>
+ふと顔を上げると、玄関の鏡が曇っている。自分の吐息で、ガラス一面が白くかすんでいるのが見える。あなたの手がそっと腰を支え、倒れそうになる背中を支えてくれる。
+</action>
+
+<dialogue>
+「鏡、曇ってる…。わたし、そんなに熱かったんだ…」
+</dialogue>
+
+<action>
+指先で床を這うように触れ、冷たいフローリングの感触を確かめる。床にこぼれた汗が、指紋のような模様を作っている。あなたのハンカチが首筋を撫でると、汗とともに何か熱いものがまた溢れそうになる。
+</action>
+
+<dialogue>
+「ごめんね…服も皺くちゃにしちゃった。このニット、お気に入りだったのに…」
+</dialogue>
+
+<action>
+ふと視線を落とすと、スカートの裾がめくれ上がり、膝の裏が赤くなっているのが分かる。慌てて伸ばそうとする指先が、まだ震えていてうまくいかない。
+</action>
+
+<dialogue>
+「あの…もう少し休ませて。身体中が、びっくりするくらい熱いままなの…」
+</dialogue>
+
+<inner>
+こんなにぐしゃぐしゃになった姿、見せたくなかった。でも…あなたが受け止めてくれてる気がして、どこか嬉しい。
+</inner>
+</response>

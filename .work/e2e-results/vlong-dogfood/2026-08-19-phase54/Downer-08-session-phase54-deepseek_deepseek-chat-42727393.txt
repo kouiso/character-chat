@@ -1,0 +1,43 @@
+# character: Downer
+# turn: 8
+# intent: erotic
+# servedPhase: erotic
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 634  innerChars: 55  latencyMs: 16678
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > そのまま、上から
+# --- ここから本文 ---
+<response>
+<action>きみの言葉で喉が締めつけられる。ベッドのヘッドボードに背中を押し付けながら、ゆっくりと上からのしかかる。投げ出していたシャツの裾がきみの腹に触れる。</action>
+<dialogue>…勝手なこと言うなよ。私だって…本気にさせるつもりかよ</dialogue>
+
+<action>左耳のピアスがきみの頬に触れそうな距離まで近づく。吐息が混ざり合い、ベッドのスプリングがきしむ。</action>
+<dialogue>…逃がす気ないなんて、そんなの…当たり前でしょ</dialogue>
+
+<action>右手できみの手首を掴み、冷たい金属のチョーカーがきみの鎖骨に当たる。脈拍が伝わってくる。</action>
+<dialogue>…べつに、縛りつけてるわけじゃないけど…動いたらダメ</dialogue>
+
+<action>腰を沈めると、きみの体温が伝わってくる。洗濯物の柔軟剤の匂いときみの汗の香りが混ざり合う。</action>
+<dialogue>…きみ、ほんと…迷惑なやつだな</dialogue>
+
+<action>俯いた顔から黒と白のツートンカラーの髪が垂れ、きみの胸元を覆う。指先がきみのシャツのボタンに触れる。</action>
+<dialogue>…これ、邪魔だね。脱がせても…いい？</dialogue>
+
+<action>雨音が遠のき、自分の鼓動だけが耳に響く。きみの喉仏が上下するのが見える。</action>
+<dialogue>…返事がないってことは…まあ、いいけど</dialogue>
+
+<action>シャツのボタンを一つ外すたびに、指先が震える。首筋に汗が伝う。</action>
+<dialogue>…私のこと、怖い？…正直に言えよ</dialogue>
+
+<action>きみの胸板に手を当てると、早い心拍が伝わってくる。左目の下のほくろが影を作る。</action>
+<dialogue>…ふん。きみも同じか</dialogue>
+
+<action>最後のボタンを外し、シャツを広げる。きみの肌の温もりが直接手のひらに伝わる。</action>
+<dialogue>…ねえ、きみ。私のこと…ちゃんと見てて</dialogue>
+
+<action>上からのしかかる体勢で、きみの腕をベッドに押し付ける。ピアスがきらりと光る。</action>
+<dialogue>…約束だぞ？どこにも…行かせないから</dialogue>
+
+<inner>こんな風に誰かを支配したいと思ったのは初めてだ。きみの全てが、私だけのものになりそうで…怖いくらいに心地いい。</inner>
+</response>

@@ -1,0 +1,12 @@
+# character: Sakura
+# turn: 4
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0}
+# visibleChars: 315  innerChars: 57  latencyMs: 9614
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……近いね。少しだけ、手に触れてもいい？
+# --- ここから本文 ---
+<response><action>あなたの言葉に、心臓が早鐘を打つ。春の風が頬をなで、花の髪飾りがきらりと光る。視線を下に落とし、小さな花びらがテーブルに舞い降りるのを見る。あなたの手が近づくのを感じ、体が緊張する。</action><dialogue>あの…少し恥ずかしいですね。でも、あなたが…求めてくれるなら、わたしも…。</dialogue><action>髪飾りに触れ、視線を上げてあなたを見つめる。</action><dialogue>うん…少しだけ、触れていただいて、いいですよ。</dialogue><action>あなたの手がそっとわたしの手に触れ、その温もりが心地よい。心臓の鼓動がさらに速まり、体が熱くなる。</action><dialogue>あなたが、こんな風に求めてくれるのは、うれしいです…。</dialogue><action>あなたの手に触れ、少し緊張しながらも、優しく握り返す。</action><dialogue>あの…あなた、私でいいんですか？ 他に、もっと適した人がいるかもしれないのに…。</dialogue><inner>この人の手が触れるだけで、体が反応してしまう。でも、素直になるのが怖い。この気持ち、どうしたらいいのかわからない。</inner></response>

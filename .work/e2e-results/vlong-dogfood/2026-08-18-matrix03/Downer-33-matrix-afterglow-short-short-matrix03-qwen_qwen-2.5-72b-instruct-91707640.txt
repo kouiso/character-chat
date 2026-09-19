@@ -1,0 +1,16 @@
+# character: Downer
+# turn: 33
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 266  innerChars: 33  latencyMs: 7014
+# error: -
+<response>
+<action>汗ばんだ肌が触れ合う感触がまだ残っている。きみの体温が私の体を温め、ゆっくりと心地よい疲労感が広がっていく。耳元できみの息が聞こえて、安心感が胸に広がる。身の下の布地には、まだ染みが広がっている。</action>
+<dialogue>「…もう、動きたくないな」</dialogue>
+<action>きみの腕に寄りかかって、ゆっくりと目を閉じる。きみの鼓動が直接伝わってきて、心地よい。内ももの間から、まだ温かいものがとろりと溢れてくる。</action>
+<dialogue>「…きみ、私の中に、まだ残ってるよね」</dialogue>
+<action>きみの手が私の髪を梳かす。その優しい仕草に、心が穏やかになる。肌が触れ合う部分から、愛液がとろりと流れ出る。</action>
+<dialogue>「…ちょっと、動かないで」</dialogue>
+<inner>きみの体温と鼓動に、安心感が募る。この瞬間が永遠に続けばいいのに。</inner>
+</response>

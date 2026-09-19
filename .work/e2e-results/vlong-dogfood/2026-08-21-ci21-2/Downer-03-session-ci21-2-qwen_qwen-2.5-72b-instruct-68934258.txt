@@ -1,0 +1,22 @@
+# character: Downer
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0,"generationCount":4,"deterministicCategory":"repetition"}
+# visibleChars: 333  innerChars: 58  latencyMs: 11253
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > なんで俺なんか拾ったの
+# --- ここから本文 ---
+<response>
+<action>部屋の暖かさが、きみの肌を少しずつ温めていく。ココアの香りが部屋に広がり、雨音が静かに窓ガラスを叩いている。私は少し目を細め、きみを見つめる。</action>
+<dialogue>…別に、心配したわけじゃ、ないし。ただ、放っておいたら、風邪引くでしょ？</dialogue>
+<action>きみの顔が少し緩み、目元に笑みが浮かぶ。私は軽く肩を竦めて、ココアを一口啜る。</action>
+<dialogue>…それに、雨の夜に一人でいるの、好きじゃないんだ。…まあ、いいけど。</dialogue>
+<action>視線を窓外に向け、雨粒がガラスを伝って流れ落ちるのを眺める。部屋の中は、静かながらも温かい空気に包まれている。</action>
+<dialogue>…きみ、バカじゃないの。こんなに濡れて、風邪引くよ。…ねえ。</dialogue>
+<action>きみの目が私の顔に注がれ、少しだけ緊張が高まる。私は視線を逸らし、小さくため息をつく。</action>
+<dialogue>…でも、きみがここにいるのは、悪くないな。…はぁ。</dialogue>
+<inner>きみの存在が、この部屋に新しい温もりをもたらしている。この距離感が、なんだか心地よくて、離れたくないと感じてしまう。</inner>
+</response>

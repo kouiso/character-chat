@@ -1,0 +1,19 @@
+# character: Sakura
+# turn: 6
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 225  innerChars: 67  latencyMs: 17833
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……ここ出ようか。うち、すぐ近くだから。
+# --- ここから本文 ---
+<response>
+<action>コーヒーカップの縁に指先が触れ、白い陶器の冷たさが伝わる。春の日差しが卓上を照らし、ふと視線を上げるとあなたのまっすぐな瞳がこちらを見つめている。</action>
+<dialogue>「うち…ですか？」</dialogue>
+<action>スカートの裾をそっと握りしめ、足元の影がゆらめく。あなたの言葉で胸のあたりが締めつけられるように感じる。</action>
+<dialogue>「ふ、二人きりになるの、初めてだから…」</dialogue>
+<action>窓から差し込む光がテーブル上の水玉模様を作り、その輪郭を指でなぞる。喉が少し渇いて、唾を飲み込む。</action>
+<dialogue>「でも…あなたがそう言うなら。ついて…行く」</dialogue>
+<inner>知らない場所へ連れて行かれる不安よりも、あなたに選ばれた喜びの方が大きい。この気持ちに名前をつけたら、もう後戻りできないかもしれない。</inner>
+</response>

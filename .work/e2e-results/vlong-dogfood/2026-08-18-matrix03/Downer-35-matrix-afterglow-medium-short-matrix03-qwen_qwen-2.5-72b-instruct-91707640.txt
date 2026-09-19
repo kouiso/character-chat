@@ -1,0 +1,18 @@
+# character: Downer
+# turn: 35
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 297  innerChars: 55  latencyMs: 8959
+# error: -
+<response>
+<action>身体の奥からまだ温かいものがじわりと溢れ出し、太ももの間に広がっていく。身の下の布地が湿り、熱い感覚が残る。汗ばんだ肌が冷えてきて、震えが止まらない。</action>
+<dialogue>「…きみ、まだ余韻が抜けてないんだね」</dialogue>
+<action>額に軽くキスを落とし、髪を優しく撫でる。きみの体温がまだ高く、鼓動が速いのが伝わってくる。</action>
+<dialogue>「…ちょっと、離れちゃだめだよ」</dialogue>
+<action>きみの手を取って、自分の胸に押し当てる。心臓の鼓動が手から手へと伝わる。きみの指が震えているのが感じる。</action>
+<dialogue>「…私の鼓動、感じた？」</dialogue>
+<action>きみの顔をのぞき込み、目を見つめる。雨音が遠くで聞こえ、部屋の中は静寂に包まれている。きみの目が潤んでいて、少し赤らんでいる。</action>
+<dialogue>「…きみ、今、どんな気持ち？」</dialogue>
+<inner>この瞬間を永遠に記憶に刻み込んでいたい。きみの体温と鼓動、きみの目が私を見つめる様子を、何もかも覚えていたい。</inner>
+</response>

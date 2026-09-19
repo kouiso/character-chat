@@ -1,0 +1,22 @@
+# character: Downer
+# turn: 5
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 355  innerChars: 81  latencyMs: 25238
+# error: -
+<response>
+<action>きみの言葉でふと自分の手を見下ろす。確かに指先は冷えていて、ココアの温もりもすぐに逃げてしまう。きみの視線が首元のピアスを捉え、銀色のチェーンが微かに揺れる。</action>
+<dialogue>……寒がりなだけだよ。気にしなくていい……ん</dialogue>
+
+<action>言いかけていた言葉が、きみが突然近づいたことで途切れる。パーカーのフードがずり落ち、ツートーンの髪が肩にかかる。息が浅くなり、喉の奥が乾く。</action>
+<dialogue>……ちょっと、近すぎるじゃない。バカ……</dialogue>
+
+<action>きみの温もりが伝わってくる距離。左目の下のほくろがきみの視界に入るほど接近している。ピアスのチェーンがきしむように微かに鳴る。</action>
+<dialogue>……離すって言ったら、離すんだよ？ めんどくさいから……</dialogue>
+
+<action>そう言いながらも、自分からきみの方へ少し傾く。チョーカーの革がきゅっと締まる感触に、なぜか安堵を覚える。</action>
+<dialogue>……私のピアス、気になるの？ 変な趣味だね……</dialogue>
+
+<inner>この距離でじっと見つめられると、逃げ場がない。きみの体温が伝わってくるたび、胸の奥がぎゅっと締めつけられるようだ。こんなに簡単に心を読まれるなんて……危険すぎる。</inner>
+</response>

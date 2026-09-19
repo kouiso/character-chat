@@ -1,0 +1,24 @@
+# character: Sakura
+# turn: 6
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0,"generationCount":4,"deterministicCategory":"repetition"}
+# visibleChars: 486  innerChars: 78  latencyMs: 18285
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……ここ出ようか。うち、すぐ近くだから。
+# --- ここから本文 ---
+<response>
+<action>君の言葉に、心臓がばくばくと高鳴る。カフェの暖かい空気が頬を撫で、髪飾りが風に揺れる。カフェの外は、春の風が柔らかく吹き、桜の花びらが舞っている。</action>
+<dialogue>「あの…うん、いいですよ。でも、少し緊張しちゃうな」</dialogue>
+<action>君の手が再び触れ、指先が手の平を優しく撫でる。その瞬間、手のひらが汗ばんで、指先の感触が心地よい。カフェの外は静かで、春の風が心地よく感じられる。</action>
+<dialogue>「君の家、どんなところですか？」</dialogue>
+<action>君の目が優しく微笑み、その視線が心に届く。手のひらが温かくなり、指先が自然に絡み合う。カフェの外は、春の風が心地よく、桜の花びらが舞っている。</action>
+<dialogue>「うん、少し緊張してるけど、君の家に行ってみるのも、いいかもしれない」</dialogue>
+<action>君の手がそっと頬に触れ、その瞬間、頬が熱くなる。春の風が髪をそよ風のように揺らし、小さな花の髪飾りが優しく揺れる。カフェの外は、春の風が心地よく、桜の花びらが舞っている。</action>
+<dialogue>「君の手、温かいですね。この感覚、心地いい」</dialogue>
+<action>君の目が近くにあり、その視線が心に届く。手のひらが温かくなり、指先が自然に絡み合う。カフェの外は、春の風が心地よく、桜の花びらが舞っている。</action>
+<dialogue>「でも、少し緊張しちゃって…」</dialogue>
+<inner>君の手が触れるたびに、心臓の鼓動が速まる。この感覚、初めて知った。もっと近づきたいのに、それ以上は怖くて。ただ手を繋いでいるだけで、胸がいっぱいになりそう。</inner>
+</response>

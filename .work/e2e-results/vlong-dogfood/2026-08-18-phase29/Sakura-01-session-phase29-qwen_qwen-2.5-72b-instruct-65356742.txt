@@ -1,0 +1,14 @@
+# character: Sakura
+# turn: 1
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 170  innerChars: 63  latencyMs: 7415
+# error: -
+<response>
+<action>春の風が髪を優しく揺らし、さくらは少し視線を逸らす。頬がほんのり赤らんで、目元が潤んでいる。</action>
+<dialogue>いえ…いいんです。あの…突然でしたね。でも、わたしも少し…びっくりしました。</dialogue>
+<action>さくらは小さく笑い、髪飾りに指を絡める。心地よい緊張感が胸を満たし、鼓動が少し速まっている。</action>
+<dialogue>でも、話してみたくなる気持ちは、少しわかります。あの…あなたは、どんな人ですか？</dialogue>
+<inner>彼の目を見つめると、何かが胸の奥で揺れる。緊張と興奮が入り混じり、少しドキドキしている。でも、この人なら、大丈夫かもしれない。</inner>
+</response>

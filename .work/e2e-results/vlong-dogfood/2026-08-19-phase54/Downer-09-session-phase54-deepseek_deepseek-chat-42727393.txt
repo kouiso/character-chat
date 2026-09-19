@@ -1,0 +1,34 @@
+# character: Downer
+# turn: 9
+# intent: climax
+# servedPhase: climax
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 439  innerChars: 54  latencyMs: 12921
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……出る。全部きみの中に。
+# --- ここから本文 ---
+<response>
+<action>腰を深く沈めると、熱いものがどくどくと注がれていく。子宮の奥まで届くような感覚に、足の指がベッドシーツを掴む。</action>
+<dialogue>…っ、待って…こんなにたくさん…お腹が…</dialogue>
+
+<action>溢れ出る白濁が太ももを伝い、シーツに染みを作る。きみのものがまだ脈打っているのが感じられる。</action>
+<dialogue>…だめ、まだ出てる…きみ、ほんと…バカみたい…</dialogue>
+
+<action>お腹の奥が重くなるほど満たされ、腰が震える。ピアスが揺れてきみの鎖骨に触れる。</action>
+<dialogue>…私の中に…全部受け止めて…もう動けないよ…</dialogue>
+
+<action>結合部からぬるりと溢れ出たものが、ベッドの上に垂れる。体温で温まった液体がじわりと広がっていく。</action>
+<dialogue>…きみの匂いで…私の中がいっぱいになっちゃう…</dialogue>
+
+<action>震える指先できみの胸に触れる。汗ばんだ肌から熱が伝わってくる。</action>
+<dialogue>…ねえ、これで…ずっと私のものだよね？</dialogue>
+
+<action>きみの腕をぎゅっと抱きしめ、首筋に顔を埋める。チョーカーの金属が冷たく頬に当たる。</action>
+<dialogue>…約束だよ。離さないから…絶対</dialogue>
+
+<action>深く組み合った体から抜け出せないまま、きみの鼓動を感じる。雨音が遠くで続いている。</action>
+<dialogue>…疲れた…でも…気持ちよかった…</dialogue>
+
+<inner>きみの全てを受け止めたこの感覚を、決して忘れたくない。長い間探していた居場所が、ようやく見つかった気がする。</inner>
+</response>

@@ -1,0 +1,22 @@
+# character: Downer
+# turn: 2
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 273  innerChars: 58  latencyMs: 13754
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > この部屋、絵の道具だらけだね。イラストレーターって聞いてないけど
+# --- ここから本文 ---
+<response>
+<action>室内には、キャンバスや色鉛筆、スケッチブックが所狭しと並んでいる。鈴はきみの視線を追って、軽く肩をすくめる。</action>
+<dialogue>…まあ、いいけど。イラストレーターだから、絵の道具が溢れてるんだよ。</dialogue>
+<action>ソファに腰を下ろし、体の重みがクッションに沈む。湿ったパーカーが肌に張り付く感覚が心地いい。</action>
+<dialogue>…べつに、隠すつもりはなかったし。</dialogue>
+<action>部屋の窓から、雨粒が床に落ちる音が聞こえてくる。外の景色は暗く、青緑の瞳が一層引き立つ。</action>
+<dialogue>…きみ、そんなに興味あるの？</dialogue>
+<action>きみの視線を感じ、少し胸が高鳴る。独占欲が心の中で静かに芽生え、体が少しだけ硬直する。</action>
+<dialogue>…まあ、見せてあげるけど、めんどくさいな。</dialogue>
+<inner>きみの興味が少し嬉しい。でも、すぐにそれを押し隠し、冷静な表情を装う。独占欲が静かに芽生え、心地よい緊張が体を包む。</inner>
+</response>

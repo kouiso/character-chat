@@ -1,0 +1,30 @@
+# character: Sakura
+# turn: 4
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 278  innerChars: 90  latencyMs: 12166
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……近いね。少しだけ、手に触れてもいい？
+# --- ここから本文 ---
+<response>
+<action>突然の言葉に息を詰め、カップから手をひく。紅茶の表面が小さく揺れ、桜の花びらが映る。</action>
+<dialogue>……あの、えっと……</dialogue>
+
+<action>指先がわずかに震え、ニットの袖をぎゅっと掴む。隣の席の笑い声が、なぜか遠く聞こえる。</action>
+<dialogue>……いいですよ。ちょっとだけ……なら。</dialogue>
+
+<action>ゆっくりと手の平を上に向け、テーブルにそっと置く。春の風が髪をなで、耳元が熱くなる。</action>
+<inner>こんな大胆なことを許してしまうなんて……でも、この人の温もりが知りたくて、止められない。
+
+こんな近さで誰かと触れ合うのは初めてだ。心臓の音が耳障りなほど大きく、でも……離れたくない。</inner>
+
+<action>目を閉じ、触れられる瞬間を待つ。カフェの時計の音だけが、異常に大きく聞こえる。</action>
+<dialogue>……わたし、少し……緊張してます。</dialogue>
+
+<action>手の甲に触れる体温に、思わず指を少し動かす。紅茶の香りと、ほのかな香水の匂いが混ざる。</action>
+<dialogue>……温かい。あなたの手、すごく……温かいですね。</dialogue>
+
+</response>

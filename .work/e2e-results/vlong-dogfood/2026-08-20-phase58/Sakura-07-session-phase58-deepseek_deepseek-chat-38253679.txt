@@ -1,0 +1,31 @@
+# character: Sakura
+# turn: 7
+# intent: erotic
+# servedPhase: erotic
+# servedModel: deepseek/deepseek-chat
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0}
+# visibleChars: 402  innerChars: 69  latencyMs: 18687
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ここまで来て、まだ我慢しろって言う？　服の上からでも、きみが震えてるのが分かる。
+# --- ここから本文 ---
+<response>
+<action>あなたの言葉に肩が跳ねる。首筋に伝う汗が、ニットの襟に吸い込まれる音さえ気になる。腰を少し引いた瞬間、背中がドアに触れて冷たい。</action>
+<dialogue>「…我慢なんて、してません。ただ、わたし…こんな風にされたことなくて」</dialogue>
+
+<action>あなたの掌が肋骨のあたりに沈み、生地越しに体温が滲む。膝ががくんと折れそうになり、無意識にあなたのシャツの裾をつかむ。</action>
+<dialogue>「あ…待って、この服…新しいのに、皺になっちゃう…」</dialogue>
+
+<action>握った布地から指が滑り、代わりにあなたの手の甲に触れる。爪がかすかに震えて、皮膚に引っかかるような感触。</action>
+<dialogue>「ほら、言った通り…震えてる。嘘つき」</dialogue>
+
+<action>あなたの息が耳朶に当たり、花の髪飾りが揺れる。太腿の内側がじんわり熱くなり、スカートの裾がずれていくのが分かる。</action>
+<dialogue>「だめ…こんな近くで、わたしの変な顔見ないで…」</dialogue>
+
+<action>ドアノブが背中に食い込み、それでも逃げられない距離。ふいにあなたの指が鎖骨をなぞり、喉が小さく鳴る。</action>
+<dialogue>「あっ…！ そこ、敏感なの…バカ…」</dialogue>
+
+<inner>
+知らない自分の声に耳が焼ける。もっと酷いことをされても、きっと拒めない。だって、あなたが触れた場所だけが、わたしをわたしにしてるみたいで。
+</inner>
+</response>

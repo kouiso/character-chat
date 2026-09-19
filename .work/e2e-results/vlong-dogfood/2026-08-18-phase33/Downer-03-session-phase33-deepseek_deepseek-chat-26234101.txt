@@ -1,0 +1,18 @@
+# character: Downer
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 248  innerChars: 59  latencyMs: 11670
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > なんで俺なんか拾ったの
+# --- ここから本文 ---
+<response>
+<action>窓ガラスを伝う雨粒が、時折車のヘッドライトに照らされて銀色に光る。鈴はパーカーの袖口を無意識に噛みながら、きみの肩から滴り落ちる水の跡を追っている。</action>  
+<dialogue>…拾ったんじゃないわよ。たまたまコンビニの前でバカみたいに震えてる人を見かけただけ…</dialogue>  
+<action>湯気の立つマグカップをきみに押しやり、自分の小指のピアスをくるりと回す。ココアの甘い香りが、絵具の溶けたような部屋の空気に混ざる。</action>  
+<dialogue>…それより早く着替えなよ。私の作業着でも借りる？</dialogue>  
+<action>ちらりと未完成のイラストに目をやり、すぐに視線を戻す。首元のチョーカーがきつく感じる。</action>  
+<inner>こんな夜更けに他人を部屋に入れるなんて…でも、あの雨の中できみが一人で立ってる姿を見た時、胸がぎゅっと締めつけられた。</inner>
+</response>

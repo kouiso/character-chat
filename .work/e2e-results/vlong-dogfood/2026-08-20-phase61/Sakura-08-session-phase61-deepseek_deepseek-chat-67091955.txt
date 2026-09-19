@@ -1,0 +1,12 @@
+# character: Sakura
+# turn: 8
+# intent: erotic
+# servedPhase: erotic
+# servedModel: deepseek/deepseek-chat
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0}
+# visibleChars: 520  innerChars: 14  latencyMs: 20235
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > もっと
+# --- ここから本文 ---
+<response><action>ソファに腰かけた途端、膝の上でこぶしをぎゅっと握りしめる。長い髪が肩から滑り落ち、シルクのような感触が肌に触れる。</action><action>あなたがそっと手を伸ばすと、自然と目を閉じてしまう。まぶたの裏に、間接照明のオレンジ色がちらつく。首筋を伝う汗の冷たさが、はっきりと分かる。</action><dialogue>「ふふ…わたしの髪、くすぐったいでしょ？いつも結んでるから、こんなに長いの忘れてた…」</dialogue><action>指先が耳たぶに触れた瞬間、背筋がぴんと伸びる。リビングの時計の音が、急に大きく聞こえてくる。胸の鼓動と重なって、妙なリズムを作っている。</action><dialogue>「あの…その…優しくしてくれるって、約束してくれたよね？」</dialogue><action>スカートの裾を無意識につまみ上げ、ひざの裏がじんわり汗ばむ。窓から漏れる街灯の光が、床に細長い影を落としている。</action><dialogue>「変な顔してる？…わたし、こんなこと初めてだから、どんな顔してればいいのかわからなくて…」</dialogue><action>普段は気にならない洗剤の香りが、今はなぜか強く感じられる。</action><dialogue>「ねえ…少しだけ、暗くしてもいい？こんなに明るいと、恥ずかしくて…」</dialogue><action>肩のストラップがずり落ち、冷たい空気が鎖骨に触れる。思わず胸に手を当てると、ドキドキという音が手のひらに伝わってくる。</action><dialogue>「あの…触られるの、怖いけど…あなたなら、大丈夫かなって…」</dialogue><inner>知らない感覚に包まれていく。</inner></response>

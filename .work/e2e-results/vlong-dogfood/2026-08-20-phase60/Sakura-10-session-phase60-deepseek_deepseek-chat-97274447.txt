@@ -1,0 +1,38 @@
+# character: Sakura
+# turn: 10
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: deepseek/deepseek-chat
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 609  innerChars: 62  latencyMs: 20875
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……大丈夫？　汗、拭こうか。
+# --- ここから本文 ---
+<response>
+<action>涙で滲んだ視界の中、あなたの手がそっと頬に触れる。汗で張り付いた前髪を優しく払われ、冷たいタオルの感触が額に当たる。</action>
+<dialogue>……うん。ありがとう……</dialogue>
+
+<action>タオルが首筋をゆっくりと拭いていく。まだ熱い肌に冷たい布が触れ、鳥肌が立つのが分かる。ベッドの上で広がった髪が、汗で光っている。</action>
+<dialogue>……ごめんね。わたし、こんなにぐしゃぐしゃにしちゃって……</dialogue>
+
+<action>拭う手が胸元に下り、白く乾いた跡がついたブラウスに止まる。指先が震えながら、あなたの手首をそっと掴む。</action>
+<dialogue>あの……そこは……自分で……</dialogue>
+
+<action>タオルが鎖骨のくぼみをなぞり、胸の谷間まで流れた汗を吸い取る。冷たい空気が肌に触れ、乳首がまた硬くなるのを感じる。</action>
+<dialogue>んっ……優しすぎる……そんなに丁寧にされると……また……</dialogue>
+
+<action>腿の内側を伝った白濁がタオルに移り、じんわりと広がる。敏感になった肌が布の摩擦に反応し、腰が少し浮き上がる。</action>
+<dialogue>あ……そこも……綺麗に……してくれてる……</dialogue>
+
+<action>タオルが太ももの付け根まで下り、濡れた部分をそっと押さえる。指先がかすかに震え、シーツを掴む手に力が入る。</action>
+<dialogue>はぁ……だめ……まだ敏感すぎて……ん……</dialogue>
+
+<action>拭き終えたタオルがベッドサイドに置かれ、代わりに毛布が肩にかけられる。温もりに包まれ、ふと自分の状態に気付いて顔を赤らめる。</action>
+<dialogue>……全部、見られちゃった……こんな姿……</dialogue>
+
+<action>毛布の下で体を小さく丸め、あなたの胸に顔を埋める。花の髪飾りがベッドの下でひっそりと光っている。</action>
+<dialogue>……でも、あなたなら……いいかな……</dialogue>
+
+<inner>こんなに優しくされたのは初めてだ。恥ずかしさと安心感が混ざり合い、涙がまた溢れそうになる。この温もりから、もう離れたくない。</inner>
+</response>

@@ -1,0 +1,11 @@
+# character: Downer
+# turn: 10
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 359  innerChars: 34  latencyMs: 21728
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……まだ離してくれないんだ。
+# --- ここから本文 ---
+<response><action>きみの腕が私の腰を締めつけ、ベッドのスプリングが軋む音が静寂に響く。指先がきみの背中に軽く触れるだけで、冷たい汗が首筋を伝う。絵の具で汚れたシーツが腿の裏に絡みつき、体温が徐々に冷えていく。</action><dialogue>…離すわけないでしょ？ きみの中に出したんだから…</dialogue><action>きみの体温が私の肌に伝わり、まだ奥で脈打つ熱を感じる。足の指が自然と開き、身の下の布地に染みが広がる感触が伝わる。冷たい汗が背中を伝い、チョーカーがきつく締めつけられる。</action><dialogue>…んっ、きみの熱いのが…まだ出てる…</dialogue><action>きみの吐息が首筋にかかり、冷たい金属のピアスが肌に触れる。ショートボブのツートンカラーが、きみの胸元に広がり、汗で絡みつく。</action><dialogue>…バカ…こんなにたっぷり注がれて…動けなくなるじゃない…</dialogue><dialogue>…ふぅん、あんたの熱いのが…まだ出てる…</dialogue><dialogue>…っ、離すわけないでしょ？ こんなに中に出したんだから…</dialogue><inner>きみの体温が私の肌に染み込み、この瞬間が永遠に続くような錯覚に陥る。</inner></response>

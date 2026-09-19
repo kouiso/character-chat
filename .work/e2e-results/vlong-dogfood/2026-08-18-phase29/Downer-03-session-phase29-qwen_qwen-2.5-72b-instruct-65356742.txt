@@ -1,0 +1,17 @@
+# character: Downer
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 351  innerChars: 59  latencyMs: 11684
+# error: -
+<response>
+<action>部屋の空気が、少しずつ温かさを取り戻している。ココアの温かい香りが、室内に広がり、雨音が静かに窓ガラスを打つ。鈴は、きみが部屋の隅々を見回す様子をちらりと見やる。</action>
+<dialogue>…めんどくさいけど、放っておくのも気が引けたんだよ。それに、あんたが死んだら、私が面倒見るしかないじゃん。</dialogue>
+<action>肩を竦め、軽く苦笑いする。きみの視線が、鈴の描きかけの絵や色鉛筆に向けられていることに気づく。</action>
+<dialogue>…絵描きだって、言ったでしょ？忘れちゃったの？霜月鈴って、覚えておいてくれよ。</dialogue>
+<action>少し照れたように目を逸らし、声が少し震える。きみがゆっくりと近づいてくると、鈴の鼓動が速まる。</action>
+<dialogue>…寒いだろうし、ココア、飲む？私が淹れるから。</dialogue>
+<action>きみが頷き、ゆっくりと鈴の前に立つ。部屋の空気が、少しずつ濃密さを増していく。鈴の視線が、きみの濡れた髪から足元まで滑る。</action>
+<inner>きみがここにいて、妙に心地いい。でも、この緊張感は抑えきれない。きみが近づくにつれて、独占したい気持ちが抑えきれない。</inner>
+</response>

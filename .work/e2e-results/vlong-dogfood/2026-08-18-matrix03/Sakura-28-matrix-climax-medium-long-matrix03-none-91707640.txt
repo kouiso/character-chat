@@ -1,0 +1,7 @@
+# character: Sakura
+# turn: 28
+# intent: climax
+# servedPhase: climax
+# servedModel: (none)
+# visibleChars: 0  innerChars: 0  latencyMs: 70061
+# error: stream error: upstream_error

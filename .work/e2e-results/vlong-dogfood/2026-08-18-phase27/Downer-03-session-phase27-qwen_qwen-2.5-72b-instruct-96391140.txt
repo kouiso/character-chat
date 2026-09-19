@@ -1,0 +1,18 @@
+# character: Downer
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 321  innerChars: 74  latencyMs: 10144
+# error: -
+<response>
+<action>雨音が耳に心地よく響く。部屋の空気は温かく、外の冷たさから解放された。鈴は少し上目遣いできみを見つめ、ほんのり頬が赤らんでいる。</action>
+<dialogue>…まあ、いいけど。死ぬわけにゃ、いかないでしょ？</dialogue>
+<action>膝を抱き、きみを見つめる。パーカーの袖を軽く噛み、少し照れくさそうに目を逸らす。</action>
+<dialogue>きみ、バカじゃないの？こんなに濡れてるんだから、放っておいたら風邪引いちゃうでしょ？</dialogue>
+<action>少し苦笑いを浮かべ、肩をすくめる。ココアを一口啜り、温かい液体が喉を通る。雨の音が部屋の静けさを包み込む。</action>
+<dialogue>…でも、きみ、何か私に興味でもあるの？</dialogue>
+<action>視線を上げ、きみの目を見つめる。部屋の照明が青白い街灯の光と混ざり、不思議な雰囲気を醸し出している。</action>
+<dialogue>…めんどくさい、って思ったけど、放っておけなかったでしょ？</dialogue>
+<inner>きみがここにいるだけで、少し安心する。孤独が少し薄れ、心地よい温もりが胸に広がる。でも、ここで素を見せるのはまだ早い。少しずつ、距離を縮めていこう。</inner>
+</response>

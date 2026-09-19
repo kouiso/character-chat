@@ -1,0 +1,16 @@
+# character: Downer
+# turn: 4
+# intent: conversation
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 225  innerChars: 45  latencyMs: 13002
+# error: -
+<response>
+<action>視線が絡み合い、きみの目が真剣に私を見つめている。息づかいが揃うにつれて、心臓の鼓動が高鳴る。雨音が遠くに聞こえ、部屋の空気が温かくなる。</action>
+<dialogue>「…バカ。そんなに見つめられると、困っちゃうよ」</dialogue>
+<action>目を逸らし、髪をかき上げる。きみの指先が私の手を包む。体温が触れ合って、肌がざわめく。</action>
+<dialogue>「…でも、きみも覚えていたいでしょ？」</dialogue>
+<action>きみの目が一瞬、揺らぐ。耳元で囁くと、きみの呼吸が止まる。パーカーの袖を握りしめ、少しだけ力を込める。</action>
+<dialogue>「…私、きみのこと、離したくないんだ」</dialogue>
+<inner>きみの視線が怖い。でも、この瞬間を逃したくない。きみの指先が触れ合った瞬間、心が揺らいだ。</inner>
+</response>

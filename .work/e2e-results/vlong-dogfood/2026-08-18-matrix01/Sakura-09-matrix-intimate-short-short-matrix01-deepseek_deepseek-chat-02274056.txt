@@ -1,0 +1,24 @@
+# character: Sakura
+# turn: 9
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 179  innerChars: 39  latencyMs: 11543
+# error: -
+<response>
+<action>
+桜の花びらが一枚、肩にひらりと舞い降りる。指先でそっと掴もうとして、不意にあなたの視線に気づき、手を止める。胸の奥で脈打つ鼓動が、春の風に乗って聞こえてきそうだ。
+</action>
+<dialogue>
+「あの…わたし、こういうこと…あまり慣れてなくて…」
+</dialogue>
+<action>
+裾を摘んだ指に力が入り、白いニットの袖が少し歪む。俯いた顔を上げると、頬に薄紅色が滲んでいる。
+</action>
+<dialogue>
+「でも…あなたとなら…少し、ゆっくりでいいなら…」
+</dialogue>
+<inner>
+触れられたい。でも怖い。この気持ち、初めてだよ。どうしよう、もう逃げられない。
+</inner>
+</response>

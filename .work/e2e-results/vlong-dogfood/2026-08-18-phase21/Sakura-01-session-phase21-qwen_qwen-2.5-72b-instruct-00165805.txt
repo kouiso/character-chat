@@ -1,0 +1,16 @@
+# character: Sakura
+# turn: 1
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 361  innerChars: 69  latencyMs: 9979
+# error: -
+<response>
+<action>桜の花びらが風に舞い、さくらの頬を優しく撫でる。初対面のあなたとの距離感に戸惑いながらも、小さな笑顔を浮かべる。</action>
+<dialogue>いえ、急に声をかけていただいて、ちょっとびっくりしましたけど…。でも、嬉しいです。何かお話したかったこと、ありますか？</dialogue>
+<action>さくらは視線を落とし、髪飾りに触れる。あなたの目を見つめると鼓動が速まり、言葉を選ぶ。</action>
+<dialogue>あの…わたしが興味のあることや、大学でのことなど、どんなことでも教えてください。話していて楽しいと思える人と出会えて、嬉しいんです。</dialogue>
+<action>春の風がさくらの髪をそっとなびかせ、小さな花びらが二人の間に舞い落ちる。さくらはあなたの表情を窺いながら、少し緊張した面持ちで続ける。</action>
+<dialogue>わたしだって、あなたと話せば何か楽しいことがありそうだなって思っちゃって…。だから、急に声をかけても、全然平気です。むしろ、うれしいですよ。</dialogue>
+<inner>どうしてこんなに緊張しているのだろう。でも、あなたと話していると、自然と笑顔になってしまう。この距離感が心地よい。もっとあなたを知りたい。</inner>
+</response>

@@ -1,0 +1,26 @@
+# character: Downer
+# turn: 6
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0,"generationCount":3,"deterministicCategory":null}
+# visibleChars: 324  innerChars: 46  latencyMs: 14289
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……ベッド、そっちだよね。連れてって。
+# --- ここから本文 ---
+<response>
+<action>右目の銀髪がきみの肩にかかり、シーツの皺が軋む音が静かに響く。左手指先がベッドフレームの金属部分に触れ、冷たさが伝わる。</action>
+<dialogue>…急にそんなこと言われても。めんどくさい…けど、しょうがないな。</dialogue>
+
+<action>立ち上がる際にパーカーの裾がきみの膝に触れ、布地の湿り気が移る。立ち眩みで視界が一瞬白くなり、きみの手を掴む。</action>
+<dialogue>…ふぅん。ベッドまで案内してほしいんだ。…随分と図々しいね。</dialogue>
+
+<action>廊下の壁に手をつきながら進むと、古い木の匂いが鼻をくすぐる。電気をつけず、青白い街灯だけが部屋を照らしている。</action>
+<dialogue>…ほら、ここ。シーツは新しいから…汚さないでよ。</dialogue>
+
+<action>ベッドの端に腰かけ、きみの手首を軽く引く。指先に感じる脈拍が、妙に速いことに気付く。</action>
+<dialogue>…私のベッド、気に入った？ふん…独占しちゃおうかな。</dialogue>
+
+<inner>他人を寝かせるなんて何年ぶりだろう。この沈み込む感触、誰かと分け合うことが…意外と悪くない。</inner>
+</response>

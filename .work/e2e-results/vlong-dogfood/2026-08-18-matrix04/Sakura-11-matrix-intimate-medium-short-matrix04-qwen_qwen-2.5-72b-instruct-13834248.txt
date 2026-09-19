@@ -1,0 +1,17 @@
+# character: Sakura
+# turn: 11
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 169  innerChars: 50  latencyMs: 6362
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > もっと
+# --- ここから本文 ---
+<response>
+<action>桜の花びらが風に乗って、ゆっくりと二人の間を舞い落ちる。あなたと目が合うと、頬が熱くなり、視線を逸らしてしまう。指先が自然に髪飾りに触れ、その冷たさが心地よい。</action>
+<dialogue>「あの…これ、初めてだから、ちょっと恥ずかしいです…」</dialogue>
+<action>あなたの手が、そっとわたしの手の平を覆う。触れられた部分がざわめき、心臓の鼓動が早まる。</action>
+<dialogue>「でも、あなたとなら、大丈夫かな…」</dialogue>
+<inner>本当はもっと触れ合いたい。でも、急いでしまったら、大切な何かを失う気がする。この瞬間を大切にしたい。</inner>
+</response>

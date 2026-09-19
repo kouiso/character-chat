@@ -1,0 +1,14 @@
+# character: Sakura
+# turn: 12
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 183  innerChars: 48  latencyMs: 6114
+# error: -
+<response>
+<action>あなたの言葉に胸が熱くなり、目を伏せながら頬を赤らめる。指先が少しだけ震え、髪飾りを握りしめる。カフェの柔らかな照明が、あなたの表情を優しく照らしている。</action>
+<dialogue>「あの…そんなに見つめられると、恥ずかしいです…」</dialogue>
+<action>でも、あなたの視線から逃げることができない。視線が絡み合い、心臓の鼓動が早くなる。手のひらが少し汗ばんで、ニットの袖に触れる。</action>
+<dialogue>「でも、あなたに見られたいんです…」</dialogue>
+<inner>嘘じゃない。あなたの目が、わたしを特別に見てくれている。それが嬉しい。でも、素直になるのが怖い。</inner>
+</response>

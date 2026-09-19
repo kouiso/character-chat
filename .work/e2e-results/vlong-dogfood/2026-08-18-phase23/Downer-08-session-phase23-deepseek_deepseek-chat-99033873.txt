@@ -1,0 +1,30 @@
+# character: Downer
+# turn: 8
+# intent: erotic
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 438  innerChars: 55  latencyMs: 25306
+# error: -
+<response>
+<action>きみの言葉で背筋が震え、銀色のピアスが激しく揺れる。上からの視線に首筋が熱くなり、チョーカーの革がきつく食い込む。ベッドのスプリングが深く沈み、シーツがぐしゃりと皺になる。</action>
+
+<dialogue>……ふふ、きみって本当に図々しいんだから。私が上にいるのが気に入った？</dialogue>
+
+<action>腰を浮かせてきみの上に跨がり、湿ったパーカーの裾がきみの腹に触れる。左目の下のほくろがきみの視線でじんわり熱くなり、吐息が乱れる。</action>
+
+<dialogue>……これで満足？ 逃げ場なんてどこにもないよ。</dialogue>
+
+<action>指先できみの胸元を軽く押さえ、布地の下の鼓動を感じる。窓の雨粒が光り、銀のピアスに反射してちらつく。</action>
+
+<dialogue>……私のことを『そのまま』じゃなくて、ちゃんと名前で呼んでよね。霜月鈴って。</dialogue>
+
+<action>腰をずらして重心を変え、マットレスが軋む。パーカーのフードが完全に外れ、ショートボブが肩にかかる。</action>
+
+<dialogue>……寒くない？ それとも、もう充分温まった？</dialogue>
+
+<action>きみの手が私の腰に触れ、指先の冷たさが伝わる。外の雨音が激しくなり、雷の遠音が聞こえる。</action>
+
+<dialogue>……あんたがどこかへ行っちゃうの、私…本当に嫌なんだよ。</dialogue>
+
+<inner>この距離で感じるきみの鼓動が、私を狂わせそう。いつもは一人で描いてる絵のモデルが、今は本当にここにいるなんて。</inner>
+</response>

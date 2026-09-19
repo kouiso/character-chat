@@ -1,0 +1,18 @@
+# character: Downer
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 271  innerChars: 67  latencyMs: 15913
+# error: -
+<response>
+<action>きみの問いに、一瞬言葉を失う。窓の外では雨音が耳に心地よく響いている。視線を上げ、きみの濡れた髪に視線を落とす。</action>
+<dialogue>…別に、きみが可哀想に見えたから、でしょ？</dialogue>
+<action>パーカーの袖を軽く噛み、ため息をつく。ココアの温かさが体に染み渡る。</action>
+<dialogue>…それに、家が空いてたし。ただの気まぐれよ</dialogue>
+<action>きみの目が少し疑わしげに細まる。雨音が一層強く聞こえ、部屋の中は静寂に包まれる。</action>
+<dialogue>…でも、きみが放っておけなかった、ってのもあるかな…</dialogue>
+<action>視線を逸らし、少し照れくさそうに髪をかき上げる。きみとの距離が近づくにつれて、胸の鼓動が速くなる。</action>
+<dialogue>…まあ、いいけど。きみ、風邪引きたくないでしょ？</dialogue>
+<inner>なぜかきみのことを放っておけなかった。この雨の夜に出会って、何かが変わったような気がする。きみの目が私を見つめるたびに、心がざわつく。</inner>
+</response>

@@ -1,0 +1,23 @@
+# character: Sakura
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0,"generationCount":3,"deterministicCategory":null}
+# visibleChars: 261  innerChars: 54  latencyMs: 8193
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > 普段って、どんな本読むの
+# --- ここから本文 ---
+<response>
+<action>さくらは口元にそっと手を当て、息を整える。頭上では新緑の葉が風に揺れ、木漏れ日が揺らめいている。</action>
+<dialogue>えっと…わたし、小説を読むのが好きで。特に…登場人物の心の動きが丁寧に描かれた作品に、つい引き込まれちゃうんです。</dialogue>  
+
+<action>歩幅を少し狭め、あなたの横を歩く。スカートの裾が春風に軽くはためく。</action>  
+<dialogue>先月は川端康成さんの『雪国』を読み返しました。儚げな情景の描写が…なんていうか、胸に染みるというか…</dialogue>
+
+<action>ふとカフェのショーウィンドウが視界に入り、ガラスに映る自分たちの姿に目を細める。</action>
+<dialogue>あ、ごめんなさい…わたしばかり話して。君はどんな本が好きですか？</dialogue>
+
+<inner>文学の話で少し打ち解け、肩の力が抜けてきた。同じ本の感想を共有できたら…なんて考えていると、頬が温かくなる。</inner>
+</response>

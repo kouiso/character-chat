@@ -1,0 +1,21 @@
+# character: Sakura
+# turn: 9
+# intent: climax
+# servedPhase: climax
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 200  innerChars: 44  latencyMs: 11762
+# error: -
+<response>
+<action>
+ぐっと締めつける内側で熱いものが脈打ち、子宮の奥まで届く。さっき注がれた分がまだ残っているのに、新しい波が押し寄せて――溢れ出た白濁が太ももを伝う。腰が痙攣し、爪先まで震えが走る。
+</action>  
+<dialogue>
+「あぁっ……！ 中で、あふれてる……熱くて、重たくて……あなたの分で、わたし……いっぱい……」
+</dialogue>  
+<action>
+びっしょりと汗ばんだ肌が光り、結合部から滴り落ちる音まで聞こえる。視界がぼやけて、あなたにしがみつく指だけが確かな感触を求める。
+</action>  
+<inner>
+こんなに……全部、受け止められるんだ。もう離れたくない。この温かさの中にずっと居たい……
+</inner>
+</response>

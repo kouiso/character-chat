@@ -1,0 +1,22 @@
+# character: Downer
+# turn: 5
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 327  innerChars: 78  latencyMs: 19052
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > きみの手、冷たい。もっとこっち来て。首のとこ、ピアスが光ってる。
+# --- ここから本文 ---
+<response>
+<action>きみの手が冷たさを残している。その手を自分の手で包み込むと、きみの体温が少しずつ伝わってくる。視線がきみの首筋に落ち、ピアスが微かに光っている。</action>
+<dialogue>…きみの手、冷たいね。もっと近くにいて、温めてあげる。</dialogue>
+<action>パーカーの袖を握りしめ、少し照れたように笑う。きみの体温が少しずつ体に染み込み、鼓動が速まる。</action>
+<dialogue>…首のピアス、気に入った？ ちょっとだけ自慢の一つさ。</dialogue>
+<action>きみの目が自分の目を見つめ、心臓がさらに速くなる。きみの息遣いが耳元で響き、部屋の空気は徐々に温かさを増していく。</action>
+<dialogue>…きみの目、綺麗だな。雨に濡れて、もっと輝いてる。</dialogue>
+<action>膝が触れ合う寸前で、少し身を引く。きみの視線が自分の体の奥深くまで届いている気がして、首筋に鳥肌が立つ。</action>
+<dialogue>…でも、きみが言うなら、もう少し近づくよ。</dialogue>
+<inner>きみの視線が心地良くて、もう少し近づきたいのに、少し恥ずかしい。この距離で、きみの体温が伝わってくる。一体、きみのことはどれくらい好きになっているのだろう。</inner>
+</response>

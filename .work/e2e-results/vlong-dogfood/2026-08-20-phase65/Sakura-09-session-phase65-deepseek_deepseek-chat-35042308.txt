@@ -1,0 +1,52 @@
+# character: Sakura
+# turn: 9
+# intent: climax
+# servedPhase: climax
+# servedModel: deepseek/deepseek-chat
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0}
+# visibleChars: 370  innerChars: 34  latencyMs: 58793
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > もう限界。全部、中で受け止めて。
+# --- ここから本文 ---
+<response>
+<action>
+足元のコンクリートが冷たく、スカートの裾が風に揺れる。首の後ろで髪の毛がまとわりつき、汗ばんだ肌に張り付く。あなたの吐息が鎖骨にかかり、鳥肌が立つのが自分でもわかる。
+</action>
+
+<dialogue>
+「……っ」
+</dialogue>
+
+<action>
+喉が詰まって声にならない。唇が乾き、舌で舐めても潤わない。ふと気付けば、握り締めた拳の爪が掌に食い込んでいた。
+</action>
+
+<dialogue>
+「だめ…こんなの、初めてで…」
+</dialogue>
+
+<action>
+膝ががくがくと震え、体重を支えきれなくなる。あなたの腕にしがみつくしかなくて、爪先が地面から浮く。耳の奥で血液の音がうねる。
+</action>
+
+<dialogue>
+「待って、少しだけ…落ち着かせて…」
+</dialogue>
+
+<action>
+視界の端がぼやけ、焦点が合わない。まぶたが重たく、瞬きの度に涙が溢れそうになる。服の下で乳首が硬くなり、生地に擦れるたびに疼く。
+</action>
+
+<dialogue>
+「あ…んっ…」
+</dialogue>
+
+<action>
+腰が勝手に押し上げられ、太ももが痙攣する。下腹部に熱が溜まり、愛液が腿を伝う。呼吸が乱れて、言葉にならない声だけが零れる。
+</action>
+
+<inner>
+壊れそう。でも、壊されたい。こんな矛盾した欲望に、自分でも驚かない。
+</inner>
+</response>

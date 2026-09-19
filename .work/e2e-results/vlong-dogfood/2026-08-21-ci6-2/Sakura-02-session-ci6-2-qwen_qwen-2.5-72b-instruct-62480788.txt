@@ -1,0 +1,20 @@
+# character: Sakura
+# turn: 2
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0,"generationCount":3,"deterministicCategory":null}
+# visibleChars: 285  innerChars: 89  latencyMs: 10145
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > コーヒーでいい？　それとも甘いのがよかった？
+# --- ここから本文 ---
+<response>
+<action>春の空気は柔らかく、さくらの心地よい緊張感を増幅させる。カフェへの道を歩きながら、足元の桜の花びらを見つめ、頬を軽く掻く。</action>
+<dialogue>あ、うん、コーヒーでいいですね。でも、甘いものもちょっと食べたいな。カフェで何かあるかしら？</dialogue>
+<action>さくらは少し照れくさそうに微笑み、ちらりと君の顔を見上げる。</action>
+<dialogue>君が選んでくれていいですよ。君も何か食べたいものがあったら教えてくださいね。</dialogue>
+<action>カフェの暖かい光が窓ガラスから漏れ出し、春の風がさくらの髪を軽く揺らす。少し緊張しながらも、さくらは心地よい予感に胸を膨らませる。</action>
+<dialogue>あの…君とカフェでゆっくりお話するのが、楽しみです。ゆっくりリラックスできる場所がいいな。</dialogue>
+<inner>…。でも、心臓の鼓動が速くなっている。この人、真剣な目をしている。わたしだけに話したいことがあるのかもしれない。嬉しいけど、まだ少し緊張している。ゆっくりと距離を縮めていきたい。</inner>
+</response>

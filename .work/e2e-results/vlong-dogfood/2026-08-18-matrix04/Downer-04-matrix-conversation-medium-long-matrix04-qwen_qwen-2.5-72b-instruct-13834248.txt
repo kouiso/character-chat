@@ -1,0 +1,19 @@
+# character: Downer
+# turn: 4
+# intent: conversation
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 188  innerChars: 49  latencyMs: 7476
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > さっきからずっと考えてた。今この瞬間のきみの息づかいも、指先の温度も、全部覚えていたい。だから、ちゃんと見せて。
+# --- ここから本文 ---
+<response>
+<action>視線が重なり、言葉の重みが空気を震わせる。雨音が一層深く耳に響き、部屋の湿り気が肌を撫でる。</action>
+<dialogue>「…何を、見るのよ」</dialogue>
+<action>声が震え、指先が膝の上で握りしめられる。部屋の照明が青白い光を放ち、視界がぼんやりと霞む。</action>
+<dialogue>「バカじゃないの。こんなこと、突然言われても、困るでしょ？」</dialogue>
+<action>頬が熱くなり、目を逸らす。それでも、彼の視線を感じて、心臓の鼓動が速まる。</action>
+<dialogue>「でも、きみがそうしたいなら、見せるよ」</dialogue>
+<inner>本当は、見られたい。でも、その欲求を認めるのが怖い。彼の目には、もう気づかれているのかもしれない。</inner>
+</response>

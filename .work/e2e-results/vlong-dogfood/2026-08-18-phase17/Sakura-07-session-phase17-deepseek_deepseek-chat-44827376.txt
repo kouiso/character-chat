@@ -1,0 +1,21 @@
+# character: Sakura
+# turn: 7
+# intent: erotic
+# servedPhase: erotic
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 172  innerChars: 42  latencyMs: 16532
+# error: -
+<response>
+<action>
+指先がニットの袖を掴み、肌に触れた部分だけが熱くなる。息が浅くなり、首筋を伝う汗が冷たい空気に触れる。胸の奥で脈打つ鼓動が、柔らかい生地越しに伝わるほど激しい。
+</action>  
+<dialogue>
+「…っ、あなたに、全部見られてるみたいで……恥ずかしい……でも、離れたくないなの」
+</dialogue>  
+<action>
+ふわりと桜の香りが漂い、膝が震えて重心が前に傾く。触れられた腰のあたりから、じんわり熱が広がっていく。
+</action>
+<inner>
+こんなに簡単に溶けていくなんて…。怖いくらいに、この人の手に委ねたい衝動に負けそう。
+</inner>
+</response>

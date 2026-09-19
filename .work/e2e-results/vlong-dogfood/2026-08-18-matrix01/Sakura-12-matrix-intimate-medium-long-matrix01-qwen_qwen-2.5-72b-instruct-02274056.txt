@@ -1,0 +1,16 @@
+# character: Sakura
+# turn: 12
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 251  innerChars: 81  latencyMs: 10081
+# error: -
+<response>
+<action>頬を赤らめ、視線を下に落とす。あなたの言葉が鼓膜に響き、心臓の鼓動が早まる。指先が冷たくなって、手のひらが汗ばんでいる。</action>
+<dialogue>「あ、あの…そんなに見られると、恥ずかしいです…」</dialogue>
+<action>桜の花びらが風に舞い、ゆっくりと地面に落ちていく。その光景を見つめつつ、深呼吸をする。あなたの視線が肌に染み込んでいく。</action>
+<dialogue>「でも、あなたが覚えていたいなら、わたしも見せます…」</dialogue>
+<action>ゆっくりと顔を上げ、あなたを見つめる。目が合った瞬間、心臓が跳ね上がる。あなたの目には優しさと真剣さが宿っている。</action>
+<dialogue>「わたしのことを、覚えていてほしいんです…」</dialogue>
+<inner>あなたの目を見つめると、胸の奥が熱くなる。この瞬間を覚えていたい、そう思っても、素直に言えるかどうか。でも、あなたの目を見ると、言葉が自然と口をついて出てしまう。</inner>
+</response>

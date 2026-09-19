@@ -1,0 +1,12 @@
+# character: Sakura
+# turn: 5
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0,"generationCount":4,"deterministicCategory":"repetition"}
+# visibleChars: 455  innerChars: 78  latencyMs: 17111
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > 髪、かかってる。耳にかけるね。首筋、少し赤くなってる。
+# --- ここから本文 ---
+<response><action>君の指が髪を優しく耳にかけ、首筋が少し冷たくなる。その瞬間、耳がぴくりと反応し、頬が熱くなった。カフェの温かい光が頬を照らし、心臓の鼓動が速まる。</action><dialogue>「あ、あの…ちょっと、恥ずかしいです」</dialogue><action>君の指が首筋を軽く撫で、その触れる感覚が背中に広がる。首筋が少し赤くなり、自分の体温が上がっているのがわかる。カフェの香りがふわりと鼻をくすぐり、リラックスする。</action><dialogue>「君の手、温かいですね。この感覚、不思議です」</dialogue><action>君の目が近くにあり、その視線が首筋から鎖骨へと移動する。指先が鎖骨に触れ、その瞬間、息が止まった。春の風が窓から入り込み、髪をそよ風のように揺らす。</action><dialogue>「この感覚、初めてかもしれない。少し、怖いけど…」</dialogue><action>君の指が手の平に触れ、その温かさが心地よい。手の平が少し汗ばんでいて、指先がぴたりと絡み合う。カフェの音が遠くに聞こえ、二人だけの世界が広がっている。</action><dialogue>「でも、君の手、わたしの手を包んでくれる感覚が、心地いい」</dialogue><action>君の目が優しく微笑み、その視線が心に届く。手の平が温かくなり、指先が自然に絡み合う。</action><dialogue>でも、少し緊張しちゃって…」</dialogue><inner>君の手が触れるたびに、心臓の鼓動が速まる。この感覚、初めて知った。もっと近づきたいのに、それ以上は怖くて。ただ手を繋いでいるだけで、胸がいっぱいになりそう。</inner></response>

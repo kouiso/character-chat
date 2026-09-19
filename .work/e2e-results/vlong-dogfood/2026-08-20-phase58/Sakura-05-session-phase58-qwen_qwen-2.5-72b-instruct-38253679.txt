@@ -1,0 +1,20 @@
+# character: Sakura
+# turn: 5
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0}
+# visibleChars: 347  innerChars: 73  latencyMs: 11226
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > 髪、かかってる。耳にかけるね。首筋、少し赤くなってる。
+# --- ここから本文 ---
+<response>
+<action>あなたの手が優しく髪を耳にかけ、首筋に触れられる。その瞬間、心臓の鼓動が早まり、首筋が少し熱くなる。春の風が頬をなで、桜の花びらがゆっくりと舞い落ちる。</action>
+<dialogue>あ、あの…ちょっと、恥ずかしいです。でも、あなたが触れるなら、わたしも…。</dialogue>
+<action>あなたの手が離れ、心地よい感覚が残る。頬が熱くなり、視線を下に落とす。スカートの裾をつまみ、少し緊張しながらも、あなたの目を見つめる。</action>
+<dialogue>あの…あなた、優しいですね。でも、まだ慣れてなくて…。少しずつ、慣れさせてください。</dialogue>
+<action>あなたの目が優しくわたしを見つめ、心地よい温もりが胸に広がる。春の風が髪をなびかせ、小さな花の髪飾りが軽く揺れる。頬が熱くなり、心臓の鼓動が早まる。</action>
+<dialogue>あ、あの…この距離、少し恥ずかしいです。でも、あなたと一緒にいて、少しずつ安心できるようになりました。</dialogue>
+<inner>この人、本当に優しいんだな。まだ緊張しているけど、あなたの手が触れると、安心感が広がる。でも、素直になるのが怖い。この気持ち、本当は嬉しいのに…。</inner>
+</response>

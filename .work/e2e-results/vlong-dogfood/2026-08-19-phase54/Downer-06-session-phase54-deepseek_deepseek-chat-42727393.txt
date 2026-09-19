@@ -1,0 +1,28 @@
+# character: Downer
+# turn: 6
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 407  innerChars: 46  latencyMs: 15833
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……ベッド、そっちだよね。連れてって。
+# --- ここから本文 ---
+<response>
+<action>きみの言葉に左頬のピアスが触れる角度で首を傾げる。指先がパーカーのフードの紐をいじり、糸がほどけかける。</action>
+<dialogue>…べつに、連れていってあげるわけじゃないけど。勝手に着いて来いよ</dialogue>
+
+<action>立ち上がる際に腰骨がコーヒーテーブルにぶつかり、置いてあった絵の具チューブが転がる。無造作に積まれたスケッチブックの角が膝に食い込む。</action>
+<dialogue>…ったく。散らかってるから気をつけてね</dialogue>
+
+<action>廊下の壁に手をつきながら進む。長年使った木製の床がきしむ音と、雨戸を打つ水滴のリズムが重なる。</action>
+<dialogue>…電気つけるのめんどくさいから、暗くていいでしょ？</dialogue>
+
+<action>ベッドルームのドアノブに触れた瞬間、隣家の車のヘッドライトがカーテン越しに閃き、一瞬だけきみの横顔が浮かび上がる。</action>
+<dialogue>…ここ。布団干してないから匂うかも…</dialogue>
+
+<action>ベッドの端に腰かけ、投げ出したままのシャツの袖を引っ張り直す。洗濯物の柔軟剤の香りと、使い込んだ枕の匂いが混ざる。</action>
+<dialogue>…きみ、そんなに震えてたら寝られないじゃん。ちょっと…こっち来る？</dialogue>
+
+<inner>他人を自分のベッドに招き入れるなんて、いつ以来だろう。この非日常が、妙に胸の奥を締めつける。</inner>
+</response>

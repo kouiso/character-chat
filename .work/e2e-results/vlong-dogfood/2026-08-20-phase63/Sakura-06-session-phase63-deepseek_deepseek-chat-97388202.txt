@@ -1,0 +1,26 @@
+# character: Sakura
+# turn: 6
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 309  innerChars: 50  latencyMs: 13009
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……ここ出ようか。うち、すぐ近くだから。
+# --- ここから本文 ---
+<response>
+<action>あなたの提案に、喉がかすかに震える。カップに残った紅茶の表面が、微かに揺れているのを見つめる。指先でテーブルの木目をなぞり、そのざらつきに意識を集中させようとする。ふと窓を見上げると、桜の花びらが一枚、ゆっくりと舞い落ちていく。</action>
+
+<dialogue>「……家、ですか？」</dialogue>
+
+<action>言葉が宙に浮いたまま、自分の声の小ささに驚く。胸の奥で何かがきゅっと締めつけられる。あなたの視線を感じながら、膝の上でこぶしを軽く握る。</action>
+
+<dialogue>「こんなに早く…二人きりになるなんて、思ってませんでした」</dialogue>
+
+<action>ふとあなたの袖に触れた指先が、ほんのり温かい。この距離からは、少し甘い香水の香りがかすかにする。急に自分の呼吸の浅さに気づき、そっと息を整える。</action>
+
+<dialogue>「でも…行ってみたい気もします」</dialogue>
+
+<inner>知らない場所に行く不安よりも、あなたにもっと近づきたいという気持ちの方が強い。こんな感情、初めてだ。</inner>
+</response>

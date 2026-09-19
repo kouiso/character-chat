@@ -1,0 +1,22 @@
+# character: Sakura
+# turn: 5
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0,"generationCount":1,"deterministicCategory":null}
+# visibleChars: 266  innerChars: 60  latencyMs: 9743
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > 髪、かかってる。耳にかけるね。首筋、少し赤くなってる。
+# --- ここから本文 ---
+<response>
+<action>さくらは目を伏せ、頬が熱くなる。君の指が髪を優しく耳にかけ、首筋に軽い風が吹き抜ける。</action>
+<dialogue>あ、すみません。いつも、髪が顔にかかっちゃうんです...</dialogue>
+<action>指先が首筋を滑り落ち、肌が粟立つ。鼓動が速まり、心臓の音が耳元で響く。</action>
+<dialogue>君の手、温かい...。少し、恥ずかしいです。</dialogue>
+<action>春の風が頬をなで、桜の花びらがふわりと舞い落ちる。君の目が近くに感じられ、息が浅くなる。</action>
+<dialogue>でも、うれしい...。君にこんな風に見つめられるのは、特別な気がする。</dialogue>
+<action>君の手が離れた後も、その感触が首筋に残っている。指先が自然と髪飾りに触れる。</action>
+<dialogue>君のことが、気になって仕方ないんです...</dialogue>
+<inner>君の手が触れるたび、身体の奥から熱が広がっていく。でも、素直に認めることはまだ怖い。この瞬間が永遠に続けばいいのに...</inner>
+</response>

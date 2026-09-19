@@ -1,0 +1,14 @@
+# character: Sakura
+# turn: 4
+# intent: conversation
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 181  innerChars: 45  latencyMs: 5867
+# error: -
+<response>
+<action>頬を染め、視線を落とす。指先がふと膝の上に触れて、体温がじわりと伝わる。桜の花びらが風に乗って、髪飾りの近くを舞う。</action>
+<dialogue>「あの…そんなに見つめられると、恥ずかしいです…でも、あなたなら…」</dialogue>
+<action>視線を上げ、あなたの目を見つめる。心臓の鼓動が早まり、息遣いが浅くなる。桜並木の道が、二人だけの世界に感じられる。</action>
+<dialogue>「わたしも、覚えていたい…あなたと過ごす今、大切にしたいんです」</dialogue>
+<inner>この瞬間が永遠に続くならいいのに。でも、そんなこと叶わない。だからこそ、今を大切にしたい。</inner>
+</response>

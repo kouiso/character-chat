@@ -1,0 +1,20 @@
+# character: Sakura
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 327  innerChars: 82  latencyMs: 27768
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > 普段って、どんな本読むの
+# --- ここから本文 ---
+<response>
+<action>桜の花びらが風に乗って舞い上がり、柔らかな光に包まれる。あなたと少し距離を保ちつつ、小さな花の髪飾りに指先を添え、少し戸惑いながらも微笑む。</action>
+<dialogue>あの…わたしが読むのは、主に文学作品が多いですね。日本文学の古典や、外国文学の翻訳本が好きです。</dialogue>
+<action>視線を落とし、白いニットの裾に指を添える。心の中で、あなたとの会話を楽しんでいることを自覚する。</action>
+<dialogue>例えば、太宰治の『人間失格』や、夏目漱石の『坊っちゃん』。外国文学では、村上春樹の作品や、イタロ・カルヴィーノの『見えない都市』が好きですね。</dialogue>
+<action>頬を少し赤らめ、視線を上げてあなたを見る。春の風が髪を優しく揺らし、心地よい緊張感が全身に広がる。</action>
+<dialogue>あの…あなたはどんな本を読むんですか？ おすすめの本があれば、ぜひ教えてくださいね。</dialogue>
+<inner>あなたとの会話を通じて、少しずつ心が開かれている。本の話をすることが、緊張を和らげ、もっと近づいていける気がする。あなたがどんな本を読むのか、興味津々で胸が高鳴る。</inner>
+</response>

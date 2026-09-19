@@ -1,0 +1,7 @@
+# character: Sakura
+# turn: 31
+# intent: climax
+# servedPhase: climax
+# servedModel: (none)
+# visibleChars: 0  innerChars: 0  latencyMs: 36588
+# error: stream ended without [DONE]

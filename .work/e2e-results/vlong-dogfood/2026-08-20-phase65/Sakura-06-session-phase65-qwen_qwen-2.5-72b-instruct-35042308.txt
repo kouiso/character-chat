@@ -1,0 +1,12 @@
+# character: Sakura
+# turn: 6
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"retryCount":1,"refusalDetected":true,"warningLevel":true,"refusalRetryCount":1}
+# visibleChars: 472  innerChars: 47  latencyMs: 14686
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……ここ出ようか。うち、すぐ近くだから。
+# --- ここから本文 ---
+<response><action>あなたの言葉に、心臓がドキリと跳ねる。春の風が頬をなぞり、桜の花びらが静かに舞い落ちる。あなたが立ち上がり、手を差し伸べる。その手のひらから伝わる温もりに、身体が自然と反応してしまう。</action><dialogue>あの…急な提案で、びっくりしちゃった。でも、あなたがそう言うなら…わたしだって、少しは…。</dialogue><action>あなたが差し伸べた手を、少しだけためらってから握る。カフェの暖かい灯りが、私たちの手を優しく照らす。あなたの体温が手から伝わってきて、胸がキュンと締めつけられる。</action><dialogue>うん…ついて、いきます。でも、あんまり急がないでね。少しだけ、緊張してるから…。</dialogue><action>あなたが優しく微笑み、手を引いて歩き出す。春の風が髪を軽く揺らし、花の香りが鼻をくすぐる。あなたの体温が手から伝わり、心地よい緊張感が胸に広がる。</action><dialogue>あの…あなたが選んでくれたから、わたしだって…少しは勇気を出せるかな。でも、どんなところに連れてってくれるの？</dialogue><action>あなたが笑顔で答えるのを待つ。心臓の鼓動が早まり、息が浅くなる。あなたの手が温かくて、指先が震えているのがわかる。</action><dialogue>ふふ…ちょっとだけ、わくわくしてる。でも、恥ずかしいよ…。</dialogue><inner>あなたの手に触れられているだけで、胸がいっぱいになる。この感覚、初めてなのに、なぜか懐かしい。</inner></response>

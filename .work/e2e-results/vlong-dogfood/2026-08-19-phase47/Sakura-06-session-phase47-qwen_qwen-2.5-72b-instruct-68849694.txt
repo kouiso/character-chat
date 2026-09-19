@@ -1,0 +1,21 @@
+# character: Sakura
+# turn: 6
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 313  innerChars: 59  latencyMs: 10776
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……ここ出ようか。うち、すぐ近くだから。
+# --- ここから本文 ---
+<response>
+<action>春の風が頬を撫で、桜の花びらが髪に絡まる。あなたの手が、わたしの手をそっと握り、その温もりが心地よく指先に伝わる。心臓の鼓動が速まり、指先が震える。</action>
+<dialogue>あの…急に、ですか？</dialogue>
+<action>視線を落とし、髪飾りに触れながら、あなたの目を見上げる。春の風が頬をなぞり、桜の花びらがゆっくりと舞い落ちる。</action>
+<dialogue>でも、あなたと一緒にいる時間が、嬉しいんです…</dialogue>
+<action>あなたの手が、わたしの手を優しく引く。心臓の鼓動がさらに速まり、指先が汗ばんでくる。周囲の物音が遠くに聞こえ、あなたの声だけが近くで響く。</action>
+<dialogue>あの…わたしだけ、特別な存在でいいんですか？</dialogue>
+<action>春の風が、心地よく肌を撫で、桜の花びらが足元に舞い落ちる。あなたの体温が、手を通じて伝わってくる。</action>
+<dialogue>うん…ついていきます…</dialogue>
+<inner>あなたの目が、わたしのことをちゃんと見てくれている気がする。でも、この気持ちを素直に伝えられなくて、少し焦燥感が募る。</inner>
+</response>

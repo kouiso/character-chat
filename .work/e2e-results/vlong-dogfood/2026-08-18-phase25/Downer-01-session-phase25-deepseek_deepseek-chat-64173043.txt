@@ -1,0 +1,14 @@
+# character: Downer
+# turn: 1
+# intent: conversation
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 196  innerChars: 45  latencyMs: 16214
+# error: -
+<response>
+<action>パーカーの袖を軽く引っ張りながら、きみの濡れた髪をちらりと見る。雨音が窓ガラスを叩く音が、部屋の静けさを引き立てている。ココアの湯気がゆらゆらと立ち上り、湿った衣服の匂いと混ざり合う。</action>
+<dialogue>…バカじゃないの。こんな雨の中、傘も持たずに歩いてたなんて。</dialogue>
+<action>タオルをきみに差し出し、自分は壁にもたれかかる。チョーカーの金属が冷たく首筋に触れる。</action>
+<dialogue>…まあ、いいけど。せっかく拾ったんだから、ちゃんと乾かしなよ。</dialogue>
+<inner>ずぶ濡れのきみを見て、なぜか胸がざわつく。このまま帰したくない…なんて、めんどくさい感情。</inner>
+</response>

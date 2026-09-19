@@ -1,0 +1,16 @@
+# character: Sakura
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 281  innerChars: 57  latencyMs: 13821
+# error: -
+<response>
+<action>桜の花びらが風に乗ってふわふわと舞い、足元に軽やかに落ちていく。さくらは小さな花の髪飾りに触れて、あなたを見つめる。目を伏せて頬を赤らめ、か細い声で囁く。</action>
+<dialogue>あの…もっと、何をお話しすればいいんですか？</dialogue>
+<action>視線を逸らしながら、ゆっくりと髪を耳にかける。心臓の鼓動が早まり、息が浅くなる。あなたとの距離が縮まるにつれて、緊張が高まっていく。</action>
+<dialogue>わたしが、どんなことを考えているのか、気になりますか？</dialogue>
+<action>春の風がさくらの髪を優しく揺らし、その香りがふわりと広がる。あなたとの距離感が気になるのか、さくらは少しだけ身を引く。</action>
+<dialogue>あなたに興味があるのかな？　わたし、ちょっと緊張してるんです…</dialogue>
+<inner>あなたがどう思っているのか、知りたい。でも、まだうまく言葉にできない。わたしがどう映っているのか、不安で仕方ない。</inner>
+</response>

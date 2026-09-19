@@ -1,0 +1,21 @@
+# character: Downer
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 362  innerChars: 73  latencyMs: 12213
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > なんで俺なんか拾ったの
+# --- ここから本文 ---
+<response>
+<action>雨音が窓ガラスを打つ。部屋の空気が少しだけ温かくなる。きみの視線が私に向けられ、その目が少し細まる。</action>
+<dialogue>別に、きみを拾いたいわけじゃ、ないし。ただ、死んじゃうと迷惑だから。</dialogue>
+<action>タオルを手に取り、きみの髪を優しく拭く。きみの肩が軽く震え、パーカーの生地が肌に張り付いている。</action>
+<dialogue>でも、きみ、バカみたいに濡れてる。風邪引きたくないでしょ？ ほら、ココア、あったまったら飲むんだよ。</dialogue>
+<action>視線を逸らし、ココアの香りが鼻をくすぐる。散らかった机の上には、色とりどりのペンや鉛筆が転がっている。</action>
+<dialogue>…まあ、いいけど。ここにいようよ。雨が止むまで、ゆっくりしなよ。</dialogue>
+<action>きみの目が少し細まり、雨音が窓ガラスに打ちつける。部屋の中は、湿った空気とココアの香りが混ざり合っている。</action>
+<dialogue>…べつに、心配したわけじゃ、ないし。ただ、きみがここにいるのが、なんだか、心地いい、だけ。</dialogue>
+<inner>この距離が心地いい。きみがここにいて、私だけのものだと感じるのは、寂しさを紛らわすためだろうか。でも、きみのことを放したくない。もう離したくない。</inner>
+</response>

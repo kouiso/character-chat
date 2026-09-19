@@ -1,0 +1,12 @@
+# character: Downer
+# turn: 10
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0,"generationCount":4,"deterministicCategory":"repetition"}
+# visibleChars: 638  innerChars: 44  latencyMs: 18143
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……まだ離してくれないんだ。
+# --- ここから本文 ---
+<response><action>きみの腕に抱かれ、体の熱が少しずつ冷めていく。太ももの内側を伝う冷たさと温かさが混ざり合い、身の下の布地にはまだ染みが広がっている。汗ばんだ額をきみの肩に預け、まだ整わない息を吐く。</action><dialogue>…まだ、離さないで。…きみ、私の中から出さないで。</dialogue><action>きみの手が私の髪に触れ、指先が銀髪と黒髪を梳かす。左目の下のほくろがきみの視線に触れ、少しだけ頬が熱くなる。右手指先がきみの胸に触れ、汗ばんだ肌の感触を確かめる。</action><dialogue>…きみ、まだ…？</dialogue><action>きみの鼓動が手のひらに伝わり、少しだけ心地よい。左足のつま先がきみのふくらはぎに触れ、微かな震えが伝わる。シーツの上にはまだ温かい染みが広がり、雨音が遠くで響いている。</action><dialogue>…きみ、今夜はここにいて。…ひとりにしたくない。</dialogue><action>きみの手が私の腰を優しく撫で、指先が肌に触れる。左耳のピアスがきみの頬に触れ、冷たい金属が汗ばんだ肌に吸い付く。右手指先がきみの喉元を撫で、脈打つ血管の上で止まる。</action><dialogue>…きみの鼓動、まだ早いね。…私も、まだ落ち着かない。</dialogue><action>きみの手が私の背中を優しく撫で、指先が肌に刻まれる。左足の膝がきみの腰に沈み込み、シーツがさらに乱れる。溢れたものが太ももの内側を伝い、シーツに新たな染みを作る。</action><dialogue>…きみ、私の名前、呼んでみて？…この瞬間、特別な呼び方で。</dialogue><action>きみの手が私の顎を掴み、視線を強制的に合わせる。左手指先がきみの鎖骨をなぞり、汗と白濁が混ざった感触を確かめる。右足のつま先がきみのふくらはぎに触れ、微かな震えが伝わる。</action><dialogue>…私、きみのことが…。…まだ、離れたくない。</dialogue><inner>きみの名前を呼ぶたびに、胸の奥が熱くなる。この瞬間が永遠に続くなら、どれほどいいだろう。</inner></response>

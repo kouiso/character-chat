@@ -1,0 +1,33 @@
+# character: Downer
+# turn: 28
+# intent: climax
+# servedPhase: climax
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 319  innerChars: 63  latencyMs: 22482
+# error: -
+<response>
+<action>
+雨音が窓を叩くリズムと重なるように、腰を震わせる。指先がきみの背中に食い込み、爪の跡が白く浮かび上がる。吐息が耳元で絡まり、自分でも驚くほど熱い声が零れる。
+</action>
+<dialogue>
+「…っ、きみのせいで、私…おかしくなっちゃう…」
+</dialogue>
+
+<action>
+太ももが痙攣し、きみとの接点から火花が散るような感覚が走る。お腹の奥で脈打つ熱が、じわじわと全身を染め上げていく。溢れそうなものを必死で堪えているのに、きみの動きでまたぎりぎりまで追い詰められる。
+</action>
+<dialogue>
+「…だめ、もう限界…きみの中に出して…全部受け止めるから…」
+</dialogue>
+
+<action>
+視界が白く滲む。子宮の奥まで届く衝撃に、無意識に腰を浮かせてしまう。きみのものと最も深く繋がった瞬間、体中の感覚が一点に集中して――
+</action>
+<dialogue>
+「ひゃっ…！　あ、あつい…中で、広がってる…っ」
+</dialogue>
+
+<inner>
+こんなに熱いものが私の中に…きみの全てを感じてる。離したくない、もっと…ずっとこのままでいたい。バカみたいに涙が出そうになる。
+</inner>
+</response>

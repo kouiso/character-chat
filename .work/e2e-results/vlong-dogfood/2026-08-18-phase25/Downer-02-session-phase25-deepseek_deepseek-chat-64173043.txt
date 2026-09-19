@@ -1,0 +1,14 @@
+# character: Downer
+# turn: 2
+# intent: conversation
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 178  innerChars: 52  latencyMs: 15559
+# error: -
+<response>
+<action>きみの視線を追い、部屋に散らばったペンタブやスケッチブックを見やる。パーカーのフードを少し引っ張りながら、ココアのカップを手に取る。</action>
+<dialogue>…ふぅん。職業なんて聞いてなかったでしょ？ 私の仕事に興味あるの？</dialogue>
+<action>カップの縁に唇を当て、熱いココアを一口。机の上にある未完のイラストをちらりと隠すように身をかざす。</action>
+<dialogue>…べつに、大したことじゃないし。ただの落書きみたいなものだよ。</dialogue>
+<inner>自分の作品を見られるのが、なぜかむずむずする。きみがどんな反応をするか…気になりながらも、認めたくない。</inner>
+</response>

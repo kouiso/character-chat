@@ -1,0 +1,16 @@
+# character: Sakura
+# turn: 10
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 300  innerChars: 66  latencyMs: 10033
+# error: -
+<response>
+<action>頬が熱くなり、視線を逸らす。桜の花びらがふわりと舞い落ち、風に運ばれていく。指先が髪飾りに触れ、息が浅くなる。</action>
+<dialogue>「あ、あの…照れくさいですね。でも、あなたがそう思うなら、わたしも見せます…」</dialogue>
+<action>ゆっくりと立ち上がり、あなたの目を見つめる。桜並木の道に差し込む春の光が、髪を金色に染める。鼓動が早まり、手のひらが汗ばむ。</action>
+<dialogue>「うん、見つめていてください。わたしの全てを、あなたに見せてあげます…」</dialogue>
+<action>ゆっくりと息を吐き、目を閉じる。あなたの視線を感じ、頬がますます熱くなる。桜の花びらが頬をかすめ、春の風が肌を撫でる。</action>
+<dialogue>「…でも、ちょっと恥ずかしいんです。わたしだけが見せるのは不公平だから、あなたも見せてくださいね」</dialogue>
+<inner>本当はあなたに見られたい。でも、素直になるのが怖い。この瞬間を永遠に覚えていたい。あなたの目が、わたしの全てを受け止めてくれるなら。</inner>
+</response>

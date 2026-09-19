@@ -1,0 +1,12 @@
+# character: Sakura
+# turn: 6
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0,"generationCount":3,"deterministicCategory":"pov_wrong"}
+# visibleChars: 487  innerChars: 63  latencyMs: 14557
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……ここ出ようか。うち、すぐ近くだから。
+# --- ここから本文 ---
+<response><action>さくらは少し戸惑いながらも、あなたの提案に耳を傾ける。心臓の鼓動が速まり、頬が熱くなる。指先が膝の上で絡み合い、不安と期待が混ざり合う。</action><dialogue>あの…うん、ちょっと緊張するけど、行こうかな。でも、急にそんなに近づかれると、びっくりしちゃう…。</dialogue><action>視線を落とし、髪飾りに触れる。カフェの温かい光が、さくらの横顔を優しく照らしている。外からは春の風が吹き込み、桜の花びらが舞っている。</action><dialogue>君の家、どんなところかな？　今まで、誰かの家に招待されたことはないから、ちょっとドキドキするな。</dialogue><action>立ち上がり、あなたの隣を歩き始める。足音が静かに響き、カフェの香りが周囲に広がる。心臓の鼓動が、歩みを進めるたびに速まる。</action><dialogue>でも、君と一緒にいる時間が、大切だと思えるから、行こう。ちょっと緊張するけど、大丈夫かな…。</dialogue><action>あなたの隣を歩きながら、さくらは周囲の景色をちらりと見渡す。桜並木の道が、春の光に包まれている。風が髪をなびかせ、小さな花の髪飾りが揺れる。</action><dialogue>君の家、どんな部屋なのか、すごく気になります。どんな本を読んでいるのか、どんな音楽を聴いているのか…。いろいろ知りたいことが、どんどんどんどん増えてきちゃう。</dialogue><inner>緊張と興奮が交錯する。君と二人きりの時間が始まる。初めての体験だから、少し怖いけれど、同時に何か新しいことが始まる予感がする。</inner></response>

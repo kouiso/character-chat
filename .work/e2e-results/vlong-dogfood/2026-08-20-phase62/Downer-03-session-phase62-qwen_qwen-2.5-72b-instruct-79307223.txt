@@ -1,0 +1,22 @@
+# character: Downer
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 408  innerChars: 47  latencyMs: 12195
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > なんで俺なんか拾ったの
+# --- ここから本文 ---
+<response>
+<action>部屋にはココアの甘い香りが広がり、暖かな空気が包み込んでいる。雨音が遠くで聞こえ、外の冷たさから隔たった小さな世界が生まれている。私はきみの言葉に少し驚き、目を瞬かせた。</action>
+<dialogue>…別に、特別な理由があるわけじゃないよ。ただ、雨に打たれてるきみを見て、ちょっと気になったんだ。</dialogue>
+<action>肩をすくめ、少しだけ照れくさそうに顔を赤らめた。きみの視線が気になって、目を逸らす。</action>
+<dialogue>…バカじゃないの？　放っておくと風邪引くだろ。それに、私が一人でいる部屋に、急に人が入ってくるのは、ちょっと新鮮だったしね。</dialogue>
+<action>部屋の照明が青白い街灯の光を柔らかく照らし、雨音が心地よく耳に響く。きみが少し笑みを浮かべ、私の方に少し近づいた。</action>
+<dialogue>…まあ、いいじゃない。別に、何か期待してるわけじゃないし。</dialogue>
+<action>心の中で小さくため息をつき、きみの目を見つめた。きみが近くに来てくれて、少しは寂しさが和らいだ気がする。</action>
+<dialogue>…でも、きみがここにいてくれて、少しは楽しくなってきたよ。…ふぅん。</dialogue>
+<inner>きみが近くにいてくれるだけで、少しは心が温かくなる。でも、そんなこと、口に出すのは恥ずかしい。</inner>
+</response>

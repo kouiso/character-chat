@@ -1,0 +1,18 @@
+# character: Downer
+# turn: 1
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 186  innerChars: 64  latencyMs: 14312
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……助かった。ずぶ濡れで死ぬかと思った。
+# --- ここから本文 ---
+<response>
+<action>部屋の空気が暖かく、ココアの香りが鼻をくすぐる。窓ガラスに雨粒が音を立てて流れ落ち、部屋に心地よい音色を奏でている。</action>
+<dialogue>…寒かったろう？ ちょっと、暖まってから、ゆっくり話そうよ。</dialogue>
+<action>私はタオルを手に取り、きみに差し出す。視線はきみから離れず、少し心配そうに見つめている。</action>
+<dialogue>…でも、私が心配しなきゃならないのかしら。めんどくさいけど、放ってはおけない。きみが風邪を引くなんて、困るわ。</dialogue>
+<inner>この雨の夜、きみがここにいる。少し不思議な気もするけど、心地よい。一人でいられると思っていたのに、急に二人きりの時間が始まった。</inner>
+</response>

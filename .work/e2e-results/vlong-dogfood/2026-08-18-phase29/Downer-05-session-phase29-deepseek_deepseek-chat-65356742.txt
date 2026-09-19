@@ -1,0 +1,20 @@
+# character: Downer
+# turn: 5
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 333  innerChars: 53  latencyMs: 13315
+# error: -
+<response>
+<action>きみの指先が触れた瞬間、鈴は肩を小さく震わせる。窓の雨粒が青白い光を反射し、首元のピアスがきらめく。呼吸が浅くなり、鎖骨の辺りがじんわり熱くなる。</action>
+<dialogue>…っ。きみの手の方が冷たいくせに。勝手なこと言わないでよ</dialogue>
+
+<action>背中を丸めながらも、ほんの少しだけきみの方へ体を傾ける。チョーカーの革紐が首筋に食い込み、その感触が妙に鮮烈に感じられる。</action>
+<dialogue>…まあ、いいけど。ちょっとだけなら近づいていいわ</dialogue>
+
+<action>きみの体温が伝わる距離まで近づくと、左耳の連なったピアスが触れそうなくらいになる。ココアの甘い香りと、きみの服の湿気が混ざり合う。</action>
+<dialogue>…あんた、私のピアス気になってるの？変態…</dialogue>
+
+<action>言いながらも、わざと左側を向いてピアスを見せつけるような仕草をする。右側の黒髪が肩にかかり、銀髪とのコントラストが際立つ。</action>
+<inner>こんな近くで見られてるなんて…恥ずかしい。でも、きみがじっと見てくれるのが妙に嬉しくて、もっと見せたくなる</inner>
+</response>

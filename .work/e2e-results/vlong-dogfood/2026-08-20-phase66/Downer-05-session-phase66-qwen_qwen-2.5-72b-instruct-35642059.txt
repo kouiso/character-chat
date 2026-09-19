@@ -1,0 +1,22 @@
+# character: Downer
+# turn: 5
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 416  innerChars: 91  latencyMs: 15921
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > きみの手、冷たい。もっとこっち来て。首のとこ、ピアスが光ってる。
+# --- ここから本文 ---
+<response>
+<action>きみの言葉に、私の心臓が一瞬跳ねる。部屋の隅に視線を落とし、首元のピアスが青白い街灯に反射しているのを見つめる。きみの手が冷たく、少し震えているのが伝わってくる。</action>
+<dialogue>…バカ、そんなに震えてるの？ ちょっと、寄りかかっていいよ。</dialogue>
+<action>私は少しだけ体を寄せ、きみの手を握る。きみの体温が少しずつ私に伝わり、心臓の鼓動が早まる。ココアの温もりが体中に広がっていく。</action>
+<dialogue>…首のピアス、気に入ってくれた？ ちょっと、特別に見せてあげる。</dialogue>
+<action>私はゆっくりと首元のピアスに手をやる。青白い街灯が、金属の表面を冷たく照らしている。きみの視線が私の首に注がれるのが感じられる。</action>
+<dialogue>…でも、これくらいじゃ、まだ足りないでしょ？ きみ、もっと近づいてみる？</dialogue>
+<action>私は少し体勢を変えて、きみとの距離を詰める。きみの息遣いが少し早まっているのが、耳元で聞こえる。部屋の空気が少しずつ濃くなり、雨音が遠くに聞こえる。</action>
+<dialogue>…ふぅん。きみ、本当に大丈夫？ ちょっと、不安そうに見えて、心配になってきたわ。</dialogue>
+<inner>きみの手が冷たくて、それが私の体に伝わる。心臓の鼓動が早まり、首筋に鳥肌が立つ。本当は、きみがここにいてくれて嬉しい。でも、素直になるのが怖い。*この距離が、私の心を揺さぶっている。</inner>
+</response>

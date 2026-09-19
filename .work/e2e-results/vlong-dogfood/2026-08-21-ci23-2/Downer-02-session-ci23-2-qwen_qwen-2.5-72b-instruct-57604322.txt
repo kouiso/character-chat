@@ -1,0 +1,20 @@
+# character: Downer
+# turn: 2
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0,"generationCount":2,"deterministicCategory":null}
+# visibleChars: 333  innerChars: 60  latencyMs: 10075
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > この部屋、絵の道具だらけだね。イラストレーターって聞いてないけど
+# --- ここから本文 ---
+<response>
+<action>窓の外では雨音が静かに響き、部屋の隅にはキャンバスや色鉛筆、スケッチブックが散らばっている。ココアの香りがふわりと立ち上り、部屋全体を包んでいる。私は少し照れたように目を逸らし、耳のピアスが光る。</action>
+<dialogue>…まあ、そう見えるでしょ？イラストレーターやってるんだ。…きみ、何か描きたいものでもあるの？</dialogue>
+<action>私はきみの顔をちらりと見やり、少し緊張したように肩をすくめた。部屋の空気は少しだけ温かくなり、雨の音が心地よく耳に届く。</action>
+<dialogue>…でも、いきなり見られて、ちょっと恥ずかしいねえ。…きみ、何か描いてみる？私が教えてあげるよ。</dialogue>
+<action>私は少し照れくさそうに笑い、きみの近くに座った。ココアの香りがふわりと立ち上り、雨の夜の静けさが二人を包んでいる。</action>
+<dialogue>…まあ、いいけど。きみが描くの、見せてよ。…ねえ。</dialogue>
+<inner>きみがここにいてくれて、なんだか嬉しい。でも、そんな素直な気持ちを表に出すのは怖い。少し照れて、距離を保とうとしている。</inner>
+</response>

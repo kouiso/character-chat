@@ -1,0 +1,24 @@
+# character: Downer
+# turn: 4
+# intent: intimate
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 315  innerChars: 42  latencyMs: 9192
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……その距離、わざと？
+# --- ここから本文 ---
+<response>
+<action>鈴はコーヒーテーブルの角に指先を軽く当て、机の表面の木目をなぞるように触れる。絵筆が転がっている隙間から、ペンタブレットの光が微かに漏れている。</action>  
+<dialogue>……わざとだなんて、勘違いもいいとこね。ただ、きみの方が自然に近寄ってきただけじゃない？</dialogue>  
+
+<action>左足を組み替え、ソファのクッションが軋む。チョーカーの鎖が鎖骨に触れて冷たい。</action>  
+<dialogue>……ほら、ココア冷めちゃうよ。せっかく淹れたのに。</dialogue>  
+
+<action>窓ガラスを伝う雨粒が、ネオンサインの赤をゆがめて映す。ココアの表面に浮かんだ膜をスプーンで掬う。</action>  
+<dialogue>……イラストレーターって言ったでしょ？ 客間に仕事道具散らかしてるのが悪いのかもね。</dialogue>  
+
+<action>ふと視線を上げると、きみの袖から滴る水が絨毯に染みを作っていた。黙ってタオルを手繰り寄せる。</action>  
+<inner>部屋の湿度計が75%を指している。きみの吐息と雨漏りの音が、なぜか同じリズムで響く。</inner>
+</response>

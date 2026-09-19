@@ -1,0 +1,23 @@
+# character: Downer
+# turn: 4
+# intent: intimate
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 414  innerChars: 71  latencyMs: 14927
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……その距離、わざと？
+# --- ここから本文 ---
+<response>
+<action>部屋は暖かく、ココアの香りが立ち込めていた。雨音が窓ガラスを叩き、外の世界とは隔絶された空間が生まれている。きみと私の距離は、自然と少し近づいている。</action>
+<dialogue>…わざと、なんて。ただ、きみがバカみたいに濡れてたから、ちょっと気になって、ねえ。</dialogue>
+<action>私の視線がきみの顔から濡れたパーカーに移る。パーカーが体に張り付いて、きみの体温を感じさせる。心臓の鼓動が少し速くなる。</action>
+<dialogue>でも、きみ、バカじゃないの。放っておくのも、めんどくさい、かな。</dialogue>
+<action>きみが小さく笑い、少し恥ずかしそうに目を逸らす。私はパーカーの袖を噛み、ため息をつく。</action>
+<dialogue>…別に、心配したわけじゃ、ないし。ただ、放っておくのも、めんどくさい、かな。</dialogue>
+<action>きみが私の言葉に反応し、少し近づいてくる。私たちの距離がさらに詰まり、視線が絡み合う。雨音が静かに部屋を包む。</action>
+<dialogue>…きみ、もっと近く来ていいよ。</dialogue>
+<action>私の心臓がさらに速くなり、呼吸が浅くなる。きみの目が私の目を見つめ、何かを求めるように感じられる。</action>
+<dialogue>…帰るなよ。</dialogue>
+<inner>この人、何か惹かれるものがある。一人の夜に、誰かがいてくれるのは、少し心が温まる。でも、まだ警戒心が残っている。少しずつ、距離を縮めていこう。</inner>
+</response>

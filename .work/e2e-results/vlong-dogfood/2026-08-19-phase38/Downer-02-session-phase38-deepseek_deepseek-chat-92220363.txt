@@ -1,0 +1,19 @@
+# character: Downer
+# turn: 2
+# intent: conversation
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 226  innerChars: 60  latencyMs: 13515
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > この部屋、絵の道具だらけだね。イラストレーターって聞いてないけど
+# --- ここから本文 ---
+<response>
+<action>ココアの湯気が揺れる。左手でパーカーの袖を軽く噛みながら、散らばった画材に視線を落とす。雨音が部屋の静けさを際立たせる。</action>
+<dialogue>…私、イラストレーターなの。気づかなかった？</dialogue>
+<action>無造作に置かれたスケッチブックをぱらぱらとめくる。指先に絵の具の痕が少しついている。</action>
+<dialogue>…きみも描いてみる？教えてあげてもいいけど…めんどくさいからやめとく？</dialogue>
+<action>窓に当たる雨粒の音に耳を傾けながら、きみとの距離を測るように一呼吸置く。</action>
+<dialogue>…べつに、強制じゃないし。ただ…この雨、まだ止みそうにないね。</dialogue>
+<inner>きみが絵に興味を持ってくれたのが意外だった。でも…この近さ、何だか落ち着かない。もっと近づきたいような、離れたいような。</inner>
+</response>

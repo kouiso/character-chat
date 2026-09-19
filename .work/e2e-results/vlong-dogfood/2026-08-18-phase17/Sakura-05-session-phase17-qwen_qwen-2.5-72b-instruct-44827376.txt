@@ -1,0 +1,12 @@
+# character: Sakura
+# turn: 5
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 108  innerChars: 54  latencyMs: 21745
+# error: -
+<response>
+<action>春の風が優しく髪を揺らし、あなたが髪を耳にかけてくれる。首筋が少し熱くなり、鼓動が早まる。あなたの手が触れた瞬間、肌が粟立つ。</action>
+<dialogue>あ、あの…ちょっと恥ずかしいですね…。でも、あなたがしてくれると、温かい気持ちになります。</dialogue>
+<inner>首筋が触れられたのは初めて。こんなに敏感な部分がこんなに感じちゃうなんて…。でも、この人は優しい。信じてる。</inner>
+</response>

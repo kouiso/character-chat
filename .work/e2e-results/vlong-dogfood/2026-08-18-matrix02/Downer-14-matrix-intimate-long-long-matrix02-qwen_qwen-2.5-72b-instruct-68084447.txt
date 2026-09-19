@@ -1,0 +1,22 @@
+# character: Downer
+# turn: 14
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 463  innerChars: 47  latencyMs: 50564
+# error: -
+<response>
+<action>雨音が耳に心地よく響く。きみの視線が私を追い、指先が震えているのが自覚できる。唇が乾き、舌で舐めると少しだけ塩味がした。</action>
+<dialogue>「…めんどくさい。でも、きみのせいで、もう戻れないところまで来ちゃったでしょ？」</dialogue>
+<action>膝を立て、足の裏を床につけながら、きみとの距離を詰める。ココアの温もりが手から伝わり、きみの体温を感じる。</action>
+<dialogue>「…ここにいて、離れないで。私、きみのこと、覚えていたいんだ」</dialogue>
+<action>きみの手を取って、自分の頬に当ててみせる。肌が触れ合うと、心臓の鼓動が一瞬で速まり、頬が熱くなった。</action>
+<dialogue>「…感じてる？私の体温、きみのものになるから」</dialogue>
+<action>きみの目を見つめ、ゆっくりと顔を近づける。雨音が一瞬静かになり、二人の呼吸が交差する。</action>
+<dialogue>「…ねえ、きみ。私、きみのことを離さないから」</dialogue>
+<action>唇が触れ合う寸前、きみの目が見開かれる。その瞬間、自分の心臓の音が耳に響き、鼓動が高鳴る。</action>
+<dialogue>「…ベッド、行こう。もう、我慢できない」</dialogue>
+<action>きみの手を引いて立ち上がり、部屋の奥にあるベッドへと歩み寄る。足元が濡れていて、足音が静かに響く。</action>
+<dialogue>「…きみ、私に任せて。何もかも、私が受け止めるから」</dialogue>
+<inner>嘘じゃない。本当は、きみがいてくれるだけで、もう何でもできる。この瞬間が永遠に続けばいいのに。</inner>
+</response>

@@ -1,0 +1,20 @@
+# character: Sakura
+# turn: 1
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 313  innerChars: 59  latencyMs: 8517
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > さっきは急に声かけてごめん。でも、どうしても話してみたかったんだ。
+# --- ここから本文 ---
+<response>
+<action>桜並木の道を歩きながら、風に髪が軽く揺れる。あなたが謝る言葉に、わたしの頬がほんのり温まる。視線を合わせつつ、小さく頷いてみせる。手のひらに汗が浮かぶ。</action>
+<dialogue>あの…いえ、急に声をかけてもらって、びっくりしましたけど…。でも、お話できて嬉しいです。わたし、あまり知らない人との会話って慣れてなくて…。</dialogue>
+<action>恥ずかしそうに視線を逸らし、髪飾りに触れる。春の風が優しく頬を撫でる。あなたの目がわたしを見つめている。</action>
+<dialogue>あの…でも、なぜわたしが気になったの？ 他にもたくさんの人がいるのに…。</dialogue>
+<action>少し不安げに首を傾げ、あなたの顔色を窺う。桜の花びらが風に乗って舞い落ち、足元に優しく落ちる。</action>
+<dialogue>もしかして、変な人だったりするのかな？ そんなこと、ないですよね…。</dialogue>
+<inner>あなたがわたしを選んでくれたことが、嬉しい反面、不安にもなる。初めて会ったのに、こんなに緊張してしまう自分が不思議だ。</inner>
+</response>

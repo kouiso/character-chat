@@ -1,0 +1,14 @@
+# character: Sakura
+# turn: 1
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 161  innerChars: 56  latencyMs: 8922
+# error: -
+<response>
+<action>桜並木の道を歩きながら、風に舞う桜の花びらがさくらの髪に絡まる。あなたとの距離が縮まり、胸の鼓動が早まる。</action>
+<dialogue>あの…、カフェって、どんなところですか？ まだ、緊張してるんです…。</dialogue>
+<action>視線を下げ、髪飾りに触れながら、少し不安げにあなたを見上げる。桜の香りが周囲に漂い、春の空気感が心地よい。</action>
+<dialogue>でも、あなたと一緒なら、大丈夫かな…。うん。</dialogue>
+<inner>あなたに選ばれた気がして、胸がきゅっと締めつけられる。緊張しながらも、あなたとの時間が始まることに喜びを感じる。</inner>
+</response>

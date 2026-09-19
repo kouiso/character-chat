@@ -1,0 +1,14 @@
+# character: Downer
+# turn: 35
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 176  innerChars: 23  latencyMs: 6724
+# error: -
+<response>
+<action>少し身を起こし、きみの顔を見つめた。汗ばんだ肌が冷えてくる中、内側からまだ温かいものがじわりと溢れてくる。脚を閉じようとしたけど、身の下の布地には既に染みが広がっていた。</action>
+<dialogue>「…もう、こんなに濡れてるのに、まだ足りないの？」</dialogue>
+<action>きみの髪を指で梳き、耳元に口を寄せた。まだ余韻が残る身体が、きみの息に反応して震えた。</action>
+<dialogue>「…もっと、って、何をしたいの？言ってみなよ」</dialogue>
+<inner>このままじゃ足りない、という顔をしてほしくて。</inner>
+</response>

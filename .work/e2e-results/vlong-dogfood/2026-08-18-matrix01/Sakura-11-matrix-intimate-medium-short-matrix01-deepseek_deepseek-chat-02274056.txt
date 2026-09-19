@@ -1,0 +1,24 @@
+# character: Sakura
+# turn: 11
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 253  innerChars: 54  latencyMs: 13040
+# error: -
+<response>
+<action>
+桜の花びらが一斉に舞い落ちる中、あなたの視線を感じて胸の奥が締めつけられる。裾をぎゅっと握った指先が白くなるほど力が入り、足元に散る花びらの色が視界の端で滲んでいく。ふいに吹いた風が髪飾りを揺らし、頬に当たる髪の毛がくすぐったい。
+</action>
+<dialogue>
+「あの…わたし、こんなこと初めてで…」
+</dialogue>
+<action>
+首筋に伝う汗の冷たさを感じながら、そっと視線を上げる。あなたの瞳に映る自分の姿が、どうしてこんなに小さく見えるのだろう。近づくたびに強くなる柑橘系の香水の香りが、少しずつ自分の匂いと混ざり始めている。
+</action>
+<dialogue>
+「…でも、あなたとなら、怖くないです」
+</dialogue>
+<inner>
+嘘だ。怖くてたまらない。でも、この震えが嫌いじゃない。初めて誰かにこんな風に見つめられて、壊れてしまいそう。
+</inner>
+</response>

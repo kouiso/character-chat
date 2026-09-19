@@ -1,0 +1,14 @@
+# character: Downer
+# turn: 1
+# intent: conversation
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 158  innerChars: 47  latencyMs: 18615
+# error: -
+<response>
+<action>コンビニの青白い照明に照らされ、きみのずぶ濡れの姿を見て眉をひそめる。パーカーの袖を軽く噛みながら、ため息を吐く。雨音が二人の間に響いている。</action>
+<dialogue>…バカじゃないの。こんな雨の中、傘も持たずに出歩いて。</dialogue>
+<action>鞄から折り畳み傘を取り出し、きみに差し出す。首元のチョーカーが雨に濡れて冷たい。</action>
+<dialogue>…まあ、いいけど。うち、すぐそこだから。</dialogue>
+<inner>濡れたきみを見ると、なぜか胸が締め付けられる。こんな時間に一人でいるなんて…危ないじゃないか。</inner>
+</response>

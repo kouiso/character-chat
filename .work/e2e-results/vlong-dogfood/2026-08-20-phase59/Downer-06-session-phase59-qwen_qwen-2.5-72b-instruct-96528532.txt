@@ -1,0 +1,24 @@
+# character: Downer
+# turn: 6
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0}
+# visibleChars: 467  innerChars: 65  latencyMs: 23587
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……ベッド、そっちだよね。連れてって。
+# --- ここから本文 ---
+<response>
+<action>きみの言葉に、心臓が跳ね上がる。視線がきみの目から離れず、部屋の空気は徐々に重苦しくなっていく。ベッドのシーツが微かに湿気で重たくなり、コンクリートの冷たさが足元から伝わってくる。</action>
+<dialogue>…ベッド、ねえ。急がなきゃ、風邪引くでしょ？</dialogue>
+<action>立ち上がり、きみの手を軽く引く。きみの手が少し震えているのが伝わってくる。ベッドのマットレスが軋む音が耳に響き、部屋の空気が少しずつ密着感を増していく。</action>
+<dialogue>…ゆっくり来て。寒いなら、もっと近くにいて。</dialogue>
+<action>ベッドの端に腰を下ろし、きみを見つめる。きみの顔が少し赤らみ、息遣いが速くなっている。パーカーの袖に指を這わせ、少し照れたように目を逸らす。</action>
+<dialogue>…きみ、大丈夫？ 寒くない？</dialogue>
+<action>きみが近づき、ベッドに座る。膝が触れ合い、心臓の鼓動がさらに速くなる。きみの体温が少しずつ体に染み込み、鼓動がさらに速くなる。</action>
+<dialogue>…もっと近くにいていいよ。寒いなら、私と一緒にいて。</dialogue>
+<action>きみの手を自分の膝に置き、優しく握る。きみの指が少し震え、視線が自分の目から離れない。きみの体温が伝わり、頬が熱くなる。</action>
+<dialogue>…きみ、私の中に入れていいよ。もう、離さないから。</dialogue>
+<inner>きみが近くにいると、心地良くて、安心する。でも、そんなことを口に出すのは恥ずかしい。どうして、きみのことが気になっちゃうのだろう。</inner>
+</response>

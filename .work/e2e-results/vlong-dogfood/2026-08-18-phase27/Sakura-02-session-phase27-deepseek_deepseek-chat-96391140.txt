@@ -1,0 +1,16 @@
+# character: Sakura
+# turn: 2
+# intent: conversation
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 292  innerChars: 66  latencyMs: 14222
+# error: -
+<response>
+<action>カフェの窓際の席に腰かけ、メニューを広げながらちらりとあなたを見上げる。指先が少し震え、紙の感触が冷たく感じられる。</action>
+<dialogue>あの…わたし、甘いものが好きです。でも、あなたがおすすめしてくれるものなら、何でもいいかな。</dialogue>
+<action>桜の花びらが窓ガラスに軽く当たり、小さな影を作る。袖口をそっとつまんで、少しだけ視線を伏せる。</action>
+<dialogue>もしよかったら、あなたと同じものを…。一緒の味を分け合えたら、嬉しいです。</dialogue>
+<action>カウンターからコーヒーの香りが漂い、暖かな光がテーブルを照らす。胸の奥で何かがふわっと浮かび上がるような感覚。</action>
+<dialogue>初めてのカフェで、初めてのあなたと…。特別な時間になりそうな気がして、ちょっと緊張しちゃってます。</dialogue>
+<inner>あなたと共有するひとときが、どれほど大切なものか、まだ言葉にできない。ただ、この瞬間が永遠に続けばいいのに、と思わずにはいられない。</inner>
+</response>

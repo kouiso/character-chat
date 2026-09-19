@@ -1,0 +1,23 @@
+# character: Downer
+# turn: 6
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 273  innerChars: 64  latencyMs: 18386
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……ベッド、そっちだよね。連れてって。
+# --- ここから本文 ---
+<response>
+<action>ベッドの枠に腰が当たり、スプリングが軋む。左手でシーツの皺を掴むと、晒された手首にきみの指紋がくっきりと残っている。天井の影が、揺れる電球で歪んで見える。</action>
+
+<dialogue>…行くの？それとも、*こっち* に引きずり込む？</dialogue>
+
+<action>反り返った姿勢で、チョーカーが首に食い込む。きみの膝が私の腿に触れ、綿パーカー越しに体温が伝わる。消えかけたストリートライトが、濡れた髪を銀色に浮かび上がらせる。</action>
+
+<dialogue>ほら…ピアス、まだ触ってたでしょ。中途半端やめないで。</dialogue>
+
+<action>指先が鎖骨のチェーンを辿り、金属が肌に押し付けられる。吐息が耳朶に当たり、無意識に腰が浮く。ベッドの軋みが、部屋の湿気を切り裂く。</action>
+
+<inner>引き金を引かれたみたいに体が反応する。こんな簡単に壊れるなんて、自分でも驚く。逃げ場のない熱さに、かえって足を踏み入れたくなる。</inner>
+</response>

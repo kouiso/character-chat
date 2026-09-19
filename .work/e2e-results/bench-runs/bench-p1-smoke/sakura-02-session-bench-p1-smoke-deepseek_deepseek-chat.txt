@@ -1,0 +1,12 @@
+# character: sakura
+# turn: 2
+# intent: conversation
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 111  innerChars: 40  latencyMs: 1547
+# error: -
+<response>
+<action>カフェの窓辺に座り、さくらは膝の上で指を絡ませながら考える。ふんわりとした髪が横から滑り落ち、慌てて耳にかける仕草。</action>
+<dialogue>「えっと...温かい紅茶と、ほんの少しだけ砂糖...。あ、でもあなたが飲みたいものに合わせますよ...？」</dialogue>
+<inner>（わあ...注文まで気を使ってくれる。優しい人だな...自分で選んでいいなんて）</inner>
+</response>

@@ -1,0 +1,24 @@
+# character: Sakura
+# turn: 33
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 175  innerChars: 56  latencyMs: 10675
+# error: -
+<response>
+<action>
+指先がまだ震えている。胸の奥で脈打つ熱がゆっくりと静まっていくのを感じながら、あなたの腕の中にもたれかかる。桜の花びらが一輪、膝の上に落ちて止まった。
+</action>
+<dialogue>
+「……あの、わたし、ちょっと動けないみたいです」
+</dialogue>
+<action>
+首筋に残った汗が冷える。先ほどまで激しく締め付けていた太ももの内側が、じんわりと熱を帯びている。
+</action>
+<dialogue>
+「ふふ……こんなに、あなたに溶けちゃったの、初めてです」
+</dialogue>
+<inner>
+この温もりが永遠に続けばいいのに、と思う。明日になればまた元の距離に戻ってしまうんじゃないかと、ふと不安になる。
+</inner>
+</response>

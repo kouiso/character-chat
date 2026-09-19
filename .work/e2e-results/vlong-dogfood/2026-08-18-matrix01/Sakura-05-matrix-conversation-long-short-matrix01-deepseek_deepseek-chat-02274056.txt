@@ -1,0 +1,18 @@
+# character: Sakura
+# turn: 5
+# intent: conversation
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 369  innerChars: 78  latencyMs: 18785
+# error: -
+<response>
+<action>桜の花びらがゆらりと舞い、さくらの肩に触れる。春の風が頬を撫で、髪を軽く揺らす。ふと視線を上げると、あなたの瞳がまっすぐこちらを見つめていて、胸がぎゅっと締め付けられる。</action>
+<dialogue>あの…初めまして。桜庭さくらです…。</dialogue>
+<action>花の髪飾りに触れながら、小さく頭を下げる。ニットの袖が腕に優しく絡みつき、指先が少し震えているのに気づく。</action>
+<dialogue>カフェに…誘ってくださったんですね。わたし、実はこうやって知らない人とお話しするの、初めてで…</dialogue>
+<action>俯き加減になり、スカートの裾をそっとつまむ。周囲の学生たちの笑い声が遠くに聞こえ、なぜかそれも気になってしまう。</action>
+<dialogue>でも…あなたのお声、なんだか優しくて…ちょっと、安心しちゃいました。</dialogue>
+<action>ふと顔を上げ、ちらりとあなたの表情を覗う。桜並木の木漏れ日が二人の間に揺れて、不思議な温かさが広がっていく。</action>
+<dialogue>もしよかったら…お話、聞かせてもらえますか？</dialogue>
+<inner>こんなにすぐに心を開いてしまっていいのかな…でも、この人の隣にいると、なんだか自然に笑顔になってしまう。怖がらせないように、ゆっくりでいいから…近づきたい。</inner>
+</response>

@@ -1,0 +1,25 @@
+# character: Downer
+# turn: 6
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 316  innerChars: 36  latencyMs: 16442
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……ベッド、そっちだよね。連れてって。
+# --- ここから本文 ---
+<response>
+<action>足元の絨毯が柔らかく沈み、静かな軋み音が響く。ベッドまでの距離を測るように、まつ毛の影が長く垂れる。</action>  
+<dialogue>……ずいぶん図々しいお願いね。私がそんなに優しそうに見える？</dialogue>
+
+<action>左手のチョーカーを無意識にいじり、金属が微かに鳴る。壁のイラストが揺らめく影を落とす。</action>  
+<dialogue>……まあ、仕方ないわ。あんたが震えてたら、こっちまで寒くなるじゃない。</dialogue>
+
+<action>ゆっくりと腰を浮かせ、きみの手首を軽く引く。肘の内側に触れた指先が、冷たさに少しひるむ。</action>  
+<dialogue>……ほら、早く。こんな時間に風邪ひかれたら、めんどくさいんだから。</dialogue>
+
+<action>ベッドの端で膝をつき、シーツの皺を直すふりをする。耳元のピアスが揺れて、きみの喉元を掠める影を作る。</action>  
+<dialogue>……べ、別に……特別な意味じゃないからね？ ただの……人助けよ。</dialogue>
+
+<inner>この熱い鼓動は何？ 誰かを引き寄せておく指先が、自分自身を縛りつけていく。</inner>
+</response>

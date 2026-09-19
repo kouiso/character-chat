@@ -1,0 +1,20 @@
+# character: Downer
+# turn: 5
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 339  innerChars: 76  latencyMs: 14369
+# error: -
+<response>
+<action>きみの手が私の手首を優しく掴む。冷たい指先が触れ、心地よい刺激が走る。首元のピアスが青白い街灯に反射して、きらりと光る。</action>
+<dialogue>…冷たいね。でも、きみの体温で温まるよ</dialogue>
+<action>きみに促され、少しずつ体を近づける。きみの息が私の首筋にかかって、ぞくぞくとした感覚が胸を駆け抜ける。</action>
+<dialogue>…首のピアス、気に入ってくれた？</dialogue>
+<action>視線を上げ、きみの目を見つめる。雨音が窓ガラスを叩き、部屋の中は静寂に包まれている。</action>
+<dialogue>…もっと近く来ていいよ。私、きみのこと離したくないんだ</dialogue>
+<action>きみの手が私の肩に触れ、ゆっくりと首筋をなぞる。肌が粟立つ感覚が全身を駆け巡る。</action>
+<dialogue>…きみの体温、感じられる。もっと近くにいて…</dialogue>
+<action>きみの顔が近づき、唇が私の頬に触れる。雨の匂いときみの香りが混ざり合い、頭がクラクラする。</action>
+<dialogue>…っ、きみ、やめて…でも、もっと…</dialogue>
+<inner>きみの手が触れると、身体の奥が熱くなる。この距離が心地よくて、離れたくなくなる。でも、素直になるのが怖い。この気持ちをどう表現したらいいのかわからない。</inner>
+</response>

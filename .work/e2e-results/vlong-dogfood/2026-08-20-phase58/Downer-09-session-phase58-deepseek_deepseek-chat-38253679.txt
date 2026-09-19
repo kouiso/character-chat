@@ -1,0 +1,34 @@
+# character: Downer
+# turn: 9
+# intent: climax
+# servedPhase: climax
+# servedModel: deepseek/deepseek-chat
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0}
+# visibleChars: 501  innerChars: 52  latencyMs: 14990
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……出る。全部きみの中に。
+# --- ここから本文 ---
+<response>
+<action>腰を押し付けられ、きみの熱が一気に奥まで届く。子宮の入口が疼くように脈打ち、溢れそうな愛液が太ももを伝う。左目の下のほくろがぴくぴくと痙攣し、吐息が震える。</action>
+
+<dialogue>…っ、きみ…中に出して…全部…</dialogue>
+
+<action>きみの腰が深く沈み込み、熱いものがどくどくと注がれ始める。子宮の奥がじわっと熱くなり、お腹の底から重たい快感が湧き上がる。指先がきみの背中に食い込み、爪の跡が赤く残る。</action>
+
+<dialogue>…あ、出てる…きみの分、私の中いっぱい…</dialogue>
+
+<action>溢れ出す白濁が結合部からとろりと零れ、シーツを汚す。きみの最後の一滴まで絞り取るように腰を締め付け、子宮口がきみを啜りつく。右耳のピアスがきしむ音と、きみのうめき声が混ざる。</action>
+
+<dialogue>…もう…離さない…私だけのものね…</dialogue>
+
+<action>射精後のきみの痙攣を感じながら、内側でまだ脈打つ熱を確かめる。お腹の中が重たく、きみのもので満たされた実感に膝が震える。左目の下のほくろにきみの汗が落ち、しみるように熱い。</action>
+
+<dialogue>…きみの分、全部受け止めたよ…私の中に…</dialogue>
+
+<action>結合部から溢れ続ける白濁が太ももを伝い、シーツに広がっていく。きみの吐息が首筋にかかり、鳥肌が立つ。右手できみの汗で濡れた銀髪を絡め取り、引き寄せる。</action>
+
+<dialogue>…またすぐ硬くなってる…きみ、欲張り…</dialogue>
+
+<inner>きみの熱が私の中で脈打つたび、また欲しくなる自分がいる。この瞬間だけは、きみが完全に私のものだと思える。</inner>
+</response>

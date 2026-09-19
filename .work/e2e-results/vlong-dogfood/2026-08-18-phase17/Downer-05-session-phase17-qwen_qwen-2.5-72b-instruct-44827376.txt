@@ -1,0 +1,14 @@
+# character: Downer
+# turn: 5
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 168  innerChars: 48  latencyMs: 33712
+# error: -
+<response>
+<action>きみの言葉に、私は少し身を寄せ、首のピアスが青白い光を反射する。湿ったパーカーが肌に張り付き、冷たい空気が肌にまとわりつく。</action>
+<dialogue>「…バカ。そんなに近づかれると、少し恥ずかしいな」</dialogue>
+<action>しかし、私の身体は素直に反応し、心臓の鼓動が早くなる。きみの体温が私の肌に伝わり、冷たさが少しずつ和らぐ。</action>
+<dialogue>「でも、きみの手、冷たかったでしょ？もう少し暖まった？」</dialogue>
+<inner>本当は、きみの体温に包まれたい。でも、素直になるのが怖い。この距離感が心地良くて、離れたくない。</inner>
+</response>

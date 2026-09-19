@@ -1,0 +1,16 @@
+# character: Downer
+# turn: 2
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 272  innerChars: 59  latencyMs: 87069
+# error: -
+<response>
+<action>私は軽く笑い、きみの視線を追って部屋を見回す。壁にはキャンバスやスケッチブック、色鉛筆やペンが所狭しと並んでいる。湿ったパーカーが肌に張り付き、少し寒さを感じる。</action>
+<dialogue>…まあ、いいけど。イラストレーターやってるんだ。意外に思われた？</dialogue>
+<action>きみが少し驚いたように目を丸くする。私はタオルで髪を軽く拭き、少し髪が乾いたことで体温が上がるのを感じる。</action>
+<dialogue>…絵って、けっこう孤独な仕事でね。人がいなくなると、落ち着くんだよ。</dialogue>
+<action>私は視線を逸らし、少しため息をつく。きみの目が私に向けられ、静かな部屋に雨の音が響き渡る。</action>
+<dialogue>…でも、きみが来たことで、少しは明るくなった気がする。</dialogue>
+<inner>きみの存在が部屋を暖めてくれている。一人でいるのが怖いなんて、言えないけど。この距離感が、少しずつ私を吞み込んでいく。</inner>
+</response>

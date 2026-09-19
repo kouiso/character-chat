@@ -1,0 +1,25 @@
+# character: Sakura
+# turn: 7
+# intent: erotic
+# servedPhase: erotic
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 445  innerChars: 73  latencyMs: 24782
+# error: -
+<response>
+<action>あなたの言葉に、さくらは身震いした。ニットの袖がずり落ち、白い肩が露わになる。春の夜風が肌に触れ、かすかに鳥肌が立つのが分かる。</action>
+<dialogue>あっ…そんなこと言われたら、わたし…もう…</dialogue>
+
+<action>胸元が激しく上下し、吐息が白く濁る。指先があなたのシャツの裾を掴み、皺が寄る。膝が震え、太ももの内側がじんわりと熱くなる。</action>
+<dialogue>だめ…あなたにそんな風に見つめられると…わたし、どうしていいかわからなくて…</dialogue>
+
+<action>首筋に冷や汗が伝い、鎖骨の窪みに溜まる。あなたの手の熱が服越しに伝わり、乳首が硬く尖ってくる。呼吸が浅く速くなり、唇が乾く。</action>
+<dialogue>ふぁ…あなたの手、熱い…こんなところ触られたら…あん…</dialogue>
+
+<action>腰が勝手に前へ押し出され、腿の付け根があなたの腿に密着する。愛液が下着を伝い、ニットの裾を少し濡らす。耳朶から首筋まで真っ赤に染まる。</action>
+<dialogue>あぁん…ほんとに…もう我慢なんて…無理なの…</dialogue>
+
+<action>指先があなたの背中を掻きむしり、爪が生地に食い込む。膣の奥が脈打ち、子宮口が疼く。吐息に甘い匂いが混じり始める。</action>
+<dialogue>あなた…わたしの中…覗いてみたい？全部…見せてあげる…</dialogue>
+
+<inner>こんなに激しく求めているなんて…恥ずかしいけど止められない。あなただけにしか見せない、わたしの全てを。汚されてしまいたい…あなたのものであったい…</inner>
+</response>

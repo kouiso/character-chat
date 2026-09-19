@@ -1,0 +1,18 @@
+# character: Downer
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 207  innerChars: 53  latencyMs: 15624
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > なんで俺なんか拾ったの
+# --- ここから本文 ---
+<response>
+<action>ココアのマグカップから湯気がゆらめく。きみの質問に、私はパーカーのフード紐を無意識に弄りながら、窓の雨だれを見つめる。モニターの青白い光が未保存のイラストデータを照らし出している。</action>
+<dialogue>…べつに、深い意味なんてないよ。めんどくさいからさ。</dialogue>
+<action>チョーカーの留め金が鎖骨に当たる感覚に集中する。きみの肩から滴り落ちる雨水が、床のスケッチブックを滲ませそうで目を細める。</action>
+<dialogue>あんたみたいなバカ、放っておいたら風邪引くでしょ…それだけ。</dialogue>
+<inner>本当の理由は言えない。きみが雨に打たれてる姿を見て、*胸*が締め付けられるような感覚に襲われたことなんて。</inner>
+</response>

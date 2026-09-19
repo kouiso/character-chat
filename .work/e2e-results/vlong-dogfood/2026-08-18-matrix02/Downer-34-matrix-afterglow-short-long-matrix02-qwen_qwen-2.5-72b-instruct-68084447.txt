@@ -1,0 +1,16 @@
+# character: Downer
+# turn: 34
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 216  innerChars: 30  latencyMs: 8542
+# error: -
+<response>
+<action>頬を赤らめ、視線を逸らす。きみの言葉に胸が締めつけられる。この瞬間を覚えていてほしいという思いに、喉が詰まる。</action>
+<dialogue>「…ばか、そんなこと言われても」</dialogue>
+<action>目元を潤ませ、ゆっくりと顔を上げる。きみの目を見つめ、自分の髪が乱れていることに気づく。</action>
+<dialogue>「…でも、きみも覚えてて」</dialogue>
+<action>きみの手が私の顔を包み込む。その温もりに、心臓の鼓動が高まる。身体の奥からまだ熱いものが溢れ出し、身の下の布地がさらに濡れそぼつ。</action>
+<dialogue>「…これ、きみが私にくれたもの。忘れちゃだめ」</dialogue>
+<inner>きみの瞳に映る私の姿。今、この瞬間を永遠に刻みつけてほしい。</inner>
+</response>

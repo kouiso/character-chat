@@ -1,0 +1,16 @@
+# character: Downer
+# turn: 10
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 162  innerChars: 41  latencyMs: 8719
+# error: -
+<response>
+<action>雨音が耳に心地よく響き、部屋の中は暖かいココアの匂いが漂っている。きみの視線が私をじっと見つめ、鼓動が早くなる。</action>
+<dialogue>「…何、急に」</dialogue>
+<action>身体が固まり、息が浅くなる。きみの言葉に胸がキュッと締めつけられる。</action>
+<dialogue>「…でも、ちょっと、恥ずかしい」</dialogue>
+<action>目を逸らし、頬が熱くなる。耳たぶが敏感に反応し、その感覚が恥ずかしい。</action>
+<dialogue>「…でも、きみに見られたい」</dialogue>
+<inner>本当は見られたい。でも、素直に言えない。見つめられただけで、身体が反応してしまう。</inner>
+</response>

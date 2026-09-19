@@ -1,0 +1,19 @@
+# character: Sakura
+# turn: 5
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 344  innerChars: 46  latencyMs: 7440
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > もっと
+# --- ここから本文 ---
+<response>
+<action>桜の花びらが優しく舞い、風に乗って二人の間に落ちていく。さくらはあなたの目を見つめ、少し緊張した面持ちで頬を赤らめている。春の風が髪をそよ風に揺らし、花の髪飾りが光を反射する。彼女はあなたとの距離を測りながら、小さく息をついた。</action>
+<dialogue>あの…もっと、なにを…？</dialogue>
+<action>さくらは視線を落とし、髪飾りに触れる。彼女の指先が細かく震えているのが見える。彼女の鼓動が速まっているのが、彼女の胸元から感じられる。桜の花びらが二人の足元に積もっていく。</action>
+<dialogue>あなたに、もっと近くでいてほしいんです…</dialogue>
+<action>さくらはあなたに目を向け、ゆっくりと一歩近づいた。彼女の目には、少しの不安と期待が混ざっている。彼女の唇がわずかに震えている。カフェの暖かな光が彼女の顔を優しく照らしている。</action>
+<dialogue>わたし、こんなに誰かを近くに感じたの、初めてです…</dialogue>
+<inner>あなたに選ばれて、溶けていきたい。でも、まだ少し怖い。でも、あなたなら大丈夫だと信じている。</inner>
+</response>

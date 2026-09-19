@@ -1,0 +1,16 @@
+# character: Sakura
+# turn: 2
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 346  innerChars: 87  latencyMs: 14137
+# error: -
+<response>
+<action>春の風がそよ風のように頬を撫で、さくらの心に穏やかな波紋が広がる。少し緊張しながらも、あなたの言葉に安堵の笑みが浮かぶ。</action>
+<dialogue>えへへ、コーヒーでいいですね。でも、甘いものも大好きなので、カフェでケーキも食べられたら、うれしいな。</dialogue>
+<action>視線を下に落とし、髪飾りに触れる。心臓の鼓動が少し速まっている。春の風が髪をそよがせ、さくらはあなたの視線を感じて顔を赤らめる。</action>
+<dialogue>あの…、あなたとカフェでゆっくり過ごせるなんて、夢のようですね。わたしがお話しするのが下手で、失礼のないようにできるか、ちょっと心配です。</dialogue>
+<action>さくらは少し恥ずかしそうに笑い、裾を指でつまむ。あなたとの距離が縮まり、心の中は複雑な感情が交錯している。</action>
+<dialogue>でも、あなたと過ごす時間は、特別なものになる気がします。わたしがどんな人か、もっと知ってほしいな。</dialogue>
+<inner>あなたとカフェで過ごす時間が、心地よくて、少し緊張もする。でも、あなたに興味を持ってもらえるなら、どんな自分でも見せたい。この特別な時間が、もっと特別な何かに繋がるといいな。</inner>
+</response>

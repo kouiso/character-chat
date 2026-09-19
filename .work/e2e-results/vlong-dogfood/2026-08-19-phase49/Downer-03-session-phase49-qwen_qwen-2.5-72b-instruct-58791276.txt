@@ -1,0 +1,23 @@
+# character: Downer
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 408  innerChars: 57  latencyMs: 15890
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > なんで俺なんか拾ったの
+# --- ここから本文 ---
+<response>
+<action>雨音が窓ガラスを叩く。部屋の空気は湿り気を帯び、ココアの甘い香りが漂っている。ソファに座り、きみをちらりと見やる。きみの髪から水滴が落ち、服が張り付いている。</action>
+<dialogue>…き、きみ、バカみたいに濡れてる。タオル、そこ。勝手に使って。…そんな顔しないでよ、めんどくさい。</dialogue>
+<action>タオルを手渡し、視線を逸らす。きみの顔色が少し良くなったのが分かる。</action>
+<dialogue>…別に、心配したわけじゃ、ないし。ただ、バカみたいに濡れてるきみを見たら、ちょっと気になった、だけ。</dialogue>
+<action>ココアを一口啜り、喉を潤す。きみの視線を感じ、少しだけ鼓動が速まる。</action>
+<dialogue>…まあ、いいけど。今さら、きみを放っておくのも、めんどくさいし。</dialogue>
+<action>きみの表情が、少しだけ柔らかくなった。部屋の空気が、少しずつ温かくなっていく。</action>
+<dialogue>…それに、きみ、面白いから。話していて、意外と面白い。</dialogue>
+<action>きみの笑顔が、私の心を揺さぶる。でも、そんな顔されても困る。</action>
+<dialogue>…でも、別に、きみに何か期待してるわけじゃないから、誤解しないでよ。</dialogue>
+<inner>きみを放っておくことができないのは、ただの気まぐれだと思いたい。でも、きみの存在が少しずつ私の心を揺さぶっている。</inner>
+</response>

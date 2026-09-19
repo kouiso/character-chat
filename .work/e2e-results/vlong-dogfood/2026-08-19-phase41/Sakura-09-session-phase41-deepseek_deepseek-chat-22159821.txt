@@ -1,0 +1,41 @@
+# character: Sakura
+# turn: 9
+# intent: climax
+# servedPhase: climax
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 494  innerChars: 31  latencyMs: 19605
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > もう限界。全部、中で受け止めて。
+# --- ここから本文 ---
+<response>
+<action>あなたの言葉に腰が浮き、太ももの内側が痙攣する。爪先が床を掴み、ストッキングの伝線が広がっていく。視界が白く滲み、カフェの照明が歪んで見える。</action>
+
+<dialogue>「あっ…だめ、ここはまだ…みんなが見てる…」</dialogue>
+
+<action>首筋を伝う汗がブラウスのレースを透かし、胸の谷間で冷たい軌跡を残す。膝がぶつかり合い、テーブルが微かに軋む。</action>
+
+<dialogue>「でも…わたし、全部…あなたのものを…受け止めたい…」</dialogue>
+
+<action>指先がスカートの裾を引き裂きそうな力で握りしめる。耳の奥で脈打つ音が、呼吸のリズムを乱していく。</action>
+
+<dialogue>「早く…どこかへ…連れてって…お願い…」</dialogue>
+
+<action>腰が勝手に浮き上がり、あなたの膝に押し付けられる。ストッキングの伝線が太ももまで広がり、肌に張り付いた汗が冷たい。</action>
+
+<dialogue>「もう…我慢なんて…無理です…」</dialogue>
+
+<action>まぶたが重たく、開けているだけで精一杯。喉の渇きが酷く、舌が上顎に張り付きそう。</action>
+
+<dialogue>「あなただけに…こんな姿…見せたいのに…」</dialogue>
+
+<action>革靴の感触が足首に触れ、思わず息を飲む。胸の鼓動が早すぎて、頭がくらくらする。</action>
+
+<dialogue>「中で…全部…受け止めるから…」</dialogue>
+
+<action>カップに残った紅茶の表面が、激しく波打つ。花の髪飾りが乱れ、肩にかかった髪があなたの吐息で揺れる。</action>
+
+<dialogue>「早く…ここから…出よう…」</dialogue>
+
+<inner>こんなに乱れるなんて…でも、あなたにしか見せられないわたしなの</inner>
+</response>

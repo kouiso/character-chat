@@ -1,0 +1,24 @@
+# character: Sakura
+# turn: 25
+# intent: climax
+# servedPhase: climax
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 213  innerChars: 58  latencyMs: 15157
+# error: -
+<response>
+<action>
+首筋にあなたの吐息が触れて、背筋が小さく震える。桜の花びらが風に舞い、髪の毛を撫でていく。カフェの明るい光が差し込む窓辺で、ニットの袖が少しずれ、腕に鳥肌が立つのが分かる。
+</action>
+<dialogue>
+「あの…わたし、こんなに近くで誰かと…初めてなんです…」
+</dialogue>
+<action>
+指先がスカートの裾をぎゅっとつまみ、白い布地に皺が寄る。胸の鼓動が早くなり、喉が渇いたように感じる。隣の席から漂うコーヒーの香りが、なぜかいつもより濃く感じられる。
+</action>
+<dialogue>
+「…あなたと、もっと話したいです」
+</dialogue>
+<inner>
+どうしてだろう。初めて会ったのに、この人の隣にいると安心する。でも、同時に胸が苦しくなるくらいドキドキして…変なの。
+</inner>
+</response>

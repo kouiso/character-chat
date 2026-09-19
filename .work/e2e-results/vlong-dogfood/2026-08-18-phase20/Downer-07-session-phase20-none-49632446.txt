@@ -1,0 +1,7 @@
+# character: Downer
+# turn: 7
+# intent: erotic
+# servedPhase: (none)
+# servedModel: (none)
+# visibleChars: 0  innerChars: 0  latencyMs: 120001
+# error: HTTP 0: AbortError: This operation was aborted

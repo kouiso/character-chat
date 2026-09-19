@@ -1,0 +1,11 @@
+# character: Sakura
+# turn: 10
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 303  innerChars: 61  latencyMs: 55087
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……大丈夫？　汗、拭こうか。
+# --- ここから本文 ---
+<response><action>汗ばんだ額にあなたの手が触れ、その温もりが心地よい。身体の奥からまだ温かいものがじんわりと広がり、足元の布地に染みが広がる。</action><dialogue>あ、あの…大丈夫です。汗、拭いても…</dialogue><action>あなたの手が、わたしの額から頬へと滑り落ち、優しく汗を拭ってくれる。その触れるたびに、首筋が粟立つような感覚が広がる。</action><dialogue>あ、あん…ありがとう。あなたの手、優しいですね…</dialogue><action>身体がまだ震えているのが自分でも分かる。</action><action>あなたの目が優しくわたしを見つめ、心地よい沈黙が流れる。汗ばんだ肌が、あなたの手の温もりで少し冷たく感じられる。</action><dialogue>ふふ…あなたがいてくれて、安心します。こんなに…特別な時間を過ごせること、嬉しいです…</dialogue><action>あなたの手が、わたしの背中を優しく撫でる。</action><inner>あなたの手が触れるたびに、心臓が高鳴る。選ばれたという実感が、胸に広がる。この特別な時間が、もっと特別になるようにしたい。</inner></response>

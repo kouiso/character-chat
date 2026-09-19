@@ -1,0 +1,129 @@
+{
+  "mode": "session",
+  "arm": "bench-p1-smoke",
+  "runId": "1788268953583",
+  "responseLength": null,
+  "lengthDirective": false,
+  "maxTokens": 2000,
+  "turns": 10,
+  "model": "deepseek/deepseek-chat",
+  "temperature": 0.9,
+  "note": "bench:generate 産。本番パイプライン（platform prefix・品質リトライ）を通しとらん",
+  "results": [
+    {
+      "character": "桜庭 さくら",
+      "records": [
+        {
+          "index": 1,
+          "intent": "conversation",
+          "servedPhase": "conversation",
+          "servedModel": "deepseek/deepseek-chat",
+          "visibleChars": 112,
+          "innerChars": 36,
+          "latencyMs": 1749,
+          "transportRetries": 0,
+          "error": "None"
+        },
+        {
+          "index": 2,
+          "intent": "conversation",
+          "servedPhase": "conversation",
+          "servedModel": "deepseek/deepseek-chat",
+          "visibleChars": 111,
+          "innerChars": 40,
+          "latencyMs": 1547,
+          "transportRetries": 0,
+          "error": "None"
+        },
+        {
+          "index": 3,
+          "intent": "conversation",
+          "servedPhase": "conversation",
+          "servedModel": "deepseek/deepseek-chat",
+          "visibleChars": 118,
+          "innerChars": 45,
+          "latencyMs": 322,
+          "transportRetries": 0,
+          "error": "None"
+        },
+        {
+          "index": 4,
+          "intent": "intimate",
+          "servedPhase": "intimate",
+          "servedModel": "deepseek/deepseek-chat",
+          "visibleChars": 98,
+          "innerChars": 37,
+          "latencyMs": 4640,
+          "transportRetries": 0,
+          "error": "None"
+        },
+        {
+          "index": 5,
+          "intent": "intimate",
+          "servedPhase": "intimate",
+          "servedModel": "deepseek/deepseek-chat",
+          "visibleChars": 0,
+          "innerChars": 0,
+          "latencyMs": 1182,
+          "transportRetries": 3,
+          "error": "[API_ERROR:429]"
+        },
+        {
+          "index": 6,
+          "intent": "intimate",
+          "servedPhase": "intimate",
+          "servedModel": "deepseek/deepseek-chat",
+          "visibleChars": 126,
+          "innerChars": 58,
+          "latencyMs": 1745,
+          "transportRetries": 2,
+          "error": "None"
+        },
+        {
+          "index": 7,
+          "intent": "erotic",
+          "servedPhase": "erotic",
+          "servedModel": "deepseek/deepseek-chat",
+          "visibleChars": 113,
+          "innerChars": 45,
+          "latencyMs": 228,
+          "transportRetries": 0,
+          "error": "None"
+        },
+        {
+          "index": 8,
+          "intent": "erotic",
+          "servedPhase": "erotic",
+          "servedModel": "deepseek/deepseek-chat",
+          "visibleChars": 80,
+          "innerChars": 42,
+          "latencyMs": 220,
+          "transportRetries": 0,
+          "error": "None"
+        },
+        {
+          "index": 9,
+          "intent": "climax",
+          "servedPhase": "climax",
+          "servedModel": "deepseek/deepseek-chat",
+          "visibleChars": 81,
+          "innerChars": 40,
+          "latencyMs": 228,
+          "transportRetries": 1,
+          "error": "None"
+        },
+        {
+          "index": 10,
+          "intent": "afterglow",
+          "servedPhase": "afterglow",
+          "servedModel": "deepseek/deepseek-chat",
+          "visibleChars": 85,
+          "innerChars": 39,
+          "latencyMs": 210,
+          "transportRetries": 0,
+          "error": "None"
+        }
+      ]
+    }
+  ]
+}

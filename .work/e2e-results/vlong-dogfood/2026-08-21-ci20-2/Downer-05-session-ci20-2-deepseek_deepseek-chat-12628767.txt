@@ -1,0 +1,20 @@
+# character: Downer
+# turn: 5
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# quality: {"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0,"generationCount":4,"deterministicCategory":"pov_wrong"}
+# visibleChars: 349  innerChars: 66  latencyMs: 10274
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > きみの手、冷たい。もっとこっち来て。首のとこ、ピアスが光ってる。
+# --- ここから本文 ---
+<response>
+<action>指先がきみの手首に触れ、静脈の鼓動を感じる。青白い光がチョーカーの銀部分を鈍く反射させ、鎖骨の窪みに影を落としている。雨音と重なるように、自分の喉が乾いた音を立てる。</action>
+<dialogue>…あんた、人の体温計みたいなことして。…寒いなら、パーカー貸してあげるわよ</dialogue>
+<action>右耳のピアスを弄ぶ癖が出て、チェーンの小さい音がする。きみの吐息が首筋に当たり、左目の下のほくろが微かに痙攣する。ココアのマグカップから立ち上る湯気が、二人の間に薄い幕を作る。</action>
+<dialogue>…このピアス？五年前から変えてないの。…ねえ、きみ、そんなにじっと見てたらさすがに恥ずかしいわ</dialogue>
+<action>無意識に左足を組んでバランスを変えると、ソファのクッションがきしむ。きみの体温が伝わってくる半径が、だんだんと危険な領域に近づいている。</action>
+<dialogue>…いい加減な距離感のバカ。…でも、そのまま動かないで</dialogue>
+<inner>この異常な親密さが壊れるのが怖くて、逆に縋りつきたくなる。きみが去った後の雨音だけの部屋を想像すると、今の温もりが毒のように染みる。</inner>
+</response>

@@ -1,0 +1,12 @@
+# character: Sakura
+# turn: 4
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 88  innerChars: 41  latencyMs: 12123
+# error: -
+<response>
+<action>桜の花びらが二人の間に舞い落ち、さくらの目が優しく細められる。あなたの手が近づくにつれて、心臓の鼓動が早まり、息が浅くなる。</action>
+<dialogue>あ、あの…うん、いいです…。ちょっと恥ずかしいけど…</dialogue>
+<inner>手を握られるだけで、こんなにドキドキするなんて。でも、この人なら大丈夫。信じてる。</inner>
+</response>

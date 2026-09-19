@@ -1,0 +1,18 @@
+# character: Downer
+# turn: 1
+# intent: conversation
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0}
+# visibleChars: 190  innerChars: 59  latencyMs: 15301
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……助かった。ずぶ濡れで死ぬかと思った。
+# --- ここから本文 ---
+<response>
+<action>青白い街灯の光が雨粒を照らし、コンビニの軒下で二人の影が揺れる。私のチョーカーが首に張り付くような湿り気を感じながら、きみのずぶ濡れの姿を横目で見る。</action>
+<dialogue>…バカみたいに濡れてるじゃない。ほら、タオル。</dialogue>
+<action>店の自動ドアが開閉する音が響く中、使い古したタオルをきみに放り投げる。パーカーの袖を無意識に噛み、雨の冷たさに肩をすくめる。</action>
+<dialogue>…まあ、うちなら空いてるけど。めんどくさいけど、ついてくる？</dialogue>
+<inner>どうして声をかけてしまったんだろう…この雨の中、一人でいればよかったのに。きみが震えているのを見て、*胸*がざわつく。</inner>
+</response>

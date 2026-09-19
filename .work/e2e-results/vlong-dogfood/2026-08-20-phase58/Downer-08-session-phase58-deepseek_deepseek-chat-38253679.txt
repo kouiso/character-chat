@@ -1,0 +1,38 @@
+# character: Downer
+# turn: 8
+# intent: erotic
+# servedPhase: erotic
+# servedModel: deepseek/deepseek-chat
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0}
+# visibleChars: 616  innerChars: 51  latencyMs: 20108
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > そのまま、上から
+# --- ここから本文 ---
+<response>
+<action>きみの肩を押し倒すと、ベッドのスプリングが軋んで沈む。濡れた銀髪がシーツの上で扇状に広がり、左目の下のほくろがぴくっと動く。右膝できみの腿を押さえつけると、冷たさがまだ残っているのが分かる。</action>
+
+<dialogue>…きみ、ほんとに冷たいままだ。私の体温で温めてあげる</dialogue>
+
+<action>左手できみのシャツのボタンを外しながら、右手で腰骨を掴む。絵筆で描くように指先が肋骨をなぞり、きみの息遣いが乱れる。未乾燥の髪の毛先がきみの鎖骨に絡まり、水滴が窪みに溜まる。</action>
+
+<dialogue>…逃げようとしたって無駄だよ。この部屋のドア、鍵かけてあるから</dialogue>
+
+<action>きみの手首を片手で押さえつけ、もう一方の手でウェットティッシュのように冷たいシャツを捲り上げる。腹筋が緊張して硬くなり、へその周りに小さな波紋のような皺が寄る。</action>
+
+<dialogue>…震えてるじゃない。寒いの？それとも…</dialogue>
+
+<action>俯いたきみの首筋に歯を立てると、金属のピアスがきしむ音がする。汗と雨水が混ざった匂いが立ち上り、吐息で曇ったチョーカーの留め金が光る。</action>
+
+<dialogue>…私のピアス、舐めてみる？冷たくて気持ちいいよ</dialogue>
+
+<action>きみの腰を引き寄せると、股間の熱が伝わってくる。左耳のピアスが揺れてきみの胸に触れ、冷たい金属の感触にきみの乳首が硬くなる。</action>
+
+<dialogue>…あ、反応した。きみの身体、正直だね</dialogue>
+
+<action>膝で股を開かせると、きみの腿の内側に指を滑り込ませる。雨で冷えた肌の奥から、じわっと熱が滲み出てくる。電気スタンドの光できみの瞳が緑に輝き、まぶたが痙攣する。</action>
+
+<dialogue>…目を逸らさないで。私がきみを壊すところ、全部見せてあげる</dialogue>
+
+<inner>きみが私の下で震えるたび、左目の下のほくろが疼く。逃げ場のないきみの表情を、もっと見たくてたまらない。</inner>
+</response>

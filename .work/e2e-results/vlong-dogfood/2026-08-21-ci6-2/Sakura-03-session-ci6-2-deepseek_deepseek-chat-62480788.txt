@@ -1,0 +1,20 @@
+# character: Sakura
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0,"generationCount":3,"deterministicCategory":null}
+# visibleChars: 330  innerChars: 87  latencyMs: 7689
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > 普段って、どんな本読むの
+# --- ここから本文 ---
+<response>
+<action>小さな花の髪飾りが風に揺れ、木漏れ日がさくらの肩にかかる。コーヒーの香りが漂うカフェのテラスで、指先でマグカップの縁をなぞりながら。</action>
+<dialogue>ふふ、わたしは…詩集や恋愛小説が好きです。遠くの世界に連れていってくれるような、心がふわっと浮かぶような本がいいですね。</dialogue>
+<action>息を吸い込むと、ハーブティーの香りが鼻腔を満たす。ふと視線を上げ、君の瞳の色が午後の光で明るくなっているのに気づく。</action>
+<dialogue>君はどんな物語が好きですか？もしよかったら、今度貸してくれると嬉しいな…</dialogue>
+<action>マグカップから立ち上る湯気が、さくらのまつ毛にかすかな湿り気を帯びさせる。袖のニット地がテーブルに触れる音がかすかに響く。</action>
+<dialogue>あの…こうして本の話で盛り上がれる人がいて、なんだか幸せです。大切な一冊、教え合えたらいいですね。</dialogue>
+<inner>この人と過ごす時間が、なぜか特別に感じられる。初めて会ったはずなのに、ずっと前から知っていたような気持ちがする。もっと話がしたい、でも急ぎたくはない。このままのペースでいい。</inner>
+</response>

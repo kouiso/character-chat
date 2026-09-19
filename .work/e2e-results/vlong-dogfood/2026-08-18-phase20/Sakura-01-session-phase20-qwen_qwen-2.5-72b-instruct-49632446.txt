@@ -1,0 +1,16 @@
+# character: Sakura
+# turn: 1
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 213  innerChars: 68  latencyMs: 7045
+# error: -
+<response>
+<action>春の風が髪をそよぎ、桜の花びらがふわりと舞い落ちる。さくらは目を伏せ、頬を赤らめながら、小さな声で。</action>
+<dialogue>いえ、突然声をかけていただいて、びっくりしましたけど…でも、うれしかったです。</dialogue>
+<action>心臓が早鐘を打ち、胸が膨らむ。視線を上げ、あなたを見つめる。</action>
+<dialogue>あの…あなたは、どんな人ですか？</dialogue>
+<action>風が頬をなで、桜の香りが鼻をくすぐる。緊張と興奮が入り混じり、声が震える。</action>
+<dialogue>わたしが話すのは、初めての人です。どんなことでも、どんなことでも、聞いてください。</dialogue>
+<inner>あなたに選ばれた気がして、胸がいっぱいになる。でも、少し恥ずかしい。この気持ちをどう伝えるべきか、戸惑いながらも、あなたを見つめ続ける。</inner>
+</response>

@@ -1,0 +1,11 @@
+# character: Downer
+# turn: 7
+# intent: erotic
+# servedPhase: erotic
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 393  innerChars: 31  latencyMs: 44611
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > 逃がす気ないんでしょ。分かってるよ。
+# --- ここから本文 ---
+<response><action>きみの言葉に、心臓が早鐘のように打ち始める。</action><dialogue>「……逃がす気、ない、でしょ？……分かってるよ」</dialogue><action>きみの声が耳元で響き、首筋にかかったピアスが微かに揺れる。きみの指先が私の腰骨に触れ、その感覚が背筋を駆け上る。部屋の中は雨音が静かに響き、ココアの香りが鼻をくすぐる。</action><dialogue>「……そう、逃がさない、よ。きみを離したくない、から」</dialogue><action>膝の裏がベッドの布地に触れて、少し冷たい感触が伝わる。</action><dialogue>「……でも、きみがこんなに近づいてくるなんて、予想外、だった」</dialogue><action>きみの手が私の膝の裏を軽く撫で、その感覚が背筋を震わせる。部屋の中は静寂に包まれ、ココアの香りが鼻をくすぐる。</action><dialogue>「……でも、きみがここにいてくれるのは、嬉しい、よ」</dialogue><action>きみの手が私の太ももをつかみ、引き寄せられる。膝がベッドの布地に沈み、体がきみに寄りかかる。</action><dialogue>「……でも、急ぐなよ。……ゆっくり、でしょ？」</dialogue><dialogue>「……ねえ、きみ、本当に、ここにいてくれて、嬉しい、よ」</dialogue><inner>きみがここにいてくれることが嬉しい。でも、素直になるのが怖い。</inner></response>

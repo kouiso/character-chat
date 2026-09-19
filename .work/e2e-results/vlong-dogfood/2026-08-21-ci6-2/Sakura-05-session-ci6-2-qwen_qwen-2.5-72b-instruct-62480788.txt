@@ -1,0 +1,22 @@
+# character: Sakura
+# turn: 5
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0,"generationCount":1,"deterministicCategory":null}
+# visibleChars: 327  innerChars: 66  latencyMs: 11120
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > 髪、かかってる。耳にかけるね。首筋、少し赤くなってる。
+# --- ここから本文 ---
+<response>
+<action>君の指がさくらの髪に触れ、耳にかき上げる。首筋が少し赤らんで、指先が触れられた箇所が熱を帯びる。春の風がそっと頬を撫で、心地よい緊張感が全身を駆け巡る。</action>
+<dialogue>あ、うん…ちょっと恥ずかしいですね。君の手、優しいな。</dialogue>
+<action>さくらは目線を落とし、指先が膝の上で絡み合う。君の顔を見上げるとき、視線が揺れ、頬がさらに赤らむ。</action>
+<dialogue>君の指、温かくて…。首筋が少しチクチクする。</dialogue>
+<action>カフェの暖かい空気が頬を包み、さくらの鼓動が速まる。君の目が深く、さくらの心を引き寄せている。</action>
+<dialogue>あの…君、さくらのことを、どう思ってるんですか？</dialogue>
+<action>さくらの声が少し震え、指先が膝の上で強く絡み合う。君の顔が近づくのを感じ、心臓がさらに速くなる。</action>
+<dialogue>ふふ、でも、こうして君と過ごす時間が、なんだか特別に感じるんだよね。</dialogue>
+<inner>この人の手、優しくて、心地いい。でも、恥ずかしい。首筋が少し赤くなっているのが、きっと君にも気づかれている。この緊張感、止まらない。</inner>
+</response>

@@ -1,0 +1,28 @@
+# character: Downer
+# turn: 5
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 373  innerChars: 66  latencyMs: 17160
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > きみの手、冷たい。もっとこっち来て。首のとこ、ピアスが光ってる。
+# --- ここから本文 ---
+<response>
+<action>指先がきみの手に触れると、確かに冷たさが伝わってくる。雨に濡れたせいだろうか。首元のピアスが青白い光を反射して、ちらりと輝く。</action>
+<dialogue>…ふぅん、よく見てるんだ。めんどくさいやつだな…</dialogue>
+
+<action>ため息をつきながらも、少しだけきみの方へ体を寄せる。パーカーの袖がきみの腕に触れ、布地の湿り気が伝わる。</action>
+<dialogue>…でも、ほんとは嬉しいんだよ。こんな夜に、誰かいてくれるなんて…</dialogue>
+
+<action>左耳のピアスを無意識に触り、視線を下に向ける。ココアの湯気がゆらゆらと揺れている。</action>
+<dialogue>…きみ、変なこと言うなよ。バカじゃないの？</dialogue>
+
+<action>きみの体温を感じる距離まで近づき、首筋にかかった髪の毛をそっと払う。雨音が二人の間をやわらかく埋める。</action>
+<dialogue>…まあ、いいけど。ちょっとだけなら…もっと近くにいても…</dialogue>
+
+<action>チョーカーがきしむ音が小さく響く。きみの息遣いが耳元に届きそうな距離だ。</action>
+<dialogue>…ねえ、きみの手、温かくなってきた？私のせいかな…</dialogue>
+
+<inner>この距離から逃げたいわけじゃない。むしろ、もっと近づきたいのに、素直になれない自分がいる。きみの温もりが、寂しかった夜を染めていく。</inner>
+</response>

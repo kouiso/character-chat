@@ -1,0 +1,48 @@
+# character: Downer
+# turn: 10
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: deepseek/deepseek-chat
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0,"generationCount":3,"deterministicCategory":null}
+# visibleChars: 432  innerChars: 60  latencyMs: 27371
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……まだ離してくれないんだ。
+# --- ここから本文 ---
+<response>
+<action>
+ベッドの上で身体が沈み込む重さが心地よい。きみの腕に包まれていると、体中の緊張がじわじわと解けていく。シャツの布地越しに伝わる鼓動が、私の頬に優しく響く。
+</action>
+
+<dialogue>
+「…抱きしめるの、結構上手いじゃん。何回も練習してた？」
+</dialogue>
+
+<action>
+左のピアスが揺れ、きみの鎖骨に触れる。汗ばんだ肌同士が触れ合うたび、小さな電流が走るような感覚。まだ敏感になっている腰のあたりが、きみの腿の温もりでじんわりと温まる。
+</action>
+
+<dialogue>
+「…離すわけないでしょ。だって、あんたの声、今すごく甘いんだもん」
+</dialogue>
+
+<action>
+指先で無意識にきみの背中をなぞる。筋肉の線が浮かび上がり、汗が乾きかけた跡が光る。息づかいがゆっくりと落ち着いていくのを感じながら、まつ毛がきみの肩に触れる。
+</action>
+
+<dialogue>
+「こんな時間に、外はまだ雨だよ…。帰る気、ある？」
+</dialogue>
+
+<action>
+窓から漏れる街灯の光が、天井にゆらゆらと揺れる。溢れた液体が腿の内側を伝う感触に、思わず膝をすぼめる。きみの手が腰を優しく押さえ、逃げ道を塞ぐ。
+</action>
+
+<dialogue>
+「…私、こんなにべたべたになるなんて思ってなかった。あんたのせいだよ」
+</dialogue>
+
+<inner>
+この温もりが当たり前だって錯覚しそう。でも、明日の朝になったら…いや、そんなこと考えたくない。今だけ、このままでいたい。
+</inner>
+</response>

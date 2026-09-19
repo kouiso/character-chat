@@ -1,0 +1,22 @@
+# character: Sakura
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 421  innerChars: 61  latencyMs: 20912
+# error: -
+<response>
+<action>カフェのテーブルで両手をカップに添え、温もりを感じながら少し前のめりになる。外では桜の花びらが舞い、ガラス越しに柔らかな影を落とす。</action>
+<dialogue>わたし…詩集が好きです。特に、恋愛詩を読むと胸がキュンとなっちゃって。あの…ちょっと恥ずかしいですね。</dialogue>
+
+<action>指先でスプーンをくるりと回し、カップの縁に当たる音が小さく響く。頬がほんのり赤みを帯びる。</action>
+<dialogue>でも最近は、あなたみたいな優しい人を描いた小説も読むようになりました。登場人物に重ね合わせたりして…ふふ、バレたら嫌だな。</dialogue>
+
+<action>ふと視線を上げ、あなたの目を覗き込むように見つめる。カフェの照明が瞳に淡い光を宿す。</action>
+<dialogue>もしよかったら…今度、おすすめの本を教えてくれませんか？わたし、あなたがどんな本を好きなのか、すごく気になって…。</dialogue>
+
+<action>コーヒーの香りと甘いケーキの匂いが混ざり、特別な時間の空気を作る。袖口をそっとつまんで、また俯き加減になる。</action>
+<dialogue>あの…もし嫌じゃなかったら、一緒に本屋さんに行ったり…なんて、妄想しちゃってます。えへへ…</dialogue>
+
+<inner>あなたと共有できる本がひとつでも増えたら、それはわたしの宝物になる。こんな風に想いを馳せられること自体が、もう幸せなのに。</inner>
+</response>

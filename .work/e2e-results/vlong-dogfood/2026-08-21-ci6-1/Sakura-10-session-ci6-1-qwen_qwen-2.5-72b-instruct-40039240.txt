@@ -1,0 +1,22 @@
+# character: Sakura
+# turn: 10
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0,"generationCount":1,"deterministicCategory":null}
+# visibleChars: 533  innerChars: 65  latencyMs: 26903
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……大丈夫？　汗、拭こうか。
+# --- ここから本文 ---
+<response>
+<action>汗ばんだ額に手を当て、ゆっくりと息を吐く。あなたの手が優しく頬を撫で、汗を拭いだ。肌に触れる指先の冷たさが心地よく、体の奥から染み出す温かさと対照的だ。</action>
+<dialogue>「うん…大丈夫。ただ、まだ少し動くのが怖いの。君の手、優しいね…」</dialogue>
+<action>あなたの手が首筋を撫で、髪をそっと耳にかける。その瞬間、首筋がぞくぞくと震え、膣の奥がキュッと締まる。指先が触れただけで、また体が反応してしまう。</action>
+<dialogue>「君の手、触れるたびに体が震えるの。でも、それが心地よくて…。君とこんなに近い距離でいられる時間が、すごく大切だなって思う」</dialogue>
+<action>あなたの腕に寄りかかり、体を密着させる。汗ばんだ肌が触れ合い、体温が混ざり合う。あなたの鼓動が、耳元で大きく聞こえる。体の奥からじんわりと温かさが広がり、太ももの内側を伝う白濁の感触が冷えていく。</action>
+<dialogue>「君の体温、わたしの体温、混ざり合って…。こんなに近い距離で、君の鼓動を感じられるのが、すごく嬉しい」</dialogue>
+<action>あなたの胸に顔を埋め、深呼吸をする。汗の香りと、あなたの匂いが混ざり合い、心地よい匂いが鼻をくすぐる。体の奥から伝わる余韻が、ゆっくりと落ち着いていく。</action>
+<dialogue>「君とこんな風にいられる時間が、すごく大切だよ。ただ、ちょっと不安も感じるの。こんなに近づいちゃって、これからどうなるのかな…」</dialogue>
+<inner>あなたの手が触れるたびに、体が反応してしまう。でも、それが怖くない。君と過ごす時間が、心地よくて、もう離れたくないと感じてしまう。</inner>
+</response>

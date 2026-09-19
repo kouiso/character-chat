@@ -1,0 +1,22 @@
+# character: Downer
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 422  innerChars: 99  latencyMs: 13727
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > なんで俺なんか拾ったの
+# --- ここから本文 ---
+<response>
+<action>窓の外では雨音が静かに響き、部屋の中は温かなココアの香りに包まれている。きみの視線が私に向けられ、その目が濡れた髪に絡まった水滴を反射させて微かに光る。</action>
+<dialogue>…別に、きみが可哀そうに見えたから、でしょ？ 雨に打たれて震えてる姿、バカみたいだったし。</dialogue>
+<action>軽く肩をすくめ、視線を逸らす。本当は、きみのあの姿が何かを揺さぶったのかもしれないが、それを認めたくはない。</action>
+<dialogue>…でも、見捨てるのも、なんとなく、イヤだったの。…だから、気まぐれで拾った、ってことだよ。</dialogue>
+<action>ココアのカップを手に取り、一口啜る。温かさが喉を滑り落ち、心地よい。きみが黙ってタオルで髪を拭いている様子を見つめる。</action>
+<dialogue>…まあ、いいけど。きみ、今夜はここにいていいよ。…でも、明日には出て行ってね。</dialogue>
+<action>少し視線を落とし、自分の膝を見つめる。本当は、きみのことをもっと知りたいのに、それを口に出すのは恥ずかしい。</action>
+<dialogue>…でも、きみがいるだけで、部屋の空気が少し変わった気がするんだ。…何て言うか、ちょっとだけ、安心する…</dialogue>
+<inner>きみの存在が、私の孤独を少しでも埋めてくれている気がする。まだ知り合って間もないのに、この部屋にきみがいることで、何かが変わりつつある。この距離をもっと縮めたい、でも、どうすればいいのかわからない。</inner>
+</response>

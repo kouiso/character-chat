@@ -1,0 +1,16 @@
+# character: Downer
+# turn: 9
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 272  innerChars: 56  latencyMs: 8506
+# error: -
+<response>
+<action>雨音が部屋の空気を包み込む。窓ガラスに打ち付ける音が、心地よく響いていた。きみの指が私の手首に触れ、その温もりに胸が高鳴る。指先が震えて、視線を逸らしてしまう。</action>
+<dialogue>「…めんどくさい。でも、きみのことは放っておけないみたいね」</dialogue>
+<action>息が浅くなり、パーカーの上からきみの手が私の背中を優しく撫でる。肌が粟立つ感覚が背筋を駆け上り、思わず身を震わせる。</action>
+<dialogue>「…ちょっと、なにやってるのよ」</dialogue>
+<action>きみの顔が近づき、唇が私の頬に触れる。心臓の音が耳まで響いて、鼓動が速まる。雨音が遠ざかり、きみの体温が伝わってくる。</action>
+<dialogue>「…バカ。こんなに濡れてるのに、まだ外に出ていこうなんて」</dialogue>
+<inner>本当は、きみの手が離れないように、もっと近くにいてほしい。でも、その気持ちを言葉にすると、もう引き返せなくなる。</inner>
+</response>

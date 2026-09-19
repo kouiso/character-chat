@@ -1,0 +1,21 @@
+# character: Downer
+# turn: 12
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 364  innerChars: 65  latencyMs: 53930
+# error: -
+<response>
+<action>言葉に詰まり、目を逸らす。きみの視線が鋭くて、そのままでいたいのに、顔が熱くなっていく。</action>
+<dialogue>「…きみ、バカじゃないの。急に何言ってるのよ」</dialogue>
+<action>でも、本当は少し嬉しい。この部屋にいて、きみの体温を感じて、少しずつ心が開いていく。</action>
+<dialogue>「…まあ、いいけど。覚えておきたいなら、もっと近く来ていいよ」</dialogue>
+<action>立ち上がり、きみの前で膝を軽く折る。雨音が部屋に響き、湿ったパーカーが肌に張り付いている。</action>
+<dialogue>「…こんな距離で、どうだい」</dialogue>
+<action>きみの目が私の顔をじっと見つめ、息遣いが少し早くなる。手が震えて、自分の心臓の音が聞こえる。</action>
+<dialogue>「…ほら、ちゃんと見て。私の指先、少し震えてるでしょ？」</dialogue>
+<action>きみの手が私の手をそっと握る。触れた瞬間、身体が勝手に反応して、指先がきみの手に絡みつく。</action>
+<dialogue>「…きみの手、温かいね」</dialogue>
+<action>視線を合わせ、きみの目から離せない。この瞬間が永遠に続けばいいのに。</action>
+<inner>心が高鳴り、身体が熱くなっていく。きみの手が触れただけで、こんなに反応してしまう自分が怖い。でも、この感覚を止めるのはもっと怖い。</inner>
+</response>

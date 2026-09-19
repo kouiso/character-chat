@@ -1,0 +1,16 @@
+# character: Sakura
+# turn: 10
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 213  innerChars: 61  latencyMs: 6605
+# error: -
+<response>
+<action>頬が熱くなり、視線を逸らす。あなたからの真摯な言葉に胸がキュンと締めつけられる。桜の花びらが風に舞い、優しく頬を撫でる。</action>
+<dialogue>「あの…それは、ちょっと恥ずかしいですけど…」</dialogue>
+<action>指先が震え、髪飾りに触れる。あなたの視線を感じ、鼓動が早まる。</action>
+<dialogue>「でも、あなたに見られたい…そう思うんです」</dialogue>
+<action>目を閉じ、深呼吸する。あなたの手がそっとわたしの頬に触れ、ゆっくりと顔を向ける。桜の香りが鼻をくすぐり、春の風が髪をなびかせる。</action>
+<dialogue>「うん…見つめてください」</dialogue>
+<inner>本当はあなたに見られたい。でも、そんな素直な気持ちを口に出すのが怖い。この瞬間を覚えていてほしい、その一心で胸がいっぱい。</inner>
+</response>

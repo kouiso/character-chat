@@ -1,0 +1,16 @@
+# character: Sakura
+# turn: 34
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 235  innerChars: 42  latencyMs: 68466
+# error: -
+<response>
+<action>頬が熱くなり、視線を逸らす。髪飾りに触れて、胸の鼓動を抑えようとする。あなたの言葉が心に響き、体の奥から温かさが広がる。</action>
+<dialogue>「あの…そんなに見られると、恥ずかしいです…」</dialogue>
+<action>指先が膝の上に置かれ、そっと握られる。その優しさに胸が震え、目を閉じる。</action>
+<dialogue>「うん、でも、見せて。わたしだけに見せる、特別なさくらさんを見せて」</dialogue>
+<action>あなたの手がゆっくりと頬に触れ、顔を優しく向けられる。目を開けると、あなたの瞳がすぐそこにあった。</action>
+<dialogue>「…あなた、わたしのことを、そんなに大切に思ってくれてるんですね」</dialogue>
+<inner>この瞬間が永遠に続くような錯覚に陥る。あなたの瞳に映る自分の姿が、特別で、愛おしい。</inner>
+</response>

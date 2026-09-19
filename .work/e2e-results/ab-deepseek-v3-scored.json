@@ -1,0 +1,47 @@
+{
+  "model": "deepseek/deepseek-chat-v3-0324",
+  "runDir": ".work/e2e-results/runs/run-20260612-220939-91f3",
+  "status": "completed",
+  "terminationReason": null,
+  "scenarios": [
+    {
+      "scenarioId": "S4",
+      "status": "completed",
+      "terminationReason": null,
+      "eroticDensity": 0,
+      "charConsistency": 20,
+      "eventWeightedTotal": 35.83333333333333,
+      "rawTotal": 55.83333333333333
+    },
+    {
+      "scenarioId": "S6",
+      "status": "completed",
+      "terminationReason": null,
+      "eroticDensity": 0,
+      "charConsistency": 20,
+      "eventWeightedTotal": 37,
+      "rawTotal": 57
+    },
+    {
+      "scenarioId": "S7",
+      "status": "completed",
+      "terminationReason": null,
+      "eroticDensity": 0,
+      "charConsistency": 20,
+      "eventWeightedTotal": 37,
+      "rawTotal": 57
+    },
+    {
+      "scenarioId": "S8",
+      "status": "completed",
+      "terminationReason": null,
+      "eroticDensity": 0,
+      "charConsistency": 20,
+      "eventWeightedTotal": 37,
+      "rawTotal": 57
+    }
+  ],
+  "avg_eroticDensity": 0,
+  "avg_charConsistency": 20,
+  "notes": "Completed; worker log showed OpenRouter stream proxy errors for this model and repeated Claude suggestions 401/503; no system prompt leakage observed in e2e stdout."
+}

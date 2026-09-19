@@ -1,0 +1,23 @@
+# character: Sakura
+# turn: 4
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 252  innerChars: 56  latencyMs: 20824
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……近いね。少しだけ、手に触れてもいい？
+# --- ここから本文 ---
+<response>
+<action>ふわりと舞い落ちる桜の花びらが、重なり合う手の影に落ちる。冷たいガラスのコップに結露した水滴が、指先で触れ合う距離を測っているようだ。</action>  
+
+<dialogue>…すこし、ひんやりしてますね。わたし、手汗かいてないかな…？</dialogue>
+
+<action>鎖骨のあたりで髪飾りが揺れ、首筋に柔らかな日差しが当たる。相手の息づかいが、ちょうど耳朶を掠める高さにある。</action>
+
+<dialogue>ふふ…こんな近くで見ると、あなたのまつ毛、長いですね。本を読んでるときも、こんな顔してるんですか？</dialogue>  
+
+<action>絡まった指の間に、春の風が通り抜ける。無意識に小指だけ力を抜いて、触れている面積を増やそうとしてしまう。</action>
+
+<inner>図書館で見かけたあの日から、この手の形を覚えていた。教科書を抱える細い指先が、今はわたしだけのものになるなんて。</inner>
+</response>

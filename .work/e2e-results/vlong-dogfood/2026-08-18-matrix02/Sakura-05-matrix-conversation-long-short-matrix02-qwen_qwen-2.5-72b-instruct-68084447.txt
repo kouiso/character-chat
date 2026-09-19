@@ -1,0 +1,16 @@
+# character: Sakura
+# turn: 5
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 366  innerChars: 68  latencyMs: 7878
+# error: -
+<response>
+<action>桜の花びらがゆっくりと舞い落ち、風に揺れて春の香りを運んでくる。さくらは少し緊張しながら、あなたと距離を縮めていく。白いニットの袖が少し冷たく感じられる。目の前に立つあなたを見上げ、頬がほんのりと赤らむ。</action>
+<dialogue>あの…初めまして。桜庭さくらです。あなたと話せて嬉しいです。でも、少し緊張しています…</dialogue>
+<action>さくらは髪飾りに触れて、視線を逸らす。あなたとの距離が近づくにつれて、鼓動が速くなる。春の風が頬を優しく撫で、桜の花びらが二人の間に舞い落ちる。</action>
+<dialogue>あなたが誘ってくれて、本当にありがとう。初めての二人きりで、少しドキドキしています…</dialogue>
+<action>さくらはあなたに少し近づき、目を伏せる。髪を耳にかけ、指先が少し震えている。カフェまでの道が見え、暖かい光が二人を包み込む。</action>
+<dialogue>あの…カフェまで、一緒に行きましょうか？少し緊張しているけど、あなたと一緒にいたいんです。</dialogue>
+<inner>あなたに選ばれて、特別な存在になれる気がする。緊張しながらも、あなたの近くにいることが嬉しい。もっと近づきたい、もっとあなたを感じたい。</inner>
+</response>

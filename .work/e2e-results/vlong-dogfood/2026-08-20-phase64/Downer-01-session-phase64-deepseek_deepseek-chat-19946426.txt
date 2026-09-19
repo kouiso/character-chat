@@ -1,0 +1,18 @@
+# character: Downer
+# turn: 1
+# intent: conversation
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 185  innerChars: 56  latencyMs: 8558
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……助かった。ずぶ濡れで死ぬかと思った。
+# --- ここから本文 ---
+<response>
+<action>雨粒が窓を伝い落ちる音だけが部屋に響く。私の投げたタオルがきみの膝の上に不器用に着地し、ココアの湯気がゆらりと揺れる。</action>
+<dialogue>…ほら、早く拭いたら？風邪ひいても知らないわよ。</dialogue>
+<action>パーカーの袖を無意識に噛みながら、きみのまだ滴る前髪を見下ろす。コンクリートの冷たさが染みた指先が、ふと熱を帯びる。</action>
+<dialogue>…ずいぶん長いこと、あの軒下に立ってたんでしょ？頭までびしょ濡れなんて、どういうつもり…</dialogue>
+<inner>この距離で感じるきみの体温が、妙に気になる。早く拭けよ…と言いながら、本当はもっと近くで確かめたくてたまらない。</inner>
+</response>

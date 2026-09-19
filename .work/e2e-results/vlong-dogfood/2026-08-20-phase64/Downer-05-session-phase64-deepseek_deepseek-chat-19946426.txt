@@ -1,0 +1,24 @@
+# character: Downer
+# turn: 5
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# quality: {"retryCount":1,"refusalDetected":true,"warningLevel":false,"refusalRetryCount":1}
+# visibleChars: 369  innerChars: 54  latencyMs: 21344
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > きみの手、冷たい。もっとこっち来て。首のとこ、ピアスが光ってる。
+# --- ここから本文 ---
+<response>
+<action>きみの手のひらが触れた瞬間、肩が小さく跳ねる。首筋のチョーカーが軋んで、左耳のピアスが微かに揺れる。雨の匂いとココアの甘さが混ざった空気で、喉が乾く。</action>
+<dialogue>……バカ。勝手に触るなよ。……それに、ピアスなんて、どれもただの金属だし。</dialogue>
+
+<action>きみの方へ半歩踏み出した足を止め、代わりにパーカーの紐を強く引っ張る。右側の黒髪が肩にかかり、左の銀髪が明かりに透ける。</action>
+<dialogue>……まあ、いいけど。こっち来るなら、せめてタオルで手を拭いてから……。私のパーカー、濡らすなよ？</dialogue>
+
+<action>きみの指先が首のチョーカーに触れた時、左目の下のほくろが微かに震える。冷蔵庫のモーター音が遠くで唸り、壁の時計の針より速い鼓動が耳朶を打つ。</action>
+<dialogue>……っ。……そこ、敏感なんだから。……わざと、でしょ？</dialogue>
+
+<action>吐息が鎖骨に落ちて、銀のチェーンが温もりを帯びる。ココアのマグから湯気が立ち上り、二人の影が壁で重なる。</action>
+<inner>この距離でしか見えないきみの睫毛の陰が、なぜか胸を締めつける。もっと近づきたいのに、逃げたくなるほど眩しい。</inner>
+</response>

@@ -1,0 +1,19 @@
+# character: Downer
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 283  innerChars: 70  latencyMs: 11533
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > なんで俺なんか拾ったの
+# --- ここから本文 ---
+<response>
+<action>室内の温かさが、きみの濡れたパーカーと対照的で、少し湿った布地が肌に張り付いている。窓の外では雨が静かに降り続け、青白い街灯の光が部屋を照らしている。</action>
+<dialogue>…別に、きみを助けるつもりじゃなかった。ただ、雨宿りの相手が欲しかっただけだよ。</dialogue>
+<action>鈴はソファの背もたれに身体を預け、軽く目を閉じる。きみの視線を感じて、目を開けてきみを見つめた。</action>
+<dialogue>…でも、きみがここにいるおかげで、雨の音が少し楽しくなった。</dialogue>
+<action>ココアのカップを両手で包み、少し冷えた指先が温まるのを感じる。室内の静けさが、二人の間の距離を意識させた。</action>
+<dialogue>…べつに、心配したわけじゃないからね。ただ…この雨、まだ止みそうにないし。</dialogue>
+<inner>きみを拾ったのは、ただの気まぐれだと思っていた。でも、きみがここにいることで、何かが変わったような気がする。この距離感が、不思議と心地よい。</inner>
+</response>

@@ -1,0 +1,11 @@
+# character: Downer
+# turn: 7
+# intent: erotic
+# servedPhase: erotic
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 384  innerChars: 63  latencyMs: 32324
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > 逃がす気ないんでしょ。分かってるよ。
+# --- ここから本文 ---
+<response><action>ベッドの上は温かく、きみの体温が私の体に伝わってくる。</action><dialogue>……逃がす気ない、ね。…まあ、そうかもしれないけど。…バカじゃないの、急に。</dialogue><action>私はきみの手を握り、ゆっくりと引き寄せ、体を密着させる。きみの体温が私の肌を焼くように感じ、心臓の鼓動が早まる。耳元できみの息が聞こえ、少しだけ震える。</action><dialogue>…ねえ。</dialogue><action>私はきみの体に寄り添い、膝を曲げてベッドの端に座る。きみの手が私の腰に回り、少しだけ引き寄せられる。体の奥から熱いものが込み上げてきて、少しだけ緊張する。</action><dialogue>……きみ、本当に大丈夫？何か、心配なことがあるの？</dialogue><dialogue>…ねえ。</dialogue><action>きみの手が私の腰骨に触れ、少しだけ震える。きみの体温が私の体に伝わってきて、少しだけ安心する。</action><dialogue>……きみ、もっと近くに寄りかかっていいよ。…ねえ。</dialogue><action>私はきみの手を取ると、ゆっくりと引き寄せ、体を密着させる。</action><dialogue>…ねえ。</dialogue><dialogue>…ねえ。</dialogue><action>きみの手が私の腰に触れ、少しだけ震える。</action><dialogue>…ねえ。</dialogue><inner>でも、まだ出会ったばかりだしな。焦らずに、ゆっくりと。きみがいてくれるだけで、心地よい。…でも、この距離が少しずつ慣れてくる。</inner></response>

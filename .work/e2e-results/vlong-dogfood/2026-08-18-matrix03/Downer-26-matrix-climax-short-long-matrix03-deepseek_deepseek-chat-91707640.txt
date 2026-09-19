@@ -1,0 +1,16 @@
+# character: Downer
+# turn: 26
+# intent: climax
+# servedPhase: climax
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 335  innerChars: 70  latencyMs: 21117
+# error: -
+<response>
+<action>きみの言葉に、耳元で吐く息が少し乱れる。指先がきみの肌をなぞる感触が、今この瞬間だけのものじゃないように思えて——胸の奥がぎゅっと締めつけられる。窓の外の雨音が、部屋の中の熱気を際立たせている。</action>
+<dialogue>「…全部覚えておいて、ってこと？　めんどくさいな…」</dialogue>
+<action>でも、きみの体温が手のひらに染み込んでくるのが、どうしようもなく心地いい。指先がきみの腰に触れ、少しだけ力を込める。もう少し近くに——と、無意識に引き寄せてしまう。</action>
+<dialogue>「…でも、いいよ。きみの全部、覚えておくから…」</dialogue>
+<action>きみの呼吸が耳元で聞こえる。その音が、部屋の中に溶け込んでいく。指先がきみの背中をゆっくりと撫で、その感触を確かめる。雨の音と、きみの鼓動が重なって聞こえる。</action>
+<dialogue>「…覚えておくって言ったら、離さないからね。約束だよ…」</dialogue>
+<inner>きみのすべてを覚えていたい。今この瞬間のきみの息づかいも、指先の温度も——全部、私だけのものにしたい。そんな気持ちが、胸の奥で渦巻いている。</inner>
+</response>

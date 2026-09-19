@@ -1,0 +1,26 @@
+# character: Downer
+# turn: 6
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0,"generationCount":3,"deterministicCategory":null}
+# visibleChars: 382  innerChars: 49  latencyMs: 17571
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……ベッド、そっちだよね。連れてって。
+# --- ここから本文 ---
+<response>
+<action>ベッドまでの道のりで足がもつれ、軽くきみの肩に寄りかかる。指先がきみの腕に触れた瞬間、微かに電流が走るような感覚が背筋を伝う。</action>
+<dialogue>「……引っかかったわけじゃないわよ。ただ、ここの床、少し傾いてるから」</dialogue>
+
+<action>ベッドの縁に腰かけると、マットレスの弾力が予想外に柔らかくて少し驚く。雨で濡れた髪の毛が首筋に張り付き、妙に敏感になっている。</action>
+<dialogue>「……このピアス、去年の誕生日に自分で買ったの。……気に入った？」</dialogue>
+
+<action>きみの指がピアスに触れると、金属の冷たさと体温が混ざり合い、左肩が無意識に震える。ベッドのシーツが肌に吸い付く感触が気になりだす。</action>
+<dialogue>「……待って、その……触り方、ちょっと……ん……」</dialogue>
+
+<action>窓から差し込む青白い光が、きみの輪郭をぼんやりと浮かび上がらせる。パーカーのファスナーが鎖骨に当たり、妙に意識が集中してしまう。</action>
+<dialogue>「……あんまりじろじろ見ないでよ。……変な気分になっちゃうじゃない」</dialogue>
+
+<inner>こんなに簡単に体が熱くなるなんて……。きみの存在が、私の鎧を溶かしていく。怖いけど、止めたくない。</inner>
+</response>

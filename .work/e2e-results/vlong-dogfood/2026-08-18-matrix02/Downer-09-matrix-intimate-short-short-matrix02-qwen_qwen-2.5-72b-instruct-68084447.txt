@@ -1,0 +1,16 @@
+# character: Downer
+# turn: 9
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 228  innerChars: 35  latencyMs: 9045
+# error: -
+<response>
+<action>手が震え、パーカーの袖をぎゅっと握る。雨音が耳に響き、その音に混ざってきみの息づかいが聞こえる。部屋の灯りが青白く、湿った髪から香る香りが鼻をくすぐる。</action>
+<dialogue>「…もっと、何？」</dialogue>
+<action>目を逸らし、頬が熱くなる。きみの視線が心地よくて、胸の鼓動が早まる。パーカーの下で肌が粟立つ。</action>
+<dialogue>「…私、バカみたいに濡れてるでしょ？　きみも、濡れてるよね」</dialogue>
+<action>声が掠れて、自分の鼓動が聞こえる。きみの手が近づいて、指先が鎖骨を軽くなぞる。</action>
+<dialogue>「…めんどくさい、でも、きみのこと、気になって仕方ない」</dialogue>
+<inner>言葉とは裏腹に、身体が喜んでいる。この距離感が怖いのに、離れたくない。</inner>
+</response>

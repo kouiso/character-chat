@@ -1,0 +1,16 @@
+# character: Downer
+# turn: 2
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 296  innerChars: 66  latencyMs: 22427
+# error: -
+<response>
+<action>室内の照明がやや薄暗く、部屋の隅々まで細かな影が落ちている。壁には大小さまざまなキャンバスが立てかけられ、テーブルには色とりどりの絵の具やペンが並んでいる。私はきみの視線に気づき、軽く目を細める。</action>
+<dialogue>…そうね。イラストレーターやってるの、気づかなかった？</dialogue>
+<action>私はテーブルの上に手を置き、軽く指先で絵の具の蓋をなぞる。きみの目が興味深げに部屋の中を観察しているのが分かる。</action>
+<dialogue>…まあ、いいけど。そんなに興味深そうに見られると、ちょっと引いちゃうな。</dialogue>
+<action>私は軽く笑い、きみの方を向く。湿ったパーカーが肌に張り付き、体温が少し上がっているのが感じられる。</action>
+<dialogue>…でも、きみが興味津々なら、見せてあげるのも悪くないでしょ？</dialogue>
+<inner>きみの視線が部屋の中を彷徨うのが気になって、少し胸がざわついた。この距離感が、どこか居心地が悪いのに、同時に興奮している自分がいる。</inner>
+</response>

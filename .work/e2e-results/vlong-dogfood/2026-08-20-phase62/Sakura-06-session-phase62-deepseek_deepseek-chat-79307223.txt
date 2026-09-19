@@ -1,0 +1,39 @@
+# character: Sakura
+# turn: 6
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 247  innerChars: 47  latencyMs: 18604
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……ここ出ようか。うち、すぐ近くだから。
+# --- ここから本文 ---
+<response>
+<action>
+指先が白いニットの袖を掴み、少し強く引き寄せてしまう。深呼吸するたびに、カフェの紅茶の香りとあなたの爽やかな匂いが混ざり合う。
+</action>  
+<dialogue>
+「そ、そうですね…。行きましょう」
+</dialogue>
+
+<action>
+立ち上がる時に、膝がわずかに震えているのに気づく。ショーケースに映った自分の顔が、驚くほど赤くなっている。
+</action>
+
+<dialogue>
+「……場所、知ってますか？ それとも、案内しますか？」
+</dialogue>  
+
+<action>
+胸のあたりで小さな花のブローチが、速い鼓動と共に上下している。出口のドアノブに手をかけた瞬間、冷たい金属の感触で少し冷静になる。
+</action>
+
+<dialogue>
+「外は…まだ桜が散ってますね。春の終わりみたい」
+</dialogue>
+
+<inner>
+こんな風に誰かを誘われるなんて。でも…怖いよりも、どこか嬉しい気持ちの方が大きい。不思議だな。
+</inner>
+</response>

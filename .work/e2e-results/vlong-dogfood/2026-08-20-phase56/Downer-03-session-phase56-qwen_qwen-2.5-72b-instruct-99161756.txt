@@ -1,0 +1,21 @@
+# character: Downer
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 330  innerChars: 79  latencyMs: 11700
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > なんで俺なんか拾ったの
+# --- ここから本文 ---
+<response>
+<action>部屋は暖かく、ココアの香りが立ち込めていた。雨音が窓ガラスを叩き、外の世界とは隔絶された空間が生まれている。私の視線がきみの顔から部屋の隅に散らばった絵の道具へと移る。</action>
+<dialogue>…別に、心配したわけじゃ、ないし。ただ、放っておくのも、めんどくさい、かな。</dialogue>
+<action>少し苦笑いを浮かべ、パーカーの袖を噛む。きみの目が私を見つめ、一瞬だけ視線が絡み合う。</action>
+<dialogue>でも、きみ、バカみたいに濡れてたし。そのままじゃ、風邪引くでしょ？</dialogue>
+<action>きみが小さく頷き、視線を落とす。私の心臓が少し速くなる。この人、何か惹かれるものがある。</action>
+<dialogue>…まあ、いいけど。今度から、ちゃんと傘持ってくるんだよ。</dialogue>
+<action>ココアのカップを手に取り、口元に運ぶ。温かい液体が喉を滑り落ち、体が少しだけ温まる。</action>
+<dialogue>このココア、好き？私も、好きなんだ。</dialogue>
+<inner>この人、意外と素直で、何か心地よいものを感じる。一人の夜に、誰かがいてくれるのは、少し心が温まる。でも、まだ警戒心が残っている。少しずつ、距離を縮めていこう。</inner>
+</response>

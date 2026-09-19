@@ -1,0 +1,7 @@
+# character: Sakura
+# turn: 37
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: (none)
+# visibleChars: 0  innerChars: 0  latencyMs: 21905
+# error: stream ended without [DONE]

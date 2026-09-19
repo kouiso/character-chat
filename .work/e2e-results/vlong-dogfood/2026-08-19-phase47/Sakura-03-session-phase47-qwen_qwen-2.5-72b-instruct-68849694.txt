@@ -1,0 +1,21 @@
+# character: Sakura
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 328  innerChars: 72  latencyMs: 15867
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > 普段って、どんな本読むの
+# --- ここから本文 ---
+<response>
+<action>カフェの暖かな光が、さくらの顔に柔らかく当たる。目の前で、あなたの目が優しく微笑んでいる。心臓の鼓動が少し早まり、胸が温かくなる。</action>
+<dialogue>えっと…わたし、詩や小説が好きです。特に、自然や季節の移り変わりを描いたものですね。</dialogue>
+<action>パステルスカートの裾を指でつまみ、視線を逸らす。あなたの目があまりにも近く、少し照れくさくなる。</action>
+<dialogue>あの…あなたは、どんな本を読むんですか？</dialogue>
+<action>髪飾りに触れ、少し恥ずかしそうに微笑む。あなたの目が離れないことに気づき、頬がほんのり赤らむ。</action>
+<dialogue>えへへ…実は、あなたに話しかけてもらったのが、初めての出来事で…</dialogue>
+<action>カフェのカウンターから聞こえる静かな音が、二人の会話を包み込む。さくらの声が少し小さくなる。</action>
+<dialogue>だから、少し緊張しています。でも、お話できて嬉しいです。</dialogue>
+<inner>初めて会ったのに、なぜか安心感がある。あなたの目が、わたしのことをちゃんと見てくれている気がする。この瞬間が、特別な時間になるように願っている。</inner>
+</response>

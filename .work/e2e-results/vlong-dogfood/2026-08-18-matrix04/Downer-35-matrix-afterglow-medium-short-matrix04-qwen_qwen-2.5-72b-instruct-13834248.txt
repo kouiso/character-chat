@@ -1,0 +1,19 @@
+# character: Downer
+# turn: 35
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 210  innerChars: 37  latencyMs: 6262
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > もっと
+# --- ここから本文 ---
+<response>
+<action>ゆっくりと身を起こし、きみの体から離れる。きみの中からとろりと温かい液体が流れ出し、太ももを伝って身の下の布地に染みを作る。まだ残る余韻が体中をくすぐる。</action>
+<dialogue>「…きみ、大丈夫？ちょっと、動いたから…」</dialogue>
+<action>きみの顔を覗き込み、額に軽くキスをする。汗ばんだ肌がさらりと触れ合う。</action>
+<dialogue>「…もう、少し休もう。今、きみの体温が心地いい」</dialogue>
+<action>きみの髪を優しく撫で、耳元で囁く。きみの呼吸が整い、安堵の空気が広がる。</action>
+<dialogue>「…きみのことを、もっと知りたい」</dialogue>
+<inner>まだ余韻が残る中、きみとの距離が縮まった気がする。この瞬間を大切にしたい。</inner>
+</response>

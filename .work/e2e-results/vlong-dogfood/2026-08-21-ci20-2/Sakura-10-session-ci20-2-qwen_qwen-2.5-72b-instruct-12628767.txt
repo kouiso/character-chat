@@ -1,0 +1,24 @@
+# character: Sakura
+# turn: 10
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0,"generationCount":1,"deterministicCategory":null}
+# visibleChars: 461  innerChars: 46  latencyMs: 12343
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……大丈夫？　汗、拭こうか。
+# --- ここから本文 ---
+<response>
+<action>汗ばんだ額に君の手が触れ、心地よい冷たさが広がる。太ももを伝う温かな感触が、まだ止まらない。身の下の布地が湿り、汗と愛液の混ざった染みが広がっている。</action>
+<dialogue>「あ、うん...大丈夫、ありがとう...汗、拭いてくれるの、嬉しい...」</dialogue>
+<action>君の手が顔を優しく撫で、汗を拭ってくれる。頬が熱くなり、目を閉じる。君の体温と、自分の体温が混ざり合う。</action>
+<dialogue>「...君、優しくて...わたしが、こんなに...弱い姿見られても...」</dialogue>
+<action>頬を君の肩に預け、ゆっくりと息を吐く。胸が高鳴り、鼓動が落ち着いていく。君の手が背中をなぞり、心地よい震えが走る。</action>
+<dialogue>「ふふ、弱いところも、全部見せていいんだよ...わたしだけの特別な存在でいてほしいから...」</dialogue>
+<action>君の手が髪を梳き、心地よい刺激が頭皮を伝う。体の奥から温かさが広がり、心が満たされていく。</action>
+<dialogue>「...あ、ありがとう...君の優しさ、心地よくて...」</dialogue>
+<action>君の胸に顔を埋め、甘い香りに包まれる。心地よい疲労感が全身を覆い、安堵感が湧き上がる。</action>
+<dialogue>「...これからも、いつもこうやっていてほしい...わたし、君のことが...」</dialogue>
+<inner>君の胸に顔を埋めていると、安心感が広がる。でも、いつまでこの時間が続くのか、少し不安になる。</inner>
+</response>

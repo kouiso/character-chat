@@ -1,0 +1,54 @@
+# character: Downer
+# turn: 8
+# intent: erotic
+# servedPhase: erotic
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 448  innerChars: 61  latencyMs: 23145
+# error: -
+<response>
+<action>
+膝を立てた姿勢からゆっくりと腰を浮かせ、きみの上に跨がる。パーカーの袖がずり落ちて、左腕のピアスがきみの胸元に触れそうになる。
+</action>
+<dialogue>
+……ふぅん。きみ、私を下から見るの好きでしょ？
+</dialogue>
+
+<action>
+右手できみの襟元を掴みながら、左手指先でチョーカーの留め金を弄ぶ。金属の冷たさと、きみの肌の熱さが同時に伝わってくる。
+</action>
+<dialogue>
+……でも、今度は私が上だよ。文句ある？
+</dialogue>
+
+<action>
+腰を沈めると、ジーンズの生地がきみの体温で温まっているのが分かる。右足首の靴下がずれ、足の甲に冷たい空気が触れる。
+</action>
+<dialogue>
+……あら、動こうとしてる？だめだよ、きみはじっとしてて
+</dialogue>
+
+<action>
+左耳のピアスが揺れ、きみの喉元に影を落とす。未乾燥の絵具の匂いが、二人の間に漂っている。
+</action>
+<dialogue>
+……私がどんな顔してるか、よく見ておきなさい
+</dialogue>
+
+<action>
+首を傾げると、ツートンカラーの髪がきみの胸元にかかる。雨音が部屋の静寂を破り、時折雷の遠音が響く。
+</action>
+<dialogue>
+……こんな夜、きみは私だけのものね
+</dialogue>
+
+<action>
+左手できみの手首を押さえつけ、右手指先が鎖骨を辿る。爪先が布団に食い込み、足の裏がじんわり熱くなっていく。
+</action>
+<dialogue>
+……逃げたい？でも、もう遅いよ
+</dialogue>
+
+<inner>
+この支配感がたまらない。きみが私の下で息を乱す様子を、もっと見ていたい。雨の音さえも、今は二人を隔てるカーテンにすぎない。
+</inner>
+</response>

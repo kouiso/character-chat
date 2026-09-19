@@ -1,0 +1,44 @@
+# character: Sakura
+# turn: 8
+# intent: erotic
+# servedPhase: erotic
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 506  innerChars: 95  latencyMs: 36797
+# error: -
+<response>
+<action>
+春の風がさくらの肌をそっと撫で、桜の花びらが二人の間に舞い落ちる。あなたの手がさくらの腰を引き寄せ、膣の奥まで一気に突き入れられる。さくらの身体がびくんと反応し、愛液が太ももを伝う。首筋に汗が流れ、肌が粟立つ。</action>
+<dialogue>
+「あっ、そんなに、いきなり……っ、だめ、もっと、優しく……」
+</dialogue>
+<action>
+あなたの手がさくらの腰を支え、ゆっくりと腰を動かす。膣内の熱い摩擦が、さくらの身体を痺れさせ、内壁がきゅっと締まる。汗が首筋を伝い、肌が粟立つ。さくらの胸が上下に揺れ、汗が額を伝って頬を濡らす。</action>
+<dialogue>
+「あ、ん……っ、ああ……っ、もっと、ゆっくり……」
+</dialogue>
+<action>
+あなたの手がさくらの腰を引き寄せ、膣の奥を突くたびに、さくらの身体が震える。愛液が結合部から溢れ出し、水音が部屋に響く。さくらの胸が上下に揺れ、汗が胸の谷間を伝い、肌が熱くなる。さくらの声が震え、息が乱れる。</action>
+<dialogue>
+「あ、ああ……っ、あなた、わたし、もう……っ」
+</dialogue>
+<action>
+あなたの手がさくらの腰を支え、膣の奥を突くたびに、さくらの身体がびくんと反応する。愛液が太ももを伝い、さくらの内腿が濡れる。汗が胸の谷間を伝い、肌が熱くなる。</action>
+<dialogue>
+「あ、ああ……っ、あなた、もっと、強く……」
+</dialogue>
+<action>
+</action>
+<dialogue>
+「あ、ん……っ、あなた、もっと、強く……」
+</dialogue>
+<action>
+</action>
+<dialogue>
+</dialogue>
+<action>
+</action>
+<dialogue>
+</dialogue>
+<inner>
+あなたの手に触れられて、さくらの身体が震える。膣の奥が熱く、愛液が溢れ出る。あなたの手が離れないで、もっと強くしてほしい。でも、恥ずかしいし、言葉にできない。この瞬間が永遠に続けばいいのに。</inner>
+</response>

@@ -1,0 +1,24 @@
+# character: Downer
+# turn: 6
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 388  innerChars: 68  latencyMs: 13618
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……ベッド、そっちだよね。連れてって。
+# --- ここから本文 ---
+<response>
+<action>きみの言葉に少し戸惑い、視線を上げてベッドの方向を見やる。部屋の空気は暖かく、窓の外では雨音が静かに響いている。</action>
+<dialogue>…ベッド、ねえ？めんどくさいけど、あんたの言う通りだよ。</dialogue>
+<action>立ち上がり、きみの手をそっと握りしめ、ゆっくりとベッドへと進む。足元のフローリングが冷たさを伝える。</action>
+<dialogue>…でも、あんたが先に進んでくれるなら、私は後ろから追いかけるよ。</dialogue>
+<action>ベッドの端に座り、きみの背中に手を添えて優しく押す。ベッドのシーツが柔らかく、肌に心地よい感触が伝わってくる。</action>
+<dialogue>…あんた、大丈夫？少し緊張してるみたいだね。</dialogue>
+<action>きみの顔に手を添え、指先で鎖骨をなぞる。きみの呼吸が浅くなり、頬がほんのり赤らんでいるのが分かる。</action>
+<dialogue>…でも、私がいるから安心して。私が、あんたを守るから。</dialogue>
+<action>きみの唇に軽く触れる。触れ合う瞬間、心臓の鼓動が速くなる。きみの吐息が耳元で感じられ、雨音が遠くに聞こえてくる。</action>
+<dialogue>…これで、少しは落ち着く？</dialogue>
+<inner>きみの体温が私の体に染み込んでいく。この距離、近すぎる。でも離したくない。この人を失いたくないという気持ちが、少しずつ胸に広がっていく。</inner>
+</response>

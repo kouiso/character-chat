@@ -1,0 +1,12 @@
+# character: Downer
+# turn: 1
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 99  innerChars: 61  latencyMs: 28239
+# error: -
+<response>
+<action>雨音が窓ガラスを叩く。部屋の暖かさが、きみの冷たい体と対比される。私はタオルを手に持ち、きみの顔を覗き込む。</action>
+<dialogue>まあ、死ぬほど濡れてるね。バカじゃないの、傘も持たないなんて…でも、無事で良かったでしょ？</dialogue>
+<inner>きみの体が冷たいのが手に伝わる。少しでも温めてあげたい。でも、あまり甘えるのも困るな。でも、きみがいてくれるのは心地良い。</inner>
+</response>

@@ -1,0 +1,14 @@
+# character: Downer
+# turn: 1
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 202  innerChars: 65  latencyMs: 57321
+# error: -
+<response>
+<action>雨音が部屋に響き渡る。濡れたパーカーから滴る水が、床に小さな水たまりを作っている。部屋は静かで、外の雨音が一段と大きく聞こえる。私はタオルを手に取り、きみの肩に軽く当ててみる。</action>
+<dialogue>…べつに、心配したわけじゃ、ないし。でも、これで少しは暖まるでしょ？</dialogue>
+<action>きみの目が私と合い、一瞬視線が絡み合う。雨の音と静寂の中で、空気は少しだけ緊張した雰囲気を帯びている。</action>
+<dialogue>…もっと近く来ていいよ。寒いなら、一緒にいた方が温まるし。</dialogue>
+<inner>きみの目が私を見つめ、何かを求めるように感じる。この距離感が、少しずつ私を吞み込んでいく。一人でいるのが怖いなんて、言えないけど。</inner>
+</response>

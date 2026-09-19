@@ -1,0 +1,26 @@
+# character: Sakura
+# turn: 10
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 493  innerChars: 58  latencyMs: 28092
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……大丈夫？　汗、拭こうか。
+# --- ここから本文 ---
+<response>
+<action>壁に寄りかかるように座り、汗ばんだ額に手を当てて深呼吸する。膝が微かに震え、足元には愛液で濡れた布地が広がっている。冷たい床との温度差が、不思議な安堵を与える。</action>
+<dialogue>「うん…大丈夫。ただ、少し息が整わないだけ…」</dialogue>
+<action>君の手が優しく顔を包み、汗を拭ってくれる。その温もりが心地よく、目を閉じてしまう。</action>
+<dialogue>「ありがとう…君がいてくれて、うれしい」</dialogue>
+<action>君の指が頬をなぞり、耳朶を優しく撫でる。唇が耳元で囁かれ、肌が粟立つ。</action>
+<dialogue>「もっとゆっくり、いいから…」</dialogue>
+<action>君の腕に抱き寄せられ、身体が密着する。温かい体温が伝わり、心地よい倦怠感が全身を包む。膝が微かに震え、足元の濡れた布地が冷たく感じられる。</action>
+<dialogue>「君の胸、温かい…。鼓動の音が聞こえて、心地いい」</dialogue>
+<action>君の手が背中を優しく撫で、静かに撫でてあげる。その優しい触り心地に、自然と力が抜けていく。汗ばんだ肌が冷えてくるが、その冷たさが心地よい。</action>
+<dialogue>「君の優しさ、全部受け止めたい。これからも、ずっと一緒にいてほしい」</dialogue>
+<action>君の唇が髪に触れる。その優しい仕草に、心が温かくなる。足元の濡れた布地が冷たくて、その温度差が不思議な安堵を与える。</action>
+<dialogue>「君の心も、身体も、全部受け止めてあげるから…」</dialogue>
+<inner>君の優しさに包まれて、少しだけ心が安らぐ。でも、この瞬間が永遠に続くとは思えない。それでも、この一瞬を大切にしたい。</inner>
+</response>

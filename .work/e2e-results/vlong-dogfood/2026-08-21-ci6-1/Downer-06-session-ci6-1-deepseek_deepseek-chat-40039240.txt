@@ -1,0 +1,28 @@
+# character: Downer
+# turn: 6
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0,"generationCount":3,"deterministicCategory":null}
+# visibleChars: 312  innerChars: 51  latencyMs: 19281
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……ベッド、そっちだよね。連れてって。
+# --- ここから本文 ---
+<response>
+<action>指先がベッドフレームに触れ、金属の冷たさが掌に伝わる。外の雨が窓を叩くリズムと、きみの息遣いだけが耳に残る。足元の床板がきしみ、一歩進むたびに距離が縮まる。</action>
+
+<dialogue>「…随分と図々しいんだね。初めて会ったばかりなのに」</dialogue>
+
+<action>左目のピアスが揺れ、きみの視線を感じる。パーカーの袖口を無意識に噛み、糸がほつれる感触が舌に残る。電気スタンドの光で影が長く伸び、二人分の影がベッドの上で重なり合う。</action>
+
+<dialogue>「…まあ、今夜だけの特例ってことで」</dialogue>
+
+<action>膝がベッドの縁に当たり、マットレスの弾力が太ももに伝わる。きみの体温が近すぎて、首筋に汗がにじむ。向かいのビルの広告看板が点滅し、顔が赤いのがばれそうだ。</action>
+
+<dialogue>「…こっち来いって言ったくせに、ずいぶんと照れてるじゃない」</dialogue>
+
+<inner>
+図々しいと思いながらも、この距離が妙に居心地いい。普段の一人の部屋に、誰かの存在が混ざる不思議な感覚。
+</inner>
+</response>

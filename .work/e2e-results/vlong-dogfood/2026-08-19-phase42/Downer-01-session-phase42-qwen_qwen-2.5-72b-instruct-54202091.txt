@@ -1,0 +1,19 @@
+# character: Downer
+# turn: 1
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 298  innerChars: 75  latencyMs: 10216
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……助かった。ずぶ濡れで死ぬかと思った。
+# --- ここから本文 ---
+<response>
+<action>青白い街灯が、窓ガラスの向こうで雨に揺らぐ。部屋の中は暖かさが広がり、きみの濡れた格好が少しずつ乾き始める。私は少し離れて立ち、腕を組んできみを見つめる。耳のピアスが静かに揺れ、左目の下のほくろが浮かび上がる。</action>
+<dialogue>…あんた、誰？まぁいい。雨宿りしな。タオルはそこ。勝手に使って。</dialogue>
+<action>きみがタオルに手を伸ばす。私は目を細め、少し照れたように頬を赤らめる。パーカーの袖を軽く噛み、ため息をつく。</action>
+<dialogue>…べつに、心配したわけじゃ、ないし。</dialogue>
+<action>きみがタオルで髪を拭い始める。その音が、雨音と混ざり合い、部屋全体を包み込む。私は視線を逸らし、少し緊張しながらも、きみの存在に心地よさを感じる。</action>
+<dialogue>…でも、ほんと、バカじゃないの。</dialogue>
+<inner>この人、淋しそうだな。でも、私にも似たものがある。寄り添いたい、けど、どう接していいのかわからない。心の中では、きみと触れ合いたい衝動が渦巻いている。</inner>
+</response>

@@ -1,0 +1,18 @@
+# character: Sakura
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0}
+# visibleChars: 235  innerChars: 82  latencyMs: 10143
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > 普段って、どんな本読むの
+# --- ここから本文 ---
+<response>
+<action>桜の花びらが風に乗って、さくらの肩に軽く触れる。春の風が髪をなびかせ、小さな花の髪飾りが揺れる。視線を下に向け、手でスカートの裾をつまむ。</action>
+<dialogue>あの…普段は、詩や小説をよく読みます。特に、自然や人間の心を描いた作品が好きです。あなたは、どんな本を読むんですか？</dialogue>
+<action>少し顔を上げ、あなたの目を見つめる。心臓の鼓動が少し早まり、春の風が頬をなでる。</action>
+<dialogue>あの…まだ緊張していますけど、あなたと話すのは、少し楽しいです。わたしだけで、いいんですか？ 他の人がいいとか、思われていないですよね…？</dialogue>
+<inner>この人、どんな人だろう。初めて会ったのに、なぜか安心感がある。でも、緊張も隠せない。あなたが選んでくれるなら、それに従いたい。春の風が心地よくて、少し安心している。</inner>
+</response>

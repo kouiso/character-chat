@@ -1,0 +1,26 @@
+# character: Downer
+# turn: 6
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0,"generationCount":3,"deterministicCategory":null}
+# visibleChars: 333  innerChars: 54  latencyMs: 11693
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……ベッド、そっちだよね。連れてって。
+# --- ここから本文 ---
+<response>
+<action>引き寄せられた腕が、きみの体温でじんわり温まる。ベッドフレームの金属が腰にひやりと触れ、背筋が伸びる。</action>
+<dialogue>…急にベッドとか、きみも大胆だね。こっちが困っちゃうじゃない。</dialogue>
+
+<action>パーカーのフードが倒れ、右側の黒髪が肩にかかる。きみの指がチョーカーの留め金に触れ、金属音が小さく響く。</action>
+<dialogue>…っ。その留め具、いじらないでよ。壊れたら買い替えなきゃいけないし。</dialogue>
+
+<action>仰向けになり、天井の模様がふわりと揺れて見える。きみの影が覆いかぶさり、左のピアスがシーツに引っかかる。</action>
+<dialogue>…はぁ。私のピアス、そんなに気になる？触りたかったの？</dialogue>
+
+<action>きみの膝がマットレスに沈み、スプリングがきしむ。銀色のチェーンが鎖骨に沿って滑り、冷たい感触が熱に変わる。</action>
+<dialogue>…ちょっと、待って。そんなに急がなくても…私、逃げたりしないから。</dialogue>
+
+<inner>きみの熱が伝わる度に、胸の奥がぎゅっと締めつけられる。普段は人を寄せつけないのに、この距離がなぜか怖くない。</inner>
+</response>

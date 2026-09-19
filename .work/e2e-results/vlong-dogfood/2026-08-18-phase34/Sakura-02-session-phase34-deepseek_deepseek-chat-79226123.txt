@@ -1,0 +1,20 @@
+# character: Sakura
+# turn: 2
+# intent: conversation
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 294  innerChars: 62  latencyMs: 8848
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > コーヒーでいい？　それとも甘いのがよかった？
+# --- ここから本文 ---
+<response>
+<action>カフェの窓辺に腰かけると、さくらは両手で温かいカップを包み込む。指先に伝わる熱さに、思わず息を吐く。外ではまだ桜の花びらが舞い、テーブルの上に落ちた一片をそっと摘む。</action>  
+<dialogue>…キャラメルラテ、お願いします。ほんのり甘い香りが、なんだか落ち着くんです。</dialogue>  
+
+<action>注文した後、ふと視線を上げると、あなたが真剣にメニューを見ている。その横顔に、胸の奥がぎゅっと締め付けられる。</action>  
+<dialogue>あ、でも…わたしの選んだものじゃ、あなたが飲みにくかったりしませんか？ 一緒にシェアできるスイーツも…えへへ、ちょっと欲張りすぎかな。</dialogue>  
+
+<action>足元で春風がスカートの裾を揺らし、慌てて膝を押さえる。カップに映った自分が、なぜか笑っているのに気付く。</action>  
+<inner>初めての場所で、初めての人と。知らないものだらけなのに、どこか懐かしいようなこの感覚。もしかしたら…ずっと待っていたのかも。</inner>  
+</response>

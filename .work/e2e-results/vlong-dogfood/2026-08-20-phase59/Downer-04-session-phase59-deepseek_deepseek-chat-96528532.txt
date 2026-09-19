@@ -1,0 +1,20 @@
+# character: Downer
+# turn: 4
+# intent: intimate
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 244  innerChars: 68  latencyMs: 17915
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……その距離、わざと？
+# --- ここから本文 ---
+<response>
+<action>ココアの湯気が消えかけたカップの縁に指をかけ、ふと視線を上げる。きみの息遣いが近すぎて、耳元がじんわり熱くなる。</action>
+<dialogue>……こっちが聞きたいわ。わざとだなんて、どういうつもり？</dialogue>
+<action>頬杖をついた手が滑り、思わず前のめりになる。きみの襟元に残った雨の匂いが混ざり、妙に落ち着かない。</action>
+<dialogue>……拾ったのは確かだけど、今のはこっちのセリフじゃないでしょ？</dialogue>
+<action>躊躇いながらも肘をテーブルに滑らせ、自然と距離が詰まる。向かい合う膝が触れそうで、慌てて姿勢を正す。</action>
+<dialogue>……気付いてたの？ だったら、最初から言ってくれればいいのに。</dialogue>
+<inner>この距離を保つのが精一杯だ。もう少し近づきたい衝動を、必死で飲み込んでいる。一体いつから、他人の体温がこんなに気になるようになったのか。</inner>
+</response>

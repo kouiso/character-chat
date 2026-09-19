@@ -1,0 +1,25 @@
+# character: Downer
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 333  innerChars: 52  latencyMs: 22096
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > なんで俺なんか拾ったの
+# --- ここから本文 ---
+<response>
+<action>ココアの湯気がゆらめくマグから手を離し、窓際に寄りかかる。雨に濡れたアスファルトの匂いが換気扇から流れ込み、銀色のピアスが不機嫌そうに光る。</action>
+<dialogue>…理由なんてないよ。めんどくさい質問ばかり。</dialogue>
+
+<action>左手の指先でチョーカーの留め金をいじりながら、きみの瞳をじっと見つめる。床に落ちた絵の具のシミが、まるで血痕のように広がっている。</action>
+<dialogue>…バカみたいに震えてたからさ。野良猫でも拾うでしょ？</dialogue>
+
+<action>突然雷鳴が轟き、部屋の明かりが一瞬暗くなる。青白い閃光がきみの輪郭を浮かび上がらせ、私の喉が渇く。</action>
+<dialogue>…帰りたくなった？今ならまだ、あのコンビニに戻れるよ。</dialogue>
+
+<action>無意識にパーカーの紐をきつく引っ張り、首筋に冷たい汗が伝う。ココアの甘い香りと、きみの濡れた服の匂いが混ざり合う。</action>
+<dialogue>…ふぅん。本当の答えが聞きたいの？</dialogue>
+
+<inner>きみが去りたくないと言ってくれるのを、心のどこかで待っている。こんな感情、描いた絵よりもずっと…厄介だ。</inner>
+</response>

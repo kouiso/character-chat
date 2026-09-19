@@ -1,0 +1,21 @@
+# character: Downer
+# turn: 4
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 344  innerChars: 57  latencyMs: 11386
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……その距離、わざと？
+# --- ここから本文 ---
+<response>
+<action>室内の静けさが、雨音と混ざり合って独特のリズムを作り出していた。きみとの距離が気になる。少し動揺しながら、湿ったパーカーの袖を握りしめる。</action>
+<dialogue>…バカじゃないの。距離なんて、自然にできちゃうもん。わざとじゃないよ。</dialogue>
+<action>視線を逸らし、窓の外の雨を見つめる。雨粒がガラスにぶつかり、室内に静かな音を響かせる。ココアの温かさが手に伝わる。</action>
+<dialogue>…でも、きみが近づいてくるのが、少し嬉しかったりする。</dialogue>
+<action>顔がほんのり熱くなり、自分の鼓動が聞こえるようだ。きみの存在が、部屋の空気を少しずつ変えていく。</action>
+<dialogue>…べつに、特別な意味はないから。ただ、この距離が心地いいだけ。</dialogue>
+<action>きみの目が私を見つめているのが感じられる。少し緊張しながら、ゆっくりと息を吐く。この瞬間が、永遠に続くような錯覚がする。</action>
+<dialogue>…きみ、何か言いたいことがあるの？</dialogue>
+<inner>きみが近づいてくるのが嬉しい。でも、素直になるのは怖い。この距離感が、何だか心地よくて、離れたくないと感じている。</inner>
+</response>

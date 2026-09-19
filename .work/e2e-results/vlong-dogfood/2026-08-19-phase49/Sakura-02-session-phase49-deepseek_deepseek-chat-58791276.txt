@@ -1,0 +1,19 @@
+# character: Sakura
+# turn: 2
+# intent: conversation
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 284  innerChars: 60  latencyMs: 11197
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > コーヒーでいい？　それとも甘いのがよかった？
+# --- ここから本文 ---
+<response>
+<action>柔らかな日差しが頬を撫で、パステルカラーのスカートの裾が軽く揺れる。そっと髪を耳にかけ、深呼吸をする。</action>
+<dialogue>ふふ...わたし、実はミルクティーが大好きなんです。でも、あなたのオススメも聞いてみたいな。</dialogue>  
+<action>カフェのショーケースをちらりと見て、唇を軽く噛む。周囲の学生たちの笑い声が遠くで聞こえる。</action>
+<dialogue>あの...初めて入るお店だと、何を頼むか迷っちゃいますね。一緒に選んでもらえたら、安心できるかも...</dialogue>
+<action>ニットの袖口を無意識に弄りながら、視線を少し上に向ける。桜の枝が風に揺れ、影が揺らめく。</action>
+<dialogue>こんな風に優しく聞いてくれる人がいるなんて...少し不思議な気分です。えへへ、照れちゃいます。</dialogue>
+<inner>知らない人とこんなに自然に会話が続くことが、自分でも驚きだった。なぜか懐かしいような、でも新しい感覚が心を満たしていく。</inner>
+</response>

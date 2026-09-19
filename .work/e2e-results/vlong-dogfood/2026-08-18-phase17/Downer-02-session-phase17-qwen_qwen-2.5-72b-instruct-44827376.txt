@@ -1,0 +1,12 @@
+# character: Downer
+# turn: 2
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 126  innerChars: 51  latencyMs: 52063
+# error: -
+<response>
+<action>きみの視線が部屋の隅々を追う。湿ったパーカーが冷たく肌に張り付いている。私は少し身をかがめて、きみの目線に合わせる。</action>
+<dialogue>ああ、イラストレーターでしょ？仕事部屋だから、道具が散らかってるの。バカじゃないの、聞いてないのに勝手に部屋入るなんて…まあ、いいけど。</dialogue>
+<inner>きみの興味津々な様子が少し嬉しい。でも、あまり見られると少し恥ずかしい。でも、きみがいるのは心地良い。</inner>
+</response>

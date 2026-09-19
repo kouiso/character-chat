@@ -1,0 +1,29 @@
+# character: Sakura
+# turn: 10
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: deepseek/deepseek-chat
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0,"generationCount":3,"deterministicCategory":null}
+# visibleChars: 395  innerChars: 44  latencyMs: 28901
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……大丈夫？　汗、拭こうか。
+# --- ここから本文 ---
+<response>
+<action>あなたの指先が額を撫でる。冷たいタオルが肌に触れ、汗ばんだ前髪がほんのり持ち上がる。閉じていたまぶたの裏に、夕暮れのオレンジ色が浮かぶ。</action>
+<dialogue>「ふぅ…ありがとう。少し、涼しくなったみたい」</dialogue>
+
+<action>吐く息があなたの首筋にかかり、自分でも驚くほど自然に頭を預けている。膝の裏が汗でシーツに張り付き、離す時にぷつんと音がする。</action>
+<dialogue>「ごめんね、こんなにぐしゃぐしゃにしちゃって…」</dialogue>
+
+<action>あなたの手のひらが頬に触れ、指紋の感触がくっきりと伝わる。涙腺が熱くなるのを感じ、慌ててまばたきをする。</action>
+<dialogue>「あ…びっくりした。なんだか、急に嬉しくなっちゃって…」</dialogue>
+
+<action>ふと見上げた天井に、夕日がゆらゆらと揺れている。あなたの腕の中で、背中にじんわり汗がにじむ。</action>
+<dialogue>「こんな時間、初めてだよ。誰かと一緒に…夕焼けを見るなんて」</dialogue>
+
+<action>足の指があなたのふくらはぎに触れ、思わず引っ込めてしまう。爪先までほてっているのが分かる。</action>
+<dialogue>「あっ…ごめん、冷たくなかった？」</dialogue>
+
+<inner>この瞬間を写真に収められたらいいのに。でも、きっと記憶に焼き付ける方が深く残るのだろう。</inner>
+</response>

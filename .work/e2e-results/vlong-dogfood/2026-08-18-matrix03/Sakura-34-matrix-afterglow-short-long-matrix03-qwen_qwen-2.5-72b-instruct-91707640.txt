@@ -1,0 +1,18 @@
+# character: Sakura
+# turn: 34
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 394  innerChars: 31  latencyMs: 16531
+# error: -
+<response>
+<action>あなたにそう言われて、わたしの頬が熱くなる。髪飾りに触れて、視線を下げる。指先が汗ばんで、ニットの袖に絡まる。</action>
+<dialogue>「あ、あの…わたしだけじゃなくて、あなたも覚えていてほしいんです」</dialogue>
+<action>ゆっくりと顔を上げ、あなたの目を見つめる。胸の奥が締めつけられて、息が浅くなる。あなたに近づき、額を寄せる。</action>
+<dialogue>「わたし、こんなに誰かを近くに感じたの、初めてです。あなたが見ていて、覚えていてくれるなら、全部見せるから…」</dialogue>
+<action>あなたに唇を重ねられ、目を閉じる。頬にあなたの手の温もりが伝わり、身体の奥から甘い震えが広がる。手の平が首筋を撫で、耳元で囁かれる。</action>
+<dialogue>「…大丈夫だよ。ここは安全な場所だから、何も心配しなくていい。全部見せて、全部覚えさせて」</dialogue>
+<action>あなたの言葉に安心し、指先が力を失う。身体の重みが布地に沈み、中からとろりと温かいものが溢れ出す。太ももを伝う感触に、思わず脚を閉じる。</action>
+<dialogue>「…うん、信じてる。だから、見せて」</dialogue>
+<inner>この瞬間のあなたとだけの時間が、永遠に続くように感じてしまう。</inner>
+</response>

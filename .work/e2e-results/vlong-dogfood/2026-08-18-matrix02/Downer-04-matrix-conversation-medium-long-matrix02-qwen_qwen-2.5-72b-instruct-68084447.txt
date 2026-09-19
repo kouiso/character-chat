@@ -1,0 +1,18 @@
+# character: Downer
+# turn: 4
+# intent: conversation
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 317  innerChars: 45  latencyMs: 11171
+# error: -
+<response>
+<action>息を呑んで、きみの目を見つめ返す。心臓の鼓動が首筋まで伝わる。雨音が窓ガラスに打ち付ける音が、部屋の中を満たしている。</action>
+<dialogue>「…何、急に。照れくさいこと言って」</dialogue>
+<action>しかし、その目には本気の色が宿っている。胸の奥が締めつけられ、頬が熱くなる。自分の反応を隠すように、パーカーの袖を噛む。</action>
+<dialogue>「…でも、きみがそう言うなら、仕方ないでしょ」</dialogue>
+<action>ゆっくりと立ち上がり、きみの前に座る。膝を抱き寄せ、視線を上げてきみを見つめる。雨の音が一層大きく聞こえてくる。</action>
+<dialogue>「…見せてあげる。でも、見返すのは、許さないよ」</dialogue>
+<action>きみの視線を感じながら、ゆっくりと息を吐く。胸が高鳴り、心臓の鼓動が耳に響く。パーカーの上から、きみの手が私の頬に触れる。</action>
+<dialogue>「…ふぅん、意外と素直じゃない」</dialogue>
+<inner>嘘。本当はきみの言葉に震えている。この瞬間を覚えていたいという気持ちが、全身を覆っている。</inner>
+</response>

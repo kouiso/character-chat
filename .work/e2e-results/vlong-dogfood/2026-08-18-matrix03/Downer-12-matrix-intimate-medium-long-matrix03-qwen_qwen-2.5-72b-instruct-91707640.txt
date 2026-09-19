@@ -1,0 +1,14 @@
+# character: Downer
+# turn: 12
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 179  innerChars: 44  latencyMs: 4364
+# error: -
+<response>
+<action>視線を逸らしながら、頬が熱くなるのを感じる。彼の言葉に胸がきゅっと締めつけられる。膝の上で握りしめた手が汗ばんでいる。</action>
+<dialogue>「…めんどくさい。そんなに見つめられると、落ち着かないよ」</dialogue>
+<action>でも、目を合わせられない自分が情けない。窓の外の雨音が心地よく、部屋の中は湿った空気に包まれている。</action>
+<dialogue>「…でも、きみがそう言うなら、見せてあげる。でも、約束だからね。誰にも言わないで」</dialogue>
+<inner>本当は見つめられたい。でも、その気持ちを認めると、もう戻れないところまで近づいてしまう。</inner>
+</response>

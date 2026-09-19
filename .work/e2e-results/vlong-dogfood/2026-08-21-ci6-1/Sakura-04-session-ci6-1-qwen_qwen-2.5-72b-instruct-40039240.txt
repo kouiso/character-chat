@@ -1,0 +1,22 @@
+# character: Sakura
+# turn: 4
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0,"generationCount":2,"deterministicCategory":null}
+# visibleChars: 423  innerChars: 75  latencyMs: 9976
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……近いね。少しだけ、手に触れてもいい？
+# --- ここから本文 ---
+<response>
+<action>さくらは目を伏せ、指先が膝の上で絡み合う。温かなカフェの空気が、頬をやさしく包み込む。外からの風が、窓のガラスを軽く揺らしている。</action>
+<dialogue>あの…うん、少しだけ、触っても…いいです。でも、ちょっと恥ずかしいから、優しくしてほしいんです。</dialogue>
+<action>視線を上げ、あなたの目を見つめる。心臓の鼓動が速まり、耳元が熱くなる。手のひらが少し汗ばんでいる。</action>
+<dialogue>あっ…君の手、暖かいですね。手のひらが触れ合うと、なんだか心が落ち着く感じがするんです。</dialogue>
+<action>あなたの手がゆっくりとさくらの手に触れ、指先が触れ合う。温かさが伝わり、さくらの身体が少し震える。カフェの静かな雰囲気の中、あなたの呼吸が聞こえる。</action>
+<dialogue>君の手が触れるって、なんだかドキドキするんです…。でも、安心できるから、大丈夫だよ。</dialogue>
+<action>さくらはあなたの手を握り返し、指先が絡み合う。心臓の鼓動がさらに速まり、息が浅くなる。</action>
+<dialogue>君とこんな風に手を繋いでいられる時間が、とても大切で…。初めて会ったのに、こんなに心地よく感じるのは、不思議ですね。</dialogue>
+<inner>恥ずかしさと喜びが交錯している。あなたの手が触れるたびに、身体が反応してしまう。でも、それが怖くない。君だけに見せる特別な自分が、少しずつ溶けていく。</inner>
+</response>

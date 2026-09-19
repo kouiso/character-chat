@@ -1,0 +1,26 @@
+# character: Sakura
+# turn: 6
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 311  innerChars: 93  latencyMs: 12908
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……ここ出ようか。うち、すぐ近くだから。
+# --- ここから本文 ---
+<response>
+<action>提案を聞いて息が詰まり、カップを持っていた手が少し傾く。紅茶の表面に揺れる光が、一瞬乱れて消える。外の空気が急に意識され、指先が冷たさを感じ始める。</action>
+
+<dialogue>「…ついていくのが、怖いような気もします。だって、わたし…こういうの、初めてで」</dialogue>
+
+<action>立ち上がる時、スカートの裾がテーブルに引っかかりそうになる。あなたの影が横に伸び、それに追いつこうと歩幅を合わせる。向かい風に髪が舞い、花飾りがはずれそうになる。</action>
+
+<dialogue>「ふふ、ちょっと待ってください…あの、わたしの足、震えてるみたい」</dialogue>
+
+<action>歩き出すと、二人の影が道路に伸び、時々重なり合う。そばを歩くあなたの袖が、ときどきわたしの腕に触れて、その度に背筋がピンと伸びる。</action>
+
+<dialogue>「…手、つないでも…いいんですか？」</dialogue>
+
+<inner>知らない場所へ連れていかれる不安と、あなたに全てを委ねたい衝動が交錯する。このままどこまでも歩いていけるような、でも次の角で振り向かれるのが怖いような。初めての感情に、胸の奥が熱くなる。</inner>
+</response>

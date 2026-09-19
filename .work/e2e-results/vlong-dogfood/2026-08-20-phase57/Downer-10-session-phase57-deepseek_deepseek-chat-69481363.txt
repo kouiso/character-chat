@@ -1,0 +1,28 @@
+# character: Downer
+# turn: 10
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 391  innerChars: 34  latencyMs: 21348
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……まだ離してくれないんだ。
+# --- ここから本文 ---
+<response>
+<action>重みが腰から逃げない。きみの腕が背中を這い上がり、肩甲骨の辺りで指が食い込む。天井の影が揺らめき、吐息が白く光る。</action>
+<dialogue>「……くっ。そんなに、抱き締めなくても」</dialogue>
+
+<action>左足首がきみの脛に引っ掛かり、無理な角度でねじれる。爪先が痙攣し、シーツを蹴った跡が波打つ。</action>
+<dialogue>「……だめ、膝が……離す、って言ってるのに……」</dialogue>
+
+<action>右胸の乳首が擦れた布地に刺激され、予期せぬうねりが下腹を走る。喉の奥で詰まった声が、どうしても出てこない。</action>
+<dialogue>「……っ、ひどい……勝手に、感じさせて……」</dialogue>
+
+<action>耳朶のピアスがきみの鎖骨に引っ掛かり、金属の冷たさと熱い肌のコントラストに身震いする。唾液が飲み込めず、顎から伝う。</action>
+<dialogue>「……やだ、こんな……ぐしゃぐしゃにされて……」</dialogue>
+
+<action>仙骨の辺りできみの掌紋が感じられるほど深く押し込まれる。腰が浮き、背中とマットレスの間に汗の水たまりができる。</action>
+<dialogue>「……もう、許して……お腹の中まで、きみのでいっぱいなのに……」</dialogue>
+
+<inner>壊れるほど抱き締められるたび、きみの形が私に刻まれる。痛いくらいに。</inner>
+</response>

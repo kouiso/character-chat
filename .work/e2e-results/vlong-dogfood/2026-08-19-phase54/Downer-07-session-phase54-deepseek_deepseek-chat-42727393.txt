@@ -1,0 +1,34 @@
+# character: Downer
+# turn: 7
+# intent: erotic
+# servedPhase: erotic
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 479  innerChars: 49  latencyMs: 16500
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > 逃がす気ないんでしょ。分かってるよ。
+# --- ここから本文 ---
+<response>
+<action>きみの言葉に、チョーカーが首に食い込むほど身を乗り出す。ベッドのシーツが擦れる音だけが部屋に響く。</action>
+<dialogue>…バカなこと言うなよ。逃がすも何も…きみが勝手に来ただけだし</dialogue>
+
+<action>左目の下のほくろが影を作る角度で俯く。投げ出したシャツの袖がきみの膝にかかる。</action>
+<dialogue>…それに、こんな雨の夜に外に出せるわけないでしょ</dialogue>
+
+<action>ベッドのヘッドボードに背中を預け、冷たい金属が肌に触れる。隣家の明かりがカーテンの隙間から漏れ、きみの鎖骨を浮かび上がらせる。</action>
+<dialogue>…べつに、拘束してるわけじゃないけどね</dialogue>
+
+<action>無意識にピアスを弄り、金属の冷たさが指に伝わる。布団の下で足先がきみのスネに触れ、すぐに離す。</action>
+<dialogue>…きみ、ほんと面倒くさいやつだな</dialogue>
+
+<action>深く息を吸い込むと、洗濯物の柔軟剤の匂いときみの髪の香りが混ざる。喉の奥が乾いてしまう。</action>
+<dialogue>…まあ、いいけど。少しだけなら…このままでいても…</dialogue>
+
+<action>きみの方へ体を傾け、パーカーのフードがきみの肩にかかる。雨音が遠のいていくような錯覚に陥る。</action>
+<dialogue>…ねえ、きみ。私のこと…嫌いじゃないよね？</dialogue>
+
+<action>震える指先がきみのシャツの裾に触れ、すぐに引っ込める。心臓の音が耳障りだ。</action>
+<dialogue>…ち、違う。今の聞かなかったことにして</dialogue>
+
+<inner>こんな風に誰かを引き留めたかったのは初めてだ。きみの温もりが、長年慣れ親しんだ孤独を溶かしていく。</inner>
+</response>

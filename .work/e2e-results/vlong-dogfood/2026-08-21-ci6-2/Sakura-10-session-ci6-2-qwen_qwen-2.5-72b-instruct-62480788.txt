@@ -1,0 +1,12 @@
+# character: Sakura
+# turn: 10
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0,"generationCount":2,"deterministicCategory":"repetition"}
+# visibleChars: 572  innerChars: 35  latencyMs: 31279
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……大丈夫？　汗、拭こうか。
+# --- ここから本文 ---
+<response><action>額に張りついた髪が汗で湿り、頬にべたつく。床に座ったまま、膝を引き寄せ、足首を組む。太腿の内側にまだ温かいものがとろりと伝い、絨毯に広がる染みが冷たさを帯び始める。吐息が震え、心臓の鼓動が徐々に落ち着いていく。</action><dialogue>うん、大丈夫…。ちょっと、恥ずかしいけど…</dialogue><action>君の手が優しくさくらの頬を包み、汗ばんだ肌をなぞる。指先が頬骨を通り、耳の裏側を通り過ぎる。その感触に、さくらの体が小さく震える。</action><dialogue>あ、君の手、優しいね。でも、恥ずかしい…。でも、そんなに優しくされると、もっと甘えたくなっちゃう。</dialogue><action>君の指がさくらの髪を優しく梳き、汗ばんだ髪を耳にかき上げる。首筋が冷たい空気に触れ、ぞくぞくと震える。膝を引き寄せ、足首を組んだまま、体がまだ熱を帯びている。</action><dialogue>あ、そこ…触られると、また…んっ、だめ、また熱くなってきちゃう…</dialogue><action>君の手がさくらの肩を撫で、汗ばんだ肌に触れると、背中が弓なりに反る。心地よい疲労感が全身を包み、体が重たくなっていく。</action><dialogue>あ、君の手、すごく心地いい…。でも、恥ずかしい。こんなに甘えてる自分が、自分でも信じられない。</dialogue><action>君の手がさくらの背中を優しく撫で、汗ばんだ肌に触れると、心地よい疲労感が全身を包む。</action><dialogue>でも、恥ずかしい。</dialogue><action>君の手がさくらの肩を優しく撫で、汗ばんだ肌に触れると、背中が弓なりに反る。</action><dialogue>でも、恥ずかしい。</dialogue><dialogue>でも、恥ずかしい。</dialogue><dialogue>でも、恥ずかしい。</dialogue><inner>君の手が触れるたびに、体の奥がじんわりと温かくなる。でも、恥ずかしい。</inner></response>

@@ -1,0 +1,22 @@
+# character: Downer
+# turn: 5
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 335  innerChars: 62  latencyMs: 41096
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > きみの手、冷たい。もっとこっち来て。首のとこ、ピアスが光ってる。
+# --- ここから本文 ---
+<response>
+<action>首のピアスが光り、視界に映り込む。きみの言葉に頬が熱くなり、身体が自然と前傾する。ココアのカップをソファの脇に置き、膝を立てて少し身体を寄せる。</action>
+<dialogue>…きみの手、冷たいね。もっと近く来て。ここ、暖かいから。</dialogue>
+<action>きみの手をそっと握り、冷たさが掌に伝わる。心臓の鼓動が少し速くなり、呼吸が浅くなる。</action>
+<dialogue>…ほら、手を温めてあげるよ。きみ、もっと近くに来てもいいよ。</dialogue>
+<action>きみの手を引き寄せ、少し距離を詰める。ココアの温もりが身体に染み込み、雨音が静かに室内を満たす。</action>
+<dialogue>…きみの手、もう少し暖かくなってきたね。ほら、ここに座って。</dialogue>
+<action>膝を立てたまま、さらに身体を寄せ、きみの顔を見つめる。雨に濡れた髪から滴る水が、床に小さな水たまりを作っている。</action>
+<dialogue>…きみ、何か言いたいことがあるの？ ああ、雨音が心地いいね。</dialogue>
+<inner>きみの近くにいると、心臓の鼓動がさらに速くなる。でも、素直になるのが怖い。この気持ちに名前をつけたら、もう引き返せなくなる。</inner>
+</response>

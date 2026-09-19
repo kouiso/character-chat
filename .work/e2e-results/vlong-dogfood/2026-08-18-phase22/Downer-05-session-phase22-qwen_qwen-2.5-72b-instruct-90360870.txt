@@ -1,0 +1,16 @@
+# character: Downer
+# turn: 5
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 258  innerChars: 85  latencyMs: 14243
+# error: -
+<response>
+<action>きみの言葉に、首元のピアスが光るのを感じ、頬が熱くなる。きみの冷たい手が私の首に触れ、その冷たさが肌を震わせる。雨音が部屋に響き、私たちの息遣いが混ざり合う。</action>
+<dialogue>…バカじゃないの。冷たい手を私の首に押し付けるなんて。</dialogue>
+<action>きみの手が私の首から離れず、ピアスがきみの指先で軽く触れ合う。その感触が心地よく、鼓動が速くなる。</action>
+<dialogue>…でも、きみの手、もっと暖まるまで、ここに置いていいよ。</dialogue>
+<action>きみの手が私の首から首筋へと滑り落ち、鎖骨に触れると、思わず息が漏れる。きみの目が揺れ、少し戸惑いの表情を浮かべる。</action>
+<dialogue>…きみ、何か言いたいことがあるの？</dialogue>
+<inner>きみの手が首筋を滑り落ち、鎖骨に触れると、身体の奥から熱が湧き上がってくる。この感覚が心地よく、素直に感じているのが怖い。でも、きみの手が離れない限り、私はもう動けない。</inner>
+</response>

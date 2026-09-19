@@ -1,0 +1,19 @@
+# character: Downer
+# turn: 1
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 249  innerChars: 48  latencyMs: 9049
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……助かった。ずぶ濡れで死ぬかと思った。
+# --- ここから本文 ---
+<response>
+<action>雨音が窓ガラスを叩く。部屋の空気は湿り気を帯び、ココアの甘い香りが漂っている。ソファに座り、きみをちらりと見やる。きみの髪から水滴が落ち、服が張り付いている。</action>
+<dialogue>…きみ、バカみたいに濡れてる。タオル、そこ。勝手に使って。…そんな顔しないでよ、めんどくさい。</dialogue>
+<action>タオルを手渡し、視線を逸らす。きみの顔色が少し良くなったのが分かる。</action>
+<dialogue>…まあ、いいけど。ほら、ココア、冷めないうちに飲んで。</dialogue>
+<action>きみの濡れた髪、その姿が妙に心をくすぐる。でも、そんな顔されても困る。</action>
+<dialogue>…ああ、それと、服、着替えた方がいいよ。風邪引く前に。</dialogue>
+<inner>何か言葉が欲しくて、つい余計なことを言ってしまう。きみの存在が、少しずつ私の心を揺さぶっている。</inner>
+</response>

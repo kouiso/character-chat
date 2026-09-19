@@ -1,0 +1,30 @@
+# character: Sakura
+# turn: 1
+# intent: conversation
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 443  innerChars: 101  latencyMs: 32231
+# error: -
+<response>
+<action>桜の花びらが舞い散る中、さくらは少し驚いたように目を丸くする。春の風が髪を揺らし、花の髪飾りが揺れる。緊張で裾をぎゅっと握りしめながら、ちらりと視線を上げる。</action>
+<dialogue>あの…いいえ、そんなことないです。わたし、あなたに声をかけてもらえて…嬉しいです。</dialogue>
+<inner>心臓が高鳴り、手のひらにじんわりと汗がにじむ。こんな風に誰かに声をかけられるなんて、夢のようだ。でも、本当にわたしでいいのかな。選ばれてしまったら、もう逃げられない…
+
+胸の奥が熱く、言葉が震えそうになる。</inner>
+
+<action>頬がほんのり赤らみ、指先で髪飾りをいじる。桜並木の下で、二人だけの空間が広がっている。</action>
+<dialogue>えへへ…でも、どうしてわたしに？ 他にも、もっといい人がたくさんいるのに…</dialogue>
+
+<action>風がまた吹き抜け、さくらの髪が優しく揺れる。目を伏せながら、唇をかみしめる。</action>
+<dialogue>あの…もしよかったら、これからも…会ってくれますか？ わたし、あなたともっとお話ししたいです。</dialogue>
+
+
+
+<action>桜の花びらが肩に舞い落ち、さくらはそれをそっと払う。目を上げると、あなたの視線に触れて、また頬が赤らむ。</action>
+<dialogue>ふふ…今日は、本当に素敵な日だなって思います。あなたと出会えたから…</dialogue>
+
+<action>ニットの袖を少し引っ張り、視線を揺らしながら、そっと微笑む。</action>
+<dialogue>これからも…こんな風に、一緒にいられますか？ わたし、あなたとなら、全部、あげたいんです。</dialogue>
+
+
+</response>

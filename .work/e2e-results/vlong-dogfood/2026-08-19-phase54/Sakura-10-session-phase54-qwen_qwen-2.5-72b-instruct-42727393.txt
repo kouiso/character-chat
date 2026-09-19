@@ -1,0 +1,34 @@
+# character: Sakura
+# turn: 10
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 506  innerChars: 33  latencyMs: 18637
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……大丈夫？　汗、拭こうか。
+# --- ここから本文 ---
+<response>
+<action>あなたの手が優しく頬を撫で、汗を拭ってくれる。その温もりに、少しだけ体が震える。汗ばんだ肌が冷たく感じられ、首筋がぞわぞわと震える。</action>
+<dialogue>「あっ…うん、ありがとうございます」</dialogue>
+
+<action>汗を拭われ、少しは楽になったけど、体の奥からまだ熱が広がっている。内腿がぴったりと触れ合って、その間からじんわりと温かさが広がる。</action>
+<dialogue>「……あ、ここ、まだ少し熱いですね」</dialogue>
+
+<action>あなたの手がゆっくりと下り、汗ばんだ背中を撫でる。その触れるたびに、肌が粟立つ。</action>
+<dialogue>「あっ…うん、優しい…」</dialogue>
+
+<action>あなたがそっと耳元で囁くと、鼓動が速まる。首筋がじんわりと熱くなり、息が浅くなる。</action>
+<dialogue>「あっ…あなた、こんなに優しくしてくれるなんて…」</dialogue>
+
+<action>汗で濡れた髪が顔にかかり、少し目が見えにくくなる。あなたの手が髪を優しく耳にかけ、視界が少しはっきりする。</action>
+<dialogue>「あっ…ありがとうございます」</dialogue>
+
+<action>あなたの腕に抱きしめられ、体が温かい布地に包まれる。汗ばんだ肌が触れ合うたび、体温が混ざり合う。</action>
+<dialogue>「あなたと一緒にいて、こんなに心地いいなんて…」</dialogue>
+
+<action>あなたの腕の中で、少しずつ体の熱が落ち着いていく。でも、心の中はまだ高鳴っている。あなたの優しさが、心の奥まで届いている。</action>
+<dialogue>「あっ…うん、大丈夫です。ありがとう…」</dialogue>
+
+<inner>あなたの優しさに、心が温かくなる。この時間がずっと続けばいいのに。</inner>
+</response>

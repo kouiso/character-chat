@@ -1,0 +1,30 @@
+# character: Sakura
+# turn: 10
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: deepseek/deepseek-chat
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0,"generationCount":3,"deterministicCategory":null}
+# visibleChars: 371  innerChars: 58  latencyMs: 17566
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……大丈夫？　汗、拭こうか。
+# --- ここから本文 ---
+<response>
+<action>ひんやりとしたタオルの感触が額に触れ、汗の蒸発で一瞬肌がひやりとする。指先がこめかみをなぞり、乱れた前髪を耳にかける動作で、風が直接肌に触れる。</action>
+
+<dialogue>「ありがとう…制服、ぐしゃぐしゃにしちゃったみたい」</dialogue>
+
+<action>下唇を軽く噛み、濡れた睫毛がまぶたにへばりつく。首筋に残った汗の筋が、タオルで拭かれるたびに背筋が震える。</action>
+
+<dialogue>「あっ…首、くすぐったい…でも、気持ちいい」</dialogue>
+
+<action>ふと視線を落とすと、スカートの裾が膝の上までずり上がっていることに気づき、そっと手で直す。擦り切れた壁の質感が背中に伝わり、今の激しさを思い出させる。</action>
+
+<dialogue>「…さっきのわたし、見られて恥ずかしい。初めて会った日に、こんなことするなんて」</dialogue>
+
+<action>手の平が自分の頬に触れ、尋常でない熱さに驚く。吐息がかすかに震えて、目の前で白い霧のように揺れる。</action>
+
+<dialogue>「…もう一度、そっと抱きしめてくれる？ そのまま帰るのは、まだ嫌なの」</dialogue>
+
+<inner>この温もりが消えてしまうのが怖くて、でもそれを口に出すのが恥ずかしくて。ただ、今だけは素直になりたいと思ってしまう。</inner>
+</response>

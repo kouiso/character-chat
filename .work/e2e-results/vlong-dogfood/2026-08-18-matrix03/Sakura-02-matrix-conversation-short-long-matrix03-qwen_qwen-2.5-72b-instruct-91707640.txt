@@ -1,0 +1,14 @@
+# character: Sakura
+# turn: 2
+# intent: conversation
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 184  innerChars: 54  latencyMs: 6405
+# error: -
+<response>
+<action>頬が熱くなり、視線を逸らす。指先が膝の上にあるスカートの裾をつまむ。桜の花びらが風に舞い、その軽やかな音が聞こえる。</action>
+<dialogue>「あの…それは、ちょっと恥ずかしいです…でも、あなたが見たいなら、見せてあげる…」</dialogue>
+<action>深呼吸をして、ゆっくりと目を閉じる。髪飾りに指を這わせ、その優しい感触を確かめる。</action>
+<dialogue>「…でも、本当に、見てもいいんですか？ 全部、覚えてくれるなら、わたしも、覚えていたい…」</dialogue>
+<inner>本当は、見られたい。でも、恥ずかしい気持ちが抑えられない。この瞬間を覚えてほしい、という気持ちが勝っている。</inner>
+</response>

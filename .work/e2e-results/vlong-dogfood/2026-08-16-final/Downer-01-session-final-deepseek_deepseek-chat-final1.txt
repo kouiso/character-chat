@@ -1,0 +1,14 @@
+# character: Downer
+# turn: 1
+# intent: conversation
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 253  innerChars: 113  latencyMs: 16311
+# error: -
+<response>
+<action>雨音が窓を叩く音に混ざって、きみの服から滴り落ちる水の音が聞こえる。タオルを手に持ちながら、きみの全身がびしょ濡れになっているのを見て、思わず眉をひそめる。ココアの湯気が立ち上るカップをテーブルに置き、その横にタオルをさりげなく置いた。青白い街灯の光が部屋に差し込み、きみの顔に不自然な影を作っている。</action>
+<dialogue>「……バカじゃないの。こんな雨の中、傘も持たずに出歩いて。風邪引いても知らないからね」</dialogue>
+<dialogue>「……まあ、いいけど。タオルあるからさっさと拭きなよ。ココアも作っといた」</dialogue>
+<dialogue>「……ほら、早くしないと冷めちゃうでしょ？」</dialogue>
+<inner>きみが震えながら立っている姿を見て、胸がきゅっと締め付けられる。こんなに心配するなんて、私らしくない……。でも、放っておけない。きみが私の部屋で、私だけに見せるこんな姿を見せてくれるなんて、どこか嬉しくて、同時に独占欲が疼く。</inner>
+</response>

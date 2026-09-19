@@ -1,0 +1,44 @@
+# character: Sakura
+# turn: 10
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 380  innerChars: 48  latencyMs: 18454
+# error: -
+<response>
+<action>
+あなたのハンカチが額を優しく撫でる。汗でぐしょりと濡れた前髪が眉にかかり、まだ熱の残った頬に冷たい布地が触れる。膝から力が抜けたまま、あなたの腕に寄りかかる。
+</action>
+
+<dialogue>
+「ふぁ…ありがとう…あなたの優しさに、また涙が出そう…」
+</dialogue>
+
+<action>
+拭われるたびに、首筋に残ったあなたの歯型がじんわり疼く。ストッキングは破れ、ガーターベルトがずり下がった腿の内側に、白濁が糸を引いて垂れる。
+</action>
+
+<dialogue>
+「あの…わたし、こんなにぐしゃぐしゃになって…恥ずかしいです…」
+</dialogue>
+
+<action>
+震える指先があなたのシャツのボタンを掴む。子宮の奥でまだ温もりを感じながら、涙が頬を伝う。夜風が汗ばんだ背中を冷やし、身震いが走る。
+</action>
+
+<dialogue>
+「でも…あなたのものになれて…幸せ…」
+</dialogue>
+
+<action>
+ハンカチが頬に触れた瞬間、また腿の間から熱いものが溢れ出す。あなたの香りが染み込んだ布地で涙を拭われ、余計に胸が締め付けられる。
+</action>
+
+<dialogue>
+「はぁ…また…出ちゃってる…ごめんなさい…」
+</dialogue>
+
+<inner>
+あなたの優しさが、かえって体を熱くする。こんなにぐしゃぐしゃなわたしを、どうか嫌いにならないで。
+</inner>
+</response>

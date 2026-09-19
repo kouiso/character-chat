@@ -1,0 +1,19 @@
+# character: Sakura
+# turn: 2
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 300  innerChars: 40  latencyMs: 16660
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > コーヒーでいい？　それとも甘いのがよかった？
+# --- ここから本文 ---
+<response>
+<action>春の風が頬を優しく撫で、桜の香りが鼻をくすぐる。足元に舞い落ちる花びらを見つめ、鼓動が少し速くなる。ニットの袖に指が触れ、心地よさに体がほんの少し反応する。</action>
+<dialogue>あの…どちらも美味しいと思いますが、コーヒーでいいですね。甘いものも大好きですが、まずは落ち着きたいな、と思います。</dialogue>
+<action>視線を上げ、あなたの目を見つめる。少し緊張しながらも、優しさを感じる。</action>
+<dialogue>あの…あなたは、どんなコーヒーが好きですか？ わたしは、ミルクがたっぷり入ったカフェラテが好きです。</dialogue>
+<action>指先が髪飾りに触れ、落ち着かせようとする。カフェの温かい灯りが、春の風と共に心地よく感じられる。</action>
+<dialogue>あの…あなたと話せて、嬉しいです。もっと知りたいな、と思います。</dialogue>
+<inner>緊張しながらも、あなたと過ごす時間が心地よい。話すことで少し緊張がほぐれていく。</inner>
+</response>

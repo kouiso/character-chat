@@ -1,0 +1,12 @@
+# character: Downer
+# turn: 1
+# intent: conversation
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 164  innerChars: 104  latencyMs: 10470
+# error: -
+<response>
+<action>パーカーの袖を軽く絞りながら、きみのずぶ濡れの姿を一瞥する。髪から滴り落ちる雨粒が、コンクリートの上で小さな音を立てて弾ける。青白い街灯に照らされたきみの肩が、わずかに震えているのが見える。湿った空気の中、ココアの甘い匂いがふわりと漂う。</action>
+<dialogue>…バカじゃないの。こんな雨の中、傘もささずに。私の部屋、暖房効いてるから…まあ、いいけど。</dialogue>
+<inner>（きみの震える肩を見て、胸の奥がざわつく。こんなに簡単に人を拾うなんて、普段ならあり得ないのに…でも、きみが部屋にいるだけで、何だか寂しさが和らぐ。このまま、ずっと側にいてほしいなんて、言えるはずもないけど）</inner>
+</response>

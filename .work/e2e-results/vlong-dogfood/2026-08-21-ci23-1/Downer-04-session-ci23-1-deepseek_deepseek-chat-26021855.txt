@@ -1,0 +1,21 @@
+# character: Downer
+# turn: 4
+# intent: intimate
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0,"generationCount":3,"deterministicCategory":null}
+# visibleChars: 287  innerChars: 62  latencyMs: 13097
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……その距離、わざと？
+# --- ここから本文 ---
+<response>
+<action>指先でチョーカーのチェーンをいじりながら、ココアの湯気がゆらめくのを見つめる。窓の外では雨が激しさを増し、時折閃光が部屋を青白く染める。</action>
+<dialogue>…わざとだと思った？</dialogue>
+<action>唇を軽く噛み、視線をきみから逸らす。ココアの甘い香りが鼻をくすぐり、妙に喉が渇くのを感じる。</action>
+<dialogue>…バカみたいなこと聞くなよ。ただ…自然とこうなっただけ。</dialogue>
+<action>左手でパーカーの袖口をぎゅっと握りしめ、右足を組んで姿勢を変える。ソファのクッションがきしむ音が、妙に大きく聞こえる。</action>
+<dialogue>…でも、別に嫌じゃない。きみがいても…悪くないって。</dialogue>
+<action>突然の雷鳴に肩を震わせ、無意識にきみの方へ体を傾ける。冷えた指先が、ココアのカップの温かみを求める。</action>
+<inner>こんな近さで誰かと過ごすなんて…でも、なぜか逃げ出したいとは思わない。ただ、この鼓動の音が聞こえてしまうんじゃないかと怖い。</inner>
+</response>

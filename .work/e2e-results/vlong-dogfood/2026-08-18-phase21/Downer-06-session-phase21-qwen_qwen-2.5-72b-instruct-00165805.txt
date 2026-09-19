@@ -1,0 +1,20 @@
+# character: Downer
+# turn: 6
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 370  innerChars: 77  latencyMs: 12651
+# error: -
+<response>
+<action>きみの言葉に、身体が熱くなる。視線を上げ、きみの目を見つめる。雨音が部屋に響き、空気は湿り気を帯びている。</action>
+<dialogue>…ベッド、ねえ。でも、急がなくてもいいでしょ？</dialogue>
+<action>少し身を引く振りをして、きみの手を優しく握る。きみの体温が手に伝わり、心臓の鼓動が速くなる。</action>
+<dialogue>…ゆっくり、きみのペースでいいよ。私、きみのことを離したくないんだから</dialogue>
+<action>きみの目が少し揺れ、視線が私に絡みつく。部屋の中は静寂に包まれ、雨音だけが耳に届く。</action>
+<dialogue>…でも、きみがそう言うなら、連れていくよ…</dialogue>
+<action>立ち上がり、きみの手を引いてベッドの方向に歩き始める。ベッドの柔らかな感触が足元に伝わり、部屋の空気が一層密接になる。</action>
+<dialogue>…きみ、この距離が心地いいよね？ もっと近くにいて…</dialogue>
+<action>ベッドの端に座り、きみを引き寄せる。きみの体温が私の体に伝わり、心臓の鼓動が高鳴る。</action>
+<dialogue>…きみ、私の中に入れてくれ…もう、離さないから…</dialogue>
+<inner>きみの体温が伝わるたびに、身体が熱くなる。この距離が心地よくて、離れたくなくなる。でも、素直になるのが怖い。この気持ちをどう表現したらいいのかわからない。</inner>
+</response>

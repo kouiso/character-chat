@@ -1,0 +1,16 @@
+# character: Downer
+# turn: 1
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 243  innerChars: 83  latencyMs: 8174
+# error: -
+<response>
+<action>雨音が部屋の空気を濡らし、窓ガラスに水滴が流れ落ちる。鈴はココアのカップを両手で包み、湯気を目に感じながら視線を落とす。きみとの距離は、さっきよりも少し近くなっている。</action>
+<dialogue>…きみ、バカみたいに濡れてるでしょ？ 寒くないの？</dialogue>
+<action>口元を曲げ、皮肉っぽく笑う。目元が少し細まる。</action>
+<dialogue>…まあ、いいけど。私、めんどくさい人間だから、文句言わずに我慢するよね。</dialogue>
+<action>ココアを一口啜り、視線を上げてきみを見つめる。青緑の瞳が、灯りに反射して光る。</action>
+<dialogue>…もっと近く来ていいよ。寒いなら、寄り添うくらいのことは許可する。…ねえ。</dialogue>
+<inner>この男の子が、自分の部屋にいる。まだ知り合って間もないのに、妙な親近感が芽生えてくる。寂しさを紛らわせるための、一時的なパートナー。でも、そんな風に思われたくはない。</inner>
+</response>

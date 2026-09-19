@@ -1,0 +1,34 @@
+# character: Downer
+# turn: 6
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 396  innerChars: 83  latencyMs: 18694
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……ベッド、そっちだよね。連れてって。
+# --- ここから本文 ---
+<response>
+<action>
+壁際のベッドが青白い街灯に照らされ、雨に濡れた窓越しの光がシーツの皺を浮かび上がらせる。立ち上がるとき、きみの指が私のパーカーの裾を掴んでいるのに気づく。首筋に掛かったチョーカーが、不意に重く感じる。
+</action>
+<dialogue>
+「…まさか本当に行くつもり？ バカじゃないの、知り合ってまだ数時間しか経ってないのに」
+</dialogue>
+<action>
+足を進めるたびに、部屋の隅に積まれた画材の影が長く伸びる。ベッドフレームの金属部分が冷たく、ふと触れた膝裏でその温度を感じる。きみの視線が背中に張り付くようで、肩甲骨の辺りがかゆくなる。
+</action>
+<dialogue>
+「…ここよ。先に行って座ってなさい。私が…どうするか決めるまで待って」
+</dialogue>
+<action>
+ベッドの端に腰かけ、軋むマットレスの音に耳を澄ます。きみが近づく気配に、無意識にパーカーの紐をきつく引っ張る。左目の下のほくろが隠れるほど俯いた瞬間、きみの吐息が鎖骨に当たる。
+</action>
+<dialogue>
+「…待てって言ったでしょ。でも…その冷たい手、少しぐらいなら暖めてあげても」
+</dialogue>
+<inner>
+きみの存在が部屋の空気を変えていく。画材の匂いやココアの甘さが薄れ、代わりに他人の体温だけが意識にのし掛かる。自分でも驚くほど、この違和感に飢えていたのかもしれない。
+</inner>
+</response>

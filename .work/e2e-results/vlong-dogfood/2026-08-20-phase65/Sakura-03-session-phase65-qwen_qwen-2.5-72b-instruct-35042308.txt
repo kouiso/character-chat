@@ -1,0 +1,22 @@
+# character: Sakura
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 403  innerChars: 65  latencyMs: 10476
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > 普段って、どんな本読むの
+# --- ここから本文 ---
+<response>
+<action>春の風が頬を優しく撫で、桜の花びらが空から舞い落ちる。あなたが本のことを尋ねて、わたしの心が弾む。視線を合わせ、微笑みながら答える。</action>
+<dialogue>あの…わたし、詩集や小説が好きです。特に、自然をテーマにした作品や、心の内面を描いた物語が大好きですね。</dialogue>
+<action>髪飾りに触れる指先が震え、頬が熱くなってくる。あなたが興味深げに聞き返すのを感じ、胸がドキドキと鳴り響く。</action>
+<dialogue>あなたはどんな本を読むの？ きっと、面白い本をたくさん読んでるんだよね。</dialogue>
+<action>カフェの暖かい灯りが、通り抜けてくる春の風と混ざり合い、心地よい緊張感が胸に広がる。手のひらが汗ばんでくる。</action>
+<dialogue>あの…でも、文学部の授業で読む本も、楽しいですよ。先生の解説を聞いて、改めて気づくことがたくさんあるから…。</dialogue>
+<action>視線を逸らし、髪を耳にかける。あなたの目がわたしを見つめている気がして、頬がさらに熱くなる。</action>
+<dialogue>あなたも何か、おすすめの本があったら教えてほしいな。一緒に読んだら、楽しいと思うんだ。</dialogue>
+<inner>あなたと話すたびに、胸の奥が温かくなる。初めて会ったはずなのに、なぜか懐かしさを覚える自分がいる。この感覚、ずっと続けていたい…。</inner>
+</response>

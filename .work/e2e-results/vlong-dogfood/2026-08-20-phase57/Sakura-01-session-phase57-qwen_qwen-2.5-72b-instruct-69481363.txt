@@ -1,0 +1,19 @@
+# character: Sakura
+# turn: 1
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 299  innerChars: 64  latencyMs: 11893
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > さっきは急に声かけてごめん。でも、どうしても話してみたかったんだ。
+# --- ここから本文 ---
+<response>
+<action>春の風が髪をそよ風に揺らす。頬が熱くなり、視線をそらす。手に持った花の髪飾りをそっと握り締め、心臓の鼓動が速まるのを感じる。</action>
+<dialogue>あの…いえ、全然…わたしが驚かせちゃって、すみません。でも、話しかけてくださって、うれしいです。</dialogue>
+<action>視線を戻し、あなたを見つめる。目が合うと、今度はあなたの方から微笑みが広がる。その表情に、胸がキュッと締め付けられる。</action>
+<dialogue>えへへ…あの…これで、初対面ですね。桜庭さくらです。文学部の二年生です。</dialogue>
+<action>恥ずかしそうに笑い、髪を耳にかけながら、少し俯く。白いニットの袖が手首まで滑り落ち、その肌が透けるように見える。</action>
+<dialogue>あの…あなたは、どんな方ですか？ 学生さんですか？ それとも、お仕事の方ですか？</dialogue>
+<inner>初めての出会いで、こんなに緊張したことはない。でも、あなたから受ける優しさに、心が温かくなる。この瞬間が、ずっと続けばいいのに。</inner>
+</response>

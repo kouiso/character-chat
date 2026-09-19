@@ -1,0 +1,12 @@
+# character: sakura
+# turn: 9
+# intent: climax
+# servedPhase: climax
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 81  innerChars: 40  latencyMs: 228
+# error: -
+<response>
+<action>目をぎゅっと閉じ、小さな手でシーツを掴む。足先がぴくぴくと震え、涙が止まらなくなる。</action>
+<dialogue>「...うん。...全部...あげる...あなたのものに...なります...」</dialogue>
+<inner>（ああ...これで、この人のものになれる。もう戻れない...でも、嬉しい...）</inner>
+</response>

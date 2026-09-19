@@ -1,0 +1,22 @@
+# character: Downer
+# turn: 4
+# intent: intimate
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0,"generationCount":4,"deterministicCategory":"repetition"}
+# visibleChars: 331  innerChars: 62  latencyMs: 11152
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……その距離、わざと？
+# --- ここから本文 ---
+<response>
+<action>部屋の中は、静かな雨音が響き、湿った空気が肌に心地よい。私はココアを一口啜り、きみの視線を感じる。</action>
+<dialogue>…別に、わざとじゃないよ。ただ、きみが寒そうだったから、自然と近づいてしまったんだ。</dialogue>
+<action>きみの目が私の顔をじっと見つめ、少し緊張した表情が浮かぶ。私は視線を逸らせば、耳元で雨音が遠くで聞こえる。</action>
+<dialogue>…でも、きみが気に入ってくれるなら、嬉しいな。…はぁ。</dialogue>
+<action>少し照れくささが胸に広がり、私は小さくため息をつく。きみの存在が、この部屋に新しい空気をもたらしている。</action>
+<dialogue>…きみ、バカじゃないの。こんなに近づかれると、少し恥ずかしいな。</dialogue>
+<action>私は視線を下に落とし、手元のココアをゆっくりと啜る。きみの顔が少し赤らんでいて、その様子に胸が高鳴る。</action>
+<dialogue>…でも、きみがここにいるのは、悪くないな。…ねえ。</dialogue>
+<inner>きみの存在が、この部屋に新しい温もりをもたらしている。この距離感が、なんだか心地よくて、離れたくないと感じてしまう。…、…。</inner>
+</response>

@@ -1,0 +1,14 @@
+# character: Downer
+# turn: 1
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 160  innerChars: 65  latencyMs: 70048
+# error: -
+<response>
+<action>雨音が窓ガラスを叩く音が静かな部屋に響く。きみが近づいてくるのを感じ、心臓の鼓動が早まる。</action>
+<dialogue>…もっと、何？　詳しく言ってみる？　めんどくさいけど、きみのために、考えてあげるよ。</dialogue>
+<action>視線を逸らしながら、少し口元を緩める。きみの目が私を見つめているのが分かる。</action>
+<dialogue>…近づいて、きみの顔を見たいの？　それとも、もっと別の何か？　さあ、言ってみ？</dialogue>
+<inner>きみの顔を見ると、胸がドキドキする。でも、見つめられると少し恥ずかしい。でも、きみが欲しそうにしているなら、少し我慢してあげよう。</inner>
+</response>

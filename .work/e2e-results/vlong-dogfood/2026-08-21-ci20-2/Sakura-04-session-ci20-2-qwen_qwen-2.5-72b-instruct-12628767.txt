@@ -1,0 +1,20 @@
+# character: Sakura
+# turn: 4
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0,"generationCount":1,"deterministicCategory":null}
+# visibleChars: 289  innerChars: 68  latencyMs: 10391
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……近いね。少しだけ、手に触れてもいい？
+# --- ここから本文 ---
+<response>
+<action>カフェの温かな空気が二人の間を包み、さくらの心臓が早鐘を打つ。君の指が自分の手に触れる寸前に、さくらは軽く息を呑む。視線を上げ、君の目を見つめる。</action>
+<dialogue>あ、あの…少しだけ、手に触れても、いいですか…？</dialogue>
+<action>君の手がゆっくりとさくらの手に触れ、心地よい温もりが伝わる。さくらの手の平がわずかに汗ばんでいるのを感じ、恥ずかしさが込み上げる。</action>
+<dialogue>ふふ、少し緊張してるのかな…。でも、君と一緒にいられて、嬉しいです…。</dialogue>
+<action>さくらの手が君の手に包まれ、心地よい重みを感じる。春の風が窓から吹き込み、桜の花びらが優しく二人の周りを舞う。</action>
+<dialogue>あの…君の手、温かいですね。この距離が、少し恥ずかしいけど、心地よくて…。</dialogue>
+<inner>君の手が触れると、手の平が熱を帯びる。恥ずかしいのに、もっと君に触れられたいという欲求が抑えきれない。この瞬間が永遠に続けばいいのに…。</inner>
+</response>

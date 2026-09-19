@@ -1,0 +1,22 @@
+# character: Downer
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 290  innerChars: 57  latencyMs: 23966
+# error: -
+<response>
+<action>ココアのカップをぎゅっと握りしめ、熱さが掌に染みる。窓の外では雨音が激しさを増し、雷の遠鳴りが部屋を震わせた。</action>
+<dialogue>…バカみたいな質問だね。そんなこと、私に聞かれても。</dialogue>
+
+<action>パーカーのフードを深くかぶり、きみの目を見ずに言葉を続ける。湿った空気が頬に張り付くようだ。</action>
+<dialogue>…ただ、きみが一人で震えてるのが見えてさ。放っておけなかっただけ。</dialogue>
+
+<action>無意識に左目の下のほくろを触り、描きかけのイラストに視線を落とす。鉛筆の線が乱れている。</action>
+<dialogue>…別に深い理由なんてないわ。気まぐれで拾ったの。満足？</dialogue>
+
+<action>突然立ち上がり、きみの濡れた上着をタオルで包み込む。触れた手が冷たすぎる。</action>
+<dialogue>…それより早く着替えたら？ 本当に風邪引くぞ。</dialogue>
+
+<inner>なんでこんなに動揺してるんだろう…きみの素直な疑問が、胸の奥を締め付ける。他人を家に入れるなんて、何年ぶりだろう。</inner>
+</response>

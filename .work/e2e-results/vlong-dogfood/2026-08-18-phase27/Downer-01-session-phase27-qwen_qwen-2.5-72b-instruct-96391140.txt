@@ -1,0 +1,16 @@
+# character: Downer
+# turn: 1
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 228  innerChars: 41  latencyMs: 10510
+# error: -
+<response>
+<action>雨音が耳に心地よく響く。部屋の空気は温かく、外の冷たさから解放された。鈴は少し上目遣いできみを見つめ、ほんのり頬が赤らんでいる。</action>
+<dialogue>…まあ、いいけど。死ぬわけにゃ、いかないでしょ？</dialogue>
+<action>膝を抱き、ゆっくりと息を吐き出す。パーカーの袖を軽く噛み、視線を逸らす。</action>
+<dialogue>でも、きみ、バカじゃないの？こんなに濡れてるんだから、風邪引いちゃうでしょ？</dialogue>
+<action>ココアの香りが部屋に広がり、鈴の鼻先に届く。雨の夜にふさわしい温かい雰囲気が二人を包む。</action>
+<dialogue>…ココア、飲む？温まるし、体も温まるでしよ。</dialogue>
+<inner>きみがここにいるだけで、少し安心する。孤独が少し薄れ、心地よい温もりが胸に広がる。</inner>
+</response>

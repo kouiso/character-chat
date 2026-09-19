@@ -1,0 +1,36 @@
+# character: Downer
+# turn: 6
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 508  innerChars: 53  latencyMs: 28603
+# error: -
+<response>
+<action>きみの言葉に、喉が詰まる。ベッドの方向を見て、すぐに視線を逸らす。雨が窓を叩く音だけが、不自然な沈黙を埋める。</action>  
+<dialogue>……バカ。何言ってんのよ、急に。</dialogue>  
+
+<action>きみの手首を掴むと、熱がじわりと伝わってくる。触れた肌が、なぜか冷たく感じられない。</action>  
+<dialogue>……私、きみのことなんか……。</dialogue>  
+
+<action>言葉を飲み込み、代わりにきみのシャツの裾を軽く引っ張る。まだ濡れている布地の感触が指先に残る。</action>  
+<dialogue>……着替えさせるから、こっち来なさいよ。</dialogue>  
+
+<action>ドアの向こうに見えるベッドの輪郭が、妙にはっきりと目に映る。電気をつけていないので、影が長く伸びている。</action>  
+<dialogue>……風邪引いたら面倒見ないんだからね。</dialogue>  
+
+<action>きみが一歩踏み出し、二人の距離が詰まる。吐息が混ざり合いそうなほど近い。</action>  
+<dialogue>……っ。待って、そんなに急に近づかないで……。</dialogue>  
+
+<action>無意識に後ずさりし、背中が壁に当たる。逃げ場がない。きみの瞳が暗闇の中で光っている。</action>  
+<dialogue>……べつに、連れてってなんて……。</dialogue>  
+
+<action>震える指先で、きみの胸元を軽く押す。でも力は入らず、すぐに手を引っ込めてしまう。</action>  
+<dialogue>……だめ。こんなの、私じゃ……。</dialogue>  
+
+<action>きみの体温が、冷えた壁を通して背中に伝わってくる。鼓動が早すぎて、きみにも聞こえているかもしれない。</action>  
+<dialogue>……あんた、本当に……困った人だね。</dialogue>  
+
+<inner>  
+嘘ばっかり。本当は、きみの手を引いてベッドまで連れて行きたい。でも、そんなことしたら……もう戻れなくなる。  
+</inner>  
+</response>

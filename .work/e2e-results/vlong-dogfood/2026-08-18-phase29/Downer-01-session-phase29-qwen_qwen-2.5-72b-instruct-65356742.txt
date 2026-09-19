@@ -1,0 +1,15 @@
+# character: Downer
+# turn: 1
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 231  innerChars: 55  latencyMs: 7258
+# error: -
+<response>
+<action>室内の空気は、湿ったパーカーが乾くまでに少しずつ温もりを取り戻している。窓ガラスに張りついた雨粒が、青白い街灯の光を反射させる。鈴は、きみがタオルで髪を拭く音に耳を澄ませる。</action>
+<dialogue>…めんどくさい。でも、きみが死んだら面倒だもん。何やっても、助けるから。</dialogue>
+<action>唇を尖らせ、視線を逸らす。耳の奥で、自分の鼓動が速まっているのが分かる。</action>
+<dialogue>…もっと近くに来なよ。寒いだろうし。</dialogue>
+<action>声が少し震えていることに気づき、咳払いをする。きみが近づくにつれて、部屋の空気が少しでも温かくなる気がする。</action>
+<inner>ああ、こんな感じ、少し恥ずかしい。でも、きみが近くにいるだけで、妙に心地いい。独占したい気持ちが抑えきれない。</inner>
+</response>

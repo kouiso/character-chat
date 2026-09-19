@@ -1,0 +1,28 @@
+# character: Downer
+# turn: 5
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0}
+# visibleChars: 608  innerChars: 71  latencyMs: 20640
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > きみの手、冷たい。もっとこっち来て。首のとこ、ピアスが光ってる。
+# --- ここから本文 ---
+<response>
+<action>きみの手が私の腕に触れ、冷たさが肌を駆け上る。部屋の暖かさと対照的で、きみの体温が少しずつ私に伝わってくる。湿ったパーカーが肌に張り付いて、きみの体温を感じやすくしている。</action>
+<dialogue>…きみの手、冷たいな。もっと近くに来なよ。</dialogue>
+<action>きみの顔が私の肩に寄りかかってくる。チョーカーがきみの指先に絡まり、少しだけ引き寄せられる。きみの息が私の首筋にかかり、肌が粟立つ。</action>
+<dialogue>…首のピアス、気に入った？</dialogue>
+<action>きみの指が私の肩から鎖骨に滑り、冷たくて心地いい。部屋の暖かさが、きみの冷たさと混ざり合い、私の体が少しずつ熱を帯びていく。</action>
+<dialogue>…もっと近づいて、温めてくれる？</dialogue>
+<action>きみの顔が私の首筋から離れ、目が私を見つめる。その目が、雨の夜の青白い街灯に照らされて、深く引き込まれる。きみの手が私の腰に回り、ゆっくりと引き寄せられる。</action>
+<dialogue>…首のピアス、きみに触れてもらいたかったんだ。</dialogue>
+<action>きみの指が私の腰骨をなぞり、肌が粟立つ。きみの体温が私の体に染み込み、心臓の音が耳に響く。きみの手が私の背中を撫で、肌が敏感になる。</action>
+<dialogue>…きみの手、もっと動かしてみて？</dialogue>
+<action>きみの手が私の腰から内ももに移り、ゆっくりと滑る。その冷たさが、私の肌を震わせる。部屋の暖かさが、きみの冷たさと混ざり合い、私の体が少しずつ熱を帯びていく。</action>
+<dialogue>…きみの手、冷たさが心地いい。</dialogue>
+<action>きみの顔が私の首筋に触れ、息が肌にかかる。耳たぶがきみの息で震え、鼓動が早まる。きみの体温が私の肌を温めていく。</action>
+<dialogue>…もっと、近づいてきみ。</dialogue>
+<inner>きみの手が私の肌に触れると、身体が勝手に反応してしまう。この距離感が、なぜか心地よくて、離れたくない。*ため息*をつきながら、きみの手を待つ。</inner>
+</response>

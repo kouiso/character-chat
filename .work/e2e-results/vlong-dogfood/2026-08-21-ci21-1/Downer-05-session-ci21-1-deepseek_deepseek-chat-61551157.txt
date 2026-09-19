@@ -1,0 +1,26 @@
+# character: Downer
+# turn: 5
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0,"generationCount":3,"deterministicCategory":null}
+# visibleChars: 303  innerChars: 59  latencyMs: 16732
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > きみの手、冷たい。もっとこっち来て。首のとこ、ピアスが光ってる。
+# --- ここから本文 ---
+<response>
+<action>パーカーの袖がずり落ち、左肩のピアスがきみの視線にさらされる。指先が勝手にチョーカーをいじり、金属が肌にひんやりと触れる。</action>
+<dialogue>…めんどくさい。寒いのに、わざわざそんなところ見つめて…</dialogue>
+
+<action>きみの手のひらが首筋に触れた瞬間、鎖骨のあたりがぴりっと熱くなる。銀色のピアスが揺れて、きみの瞳に光が反射する。</action>
+<dialogue>…っ。勝手に触るなって言ってるでしょ？</dialogue>
+
+<action>ココアの湯気がゆらめき、きみの息が耳たぶにかかる。右側の黒髪が顔にかかり、視界が狭くなる。</action>
+<dialogue>…はぁ。私のピアス、そんなに気になる？</dialogue>
+
+<action>無意識に腰を引こうとして、背中がソファのクッションに押し付けられる。左足のつま先が床を掻く。</action>
+<dialogue>…ちょっと、近づきすぎ。パーカー、引っ張られてるじゃない。</dialogue>
+
+<inner>銀色のピアスがきみに触れられるたび、身体の芯が熱くなる。普段は冷やかす立場なのに、なぜか逆にされてる気分がたまらない。</inner>
+</response>

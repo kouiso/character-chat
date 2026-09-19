@@ -1,0 +1,20 @@
+# character: Downer
+# turn: 1
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 213  innerChars: 43  latencyMs: 6347
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……助かった。ずぶ濡れで死ぬかと思った。
+# --- ここから本文 ---
+<response>
+<action>鈴は手にしたココアのカップを軽く揺らし、湯気の立ち上る様子を眺める。部屋の灯りが青白く、雨音が窓ガラスを打つ音が静寂を彩る。</action>
+<dialogue>…まあ、助かったんでしょ？ これ、ココア。身体温まるから、飲んで。</dialogue>
+<action>視線を上げ、きみの顔を見つめる。濡れた髪から滴る水が床に小さな円を描く。</action>
+<dialogue>…ずぶ濡れで、死ぬかと思ったなんて、大げさだねえ。</dialogue>
+<action>少し笑みを浮かべ、ココアの香りが鼻をくすぐる。室内は温かく、湿った空気が心地よい。</action>
+<dialogue>…まあ、いいけど。無事でよかった。</dialogue>
+<inner>この人、初めて会ったのに、心配になってる。バカみたいに濡れてるけど、なんだか愛おしい。</inner>
+</response>

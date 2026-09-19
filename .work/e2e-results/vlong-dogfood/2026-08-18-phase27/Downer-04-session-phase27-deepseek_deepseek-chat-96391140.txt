@@ -1,0 +1,16 @@
+# character: Downer
+# turn: 4
+# intent: intimate
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 230  innerChars: 48  latencyMs: 11037
+# error: -
+<response>
+<action>左手でチョーカーを無意識に弄りながら、右手のココアカップに指紋が付く。窓越しの街灯が雨粒に反射して、天井にゆらめく光の模様を作っている。</action>
+<dialogue>……わざと、かな？</dialogue>
+<action>舌先で前歯の裏を舐め、一瞬だけ呼吸が止まる。未完成のイラストボードが床に立てかけられ、影が長く伸びている。</action>
+<dialogue>べつに……きみが寒そうだったから、でしょ？</dialogue>
+<action>左足首を右膝の上に乗せ、靴下のほつれた糸を指で摘まむ。電子機器の充電ランプが暗闇で点滅している。</action>
+<dialogue>……気にしないで。私もたまには、人助けしたくなる時あるんだから</dialogue>
+<inner>この狭い空間できみの体温が伝わってくる。知らない間に、他人の存在に慣れすぎていた自分に少し驚く。</inner>
+</response>

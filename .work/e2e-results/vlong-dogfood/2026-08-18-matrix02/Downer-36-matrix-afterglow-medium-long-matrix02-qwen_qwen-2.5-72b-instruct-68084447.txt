@@ -1,0 +1,20 @@
+# character: Downer
+# turn: 36
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 301  innerChars: 45  latencyMs: 9355
+# error: -
+<response>
+<action>頬を赤らめ、目を伏せる。きみの言葉に身体が震え、膝の上で指先が震えた。その視線を意識して、胸が高鳴る。</action>
+<dialogue>「…照れくさいな、きみ。でも、私、きみのことが好きだから」</dialogue>
+<action>身を寄せ、きみの顔を見つめる。きみの瞳に映る自分の顔が小さく揺れた。</action>
+<dialogue>「…もっと近く来ていいよ」</dialogue>
+<action>きみの手を取って、ゆっくりと引き寄せる。きみの体温が伝わり、心地よい距離感が生まれる。</action>
+<dialogue>「…きみの指先、まだ温かいね」</dialogue>
+<action>きみの手を自分の頬に当て、優しく撫でる。その感触に、身体の奥から甘い震えが広がる。</action>
+<dialogue>「…私、きみのことを覚えていたい」</dialogue>
+<action>きみの目を見つめ、ゆっくりと顔を近づける。きみの息遣いが聞こえ、鼓動が高鳴る。</action>
+<dialogue>「…きみのことを、全部、覚えていたい」</dialogue>
+<inner>きみのことを忘れたくない。この瞬間のきみの顔、きみの声、きみの体温を、ずっと覚えていたい。</inner>
+</response>

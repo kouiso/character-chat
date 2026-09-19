@@ -1,0 +1,30 @@
+# character: Downer
+# turn: 10
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: deepseek/deepseek-chat
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 328  innerChars: 40  latencyMs: 18705
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……まだ離してくれないんだ。
+# --- ここから本文 ---
+<response>
+<action>引き抜かれた後の空虚感に腰がひくつく。腿の内側を伝う液体が冷え始め、くすぐったい。シーツに転がったピアスが月光にきらめく。</action>
+
+<dialogue>「……まだ締め付けてる。私の体、きみの形覚えちゃったみたい」</dialogue>
+
+<action>左耳のピアス穴が空いたまま、冷気に敏感に疼く。無防備に開いた腿が勝手に震え、きみのズボンに精液の染みが付く。</action>
+
+<dialogue>「……動くと、また溢れる。全部きみのでいっぱいなんだから」</dialogue>
+
+<action>腹の底に残った熱が脈打つ度、爪先がシーツを掴む。鏡に映った背中に、きみの指痕が赤く浮かんでいる。</action>
+
+<dialogue>「……掃除、めんどくさいな。でも、きみの匂いならいいか」</dialogue>
+
+<action>膝裏に汗が溜まり、ベッドメイクがぐしゃぐしゃになる。乱れたツートーンカラーの髪が、枕に銀と黒の模様を描く。</action>
+
+<dialogue>「……バカみたいにぐっしょりだよ。全部きみのせい」</dialogue>
+
+<inner>離すのが惜しくて、ぎゅっと膝で締めつけてしまう。情けないけど、もっと汚されたい。</inner>
+</response>

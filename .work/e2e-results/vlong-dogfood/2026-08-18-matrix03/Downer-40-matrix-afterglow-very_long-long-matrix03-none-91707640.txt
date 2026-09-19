@@ -1,0 +1,7 @@
+# character: Downer
+# turn: 40
+# intent: afterglow
+# servedPhase: (none)
+# servedModel: (none)
+# visibleChars: 0  innerChars: 0  latencyMs: 47614
+# error: HTTP 0: TypeError: terminated

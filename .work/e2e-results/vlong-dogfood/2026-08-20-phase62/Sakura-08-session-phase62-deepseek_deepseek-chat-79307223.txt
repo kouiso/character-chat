@@ -1,0 +1,12 @@
+# character: Sakura
+# turn: 8
+# intent: erotic
+# servedPhase: erotic
+# servedModel: deepseek/deepseek-chat
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0}
+# visibleChars: 315  innerChars: 42  latencyMs: 20171
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > もっと
+# --- ここから本文 ---
+<response><action>ドアの鍵がかかる音に、思わず肩をすくめる。冷たい壁とあなたの体温の間で、背中の皮膚が敏感になっている。</action><dialogue>「あの…こんな時間に、お家に上がっちゃって…」</dialogue><action>あなたの指がニットの袖をゆっくり捲り上げる。肘の内側が空気に触れ、鳥肌が立つのを感じる。</action><dialogue>「ふ、普通なら…こんなことしないのに…なんでしょうね…」</dialogue><action>胸元のボタンが一つ外れ、鎖骨が見える。あなたの息がその凹みに触れると、思わず喉が鳴る。膝の力が抜けて、かすかに壁にしがみつく。</action><dialogue>「あ…そこ、昔からすごく弱くて…んっ…」</dialogue><action>パンティの縁が腿の内側を締め付け、少しずつ食い込んでいく。あなたの手のひらが腰を包むと、布地が湿気を帯びているのが分かる。</action><dialogue>「こんなにすぐに…濡れちゃうなんて…恥ずかしい…」</dialogue><inner>知らない自分がいる。でもこの未知の感覚は、きっとあなただけが見せてくれるものなんだ。</inner></response>

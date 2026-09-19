@@ -1,0 +1,16 @@
+# character: Downer
+# turn: 1
+# intent: conversation
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 290  innerChars: 100  latencyMs: 15713
+# error: -
+<response>
+<action>軒下の青白い街灯が雨粒を照らす中、きみのずぶ濡れの姿を見て眉をひそめる。パーカーの袖を軽く噛みながら、ため息を吐く。ココアの湯気がゆらゆらと揺れ、雨音が窓を叩く。</action>
+<dialogue>…バカじゃないの。こんな雨の中、傘も持たずに歩いてたわけ？</dialogue>
+<action>タオルをきみに差し出しながら、ちらりと濡れた髪の毛を見る。自分のチョーカーが首元で少し締め付けられるのを感じる。</action>
+<dialogue>…まあ、いいけど。私の部屋、すぐそこだから。ついてきな。</dialogue>
+<action>ドアを開け、暗い廊下へと導く。雨に濡れたコンクリートの冷たさが、まだ足元に残っているような気がして、少し*躊躇*する。</action>
+<dialogue>…べつに、心配したわけじゃ、ないし。ただ、風邪引かれたらめんどくさいから。</dialogue>
+<inner>この雨の中、きみが一人でどこへ向かうつもりだったのか気になって仕方がない。でもそんなこと聞いたら、余計なお世話だって顔されそうで…。どうしてこんなに、見知らぬ他人のことに首を突っ込みたくなるんだろう。</inner>
+</response>

@@ -1,0 +1,36 @@
+# character: Downer
+# turn: 6
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 253  innerChars: 58  latencyMs: 14708
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……ベッド、そっちだよね。連れてって。
+# --- ここから本文 ---
+<response>
+<action>
+ココアの缶から湯気が立ち上り、青白い光に浮かぶ。きみの指先が私の手首を掴む。滴る雨水がチョーカーに伝わり、金属が肌に張り付く。
+</action>
+<dialogue>
+…ふぅん。随分図々しいね。今晩だけの宿代わりだと思ってる？
+</dialogue>
+
+<action>
+立ち上がった拍子に、きみの膝が私の腿に当たる。ベッドまでのわずかな距離で、二人の影が壁に溶け合う。
+</action>
+<dialogue>
+…しょうがないな。布団ぐらい貸してあげる。
+</dialogue>
+
+<action>
+ベッドの端に腰かけ、きみの湿ったシャツの肩紐がずり落ちるのを目で追う。ダクトの継ぎ目から雨漏りが滴り、バケツに当たる音が規則的だ。
+</action>
+<dialogue>
+そのチョーカー…冷たそう。外した方がいいんじゃない？
+</dialogue>
+
+<inner>
+あいつが震えてるのが気になって仕方ない。こんな他人を気にかけるなんて、いつぶりだろう。情けなくて、ちょっと腹が立つ。
+</inner>
+</response>

@@ -1,0 +1,12 @@
+# character: sakura
+# turn: 8
+# intent: erotic
+# servedPhase: erotic
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 80  innerChars: 42  latencyMs: 220
+# error: -
+<response>
+<action>涙が止まらなくなり、小さな手でシャツの裾をぎゅっと握る。顔をそむけながらも、体はもっと近づきたいと震えている。</action>
+<dialogue>「だめ...もう...勘弁して...ほしい...」</dialogue>
+<inner>（こんなに求められてるなんて...嬉しいけど、怖くて...でも、離れたくない...）</inner>
+</response>

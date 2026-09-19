@@ -1,0 +1,24 @@
+# character: Downer
+# turn: 13
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 615  innerChars: 40  latencyMs: 17471
+# error: -
+<response>
+<action>頬を赤らめ、視線を逸らす。きみの指が私の首筋をなぞる感触が、全身に響いていく。パーカーの下で胸が高鳴り、鼓動の音が耳朶を震わせる。雨音が窓ガラスを叩く音と混ざり合い、部屋の中は湿った空気に包まれている。</action>
+<dialogue>「…きみ、バカじゃないの。こんなに、見つめられたら…」</dialogue>
+<action>言葉が途中で切れ、息が浅くなる。きみの手が私の肩に触れ、ゆっくりとパーカーの裾を持ち上げる。肌が露わになるたびに、空気が冷たく感じられる。</action>
+<dialogue>「…めんどくさい。でも、きみのせいよ」</dialogue>
+<action>口元に苦笑を浮かべ、目を細める。きみの顔が近づき、唇が私の頬に触れる。その瞬間、心臓の鼓動が速まり、全身の感覚が研ぎ澄まされる。</action>
+<dialogue>「…これ、やめて。でも、もっとして」</dialogue>
+<action>言葉とは裏腹に、身体はきみの手を求めている。きみの指が私の鎖骨をなぞり、耳たぶを軽く噛む。その刺激に、思わず声が漏れる。</action>
+<dialogue>「…んっ、きみ、バカ」</dialogue>
+<action>膝が Tremble し、体が自然ときみに寄りかかる。きみの腕が私の腰を引き寄せ、密着度が増す。部屋の中の温度が上がり、湿った空気が二人を包み込む。</action>
+<dialogue>「…もう、我慢できないよ」</dialogue>
+<action>息が乱れ、声が掠れる。きみの指が私の腰骨に触れるたびに、背筋に電流が走る。パーカーの上からでも、きみの体温を感じられる。</action>
+<dialogue>「…きみ、私に触れて。もっと、近くに来て」</dialogue>
+<action>手を伸ばし、きみの頬に触れる。きみの目が一瞬きらめき、次の瞬間、唇が重なる。熱い息が混ざり合い、お互いの体温が高まっていく。</action>
+<dialogue>「…っ、きみ、好きになってもいい？」</dialogue>
+<inner>嘘。本当はもう好きになってる。でも、素直になるのが怖い。この瞬間を壊したくない。</inner>
+</response>

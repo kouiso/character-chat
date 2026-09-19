@@ -1,0 +1,17 @@
+# character: Sakura
+# turn: 2
+# intent: conversation
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 176  innerChars: 47  latencyMs: 16544
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > コーヒーでいい？　それとも甘いのがよかった？
+# --- ここから本文 ---
+<response>
+<action>唇を軽く噛みながら、ゆっくりとカフェのメニューを見上げる。白いテーブルに置かれた手が、ほんのり震えているのに気づく。</action>
+<dialogue>あの…わたし、ストロベリーのショートケーキが好きなんです。でも、あなたの選ぶものなら…</dialogue>
+<action>ふと桜の花びらがテーブルに落ち、指先でそっと触れる。春の日差しがガラス越しに柔らかく差し込んでいる。</action>
+<dialogue>…一緒に食べられるだけで、とても幸せです。えへへ…</dialogue>
+<inner>こんな風に選んでもらえるなんて。本当にわたしでいいのかな…と、また胸がぎゅっと締め付けられる。</inner>
+</response>

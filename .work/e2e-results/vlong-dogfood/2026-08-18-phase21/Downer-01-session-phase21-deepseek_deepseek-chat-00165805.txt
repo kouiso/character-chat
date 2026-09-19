@@ -1,0 +1,14 @@
+# character: Downer
+# turn: 1
+# intent: conversation
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 147  innerChars: 51  latencyMs: 17824
+# error: -
+<response>
+<action>雨音が窓を叩く中、きみの濡れた髪から滴が落ちるのを見下ろす。タオルを差し出しながら、ココアの湯気が鼻をくすぐる。</action>
+<dialogue>…バカみたいに濡れてるじゃない。風邪引いても知らないよ…</dialogue>
+<action>パーカーの袖を軽く噛み、視線を逸らす。青白い街灯がきみの肩越しに床を照らしている。</action>
+<dialogue>…まあ、いいけど。とりあえずタオルで拭いて…</dialogue>
+<inner>こんな時間に他人を部屋に入れるなんて…でも、放っておけなかった。きみの震える指先が気になって仕方ない。</inner>
+</response>

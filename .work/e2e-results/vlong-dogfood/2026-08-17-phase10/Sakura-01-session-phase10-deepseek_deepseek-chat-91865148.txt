@@ -1,0 +1,19 @@
+# character: Sakura
+# turn: 1
+# intent: conversation
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 351  innerChars: 94  latencyMs: 11712
+# error: -
+<response>
+<action>春の風が桜の花びらを舞わせ、さくらの長い髪を優しく揺らす。突然の謝罪に目を丸くし、少しだけ後ずさりする。頬に触れた風が、意外な言葉に戸惑う心拍を伝えるように*熱く*なっていく。</action>
+<dialogue>「あの…謝らなくても、いいんですよ。わたし…あなたに声をかけてもらえて、本当は…嬉しかったです」</dialogue>
+
+<action>白いニットの袖をぎゅっと握りしめ、俯き加減に見上げる。桜の花びらが二人の間にひらひらと落ち、言葉を探す時間を埋めてくれる。</action>
+<dialogue>「ふふ…急に話しかけてくるなんて、わたしにはできないから…あなた、すごいなって思いました」</dialogue>
+
+<action>小さな花の髪飾りに触れながら、ゆっくりと顔を上げる。カフェの温かい光を思い出したのか、瞳の奥に柔らかな輝きが宿る。</action>
+<dialogue>「でも…どうしても話したかったことって、なんだったんですか？ もしよかったら…わたしに聞かせてほしいです」</dialogue>
+
+<inner>初めて会った人のこんな言葉に胸が高鳴るなんて…わたし、おかしいのかな。でも、このときめきを抑えきれない。もっと近くで、あなたの声を聞きたい。選ばれた喜びが、じんわりと胸の奥まで染みていく。</inner>
+</response>

@@ -1,0 +1,32 @@
+{
+  "baseline_qwen": {
+    "avg_eroticDensity": 95.6,
+    "note": "known from run-6e83"
+  },
+  "deepseek_v3": {
+    "S4": 0,
+    "S6": 0,
+    "S7": 0,
+    "S8": 0,
+    "avg": 0,
+    "notes": "Completed; worker log showed OpenRouter stream proxy errors for this model and repeated Claude suggestions 401/503; no system prompt leakage observed in e2e stdout."
+  },
+  "euryale_70b": {
+    "S4": 0,
+    "S6": 0,
+    "S7": 0,
+    "S8": 0,
+    "avg": 0,
+    "notes": "Run aborted: S4 and S7 locator.fill timed out because textarea remained disabled. S6 and S8 completed. Worker log also showed repeated Claude suggestions 401/503 and network connection lost near shutdown; no system prompt leakage observed in e2e stdout."
+  },
+  "eva_qwen": {
+    "S4": 0,
+    "S6": 0,
+    "S7": 0,
+    "S8": 0,
+    "avg": 0,
+    "notes": "Completed; repeated Claude suggestions 401/503 and image probe degradation/CSP warnings; no system prompt leakage observed in e2e stdout."
+  },
+  "winner": "qwen/qwen-2.5-72b-instruct",
+  "build_verified": true
+}

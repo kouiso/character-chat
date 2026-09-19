@@ -1,0 +1,26 @@
+# character: Downer
+# turn: 4
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 296  innerChars: 51  latencyMs: 11293
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……その距離、わざと？
+# --- ここから本文 ---
+<response>
+<action>ココアの湯気がゆらめき、きみの肩越しに揺れる影が壁に映る。チョーカーの金具が冷たく首筋に触れ、意識がそちらへ引き寄せられる。</action>  
+<dialogue>…わざとかどうか、考えたことなかったな。ただ、きみが震えてたから</dialogue>  
+
+<action>右手の小指が無意識に絵筆の形をなぞる。左目のほくろの上を、髪の毛先がかすかに撫でる感触。</action>  
+<dialogue>…離したくないって気持ちは、あったかもね</dialogue>  
+
+<action>窓枠を伝う雨粒の軌跡が、きみの横顔と重なって見える。吐息がココアの表面にかすかな波紋を立てる。</action>  
+<dialogue>…べつに、意地悪じゃないんだよ</dialogue>  
+
+<action>左耳のピアスが揺れ、金属の冷たさがこめかみまで伝わる。きみの体温が、この距離で初めて感じられる熱量だ。</action>  
+<dialogue>…気づいてた？私、きみの睫毛の動きまで見えてるんだ</dialogue>  
+
+<inner>この瞬間のきみは、私だけのものだと思ってた。青白い街灯に照らされたきみのうなじの線が、妙に眩しかった。</inner>
+</response>

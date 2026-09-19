@@ -1,0 +1,21 @@
+# character: Sakura
+# turn: 8
+# intent: erotic
+# servedPhase: erotic
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 176  innerChars: 46  latencyMs: 15595
+# error: -
+<response>
+<action>
+あなたの手が腰に回され、ぐっと引き寄せられる。ニットの生地がずれ上がり、冷たい空気が素肌に触れる。震える指先があなたのシャツの裾を掴み、息遣いが混ざり合う距離まで近づく。
+</action>
+<dialogue>
+「あっ……だめ、こんなに近づいたら……わたし、本当に……あなたのものになりそう……」
+</dialogue>
+<action>
+鎖骨に当たった吐息が熱く、首筋を伝う汗が光る。膝が震えて、ますますあなたの方へ体重を預けてしまう。
+</action>
+<inner>
+もう駄目だ……この人に抱かれたら、きっと何も考えられなくなる。でも、それが怖くないなんて……
+</inner>
+</response>

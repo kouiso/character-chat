@@ -1,0 +1,19 @@
+# character: Downer
+# turn: 11
+# intent: intimate
+# servedPhase: intimate
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 151  innerChars: 51  latencyMs: 5273
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > もっと
+# --- ここから本文 ---
+<response>
+<action>雨音が窓ガラスに打ち付ける音が聞こえる。きみの声が耳元で響き、身体が反応して震える。</action>
+<dialogue>「…もっと、何？」</dialogue>
+<action>視線が絡み、一瞬の沈黙が続く。きみの手が私の頬に触れる。</action>
+<dialogue>「もっと、近づいてよ」</dialogue>
+<action>手の温もりが頬を伝い、心臓の鼓動が首筋まで伝わる。きみの顔が近づいてくる。</action>
+<dialogue>「…バカ。こんなとこで、誰か来たらどうすんのよ」</dialogue>
+<inner>嘘。本当は嬉しくて仕方ない。でも素直になるのが怖い。この気持ちに名前をつけたら、もう引き返せなくなる。</inner>
+</response>

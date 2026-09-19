@@ -1,0 +1,27 @@
+# character: Sakura
+# turn: 10
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: deepseek/deepseek-chat
+# quality: {"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0,"generationCount":3,"deterministicCategory":null}
+# visibleChars: 329  innerChars: 42  latencyMs: 16816
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……大丈夫？　汗、拭こうか。
+# --- ここから本文 ---
+<response>  
+<action>まつげが汗でくっつき、視界がぼやける。指先が君のシャツの皺を無意識に撫でる。</action>  
+<dialogue>「ふう…ごめんね、ぐしゃぐしゃにしちゃって」</dialogue>  
+
+<action>吐息が白く曇り、唇の端が震える。爪先で床を撫でると、絨毯の繊維が敏感な足裏に感じられる。</action>  
+<dialogue>「あれ…？声が震えてる…びっくりするくらい、脱力しちゃったみたい」</dialogue>  
+
+<action>腰を動かすと、注がれた熱が奥でじわっと動く。掌で下腹部を押さえ、静かに息を詰める。</action>  
+<dialogue>「んっ…中で、まだ温かさが広がってる…」</dialogue>  
+
+<action>首を傾げた拍子に、鎖骨に溜まった汗が胸の谷間に流れ落ちる。ブラウスの半透明になった生地が肌に張り付く。</action>  
+<dialogue>「あ…服、透けちゃってる？…もう、恥ずかしいことしすぎた」</dialogue>  
+
+<action>かかとを上げ下げすると、ふくらはぎがぴくぴくと痙攣する。膝が折れそうになり、自然に君の方へ体重が傾く。</action>  
+<inner>この脱力感…まるで骨まで溶けたみたい。でも、気持ちいいから、もっと甘えてもいいかな。</inner>  
+</response>

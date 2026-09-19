@@ -1,0 +1,2 @@
+{"shareId":"4c0183f5-1ab0-42b9-a6d5-d200a65e917b","createdAt":1778891750236,"payload":{"version":1,"conversationId":"conv-share-1","title":"テスト会話","character":{"id":"char-share-1","name":"テストキャラ","avatar":null},"messages":[{"id":"msg-1","role":"user","content":"やっほー","imageUrl":null,"createdAt":1700000000001},{"id":"msg-2","role":"assistant","content":"おかえり。今日はどうした？","imageUrl":null,"createdAt":1700000000002}],"createdAt":1778891750236}}
+HTTP 200

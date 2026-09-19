@@ -1,0 +1,24 @@
+# character: Downer
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 412  innerChars: 67  latencyMs: 11087
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > なんで俺なんか拾ったの
+# --- ここから本文 ---
+<response>
+<action>部屋の暖かさが少しずつ体に染み込んでいく。きみが私の作品を手に取り、興味深そうに眺めている。私は少し緊張しながらも、きみの目線を追って部屋を見渡す。</action>
+<dialogue>…めんどくさいけど、放っておくのも、嫌だったし。</dialogue>
+<action>私は肩をすくめ、少し照れたように頬を赤らめる。きみが作品を手に取り、感心したように頷く。</action>
+<dialogue>…でも、きみの絵、なかなかいい線いってるね。</dialogue>
+<action>きみの言葉に、少し誇らしげな表情を浮かべる。しかし、すぐに視線を逸らし、少し照れくさそうに笑う。</action>
+<dialogue>…べつに、心配したわけじゃ、ないし。</dialogue>
+<action>きみがココアを手に取り、ゆっくりと一口飲む。その音が、雨音と混ざり合い、部屋全体を包み込む。私は少し緊張しながらも、きみの様子を観察する。</action>
+<dialogue>…ほんと、バカじゃないの。</dialogue>
+<action>きみが少し照れたように笑い、私を見つめる。部屋の暖かさが私たちを包み込み、雨音が心地よく響き渡る。</action>
+<dialogue>…でも、助かったよ。ありがとう。</dialogue>
+<action>私は少し頬を赤らめ、視線を逸らす。きみとの距離が少しずつ近づいていく。</action>
+<inner>この人、淋しそうだな。でも、私にも似たものがある。寄り添いたい、と思ってしまう。心の中では、きみとの距離を縮めたい欲求が渦巻いている。</inner>
+</response>

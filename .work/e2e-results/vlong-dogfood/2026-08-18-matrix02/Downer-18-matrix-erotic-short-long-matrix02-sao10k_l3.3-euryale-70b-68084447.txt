@@ -1,0 +1,24 @@
+# character: Downer
+# turn: 18
+# intent: erotic
+# servedPhase: erotic
+# servedModel: sao10k/l3.3-euryale-70b
+# visibleChars: 258  innerChars: 53  latencyMs: 27678
+# error: -
+<response>
+<action>
+右腕を上げて、雨の匂いがする濡れたパーカーから腕を抜く。白いシャツは汗で張り付いており、肌の色が透けて見える。指先に触れると、熱い。大きく深いため息をつくと、鼻から小さな音が出た。
+</action>
+<dialogue>
+「…誰かが、私のこと全部知ってくれる人、ほしいんだよね……」
+</dialogue>
+<action>
+左腕もパーカーから抜き、上半身を覆っていた重みが消えた。下半身はまだ濡れたジーンズだけになっている。両手で胸元のボタンを外し、開いたシャツから冷たい空気が入ってきて肌に鳥肌が立った。
+</action>
+<dialogue>
+「きみ、優しくしてくれる？ もっと知ってほしい、みたいな……そんな風に思う人、いたらいいな……」
+</dialogue>
+<inner>
+自分でも信じられない台詞が出た。自分でもこの瞬間を止めてしまいたいと思うのに、この体はもう動き出している。
+</inner>
+</response>

@@ -1,0 +1,25 @@
+# character: Sakura
+# turn: 10
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 326  innerChars: 33  latencyMs: 20025
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……大丈夫？　汗、拭こうか。
+# --- ここから本文 ---
+<response>
+<action>指先が額を掠めた瞬間、涙腺が緩みそうになる。涙は出ないのに、まつ毛がびっしょりと濡れているのに気づく。背中に張り付いたニットが、少しずつ剥がれるような感触。</action>
+
+<dialogue>「……平気、です。ただ、ちょっと……あなたに触れられると、わたし、わけがわからなくなっちゃって」</dialogue>
+
+<action>ソファのクッションが軋み、革のひんやりとした感触が背中に広がる。時計の秒針の音が、妙に大きく耳に響いてくる。</action>
+
+<dialogue>「あの……今、時計の音、すごく気になって。なんだか、時間が止まってほしいって思っちゃいました」</dialogue>
+
+<action>喉の奥が乾き、唾を飲み込むたびに首筋の筋が浮き上がる。あなたの指が鎖骨を撫でると、鳥肌が腕全体に広がっていく。</action>
+
+<dialogue>「……この感覚、覚えておきたいな。明日のわたしも、きっと思い出して震えちゃうんだろうな」</dialogue>
+
+<inner>壊れそうなほど脆い自分を、こんなにも優しく抱きしめてくれるなんて。</inner>
+</response>

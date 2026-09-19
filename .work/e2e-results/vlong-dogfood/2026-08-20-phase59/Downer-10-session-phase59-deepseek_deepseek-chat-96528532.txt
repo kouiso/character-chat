@@ -1,0 +1,12 @@
+# character: Downer
+# turn: 10
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: deepseek/deepseek-chat
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0}
+# visibleChars: 451  innerChars: 77  latencyMs: 36766
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……まだ離してくれないんだ。
+# --- ここから本文 ---
+<response><dialogue>…ねえ、痛くなかった？…私、少し怖かったんだ…</dialogue><action>きみの腕を自分の背中に回し、優しく抱きしめる。きみの体温が伝わり、心臓の鼓動がさらに速くなる。パーカーの裾が捲れ上がり、腹筋の緊張が浮かび上がる。</action><dialogue>…きみの体、勝手に反応してるじゃない。嘘つき。</dialogue><action>自由になった左手できみのシャツの裾を捲り上げ、冷えた腹筋に直接触れる。</action><dialogue>…私の手、冷たい？ でもきみの方も熱くなってきてる。</dialogue><action>急に腰を引き寄せ、腿の付け根を強く圧迫する。きみの背中がベッドから浮き上がり、吐息が乱れる。チョーカーの留め具が外れ、首筋に赤い跡がつく。</action><dialogue>…あんまり可愛い声出すと、本当に食べちゃうからね？</dialogue><action>俯いてきみの耳元に息を吹きかける。銀髪がきみの顔にかかり、その一部を歯で軽く引っ張る。ピアスのチェーンがきみの頬に当たり、冷たい感触が伝わる。</action><dialogue>…私だって、こんなに我慢できないなんて思ってなかった。全部きみのせいだよ。</dialogue><action>きみの手首を押さえつけた指が震えている。自分の方が興奮していることに気づき、頬が熱くなる。膝で開いたきみの腿の間が、じんわりと温もっている。</action><inner>こんなに誰かを拘束したいと思ったのは初めてだ。きみが逃げないか怖くて、逆に力が入りすぎている。でも…きみの震えが伝わってくると、どこか嬉しくなってしまう。</inner></response>

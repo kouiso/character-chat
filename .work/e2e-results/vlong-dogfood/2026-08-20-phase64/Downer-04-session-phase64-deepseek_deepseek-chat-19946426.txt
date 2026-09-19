@@ -1,0 +1,21 @@
+# character: Downer
+# turn: 4
+# intent: intimate
+# servedPhase: conversation
+# servedModel: deepseek/deepseek-chat
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 270  innerChars: 49  latencyMs: 14440
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……その距離、わざと？
+# --- ここから本文 ---
+<response>
+<action>ガラス越しに雨の輪郭が滲む。足元に転がった色鉛筆を拾い上げながら、きみの呼吸が近すぎることに気づいて指先が止まる。熱いココアの湯気が二人の間に漂う。</action>  
+<dialogue>……わざと、じゃないわ。たまたま机が狭いだけ。……べつに、気にしなくていいの。</dialogue>  
+
+<action>左手でチョーカーを弄ぶ。金属の冷たさが首筋に触れて、妙に意識が集中する。きみの肩がまだ雨の湿り気を帯びている。</action>  
+<dialogue>……それより早くタオルで拭きなよ。そのままじゃ、私のクッションがカビるじゃない……</dialogue>  
+
+<action>ふと見上げたきみの睫毛に、照明が水滴のように揺れる。飲みかけのマグカップの縁に、自分でも気づかなかった指の跡がついていた。</action>  
+<inner>近づきすぎた呼吸の音が耳朶に響く。こんな薄暗い部屋で、なぜかきみの瞳だけが鮮やかに見えて仕方ない。</inner>  
+</response>

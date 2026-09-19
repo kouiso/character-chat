@@ -1,0 +1,40 @@
+# character: Downer
+# turn: 10
+# intent: afterglow
+# servedPhase: afterglow
+# servedModel: deepseek/deepseek-chat
+# quality: {"retryCount":0,"refusalDetected":false,"warningLevel":false,"refusalRetryCount":0}
+# visibleChars: 430  innerChars: 69  latencyMs: 20576
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……まだ離してくれないんだ。
+# --- ここから本文 ---
+<response>
+<action>
+ベッドのスプリングが軋み、きみの重みで沈んだまま戻らない。溢れた白濁が腿の内側を伝い、シーツの上でひどく生々しい光景を作っている。左耳のピアスチェーンが首筋に張り付き、乾きかけの汗で金属が肌に密着する。
+</action>
+
+<dialogue>
+「…あんまり動くと、中でまだ広がってるのがわかるわよ。お腹の奥まで染み込むみたいで…変な感じ」
+</dialogue>
+
+<action>
+きみの指先が肋骨の間を這い、絵の具の青い痕跡をなぞる。アクリル絵の具の質感が乾いてきて、皮膚を引っ張るような感触がする。モニターの電源が切れたせいで、部屋の隅にある未完成のイラストが暗闇に溶けていく。
+</action>
+
+<dialogue>
+「…制服のボタンがへこに食い込んでる。痛いわけじゃないけど、きみの跡がつくみたいで…ちょっと恥ずかしい」
+</dialogue>
+
+<action>
+ふと視線を落とすと、床に転がった色鉛筆の青い芯が折れ、粉が散らばっている。絵の具で汚れた指先が無意識にきみの背中を探り、制服の皺を確かめる。雨音が窓を打つリズムと、きみの鼓動がまだ同期している。
+</action>
+
+<dialogue>
+「…私のパーカー、ずっと脱がされたままだし。後で着せてよね、絶対」
+</dialogue>
+
+<inner>
+きみの体温で溶けていく絵の具のように、私も少しずつ形を変えていっているのかもしれない。この感覚をキャンバスに描くのは、きっと無理だろうな。
+</inner>
+</response>

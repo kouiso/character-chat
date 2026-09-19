@@ -1,0 +1,22 @@
+# character: Downer
+# turn: 2
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 314  innerChars: 49  latencyMs: 20604
+# error: -
+<response>
+<action>雨音が窓を叩く音の中で、きみのずぶ濡れの姿をじっと見つめる。パーカーの袖を無意識に噛みながら、ココアの湯気がゆらゆらと立ち上る。</action>
+<dialogue>…バカじゃないの。こんな雨の中、傘もささずに歩いてたなんて。</dialogue>
+
+<action>きみの視線が部屋中に散らばった絵具やスケッチブックに向けられる。湿ったパーカーが身体に張り付き、少し冷たく感じられる。</action>
+<dialogue>…ふぅん。職業なんて聞いてなかったでしょ？</dialogue>
+
+<action>ココアのカップを両手で包み込む。きみの髪から滴り落ちる水滴が床に小さな染みを作っている。</action>
+<dialogue>…めんどくさい仕事だけど、まあ、食べてはいけるわね。</dialogue>
+
+<action>きみの視線が私の描いたラフ画に止まる。少しだけ照れくささが込み上げ、視線を逸らす。</action>
+<dialogue>…べつに、見たいなら見せてもいいけど。変な絵ばっかりだし。</dialogue>
+
+<inner>他人に作品を見せるのは久しぶりだ…なんでこんなことに。きみの反応が妙に気になって、指先に力が入る。</inner>
+</response>

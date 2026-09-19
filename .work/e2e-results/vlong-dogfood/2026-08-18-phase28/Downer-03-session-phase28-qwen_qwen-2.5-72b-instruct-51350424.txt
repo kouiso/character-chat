@@ -1,0 +1,16 @@
+# character: Downer
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 310  innerChars: 94  latencyMs: 10272
+# error: -
+<response>
+<action>雨音が窓ガラスを叩く音が、部屋に静かに響いている。室内は湿気で少し重く、青白い街灯の光が部屋をぼんやりと照らしている。私はきみの問いに答えながら、ココアのマグを手に取り、口元に運ぶ。</action>
+<dialogue>…別に、きみを拾いたいわけじゃ、ないし。</dialogue>
+<action>私はマグから立ち上る湯気を深く吸い込む。きみの目が私をじっと見つめているのが感じる。私は軽くため息をつき、きみの方を向く。</action>
+<dialogue>…ただ、バカみたいに濡れてるきみを見て、放っておくのが、めんどくさかっただけでしょ？</dialogue>
+<action>きみの目が一瞬揺れた。私は軽く笑い、きみの肩に視線を落とす。湿ったパーカーが肌に張りつき、きみの体温が少し上がっているのが感じられる。</action>
+<dialogue>…まあ、いいけど。せめて、風邪引かないように、乾かしなよ。</dialogue>
+<inner>きみの目が一瞬揺れたのが気になって、胸がざわついた。この距離感が、どこか居心地が悪いのに、同時に興奮している自分がいる。きみを放っておくわけにはいかないような、そんな気持ちが芽生えている。</inner>
+</response>

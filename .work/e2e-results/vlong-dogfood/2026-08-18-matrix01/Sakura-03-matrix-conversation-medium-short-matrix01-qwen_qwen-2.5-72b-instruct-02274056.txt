@@ -1,0 +1,14 @@
+# character: Sakura
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 224  innerChars: 60  latencyMs: 18161
+# error: -
+<response>
+<action>桜の花びらが風に乗ってゆっくりと舞い落ち、さくらの頬に軽く触れると、彼女は思わず微笑んで髪飾りに手をやる。あなたの目がその動きを追うと、彼女の顔が少し赤らむ。二人の間には、まだ見知らぬ空気が漂っている。</action>
+<dialogue>あの…もっと、何をですか？</dialogue>
+<action>さくらは視線を落とし、足元の桜の花びらをちらりと見つめる。春の風が彼女の髪をそっと揺らし、彼女の香りがふわりとあなたの鼻をくすぐる。</action>
+<dialogue>もし、あなたが困るなら、言わなくてもいいですよ。わたし、あなたのペースに合わせますから。</dialogue>
+<inner>本当は、もっと近くでいたい。あなたの目をもっと見ていたい。でも、まだ恥ずかしくて、言葉がうまく出ない。どうすればいいの？</inner>
+</response>

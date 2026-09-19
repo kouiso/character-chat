@@ -1,0 +1,28 @@
+# character: Sakura
+# turn: 6
+# intent: intimate
+# servedPhase: intimate
+# servedModel: deepseek/deepseek-chat
+# visibleChars: 396  innerChars: 50  latencyMs: 18522
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > ……ここ出ようか。うち、すぐ近くだから。
+# --- ここから本文 ---
+<response>
+<action>あなたの言葉に、指先がカップの取っ手を強く握る。ふと視線を上げると、窓の外では桜の花びらが舞い落ちている。喉が渇き、声が出そうにない。</action>
+<dialogue>え...あの...お宅に...ですか？</dialogue>
+
+<action>足元でスカートの裾をぎゅっと掴む。春の風が髪を揺らし、花の髪飾りが額に触れる。心臓の音が耳元で鳴り響く。</action>
+<dialogue>でも...わたしたち、今日初めて会ったばかりで...あの...</dialogue>
+
+<action>あなたがそっと手を差し出す。その掌を見つめながら、胸の奥が熱くなる。カフェの時計の針の音が、妙に大きく聞こえる。</action>
+<dialogue>...行きたいです。でも、ちょっと...怖いな。</dialogue>
+
+<action>あなたの指先が、わたしの手の甲に触れる。その温もりに、思わず息を飲む。テーブルの上で、桜の花びらがひらりと舞う。</action>
+<dialogue>約束してくれますか？...何も、無理強いしないって。</dialogue>
+
+<action>目を閉じると、頬が熱くなっているのがわかる。あなたの手のひらが、優しくわたしの手を包み込む。</action>
+<dialogue>...うん。じゃあ...行きましょう。</dialogue>
+
+<inner>こんなに早く心を許していいのかわからない。でも...あなたの目を見ていたら、もう引き返せそうにない。</inner>
+</response>

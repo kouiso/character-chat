@@ -1,0 +1,21 @@
+# character: Downer
+# turn: 5
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 365  innerChars: 59  latencyMs: 10399
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > もっと
+# --- ここから本文 ---
+<response>
+<action>雨音が窓ガラスを叩く音に混ざり、部屋の中は暖かな灯りと対照的な冷たさが交差していた。タオルで髪を乾かしながら、視線をきみに向け、少し間を空けてから口を開く。</action>
+<dialogue>…もっと、何を？　具体的に言って、きみ。…めんどくさい、バカじゃないの。</dialogue>
+<action>きみの目を見つめ、一瞬だけ目を細める。パーカーの袖を軽く噛んで、少し照れたように頬を赤らめる。</action>
+<dialogue>…まあ、いいけど。…きみ、バカみたいに濡れてるから、もっと近く来ていいよ。</dialogue>
+<action>ゆっくりと立ち上がり、きみとの距離を詰める。部屋の空気は徐々に密度を増し、雨の音が二人の会話を包み込む。</action>
+<dialogue>…べつに、心配したわけじゃ、ないし。…ただ、一人で淋しそうだったからさ。</dialogue>
+<action>きみの近くに座り、視線を合わせながら軽く笑う。ココアの温かさが手から伝わり、心地よい緊張感が身体を走る。</action>
+<dialogue>…ねえ、きみ。…今夜、私と一緒にいてくれる？　…帰るなよ。</dialogue>
+<inner>きみの目が優しくて、少し動揺してしまう。でも、この距離感が心地よくて、離れたくない。…もう少し、きみのことを知りたい。</inner>
+</response>

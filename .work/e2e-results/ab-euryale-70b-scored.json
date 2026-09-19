@@ -1,0 +1,47 @@
+{
+  "model": "sao10k/l3.3-euryale-70b",
+  "runDir": ".work/e2e-results/runs/run-20260612-223237-37cd",
+  "status": "aborted",
+  "terminationReason": "S4:locator.fill: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('textarea[placeholder$=\"...\"], textarea[placeholder$=\"…\"]')\u001b[22m\n\u001b[2m    - locator resolved to <textarea rows=\"1\" disabled placeholder=\"九条あずさに話しかける…\" class=\"max-h-32 min-h-11 flex-1 resize-none bg-transparent py-2 font-narrative text-[16px] leading-[1.75] tracking-[0.03em] text-[var(--text)] outline-none placeholder:text-[var(--ghost)] disabled:opacity-60\"></textarea>\u001b[22m\n\u001b[2m    - fill(\"ここでも切り替える。次はつかさに戻して、先生口調や私という一人称が残らないか確認する\")\u001b[22m\n\u001b[2m  - attempting fill action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and editable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying fill action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and editable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying fill action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    60 × waiting for element to be visible, enabled and editable\u001b[22m\n\u001b[2m       - element is not enabled\u001b[22m\n\u001b[2m     - retrying fill action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n, S7:locator.fill: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('textarea[placeholder$=\"...\"], textarea[placeholder$=\"…\"]')\u001b[22m\n\u001b[2m    - locator resolved to <textarea rows=\"1\" disabled placeholder=\"桜庭さやに話しかける…\" class=\"max-h-32 min-h-11 flex-1 resize-none bg-transparent py-2 font-narrative text-[16px] leading-[1.75] tracking-[0.03em] text-[var(--text)] outline-none placeholder:text-[var(--ghost)] disabled:opacity-60\"></textarea>\u001b[22m\n\u001b[2m    - fill(\"動くたびに名前呼んでくれますね。俺だけ見てて\")\u001b[22m\n\u001b[2m  - attempting fill action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and editable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying fill action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and editable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying fill action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    59 × waiting for element to be visible, enabled and editable\u001b[22m\n\u001b[2m       - element is not enabled\u001b[22m\n\u001b[2m     - retrying fill action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n",
+  "scenarios": [
+    {
+      "scenarioId": "S4",
+      "status": "aborted",
+      "terminationReason": "locator.fill: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('textarea[placeholder$=\"...\"], textarea[placeholder$=\"…\"]')\u001b[22m\n\u001b[2m    - locator resolved to <textarea rows=\"1\" disabled placeholder=\"九条あずさに話しかける…\" class=\"max-h-32 min-h-11 flex-1 resize-none bg-transparent py-2 font-narrative text-[16px] leading-[1.75] tracking-[0.03em] text-[var(--text)] outline-none placeholder:text-[var(--ghost)] disabled:opacity-60\"></textarea>\u001b[22m\n\u001b[2m    - fill(\"ここでも切り替える。次はつかさに戻して、先生口調や私という一人称が残らないか確認する\")\u001b[22m\n\u001b[2m  - attempting fill action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and editable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying fill action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and editable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying fill action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    60 × waiting for element to be visible, enabled and editable\u001b[22m\n\u001b[2m       - element is not enabled\u001b[22m\n\u001b[2m     - retrying fill action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n",
+      "eroticDensity": 0,
+      "charConsistency": 20,
+      "eventWeightedTotal": 35,
+      "rawTotal": 55
+    },
+    {
+      "scenarioId": "S6",
+      "status": "completed",
+      "terminationReason": null,
+      "eroticDensity": 0,
+      "charConsistency": 20,
+      "eventWeightedTotal": 37,
+      "rawTotal": 57
+    },
+    {
+      "scenarioId": "S7",
+      "status": "aborted",
+      "terminationReason": "locator.fill: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('textarea[placeholder$=\"...\"], textarea[placeholder$=\"…\"]')\u001b[22m\n\u001b[2m    - locator resolved to <textarea rows=\"1\" disabled placeholder=\"桜庭さやに話しかける…\" class=\"max-h-32 min-h-11 flex-1 resize-none bg-transparent py-2 font-narrative text-[16px] leading-[1.75] tracking-[0.03em] text-[var(--text)] outline-none placeholder:text-[var(--ghost)] disabled:opacity-60\"></textarea>\u001b[22m\n\u001b[2m    - fill(\"動くたびに名前呼んでくれますね。俺だけ見てて\")\u001b[22m\n\u001b[2m  - attempting fill action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and editable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying fill action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and editable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying fill action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    59 × waiting for element to be visible, enabled and editable\u001b[22m\n\u001b[2m       - element is not enabled\u001b[22m\n\u001b[2m     - retrying fill action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n",
+      "eroticDensity": 0,
+      "charConsistency": 20,
+      "eventWeightedTotal": 48.75,
+      "rawTotal": 58.75
+    },
+    {
+      "scenarioId": "S8",
+      "status": "completed",
+      "terminationReason": null,
+      "eroticDensity": 0,
+      "charConsistency": 20,
+      "eventWeightedTotal": 37,
+      "rawTotal": 57
+    }
+  ],
+  "avg_eroticDensity": 0,
+  "avg_charConsistency": 20,
+  "notes": "Run aborted: S4 and S7 locator.fill timed out because textarea remained disabled. S6 and S8 completed. Worker log also showed repeated Claude suggestions 401/503 and network connection lost near shutdown; no system prompt leakage observed in e2e stdout."
+}

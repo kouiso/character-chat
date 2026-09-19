@@ -1,0 +1,15 @@
+# character: Sakura
+# turn: 1
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# visibleChars: 239  innerChars: 93  latencyMs: 10753
+# error: -
+<response>
+<action>春の風が髪をそよがせ、さくらは目を細めた。あなたとの距離が近づくにつれて、心拍が速くなる。カフェの暖かい灯りが二人を包み込む。</action>
+<dialogue>えへへ、いえいえ、わたしもなんだか嬉しくなっちゃいました。あの、急だったですよね…でも、何か話したくて、声をかけちゃったんです。</dialogue>
+<inner>あなたに話しかけられた瞬間、胸が高鳴った。この人なら、大切なことを打ち明けられそうだ。</inner>
+<action>小さな花の髪飾りを指先で弄び、視線を落とす。あなたの目が優しくて、話す勇気が湧いてきた。</action>
+<dialogue>実は、ずっと誰かに心から好きって言いたくて…。でも、それが怖くて、なかなか言えなかったんです。でも、あなたに会えて、少し勇気が出ました。</dialogue>
+<inner>あなたと話していると、自然と本当の気持ちが出てしまう。この人は、わたしだけの特別な存在になりそうだ。</inner>
+</response>

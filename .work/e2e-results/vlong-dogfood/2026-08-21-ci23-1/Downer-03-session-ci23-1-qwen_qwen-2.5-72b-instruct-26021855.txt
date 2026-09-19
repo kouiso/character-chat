@@ -1,0 +1,22 @@
+# character: Downer
+# turn: 3
+# intent: conversation
+# servedPhase: conversation
+# servedModel: qwen/qwen-2.5-72b-instruct
+# quality: {"refusalDetected":false,"warningLevel":true,"refusalRetryCount":0,"generationCount":4,"deterministicCategory":"character_drift"}
+# visibleChars: 377  innerChars: 97  latencyMs: 11075
+# error: -
+# --- そのターンで送った相手の発言 ---
+# > なんで俺なんか拾ったの
+# --- ここから本文 ---
+<response>
+<action>部屋の空気は暖かく、雨音が窓ガラスに打ちつける音が心地よい。ココアの香りが部屋全体に広がり、少しだけ緊張がほぐれる。きみの目が私を見つめ、少し照れくさそうに感じる。</action>
+<dialogue>…別に、心配したわけじゃ、ないし。ただ、バカみたいに濡れてたから、可哀想だな、と思って。</dialogue>
+<action>膝に抱いたココアのカップをもう一度傾け、一口啜る。きみの視線が私を追う。</action>
+<dialogue>…それに、家に人がいると、少しは寂しくないでしょ？</dialogue>
+<action>きみの目が少し驚いたように私を見つめる。雨音が窓ガラスに打ちつける音が静かに響き、部屋の空気が少しだけ厚くなる。</action>
+<dialogue>…バカじゃないの、一人でいるのが好きだ、って言ったでしょ？でも、きみがここにいると、少しは温かいし、寂しくない。</dialogue>
+<action>きみの視線が私から離れる。少し照れくさそうに、視線を窓の外に向け、雨粒が流れ落ちる様子を眺める。</action>
+<dialogue>…まあ、いいけど。…きみ、今夜だけ、ここにいて。…寒くない？</dialogue>
+<inner>きみがここにいてくれることで、少しだけ心が温まる。でも、この距離感が少し怖い。それでも、きみの存在が心地よい。一人でいるのが好きだと思っていたのに、きみと一緒にいたいという気持ちが抑えられない。</inner>
+</response>
