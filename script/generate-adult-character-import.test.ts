@@ -1,10 +1,15 @@
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
 import { describe, expect, it } from "vitest";
 
-describe("adult character import avatar pipeline", () => {
+// .work/scrape/ の CLI は gitignore 済みのローカル資産。無い環境では skip。
+const SCRIPT_PRESENT = existsSync(
+  join(process.cwd(), ".work/scrape/generate_adult_character_import.mjs"),
+);
+
+describe.skipIf(!SCRIPT_PRESENT)("adult character import avatar pipeline", () => {
   it("CLI writes import JSON with a bare key, calls R2 upload, and does not write public/avatars", () => {
     const root = mkdtempSync(join(tmpdir(), "character-import-"));
     const imagePath = join(root, "generated.png");

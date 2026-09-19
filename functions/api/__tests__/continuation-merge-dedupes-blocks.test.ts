@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 
 import { describe, expect, it } from "vitest";
@@ -11,6 +11,8 @@ import { mergeContinuationResponse, splitResponseBlocks } from "../lib/route-con
 // 確実に踏ませれば、実際に配信された壊れた本文をそのまま再現できる。
 const ROOT = path.resolve(__dirname, "../../..");
 const EVIDENCE_DIR = path.join(ROOT, ".work/e2e-results/vlong-dogfood/2026-08-20-phase57");
+// phase57 の実物トランスクリプトは gitignore 済みのローカル fixture。無い環境では skip。
+const EVIDENCE_PRESENT = existsSync(EVIDENCE_DIR);
 
 // トランスクリプトの `# ...` ヘッダ行を落として <response>...</response> 本文だけを残す
 const readTranscriptResponse = (file: string): string =>
@@ -25,13 +27,13 @@ const readTranscriptResponse = (file: string): string =>
 const forceIncludesBranch = (needle: string): string =>
   `<response><action>${needle}</action></response>`;
 
-describe("続き結合が同じブロックを2回貼るのを防ぐ", () => {
-  const T8 = readTranscriptResponse(
-    "Downer-08-session-phase57-deepseek_deepseek-chat-69481363.txt",
-  );
+describe.skipIf(!EVIDENCE_PRESENT)("続き結合が同じブロックを2回貼るのを防ぐ", () => {
+  // describe コールバックは skip 時も収集のため実行されるので、読み込みは遅延させる
+  const readT8 = () =>
+    readTranscriptResponse("Downer-08-session-phase57-deepseek_deepseek-chat-69481363.txt");
 
   it("実物トランスクリプトは15ブロック中6個が逐語重複しとる（現物確認）", () => {
-    const blocks = splitResponseBlocks(T8);
+    const blocks = splitResponseBlocks(readT8());
     expect(blocks).toHaveLength(15);
     expect(blocks[2]).toEqual(blocks[8]);
     expect(blocks[3]).toEqual(blocks[9]);
@@ -42,7 +44,7 @@ describe("続き結合が同じブロックを2回貼るのを防ぐ", () => {
   });
 
   it("6個の逐語重複ブロックが畳まれ、ユニークなブロックが出現順のまま残る", () => {
-    const merged = mergeContinuationResponse(forceIncludesBranch("体重"), T8, true);
+    const merged = mergeContinuationResponse(forceIncludesBranch("体重"), readT8(), true);
     const after = splitResponseBlocks(merged).map((block) => ({
       tag: block.tag,
       content: block.content,
@@ -80,17 +82,16 @@ describe("続き結合が同じブロックを2回貼るのを防ぐ", () => {
     ]);
   });
 
-  const T9 = readTranscriptResponse(
-    "Downer-09-session-phase57-deepseek_deepseek-chat-69481363.txt",
-  );
+  const readT9 = () =>
+    readTranscriptResponse("Downer-09-session-phase57-deepseek_deepseek-chat-69481363.txt");
 
   it("実物トランスクリプトは閉じ括弧1文字だけの残骸 dialogue ブロックを含む（現物確認）", () => {
-    const blocks = splitResponseBlocks(T9);
+    const blocks = splitResponseBlocks(readT9());
     expect(blocks.some((block) => block.tag === "dialogue" && block.content === "」")).toBe(true);
   });
 
   it("閉じ括弧1文字だけの残骸 dialogue ブロックが消え、他の中身は残る", () => {
-    const merged = mergeContinuationResponse(forceIncludesBranch("熱が私"), T9, true);
+    const merged = mergeContinuationResponse(forceIncludesBranch("熱が私"), readT9(), true);
     const after = splitResponseBlocks(merged);
 
     expect(after.some((block) => block.tag === "dialogue" && block.content === "」")).toBe(false);

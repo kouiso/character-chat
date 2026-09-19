@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -33,6 +33,9 @@ const PHASE66_DIR = resolve(
   dirname(fileURLToPath(import.meta.url)),
   "../../.work/e2e-results/vlong-dogfood/2026-08-20-phase66",
 );
+// phase66 の実データは gitignore 済みのローカル fixture。無い環境（CI/fresh clone）では
+// 実データ依存の3件だけ skip する。
+const PHASE66_PRESENT = existsSync(PHASE66_DIR);
 
 const loadRealBody = (filePrefix: string): string => {
   const file = readdirSync(PHASE66_DIR).find((f) => f.startsWith(filePrefix));
@@ -204,13 +207,13 @@ describe("findSameTemplateParagraphs", () => {
   // 分母にしとるが、merged continuation は 1 タグへ複数段落を詰めることがあり、タグ単位やと
   // 実際の段落数を過小評価する。§6-5 のキャリブレーションはこれを実測7ファイルで確認済み）。
 
-  it("phase66 Downer-t9: 4段落中3つが同じ型（75%）を検出する", () => {
+  it.skipIf(!PHASE66_PRESENT)("phase66 Downer-t9: 4段落中3つが同じ型（75%）を検出する", () => {
     const turn = buildTurn("Downer", loadRealBody("Downer-09-"));
     const result = findSameTemplateParagraphs(turn);
     expect(result).toEqual({ total: 4, matched: 3, signature: "3:1-1-1" });
   });
 
-  it("phase66 Sakura-t9: 4段落中3つが同じ型（75%）を検出する", () => {
+  it.skipIf(!PHASE66_PRESENT)("phase66 Sakura-t9: 4段落中3つが同じ型（75%）を検出する", () => {
     const turn = buildTurn("Sakura", loadRealBody("Sakura-09-"));
     const result = findSameTemplateParagraphs(turn);
     expect(result).toEqual({ total: 4, matched: 3, signature: "4:1-1-1-1" });
@@ -221,7 +224,7 @@ describe("findSameTemplateParagraphs", () => {
   // 「過半」という言葉自体が意味を持たん、というのが人間レビュアーの判断
   // （doc/dogfood/vlong-2026-08-20-phase57.md:130 が n=3・67%で「過半と断定はできず」と
   // 明言しとる）。これを機械的にも再現する: 一致率が高くても段落数が足りんターンは拾わん。
-  it("段落数が足りん通常の地の文は一致率100%でも拾わん（誤検出防止の核）", () => {
+  it.skipIf(!PHASE66_PRESENT)("段落数が足りん通常の地の文は一致率100%でも拾わん（誤検出防止の核）", () => {
     const turn = buildTurn("Downer", loadRealBody("Downer-03-"));
     expect(findSameTemplateParagraphs(turn)).toBeNull();
   });
