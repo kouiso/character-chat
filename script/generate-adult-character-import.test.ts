@@ -23,7 +23,7 @@ describe("adult character import avatar pipeline", () => {
     const result = spawnSync(
       "node",
       [
-        ".work/scrape/generate_adult_character_import.mjs",
+        "script/scrape/generate_adult_character_import.mjs",
         "import-charap-dry",
         "Import Dry",
         imagePath,

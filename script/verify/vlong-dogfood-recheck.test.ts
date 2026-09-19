@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -199,7 +199,8 @@ describe("paragraphShapeSignature", () => {
   });
 });
 
-describe("findSameTemplateParagraphs", () => {
+// 実ボディの fixture は private corpus リポ側。無い環境ではこの describe だけ skip
+describe.skipIf(!existsSync(PHASE66_DIR))("findSameTemplateParagraphs", () => {
   // 分母は <action> タグの個数やのうて空行区切りの段落（reading-rubric.md:162 はタグを
   // 分母にしとるが、merged continuation は 1 タグへ複数段落を詰めることがあり、タグ単位やと
   // 実際の段落数を過小評価する。§6-5 のキャリブレーションはこれを実測7ファイルで確認済み）。

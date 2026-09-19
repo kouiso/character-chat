@@ -54,30 +54,8 @@ public/admin-data/
 e2e-results/
 
 # Working files (session artifacts, test results, handoff notes)
+# 実測コーパスは公開ツリーに載せない。kouiso/character-chat-corpus (private) が正
 .work/*
-!.work/qa/
-!.work/verify/
-!.work/e2e-results/
-!.work/scrape/
-.work/verify/last-verify.json
-.work/verify/screenshots/
-.work/verify/bypass.json
-.work/e2e-results/*.png
-.work/e2e-results/*.jpg
-.work/e2e-results/*.mp4
-.work/e2e-results/browser-smoke-*.json
-.work/e2e-results/prod-smoke-*.json
-.work/e2e-results/pwa-crash-repro-*.json
-.work/e2e-results/runs/
-.work/e2e-results/reviews/
-
-# Avatar pipeline Python venv (re-creatable — never track)
-.work/avatar-dedupe-venv/
-
-# Working image files — heavy binaries, never track; Drive is canonical (Phase 2+)
-.work/**/*.png
-.work/**/*.jpg
-.work/**/*.webp
 
 # Serena IDE config
 .serena/

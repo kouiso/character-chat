@@ -13,6 +13,11 @@
 // 2026-09-07 更新: vlong-dogfood のコーパスが 482 → 1758 ターン / 52 → 162 会話に増えた。
 // 品質エンジン改修の PR が焼き足した dogfood 記録を取り込んだため。model-ab と
 // bench-run は同じコーパスのままなので期待値も動いてへん。
+//
+// 2026-09-19 更新: リポジトリの公開化に伴い、実測コーパスは追跡対象から外して
+// private な kouiso/character-chat-corpus に移した（adult 会話本文を含むため）。
+// .work/ が無い環境ではこのファイルのスイートは全部 skip になる。取得は
+// script/bench/fetch-corpus.sh、CI は secrets.CORPUS_PAT があれば自動で取る。
 
 import { existsSync } from "node:fs";
 import path from "node:path";
@@ -47,8 +52,13 @@ const prepared = (turns: ReturnType<typeof normalizeTurn>[]) =>
 // 実測系は全ターン走査するので、遅い GitHub-hosted runner では既定 5s を超える
 const MEASURE_TIMEOUT = 120_000;
 
-describe("実コーパスの golden（軸を触った時に気付くため）", () => {
-  it("コーパスがリポジトリに在る（追跡されとる前提そのものを守る）", () => {
+// コーパスは git 追跡外（private の character-chat-corpus リポが正）。無い環境では
+// golden の数字を固定しようが無いのでスイートごと skip する
+const HAS_CORPUS =
+  existsSync(VLONG_DIR) && MODEL_AB_FILES.every(existsSync) && existsSync(BENCH_RUNS_DIR);
+
+describe.skipIf(!HAS_CORPUS)("実コーパスの golden（軸を触った時に気付くため）", () => {
+  it("コーパスが fetch-corpus 経由で配置されとる", () => {
     expect(existsSync(VLONG_DIR)).toBe(true);
     for (const file of MODEL_AB_FILES) expect(existsSync(file)).toBe(true);
   });

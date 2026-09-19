@@ -43,6 +43,9 @@ jobs:
       fail-fast: false
       matrix:
         check-type: [lint, test, build]
+    env:
+      # secrets.* は step の if で直接読めんので job env 経由で存在判定だけ渡す
+      HAS_CORPUS_PAT: ${{ secrets.CORPUS_PAT != '' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -55,6 +58,14 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      # 実測コーパスは private リポ（kouiso/character-chat-corpus）に分離済み。
+      # secrets が無い環境（fork の PR 等）では取れず、コーパス依存テストは skip になる。
+      - name: Fetch golden corpus
+        if: matrix.check-type == 'test' && env.HAS_CORPUS_PAT == 'true'
+        env:
+          CORPUS_TOKEN: ${{ secrets.CORPUS_PAT }}
+        run: bash script/bench/fetch-corpus.sh
 
       - name: Lint
         if: matrix.check-type == 'lint'
