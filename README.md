@@ -1,9 +1,7 @@
-# adult-ai-app
+# character-chat
 
 AI キャラクターとのリアルタイムチャット・画像生成が楽しめる PWA。
 React + Hono + Cloudflare Pages で動く。
-
-Production: `https://adult-ai-chat.pages.dev`
 
 ## ドキュメント
 
@@ -42,16 +40,16 @@ Production: `https://adult-ai-chat.pages.dev`
 | CI ランナー | ✅ Blacksmith isolated (`blacksmith-4vcpu-ubuntu-2404`) |
 | シークレット管理 | ✅ Cloudflare Pages secrets のみ（ソース非埋め込み） |
 
-## GitHub App（品質自動報告）
+## 品質自動報告（Linear）
 
-`/api/chat` レスポンスに `x-quality-warning: 1` が付いたとき、サーバーが自動的に GitHub Issue を起票する。
+`/api/chat` レスポンスに `x-quality-warning: 1` が付いたとき、サーバーが自動的に Linear Issue を起票する。
 
-1. GitHub App を作成し `kouiso/adult-ai-app` にインストール（Issues: R/W, Contents: R-only）
-2. `GH_APP_ID` / `GH_APP_INSTALLATION_ID` / `GH_APP_PRIVATE_KEY` を取得
-3. Cloudflare Pages secrets に登録:
+1. Linear の personal API key を発行
+2. `LINEAR_API_KEY` / `LINEAR_TEAM_ID` を Cloudflare Pages secrets に登録:
+
+`GH_APP_ID` / `GH_APP_INSTALLATION_ID` / `GH_APP_PRIVATE_KEY` も従来通り GitHub Issue 起票のフォールバックとして使える。
 
 ```bash
-wrangler pages secret put GH_APP_ID --project-name adult-ai-chat
-wrangler pages secret put GH_APP_INSTALLATION_ID --project-name adult-ai-chat
-wrangler pages secret put GH_APP_PRIVATE_KEY --project-name adult-ai-chat
+wrangler pages secret put LINEAR_API_KEY --project-name adult-ai-chat
+wrangler pages secret put LINEAR_TEAM_ID --project-name adult-ai-chat
 ```

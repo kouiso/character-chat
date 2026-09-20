@@ -1,4 +1,4 @@
-# adult-ai-app
+# character-chat
 
 AI キャラクターチャット＆画像生成 PWA。Cloudflare Pages + Hono バックエンド構成。
 

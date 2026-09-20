@@ -1,8 +1,8 @@
 {
   "projectId": "5b2e49a2-4493-4708-8642-c3c2a0d32739",
   "shape": "package",
-  "pkg": "adult-ai-app",
-  "globalName": "AdultAiApp",
+  "pkg": "character-chat",
+  "globalName": "CharacterChat",
   "srcDir": "src/component/ui",
   "tsconfig": "tsconfig.json",
   "cssEntry": "dist/assets/ds-combined.css",

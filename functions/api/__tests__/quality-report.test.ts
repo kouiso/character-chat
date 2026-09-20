@@ -55,11 +55,71 @@ describe("createQualityIssue", () => {
     expect(setIssuer).toHaveBeenCalledWith("12345");
 
     const issueCall = fetchMock.mock.calls[1];
-    expect(issueCall[0]).toBe("https://api.github.com/repos/kouiso/adult-ai-app/issues");
+    expect(issueCall[0]).toBe("https://api.github.com/repos/kouiso/character-chat/issues");
     expect(issueCall[1]?.headers?.Authorization).toBe("Bearer inst_token_1");
     importKeySpy.mockRestore();
     signSpy.mockRestore();
     nowSpy.mockRestore();
+  });
+
+  it("prefers Linear when LINEAR_API_KEY and LINEAR_TEAM_ID are set", async () => {
+    __testOnly.resetLinearLabelCache();
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            data: { team: { labels: { nodes: [{ id: "lbl-1", name: "quality-degraded" }] } } },
+          }),
+          { status: 200 },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            data: { issueLabelCreate: { success: true, issueLabel: { id: "lbl-2" } } },
+          }),
+          { status: 200 },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            data: { issueCreate: { success: true, issue: { id: "i-1", identifier: "RIT-1" } } },
+          }),
+          { status: 200 },
+        ),
+      );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await createQualityIssue(
+      { linearApiKey: "lin_api_key", linearTeamId: "team-1" },
+      { title: "t", body: "b" },
+    );
+
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    for (const call of fetchMock.mock.calls) {
+      expect(call[0]).toBe("https://api.linear.app/graphql");
+      expect(call[1]?.headers?.Authorization).toBe("lin_api_key");
+    }
+    const labelCreateBody = JSON.parse(fetchMock.mock.calls[1][1]?.body as string) as {
+      query: string;
+      variables: { name: string; teamId: string };
+    };
+    expect(labelCreateBody.query).toContain("issueLabelCreate");
+    expect(labelCreateBody.variables).toEqual({ name: "auto-reported", teamId: "team-1" });
+
+    const issueBody = JSON.parse(fetchMock.mock.calls[2][1]?.body as string) as {
+      query: string;
+      variables: {
+        input: { title: string; description: string; teamId: string; labelIds: string[] };
+      };
+    };
+    expect(issueBody.query).toContain("issueCreate");
+    expect(issueBody.variables.input.title).toBe("t");
+    expect(issueBody.variables.input.description).toBe("b");
+    expect(issueBody.variables.input.teamId).toBe("team-1");
+    expect(issueBody.variables.input.labelIds).toEqual(["lbl-1", "lbl-2"]);
   });
 });
 

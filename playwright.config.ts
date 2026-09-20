@@ -1,7 +1,7 @@
 import { defineConfig, devices } from "playwright/test";
 
 /**
- * Playwright configuration for adult-ai-app e2e tests (#185).
+ * Playwright configuration for character-chat e2e tests (#185).
  *
  * Port 5185 is used to avoid collision with other sessions on 5173.
  * Viewport defaults to iPhone SE (375×667) — mobile-first per project convention.

@@ -111,7 +111,97 @@ export const buildQualityIssuePayload = (input: ReportInput): { title: string; b
 let cachedInstallationToken: { token: string; expiresAtMs: number } | null = null;
 
 const GITHUB_API_BASE = "https://api.github.com";
+const LINEAR_API_BASE = "https://api.linear.app/graphql";
 const INSTALLATION_TOKEN_CACHE_MS = 50 * 60 * 1000;
+const QUALITY_ISSUE_LABELS = ["quality-degraded", "auto-reported"] as const;
+
+// モジュールスコープのキャッシュ。Workers の隔離環境ではインスタンスごとに独立なので
+// 起票ごとのラベル解決クエリを減らすだけの目的で、永続性は求めていない。
+let cachedLinearLabelIds: Map<string, string> | null = null;
+
+const linearGraphql = async <T>(
+  apiKey: string,
+  query: string,
+  variables?: Record<string, unknown>,
+): Promise<T> => {
+  const response = await fetch(LINEAR_API_BASE, {
+    method: "POST",
+    headers: {
+      // Linear の personal API key は Bearer ではなく raw トークンを渡す。
+      Authorization: apiKey,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ query, variables }),
+  });
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Linear request failed: ${response.status} ${text}`);
+  }
+  const raw: unknown = await response.json();
+  if (typeof raw !== "object" || raw === null) {
+    throw new Error("Linear response is not an object");
+  }
+  const body = raw as { data?: T; errors?: Array<{ message: string }> };
+  if (body.errors?.length) {
+    throw new Error(`Linear GraphQL error: ${body.errors.map((e) => e.message).join("; ")}`);
+  }
+  if (!body.data) throw new Error("Linear response missing data");
+  return body.data;
+};
+
+const resolveLinearLabelIds = async (
+  apiKey: string,
+  teamId: string,
+  names: readonly string[],
+): Promise<string[]> => {
+  const cache = cachedLinearLabelIds ?? new Map<string, string>();
+  if (names.some((name) => !cache.has(name))) {
+    const data = await linearGraphql<{
+      team: { labels: { nodes: Array<{ id: string; name: string }> } };
+    }>(apiKey, `query ($teamId: String!) { team(id: $teamId) { labels { nodes { id name } } } }`, {
+      teamId,
+    });
+    for (const node of data.team.labels.nodes) cache.set(node.name, node.id);
+    for (const name of names) {
+      if (cache.has(name)) continue;
+      const created = await linearGraphql<{
+        issueLabelCreate: { success: boolean; issueLabel: { id: string } };
+      }>(
+        apiKey,
+        `mutation ($name: String!, $teamId: String!) {
+          issueLabelCreate(input: { name: $name, teamId: $teamId }) { success issueLabel { id } }
+        }`,
+        { name, teamId },
+      );
+      if (created.issueLabelCreate.success) cache.set(name, created.issueLabelCreate.issueLabel.id);
+    }
+    cachedLinearLabelIds = cache;
+  }
+  return names.map((name) => cache.get(name)).filter((id): id is string => typeof id === "string");
+};
+
+const createLinearIssue = async (
+  apiKey: string,
+  teamId: string,
+  payload: { title: string; body: string },
+): Promise<void> => {
+  const labelIds = await resolveLinearLabelIds(apiKey, teamId, QUALITY_ISSUE_LABELS);
+  const data = await linearGraphql<{ issueCreate: { success: boolean } }>(
+    apiKey,
+    `mutation ($input: IssueCreateInput!) {
+      issueCreate(input: $input) { success issue { id identifier } }
+    }`,
+    {
+      input: {
+        title: payload.title,
+        description: payload.body,
+        teamId,
+        labelIds,
+      },
+    },
+  );
+  if (!data.issueCreate.success) throw new Error("Linear issueCreate returned success=false");
+};
 
 const pemToUint8Array = (pem: string): Uint8Array => {
   const base64 = pem.replace(/-----BEGIN PRIVATE KEY-----|-----END PRIVATE KEY-----|\s+/g, "");
@@ -158,7 +248,7 @@ export const getGitHubAppInstallationToken = async (
       headers: {
         Authorization: `Bearer ${appJwt}`,
         Accept: "application/vnd.github+json",
-        "User-Agent": "adult-ai-app-quality-reporter",
+        "User-Agent": "character-chat-quality-reporter",
       },
     },
   );
@@ -194,17 +284,25 @@ export const createQualityIssue = async (
     appId?: string;
     appPrivateKey?: string;
     appInstallationId?: string;
+    linearApiKey?: string;
+    linearTeamId?: string;
   },
   payload: { title: string; body: string },
 ): Promise<void> => {
+  // タスク管理は Linear が正。GitHub は Issues 無効化に備えたフォールバック。
+  if (auth.linearApiKey && auth.linearTeamId) {
+    await createLinearIssue(auth.linearApiKey, auth.linearTeamId, payload);
+    return;
+  }
+
   const token = await resolveGitHubToken(auth);
-  const response = await fetch("https://api.github.com/repos/kouiso/adult-ai-app/issues", {
+  const response = await fetch("https://api.github.com/repos/kouiso/character-chat/issues", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
       Accept: "application/vnd.github+json",
       "Content-Type": "application/json",
-      "User-Agent": "adult-ai-app-quality-reporter",
+      "User-Agent": "character-chat-quality-reporter",
     },
     body: JSON.stringify({
       title: payload.title,
@@ -223,5 +321,8 @@ export const __testOnly = {
   createGitHubAppJwt,
   resetInstallationTokenCache: () => {
     cachedInstallationToken = null;
+  },
+  resetLinearLabelCache: () => {
+    cachedLinearLabelIds = null;
   },
 };

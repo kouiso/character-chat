@@ -86,7 +86,7 @@ export const notifySlackError = async ({
   const commit = context.env.CF_PAGES_COMMIT_SHA?.slice(0, 12);
   const severity = statusCode >= 500 ? "error" : "warning";
   const path = new URL(context.req.url).pathname;
-  const fingerprint = ["adult-ai-app", source, statusCode, path, message].join(":");
+  const fingerprint = ["character-chat", source, statusCode, path, message].join(":");
   if (!shouldNotify(fingerprint)) return;
 
   const labelText = Object.entries({ ...labels, branch, commit })
@@ -95,7 +95,7 @@ export const notifySlackError = async ({
     .join(" ");
 
   const fields = [
-    field("project", "adult-ai-app"),
+    field("project", "character-chat"),
     field("severity", severity),
     field("source", source),
     field("status", statusCode),
@@ -105,13 +105,13 @@ export const notifySlackError = async ({
   ].filter((value): value is SlackField => Boolean(value));
 
   const payload = {
-    text: `[adult-ai-app][${severity}] ${message}`,
+    text: `[character-chat][${severity}] ${message}`,
     blocks: [
       {
         type: "header",
         text: {
           type: "plain_text",
-          text: `Adult AI App ${severity.toUpperCase()} error`,
+          text: `Character Chat ${severity.toUpperCase()} error`,
           emoji: true,
         },
       },
