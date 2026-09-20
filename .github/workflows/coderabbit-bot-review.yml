@@ -1,12 +1,16 @@
 name: CodeRabbit Bot PR Review
 
 # CodeRabbit は bot 作成 PR の自動レビューを一律スキップする（"Bot user detected"）。
-# `auto_review.ignore_usernames: []` でも回避できんかったので、bot の PR が立つか
-# 更新されるたびに github-actions[bot] 経由で `@coderabbitai review` を投稿して
-# 手動トリガする。bot 本人がコメントしても無視されるため GITHUB_TOKEN を使う。
+# ignore_usernames: [] は効かず、bot アカウントからの `@coderabbitai review`
+# コメントも無視される（実測: devin-ai-integration[bot]・github-actions[bot]
+# ともに不発、非 bot アカウントのコメントのみ即起動）。そのため非 bot
+# アカウントの PAT（CODERABBIT_TRIGGER_PAT）でトリガコメントを投稿する。
+#
+# pull_request_target なので常に base 側の YAML が実行され、PR 側がこの
+# ワークフローを改竄して PAT を盗む経路はない。secret 未設定時は何もしない。
 
 on:
-  pull_request:
+  pull_request_target:
     types: [opened, reopened, ready_for_review, synchronize]
 
 permissions:
@@ -17,13 +21,12 @@ jobs:
     name: Request CodeRabbit review on bot PR
     runs-on: ${{ vars.RUNNER_LINUX || 'ubuntu-latest' }}
     timeout-minutes: 5
-    # fork からの PR では GITHUB_TOKEN が read-only でコメントできんので除外
-    if: >-
-      endsWith(github.event.pull_request.user.login, '[bot]') &&
-      github.event.pull_request.head.repo.full_name == github.repository
+    if: endsWith(github.event.pull_request.user.login, '[bot]')
+    env:
+      GH_TOKEN: ${{ secrets.CODERABBIT_TRIGGER_PAT }}
     steps:
       - name: Comment @coderabbitai review
+        if: env.GH_TOKEN != ''
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --body "@coderabbitai review"
