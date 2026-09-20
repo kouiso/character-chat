@@ -1,0 +1,29 @@
+name: CodeRabbit Bot PR Review
+
+# CodeRabbit は bot 作成 PR の自動レビューを一律スキップする（"Bot user detected"）。
+# `auto_review.ignore_usernames: []` でも回避できんかったので、bot の PR が立つか
+# 更新されるたびに github-actions[bot] 経由で `@coderabbitai review` を投稿して
+# 手動トリガする。bot 本人がコメントしても無視されるため GITHUB_TOKEN を使う。
+
+on:
+  pull_request:
+    types: [opened, reopened, ready_for_review, synchronize]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  trigger-review:
+    name: Request CodeRabbit review on bot PR
+    runs-on: ${{ vars.RUNNER_LINUX || 'ubuntu-latest' }}
+    timeout-minutes: 5
+    # fork からの PR では GITHUB_TOKEN が read-only でコメントできんので除外
+    if: >-
+      endsWith(github.event.pull_request.user.login, '[bot]') &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    steps:
+      - name: Comment @coderabbitai review
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: gh pr comment "$PR_NUMBER" --body "@coderabbitai review"
