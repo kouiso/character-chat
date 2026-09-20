@@ -16,17 +16,6 @@ const alternating = [
   "</response>",
 ].join("\n");
 
-const DOGFOOD_ROOT = ".work/e2e-results/vlong-dogfood";
-// 回収済み本文（2026-08-18-*）は gitignore 済みのローカル fixture。無い環境
-// （CI・fresh clone）では較正テストを skip する。同名のファイルが置かれても
-// ディレクトリだけを evidence とみなす。
-const COLLECTED_BODIES_PRESENT =
-  existsSync(DOGFOOD_ROOT) &&
-  statSync(DOGFOOD_ROOT).isDirectory() &&
-  readdirSync(DOGFOOD_ROOT, { withFileTypes: true }).some(
-    (entry) => entry.isDirectory() && entry.name.startsWith("2026-08-18-"),
-  );
-
 describe("checkNoBodyWall", () => {
   it("1 行の台詞は壁やない", () => {
     expect(checkNoBodyWall(block("dialogue", ["「そばにおって」"]))).toBe(true);
@@ -68,8 +57,13 @@ describe("checkNoBodyWall", () => {
   // vlong-dogfood の 2026-08-18 実測コーパスは gitignore 済みのローカル fixture。
   // 無い環境(新規 clone・CI)では skip する。owner 側の dc751cc と同じ扱い。
   const corpusRoot = ".work/e2e-results/vlong-dogfood";
+  // 同名のファイルが置かれてもディレクトリだけを evidence とみなす
   const corpusPresent =
-    existsSync(corpusRoot) && readdirSync(corpusRoot).some((dir) => dir.startsWith("2026-08-18-"));
+    existsSync(corpusRoot) &&
+    statSync(corpusRoot).isDirectory() &&
+    readdirSync(corpusRoot, { withFileTypes: true }).some(
+      (entry) => entry.isDirectory() && entry.name.startsWith("2026-08-18-"),
+    );
 
   it.skipIf(!corpusPresent)(
     "回収済みの本文では、閾値 3 と 6 がほぼ同じ集合を拾う（谷が広い）",
