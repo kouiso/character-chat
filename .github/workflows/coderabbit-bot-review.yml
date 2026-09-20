@@ -21,7 +21,9 @@ jobs:
     name: Request CodeRabbit review on bot PR
     runs-on: ${{ vars.RUNNER_LINUX || 'ubuntu-latest' }}
     timeout-minutes: 5
-    if: endsWith(github.event.pull_request.user.login, '[bot]')
+    if: >-
+      endsWith(github.event.pull_request.user.login, '[bot]')
+      && github.event.pull_request.head.repo.full_name == github.repository
     env:
       GH_TOKEN: ${{ secrets.CODERABBIT_TRIGGER_PAT }}
     steps:
