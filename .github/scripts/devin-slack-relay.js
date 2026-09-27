@@ -9,8 +9,9 @@
 
 const MARKER_RE = /<!-- devin-slack-triggered([^>]*)-->/;
 const SESSION_URL_RE = /https:\/\/app\.devin\.ai\/sessions\/[0-9a-f]+/;
-const FAILURE_RE = /Failed to create Devin|Failed to start|Failed to launch/i;
+const FAILURE_RE = /Failed to create Devin|Failed to start|Failed to launch|couldn'?t start|could not start|unable to start|error creating session/i;
 const MAX_TRIES = 36; // 10分間隔で約6時間
+const STALE_TRIGGER_TRIES = 6; // 起動要求後に Devin の返信が無いまま許容する sweep 回数(約1時間)
 
 const STATUS_LABELS = {
   queued: 'Queued',
@@ -277,14 +278,9 @@ async function dispatch({ github, context, core }) {
   if (label === cfg.queueLabel) {
     await ensureLabel(github, repo, cfg.queueLabel, LABEL_DEFS[cfg.queueLabel].color, LABEL_DEFS[cfg.queueLabel].desc);
     const prev = await getMarkerEntry(github, repo, issue.number);
-    await finalize(
-      github,
-      context,
-      core,
-      issue,
-      { ts: prev?.ts, status: 'queued', tries: 0 },
-      cfg
-    );
+    // 既に triggered なら起動済みなので状態は落とさない
+    const status = prev?.status === 'triggered' ? 'triggered' : 'queued';
+    await finalize(github, context, core, issue, { ts: prev?.ts, status, tries: 0 }, cfg);
     core.setOutput('queued', 'true');
     return;
   }
@@ -334,7 +330,12 @@ async function verify({ github, context, core }) {
     core.warning(`conversations.replies failed: ${r.error}`);
     return; // 確認不能。定期実行側の sweep が拾う
   }
+  // セッション URL があれば成功優先(古い失敗文と混在しても done にする)
   const { sessionUrl, failureText } = inspectReplies(r.messages);
+  if (sessionUrl) {
+    await finalize(github, context, core, issue, { ts: marker.ts, sessionUrl, status: 'done', tries: marker.tries }, cfg);
+    return;
+  }
   if (failureText) {
     await finalize(
       github,
@@ -351,9 +352,6 @@ async function verify({ github, context, core }) {
       /* ignore */
     }
     return;
-  }
-  if (sessionUrl) {
-    await finalize(github, context, core, issue, { ts: marker.ts, sessionUrl, status: 'done', tries: marker.tries }, cfg);
   }
 }
 
@@ -373,9 +371,13 @@ async function sweep({ github, context, core }) {
   for (const issue of issues) {
     if (issue.pull_request) continue;
     const labels = issue.labels.map((l) => (typeof l === 'string' ? l : l.name));
+    // 対象ラベルが無い issue ではコメント取得を省略する(API 節約)
+    if (!labels.includes(cfg.queueLabel) && !labels.includes(cfg.waitingLabel) && !labels.includes(cfg.triggerLabel)) continue;
     const marker = await getMarkerEntry(github, repo, issue.number);
 
     if (labels.includes(cfg.queueLabel)) {
+      // 起動済み(triggered)ならキューはスルー
+      if (marker?.status === 'triggered' && marker?.ts) continue;
       // キューから起動: 新規スレッドへ投稿
       const res = await postToSlack(cfg, buildSlackMessage(cfg, issue), marker?.ts);
       if (res.ok) {
@@ -392,19 +394,32 @@ async function sweep({ github, context, core }) {
     }
 
     if (labels.includes(cfg.triggerLabel) && marker?.status === 'triggered' && marker?.ts) {
-      // 遅延する Devin 応答を回収する。失敗なら pending。セッションURLなら done。
+      // 遅延する Devin 応答を回収する。URLなら done。失敗なら pending。
+      // どちらも無い無応答が続く場合は tries を進めて上限で pending へ降格し再投稿に委ねる。
       const r = await slackReplies(cfg, marker.ts);
       if (!r.ok) continue;
       const { sessionUrl, failureText } = inspectReplies(r.messages);
-      if (failureText) {
+      if (sessionUrl) {
+        await finalize(github, context, core, issue, { ts: marker.ts, sessionUrl, status: 'done', tries: marker.tries }, cfg);
+      } else if (failureText) {
         await finalize(github, context, core, issue, { ts: marker.ts, status: 'pending', tries: marker.tries }, cfg, `Devin 起動失敗: ${failureText}`);
         try {
           await github.rest.issues.removeLabel({ ...repo, issue_number: issue.number, name: cfg.triggerLabel });
         } catch {
           /* ignore */
         }
-      } else if (sessionUrl) {
-        await finalize(github, context, core, issue, { ts: marker.ts, sessionUrl, status: 'done', tries: marker.tries }, cfg);
+      } else {
+        const tries = (marker.tries || 0) + 1;
+        if (tries >= STALE_TRIGGER_TRIES) {
+          await finalize(github, context, core, issue, { ts: marker.ts, status: 'pending', tries }, cfg, 'Devin 応答なし。定期実行で再投稿します');
+          try {
+            await github.rest.issues.removeLabel({ ...repo, issue_number: issue.number, name: cfg.triggerLabel });
+          } catch {
+            /* ignore */
+          }
+        } else {
+          await finalize(github, context, core, issue, { ts: marker.ts, status: 'triggered', tries }, cfg);
+        }
       }
       continue;
     }
@@ -418,11 +433,6 @@ async function sweep({ github, context, core }) {
           const { sessionUrl } = inspectReplies(r.messages);
           if (sessionUrl) {
             await finalize(github, context, core, issue, { ts: marker.ts, sessionUrl, status: 'done', tries }, cfg);
-            try {
-              await github.rest.issues.addLabels({ ...repo, issue_number: issue.number, labels: [cfg.triggerLabel] });
-            } catch {
-              /* ignore */
-            }
             continue;
           }
         }
