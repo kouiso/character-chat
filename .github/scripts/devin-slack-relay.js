@@ -128,7 +128,7 @@ async function ensureLabel(github, repo, name, color, description) {
       color,
       description,
     });
-  } catch (e) {
+  } catch {
     if (e.status !== 422) throw e; // 既存なら 422
   }
 }
@@ -146,7 +146,7 @@ async function syncLabels(github, repo, issueNumber, status, cfg) {
     if (name === active) continue;
     try {
       await github.rest.issues.removeLabel({ owner: repo.owner, repo: repo.repo, issue_number: issueNumber, name });
-    } catch (e) {
+    } catch {
       /* ラベル未付与なら無視 */
     }
   }
@@ -155,7 +155,7 @@ async function syncLabels(github, repo, issueNumber, status, cfg) {
     if (def) await ensureLabel(github, repo, active, def.color, def.desc);
     try {
       await github.rest.issues.addLabels({ owner: repo.owner, repo: repo.repo, issue_number: issueNumber, labels: [active] });
-    } catch (e) {
+    } catch {
       /* ignore */
     }
   }
@@ -240,7 +240,7 @@ async function mirrorProjectField(github, context, core, issueNumber, status, cf
       `mutation($p:ID!,$i:ID!,$f:ID!,$o:String!){ updateProjectV2ItemFieldValue(input:{ projectId:$p itemId:$i fieldId:$f value:{ singleSelectOptionId:$o } }){ projectV2Item { id } } }`,
       { p: project.id, i: item.id, f: field.id, o: opt.id }
     );
-  } catch (e) {
+  } catch {
     core.warning(`project field mirror failed: ${e.message}`);
   }
 }
@@ -307,7 +307,7 @@ async function dispatch({ github, context, core }) {
     );
     try {
       await github.rest.issues.removeLabel({ ...repo, issue_number: issue.number, name: cfg.triggerLabel });
-    } catch (e) {
+    } catch {
       /* ignore */
     }
     core.setOutput('thread_ts', '');
@@ -324,7 +324,7 @@ async function verify({ github, context, core }) {
   const issue = context.payload.issue;
   const repo = context.repo;
   const marker = await getMarkerEntry(github, repo, issue.number);
-  if (!marker || !marker.ts || marker.status !== 'triggered') return;
+  if (!marker?.ts || marker.status !== 'triggered') return;
 
   const r = await slackReplies(cfg, marker.ts);
   if (!r.ok) {
@@ -344,7 +344,7 @@ async function verify({ github, context, core }) {
     );
     try {
       await github.rest.issues.removeLabel({ ...repo, issue_number: issue.number, name: cfg.triggerLabel });
-    } catch (e) {
+    } catch {
       /* ignore */
     }
     return;
@@ -379,7 +379,7 @@ async function sweep({ github, context, core }) {
         await finalize(github, context, core, issue, { ts: res.ts, permalink: res.permalink, status: 'triggered', tries: 0 }, cfg);
         try {
           await github.rest.issues.addLabels({ ...repo, issue_number: issue.number, labels: [cfg.triggerLabel] });
-        } catch (e) {
+        } catch {
           /* ignore */
         }
       } else {
@@ -397,7 +397,7 @@ async function sweep({ github, context, core }) {
         await finalize(github, context, core, issue, { ts: marker.ts, status: 'pending', tries: marker.tries }, cfg, `Devin 起動失敗: ${failureText}`);
         try {
           await github.rest.issues.removeLabel({ ...repo, issue_number: issue.number, name: cfg.triggerLabel });
-        } catch (e) {
+        } catch {
           /* ignore */
         }
       } else if (sessionUrl) {
@@ -417,7 +417,7 @@ async function sweep({ github, context, core }) {
             await finalize(github, context, core, issue, { ts: marker.ts, sessionUrl, status: 'done', tries }, cfg);
             try {
               await github.rest.issues.addLabels({ ...repo, issue_number: issue.number, labels: [cfg.triggerLabel] });
-            } catch (e) {
+            } catch {
               /* ignore */
             }
             continue;
