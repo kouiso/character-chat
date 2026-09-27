@@ -8,7 +8,7 @@
 // シングルセレクトフィールド `Devin` にも状態をミラーする。
 
 const MARKER_RE = /<!-- devin-slack-triggered([^>]*)-->/;
-const SESSION_URL_RE = /https:\/\/[\w.-]*devin\.ai\/sessions\/[0-9a-f]+/;
+const SESSION_URL_RE = /https:\/\/(?:[\w-]+\.)*devin\.ai\/sessions\/[0-9a-f]+/;
 const FAILURE_RE = /Failed to create Devin|Failed to start|Failed to launch|couldn'?t start|could not start|unable to start|error creating session/i;
 const MAX_TRIES = 36; // 10分間隔で約6時間
 const STALE_TRIGGER_TRIES = 6; // 起動要求後に Devin の返信が無いまま許容する sweep 回数(約1時間)
