@@ -128,9 +128,24 @@ describe("scanDir", () => {
   });
 
   it("ターン順とキャラ名でソートする", () => {
-    const [n1, t1] = turnFile("Sakura", 2, "奥", "<response><dialogue>「奥」</dialogue></response>");
-    const [n2, t2] = turnFile("Sakura", 1, "奥", "<response><dialogue>「奥」</dialogue></response>");
-    const [n3, t3] = turnFile("Downer", 1, "奥", "<response><dialogue>「奥」</dialogue></response>");
+    const [n1, t1] = turnFile(
+      "Sakura",
+      2,
+      "奥",
+      "<response><dialogue>「奥」</dialogue></response>",
+    );
+    const [n2, t2] = turnFile(
+      "Sakura",
+      1,
+      "奥",
+      "<response><dialogue>「奥」</dialogue></response>",
+    );
+    const [n3, t3] = turnFile(
+      "Downer",
+      1,
+      "奥",
+      "<response><dialogue>「奥」</dialogue></response>",
+    );
     writeFileSync(join(dir, n1), t1);
     writeFileSync(join(dir, n2), t2);
     writeFileSync(join(dir, n3), t3);

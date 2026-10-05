@@ -70,7 +70,7 @@ const USER_ACTION_PATTERNS: RegExp[] = [
   /君の手が/,
 ];
 
-const QUOTED_FRAGMENT = /[「『"“]([^」』"”]{2,})[」』"”]/g;
+const QUOTED_FRAGMENT = /["“「『]([^"”」』]{2,})["”」』]/g;
 const CONTENT_WORD = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}]{2,}/gu;
 
 const readHeader = (lines: string[]): { fields: Map<string, string>; bodyStart: number } => {
@@ -159,7 +159,10 @@ const overlappingToken = (tokens: string[], body: string): string | undefined =>
   return hits.sort((a, b) => b.length - a.length)[0];
 };
 
-const scoreTurn = (userText: string, body: string): Omit<QualityTurnRow, "file" | "character" | "turn"> => {
+const scoreTurn = (
+  userText: string,
+  body: string,
+): Omit<QualityTurnRow, "file" | "character" | "turn"> => {
   const trimmed = body.trim();
   const emptyBody = trimmed.length === 0;
   const tokens = userTokens(userText);
@@ -199,7 +202,8 @@ export const scanDir = (dir: string): QualityTurnRow[] =>
 const FAILING_TOTALS = ["respondsToUser", "inventsUserAction", "hasDialogue", "emptyBody"] as const;
 
 const failingCount = (rows: QualityTurnRow[], key: (typeof FAILING_TOTALS)[number]): number => {
-  if (key === "respondsToUser" || key === "hasDialogue") return rows.filter((row) => !row[key]).length;
+  if (key === "respondsToUser" || key === "hasDialogue")
+    return rows.filter((row) => !row[key]).length;
   return rows.filter((row) => row[key]).length;
 };
 
