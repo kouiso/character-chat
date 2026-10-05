@@ -8,6 +8,7 @@
 
 import { readFileSync, readdirSync } from "node:fs";
 import { basename, join } from "node:path";
+import { pathToFileURL } from "node:url";
 
 const USER_MARKER = "# --- そのターンで送った相手の発言 ---";
 const BODY_MARKER = "# --- ここから本文 ---";
@@ -218,4 +219,9 @@ const main = (): void => {
   }
 };
 
-if (import.meta.url === `file://${process.argv[1]}`) main();
+// 空白や日本語を含むパスは import.meta.url 側だけパーセントエンコードされ、
+// Windows では区切りとドライブ表記も違う。文字列連結で比べると直接起動を見落とす。
+export const isEntryPoint = (moduleUrl: string, scriptPath: string | undefined): boolean =>
+  scriptPath !== undefined && pathToFileURL(scriptPath).href === moduleUrl;
+
+if (isEntryPoint(import.meta.url, process.argv[1])) main();

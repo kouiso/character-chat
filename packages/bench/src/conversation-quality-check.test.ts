@@ -4,7 +4,7 @@ import { join } from "node:path";
 
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { scanDir } from "./conversation-quality-check";
+import { isEntryPoint, scanDir } from "./conversation-quality-check";
 
 const turnFile = (label: string, turn: number, user: string, body: string): [string, string] => [
   `${label}-${String(turn).padStart(2, "0")}-session-test.txt`,
@@ -139,5 +139,18 @@ describe("scanDir", () => {
       "Sakura:1",
       "Sakura:2",
     ]);
+  });
+});
+
+describe("isEntryPoint", () => {
+  it("空白と日本語を含むパスで直接起動しても本体を走らせる", () => {
+    const moduleUrl = "file:///tmp/bench%20run/%E4%BC%9A%E8%A9%B1/conversation-quality-check.ts";
+    expect(isEntryPoint(moduleUrl, "/tmp/bench run/会話/conversation-quality-check.ts")).toBe(true);
+  });
+
+  it("別のファイルから import された時は走らせない", () => {
+    const moduleUrl = "file:///tmp/bench/conversation-quality-check.ts";
+    expect(isEntryPoint(moduleUrl, "/tmp/bench/other.ts")).toBe(false);
+    expect(isEntryPoint(moduleUrl, undefined)).toBe(false);
   });
 });
