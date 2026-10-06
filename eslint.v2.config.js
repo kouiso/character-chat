@@ -49,6 +49,7 @@ export default defineConfig([
       "src/repetition-rate.ts",
       "src/refusal-check.ts",
       "src/fantasy-core-check.ts",
+      "src/conversation-quality-check.ts",
     ],
     rules: {
       "no-console": "off",
