@@ -165,20 +165,38 @@ const scoreTurn = (
 ): Omit<QualityTurnRow, "file" | "character" | "turn"> => {
   const trimmed = body.trim();
   const emptyBody = trimmed.length === 0;
+  const userTextTrimmed = userText.trim();
   const tokens = userTokens(userText);
   const hit = overlappingToken(tokens, body);
-  const respondsToUser = tokens.length === 0 ? true : hit !== undefined;
+  // 空発言だけを判定対象外にする。トークンが取れない非空発言（1文字返答等）は
+  // 本文に発言そのものが含まれるかで別途照合する。
+  const respondsToUser =
+    userTextTrimmed.length === 0
+      ? true
+      : hit !== undefined ||
+        (tokens.length === 0 && body.includes(userTextTrimmed));
   const action = USER_ACTION_PATTERNS.map((pattern) => body.match(pattern)).find((match) => match);
+  // ユーザーが一人称で先に述べた動作を本文が二人称で再掲しても捏造ではない。
+  const userActionRestated = userText.replace(/(俺|私|僕)(の|は)/g, "あなた$2");
+  const inventsUserAction =
+    action !== undefined && action !== null && !userActionRestated.includes(action[0]);
   const dialogue = body.match(/「[^」]*」|『[^』]*』/);
   return {
     respondsToUser,
-    inventsUserAction: action !== undefined,
+    inventsUserAction,
     hasDialogue: dialogue !== null,
     emptyBody,
     evidence: {
       respondsToUser:
-        tokens.length === 0 ? "no-user-token" : hit !== undefined ? clip(hit) : "no-overlap",
-      inventsUserAction: action ? clip(action[0]) : "",
+        userTextTrimmed.length === 0
+          ? "no-user-token"
+          : hit !== undefined
+            ? clip(hit)
+            : tokens.length === 0 && body.includes(userTextTrimmed)
+              ? clip(userTextTrimmed)
+              : "no-overlap",
+      inventsUserAction:
+        action && inventsUserAction ? clip(action[0]) : action ? "restated-in-user" : "",
       hasDialogue: dialogue ? clip(dialogue[0]) : emptyBody ? "empty-body" : "no-dialogue",
       emptyBody: emptyBody ? "empty" : String(trimmed.length),
     },

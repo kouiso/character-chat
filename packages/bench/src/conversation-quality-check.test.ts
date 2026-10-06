@@ -4,6 +4,8 @@ import { join } from "node:path";
 
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
+import { pathToFileURL } from "node:url";
+
 import { isEntryPoint, scanDir } from "./conversation-quality-check";
 
 const turnFile = (label: string, turn: number, user: string, body: string): [string, string] => [
@@ -127,6 +129,45 @@ describe("scanDir", () => {
     expect(row.inventsUserAction).toBe(true);
   });
 
+  it("1文字の発言でも本文に含まれなければ応答失敗", () => {
+    const [name, text] = turnFile(
+      "Sakura",
+      10,
+      "奥",
+      "<response>\n<action>自分の膝を揃えたまま、視線を落とす。</action>\n<dialogue>「見ないでください」</dialogue>",
+    );
+    writeFileSync(join(dir, name), text);
+    const [row] = scanDir(dir);
+    expect(row.respondsToUser).toBe(false);
+    expect(row.evidence.respondsToUser).toBe("no-overlap");
+  });
+
+  it("1文字の発言が本文に含まれれば応答あり", () => {
+    const [name, text] = turnFile(
+      "Sakura",
+      11,
+      "奥",
+      "<response>\n<action>奥まで押し込むと息が漏れる。</action>\n<dialogue>「あっ……」</dialogue>",
+    );
+    writeFileSync(join(dir, name), text);
+    const [row] = scanDir(dir);
+    expect(row.respondsToUser).toBe(true);
+    expect(row.evidence.respondsToUser).toBe("奥");
+  });
+
+  it("ユーザーが先に述べた動作の再掲は捏造にしない", () => {
+    const [name, text] = turnFile(
+      "Sakura",
+      12,
+      "俺の手がスカートの裾を掴んだ",
+      "<response>\n<action>あなたの手がスカートの裾を掴んだまま、身を寄せる。</action>\n<dialogue>「はっ……」</dialogue>",
+    );
+    writeFileSync(join(dir, name), text);
+    const [row] = scanDir(dir);
+    expect(row.inventsUserAction).toBe(false);
+    expect(row.evidence.inventsUserAction).toBe("restated-in-user");
+  });
+
   it("ターン順とキャラ名でソートする", () => {
     const [n1, t1] = turnFile(
       "Sakura",
@@ -159,8 +200,11 @@ describe("scanDir", () => {
 
 describe("isEntryPoint", () => {
   it("空白と日本語を含むパスで直接起動しても本体を走らせる", () => {
-    const moduleUrl = "file:///tmp/bench%20run/%E4%BC%9A%E8%A9%B1/conversation-quality-check.ts";
-    expect(isEntryPoint(moduleUrl, "/tmp/bench run/会話/conversation-quality-check.ts")).toBe(true);
+    const scriptPath = join(tmpdir(), "bench run", "会話", "conversation-quality-check.ts");
+    const url = pathToFileURL(scriptPath).href;
+    expect(url).toContain("bench%20run");
+    expect(url).toContain("%E4%BC%9A%E8%A9%B1");
+    expect(isEntryPoint(url, scriptPath)).toBe(true);
   });
 
   it("別のファイルから import された時は走らせない", () => {
