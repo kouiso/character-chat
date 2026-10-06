@@ -175,11 +175,14 @@ const scoreTurn = (
       ? true
       : hit !== undefined ||
         (tokens.length === 0 && body.includes(userTextTrimmed));
-  const action = USER_ACTION_PATTERNS.map((pattern) => body.match(pattern)).find((match) => match);
+  const actions = USER_ACTION_PATTERNS.map((pattern) => body.match(pattern)).filter(
+    (match): match is RegExpMatchArray => match !== null,
+  );
   // ユーザーが一人称で先に述べた動作を本文が二人称で再掲しても捏造ではない。
+  // 検出した全動作を個別に照合し、再掲に当てはまらないものが1つでもあれば捏造とする。
   const userActionRestated = userText.replace(/(俺|私|僕)(の|は)/g, "あなた$2");
-  const inventsUserAction =
-    action !== undefined && action !== null && !userActionRestated.includes(action[0]);
+  const firstInventedAction = actions.find((match) => !userActionRestated.includes(match[0]));
+  const inventsUserAction = firstInventedAction !== undefined;
   const dialogue = body.match(/「[^」]*」|『[^』]*』/);
   return {
     respondsToUser,
@@ -195,8 +198,11 @@ const scoreTurn = (
             : tokens.length === 0 && body.includes(userTextTrimmed)
               ? clip(userTextTrimmed)
               : "no-overlap",
-      inventsUserAction:
-        action && inventsUserAction ? clip(action[0]) : action ? "restated-in-user" : "",
+      inventsUserAction: firstInventedAction
+        ? clip(firstInventedAction[0])
+        : actions.length > 0
+          ? "restated-in-user"
+          : "",
       hasDialogue: dialogue ? clip(dialogue[0]) : emptyBody ? "empty-body" : "no-dialogue",
       emptyBody: emptyBody ? "empty" : String(trimmed.length),
     },

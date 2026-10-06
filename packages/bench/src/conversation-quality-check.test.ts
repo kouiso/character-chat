@@ -168,6 +168,19 @@ describe("scanDir", () => {
     expect(row.evidence.inventsUserAction).toBe("restated-in-user");
   });
 
+  it("先の動作が再掲でも後続の捏造動作は判定する", () => {
+    const [name, text] = turnFile(
+      "Sakura",
+      13,
+      "俺の手がドアを開けた",
+      "<response>\n<action>あなたの手がドアを開けた。あなたの指が鍵を奪った。</action>\n<dialogue>「あっ」</dialogue>",
+    );
+    writeFileSync(join(dir, name), text);
+    const [row] = scanDir(dir);
+    expect(row.inventsUserAction).toBe(true);
+    expect(row.evidence.inventsUserAction).toBe("あなたの指が");
+  });
+
   it("ターン順とキャラ名でソートする", () => {
     const [n1, t1] = turnFile(
       "Sakura",
