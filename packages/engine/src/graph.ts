@@ -206,6 +206,8 @@ export type TurnGraphDeps = {
   mechanicsPhase?: ScenePhase;
   // A3 再仕様腕用。プロンプトの字数下限（N字以上）だけを外す。本番では未指定。
   dropMinChars?: boolean;
+  // 相手の動作を書かない反応専用契約（bench 検証用）
+  soloReaction?: boolean;
   checkpointer?: BaseCheckpointSaver;
   now?: () => number;
   id?: () => string;
@@ -339,6 +341,7 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
           ),
           voice: { endings: voice.endings, tics: voice.tics },
           dropMinChars: deps.dropMinChars,
+          soloReaction: deps.soloReaction,
         });
         const messages = [...state.history, { role: "user" as const, content: state.userText }];
         const prompt: ComposedPrompt = { version: "v0001", system, messages };
