@@ -27,7 +27,6 @@ jobs:
   trufflehog:
     name: Secret Scan
     runs-on: ${{ vars.RUNNER_LINUX || 'ubuntu-latest' }}
-    timeout-minutes: 10
     # fetch-depth:0 の全履歴スキャンで、詰まった時に無制限に枠を食うのを防ぐ
     timeout-minutes: 10
     steps:
