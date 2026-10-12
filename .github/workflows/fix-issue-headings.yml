@@ -6,6 +6,7 @@ on:
 jobs:
   fix-headings:
     runs-on: ${{ vars.RUNNER_LINUX || 'ubuntu-latest' }}
+    timeout-minutes: 10
     permissions:
       issues: write
     steps:

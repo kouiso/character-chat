@@ -35,6 +35,7 @@ jobs:
   ci:
     name: CI (${{ matrix.check-type }})
     runs-on: ${{ vars.RUNNER_LINUX_4VCPU || 'ubuntu-latest' }}
+    timeout-minutes: 10
     # push イベントでは github.event.pull_request が null になり draft 判定が falsy に
     # なるため、push: branches:[main] のトリガーがあっても全ジョブが skip されとった。
     if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
@@ -77,6 +78,7 @@ jobs:
     name: Migrations (fresh local D1)
     # 個人リポには Blacksmith runner が無いため vars 経由+ubuntu-latest fallback に揃える
     runs-on: ${{ vars.RUNNER_LINUX_4VCPU || 'ubuntu-latest' }}
+    timeout-minutes: 10
     # push イベントでは github.event.pull_request が null になり draft 判定が falsy に
     # なるため、push: branches:[main] のトリガーがあっても全ジョブが skip されとった。
     if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
@@ -104,6 +106,7 @@ jobs:
   e2e:
     name: E2E (offline smoke)
     runs-on: ${{ vars.RUNNER_LINUX_4VCPU || 'ubuntu-latest' }}
+    timeout-minutes: 10
     # push イベントでは github.event.pull_request が null になり draft 判定が falsy に
     # なるため、push: branches:[main] のトリガーがあっても全ジョブが skip されとった。
     if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
@@ -153,6 +156,7 @@ jobs:
   boot-smoke:
     name: Boot smoke
     runs-on: ${{ vars.RUNNER_LINUX_4VCPU || 'ubuntu-latest' }}
+    timeout-minutes: 10
     # push イベントでは github.event.pull_request が null になり draft 判定が falsy に
     # なるため、push: branches:[main] のトリガーがあっても全ジョブが skip されとった。
     if: github.event_name != 'pull_request' || github.event.pull_request.draft == false

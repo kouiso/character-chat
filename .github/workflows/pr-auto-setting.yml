@@ -20,6 +20,7 @@ jobs:
       (github.event.action == 'opened' || github.event.action == 'reopened')
       && github.event.pull_request.user.type != 'Bot'
     runs-on: ${{ vars.RUNNER_LINUX_4VCPU || 'ubuntu-latest' }}
+    timeout-minutes: 10
     steps:
       - name: Assign PR author
         env:
@@ -38,6 +39,7 @@ jobs:
       group: ${{ github.workflow }}-pr-labeler-${{ github.ref }}
       cancel-in-progress: true
     runs-on: ${{ vars.RUNNER_LINUX_4VCPU || 'ubuntu-latest' }}
+    timeout-minutes: 10
     steps:
       - name: Label by changed files
         env:
