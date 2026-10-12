@@ -12,8 +12,14 @@ on:
 jobs:
   retry-devin:
     name: Retry pending Devin triggers
-    # 起動トリガのラベルは `devin`。無関係なラベル付与では走らせない
-    if: github.event_name != 'issues' || github.event.label.name == 'devin' || github.event.label.name == 'devin-queued'
+    # caller 側で付与しないと reusable 側の issues: write が既定 read-only トークンで効かない
+    permissions:
+      issues: write
+      contents: read
+    # ラベル起動・定期・手動が重なっても同一リポでは直列化し二重起動を防ぐ
+    concurrency: devin-slack-retry
+    # 起動トリガのラベルは `devin`。devin-queued は次回 sweep まで待機させる設計のため対象外
+    if: github.event_name != 'issues' || github.event.label.name == 'devin'
     # 可変ブランチ参照に secrets を渡すと参照先更新で漏洩し得るため不変 SHA で固定。
     # 中央実装 PR#14 の HEAD。main マージ後に @main へ切替える
     uses: kouiso/ritmo-devin/.github/workflows/devin-slack-retry-reusable.yml@3bb10481528a5383dbc27a3dd9706f6ff98edde7
