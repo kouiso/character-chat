@@ -10,8 +10,10 @@
 const MARKER_RE = /<!-- devin-slack-triggered([^>]*)-->/;
 const SESSION_URL_RE = /https:\/\/(?:[\w-]+\.)*devin\.ai\/sessions\/[0-9a-f]+/;
 const FAILURE_RE = /Failed to create Devin|Failed to start|Failed to launch|couldn'?t start|could not start|unable to start|error creating session/i;
-const MAX_TRIES = 36; // 10分間隔で約6時間
-const STALE_TRIGGER_TRIES = 6; // 起動要求後に Devin の返信が無いまま許容する sweep 回数(約1時間)
+// sweep は 6 時間間隔。10 分間隔の頃の 36 回は Slack への再投稿を最大 36 回積み上げていたので、
+// 起動失敗の再投稿は 3 回(約 18 時間)で諦めて手動対応に回す
+const MAX_TRIES = 3;
+const STALE_TRIGGER_TRIES = 2; // 起動要求後に Devin の返信が無いまま許容する sweep 回数(約 12 時間)
 
 const STATUS_LABELS = {
   queued: 'Queued',
@@ -456,7 +458,7 @@ async function sweepIssue(github, context, core, cfg, issue, labels, removeTrigg
 
     if (marker?.status === 'triggered' && marker?.ts) {
       // 遅延する Devin 応答を回収する。URLなら done。失敗なら pending。
-      // どちらも無い無応答が続く場合は tries を進めて上限で pending へ降格し再投稿に委ねる。
+      // どちらも無い無応答が続く場合は tries を進めて上限で failed に止める(再投稿はしない)。
       const r = await slackReplies(cfg, marker.ts);
       if (!r.ok) {
         // スレッドが消えているなら pending へ降格して次回新スレッドで再投稿させる
@@ -476,7 +478,8 @@ async function sweepIssue(github, context, core, cfg, issue, labels, removeTrigg
       } else {
         const tries = (marker.tries || 0) + 1;
         if (tries >= STALE_TRIGGER_TRIES) {
-          await finalize(github, context, core, issue, { ts: marker.ts, status: 'pending', tries }, cfg, 'Devin 応答なし。定期実行で再投稿します');
+          // 無言の相手へ再投稿を重ねても応答は増えず Slack を埋めるだけなので、再投稿せず failed で止める
+          await finalize(github, context, core, issue, { ts: marker.ts, status: 'failed', tries }, cfg, 'Devin 応答なし。要手動対応');
           await removeTriggerLabel(issue.number);
         } else {
           await finalize(github, context, core, issue, { ts: marker.ts, status: 'triggered', tries }, cfg);
