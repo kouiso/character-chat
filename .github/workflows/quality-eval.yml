@@ -15,9 +15,8 @@ concurrency:
 
 on:
   schedule:
-    # 週1回 (月 21:00 UTC = 火 6:00 JST)。週2回だと直近3回平均の判定が2週で埋まるだけで
-    # 有料 API 費用が倍になるため週次に落とした
-    - cron: "0 21 * * 1"
+    # 週2回 (月・木 21:00 UTC = 火・金 6:00 JST)。直近3回平均の判定窓が変わるので頻度は変えない
+    - cron: "0 21 * * 1,4"
   workflow_dispatch:
     inputs:
       note:
