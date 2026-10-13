@@ -8,13 +8,14 @@
 #   fail-open で通すが judge_ran=NULL として障害を記録する。
 name: Quality Eval
 
+# 有料 API (OpenRouter) を叩く途中で殺すと課金だけ発生して採点が残らないので殺さず直列化する
 concurrency:
   group: quality-eval
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 on:
   schedule:
-    # 週2回 (月・木 21:00 UTC = 火・金 6:00 JST)
+    # 週2回 (月・木 21:00 UTC = 火・金 6:00 JST)。直近3回平均の判定窓が変わるので頻度は変えない
     - cron: "0 21 * * 1,4"
   workflow_dispatch:
     inputs:
