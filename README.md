@@ -37,7 +37,7 @@ React + Hono + Cloudflare Pages で動く。
 |---|---|
 | lockfile 整合性 | ✅ CI で `pnpm install --frozen-lockfile` |
 | 依存バージョン固定 | ✅ pnpm-lock.yaml に exact versions |
-| CI ランナー | ✅ Blacksmith isolated (`blacksmith-4vcpu-ubuntu-2404`) |
+| CI ランナー | リポジトリ変数 `RUNNER_LINUX_4VCPU` / `RUNNER_LINUX_2VCPU` と `ubuntu-latest` |
 | シークレット管理 | ✅ Cloudflare Pages secrets のみ（ソース非埋め込み） |
 
 ## 品質自動報告（Linear）
@@ -53,3 +53,13 @@ React + Hono + Cloudflare Pages で動く。
 wrangler pages secret put LINEAR_API_KEY --project-name adult-ai-chat
 wrangler pages secret put LINEAR_TEAM_ID --project-name adult-ai-chat
 ```
+
+## Local CI browser setup
+
+After `pnpm install --frozen-lockfile`, `task ci` installs the project-pinned
+Playwright Chromium and its OS dependencies before E2E and boot smoke checks.
+It uses the same setup phase as cloud CI on a browser-cache miss. Existing
+Playwright downloads are reused by Playwright itself. Linux dependency setup
+may require administrator privileges; setup failure stops CI before browser
+checks. This command does not assume Chromium was installed by `pnpm install`.
+`task ci:fast` runs lint, type checking and unit coverage without browser setup.
