@@ -50,25 +50,40 @@ jobs:
 
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: '22'
-          cache: 'pnpm'
+          node-version: "22"
+          cache: "pnpm"
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Shared CI entry contracts
+        if: matrix.check-type == 'lint'
+        run: node --test .github/ci/check.test.mjs
+
       - name: Lint
         if: matrix.check-type == 'lint'
-        run: pnpm run lint
+        run: node .github/ci/run.mjs lint
 
       # vitest.config.ts の coverage.thresholds は定義されとるだけで CI から一度も
       # 実行されておらず、閾値割れを検知できんかった。test を coverage 付きに変えて強制する。
       - name: Test (with coverage thresholds)
         if: matrix.check-type == 'test'
-        run: pnpm run test:coverage
+        run: node .github/ci/run.mjs test
 
       - name: Build
         if: matrix.check-type == 'build'
-        run: pnpm run build
+        run: node .github/ci/run.mjs build
+
+      # なぜ: 起動検査へ同じコミットの全配布ファイルを渡して二重ビルドを避ける。
+      - name: Preserve current-run build for boot smoke
+        if: matrix.check-type == 'build'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ci-build-${{ github.sha }}-${{ github.run_attempt }}
+          path: dist
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 1
 
   # マイグレーションの適用順序（CREATE 前の ALTER/参照など）は、まっさらなローカル D1 に
   # 全件適用して初めて検知できる。0020/0022 の順序バグは PR CI で流してへんかったため
@@ -88,15 +103,15 @@ jobs:
 
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: '22'
-          cache: 'pnpm'
+          node-version: "22"
+          cache: "pnpm"
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
       # --local はネットワーク/シークレット不要でオフライン完結する。
       - name: Apply migrations to a fresh local D1
-        run: pnpm run db:migrate:local
+        run: node .github/ci/run.mjs migrations
 
   # e2e spec は Vite dev サーバーのみを対象にし、API 依存ステップは
   # アプリのエラー状態時に graceful skip する（ライブ鍵不要）。
@@ -115,8 +130,8 @@ jobs:
 
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: '22'
-          cache: 'pnpm'
+          node-version: "22"
+          cache: "pnpm"
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -145,12 +160,13 @@ jobs:
         run: pnpm exec playwright install-deps chromium
 
       - name: E2E (Playwright)
-        run: pnpm run test:e2e
+        run: node .github/ci/run.mjs e2e
 
   # 起動時パースエラー(白画面)を検知する boot-smoke ガード。
-  # scripts/boot-smoke.mjs をビルド済みアプリに対して実行する
-  # (pnpm smoke = pnpm build && node scripts/boot-smoke.mjs)。
+  # scripts/boot-smoke.mjs は同じ実行回で生成した dist 全体を使う。
+  # 再実行時も前の attempt の成果物へ暗黙に戻さない。
   boot-smoke:
+    needs: [ci]
     name: Boot smoke
     runs-on: ${{ vars.RUNNER_LINUX_4VCPU || 'ubuntu-latest' }}
     # push イベントでは github.event.pull_request が null になり draft 判定が falsy に
@@ -163,8 +179,8 @@ jobs:
 
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: '22'
-          cache: 'pnpm'
+          node-version: "22"
+          cache: "pnpm"
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -191,5 +207,11 @@ jobs:
         if: steps.playwright-cache.outputs.cache-hit == 'true'
         run: pnpm exec playwright install-deps chromium
 
+      - name: Restore build from this workflow run
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: ci-build-${{ github.sha }}-${{ github.run_attempt }}
+          path: dist
+
       - name: Boot smoke
-        run: pnpm smoke
+        run: node .github/ci/run.mjs boot-smoke
