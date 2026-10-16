@@ -109,7 +109,10 @@ test("cloud keeps matrix and uses only the current-run complete build artifact",
   for (const phase of ["lint", "test", "build", "migrations", "e2e", "boot-smoke"])
     assert.ok(w.includes(`node .github/ci/run.mjs ${phase}`));
   assert.match(w, /boot-smoke:\n[\s\S]*?needs: \[ci\]/);
-  assert.equal(w.match(/name: ci-build-\$\{\{ github.sha \}\}/g)?.length, 2);
+  assert.equal(
+    w.match(/name: ci-build-\$\{\{ github.sha \}\}-\$\{\{ github.run_attempt \}\}/g)?.length,
+    2,
+  );
   assert.match(w, /path: dist/);
   assert.match(w, /if-no-files-found: error/);
   assert.match(w, /include-hidden-files: true/);

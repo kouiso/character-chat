@@ -79,7 +79,7 @@ jobs:
         if: matrix.check-type == 'build'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: ci-build-${{ github.sha }}
+          name: ci-build-${{ github.sha }}-${{ github.run_attempt }}
           path: dist
           include-hidden-files: true
           if-no-files-found: error
@@ -163,8 +163,8 @@ jobs:
         run: node .github/ci/run.mjs e2e
 
   # 起動時パースエラー(白画面)を検知する boot-smoke ガード。
-  # scripts/boot-smoke.mjs をビルド済みアプリに対して実行する
-  # (pnpm smoke = pnpm build && node scripts/boot-smoke.mjs)。
+  # scripts/boot-smoke.mjs は同じ実行回で生成した dist 全体を使う。
+  # 再実行時も前の attempt の成果物へ暗黙に戻さない。
   boot-smoke:
     needs: [ci]
     name: Boot smoke
@@ -210,7 +210,7 @@ jobs:
       - name: Restore build from this workflow run
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
-          name: ci-build-${{ github.sha }}
+          name: ci-build-${{ github.sha }}-${{ github.run_attempt }}
           path: dist
 
       - name: Boot smoke
