@@ -229,27 +229,16 @@ tasks:
       - pnpm lint --fix
 
   ci:
-    desc: "CIチェック（lint + test + build）"
+    desc: "CI と同じ全検査（ローカル D1 とブラウザ検査を含む）"
     cmds:
-      - task: _lint
-      - task: _test
-      - task: _build
-      - pnpm verify:no-github-actions-deploy
-      - 'echo ""'
-      - 'echo "=========================================="'
-      - 'echo "  ✅ CI: All steps passed"'
-      - 'echo "=========================================="'
+      - node --test .github/ci/check.test.mjs
+      - node .github/ci/run.mjs full
 
   ci:fast:
-    desc: "高速CIチェック（lint + typecheck + unit test、e2e 除く）"
+    desc: "lint・型検査・coverage 付き unit test"
     cmds:
-      - task: _lint
-      - task: _typecheck
-      - task: _test
-      - 'echo ""'
-      - 'echo "=========================================="'
-      - 'echo "  ✅ ci:fast: lint + typecheck + test passed"'
-      - 'echo "=========================================="'
+      - node --test .github/ci/check.test.mjs
+      - node .github/ci/run.mjs fast
 
   ci:v2:
     desc: "v2 monorepo（apps/v2, packages/*）の CI（既存 ci:fast とは独立）"
