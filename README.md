@@ -37,7 +37,7 @@ React + Hono + Cloudflare Pages で動く。
 |---|---|
 | lockfile 整合性 | ✅ CI で `pnpm install --frozen-lockfile` |
 | 依存バージョン固定 | ✅ pnpm-lock.yaml に exact versions |
-| CI ランナー | リポジトリ変数 `RUNNER_LINUX_4VCPU` / `RUNNER_LINUX_2VCPU` と `ubuntu-latest` |
+| CI ランナー | リポジトリ変数 `RUNNER_LINUX_4VCPU` / `RUNNER_LINUX` と `ubuntu-latest` |
 | シークレット管理 | ✅ Cloudflare Pages secrets のみ（ソース非埋め込み） |
 
 ## 品質自動報告（Linear）
