@@ -64,6 +64,8 @@ def prepare(source: Path, destination: Path, expected_sha256: str) -> dict:
         statements.extend(inserts.get(table, []))
     statements.extend(sequence)
     statements.extend(remaining)
+    if "sqlite_stat1" in inserts:
+        statements.append("ANALYZE;")
     descriptor = os.open(destination, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
     with os.fdopen(descriptor, "w", encoding="utf-8") as output:
         output.write("\n".join(statements) + "\n")

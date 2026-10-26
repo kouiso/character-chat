@@ -4,6 +4,9 @@ import { loadHistory, loadStoredTurn, startTurn } from "./engine";
 
 import type { ChatSseEvent } from "../lib/sse-events";
 
+const CHAT_TURN_FAILURE_EVENT = "chat_turn_failed";
+const CHAT_TURN_FAILURE_CATEGORY = "turn_processing_failure";
+
 type JobStatus = "queued" | "running" | "succeeded" | "failed";
 type Job = {
   id: string;
@@ -190,7 +193,6 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
   }
 
   private async generate(job: Job): Promise<ChatSseEvent[]> {
-    this.ctx.storage.sql.exec("DELETE FROM events WHERE job_id = ? AND confirmed = 0", job.id);
     const turn = await startTurn({
       characterId: job.character_id,
       conversationId: job.conversation_id,
@@ -203,11 +205,6 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
       if (event.type === "error") failed = true;
       if (["chunk", "turn-meta", "done"].includes(event.type)) {
         events.push(event);
-        this.ctx.storage.sql.exec(
-          "INSERT INTO events (job_id,event,confirmed) VALUES (?,?,0)",
-          job.id,
-          JSON.stringify(event),
-        );
       }
     }
     if (failed || !events.some((event) => event.type === "done"))
@@ -233,9 +230,27 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
       }
       this.finish(job, events, "succeeded");
     } catch {
+      const attempt = job.attempts + 1;
+      const terminal = attempt >= 3;
+      console.error(
+        JSON.stringify({
+          event: CHAT_TURN_FAILURE_EVENT,
+          category: CHAT_TURN_FAILURE_CATEGORY,
+          jobId: job.id,
+          attempt,
+        }),
+      );
       this.finish(
         job,
-        [{ type: "error", message: "返信を完了できませんでした。再試行してください。" }],
+        [
+          {
+            type: "error",
+            message: terminal
+              ? "返信を完了できませんでした。入力に戻してください。"
+              : "返信を完了できませんでした。再試行してください。",
+            terminal,
+          },
+        ],
         "failed",
       );
     }
