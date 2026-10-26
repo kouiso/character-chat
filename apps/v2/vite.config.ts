@@ -1,9 +1,9 @@
+import { cloudflare } from "@cloudflare/vite-plugin";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
-// 順序が重要: Start → React（Start のコード変換を React プラグインより先に通す）。
-// POST /api/chat/$id は src/routes/api/chat/$id.ts の server.handlers（Start のサーバルート）。
+// Worker の束縛と認証を Start のサーバルート・SSR より先に通す。
 export default defineConfig({
-  plugins: [tanstackStart(), viteReact()],
+  plugins: [cloudflare({ viteEnvironment: { name: "ssr" } }), tanstackStart(), viteReact()],
 });

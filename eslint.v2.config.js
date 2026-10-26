@@ -12,12 +12,18 @@ const rootConfigWithoutGlobalIgnores = rootConfig.filter(
 export default defineConfig([
   ...rootConfigWithoutGlobalIgnores,
 
-  globalIgnores(["**/routeTree.gen.ts", "**/.output/**", "**/dist/**", "**/node_modules/**"]),
+  globalIgnores([
+    "**/routeTree.gen.ts",
+    "**/worker-configuration.d.ts",
+    "**/.output/**",
+    "**/dist/**",
+    "**/node_modules/**",
+  ]),
 
   {
     // Vite/Vitest/Jest の設定ファイルは default export が仕様。
     // vitest.config.ts は各パッケージの tsconfig.json の include に入れて projectService に拾わせる。
-    files: ["vite.config.ts", "vitest.config.ts", "jest.config.mjs"],
+    files: ["vite.config.ts", "vitest.config.ts", "jest.config.mjs", "src/server.ts"],
     rules: {
       "import/no-default-export": "off",
     },

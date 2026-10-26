@@ -9,7 +9,9 @@
     "build": "vite build",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
-    "lint": "eslint --config ../../eslint.v2.config.js ."
+    "lint": "eslint --config ../../eslint.v2.config.js .",
+    "test:auth:http": "node script/auth-http.mjs",
+    "cf:typegen": "wrangler types src/worker-configuration.d.ts --include-runtime false"
   },
   "dependencies": {
     "@langchain/core": "^1.2.9",
@@ -26,6 +28,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@cloudflare/vite-plugin": "1.65.0",
     "@cloudflare/workers-types": "^4.20260317.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
@@ -36,6 +39,7 @@
     "jsdom": "^26.1.0",
     "typescript": "~5.9.3",
     "vite": "^8.2.1",
-    "vitest": "^4.1.2"
+    "vitest": "^4.1.2",
+    "wrangler": "4.152.0"
   }
 }
