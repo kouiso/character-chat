@@ -131,6 +131,24 @@ try {
       ]) {
         await denied(base, header, 401);
       }
+      if (process.env.RIT59_SCREENSHOT) {
+        const { chromium } = await import("playwright");
+        const browser = await chromium.launch({
+          headless: true,
+          channel: process.env.RIT59_BROWSER_CHANNEL,
+        });
+        try {
+          const context = await browser.newContext({
+            httpCredentials: { username: "local-user", password: "local-pass:colon" },
+          });
+          const page = await context.newPage();
+          await page.goto(base);
+          await page.getByRole("heading", { name: "キャラクター", exact: true }).waitFor();
+          await page.screenshot({ path: process.env.RIT59_SCREENSHOT, fullPage: true });
+        } finally {
+          await browser.close();
+        }
+      }
       for (const [url, method, expected] of [
         ["/", "GET", 200],
         [assetPath, "GET", 200],

@@ -23,9 +23,22 @@ export default defineConfig([
   {
     // Vite/Vitest/Jest の設定ファイルは default export が仕様。
     // vitest.config.ts は各パッケージの tsconfig.json の include に入れて projectService に拾わせる。
-    files: ["vite.config.ts", "vitest.config.ts", "jest.config.mjs", "src/server.ts"],
+    files: [
+      "vite*.config.ts",
+      "vitest.config.ts",
+      "jest.config.mjs",
+      "src/server.ts",
+      "probe/worker.ts",
+    ],
     rules: {
       "import/no-default-export": "off",
+    },
+  },
+
+  {
+    files: ["probe/**/*.ts", "vite.probe.config.ts"],
+    rules: {
+      "import/no-extraneous-dependencies": ["error", { devDependencies: true }],
     },
   },
 

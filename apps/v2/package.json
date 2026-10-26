@@ -11,7 +11,10 @@
     "test": "vitest run",
     "lint": "eslint --config ../../eslint.v2.config.js .",
     "test:auth:http": "node script/auth-http.mjs",
-    "cf:typegen": "wrangler types src/worker-configuration.d.ts --include-runtime false"
+    "cf:typegen": "wrangler types src/worker-configuration.d.ts --include-runtime false",
+    "probe:build": "vite build --config vite.probe.config.ts",
+    "probe:test": "node script/worker-probe.mjs",
+    "probe:startup": "node script/startup-probe.mjs"
   },
   "dependencies": {
     "@langchain/core": "^1.2.9",
@@ -30,6 +33,8 @@
   "devDependencies": {
     "@cloudflare/vite-plugin": "1.65.0",
     "@cloudflare/workers-types": "^4.20260317.1",
+    "@langchain/langgraph": "1.4.13",
+    "@langchain/openrouter": "0.4.11",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@types/node": "^24.12.0",

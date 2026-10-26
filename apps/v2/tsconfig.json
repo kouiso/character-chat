@@ -5,5 +5,5 @@
     "lib": ["ES2023", "DOM", "DOM.Iterable"],
     "types": ["vite/client", "node", "@cloudflare/workers-types"]
   },
-  "include": ["src", "vite.config.ts", "vitest.config.ts"]
+  "include": ["src", "probe", "vite*.config.ts", "vitest.config.ts"]
 }

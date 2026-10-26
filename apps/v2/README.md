@@ -54,3 +54,12 @@ that its optional types peer expects v5. Mixing v5 only into this app produces
 duplicate Drizzle nominal types via workspace peers; a coordinated workspace
 types upgrade remains separate. Runtime build, typecheck and local HTTP checks
 are the evidence for this combination, not the absence of install warnings.
+
+An optional screenshot of the authenticated empty local list can be captured by
+setting `RIT59_SCREENSHOT` to a new output path for `test:auth:http`. If the
+Playwright-managed Chromium binary is absent, `RIT59_BROWSER_CHANNEL=chrome`
+uses installed Chrome with a separate temporary profile; it does not reuse an
+existing browser session. No browser download is required.
+
+RIT-62's independent local mock probe and its unfulfilled production acceptance
+conditions are recorded in [probe/README.md](probe/README.md).
