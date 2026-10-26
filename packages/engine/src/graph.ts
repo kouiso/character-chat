@@ -21,6 +21,12 @@ import {
   targetCharsForPhase,
 } from "@v2/prompt";
 
+import {
+  composeContextPrompt,
+  resolveContextBudget,
+  selectRecentMessages,
+  type ContextBudget,
+} from "./context-window";
 import { TurnState, type JudgedChunk } from "./state";
 
 import type {
@@ -199,6 +205,7 @@ const usageOf = (piece: AIMessageChunk): GenerationRecord["usage"] => {
 export type TurnGraphDeps = {
   model: TurnModel;
   store: TurnStore;
+  contextBudget?: Partial<ContextBudget>;
   // 本文がこの割合に届かんターンだけ続きを書かせる。0 で無効（短い fixture で判定器だけを試すテスト用）。
   extendBelowRatio?: number;
   // 段分離アーム（2026-09-05 敵対レビュー R2-1）用。指定すると目安字数・penalty・extend の発火・max_tokens
@@ -304,6 +311,7 @@ const regenerateWithDeadline = async (
 };
 
 export const createTurnGraph = (deps: TurnGraphDeps) => {
+  const contextBudget = resolveContextBudget(deps.contextBudget);
   const id = deps.id ?? (() => crypto.randomUUID());
   const now = deps.now ?? (() => Date.now());
   const modelName = modelNameOf(deps.model);
@@ -324,6 +332,10 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
       })
       .addNode("retrieve", () => ({ retrieved: [] }))
       .addNode("compose", (state) => {
+        const recent = selectRecentMessages(
+          [...state.history, { role: "user", content: state.userText }],
+          contextBudget.recentChars,
+        );
         const voice = extractVoice(state.character.systemPrompt);
         const system = composeSystemPrompt({
           sheet: state.character.systemPrompt,
@@ -334,7 +346,7 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
           exemplar: exemplarForPhase(state.ledger.phase),
           // 直前 6 ターンで使った言い回しを名指しして、語の使い回しを生成の前に止める。
           usedPhrases: collectUsedPhrases(
-            state.history
+            recent.messages
               .filter((message) => message.role === "assistant")
               .slice(-HISTORY_TURNS_FOR_REPETITION)
               .map((message) => message.content),
@@ -343,8 +355,10 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
           dropMinChars: deps.dropMinChars,
           soloReaction: deps.soloReaction,
         });
-        const messages = [...state.history, { role: "user" as const, content: state.userText }];
-        const prompt: ComposedPrompt = { version: "v0001", system, messages };
+        const prompt = composeContextPrompt(
+          { system, messages: [...state.history, { role: "user", content: state.userText }] },
+          contextBudget,
+        );
         return { prompt };
       })
       .addNode("generate", async (state, runtime) => {
@@ -397,7 +411,9 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
           "",
           `本文が ${targetChars} 字に足りん（今 ${visibleCharsOf(state.raw)} 字）。この続きとして、同じ場面を一段先へ進める <action> と <dialogue> を書き足す。ここまでの表現・出来事・台詞を繰り返さん。<response> で包まず、タグの塊だけを書く。`,
         ].join("\n");
-        const lcMessages = [...toLangchainMessages(state.prompt), new HumanMessage(instruction)];
+        const lcMessages = toLangchainMessages(
+          composeContextPrompt({ ...state.prompt, instruction }, contextBudget),
+        );
         const startedAt = now();
         const extension = await regenerateWithDeadline(deps.model, lcMessages, {
           maxTokens: maxTokensForTarget(targetChars),
@@ -492,7 +508,9 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
           "",
           `次の段落だけ書き直す。${phraseLine}`,
         ].join("\n");
-        const lcMessages = [...toLangchainMessages(state.prompt), new HumanMessage(instruction)];
+        const lcMessages = toLangchainMessages(
+          composeContextPrompt({ ...state.prompt, instruction }, contextBudget),
+        );
         // 1 段落の書き直しにもターンと同じ max_tokens と締切を掛ける（invoke は stream と違って受信字数の
         // 網が無い。2026-09-04 v2 arm run 2 の Sakura t9 は締切 120 s のターンが 149 s かかった＝書き直しが
         // 締切の外で待っとった）。締切で切れた書き直しは空文として judge に渡し、empty で落として配らん。

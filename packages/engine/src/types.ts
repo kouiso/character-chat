@@ -5,7 +5,13 @@
 // 循環になる。D1 実装は @v2/db の createD1TurnStore、テストは createMemoryTurnStore を注入する。
 export type { GenerationRecord, HistoryMessage, SaveTurnInput, TurnEvent, TurnStore } from "@v2/db";
 
+import type { ContextUsage } from "./context-window";
 import type { HistoryMessage } from "@v2/db";
 
 export type CharacterSheet = { id: string; name: string; systemPrompt: string; greeting: string };
-export type ComposedPrompt = { version: "v0001"; system: string; messages: HistoryMessage[] };
+export type ComposedPrompt = {
+  version: "v0001";
+  system: string;
+  messages: HistoryMessage[];
+  contextUsage: ContextUsage;
+};
