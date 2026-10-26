@@ -1,66 +1,16 @@
 import { describe, expect, expectTypeOf, it } from "vitest";
 
+import {
+  createProactiveFixture as createFixture,
+  FakeProactiveStorage as FakeStorage,
+} from "../test/proactive-notification-fixture";
+
 import { ProactiveNotificationStore } from "./proactive-notification-store";
 
 import type {
-  ProactiveAlarm,
   ProactiveNotificationSink,
   ProactiveNotificationStorage,
-  ProactiveNotificationTransaction,
 } from "./proactive-notification-store";
-
-class FakeStorage implements ProactiveNotificationStorage {
-  values = new Map<string, unknown>();
-  failCommit = false;
-  replayTransaction = false;
-
-  async transaction<T>(
-    closure: (transaction: ProactiveNotificationTransaction) => Promise<T>,
-  ): Promise<T> {
-    const run = async () => {
-      const pending = new Map(this.values);
-      const result = await closure({
-        get: <Value>(key: string) => Promise.resolve(pending.get(key) as Value | undefined),
-        put: <Value>(key: string, value: Value) => {
-          pending.set(key, structuredClone(value));
-          return Promise.resolve();
-        },
-      });
-      return { pending, result };
-    };
-    if (this.replayTransaction) await run();
-    const { pending, result } = await run();
-    if (this.failCommit) throw new Error("synthetic commit failure");
-    this.values = pending;
-    return result;
-  }
-}
-
-const createFixture = () => {
-  const storage = new FakeStorage();
-  let now = new Date("2026-10-26T12:00:00.000Z");
-  const clock = () => new Date(now);
-  const notifications: (ProactiveAlarm & { idempotencyKey: string })[] = [];
-  const sink: ProactiveNotificationSink = {
-    send: (notification) => {
-      notifications.push(notification);
-      return Promise.resolve();
-    },
-  };
-  const open = (recipientId = "synthetic-recipient") =>
-    new ProactiveNotificationStore({ recipientId, storage, clock });
-  return {
-    storage,
-    sink,
-    notifications,
-    open,
-    store: open(),
-    alarm: (alarmId: string, characterId = "synthetic-character") => ({ alarmId, characterId }),
-    advanceTo: (instant: string) => {
-      now = new Date(instant);
-    },
-  };
-};
 
 describe("proactive notification alarm policy and durable store", () => {
   it("accepts the native Durable Object storage transaction interface", () => {
@@ -77,7 +27,7 @@ describe("proactive notification alarm policy and durable store", () => {
   it("sends three notifications and blocks the fourth with a daily limit of three", async () => {
     const fixture = createFixture();
     await fixture.store.setCharacterEnabled("synthetic-character", true);
-    await fixture.store.setDailyLimit(3);
+    await fixture.store.setDefaultDailyLimit(3);
     const outcomes = await Promise.all(
       ["a", "b", "c", "d"].map((id) => fixture.store.handleAlarm(fixture.alarm(id), fixture.sink)),
     );
@@ -89,7 +39,7 @@ describe("proactive notification alarm policy and durable store", () => {
     ]);
   });
 
-  it("applies the default cap across characters and keeps recipients isolated", async () => {
+  it("keeps each character's cap and each recipient isolated", async () => {
     const fixture = createFixture();
     const other = fixture.open("another-synthetic-recipient");
     for (const store of [fixture.store, other]) {
@@ -104,11 +54,11 @@ describe("proactive notification alarm policy and durable store", () => {
         fixture.alarm("d", "another-synthetic-character"),
         fixture.sink,
       ),
-    ).toBe("daily-limit");
+    ).toBe("attempted");
     expect(await other.handleAlarm(fixture.alarm("a"), fixture.sink)).toBe("attempted");
     expect(
       new Set(fixture.notifications.map((notification) => notification.idempotencyKey)).size,
-    ).toBe(4);
+    ).toBe(5);
   });
 
   it("sends zero after OFF, including queued alarms, retries and a reopened store", async () => {
@@ -192,26 +142,26 @@ describe("proactive notification alarm policy and durable store", () => {
     expect(fixture.notifications).toHaveLength(1);
   });
 
-  it("keeps counters on restart and resets at UTC midnight without forgetting old alarm IDs", async () => {
+  it("keeps counters on restart and resets at JST midnight without forgetting old alarm IDs", async () => {
     const fixture = createFixture();
-    fixture.advanceTo("2026-10-26T23:59:59.999Z");
+    fixture.advanceTo("2026-10-26T14:59:59.999Z");
     await fixture.store.setCharacterEnabled("synthetic-character", true);
     for (const id of ["a", "b", "c"]) {
       await fixture.open().handleAlarm(fixture.alarm(id), fixture.sink);
     }
     expect(await fixture.open().handleAlarm(fixture.alarm("d"), fixture.sink)).toBe("daily-limit");
-    fixture.advanceTo("2026-10-27T00:00:00.000Z");
+    fixture.advanceTo("2026-10-26T15:00:00.000Z");
     expect(await fixture.open().handleAlarm(fixture.alarm("a"), fixture.sink)).toBe("duplicate");
     expect(await fixture.open().handleAlarm(fixture.alarm("d"), fixture.sink)).toBe("attempted");
     expect(fixture.notifications).toHaveLength(4);
-    fixture.advanceTo("2026-10-26T23:59:59.999Z");
+    fixture.advanceTo("2026-10-26T14:59:59.999Z");
     expect(await fixture.open().handleAlarm(fixture.alarm("e"), fixture.sink)).toBe("daily-limit");
   });
 
   it("preserves quota and deduplication across OFF/ON", async () => {
     const fixture = createFixture();
     await fixture.store.setCharacterEnabled("synthetic-character", true);
-    await fixture.store.setDailyLimit(1);
+    await fixture.store.setDefaultDailyLimit(1);
     await fixture.store.handleAlarm(fixture.alarm("a"), fixture.sink);
     await fixture.store.setCharacterEnabled("synthetic-character", false);
     await fixture.store.setCharacterEnabled("synthetic-character", true);
@@ -223,14 +173,14 @@ describe("proactive notification alarm policy and durable store", () => {
   it("retains settings, quota and receipts with a reconstructed storage binding", async () => {
     const fixture = createFixture();
     await fixture.store.setCharacterEnabled("synthetic-character", true);
-    await fixture.store.setDailyLimit(1);
+    await fixture.store.setDefaultDailyLimit(1);
     await fixture.store.handleAlarm(fixture.alarm("persisted"), fixture.sink);
     const storage = new FakeStorage();
     storage.values = structuredClone(fixture.storage.values);
     const restarted = new ProactiveNotificationStore({
       recipientId: "synthetic-recipient",
       storage,
-      clock: () => new Date("2026-10-26T18:00:00.000Z"),
+      clock: () => new Date("2026-10-26T13:00:00.000Z"),
     });
     expect(await restarted.handleAlarm(fixture.alarm("persisted"), fixture.sink)).toBe("duplicate");
     expect(await restarted.handleAlarm(fixture.alarm("new"), fixture.sink)).toBe("daily-limit");
@@ -240,7 +190,7 @@ describe("proactive notification alarm policy and durable store", () => {
   it("never sends if the reservation commit fails, and safely retries the whole transaction", async () => {
     const fixture = createFixture();
     await fixture.store.setCharacterEnabled("synthetic-character", true);
-    await fixture.store.setDailyLimit(1);
+    await fixture.store.setDefaultDailyLimit(1);
     fixture.storage.failCommit = true;
     await expect(fixture.store.handleAlarm(fixture.alarm("a"), fixture.sink)).rejects.toThrow(
       "commit failure",
@@ -256,7 +206,7 @@ describe("proactive notification alarm policy and durable store", () => {
   it("does not reclaim an uncertain send or retry a failure before the sink side effect", async () => {
     const fixture = createFixture();
     await fixture.store.setCharacterEnabled("synthetic-character", true);
-    await fixture.store.setDailyLimit(1);
+    await fixture.store.setDefaultDailyLimit(1);
     let attempts = 0;
     const failingSink: ProactiveNotificationSink = {
       send: () => {
@@ -276,10 +226,10 @@ describe("proactive notification alarm policy and durable store", () => {
   it("supports a zero limit and rejects invalid identifiers and limits before sending", async () => {
     const fixture = createFixture();
     await fixture.store.setCharacterEnabled("synthetic-character", true);
-    await fixture.store.setDailyLimit(0);
+    await fixture.store.setDefaultDailyLimit(0);
     expect(await fixture.store.handleAlarm(fixture.alarm("a"), fixture.sink)).toBe("daily-limit");
     for (const limit of [-1, 1.5, Number.NaN, Number.POSITIVE_INFINITY]) {
-      expect(() => fixture.store.setDailyLimit(limit)).toThrow(RangeError);
+      expect(() => fixture.store.setDefaultDailyLimit(limit)).toThrow(RangeError);
     }
     expect(() => fixture.store.handleAlarm(fixture.alarm(""), fixture.sink)).toThrow(RangeError);
     expect(() => fixture.store.setCharacterEnabled(" ", true)).toThrow(RangeError);
