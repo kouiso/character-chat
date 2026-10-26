@@ -9,7 +9,10 @@ import { CreateFlow } from "./ou-create-flow";
 // 「この素材でつくる」で画像が引き継がれなくなる（実装は functions 側ではなく
 // このコンポーネントの useEffect(#823) にあるため、ブラウザ確認だけでなくユニットでも縛る）。
 describe("CreateFlow の initialUploadedImage 同期", () => {
-  afterEach(cleanup);
+  afterEach(() => {
+    cleanup();
+    localStorage.clear();
+  });
 
   const ASSET_SRC =
     "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
