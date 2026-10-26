@@ -1,39 +1,59 @@
-import { OpenRouterKeyMissingError } from "@v2/engine";
+import { ConversationAccessError } from "@v2/db";
 import { z } from "zod";
 
-import { CharacterInvalidError, CharacterNotFoundError, loadHistory, startTurn } from "./engine";
-import { SSE_HEADERS, toSseStream } from "./sse";
+import {
+  CharacterInvalidError,
+  CharacterNotFoundError,
+  loadHistory,
+  LOCAL_USER_ID,
+} from "./engine";
+import { getPlatform } from "./platform";
+import { SSE_HEADERS, toSseStream, type SequencedSseEvent } from "./sse";
 
-import type { ChatSseEvent } from "../lib/sse-events";
+import type { ChatRoom } from "./chat-room";
 
 const BodySchema = z.object({
-  conversationId: z.string().nullish(),
+  conversationId: z.string().min(1).max(120),
+  requestId: z.string().min(1).max(120),
   text: z.string().min(1).max(4000),
+  retry: z.boolean().optional(),
 });
 
 const json = (status: number, body: Record<string, unknown>): Response =>
-  new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
+  Response.json(body, { status });
 
-// ストリーム開始後の例外はヘッダが出た後なので HTTP ステータスに写せん。
-// SSE の error イベントとして流して、クライアント側で表示させる。
-const withErrorEvent = async function* (
-  events: AsyncGenerator<ChatSseEvent>,
-): AsyncGenerator<ChatSseEvent> {
-  try {
-    yield* events;
-  } catch (error) {
-    yield { type: "error", message: error instanceof Error ? error.message : "不明なエラー" };
+const toErrorResponse = (error: unknown): Response => {
+  if (error instanceof CharacterNotFoundError || error instanceof ConversationAccessError) {
+    return json(404, { message: "会話またはキャラクターが見つかりません。" });
   }
+  if (error instanceof CharacterInvalidError) {
+    return json(422, { message: "キャラクターの設定を確認してください。" });
+  }
+  return json(503, { message: "処理を開始できませんでした。再試行してください。" });
 };
 
-// startTurn / loadHistory が投げる型付き例外を HTTP ステータスへ写す。
-const toErrorResponse = (error: unknown): Response => {
-  if (error instanceof OpenRouterKeyMissingError) return json(503, { message: error.message });
-  if (error instanceof CharacterNotFoundError) return json(404, { message: error.message });
-  if (error instanceof CharacterInvalidError) {
-    return json(422, { message: error.message, failures: error.failures });
+const storedEvents = async function* (
+  room: DurableObjectStub<ChatRoom>,
+  requestId: string,
+  after: number,
+): AsyncGenerator<SequencedSseEvent> {
+  let cursor = after;
+  const deadline = Date.now() + 180_000;
+  while (Date.now() < deadline) {
+    const page = await room.readEvents(requestId, cursor);
+    for (const item of page.events) {
+      cursor = item.id;
+      yield item;
+    }
+    if ((page.status === "succeeded" || page.status === "failed") && page.events.length < 100)
+      return;
+    if (page.status === "missing") return;
+    await new Promise((resolve) => setTimeout(resolve, 250));
   }
-  return json(500, { message: error instanceof Error ? error.message : "不明なエラー" });
+  yield {
+    id: cursor,
+    event: { type: "error", message: "処理状況を再確認してください。返信処理は継続しています。" },
+  };
 };
 
 export const handleChatRequest = async (id: string, request: Request): Promise<Response> => {
@@ -41,30 +61,38 @@ export const handleChatRequest = async (id: string, request: Request): Promise<R
   try {
     payload = await request.json();
   } catch {
-    return json(400, { message: "body が JSON やない" });
+    return json(400, { message: "JSON形式で送信してください。" });
   }
-
   const parsed = BodySchema.safeParse(payload);
-  if (!parsed.success) {
-    return json(400, { message: "body が不正", issues: parsed.error.issues });
+  const after = Number(request.headers.get("last-event-id") ?? "0");
+  if (!parsed.success || !Number.isSafeInteger(after) || after < 0) {
+    return json(400, { message: "送信内容を確認してください。" });
   }
-
   try {
-    const { events } = await startTurn({
-      characterId: id,
-      conversationId: parsed.data.conversationId ?? null,
-      text: parsed.data.text,
+    await loadHistory({ characterId: id, conversationId: parsed.data.conversationId });
+    const { env } = await getPlatform();
+    const room = env.CHAT_ROOMS.getByName(`${LOCAL_USER_ID}:${parsed.data.conversationId}`);
+    const receipt = await room.submit({ ...parsed.data, characterId: id });
+    if (receipt.status !== "accepted") {
+      return json(409, {
+        message:
+          receipt.status === "busy"
+            ? "この会話の返信を作成中です。"
+            : "同じ受付番号に異なる送信内容は指定できません。",
+      });
+    }
+    return new Response(toSseStream(storedEvents(room, receipt.requestId, after)), {
+      status: 200,
+      headers: SSE_HEADERS,
     });
-    return new Response(toSseStream(withErrorEvent(events)), { status: 200, headers: SSE_HEADERS });
   } catch (error) {
     return toErrorResponse(error);
   }
 };
 
-// GET /api/chat/:id/history?conversationId=… — D1 に保存済みの履歴を返す（再起動後の確認口）。
 export const handleHistoryRequest = async (id: string, request: Request): Promise<Response> => {
   const conversationId = new URL(request.url).searchParams.get("conversationId");
-  if (!conversationId) return json(400, { message: "conversationId クエリが無い" });
+  if (!conversationId) return json(400, { message: "conversationIdを指定してください。" });
   try {
     return json(200, await loadHistory({ characterId: id, conversationId }));
   } catch (error) {

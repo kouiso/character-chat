@@ -9,7 +9,14 @@
     "build": "vite build",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
-    "lint": "eslint --config ../../eslint.v2.config.js ."
+    "lint": "eslint --config ../../eslint.v2.config.js .",
+    "preview": "vite preview --port 3101",
+    "cf:typegen": "wrangler types src/worker-configuration.d.ts --include-runtime false --strict-vars false && node script/normalize-worker-types.mjs",
+    "deploy:dry-run": "wrangler deploy --dry-run",
+    "deploy": "wrangler deploy",
+    "verify:runtime": "node script/verify-local-runtime.mjs",
+    "seed:local": "wrangler d1 execute adult-ai-db --local --persist-to ../../.wrangler/state --file script/runtime-seed.sql",
+    "verify:ci": "node script/verify-ci-runtime.mjs"
   },
   "dependencies": {
     "@langchain/core": "^1.2.9",
@@ -26,7 +33,8 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20260317.1",
+    "@cloudflare/vite-plugin": "^1.65.0",
+    "@cloudflare/workers-types": "^5.20261026.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@types/node": "^24.12.0",
@@ -36,6 +44,7 @@
     "jsdom": "^26.1.0",
     "typescript": "~5.9.3",
     "vite": "^8.2.1",
-    "vitest": "^4.1.2"
+    "vitest": "^4.1.2",
+    "wrangler": "^4.152.0"
   }
 }

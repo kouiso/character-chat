@@ -2,7 +2,7 @@
 // 契約をここ（@v2/db）に置くのは、@v2/engine が package.json で @v2/db に依存しとるため。
 // engine 側で定義すると db → engine → db の循環になる。engine は型を再 export して使う。
 import { emptyLedger, type SceneLedger, type ScenePhase } from "@v2/prompt";
-import { asc, desc, eq, and, inArray, sql } from "drizzle-orm";
+import { asc, desc, eq, and, inArray, lt, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import {
@@ -95,6 +95,39 @@ export type D1TurnStoreOptions = {
   userId: string;
   characterId: string;
   promptVersion: string;
+  beforeTurn?: number;
+};
+
+export class ConversationAccessError extends Error {
+  constructor() {
+    super("会話が見つかりません");
+    this.name = "ConversationAccessError";
+  }
+}
+
+const assertConversationOwner = async (db: V2Db, opts: D1TurnStoreOptions, id: string) => {
+  const [row] = await db
+    .select({ userId: v2ConversationTable.userId, characterId: v2ConversationTable.characterId })
+    .from(v2ConversationTable)
+    .where(eq(v2ConversationTable.id, id));
+  if (row && (row.userId !== opts.userId || row.characterId !== opts.characterId)) {
+    throw new ConversationAccessError();
+  }
+};
+
+// 移行済み会話には挨拶や連続するassistant発言があるため、配列位置でターンを推測しない。
+export const readD1StoredTurn = async (
+  db: V2Db,
+  opts: D1TurnStoreOptions,
+  conversationId: string,
+  turn: number,
+): Promise<HistoryMessage[]> => {
+  await assertConversationOwner(db, opts, conversationId);
+  return db
+    .select({ role: v2MessageTable.role, content: v2MessageTable.content })
+    .from(v2MessageTable)
+    .where(and(eq(v2MessageTable.conversationId, conversationId), eq(v2MessageTable.turn, turn)))
+    .orderBy(asc(v2MessageTable.createdAt), asc(v2MessageTable.id));
 };
 
 type ChunkEvent = Extract<TurnEvent, { type: "chunk" }>;
@@ -164,6 +197,7 @@ const userFirst = sql`case ${v2MessageTable.role} when 'user' then 0 else 1 end`
  */
 export const createD1TurnStore = (db: V2Db, opts: D1TurnStoreOptions): TurnStore => ({
   load: async (conversationId) => {
+    await assertConversationOwner(db, opts, conversationId);
     const [conversationRows, messageRows, ledgerRows] = await db.batch([
       db
         .select({ id: v2ConversationTable.id })
@@ -176,12 +210,22 @@ export const createD1TurnStore = (db: V2Db, opts: D1TurnStoreOptions): TurnStore
           content: v2MessageTable.content,
         })
         .from(v2MessageTable)
-        .where(eq(v2MessageTable.conversationId, conversationId))
+        .where(
+          and(
+            eq(v2MessageTable.conversationId, conversationId),
+            opts.beforeTurn === undefined ? undefined : lt(v2MessageTable.turn, opts.beforeTurn),
+          ),
+        )
         .orderBy(asc(v2MessageTable.turn), userFirst),
       db
         .select({ turn: v2LedgerTable.turn, ledgerJson: v2LedgerTable.ledgerJson })
         .from(v2LedgerTable)
-        .where(eq(v2LedgerTable.conversationId, conversationId))
+        .where(
+          and(
+            eq(v2LedgerTable.conversationId, conversationId),
+            opts.beforeTurn === undefined ? undefined : lt(v2LedgerTable.turn, opts.beforeTurn),
+          ),
+        )
         .orderBy(desc(v2LedgerTable.turn))
         .limit(1),
     ]);
@@ -201,6 +245,7 @@ export const createD1TurnStore = (db: V2Db, opts: D1TurnStoreOptions): TurnStore
   },
 
   saveTurn: async (input) => {
+    await assertConversationOwner(db, opts, input.conversationId);
     const now = Date.now();
     const chunks = input.events.filter(isChunkEvent).sort((a, b) => a.seq - b.seq);
     const generations = input.events.filter(isGenerationEvent);

@@ -5,7 +5,12 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { characterTable } from "../../../src/schema/character";
 
-import { characterSheetSchema, loadCharacter, loadCharacters } from "./character";
+import {
+  characterSheetSchema,
+  listCharacterSummaries,
+  loadCharacter,
+  loadCharacters,
+} from "./character";
 import { openLocalD1, type LocalD1 } from "./test/local-d1";
 
 describe("loadCharacters / loadCharacter", () => {
@@ -46,6 +51,12 @@ describe("loadCharacters / loadCharacter", () => {
 
     const missing = await loadCharacter(local.db, `missing-${crypto.randomUUID()}`);
     expect(missing).toEqual({ ok: null, failures: [] });
+  });
+
+  it("一覧には本文や内部設定を含めず必要な項目を返す", async () => {
+    const summaries = await listCharacterSummaries(local.db);
+    expect(summaries.length).toBeGreaterThan(0);
+    expect(Object.keys(summaries[0]).sort()).toEqual(["avatar", "id", "name"]);
   });
 
   it("壊れた行は投げずに failures へ寄せる", () => {
