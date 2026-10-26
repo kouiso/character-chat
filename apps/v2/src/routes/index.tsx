@@ -1,5 +1,11 @@
 import { createFileRoute, getRouteApi, Link } from "@tanstack/react-router";
 
+import {
+  ListConnectionState,
+  ListEmptyState,
+  ListErrorState,
+  ListLoadingState,
+} from "../component/list-route-state";
 import { listCharacters } from "../server/characters";
 
 const routeApi = getRouteApi("/");
@@ -9,9 +15,10 @@ const CharacterListPage = () => {
 
   return (
     <div className="v2-list">
+      {characters.length > 0 && <ListConnectionState />}
       <h1>キャラクター</h1>
       {characters.length === 0 ? (
-        <p className="v2-empty">キャラクターが登録されてへん。</p>
+        <ListEmptyState />
       ) : (
         <ul>
           {characters.map((c) => (
@@ -29,5 +36,7 @@ const CharacterListPage = () => {
 
 export const Route = createFileRoute("/")({
   loader: () => listCharacters(),
+  pendingComponent: ListLoadingState,
+  errorComponent: ListErrorState,
   component: CharacterListPage,
 });
