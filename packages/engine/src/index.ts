@@ -22,3 +22,8 @@ export {
 export { createOpenRouterModel, OpenRouterKeyMissingError, type ModelEnv } from "./model";
 export { createMemoryTurnStore, type MemoryTurnStore } from "./memory-store";
 export { TurnState, type JudgedChunk, type TurnStateUpdate, type TurnStateValue } from "./state";
+export {
+  buildConversationContext,
+  DEFAULT_CONTEXT_BUDGET,
+  type ContextBudget,
+} from "./context-budget";
