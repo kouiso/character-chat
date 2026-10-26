@@ -3,7 +3,7 @@ import { execFileSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { PERSIST_ROOT, REPO_ROOT, WRANGLER_CONFIG } from "./index";
+import { PERSIST_ROOT, REPO_ROOT, WRANGLER_CONFIG } from "./path";
 
 const WRANGLER_BIN = path.join(
   path.dirname(fileURLToPath(import.meta.url)),

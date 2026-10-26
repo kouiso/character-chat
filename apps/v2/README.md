@@ -16,6 +16,7 @@ pnpm --filter @v2/app typecheck
 pnpm --filter @v2/app lint
 pnpm --filter @v2/app build
 pnpm --filter @v2/app test:auth:http
+pnpm --filter @v2/app test:state:http
 ```
 
 The HTTP check starts built workerd on loopback, creates an isolated temporary
@@ -63,3 +64,15 @@ existing browser session. No browser download is required.
 
 RIT-62's independent local mock probe and its unfulfilled production acceptance
 conditions are recorded in [probe/README.md](probe/README.md).
+
+The Vite plugin, migration CLI and legacy `createPlatform()` share paths from
+`@v2/cf/path`: repository `.wrangler/state` for the plugin/CLI and its `v3` child
+for `getPlatformProxy`. `test:state:http` copies source into a fresh temporary
+checkout, applies only a synthetic migration through the existing migration
+helper, saves synthetic messages with the real TurnStore, and starts the
+normal Vite development command without a persistence override. It checks the
+authenticated page and successful history API before and after restart, and
+asserts that no app-local state store exists. It never copies or reads existing
+`.wrangler` state or credentials. `RIT59_STATE_REGRESSION_CONTROL=1` removes the
+plugin path only in that temporary checkout and must fail, reproducing the
+split-store regression.

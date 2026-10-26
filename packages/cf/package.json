@@ -5,6 +5,10 @@
   "sideEffects": false,
   "version": "0.0.0",
   "exports": {
+    "./path": {
+      "types": "./src/path.ts",
+      "default": "./src/path.ts"
+    },
     "./basic-auth": {
       "types": "./src/basic-auth.ts",
       "default": "./src/basic-auth.ts"
