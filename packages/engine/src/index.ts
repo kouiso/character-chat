@@ -22,3 +22,11 @@ export {
 export { createOpenRouterModel, OpenRouterKeyMissingError, type ModelEnv } from "./model";
 export { createMemoryTurnStore, type MemoryTurnStore } from "./memory-store";
 export { TurnState, type JudgedChunk, type TurnStateUpdate, type TurnStateValue } from "./state";
+export {
+  composeContextPrompt,
+  DEFAULT_CONTEXT_BUDGET,
+  resolveContextBudget,
+  selectRecentMessages,
+  type ContextBudget,
+  type ContextUsage,
+} from "./context-window";
