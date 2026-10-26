@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ChatIdRouteImport } from './routes/chat/$id'
 import { Route as ApiChatIdRouteImport } from './routes/api/chat/$id'
+import { Route as ApiMediaIdRouteImport } from './routes/api/media/$id'
 import { Route as ApiChatIdHistoryRouteImport } from './routes/api/chat/$id_/history'
 
 const IndexRoute = IndexRouteImport.update({
@@ -35,6 +36,11 @@ const ApiChatIdRoute = ApiChatIdRouteImport.update({
   path: '/api/chat/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiMediaIdRoute = ApiMediaIdRouteImport.update({
+  id: '/api/media/$id',
+  path: '/api/media/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiChatIdHistoryRoute = ApiChatIdHistoryRouteImport.update({
   id: '/api/chat/$id_/history',
   path: '/api/chat/$id/history',
@@ -46,6 +52,7 @@ export interface FileRoutesByFullPath {
   '/api/health': typeof ApiHealthRoute
   '/chat/$id': typeof ChatIdRoute
   '/api/chat/$id': typeof ApiChatIdRoute
+  '/api/media/$id': typeof ApiMediaIdRoute
   '/api/chat/$id/history': typeof ApiChatIdHistoryRoute
 }
 export interface FileRoutesByTo {
@@ -53,6 +60,7 @@ export interface FileRoutesByTo {
   '/api/health': typeof ApiHealthRoute
   '/chat/$id': typeof ChatIdRoute
   '/api/chat/$id': typeof ApiChatIdRoute
+  '/api/media/$id': typeof ApiMediaIdRoute
   '/api/chat/$id/history': typeof ApiChatIdHistoryRoute
 }
 export interface FileRoutesById {
@@ -61,6 +69,7 @@ export interface FileRoutesById {
   '/api/health': typeof ApiHealthRoute
   '/chat/$id': typeof ChatIdRoute
   '/api/chat/$id': typeof ApiChatIdRoute
+  '/api/media/$id': typeof ApiMediaIdRoute
   '/api/chat/$id_/history': typeof ApiChatIdHistoryRoute
 }
 export interface FileRouteTypes {
@@ -70,6 +79,7 @@ export interface FileRouteTypes {
     | '/api/health'
     | '/chat/$id'
     | '/api/chat/$id'
+    | '/api/media/$id'
     | '/api/chat/$id/history'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -77,6 +87,7 @@ export interface FileRouteTypes {
     | '/api/health'
     | '/chat/$id'
     | '/api/chat/$id'
+    | '/api/media/$id'
     | '/api/chat/$id/history'
   id:
     | '__root__'
@@ -84,6 +95,7 @@ export interface FileRouteTypes {
     | '/api/health'
     | '/chat/$id'
     | '/api/chat/$id'
+    | '/api/media/$id'
     | '/api/chat/$id_/history'
   fileRoutesById: FileRoutesById
 }
@@ -92,6 +104,7 @@ export interface RootRouteChildren {
   ApiHealthRoute: typeof ApiHealthRoute
   ChatIdRoute: typeof ChatIdRoute
   ApiChatIdRoute: typeof ApiChatIdRoute
+  ApiMediaIdRoute: typeof ApiMediaIdRoute
   ApiChatIdHistoryRoute: typeof ApiChatIdHistoryRoute
 }
 
@@ -125,6 +138,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiChatIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/media/$id': {
+      id: '/api/media/$id'
+      path: '/api/media/$id'
+      fullPath: '/api/media/$id'
+      preLoaderRoute: typeof ApiMediaIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/chat/$id_/history': {
       id: '/api/chat/$id_/history'
       path: '/api/chat/$id/history'
@@ -140,6 +160,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiHealthRoute: ApiHealthRoute,
   ChatIdRoute: ChatIdRoute,
   ApiChatIdRoute: ApiChatIdRoute,
+  ApiMediaIdRoute: ApiMediaIdRoute,
   ApiChatIdHistoryRoute: ApiChatIdHistoryRoute,
 }
 export const routeTree = rootRouteImport

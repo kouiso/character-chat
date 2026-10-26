@@ -17,12 +17,23 @@ const sessionSchema = z.object({
   pending: pendingSchema.nullable(),
 });
 const historySchema = z.object({
-  history: z.array(z.object({ role: z.enum(["user", "assistant"]), content: z.string() })),
+  history: z.array(
+    z.object({
+      role: z.enum(["user", "assistant"]),
+      content: z.string(),
+      imageUrl: z.string().optional(),
+    }),
+  ),
   turn: z.number().int(),
 });
 export type PendingTurn = z.infer<typeof pendingSchema>;
 export type ChatSession = z.infer<typeof sessionSchema>;
-export type ChatBubble = { role: "user" | "assistant"; text: string; pending?: boolean };
+export type ChatBubble = {
+  role: "user" | "assistant";
+  text: string;
+  pending?: boolean;
+  imageUrl?: string;
+};
 
 const key = (characterId: string) => `v2-chat-session:${characterId}`;
 
@@ -57,7 +68,11 @@ export const loadChatHistory = async (
   if (!response.ok) throw new Error("会話履歴を読み込めませんでした。再試行してください。");
   const history = historySchema.parse(await response.json());
   return {
-    bubbles: history.history.map((item) => ({ role: item.role, text: item.content })),
+    bubbles: history.history.map((item) => ({
+      role: item.role,
+      text: item.content,
+      imageUrl: item.imageUrl,
+    })),
     nextTurn: history.turn,
   };
 };

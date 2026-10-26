@@ -18,3 +18,8 @@ export const getCharacter = createServerFn({ method: "GET" })
     const { ok } = await readCharacter(id);
     return ok ?? null;
   });
+
+export const listSavedConversations = createServerFn({ method: "GET" }).handler(async () => {
+  const { listSavedConversationRows } = await import("./character-data.server");
+  return listSavedConversationRows();
+});

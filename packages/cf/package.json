@@ -18,7 +18,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "lint": "eslint --config ../../eslint.v2.config.js .",
-    "check": "tsx src/check.ts"
+    "check": "tsx src/check.ts",
+    "migrate:legacy": "tsx src/migrate-legacy.ts"
   },
   "dependencies": {
     "@v2/db": "workspace:^",

@@ -5,6 +5,8 @@ import { emptyLedger, type SceneLedger, type ScenePhase } from "@v2/prompt";
 import { asc, desc, eq, and, inArray, lt, sql } from "drizzle-orm";
 import { z } from "zod";
 
+import { messageTable } from "../../../src/schema/message";
+
 import {
   v2ChunkTable,
   v2ConversationTable,
@@ -128,6 +130,38 @@ export const readD1StoredTurn = async (
     .from(v2MessageTable)
     .where(and(eq(v2MessageTable.conversationId, conversationId), eq(v2MessageTable.turn, turn)))
     .orderBy(asc(v2MessageTable.createdAt), asc(v2MessageTable.id));
+};
+
+export const readDisplayHistory = async (
+  db: V2Db,
+  opts: D1TurnStoreOptions,
+  conversationId: string,
+) => {
+  await assertConversationOwner(db, opts, conversationId);
+  return db
+    .select({
+      id: v2MessageTable.id,
+      role: v2MessageTable.role,
+      content: v2MessageTable.content,
+      imageKey: messageTable.imageKey,
+    })
+    .from(v2MessageTable)
+    .leftJoin(messageTable, eq(messageTable.id, v2MessageTable.id))
+    .where(eq(v2MessageTable.conversationId, conversationId))
+    .orderBy(
+      asc(v2MessageTable.turn),
+      sql`case ${v2MessageTable.role} when 'user' then 0 else 1 end`,
+    );
+};
+
+export const readOwnedImageKey = async (db: V2Db, userId: string, messageId: string) => {
+  const [row] = await db
+    .select({ key: messageTable.imageKey })
+    .from(v2MessageTable)
+    .innerJoin(v2ConversationTable, eq(v2ConversationTable.id, v2MessageTable.conversationId))
+    .innerJoin(messageTable, eq(messageTable.id, v2MessageTable.id))
+    .where(and(eq(v2MessageTable.id, messageId), eq(v2ConversationTable.userId, userId)));
+  return row?.key ?? null;
 };
 
 type ChunkEvent = Extract<TurnEvent, { type: "chunk" }>;

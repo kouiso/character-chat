@@ -60,7 +60,7 @@ describe("ChatView", () => {
   it("挨拶と連続応答を含む既存履歴ではサーバーの次ターン番号を使う", async () => {
     localStorage.setItem(
       "v2-chat-session:a",
-      JSON.stringify({ version: 1, conversationId: "legacy", pending: null }),
+      JSON.stringify({ version: 1, conversationId: "another-conversation", pending: null }),
     );
     vi.stubGlobal(
       "fetch",
@@ -77,12 +77,13 @@ describe("ChatView", () => {
         });
       }),
     );
-    render(<ChatView characterId="a" characterName="案内役" />);
+    render(<ChatView characterId="a" characterName="案内役" initialConversationId="legacy" />);
     await screen.findByText("追加の応答");
     fireEvent.change(screen.getByRole("textbox"), { target: { value: "新しい質問" } });
     fireEvent.click(screen.getByRole("button", { name: "送信" }));
     await screen.findByRole("alert");
     expect(readChatSession("a").pending?.baseTurn).toBe(8);
+    expect(readChatSession("a").pending?.conversationId).toBe("legacy");
     expect(screen.getAllByText("新しい質問")).toHaveLength(1);
     expect(screen.getByText("最初の挨拶")).toBeInTheDocument();
   });
