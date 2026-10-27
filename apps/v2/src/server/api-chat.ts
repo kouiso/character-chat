@@ -17,6 +17,7 @@ const BodySchema = z.object({
   requestId: z.string().min(1).max(120),
   text: z.string().min(1).max(4000),
   retry: z.boolean().optional(),
+  turn: z.number().int().positive().safe().optional(),
 });
 
 const json = (status: number, body: Record<string, unknown>): Response =>

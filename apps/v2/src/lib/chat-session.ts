@@ -1,8 +1,21 @@
 import { z } from "zod";
 
+import { createReconnectingChatStream } from "./chat-reconnect";
 import { parseSseEvent } from "./sse-events";
 
 import type { ChatSseEvent } from "./sse-events";
+
+export class ChatTurnError extends Error {
+  readonly retryable: boolean;
+  constructor(event: Extract<ChatSseEvent, { type: "error" }>) {
+    super(event.message);
+    this.name = "ChatTurnError";
+    this.retryable = event.retryable !== false;
+  }
+}
+
+export const mayRetryChatTurn = (cause: unknown): boolean =>
+  !(cause instanceof ChatTurnError) || cause.retryable;
 
 const pendingSchema = z.object({
   requestId: z.string(),
@@ -101,18 +114,26 @@ export const connectChatTurn = async (
   signal: AbortSignal,
   retry = false,
 ): Promise<ReadableStream<Uint8Array>> => {
-  const response = await fetch(`/api/chat/${encodeURIComponent(pending.characterId)}`, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    signal,
-    body: JSON.stringify({
-      conversationId: pending.conversationId,
-      requestId: pending.requestId,
-      text: pending.text,
-      retry,
-    }),
-  });
-  if (!response.ok || !response.body)
-    throw new Error("返信を受け取れませんでした。再接続してください。");
-  return response.body;
+  const open = async (
+    after: number,
+    explicitRetry = false,
+  ): Promise<ReadableStream<Uint8Array>> => {
+    const response = await fetch(`/api/chat/${encodeURIComponent(pending.characterId)}`, {
+      method: "POST",
+      headers: { "content-type": "application/json", "last-event-id": String(after) },
+      signal,
+      body: JSON.stringify({
+        conversationId: pending.conversationId,
+        requestId: pending.requestId,
+        turn: pending.baseTurn,
+        text: pending.text,
+        retry: explicitRetry,
+      }),
+    });
+    if (!response.ok || !response.body)
+      throw new Error("返信を受け取れませんでした。再接続してください。");
+    return response.body;
+  };
+  const initial = await open(0, retry);
+  return createReconnectingChatStream(initial, (after) => open(after), signal);
 };

@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
+  ChatTurnError,
   connectChatTurn,
   loadChatHistory,
+  mayRetryChatTurn,
   readChatEvents,
   readChatSession,
   writeChatSession,
@@ -42,14 +44,17 @@ export const ChatView = ({ characterId, characterName }: ChatViewProps) => {
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [canRetry, setCanRetry] = useState(true);
   const [pending, setPending] = useState<PendingTurn | null>(null);
   const conversationId = useRef<string | null>(null);
   const nextTurn = useRef(1);
+  const submitting = useRef(false);
   const controller = useRef<AbortController | null>(null);
 
   const consume = useCallback(async (turn: PendingTurn, signal: AbortSignal, retry = false) => {
     setBusy(true);
     setError(null);
+    setCanRetry(true);
     try {
       const stream = await connectChatTurn(turn, signal, retry);
       const chunks = new Map<number, string>();
@@ -63,7 +68,7 @@ export const ChatView = ({ characterId, characterName }: ChatViewProps) => {
             .join("\n");
           setBubbles((previous) => updateAssistant(previous, text));
         }
-        if (event.type === "error") throw new Error(event.message);
+        if (event.type === "error") throw new ChatTurnError(event);
         if (event.type === "done") completed = true;
       }
       if (!completed) throw new Error("接続が切れました。再接続してください。");
@@ -77,7 +82,10 @@ export const ChatView = ({ characterId, characterName }: ChatViewProps) => {
       setBubbles(history.bubbles);
       setPending(null);
     } catch (cause) {
-      if (!signal.aborted) setError(failureMessage(cause));
+      if (!signal.aborted) {
+        setError(failureMessage(cause));
+        setCanRetry(mayRetryChatTurn(cause));
+      }
     } finally {
       if (!signal.aborted) setBusy(false);
     }
@@ -87,6 +95,7 @@ export const ChatView = ({ characterId, characterName }: ChatViewProps) => {
     const abort = new AbortController();
     controller.current = abort;
     const restore = async () => {
+      setCanRetry(true);
       const saved = readChatSession(characterId);
       conversationId.current = saved.conversationId;
       setPending(saved.pending);
@@ -117,7 +126,8 @@ export const ChatView = ({ characterId, characterName }: ChatViewProps) => {
   const send = async (event: React.FormEvent) => {
     event.preventDefault();
     const text = input.trim();
-    if (!text || busy || pending) return;
+    if (!text || busy || pending || submitting.current) return;
+    submitting.current = true;
     const turn: PendingTurn = {
       characterId,
       conversationId: conversationId.current ?? crypto.randomUUID(),
@@ -132,6 +142,7 @@ export const ChatView = ({ characterId, characterName }: ChatViewProps) => {
         pending: turn,
       });
     } catch {
+      submitting.current = false;
       setError("この端末に送信内容を保存できません。入力は保持されています。");
       return;
     }
@@ -142,11 +153,15 @@ export const ChatView = ({ characterId, characterName }: ChatViewProps) => {
     controller.current?.abort();
     const abort = new AbortController();
     controller.current = abort;
-    await consume(turn, abort.signal);
+    try {
+      await consume(turn, abort.signal);
+    } finally {
+      submitting.current = false;
+    }
   };
 
   const retry = () => {
-    if (!pending || busy) return;
+    if (!pending || busy || !canRetry) return;
     controller.current?.abort();
     const abort = new AbortController();
     controller.current = abort;
@@ -173,7 +188,7 @@ export const ChatView = ({ characterId, characterName }: ChatViewProps) => {
       {error && (
         <div className="v2-error" role="alert">
           {error}
-          {pending && (
+          {pending && canRetry && (
             <button type="button" onClick={retry} disabled={busy}>
               再接続・再試行
             </button>

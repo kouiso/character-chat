@@ -2,7 +2,15 @@
 // （型のみの再 export なのでクライアントバンドルに engine の実装は入らん）。
 import type { TurnEvent } from "@v2/engine";
 
-export type ChatSseEvent = TurnEvent;
+export type ChatSseEvent =
+  | Exclude<TurnEvent, { type: "error" | "chunk" }>
+  | (Extract<TurnEvent, { type: "chunk" }> & { scheduledAt?: number })
+  | {
+      type: "error";
+      message: string;
+      retryable?: boolean;
+      code?: "recovery_conflict" | "generation_exhausted";
+    };
 
 const isChatSseEvent = (value: unknown): value is ChatSseEvent =>
   typeof value === "object" && value !== null && typeof Reflect.get(value, "type") === "string";

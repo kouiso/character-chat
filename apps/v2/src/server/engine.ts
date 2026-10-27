@@ -1,6 +1,13 @@
 // WorkerのD1バインディングを共有し、接続元のプロセスに会話を閉じ込めない。
 import { FakeListChatModel } from "@langchain/core/utils/testing";
-import { createD1TurnStore, createDb, readD1StoredTurn, type V2Db } from "@v2/db";
+import {
+  createD1TurnStore,
+  createDb,
+  readD1StoredTurn,
+  v2GenerationTable,
+  v2MessageTable,
+  type V2Db,
+} from "@v2/db";
 import {
   createOpenRouterModel,
   createTurnGraph,
@@ -10,9 +17,11 @@ import {
   type TurnStore,
 } from "@v2/engine";
 import { PROMPT_VERSION } from "@v2/prompt";
+import { and, eq } from "drizzle-orm";
 
 import { readCharacter } from "./character-data.server";
 import { getPlatform } from "./platform";
+import { readStoredReplyEvents } from "./stored-reply";
 
 import type { BaseChatModel } from "@langchain/core/language_models/chat_models";
 
@@ -73,6 +82,7 @@ export type StartTurnInput = {
   conversationId: string | null;
   text: string;
   expectedTurn?: number;
+  generationId?: string;
 };
 
 const loadValidCharacter = async (characterId: string) => {
@@ -94,6 +104,7 @@ export const startTurn = async (
   // 残す必要が無く、character ごとの store を持つ graph をプロセスに溜め込まん方が単純。
   const graph = createTurnGraph({
     model,
+    id: () => input.generationId ?? crypto.randomUUID(),
     store: createStore(db, input.characterId, input.expectedTurn),
   });
   const conversationId = input.conversationId ?? crypto.randomUUID();
@@ -130,3 +141,31 @@ export const loadStoredTurn = async (characterId: string, conversationId: string
     conversationId,
     turn,
   );
+
+// 生成の受付側で保存済みの同一生成を照合し、chunk writer には再実行を要求しない。
+export const loadStoredReply = async (
+  characterId: string,
+  conversationId: string,
+  turn: number,
+) => {
+  await loadStoredTurn(characterId, conversationId, turn);
+  const db = await getDb();
+  const [generation] = await db
+    .select({ id: v2GenerationTable.id, status: v2GenerationTable.status })
+    .from(v2GenerationTable)
+    .innerJoin(v2MessageTable, eq(v2MessageTable.generationId, v2GenerationTable.id))
+    .where(
+      and(
+        eq(v2GenerationTable.conversationId, conversationId),
+        eq(v2GenerationTable.turn, turn),
+        eq(v2MessageTable.conversationId, conversationId),
+        eq(v2MessageTable.turn, turn),
+        eq(v2MessageTable.role, "assistant"),
+      ),
+    )
+    .limit(1);
+  if (!generation) return null;
+  const { env } = await getPlatform();
+  const events = await readStoredReplyEvents(env.DB, conversationId, turn, generation.id);
+  return { ...generation, events };
+};

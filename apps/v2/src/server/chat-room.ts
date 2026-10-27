@@ -1,12 +1,13 @@
 import { DurableObject } from "cloudflare:workers";
 
-import { loadHistory, loadStoredTurn, startTurn } from "./engine";
+import { loadHistory, loadStoredReply, loadStoredTurn, startTurn } from "./engine";
 
 import type { ChatSseEvent } from "../lib/sse-events";
 
 type JobStatus = "queued" | "running" | "succeeded" | "failed";
 type Job = {
   id: string;
+  generation_id: string | null;
   character_id: string;
   conversation_id: string;
   text: string;
@@ -22,6 +23,7 @@ export type SubmitTurn = {
   conversationId: string;
   text: string;
   retry?: boolean;
+  turn?: number;
 };
 
 export type TurnReceipt = { status: "accepted" | "conflict" | "busy"; requestId: string };
@@ -36,6 +38,15 @@ const hashInput = async (input: SubmitTurn): Promise<string> => {
   return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
 };
 
+class RecoveryConflictError extends Error {}
+
+type SavedGeneration = NonNullable<Awaited<ReturnType<typeof loadStoredReply>>>;
+const matchesSavedGeneration = (
+  job: Job,
+  generation: SavedGeneration | null,
+): generation is SavedGeneration =>
+  generation !== null && (job.generation_id === null || generation.id === job.generation_id);
+
 export class ChatRoom extends DurableObject<Cloudflare.Env> {
   private running = false;
 
@@ -43,9 +54,15 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
     super(ctx, env);
     this.ctx.storage.sql.exec(`CREATE TABLE IF NOT EXISTS jobs (
       id TEXT PRIMARY KEY, character_id TEXT NOT NULL, conversation_id TEXT NOT NULL,
-      text TEXT NOT NULL, digest TEXT NOT NULL, turn INTEGER NOT NULL,
+      text TEXT NOT NULL, digest TEXT NOT NULL, turn INTEGER NOT NULL, generation_id TEXT,
       attempts INTEGER NOT NULL DEFAULT 0, status TEXT NOT NULL, created_at INTEGER NOT NULL
     )`);
+    const jobColumns = this.ctx.storage.sql
+      .exec<{ name: string }>("PRAGMA table_info(jobs)")
+      .toArray();
+    if (!jobColumns.some((column) => column.name === "generation_id")) {
+      this.ctx.storage.sql.exec("ALTER TABLE jobs ADD COLUMN generation_id TEXT");
+    }
     this.ctx.storage.sql.exec(`CREATE TABLE IF NOT EXISTS events (
       id INTEGER PRIMARY KEY AUTOINCREMENT, job_id TEXT NOT NULL, event TEXT NOT NULL,
       confirmed INTEGER NOT NULL DEFAULT 0
@@ -63,57 +80,44 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
   async submit(input: SubmitTurn): Promise<TurnReceipt> {
     const digest = await hashInput(input);
     const history = await loadHistory(input);
-    const previous = this.job(input.requestId);
-    if (
-      !previous ||
-      previous.status === "queued" ||
-      (previous.status === "running" && !this.running) ||
-      (previous.status === "failed" && input.retry && previous.attempts < 3)
-    ) {
-      await this.ctx.storage.setAlarm(Date.now() + 50);
-    }
-    const receipt = this.ctx.storage.transactionSync((): TurnReceipt => {
-      const existing = this.job(input.requestId);
-      if (existing) {
-        if (existing.digest !== digest) return { status: "conflict", requestId: input.requestId };
-        if (input.retry && existing.status === "failed" && existing.attempts < 3) {
-          this.ctx.storage.sql.exec(
-            "UPDATE jobs SET status = 'queued' WHERE id = ?",
-            input.requestId,
-          );
-          this.ctx.storage.sql.exec("DELETE FROM events WHERE job_id = ?", input.requestId);
-        }
-        return { status: "accepted", requestId: input.requestId };
-      }
-      const room = this.ctx.storage.sql
-        .exec<{
-          character_id: string;
-          conversation_id: string;
-        }>("SELECT character_id, conversation_id FROM jobs LIMIT 1")
-        .toArray()[0];
+    return this.ctx.storage.transaction(async (transaction) => {
+      const receipt = this.accept(input, digest, history.turn);
+      const job = this.job(input.requestId);
       if (
-        room &&
-        (room.character_id !== input.characterId || room.conversation_id !== input.conversationId)
+        receipt.status === "accepted" &&
+        job &&
+        (job.status === "queued" || (job.status === "running" && !this.running))
       ) {
-        return { status: "conflict", requestId: input.requestId };
+        await transaction.setAlarm(Date.now() + 50);
       }
-      const active = this.ctx.storage.sql
-        .exec("SELECT id FROM jobs WHERE status IN ('queued','running') LIMIT 1")
-        .toArray()[0];
-      if (active) return { status: "busy", requestId: input.requestId };
-      this.ctx.storage.sql.exec(
-        "INSERT INTO jobs (id,character_id,conversation_id,text,digest,turn,status,created_at) VALUES (?,?,?,?,?,?,'queued',?)",
-        input.requestId,
-        input.characterId,
-        input.conversationId,
-        input.text,
-        digest,
-        history.turn,
-        Date.now(),
-      );
-      return { status: "accepted", requestId: input.requestId };
+      return receipt;
     });
-    return receipt;
+  }
+
+  private accept(input: SubmitTurn, digest: string, nextTurn: number): TurnReceipt {
+    const existing = this.job(input.requestId);
+    if (existing) return this.existingReceipt(input, digest, existing);
+    if (!this.matchesRoom(input)) return { status: "conflict", requestId: input.requestId };
+    const active = this.activeJob();
+    if (active) return { status: "busy", requestId: input.requestId };
+    const reserved =
+      this.ctx.storage.sql
+        .exec<{ turn: number | null }>("SELECT MAX(turn) AS turn FROM jobs")
+        .toArray()[0]?.turn ?? 0;
+    if (nextTurn <= reserved || (input.turn !== undefined && input.turn !== nextTurn))
+      return { status: "conflict", requestId: input.requestId };
+    this.ctx.storage.sql.exec(
+      "INSERT INTO jobs (id,character_id,conversation_id,text,digest,turn,generation_id,status,created_at) VALUES (?,?,?,?,?,?,?,'queued',?)",
+      input.requestId,
+      input.characterId,
+      input.conversationId,
+      input.text,
+      digest,
+      nextTurn,
+      crypto.randomUUID(),
+      Date.now(),
+    );
+    return { status: "accepted", requestId: input.requestId };
   }
 
   readEvents(requestId: string, after: number): EventPage {
@@ -138,6 +142,7 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
   async alarm(): Promise<void> {
     if (this.running) return;
     this.running = true;
+    let completed = false;
     try {
       const job = this.ctx.storage.sql
         .exec<Job>(
@@ -145,9 +150,45 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
         )
         .toArray()[0];
       if (job) await this.process(job);
+      completed = true;
     } finally {
       this.running = false;
+      if (completed && this.activeJob()) await this.ctx.storage.setAlarm(Date.now() + 50);
     }
+  }
+
+  private matchesRoom(input: SubmitTurn): boolean {
+    const room = this.ctx.storage.sql
+      .exec<{
+        character_id: string;
+        conversation_id: string;
+      }>("SELECT character_id, conversation_id FROM jobs LIMIT 1")
+      .toArray()[0];
+    return (
+      !room ||
+      (room.character_id === input.characterId && room.conversation_id === input.conversationId)
+    );
+  }
+
+  private existingReceipt(input: SubmitTurn, digest: string, existing: Job): TurnReceipt {
+    if (existing.digest !== digest || (input.turn !== undefined && existing.turn !== input.turn))
+      return { status: "conflict", requestId: input.requestId };
+    if (input.retry && existing.status === "failed") {
+      const active = this.activeJob();
+      if (active && active.id !== existing.id)
+        return { status: "busy", requestId: input.requestId };
+      this.ctx.storage.sql.exec("UPDATE jobs SET status = 'queued' WHERE id = ?", input.requestId);
+      this.ctx.storage.sql.exec("DELETE FROM events WHERE job_id = ?", input.requestId);
+    }
+    return { status: "accepted", requestId: input.requestId };
+  }
+
+  private activeJob(): Job | undefined {
+    return this.ctx.storage.sql
+      .exec<Job>(
+        "SELECT * FROM jobs WHERE status IN ('queued','running') ORDER BY created_at LIMIT 1",
+      )
+      .toArray()[0];
   }
 
   private job(id: string): Job | undefined {
@@ -173,20 +214,40 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
       characterId: job.character_id,
       conversationId: job.conversation_id,
     });
-    if (history.turn < job.turn) throw new Error("conversation rewound");
+    if (history.turn < job.turn) throw new RecoveryConflictError("conversation rewound");
     if (history.turn === job.turn) return false;
     const messages = await loadStoredTurn(job.character_id, job.conversation_id, job.turn);
     const user = messages.find((message) => message.role === "user");
     const assistant = messages.find((message) => message.role === "assistant");
-    if (user?.content !== job.text || history.turn !== job.turn + 1)
-      throw new Error("conversation advanced");
-    if (!assistant?.content) return false;
+    if (user?.content !== job.text) throw new RecoveryConflictError("conversation advanced");
+    if (!assistant) throw new RecoveryConflictError("saved assistant missing");
+    const generation = await loadStoredReply(job.character_id, job.conversation_id, job.turn);
+    if (!matchesSavedGeneration(job, generation))
+      throw new RecoveryConflictError("saved generation mismatch");
+    if (generation.status !== "ok") {
+      if (history.turn !== job.turn + 1) throw new RecoveryConflictError("conversation advanced");
+      return false;
+    }
+    this.completeRecovered(job, assistant.content, generation);
+    return true;
+  }
+
+  private completeRecovered(job: Job, content: string, generation: SavedGeneration): void {
+    if (content && generation.events.length === 0)
+      throw new RecoveryConflictError("saved chunks missing");
     this.finish(
       job,
-      [{ type: "done", conversationId: job.conversation_id, turn: job.turn, generationId: null }],
+      [
+        ...generation.events,
+        {
+          type: "done",
+          conversationId: job.conversation_id,
+          turn: job.turn,
+          generationId: generation.id,
+        },
+      ],
       "succeeded",
     );
-    return true;
   }
 
   private async generate(job: Job): Promise<ChatSseEvent[]> {
@@ -196,6 +257,7 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
       conversationId: job.conversation_id,
       text: job.text,
       expectedTurn: job.turn,
+      generationId: job.generation_id ?? job.id,
     });
     const events: ChatSseEvent[] = [];
     let failed = false;
@@ -215,29 +277,53 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
     return events;
   }
 
+  private shouldInterrupt(job: Job): boolean {
+    return (
+      this.env.APP_ENV === "test" &&
+      this.env.V2_TEST_FAULT === "after-persist-once" &&
+      job.attempts === 0
+    );
+  }
+
   private async process(job: Job): Promise<void> {
     try {
+      // 確定保存済みの返信は、生成上限に達した後も再実行せず回収する。
+      if (await this.recover(job)) return;
       if (job.attempts >= 3) throw new Error("attempt limit");
+      if (!job.generation_id) {
+        job.generation_id = crypto.randomUUID();
+        this.ctx.storage.sql.exec(
+          "UPDATE jobs SET generation_id = ? WHERE id = ?",
+          job.generation_id,
+          job.id,
+        );
+      }
       this.ctx.storage.sql.exec(
         "UPDATE jobs SET status = 'running', attempts = attempts + 1 WHERE id = ?",
         job.id,
       );
-      if (await this.recover(job)) return;
-      const events = await this.generate(job);
-      if (
-        this.env.APP_ENV === "test" &&
-        this.env.V2_TEST_FAULT === "after-persist-once" &&
-        job.attempts === 0
-      ) {
-        throw new Error("test interruption after persistence");
-      }
-      this.finish(job, events, "succeeded");
-    } catch {
+      await this.generate(job);
+    } catch (error) {
+      if (!(error instanceof RecoveryConflictError) && job.attempts < 2) throw error;
       this.finish(
         job,
-        [{ type: "error", message: "返信を完了できませんでした。再試行してください。" }],
+        [
+          {
+            type: "error",
+            message: "返信を完了できませんでした。会話一覧から再開してください。",
+            retryable: false,
+            code:
+              error instanceof RecoveryConflictError ? "recovery_conflict" : "generation_exhausted",
+          },
+        ],
         "failed",
       );
+      return;
     }
+    // 永続化後の中断は running を保ち、alarm の再試行で確定結果を回収させる。
+    if (this.shouldInterrupt(job)) {
+      throw new Error("test interruption after persistence");
+    }
+    if (!(await this.recover(job))) throw new Error("saved reply missing");
   }
 }
