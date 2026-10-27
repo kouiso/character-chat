@@ -1,0 +1,1 @@
+ALTER TABLE `v2_generation` ADD `model_attempts_json` text;

@@ -1,0 +1,88 @@
+.v2-message {
+  --message-text: oklch(96% 0.012 78);
+  --message-soft: oklch(81% 0.025 68);
+  --message-inner: oklch(74% 0.025 68);
+  --message-accent: oklch(85% 0.08 82);
+  --message-rule: oklch(66% 0.025 68 / 0.5);
+  --message-serif: "Noto Serif JP", "Shippori Mincho", "Yu Mincho", serif;
+
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.v2-bubble.v2-message-turn {
+  min-inline-size: 0;
+  flex-shrink: 0;
+  overflow-wrap: anywhere;
+}
+
+.v2-bubble.v2-message-turn.assistant {
+  inline-size: 100%;
+  max-inline-size: 100%;
+  padding: 6px 0 14px;
+  background: none;
+  color: var(--text);
+}
+
+.v2-message-text,
+.v2-message-name {
+  margin: 0;
+}
+
+.v2-message-name {
+  margin-block-end: 12px;
+  color: var(--message-accent);
+  font-size: 0.8125rem;
+  line-height: 1.8;
+  letter-spacing: 0.08em;
+}
+
+.v2-message--assistant {
+  color: var(--message-text);
+  font-family: var(--message-serif);
+}
+
+.v2-message-layer + .v2-message-layer {
+  margin-block-start: 12px;
+}
+
+.v2-message-layer--action,
+.v2-message-layer--narration {
+  color: var(--message-soft);
+  font-size: 0.96875rem;
+  line-height: 1.95;
+}
+
+.v2-message-layer--dialogue {
+  padding-inline-start: 14px;
+  border-inline-start: 2px solid var(--message-accent);
+  font-size: 1.125rem;
+  font-weight: 500;
+  line-height: 1.85;
+  letter-spacing: 0.02em;
+}
+
+.v2-message-layer--inner {
+  padding-inline-start: 14px;
+  border-inline-start: 1px solid var(--message-rule);
+  color: var(--message-inner);
+  font-size: 0.90625rem;
+  line-height: 1.95;
+}
+
+.v2-message-layer--scene {
+  padding-block: 8px;
+  border-block: 1px solid var(--message-rule);
+  color: var(--message-soft);
+  font-size: 0.8125rem;
+  line-height: 1.8;
+  text-align: center;
+  letter-spacing: 0.08em;
+}
+
+.v2-message--user {
+  font-size: 1rem;
+  line-height: 1.8;
+}

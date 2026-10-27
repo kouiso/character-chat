@@ -43,6 +43,14 @@ export default defineConfig([
   },
 
   {
+    // 合成fixtureのWorker起動は製品の依存へ持ち込まない。
+    files: ["src/test/**/*.ts", "packages/*/src/test/**/*.ts", "apps/v2/src/test/**/*.ts"],
+    rules: {
+      "import/no-extraneous-dependencies": ["error", { devDependencies: true }],
+    },
+  },
+
+  {
     // @v2/engine の Jest テストは tsconfig.json（src のみ）やのうて tsconfig.jest.json に属する。
     // projectService は最寄りの tsconfig.json しか見んので、このファイル群だけ project を
     // 明示して型情報を与える。jest.config.mjs は TS やないのでこの対象から外れる。

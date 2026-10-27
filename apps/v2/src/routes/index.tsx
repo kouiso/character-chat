@@ -1,6 +1,19 @@
-import { createFileRoute, getRouteApi, Link } from "@tanstack/react-router";
+import { createFileRoute, getRouteApi } from "@tanstack/react-router";
 
-import { listCharacters } from "../server/characters";
+import { CharacterWorkspace } from "../component/character-workspace";
+import {
+  ListConnectionState,
+  ListEmptyState,
+  ListErrorState,
+  ListLoadingState,
+} from "../component/list-route-state";
+import {
+  listCharacters,
+  listEditableCharacters,
+  loadCharacterEditor,
+  restoreCharacterEditor,
+  saveCharacterEditor,
+} from "../server/characters";
 
 const routeApi = getRouteApi("/");
 
@@ -8,26 +21,22 @@ const CharacterListPage = () => {
   const characters = routeApi.useLoaderData();
 
   return (
-    <div className="v2-list">
-      <h1>キャラクター</h1>
-      {characters.length === 0 ? (
-        <p className="v2-empty">キャラクターが登録されてへん。</p>
-      ) : (
-        <ul>
-          {characters.map((c) => (
-            <li key={c.id}>
-              <Link to="/chat/$id" params={{ id: c.id }}>
-                {c.name}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
+    <CharacterWorkspace
+      characters={characters}
+      listState={(empty) => (empty ? <ListEmptyState /> : <ListConnectionState />)}
+      transport={{
+        list: () => listEditableCharacters(),
+        load: (id) => loadCharacterEditor({ data: id }),
+        save: (input) => saveCharacterEditor({ data: input }),
+        restore: (input) => restoreCharacterEditor({ data: input }),
+      }}
+    />
   );
 };
 
 export const Route = createFileRoute("/")({
   loader: () => listCharacters(),
+  pendingComponent: ListLoadingState,
+  errorComponent: ListErrorState,
   component: CharacterListPage,
 });

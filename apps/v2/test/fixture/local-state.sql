@@ -1,5 +1,9 @@
+CREATE TABLE user (
+  id TEXT PRIMARY KEY, email TEXT NOT NULL, created_at INTEGER NOT NULL, display_name TEXT
+);
 CREATE TABLE character (
   id TEXT PRIMARY KEY, name TEXT NOT NULL, system_prompt TEXT NOT NULL,
+  user_id TEXT NOT NULL REFERENCES user(id),
   greeting TEXT NOT NULL, tags TEXT NOT NULL, avatar TEXT, gender TEXT,
   slug TEXT, is_official INTEGER NOT NULL DEFAULT 0,
   display_order INTEGER NOT NULL DEFAULT 0, created_at INTEGER NOT NULL

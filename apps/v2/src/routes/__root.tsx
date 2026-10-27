@@ -1,5 +1,6 @@
 import { createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 
+import { AppErrorState, AppLoadingState, AppNotFoundState } from "../component/app-route-state";
 import appCss from "../style.css?url";
 
 const RootDocument = ({ children }: { children: React.ReactNode }) => (
@@ -23,5 +24,8 @@ export const Route = createRootRoute({
     ],
     links: [{ rel: "stylesheet", href: appCss }],
   }),
+  pendingComponent: AppLoadingState,
+  errorComponent: AppErrorState,
+  notFoundComponent: AppNotFoundState,
   shellComponent: RootDocument,
 });

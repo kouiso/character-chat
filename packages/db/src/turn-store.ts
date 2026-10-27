@@ -5,18 +5,32 @@ import { emptyLedger, type SceneLedger, type ScenePhase } from "@v2/prompt";
 import { asc, desc, eq, and, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 
+import { scheduleChunks } from "./chunk-schedule";
+import { modelCallsSchema } from "./model-attempt";
 import {
   v2ChunkTable,
+  v2ChunkRejectionTable,
   v2ConversationTable,
   v2GenerationTable,
   v2LedgerTable,
   v2MessageTable,
+  v2TurnCommitTable,
+  v2TurnDeliveryTable,
 } from "./v2-schema";
 
 import type { V2Db } from "./client";
+import type { ModelCall } from "./model-attempt";
 import type { JudgeResult } from "@v2/judge";
 
 export type HistoryMessage = { role: "user" | "assistant"; content: string };
+
+export type ChunkDelivery = {
+  conversationId: string;
+  turn: number;
+  generationId: string | null;
+  serverNow: number;
+  chunks: { seq: number; text: string; scheduledAt: number }[];
+};
 
 // v2_generation 1 行分。engine の generate ノードが 1 回の生成ごとに作り、persist が events の
 // 先頭に "generation" イベントとして載せる（SSE には流さん）。
@@ -30,6 +44,7 @@ export type GenerationRecord = {
   rawOutput: string;
   usage: { inputTokens: number; outputTokens: number; totalTokens: number } | null;
   latencyMs: number;
+  modelCalls?: readonly ModelCall[];
   // "aborted" は engine 側が request を止めた時（受信字数の上限か締切）。理由は truncated に載る。
   status: "ok" | "error" | "aborted";
   error?: string;
@@ -39,6 +54,7 @@ export type GenerationRecord = {
 
 export type TurnEvent =
   | { type: "token"; text: string }
+  | ({ type: "delivery" } & ChunkDelivery)
   // preExtend: extend ノードの書き足しより前（初回生成分）に切れた塊かどうか。
   // N2 解析が水増し前の本文を塊単位で復元するのに使う（graph.ts の chunk ノードで
   // 生の出力内の開始位置と preExtendRawLength を比べて決める）。
@@ -82,13 +98,87 @@ export type SaveTurnInput = {
   ledger: SceneLedger;
   // LangGraph の thread_id。engine が渡さん場合は conversationId と同じ値で保存する。
   threadId?: string;
+  commit?: { expectedTurn: number; writeId: string };
+};
+
+export class ConversationAccessError extends Error {
+  constructor() {
+    super("会話が見つかりません");
+    this.name = "ConversationAccessError";
+  }
+}
+
+export class TurnCommitConflictError extends Error {
+  constructor() {
+    super("会話の保存状態が更新されています");
+    this.name = "TurnCommitConflictError";
+  }
+}
+
+const canonicalValue = (value: unknown): unknown => {
+  if (Array.isArray(value)) return value.map(canonicalValue);
+  if (value !== null && typeof value === "object") {
+    return Object.fromEntries(
+      Object.keys(value)
+        .sort()
+        .map((key) => [key, canonicalValue(Reflect.get(value, key))]),
+    );
+  }
+  return value;
+};
+
+const digestOf = async (value: unknown): Promise<string> => {
+  const bytes = new TextEncoder().encode(JSON.stringify(canonicalValue(value)));
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+};
+
+const validateCommit = (input: SaveTurnInput): void => {
+  const turn = z.number().int().positive().safeParse(input.turn);
+  const commit = z
+    .object({
+      expectedTurn: z.number().int().positive(),
+      writeId: z.string().regex(/^[\w.:-]{1,200}$/),
+    })
+    .optional()
+    .safeParse(input.commit);
+  if (!turn.success || !commit.success || (commit.data && commit.data.expectedTurn !== turn.data)) {
+    throw new TurnCommitConflictError();
+  }
+};
+
+const databaseErrorIncludes = (error: unknown, text: string): boolean => {
+  const seen = new Set<unknown>();
+  let current = error;
+  while (current instanceof Error && !seen.has(current)) {
+    seen.add(current);
+    if (current.message.includes(text)) return true;
+    current = current.cause;
+  }
+  return false;
+};
+
+const rethrowCommitError = (error: unknown): never => {
+  if (databaseErrorIncludes(error, "v2_turn_commit_owner")) throw new ConversationAccessError();
+  if (databaseErrorIncludes(error, "v2_turn_commit_cas")) throw new TurnCommitConflictError();
+  throw error;
+};
+
+const nullableJson = (value: unknown): string | null =>
+  value === null || value === undefined ? null : JSON.stringify(value);
+
+const modelCallsJsonOf = (calls: readonly ModelCall[] | undefined): string | null => {
+  if (calls === undefined) return null;
+  const parsed = modelCallsSchema.safeParse(calls);
+  if (!parsed.success) throw new Error("モデル試行の監査情報が不正です");
+  return JSON.stringify(parsed.data);
 };
 
 // load() が返す turn は「次に演じるターン番号」（graph.ts の intake がそのまま state.turn に入れ、
 // persist が同じ値で saveTurn する）。空の会話は 1。createMemoryTurnStore と同じ意味。
 export type TurnStore = {
   load: (conversationId: string) => Promise<TurnStoreLoaded>;
-  saveTurn: (input: SaveTurnInput) => Promise<void>;
+  saveTurn: (input: SaveTurnInput) => Promise<void | ChunkDelivery>;
 };
 
 export type D1TurnStoreOptions = {
@@ -103,6 +193,27 @@ type GenerationEvent = Extract<TurnEvent, { type: "generation" }>;
 const isChunkEvent = (event: TurnEvent): event is ChunkEvent => event.type === "chunk";
 const isGenerationEvent = (event: TurnEvent): event is GenerationEvent =>
   event.type === "generation";
+
+const lastGenerationIdOf = (generations: GenerationEvent[]): string | null =>
+  generations.at(-1)?.generationId ?? null;
+
+const payloadDigest = async (
+  input: SaveTurnInput,
+  opts: D1TurnStoreOptions,
+): Promise<string | null> => {
+  if (!input.commit) return null;
+  return digestOf({
+    conversationId: input.conversationId,
+    turn: input.turn,
+    userText: input.userText,
+    chunks: input.events.filter(isChunkEvent).sort((left, right) => left.seq - right.seq),
+    dropped: input.events.filter((event) => event.type === "dropped"),
+    generations: input.events.filter(isGenerationEvent),
+    ledger: input.ledger,
+    threadId: input.threadId ?? input.conversationId,
+    promptVersion: opts.promptVersion,
+  });
+};
 
 // createMemoryTurnStore と同じ結合（chunk を seq 順に空行で繋ぐ）。履歴として model に戻す本文。
 const assistantTextOf = (chunks: ChunkEvent[]): string =>
@@ -152,11 +263,8 @@ const userFirst = sql`case ${v2MessageTable.role} when 'user' then 0 else 1 end`
 /**
  * v2_* テーブルに保存する TurnStore。
  * saveTurn は 1 回の D1 batch（トランザクション）で書くので、途中失敗で半端な行は残らん。
- * 同じ (conversationId, turn) を二度保存したら置き換える（既存の message/chunk/ledger/generation を
- * 消してから入れる）。
- * persist はストリーム完了後の最終ノードで、利用者は chunk を既に見とる。再実行（checkpoint からの
- * 再開・SSE 切断後の再送）で unique index に当たって turn 全体を失敗させるより、DB を最後に
- * 表示された内容へ揃える方が履歴の一貫性を保てる。
+ * commit 付き保存は next turn を原子的に獲得し、同じ writeId と本文の再送だけを無変更で返す。
+ * commit 未指定の従来 writer は同じ turn を置換できるが、確定済み commit の上書きはできん。
  *
  * ローカル D1 への migration: `pnpm db:migrate:local`。
  * 本番 D1 への migration は wrangler login 済みの Mac で `pnpm db:migrate:remote`
@@ -164,9 +272,18 @@ const userFirst = sql`case ${v2MessageTable.role} when 'user' then 0 else 1 end`
  */
 export const createD1TurnStore = (db: V2Db, opts: D1TurnStoreOptions): TurnStore => ({
   load: async (conversationId) => {
+    const owner = and(
+      eq(v2ConversationTable.id, conversationId),
+      eq(v2ConversationTable.userId, opts.userId),
+      eq(v2ConversationTable.characterId, opts.characterId),
+    );
     const [conversationRows, messageRows, ledgerRows] = await db.batch([
       db
-        .select({ id: v2ConversationTable.id })
+        .select({
+          id: v2ConversationTable.id,
+          userId: v2ConversationTable.userId,
+          characterId: v2ConversationTable.characterId,
+        })
         .from(v2ConversationTable)
         .where(eq(v2ConversationTable.id, conversationId)),
       db
@@ -176,17 +293,25 @@ export const createD1TurnStore = (db: V2Db, opts: D1TurnStoreOptions): TurnStore
           content: v2MessageTable.content,
         })
         .from(v2MessageTable)
-        .where(eq(v2MessageTable.conversationId, conversationId))
+        .innerJoin(v2ConversationTable, eq(v2ConversationTable.id, v2MessageTable.conversationId))
+        .where(owner)
         .orderBy(asc(v2MessageTable.turn), userFirst),
       db
         .select({ turn: v2LedgerTable.turn, ledgerJson: v2LedgerTable.ledgerJson })
         .from(v2LedgerTable)
-        .where(eq(v2LedgerTable.conversationId, conversationId))
+        .innerJoin(v2ConversationTable, eq(v2ConversationTable.id, v2LedgerTable.conversationId))
+        .where(owner)
         .orderBy(desc(v2LedgerTable.turn))
         .limit(1),
     ]);
     if (conversationRows.length === 0) {
       return { history: [], ledger: emptyLedger(), turn: 1 };
+    }
+    if (
+      conversationRows[0].userId !== opts.userId ||
+      conversationRows[0].characterId !== opts.characterId
+    ) {
+      throw new ConversationAccessError();
     }
     const history: HistoryMessage[] = messageRows.map((row) => ({
       role: row.role,
@@ -201,49 +326,149 @@ export const createD1TurnStore = (db: V2Db, opts: D1TurnStoreOptions): TurnStore
   },
 
   saveTurn: async (input) => {
+    validateCommit(input);
     const now = Date.now();
-    const chunks = input.events.filter(isChunkEvent).sort((a, b) => a.seq - b.seq);
     const generations = input.events.filter(isGenerationEvent);
+    const generationAudit = generations.map((generation) =>
+      modelCallsJsonOf(generation.modelCalls),
+    );
+    const chunks = scheduleChunks(input.events.filter(isChunkEvent), now);
     const assistantText = assistantTextOf(chunks);
-    const userMessageId = crypto.randomUUID();
-    const assistantMessageId = crypto.randomUUID();
+    const lastGenerationId = lastGenerationIdOf(generations);
+    const writeNonce = crypto.randomUUID();
+    const writeId = input.commit?.writeId ?? null;
+    const digest = await payloadDigest(input, opts);
+    const threadId = input.threadId ?? input.conversationId;
     const sameTurn = and(
       eq(v2MessageTable.conversationId, input.conversationId),
       eq(v2MessageTable.turn, input.turn),
     );
-    // 生成が複数回あっても assistant 行が指すのは最後の 1 件（本文を作った生成）。
-    const lastGeneration = generations.at(-1);
+    const owner = and(
+      eq(v2ConversationTable.id, input.conversationId),
+      eq(v2ConversationTable.userId, opts.userId),
+      eq(v2ConversationTable.characterId, opts.characterId),
+    );
+    const ownerGuard = sql<number>`case when exists (select 1 from ${v2ConversationTable}
+      where ${owner}) then 1 else 0 end`;
+    const priorCommit = sql`select 1 from ${v2TurnCommitTable}
+      where ${v2TurnCommitTable.conversationId} = ${input.conversationId}
+        and ${v2TurnCommitTable.turn} = ${input.turn}`;
+    const nextTurn = sql<number>`(select coalesce(max(${v2MessageTable.turn}), 0) + 1
+      from ${v2MessageTable} where ${v2MessageTable.conversationId} = ${input.conversationId})`;
+    const commitGuard = input.commit
+      ? sql<number>`case when
+          (not exists (${priorCommit}) and ${input.turn} = ${nextTurn}) or
+          exists (${priorCommit} and ${v2TurnCommitTable.writeId} = ${writeId}
+            and ${v2TurnCommitTable.digest} = ${digest})
+        then 1 else 0 end`
+      : sql<number>`case when not exists (${priorCommit}
+          and ${v2TurnCommitTable.writeId} is not null) then 1 else 0 end`;
+    // nonce を初回だけ保持し、同じ commit の再送では履歴・予定・監査を更新せん。
+    const writeAllowed = sql`exists (${priorCommit}
+      and ${v2TurnCommitTable.writeNonce} = ${writeNonce})`;
+    const selectValues = (values: readonly unknown[]) =>
+      sql`select ${sql.join(
+        values.map((value) => sql`${value}`),
+        sql`, `,
+      )} where ${writeAllowed}`;
+    const userMessageId = crypto.randomUUID();
+    const assistantMessageId = crypto.randomUUID();
+    const anchor = sql<number>`(select ${v2TurnDeliveryTable.startAt} from ${v2TurnDeliveryTable}
+      where ${v2TurnDeliveryTable.conversationId} = ${input.conversationId}
+        and ${v2TurnDeliveryTable.turn} = ${input.turn})`;
+    const deliveryQuery = db
+      .select({
+        seq: v2ChunkTable.seq,
+        text: v2ChunkTable.text,
+        scheduledAt: v2ChunkTable.scheduledAt,
+        createdAt: v2MessageTable.createdAt,
+        generationId: v2MessageTable.generationId,
+      })
+      .from(v2MessageTable)
+      .leftJoin(v2ChunkTable, eq(v2ChunkTable.messageId, v2MessageTable.id))
+      .where(and(sameTurn, eq(v2MessageTable.role, "assistant")))
+      .orderBy(asc(v2ChunkTable.seq));
 
-    await db.batch([
+    const batch = [
       db
         .insert(v2ConversationTable)
         .values({
           id: input.conversationId,
           userId: opts.userId,
           characterId: opts.characterId,
-          threadId: input.threadId ?? input.conversationId,
+          threadId,
           promptVersion: opts.promptVersion,
           createdAt: now,
           updatedAt: now,
         })
+        .onConflictDoNothing(),
+      // CHECK による拒否を batch 内で発生させ、先行する会話作成も含めて巻き戻す。
+      db
+        .insert(v2TurnCommitTable)
+        .values({
+          conversationId: input.conversationId,
+          turn: input.turn,
+          writeId,
+          digest,
+          writeNonce,
+          ownerGuard,
+          commitGuard,
+        })
         .onConflictDoUpdate({
-          target: v2ConversationTable.id,
-          set: { updatedAt: now, threadId: input.threadId ?? input.conversationId },
+          target: [v2TurnCommitTable.conversationId, v2TurnCommitTable.turn],
+          set: {
+            ownerGuard: sql`excluded.owner_guard`,
+            commitGuard: sql`excluded.commit_guard`,
+            writeNonce: sql`case when ${v2TurnCommitTable.writeId} is null
+            then excluded.write_nonce else ${v2TurnCommitTable.writeNonce} end`,
+          },
         }),
-      // 置き換え: 同じ turn の既存行を chunk → message → ledger → generation の順（FK の子から）で消す。
+      db
+        .update(v2ConversationTable)
+        .set({
+          updatedAt: now,
+          threadId,
+        })
+        .where(and(owner, writeAllowed)),
+      db
+        .insert(v2TurnDeliveryTable)
+        .select(
+          selectValues([
+            input.conversationId,
+            input.turn,
+            sql<number>`coalesce((select ${v2MessageTable.createdAt} from ${v2MessageTable}
+          where ${sameTurn} and ${v2MessageTable.role} = 'assistant' limit 1), ${now})`,
+          ]),
+        )
+        .onConflictDoNothing(),
       db
         .delete(v2ChunkTable)
         .where(
-          inArray(
-            v2ChunkTable.messageId,
-            db.select({ id: v2MessageTable.id }).from(v2MessageTable).where(sameTurn),
+          and(
+            writeAllowed,
+            inArray(
+              v2ChunkTable.messageId,
+              db.select({ id: v2MessageTable.id }).from(v2MessageTable).where(sameTurn),
+            ),
           ),
         ),
-      db.delete(v2MessageTable).where(sameTurn),
+      db
+        .delete(v2ChunkRejectionTable)
+        .where(
+          and(
+            writeAllowed,
+            inArray(
+              v2ChunkRejectionTable.messageId,
+              db.select({ id: v2MessageTable.id }).from(v2MessageTable).where(sameTurn),
+            ),
+          ),
+        ),
+      db.delete(v2MessageTable).where(and(sameTurn, writeAllowed)),
       db
         .delete(v2LedgerTable)
         .where(
           and(
+            writeAllowed,
             eq(v2LedgerTable.conversationId, input.conversationId),
             eq(v2LedgerTable.turn, input.turn),
           ),
@@ -252,65 +477,119 @@ export const createD1TurnStore = (db: V2Db, opts: D1TurnStoreOptions): TurnStore
         .delete(v2GenerationTable)
         .where(
           and(
+            writeAllowed,
             eq(v2GenerationTable.conversationId, input.conversationId),
             eq(v2GenerationTable.turn, input.turn),
           ),
         ),
-      ...generations.map((generation) =>
-        db.insert(v2GenerationTable).values({
-          id: generation.generationId,
-          conversationId: input.conversationId,
-          turn: input.turn,
-          model: generation.model,
-          promptVersion: generation.promptVersion,
-          systemPrompt: generation.systemPrompt,
-          requestJson: JSON.stringify(generation.request),
-          rawOutput: generation.rawOutput,
-          usageJson: generation.usage ? JSON.stringify(generation.usage) : null,
-          latencyMs: generation.latencyMs,
-          status: generation.status,
-          error: generation.error ?? null,
-          createdAt: now,
-        }),
+      ...generations.map((generation, index) =>
+        db
+          .insert(v2GenerationTable)
+          .select(
+            selectValues([
+              generation.generationId,
+              input.conversationId,
+              input.turn,
+              generation.model,
+              generation.promptVersion,
+              generation.systemPrompt,
+              JSON.stringify(generation.request),
+              generation.rawOutput,
+              nullableJson(generation.usage),
+              generation.latencyMs,
+              generation.status,
+              generation.error ?? null,
+              now,
+              generationAudit[index],
+            ]),
+          ),
       ),
-      db.insert(v2MessageTable).values({
-        id: userMessageId,
-        conversationId: input.conversationId,
-        turn: input.turn,
-        role: "user",
-        content: input.userText,
-        createdAt: now,
-      }),
-      db.insert(v2MessageTable).values({
-        id: assistantMessageId,
-        conversationId: input.conversationId,
-        turn: input.turn,
-        role: "assistant",
-        content: assistantText,
-        action: extractTag(assistantText, "action"),
-        dialogue: extractTag(assistantText, "dialogue"),
-        inner: extractTag(assistantText, "inner"),
-        generationId: lastGeneration?.generationId ?? null,
-        createdAt: now,
-      }),
-      // D1 は 1 文あたりのバインド変数が 100 個までなので、chunk は 1 行 1 文で入れる。
+      db
+        .insert(v2MessageTable)
+        .select(
+          selectValues([
+            userMessageId,
+            input.conversationId,
+            input.turn,
+            "user",
+            input.userText,
+            null,
+            null,
+            null,
+            null,
+            now,
+          ]),
+        ),
+      db
+        .insert(v2MessageTable)
+        .select(
+          selectValues([
+            assistantMessageId,
+            input.conversationId,
+            input.turn,
+            "assistant",
+            assistantText,
+            extractTag(assistantText, "action"),
+            extractTag(assistantText, "dialogue"),
+            extractTag(assistantText, "inner"),
+            lastGenerationId,
+            anchor,
+          ]),
+        ),
       ...chunks.map((chunkEvent) =>
-        db.insert(v2ChunkTable).values({
-          id: crypto.randomUUID(),
-          messageId: assistantMessageId,
-          seq: chunkEvent.seq,
-          text: chunkEvent.text,
-          judgeJson: JSON.stringify(chunkEvent.judge),
-          attempt: chunkEvent.attempt,
-          createdAt: now,
-        }),
+        db
+          .insert(v2ChunkTable)
+          .select(
+            selectValues([
+              crypto.randomUUID(),
+              assistantMessageId,
+              chunkEvent.seq,
+              chunkEvent.text,
+              JSON.stringify(chunkEvent.judge),
+              chunkEvent.attempt,
+              sql<number>`${anchor} + ${chunkEvent.scheduledAt - now}`,
+              now,
+            ]),
+          ),
       ),
-      db.insert(v2LedgerTable).values({
-        conversationId: input.conversationId,
-        turn: input.turn,
-        ledgerJson: JSON.stringify(input.ledger),
-        createdAt: now,
-      }),
-    ]);
+      ...input.events
+        .filter((event) => event.type === "dropped")
+        .map((event) =>
+          db
+            .insert(v2ChunkRejectionTable)
+            .select(
+              selectValues([
+                assistantMessageId,
+                event.seq,
+                event.attempt,
+                JSON.stringify(event.reasons),
+                now,
+              ]),
+            ),
+        ),
+      db
+        .insert(v2LedgerTable)
+        .select(
+          selectValues([input.conversationId, input.turn, JSON.stringify(input.ledger), now]),
+        ),
+      deliveryQuery,
+    ] as const;
+    let results;
+    try {
+      results = await db.batch(batch);
+    } catch (error) {
+      return rethrowCommitError(error);
+    }
+    const persisted = results.at(-1);
+    if (!Array.isArray(persisted)) throw new Error("chunk 配送データを保存結果から読めん");
+    return {
+      conversationId: input.conversationId,
+      turn: input.turn,
+      generationId: persisted[0]?.generationId ?? null,
+      serverNow: Date.now(),
+      chunks: persisted.flatMap(({ seq, text, scheduledAt, createdAt }) =>
+        seq === null || text === null ? [] : [{ seq, text, scheduledAt: scheduledAt ?? createdAt }],
+      ),
+    };
   },
 });

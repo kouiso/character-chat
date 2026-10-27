@@ -13,6 +13,7 @@ import {
   StateGraph,
   type BaseCheckpointSaver,
 } from "@langchain/langgraph";
+import { modelAttemptsSchema, type ModelAttempt, type ModelCall } from "@v2/db";
 import { extractVoice, judgeChunk, splitChunks } from "@v2/judge";
 import {
   collectUsedPhrases,
@@ -27,6 +28,7 @@ import {
   selectRecentMessages,
   type ContextBudget,
 } from "./context-window";
+import { FallbackModelError } from "./fallback-model";
 import { TurnState, type JudgedChunk } from "./state";
 
 import type {
@@ -223,8 +225,47 @@ export type TurnGraphDeps = {
 type CappedStreamResult = {
   raw: string;
   usage: GenerationRecord["usage"];
+  modelAttempts?: readonly ModelAttempt[];
   truncated?: TruncatedBy;
   error?: string;
+};
+
+const mustPropagateModelError = (error: unknown, signal: AbortSignal): boolean =>
+  error instanceof FallbackModelError || !signal.aborted;
+
+const modelAttemptsOf = (
+  metadata: Record<string, unknown>,
+): readonly ModelAttempt[] | undefined => {
+  if (metadata.fallbackAttempts === undefined) return undefined;
+  const parsed = modelAttemptsSchema.safeParse(metadata.fallbackAttempts);
+  if (!parsed.success) throw new Error("モデルの実行記録が不正です");
+  return parsed.data;
+};
+
+const appendModelCall = (
+  generation: GenerationRecord,
+  purpose: ModelCall["purpose"],
+  attempts: readonly ModelAttempt[] | undefined,
+): GenerationRecord =>
+  attempts
+    ? {
+        ...generation,
+        modelCalls: [...(generation.modelCalls ?? []), { purpose, attempts }],
+      }
+    : generation;
+
+const appendOptionalModelCall = (
+  generation: GenerationRecord | null,
+  purpose: ModelCall["purpose"],
+  attempts: readonly ModelAttempt[] | undefined,
+): GenerationRecord | null => (generation ? appendModelCall(generation, purpose, attempts) : null);
+
+const selectedModelName = (
+  attempts: readonly ModelAttempt[] | undefined,
+  fallback: string,
+): string => {
+  const selected = attempts?.at(-1);
+  return selected?.model ?? selected?.requestedModel ?? fallback;
 };
 
 // 締切と字数上限は同じ controller で request を止める（実モデルでは fetch が閉じる）。
@@ -243,6 +284,7 @@ const collectCappedStream = async (
 ): Promise<CappedStreamResult> => {
   let raw = "";
   let usage: GenerationRecord["usage"] = null;
+  let modelAttempts: readonly ModelAttempt[] | undefined;
   let truncated: TruncatedBy | undefined;
   let error: string | undefined;
   const controller = new AbortController();
@@ -258,6 +300,7 @@ const collectCappedStream = async (
       signal: controller.signal,
     });
     for await (const piece of stream) {
+      modelAttempts = modelAttemptsOf(piece.response_metadata) ?? modelAttempts;
       usage = usageOf(piece) ?? usage;
       const text = contentToText(piece.content);
       if (text.length === 0) continue;
@@ -270,8 +313,9 @@ const collectCappedStream = async (
       }
     }
   } catch (caught) {
+    // 監査完了を待つモデルの中止を、空の正常保存へ写さない。
     // 自分で abort した以外の例外はそのまま上へ（ネットワーク・鍵の失敗など）。
-    if (!controller.signal.aborted) throw caught;
+    if (mustPropagateModelError(caught, controller.signal)) throw caught;
     if (raw.length === 0) {
       error = caught instanceof Error ? caught.message : String(caught);
       opts.writer({ type: "error", message: error });
@@ -279,14 +323,14 @@ const collectCappedStream = async (
   } finally {
     clearTimeout(deadline);
   }
-  return { raw, usage, truncated, error };
+  return { raw, usage, truncated, error, modelAttempts };
 };
 
 const regenerateWithDeadline = async (
   model: TurnModel,
   lcMessages: BaseMessage[],
   opts: { maxTokens: number; timeoutMs: number; sampling: SamplingOptions },
-): Promise<string> => {
+): Promise<{ text: string; modelAttempts?: readonly ModelAttempt[] }> => {
   const controller = new AbortController();
   const deadline = setTimeout(
     () => controller.abort(new Error(`書き直しの締切 ${opts.timeoutMs}ms を超えた`)),
@@ -300,11 +344,14 @@ const regenerateWithDeadline = async (
       maxTokens: opts.maxTokens,
       signal: controller.signal,
     });
-    return contentToText(result.content);
+    return {
+      text: contentToText(result.content),
+      modelAttempts: modelAttemptsOf(result.response_metadata),
+    };
   } catch (caught) {
     // 自分で切った締切だけ空文に写す。それ以外（鍵・ネットワーク）はそのまま上へ。
-    if (!controller.signal.aborted) throw caught;
-    return "";
+    if (mustPropagateModelError(caught, controller.signal)) throw caught;
+    return { text: "" };
   } finally {
     clearTimeout(deadline);
   }
@@ -370,26 +417,34 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
         const charCap = streamedCharCap(targetChars);
         const timeoutMs = state.timeoutMs ?? DEFAULT_TURN_TIMEOUT_MS;
         const startedAt = now();
-        const { raw, usage, truncated, error } = await collectCappedStream(deps.model, lcMessages, {
-          maxTokens,
-          charCap,
-          timeoutMs,
-          sampling: samplingForPhase(mechanics(state)),
-          writer: (event) => runtime.writer(event),
-        });
-        const generation: GenerationRecord = {
-          generationId,
-          model: modelName,
-          promptVersion: state.prompt.version,
-          systemPrompt: state.prompt.system,
-          request: state.prompt.messages,
-          rawOutput: raw,
-          usage,
-          latencyMs: now() - startedAt,
-          status: truncated ? "aborted" : "ok",
-          ...(error ? { error } : {}),
-          ...(truncated ? { truncated } : {}),
-        };
+        const { raw, usage, truncated, error, modelAttempts } = await collectCappedStream(
+          deps.model,
+          lcMessages,
+          {
+            maxTokens,
+            charCap,
+            timeoutMs,
+            sampling: samplingForPhase(mechanics(state)),
+            writer: (event) => runtime.writer(event),
+          },
+        );
+        const generation: GenerationRecord = appendModelCall(
+          {
+            generationId,
+            model: selectedModelName(modelAttempts, modelName),
+            promptVersion: state.prompt.version,
+            systemPrompt: state.prompt.system,
+            request: state.prompt.messages,
+            rawOutput: raw,
+            usage,
+            latencyMs: now() - startedAt,
+            status: truncated ? "aborted" : "ok",
+            ...(error ? { error } : {}),
+            ...(truncated ? { truncated } : {}),
+          },
+          "generate",
+          modelAttempts,
+        );
         // preExtendVisibleChars / preExtendRawLength は extend が raw を上書きする前の
         // 初回生成の寸法。発火の有無に関わらず毎ターンここで入れる（発火ターンだけ入れると
         // 「非発火」の対照セルが空になる = v15 の空セルバグの一層下）。
@@ -420,14 +475,19 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
           timeoutMs: state.timeoutMs ?? DEFAULT_TURN_TIMEOUT_MS,
           sampling: samplingForPhase(mechanics(state)),
         });
-        const raw = extension.trim().length > 0 ? `${state.raw}\n${extension.trim()}` : state.raw;
+        const raw =
+          extension.text.trim().length > 0 ? `${state.raw}\n${extension.text.trim()}` : state.raw;
         // 続きも同じ生成の一部として v2_generation に残す（latency は 2 回分の合計）。
         const generation = state.generation
-          ? {
-              ...state.generation,
-              rawOutput: raw,
-              latencyMs: state.generation.latencyMs + (now() - startedAt),
-            }
+          ? appendModelCall(
+              {
+                ...state.generation,
+                rawOutput: raw,
+                latencyMs: state.generation.latencyMs + (now() - startedAt),
+              },
+              "extend",
+              extension.modelAttempts,
+            )
           : state.generation;
         return { raw, generation, extended: state.extended + 1 };
       })
@@ -514,16 +574,26 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
         // 1 段落の書き直しにもターンと同じ max_tokens と締切を掛ける（invoke は stream と違って受信字数の
         // 網が無い。2026-09-04 v2 arm run 2 の Sakura t9 は締切 120 s のターンが 149 s かかった＝書き直しが
         // 締切の外で待っとった）。締切で切れた書き直しは空文として judge に渡し、empty で落として配らん。
-        const text = await regenerateWithDeadline(deps.model, lcMessages, {
+        const regenerated = await regenerateWithDeadline(deps.model, lcMessages, {
           maxTokens: maxTokensForTarget(targetCharsForPhase(mechanics(state))),
           timeoutMs: state.timeoutMs ?? DEFAULT_TURN_TIMEOUT_MS,
           sampling: samplingForPhase(mechanics(state)),
         });
         const pendingChunks = [...state.pendingChunks];
-        pendingChunks[state.cursor] = text;
+        pendingChunks[state.cursor] = regenerated.text;
         const attempts = [...state.attempts];
         attempts[state.cursor] = (attempts[state.cursor] ?? 1) + 1;
-        return { pendingChunks, attempts, regenerationCount: state.regenerationCount + 1 };
+        const generation = appendOptionalModelCall(
+          state.generation,
+          "regenerate",
+          regenerated.modelAttempts,
+        );
+        return {
+          pendingChunks,
+          attempts,
+          generation,
+          regenerationCount: state.regenerationCount + 1,
+        };
       })
       .addNode("emit", (state, runtime) => {
         const current = state.chunks[state.cursor];
@@ -569,14 +639,23 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
               preExtend: chunkItem.preExtend,
             }),
           ),
+          ...state.dropped.map(
+            (chunkItem): TurnEvent => ({
+              type: "dropped",
+              seq: chunkItem.seq,
+              attempt: chunkItem.attempt,
+              reasons: chunkItem.judge.reasons,
+            }),
+          ),
         ];
-        await deps.store.saveTurn({
+        const delivery = await deps.store.saveTurn({
           conversationId: state.conversationId,
           turn: state.turn,
           userText: state.userText,
           events,
           ledger: state.ledger,
         });
+        if (delivery) runtime.writer({ type: "delivery", ...delivery } satisfies TurnEvent);
         if (state.generation) {
           runtime.writer({
             type: "turn-meta",

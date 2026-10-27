@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawn, spawnSync } from "node:child_process";
-import { mkdtemp, readdir, rm } from "node:fs/promises";
+import { mkdtemp, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -100,6 +100,21 @@ async function denied(base, authorization, expected) {
 
 try {
   // 空の一時 DB に一覧表示用の最小スキーマだけを作り、既存データには接続しない。
+  const fixtureSql = await readFile(path.join(app, "test/fixture/local-state.sql"), "utf8");
+  const migrations = await Promise.all(
+    [
+      "0076_v2_chunk_scheduled_at.sql",
+      "0077_v2_chunk_rejection.sql",
+      "0078_v2_turn_delivery.sql",
+      "0079_v2_turn_commit.sql",
+      "0080_character_profile.sql",
+      "0081_character_version.sql",
+      "0082_v2_generation_attempt.sql",
+      "0083_v2_model_attempt_audit.sql",
+    ].map((name) => readFile(path.resolve(app, "../../drizzle", name), "utf8")),
+  );
+  const schemaPath = path.join(state, "synthetic-schema.sql");
+  await writeFile(schemaPath, [fixtureSql, ...migrations].join("\n"));
   const setup = spawnSync(
     process.execPath,
     [
@@ -112,8 +127,8 @@ try {
       config,
       "--persist-to",
       state,
-      "--command",
-      "CREATE TABLE character (id TEXT PRIMARY KEY, name TEXT, avatar TEXT, display_order INTEGER, created_at INTEGER);",
+      "--file",
+      schemaPath,
     ],
     { cwd: app, env: childEnv, encoding: "utf8" },
   );

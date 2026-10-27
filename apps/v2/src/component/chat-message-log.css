@@ -1,0 +1,5 @@
+.v2-message-log {
+  min-block-size: 0;
+  min-inline-size: 0;
+  overscroll-behavior-block: contain;
+}

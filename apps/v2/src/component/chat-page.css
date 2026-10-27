@@ -1,0 +1,17 @@
+.v2-chat-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.v2-chat-page > .v2-list {
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.v2-chat-page > .v2-chat {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+}

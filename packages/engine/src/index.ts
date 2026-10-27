@@ -20,6 +20,14 @@ export {
   type TurnModelCallOptions,
 } from "./graph";
 export { createOpenRouterModel, OpenRouterKeyMissingError, type ModelEnv } from "./model";
+export {
+  createOpenRouterFallbackModel,
+  FallbackChatModel,
+  FallbackModelError,
+  type FallbackAttempt,
+  type FallbackModelOptions,
+} from "./fallback-model";
+export { hardRefusalDetect } from "./refusal-detect";
 export { createMemoryTurnStore, type MemoryTurnStore } from "./memory-store";
 export { TurnState, type JudgedChunk, type TurnStateUpdate, type TurnStateValue } from "./state";
 export {

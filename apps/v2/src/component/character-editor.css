@@ -1,0 +1,92 @@
+.character-editor {
+  width: 100%;
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: 1rem;
+  color: var(--text, #f0f0f5);
+  overflow-wrap: anywhere;
+}
+
+.character-editor h2 {
+  margin-top: 0;
+}
+
+.character-editor fieldset {
+  min-width: 0;
+  padding: 1rem;
+  margin: 0 0 1rem;
+  border: 1px solid #484858;
+  border-radius: 0.75rem;
+}
+
+.character-editor legend {
+  font-weight: 600;
+}
+
+.character-editor-field {
+  margin: 0.75rem 0;
+}
+
+.character-editor-field label,
+.character-editor fieldset > label {
+  display: block;
+  margin-bottom: 0.35rem;
+}
+
+.character-editor input[type="text"],
+.character-editor textarea,
+.character-editor select {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  padding: 0.65rem;
+  border: 1px solid #555568;
+  border-radius: 0.4rem;
+  background: var(--panel, #1a1a22);
+  color: inherit;
+  font: inherit;
+}
+
+.character-editor textarea {
+  resize: vertical;
+}
+
+.character-editor input:focus-visible,
+.character-editor textarea:focus-visible,
+.character-editor select:focus-visible,
+.character-editor button:focus-visible {
+  outline: 3px solid #b4c8ff;
+  outline-offset: 2px;
+}
+
+.character-editor [aria-invalid="true"] {
+  border-color: #ff9898;
+}
+
+.character-editor .character-editor-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+}
+
+.character-editor-error {
+  color: #ffaaaa;
+}
+
+.character-editor button {
+  min-height: 2.75rem;
+  padding: 0.6rem 1rem;
+  border: 0;
+  border-radius: 0.5rem;
+  background: var(--accent, #ff5f8f);
+  color: #1a0b10;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.character-editor button:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}

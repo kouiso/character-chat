@@ -16,6 +16,22 @@ export const characterTable = sqliteTable(
     avatar: text("avatar"),
     isOfficial: integer("is_official", { mode: "boolean" }).notNull().default(false),
     systemPrompt: text("system_prompt").notNull(),
+    introduction: text("introduction").notNull().default(""),
+    exampleDialogue: text("example_dialogue").notNull().default(""),
+    world: text("world").notNull().default(""),
+    appearance: text("appearance").notNull().default(""),
+    // 既存行の年齢を推測せん。未確認の null は v2 の読出し検証で failures に返す。
+    age: integer("age"),
+    adultCategory: text("adult_category", { enum: ["general", "adult"] })
+      .notNull()
+      .default("general"),
+    proactiveSettings: text("proactive_settings", { mode: "json" })
+      .$type<{ enabled: boolean; intervalMinutes: number }>()
+      .notNull()
+      .default({ enabled: false, intervalMinutes: 60 }),
+    // 復元時も同時編集を検出するため、内容の版IDとは別の更新トークンを保持する。
+    profileRevision: text("profile_revision").notNull().default(""),
+    activeVersionId: integer("active_version_id"),
     visualPrompt: text("visual_prompt"),
     // /api/image 生成時の seed。新規キャラは保存し、既存の null は character ID から安定値を導出する。
     seed: integer("seed", { mode: "number" }),

@@ -11,6 +11,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("cloudflare:workers", () => ({ env: mocks.env }));
+vi.mock("./server/chat-room", () => ({ ChatRoom: class {} }));
 vi.mock("@tanstack/react-start/server-entry", () => ({
   default: { fetch: mocks.start },
   createServerEntry: <T>(entry: T): T => entry,

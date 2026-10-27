@@ -1,25 +1,26 @@
-// seed 済みローカル D1 の character 全件を loadCharacters（Drizzle → zod）に通す。
-// 1 行でも落ちたら、その id と issues を出力して FAIL にする（schema を緩めて通さん）。
+// 既存DBやキャラ本文に依存せず、専用の合成D1で読出し経路を確認する。
 import { count } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { characterTable } from "../../../src/schema/character";
 
-import { characterSheetSchema, loadCharacter, loadCharacters } from "./character";
-import { openLocalD1, type LocalD1 } from "./test/local-d1";
+import { characterSheetSchema, loadCharacter, loadCharacters, saveCharacter } from "./character";
+import { characterFixture } from "./test/character-fixture";
+import { openCharacterTestDb, type CharacterTestDb } from "./test/character-local-d1";
 
 describe("loadCharacters / loadCharacter", () => {
-  let local: LocalD1;
+  let local: CharacterTestDb;
 
   beforeAll(async () => {
-    local = await openLocalD1();
+    local = await openCharacterTestDb();
+    await saveCharacter(local.db, "synthetic-owner", characterFixture);
   });
 
   afterAll(async () => {
-    await local.dispose();
+    await local?.dispose();
   });
 
-  it("seed 済み character は全件 zod を通る", async () => {
+  it("合成 character は全件 zod を通る", async () => {
     const [{ n }] = await local.db.select({ n: count() }).from(characterTable);
     const result = await loadCharacters(local.db);
     // 件数と通過数はレポート用に必ず出す（局長へ n / pass を報告する根拠）。
@@ -50,6 +51,7 @@ describe("loadCharacters / loadCharacter", () => {
 
   it("壊れた行は投げずに failures へ寄せる", () => {
     const parsed = characterSheetSchema.safeParse({
+      ...characterFixture,
       id: "x",
       name: "",
       systemPrompt: "s",

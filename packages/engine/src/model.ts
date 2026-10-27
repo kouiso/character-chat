@@ -1,14 +1,12 @@
 // 本番用チャットモデルの生成。テストは FakeListChatModel 等を deps.model に直接注入する
 // （このファイルを経由しない）。
-import { ChatOpenRouter } from "@langchain/openrouter";
+import { StrictOpenRouterChat } from "./openrouter-transport";
+import { resolveOpenRouterRoute } from "./provider-policy";
 
-export type ModelEnv = { OPENROUTER_API_KEY?: string; V2_MODEL?: string };
+import type { OpenRouterPolicyEnv, OpenRouterRoute } from "./provider-policy";
+import type { ChatOpenRouter } from "@langchain/openrouter";
 
-// 2026-09-05 CI v2-arm: euryale は 6 回直しても視点が本人から外れて 60〜130 字のまま
-// （doc/v2/arm-status.md run 4〜6）。同じコードで deepseek-v3.2 は 4 会話とも 10 ターン完走・
-// 本人の一人称視点・ループ無し・1 ターン 3〜34 秒・単価は euryale の約半分。既定をこちらにする。
-// euryale で回す時は V2_MODEL=sao10k/l3.3-euryale-70b（CI は件名の [v2model:...]）。
-const DEFAULT_MODEL = "deepseek/deepseek-v3.2";
+export type ModelEnv = OpenRouterPolicyEnv & { OPENROUTER_API_KEY?: string };
 
 // 呼び出し側（apps/v2 の API ルート）が 503 へ写すため、汎用 Error と区別できる型にしとく。
 export class OpenRouterKeyMissingError extends Error {
@@ -22,17 +20,23 @@ export class OpenRouterKeyMissingError extends Error {
 
 const isReasoningModel = (model: string): boolean => /^openai\/(gpt-5|o[1-9])/.test(model);
 
-export const createOpenRouterModel = (env: ModelEnv): ChatOpenRouter => {
-  if (!env.OPENROUTER_API_KEY) throw new OpenRouterKeyMissingError();
+export const createOpenRouterModel = (
+  env: ModelEnv,
+  route: OpenRouterRoute = "primary",
+): ChatOpenRouter => {
+  if (!env.OPENROUTER_API_KEY?.trim()) throw new OpenRouterKeyMissingError();
   // ChatOpenRouter に streaming フラグは無い。.stream() を呼ぶ側が逐次取得を選ぶ
   // （engine/src/graph.ts の generate ノードが .stream() を使う）。
   // maxTokens もここでは固定せん。インスタンスはターンをまたいで共有されるので、段ごとの上限は
   // generate ノードが .stream(messages, { maxTokens, signal }) の呼び出しオプションで渡す
   // （ChatOpenRouterCallOptions.maxTokens → request の max_tokens。signal で締切・字数上限の abort）。
-  const model = env.V2_MODEL ?? DEFAULT_MODEL;
-  return new ChatOpenRouter({
-    model,
+  const config = resolveOpenRouterRoute(env, route);
+  const model = config.model;
+  return new StrictOpenRouterChat({
+    ...config,
     apiKey: env.OPENROUTER_API_KEY,
+    // 切替wrapperが試行回数と時間を管理するため、SDK内で同じ段を再試行させない。
+    maxRetries: 0,
     // 推論モデル（gpt-5 系）は既定の推論で max_tokens を食い尽くして本文が空になる
     // （2026-09-05 CI v2-arm gpt-5-mini: 20 ターン全部 visible=0、1 ターン 7 秒）。本文の分だけ残すため
     // 推論を最小にする。OpenRouter の reasoning パラメータは対応せんモデルでは無視される。

@@ -1,12 +1,8 @@
-// createD1TurnStore をローカル D1（Miniflare、root の pnpm db:migrate:local と同じ store）で回す。
-// v2_conversation.character_id は character(id) への FK（PRAGMA foreign_keys=1）なので、
-// seed 済みの character を 1 件借りる。作った行は afterAll で消す。
+// 共有 DB とキャラ本文を読まずに既存の保存契約を検証する。
 import { and, asc, eq, inArray } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { characterTable } from "../../../src/schema/character";
-
-import { openLocalD1, type LocalD1 } from "./test/local-d1";
+import { openChunkD1 } from "./test/chunk-d1";
 import { createD1TurnStore, type TurnEvent, type TurnStore } from "./turn-store";
 import {
   v2ChunkTable,
@@ -16,6 +12,7 @@ import {
   v2MessageTable,
 } from "./v2-schema";
 
+import type { LocalD1 } from "./test/local-d1";
 import type { JudgeResult } from "@v2/judge";
 import type { SceneLedger } from "@v2/prompt";
 
@@ -56,8 +53,22 @@ const chunkEvents = (turn: number): TurnEvent[] => [
     status: "ok",
   },
   // seq を逆順で渡して、保存側が seq 順に並べ直すことも同時に見る。
-  { type: "chunk", seq: 1, text: `<dialogue>台詞 ${turn}</dialogue>`, judge: OK_JUDGE, attempt: 1 },
-  { type: "chunk", seq: 0, text: `<action>動作 ${turn}</action>`, judge: OK_JUDGE, attempt: 2 },
+  {
+    type: "chunk",
+    seq: 1,
+    text: `<dialogue>台詞 ${turn}</dialogue>`,
+    judge: OK_JUDGE,
+    attempt: 1,
+    preExtend: true,
+  },
+  {
+    type: "chunk",
+    seq: 0,
+    text: `<action>動作 ${turn}</action>`,
+    judge: OK_JUDGE,
+    attempt: 2,
+    preExtend: true,
+  },
 ];
 
 describe("createD1TurnStore", () => {
@@ -73,16 +84,8 @@ describe("createD1TurnStore", () => {
   };
 
   beforeAll(async () => {
-    local = await openLocalD1();
-    const [character] = await local.db
-      .select({ id: characterTable.id })
-      .from(characterTable)
-      .orderBy(asc(characterTable.displayOrder), asc(characterTable.createdAt))
-      .limit(1);
-    if (!character) {
-      throw new Error("ローカル D1 に character が無い（pnpm db:migrate:local && pnpm db:seed）");
-    }
-    characterId = character.id;
+    local = await openChunkD1();
+    characterId = "rit-67-synthetic";
     store = createD1TurnStore(local.db, {
       userId: "vitest",
       characterId,
@@ -243,7 +246,7 @@ describe("createD1TurnStore", () => {
       userText: "second",
       events: [
         chunkEvents(1)[0],
-        { type: "chunk", seq: 0, text: "平文だけ", judge: OK_JUDGE, attempt: 1 },
+        { type: "chunk", seq: 0, text: "平文だけ", judge: OK_JUDGE, attempt: 1, preExtend: true },
       ],
       ledger: { ...ledgerAt(1), location: "部屋" },
     });

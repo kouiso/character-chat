@@ -10,6 +10,7 @@ import { conversationTable } from "../../../src/schema/conversation";
 import { messageTable } from "../../../src/schema/message";
 import { userTable } from "../../../src/schema/user";
 
+import { characterVersionTable } from "./character-version-schema";
 import * as v2Schema from "./v2-schema";
 
 export const schema = {
@@ -17,6 +18,7 @@ export const schema = {
   userTable,
   conversationTable,
   messageTable,
+  characterVersionTable,
   ...v2Schema,
 };
 

@@ -3,6 +3,8 @@ import { env } from "cloudflare:workers";
 
 import { checkBasicAuth } from "./server/entry-auth";
 
+export { ChatRoom } from "./server/chat-room";
+
 export default createServerEntry({
   async fetch(request, options) {
     const rejection = checkBasicAuth(request, env);

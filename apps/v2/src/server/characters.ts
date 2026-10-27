@@ -4,9 +4,10 @@ import { createServerFn } from "@tanstack/react-start";
 import { characterTable, createDb, loadCharacter } from "@v2/db";
 import { asc } from "drizzle-orm";
 
+import { createCharacterActions } from "./character-actions";
 import { getPlatform } from "./platform";
 
-import type { CharacterSheet } from "@v2/engine";
+import type { CharacterSheet } from "@v2/db";
 
 export type CharacterListItem = { id: string; name: string; avatar: string | null };
 
@@ -38,3 +39,28 @@ export const getCharacter = createServerFn({ method: "GET" })
     const { ok } = await readCharacter(id);
     return ok ?? null;
   });
+
+// 単一利用者の認証ゲート通過後だけ実行する。所有者はRPC入力から取らない。
+const characterActions = createCharacterActions(
+  async () => {
+    const { env } = await getPlatform();
+    return createDb(env.DB);
+  },
+  () => ({ characterActor: { userId: "local" } }),
+);
+
+export const listEditableCharacters = createServerFn({ method: "GET" }).handler(() =>
+  characterActions.list(),
+);
+
+export const loadCharacterEditor = createServerFn({ method: "GET" })
+  .validator((input: unknown) => input)
+  .handler(({ data }) => characterActions.load(data));
+
+export const saveCharacterEditor = createServerFn({ method: "POST" })
+  .validator((input: unknown) => input)
+  .handler(({ data }) => characterActions.save(data));
+
+export const restoreCharacterEditor = createServerFn({ method: "POST" })
+  .validator((input: unknown) => input)
+  .handler(({ data }) => characterActions.restore(data));
