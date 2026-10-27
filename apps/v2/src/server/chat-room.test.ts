@@ -5,21 +5,25 @@ import { judgeChunk, extractVoice } from "@v2/judge";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ChatRoom } from "./chat-room";
+import { StoredReplyConflictError } from "./stored-reply";
 
-import type { ChatSseEvent } from "../lib/sse-events";
+import type { ChatChunkDelivery, ChatSseEvent } from "../lib/sse-events";
 
 type Saved = {
   text: string;
   assistant: string;
   generationId: string;
   status: string;
+  error?: string | null;
   events?: ChatSseEvent[];
+  delivery?: ChatChunkDelivery;
 };
 const fixture = vi.hoisted(() => ({
   nextTurn: 1,
   saved: new Map<number, Saved>(),
   generated: [] as { expectedTurn: number; generationId: string }[],
   fail: false,
+  replyFailure: undefined as Error | undefined,
   afterHistory: undefined as (() => void) | undefined,
 }));
 vi.mock("cloudflare:workers", () => ({
@@ -30,7 +34,7 @@ vi.mock("cloudflare:workers", () => ({
   },
 }));
 vi.mock("./engine", () => ({
-  loadHistory: async () => {
+  loadRoomHistory: async () => {
     const turn = fixture.nextTurn;
     const action = fixture.afterHistory;
     fixture.afterHistory = undefined;
@@ -47,9 +51,16 @@ vi.mock("./engine", () => ({
       : [];
   },
   loadStoredReply: async (_character: string, _conversation: string, turn: number) => {
+    if (fixture.replyFailure) throw fixture.replyFailure;
     const saved = fixture.saved.get(turn);
     return saved
-      ? { id: saved.generationId, status: saved.status, events: saved.events ?? [] }
+      ? {
+          id: saved.generationId,
+          status: saved.status,
+          error: saved.error,
+          events: saved.events ?? [],
+          delivery: saved.delivery,
+        }
       : null;
   },
   startTurn: async (input: {
@@ -80,6 +91,13 @@ vi.mock("./engine", () => ({
         assistant: "synthetic response",
         generationId: input.generationId,
         status: "ok",
+        delivery: {
+          conversationId: input.conversationId,
+          turn: input.expectedTurn,
+          generationId: input.generationId,
+          serverNow: 1500,
+          chunks: [{ seq: 0, text: "synthetic response", scheduledAt: 1234 }],
+        },
         events: [
           {
             type: "chunk",
@@ -126,6 +144,7 @@ describe("ChatRoom: 受付・alarm再実行（独立SQLite storage fake / 合成
     fixture.saved.clear();
     fixture.generated.length = 0;
     fixture.fail = false;
+    fixture.replyFailure = undefined;
     fixture.afterHistory = undefined;
     let transactionTail = Promise.resolve();
     const storage = {
@@ -175,6 +194,7 @@ describe("ChatRoom: 受付・alarm再実行（独立SQLite storage fake / 合成
   });
   afterEach(() => {
     database.close();
+    vi.restoreAllMocks();
   });
 
   it("alarm予約に失敗したら受付もrollbackし、未実行の受付だけを残さない", async () => {
@@ -223,7 +243,13 @@ describe("ChatRoom: 受付・alarm再実行（独立SQLite storage fake / 合成
     expect(fixture.generated).toHaveLength(1);
     expect(job()?.status).toBe("succeeded");
     expect(staged[0]).not.toHaveProperty("scheduledAt");
-    expect(room.readEvents(input.requestId, 0).events[0].event).toMatchObject({
+    const recovered = room.readEvents(input.requestId, 0).events.map((stored) => stored.event);
+    expect(recovered.find((event) => event.type === "delivery")).toEqual({
+      type: "delivery",
+      ...fixture.saved.get(1)?.delivery,
+      serverNow: expect.any(Number),
+    });
+    expect(recovered.find((event) => event.type === "chunk")).toMatchObject({
       type: "chunk",
       seq: 0,
       scheduledAt: 1234,
@@ -246,20 +272,14 @@ describe("ChatRoom: 受付・alarm再実行（独立SQLite storage fake / 合成
         assistant: "",
         generationId: String(job()?.generation_id),
         status: "ok",
-        events: [
-          {
-            type: "chunk",
-            seq: 0,
-            text: "synthetic response",
-            judge: judgeChunk("synthetic response", {
-              previousChunks: [],
-              voice: extractVoice("synthetic"),
-            }),
-            attempt: 1,
-            preExtend: false,
-            ...{ scheduledAt: 1234 },
-          },
-        ],
+        delivery: {
+          conversationId: input.conversationId,
+          turn: 1,
+          generationId: String(job()?.generation_id),
+          serverNow: 1500,
+          chunks: [],
+        },
+        events: [],
       });
       fixture.nextTurn = 3;
       if (status === "failed")
@@ -267,9 +287,118 @@ describe("ChatRoom: 受付・alarm再実行（独立SQLite storage fake / 合成
       await room.alarm();
       expect(job()?.status).toBe("succeeded");
       expect(job()?.attempts).toBe(3);
+      expect(room.readEvents(input.requestId, 0).events[0].event).toEqual({
+        type: "delivery",
+        ...fixture.saved.get(1)?.delivery,
+        serverNow: expect.any(Number),
+      });
       expect(fixture.generated).toHaveLength(0);
     },
   );
+
+  it("字数上限で保存済みのエラーなしaborted返信は再生成せず配送完了する", async () => {
+    await room.submit(input);
+    const generationId = String(job()?.generation_id);
+    const chunk = {
+      type: "chunk" as const,
+      seq: 0,
+      text: "synthetic capped reply",
+      attempt: 1,
+      preExtend: false,
+      judge: judgeChunk("synthetic capped reply", {
+        previousChunks: [],
+        voice: extractVoice("synthetic"),
+      }),
+    };
+    fixture.saved.set(1, {
+      text: input.text,
+      assistant: chunk.text,
+      generationId,
+      status: "aborted",
+      error: null,
+      events: [chunk],
+      delivery: {
+        conversationId: input.conversationId,
+        turn: 1,
+        generationId,
+        serverNow: 1500,
+        chunks: [{ seq: 0, text: chunk.text, scheduledAt: 1234 }],
+      },
+    });
+    fixture.nextTurn = 2;
+    await room.alarm();
+    const page = room.readEvents(input.requestId, 0);
+    expect(page.status).toBe("succeeded");
+    expect(page.events.at(-1)?.event).toMatchObject({ type: "done", generationId });
+    expect(fixture.generated).toHaveLength(0);
+  });
+
+  it("CASで確定済みのaborted生成は同じwriteIdで再生成せず、保存結果とterminalを返す", async () => {
+    await room.submit(input);
+    const generationId = String(job()?.generation_id);
+    fixture.saved.set(1, {
+      text: input.text,
+      assistant: "",
+      generationId,
+      status: "aborted",
+      error: "synthetic deadline",
+      delivery: {
+        conversationId: input.conversationId,
+        turn: 1,
+        generationId,
+        serverNow: 1500,
+        chunks: [],
+      },
+    });
+    fixture.nextTurn = 2;
+    await room.alarm();
+    const page = room.readEvents(input.requestId, 0);
+    expect(page.status).toBe("failed");
+    expect(page.events[0].event).toMatchObject({ type: "delivery", generationId, chunks: [] });
+    expect(page.events.at(-1)?.event).toMatchObject({ type: "error", retryable: false });
+    await room.submit({ ...input, retry: true });
+    await room.alarm();
+    expect(fixture.generated).toHaveLength(0);
+    expect(fixture.saved.get(1)?.status).toBe("aborted");
+  });
+
+  it("確定配送DTOの不整合はalarm再試行ループにせずterminalとして返す", async () => {
+    await room.submit(input);
+    fixture.saved.set(1, {
+      text: input.text,
+      assistant: "",
+      generationId: String(job()?.generation_id),
+      status: "ok",
+    });
+    fixture.nextTurn = 2;
+    fixture.replyFailure = new StoredReplyConflictError("synthetic delivery mismatch");
+    await room.alarm();
+    expect(fixture.generated).toHaveLength(0);
+    expect(room.readEvents(input.requestId, 0)).toMatchObject({
+      status: "failed",
+      events: [{ event: { type: "error", retryable: false, code: "recovery_conflict" } }],
+    });
+  });
+
+  it("再接続では予定時刻とイベント番号を保ち、時計サンプルだけ更新する", async () => {
+    const clock = vi.spyOn(Date, "now").mockReturnValue(1500);
+    await room.submit(input);
+    await room.alarm();
+    const first = room
+      .readEvents(input.requestId, 0)
+      .events.find((stored) => stored.event.type === "delivery");
+    clock.mockReturnValue(7000);
+    const replay = room
+      .readEvents(input.requestId, 0)
+      .events.find((stored) => stored.event.type === "delivery");
+    expect(replay?.id).toBe(first?.id);
+    expect(first?.event).toMatchObject({ serverNow: 1500 });
+    expect(replay?.event).toMatchObject({
+      serverNow: 7000,
+      chunks: [{ seq: 0, scheduledAt: 1234 }],
+    });
+    expect(fixture.generated).toHaveLength(1);
+  });
 
   it("別の進行中ジョブがある間は古い失敗ジョブを再queueしない", async () => {
     await room.submit(input);

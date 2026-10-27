@@ -21,7 +21,8 @@ import { and, eq } from "drizzle-orm";
 
 import { readCharacter } from "./character-data.server";
 import { getPlatform } from "./platform";
-import { readStoredReplyEvents } from "./stored-reply";
+import { readChunkDelivery, readStoredReplyEvents, StoredReplyConflictError } from "./stored-reply";
+import { withTurnCommit } from "./turn-commit";
 
 import type { BaseChatModel } from "@langchain/core/language_models/chat_models";
 
@@ -102,10 +103,15 @@ export const startTurn = async (
   const db = await getDb();
   // graph はターンごとに組む。前ターンの状態は intake が D1 から読み直すので checkpointer に
   // 残す必要が無く、character ごとの store を持つ graph をプロセスに溜め込まん方が単純。
+  const generationId = input.generationId ?? crypto.randomUUID();
   const graph = createTurnGraph({
     model,
-    id: () => input.generationId ?? crypto.randomUUID(),
-    store: createStore(db, input.characterId, input.expectedTurn),
+    id: () => generationId,
+    store: withTurnCommit(
+      createStore(db, input.characterId, input.expectedTurn),
+      generationId,
+      input.expectedTurn,
+    ),
   });
   const conversationId = input.conversationId ?? crypto.randomUUID();
   const events = runTurn(
@@ -134,6 +140,17 @@ export const loadHistory = async (input: {
   return { conversationId: input.conversationId, turn: loaded.turn, history: loaded.history };
 };
 
+// DOの初回受付だけunknownを空turn1として許し、HTTP履歴の404方針とは分ける。
+export const loadRoomHistory = async (input: {
+  characterId: string;
+  conversationId: string;
+}): Promise<ConversationHistory> => {
+  await loadValidCharacter(input.characterId);
+  const db = await getDb();
+  const loaded = await createStore(db, input.characterId).load(input.conversationId);
+  return { conversationId: input.conversationId, turn: loaded.turn, history: loaded.history };
+};
+
 export const loadStoredTurn = async (characterId: string, conversationId: string, turn: number) =>
   readD1StoredTurn(
     await getDb(),
@@ -148,10 +165,20 @@ export const loadStoredReply = async (
   conversationId: string,
   turn: number,
 ) => {
-  await loadStoredTurn(characterId, conversationId, turn);
   const db = await getDb();
+  const delivery = await readChunkDelivery(
+    db,
+    { userId: LOCAL_USER_ID, characterId, conversationId },
+    turn,
+  );
+  if (delivery === null) return null;
+  if (delivery === undefined) await loadStoredTurn(characterId, conversationId, turn);
   const [generation] = await db
-    .select({ id: v2GenerationTable.id, status: v2GenerationTable.status })
+    .select({
+      id: v2GenerationTable.id,
+      status: v2GenerationTable.status,
+      error: v2GenerationTable.error,
+    })
     .from(v2GenerationTable)
     .innerJoin(v2MessageTable, eq(v2MessageTable.generationId, v2GenerationTable.id))
     .where(
@@ -166,6 +193,18 @@ export const loadStoredReply = async (
     .limit(1);
   if (!generation) return null;
   const { env } = await getPlatform();
-  const events = await readStoredReplyEvents(env.DB, conversationId, turn, generation.id);
-  return { ...generation, events };
+  const savedEvents = await readStoredReplyEvents(env.DB, conversationId, turn, generation.id);
+  if (delivery && delivery.generationId !== generation.id)
+    throw new StoredReplyConflictError("saved delivery generation mismatch");
+  const events = delivery
+    ? delivery.chunks.map((chunk) => {
+        const saved = savedEvents.find(
+          (event) => event.type === "chunk" && event.seq === chunk.seq,
+        );
+        if (!saved || saved.type !== "chunk")
+          throw new StoredReplyConflictError("saved delivery chunk missing");
+        return { ...saved, text: chunk.text, scheduledAt: chunk.scheduledAt };
+      })
+    : savedEvents;
+  return { ...generation, events, delivery };
 };

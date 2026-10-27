@@ -1,6 +1,8 @@
+import { ConversationAccessError } from "@v2/db";
 import { DurableObject } from "cloudflare:workers";
 
-import { loadHistory, loadStoredReply, loadStoredTurn, startTurn } from "./engine";
+import { loadRoomHistory, loadStoredReply, loadStoredTurn, startTurn } from "./engine";
+import { StoredReplyConflictError } from "./stored-reply";
 
 import type { ChatSseEvent } from "../lib/sse-events";
 
@@ -39,6 +41,11 @@ const hashInput = async (input: SubmitTurn): Promise<string> => {
 };
 
 class RecoveryConflictError extends Error {}
+
+const isRecoveryConflict = (error: unknown): boolean =>
+  error instanceof RecoveryConflictError ||
+  error instanceof StoredReplyConflictError ||
+  error instanceof ConversationAccessError;
 
 type SavedGeneration = NonNullable<Awaited<ReturnType<typeof loadStoredReply>>>;
 const matchesSavedGeneration = (
@@ -79,7 +86,7 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
 
   async submit(input: SubmitTurn): Promise<TurnReceipt> {
     const digest = await hashInput(input);
-    const history = await loadHistory(input);
+    const history = await loadRoomHistory(input);
     return this.ctx.storage.transaction(async (transaction) => {
       const receipt = this.accept(input, digest, history.turn);
       const job = this.job(input.requestId);
@@ -134,7 +141,14 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
       )
       .toArray();
     return {
-      events: rows.map((row) => ({ id: row.id, event: JSON.parse(row.event) as ChatSseEvent })),
+      events: rows.map((row) => {
+        const event = JSON.parse(row.event) as ChatSseEvent;
+        // 再接続時に古い時差を再適用して配送を遅らせない。
+        return {
+          id: row.id,
+          event: event.type === "delivery" ? { ...event, serverNow: Date.now() } : event,
+        };
+      }),
       status: job.status,
     };
   }
@@ -210,7 +224,7 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
   }
 
   private async recover(job: Job): Promise<boolean> {
-    const history = await loadHistory({
+    const history = await loadRoomHistory({
       characterId: job.character_id,
       conversationId: job.conversation_id,
     });
@@ -224,12 +238,34 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
     const generation = await loadStoredReply(job.character_id, job.conversation_id, job.turn);
     if (!matchesSavedGeneration(job, generation))
       throw new RecoveryConflictError("saved generation mismatch");
-    if (generation.status !== "ok") {
-      if (history.turn !== job.turn + 1) throw new RecoveryConflictError("conversation advanced");
-      return false;
+    const usable =
+      generation.status === "ok" || (generation.status === "aborted" && generation.error === null);
+    if (!usable) {
+      this.finish(
+        job,
+        [
+          ...this.savedReplyEvents(generation),
+          {
+            type: "error",
+            message:
+              "返信の生成が途中で終了しました。保存済みの内容は会話一覧から確認してください。",
+            retryable: false,
+            code: "recovery_conflict",
+          },
+        ],
+        "failed",
+      );
+      return true;
     }
     this.completeRecovered(job, assistant.content, generation);
     return true;
+  }
+
+  private savedReplyEvents(generation: SavedGeneration): ChatSseEvent[] {
+    return [
+      ...(generation.delivery ? [{ type: "delivery" as const, ...generation.delivery }] : []),
+      ...generation.events,
+    ];
   }
 
   private completeRecovered(job: Job, content: string, generation: SavedGeneration): void {
@@ -238,7 +274,7 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
     this.finish(
       job,
       [
-        ...generation.events,
+        ...this.savedReplyEvents(generation),
         {
           type: "done",
           conversationId: job.conversation_id,
@@ -263,7 +299,7 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
     let failed = false;
     for await (const event of turn.events) {
       if (event.type === "error") failed = true;
-      if (["chunk", "turn-meta", "done"].includes(event.type)) {
+      if (["chunk", "delivery", "turn-meta", "done"].includes(event.type)) {
         events.push(event);
         this.ctx.storage.sql.exec(
           "INSERT INTO events (job_id,event,confirmed) VALUES (?,?,0)",
@@ -304,7 +340,7 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
       );
       await this.generate(job);
     } catch (error) {
-      if (!(error instanceof RecoveryConflictError) && job.attempts < 2) throw error;
+      if (!isRecoveryConflict(error) && job.attempts < 2) throw error;
       this.finish(
         job,
         [
@@ -312,8 +348,7 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
             type: "error",
             message: "返信を完了できませんでした。会話一覧から再開してください。",
             retryable: false,
-            code:
-              error instanceof RecoveryConflictError ? "recovery_conflict" : "generation_exhausted",
+            code: isRecoveryConflict(error) ? "recovery_conflict" : "generation_exhausted",
           },
         ],
         "failed",

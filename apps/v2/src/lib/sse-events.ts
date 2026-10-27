@@ -2,8 +2,17 @@
 // （型のみの再 export なのでクライアントバンドルに engine の実装は入らん）。
 import type { TurnEvent } from "@v2/engine";
 
+export type ChatChunkDelivery = {
+  conversationId: string;
+  turn: number;
+  generationId: string | null;
+  serverNow: number;
+  chunks: { seq: number; text: string; scheduledAt: number }[];
+};
+
 export type ChatSseEvent =
-  | Exclude<TurnEvent, { type: "error" | "chunk" }>
+  | Exclude<TurnEvent, { type: "error" | "chunk" | "delivery" }>
+  | ({ type: "delivery" } & ChatChunkDelivery)
   | (Extract<TurnEvent, { type: "chunk" }> & { scheduledAt?: number })
   | {
       type: "error";
