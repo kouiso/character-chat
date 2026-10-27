@@ -12,7 +12,10 @@ import {
 
 import { ChatMessage } from "./chat-message";
 import { ChatMessageLog } from "./chat-message-log";
+import { ConsumerPanel } from "./consumer-panel";
 import { ScheduledReply } from "./scheduled-reply";
+
+import "./chat-page.css";
 
 import type { ChatBubble, PendingTurn } from "../lib/chat-session";
 import type { ChatSseEvent } from "../lib/sse-events";
@@ -78,6 +81,7 @@ const CharacterChatView = ({ characterId, characterName }: ChatViewProps) => {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState<PendingTurn | null>(null);
+  const [settingsConversationId, setSettingsConversationId] = useState<string | null>(null);
   const conversationId = useRef<string | null>(null);
   const nextTurn = useRef(1);
   const submitting = useRef(false);
@@ -121,6 +125,7 @@ const CharacterChatView = ({ characterId, characterName }: ChatViewProps) => {
     nextTurn.current = history.nextTurn;
     setBubbles(history.bubbles);
     setPending(null);
+    setSettingsConversationId(turn.conversationId);
   }, []);
 
   const showFailure = useCallback((cause: unknown, turn: PendingTurn) => {
@@ -173,6 +178,7 @@ const CharacterChatView = ({ characterId, characterName }: ChatViewProps) => {
     async (signal: AbortSignal, resume = true) => {
       const saved = readChatSession(characterId);
       conversationId.current = saved.conversationId;
+      setSettingsConversationId((current) => (current === saved.conversationId ? current : null));
       setPending(saved.pending);
       setError(null);
       if (!saved.conversationId) return;
@@ -180,6 +186,7 @@ const CharacterChatView = ({ characterId, characterName }: ChatViewProps) => {
       try {
         const history = await loadChatHistory(characterId, saved.conversationId, signal);
         signal.throwIfAborted();
+        setSettingsConversationId(saved.conversationId);
         nextTurn.current = history.nextTurn;
         setBubbles(
           saved.pending
@@ -230,6 +237,7 @@ const CharacterChatView = ({ characterId, characterName }: ChatViewProps) => {
       return;
     }
     conversationId.current = turn.conversationId;
+    setSettingsConversationId((current) => (current === turn.conversationId ? current : null));
     setPending(turn);
     setInput("");
     const abort = replaceController();
@@ -259,6 +267,7 @@ const CharacterChatView = ({ characterId, characterName }: ChatViewProps) => {
     const id = history ? failed.conversationId : null;
     writeChatSession(characterId, { version: 1, conversationId: id, pending: null });
     conversationId.current = id;
+    setSettingsConversationId(id);
     nextTurn.current = history?.nextTurn ?? 1;
     setBubbles(history?.bubbles ?? []);
     setPending(null);
@@ -285,7 +294,10 @@ const CharacterChatView = ({ characterId, characterName }: ChatViewProps) => {
 
   return (
     <div className="v2-chat">
-      <div className="v2-chat-header">{characterName}</div>
+      <div className="v2-chat-header">
+        <span className="v2-chat-title">{characterName}</span>
+        <ConsumerPanel characterId={characterId} conversationId={settingsConversationId} />
+      </div>
       <ChatMessageLog busy={busy}>
         {bubbles.map((bubble, index) =>
           bubble.delivery ? (

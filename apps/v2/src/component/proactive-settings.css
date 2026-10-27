@@ -1,0 +1,70 @@
+.proactive-settings {
+  min-width: 0;
+  padding: 1rem;
+  border: 1px solid var(--border, #cbd5e1);
+  border-radius: 0.75rem;
+  overflow-wrap: anywhere;
+}
+.proactive-settings h3 {
+  margin: 0 0 0.5rem;
+}
+.proactive-settings p {
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+.proactive-settings fieldset {
+  display: grid;
+  min-width: 0;
+  gap: 0.65rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.proactive-settings input[type="number"],
+.proactive-settings input[type="time"] {
+  box-sizing: border-box;
+  min-width: 0;
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.5rem;
+  color: inherit;
+  background: var(--background, white);
+  border: 1px solid var(--border, #94a3b8);
+  border-radius: 0.375rem;
+  font: inherit;
+}
+.proactive-settings__toggle {
+  display: flex;
+  gap: 0.5rem;
+  align-items: start;
+  padding: 0.5rem 0;
+}
+.proactive-settings__toggle input {
+  flex-shrink: 0;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin: 0.15rem 0 0;
+}
+.proactive-settings__time {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+.proactive-settings button {
+  min-height: 2.75rem;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  font: inherit;
+}
+.proactive-settings button:disabled {
+  cursor: default;
+  opacity: 0.65;
+}
+.proactive-settings [role="alert"] {
+  color: #b91c1c;
+}
+@media (max-width: 360px) {
+  .proactive-settings__time {
+    grid-template-columns: 1fr;
+  }
+}

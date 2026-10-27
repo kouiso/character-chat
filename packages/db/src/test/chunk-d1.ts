@@ -56,6 +56,10 @@ export const openChunkD1 = async (): Promise<LocalD1> => {
       new URL("../../../../drizzle/0082_v2_generation_attempt.sql", import.meta.url),
       "utf8",
     );
+    const memoryIds = await readFile(
+      new URL("../../../../drizzle/0088_v2_generation_memory_ids.sql", import.meta.url),
+      "utf8",
+    );
     const attemptAudit = await readFile(
       new URL("../../../../drizzle/0083_v2_model_attempt_audit.sql", import.meta.url),
       "utf8",
@@ -71,6 +75,7 @@ export const openChunkD1 = async (): Promise<LocalD1> => {
       proxy.env.DB.prepare(anchors),
       proxy.env.DB.prepare(commits),
       proxy.env.DB.prepare(audit),
+      proxy.env.DB.prepare(memoryIds),
       ...attemptAudit
         .split(";")
         .filter((statement) => statement.trim())

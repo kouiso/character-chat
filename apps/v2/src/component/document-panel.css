@@ -1,0 +1,98 @@
+.document-panel {
+  min-width: 0;
+  color: var(--text, #f0f0f5);
+  overflow-wrap: anywhere;
+}
+
+.document-panel h3,
+.document-row h4 {
+  margin: 0 0 0.75rem;
+}
+
+.document-help {
+  color: var(--muted, #c4c4d0);
+  font-size: 0.875rem;
+}
+
+.document-panel input,
+.document-panel button {
+  min-height: 2.75rem;
+  max-width: 100%;
+  font: inherit;
+}
+
+.document-panel input[type="number"] {
+  display: block;
+  width: 8rem;
+  padding: 0.5rem;
+  border: 1px solid #555568;
+  border-radius: 0.4rem;
+  background: var(--panel, #1a1a22);
+  color: inherit;
+}
+
+.document-panel input[type="file"] {
+  display: block;
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.document-panel input:focus-visible,
+.document-panel button:focus-visible {
+  outline: 3px solid #b4c8ff;
+  outline-offset: 2px;
+}
+
+.document-panel button {
+  padding: 0.55rem 0.8rem;
+  border: 1px solid #68788f;
+  border-radius: 0.4rem;
+  background: #2b3950;
+  color: inherit;
+  cursor: pointer;
+}
+
+.document-panel button:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+.document-budget,
+.document-upload {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 0.75rem;
+  margin: 0.9rem 0;
+}
+
+.document-budget label,
+.document-upload label {
+  min-width: 0;
+}
+
+.document-list {
+  list-style: none;
+  padding: 0;
+}
+
+.document-row {
+  margin: 1rem 0;
+  padding: 0.9rem;
+  border: 1px solid #484858;
+  border-radius: 0.5rem;
+}
+
+.document-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.document-panel .document-delete {
+  border-color: #bd8080;
+}
+
+.document-panel [role="alert"] {
+  color: #ffb6b6;
+}

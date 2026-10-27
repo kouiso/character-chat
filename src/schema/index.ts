@@ -61,3 +61,9 @@ export {
   wardrobeOutfitTable,
   wardrobeOutfitTagTable,
 } from "./wardrobe";
+
+export * from "../../packages/db/src/v2-schema";
+export * from "../../packages/db/src/character-version-schema";
+export * from "../../packages/db/src/memory-management-schema";
+export * from "../../packages/db/src/document-schema";
+export * from "../../packages/db/src/session-context-schema";

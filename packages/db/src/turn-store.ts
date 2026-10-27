@@ -45,6 +45,7 @@ export type GenerationRecord = {
   usage: { inputTokens: number; outputTokens: number; totalTokens: number } | null;
   latencyMs: number;
   modelCalls?: readonly ModelCall[];
+  retrievedMemoryIds?: readonly string[];
   // "aborted" は engine 側が request を止めた時（受信字数の上限か締切）。理由は truncated に載る。
   status: "ok" | "error" | "aborted";
   error?: string;
@@ -501,6 +502,11 @@ export const createD1TurnStore = (db: V2Db, opts: D1TurnStoreOptions): TurnStore
               generation.error ?? null,
               now,
               generationAudit[index],
+              generation.retrievedMemoryIds === undefined
+                ? null
+                : JSON.stringify(
+                    z.array(z.string().min(1).max(256)).parse(generation.retrievedMemoryIds),
+                  ),
             ]),
           ),
       ),

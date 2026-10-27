@@ -29,6 +29,7 @@ import {
   type ContextBudget,
 } from "./context-window";
 import { FallbackModelError } from "./fallback-model";
+import { appendRetrievedContext, type TurnContextSources } from "./retrieval-context";
 import { TurnState, type JudgedChunk } from "./state";
 
 import type {
@@ -208,6 +209,7 @@ export type TurnGraphDeps = {
   model: TurnModel;
   store: TurnStore;
   contextBudget?: Partial<ContextBudget>;
+  contextSources?: TurnContextSources;
   // 本文がこの割合に届かんターンだけ続きを書かせる。0 で無効（短い fixture で判定器だけを試すテスト用）。
   extendBelowRatio?: number;
   // 段分離アーム（2026-09-05 敵対レビュー R2-1）用。指定すると目安字数・penalty・extend の発火・max_tokens
@@ -378,7 +380,7 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
         return { ledger: { ...state.ledger, lastEvents, phase } };
       })
       .addNode("retrieve", () => ({ retrieved: [] }))
-      .addNode("compose", (state) => {
+      .addNode("compose", async (state) => {
         const recent = selectRecentMessages(
           [...state.history, { role: "user", content: state.userText }],
           contextBudget.recentChars,
@@ -402,11 +404,23 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
           dropMinChars: deps.dropMinChars,
           soloReaction: deps.soloReaction,
         });
+        const context = await appendRetrievedContext(
+          system,
+          contextBudget.systemChars,
+          deps.contextSources,
+          {
+            characterId: state.character.id,
+            query: state.userText,
+          },
+        );
         const prompt = composeContextPrompt(
-          { system, messages: [...state.history, { role: "user", content: state.userText }] },
+          {
+            system: context.system,
+            messages: [...state.history, { role: "user", content: state.userText }],
+          },
           contextBudget,
         );
-        return { prompt };
+        return { prompt, retrievedMemoryIds: context.usedMemoryIds };
       })
       .addNode("generate", async (state, runtime) => {
         if (!state.prompt) throw new Error("prompt が未生成のまま generate に到達した");
@@ -435,6 +449,7 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
             promptVersion: state.prompt.version,
             systemPrompt: state.prompt.system,
             request: state.prompt.messages,
+            retrievedMemoryIds: state.retrievedMemoryIds,
             rawOutput: raw,
             usage,
             latencyMs: now() - startedAt,

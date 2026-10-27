@@ -1,0 +1,1 @@
+ALTER TABLE `v2_generation` ADD `retrieved_memory_ids_json` text;

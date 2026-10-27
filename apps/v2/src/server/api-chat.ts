@@ -89,6 +89,14 @@ export const handleChatRequest = async (id: string, request: Request): Promise<R
             : "同じ受付番号に異なる送信内容は指定できません。",
       });
     }
+    const activityDigest = await crypto.subtle.digest(
+      "SHA-256",
+      new TextEncoder().encode(JSON.stringify([id, parsed.data.conversationId, receipt.requestId])),
+    );
+    const activityId = Array.from(new Uint8Array(activityDigest), (byte) =>
+      byte.toString(16).padStart(2, "0"),
+    ).join("");
+    await env.PROACTIVE_RECIPIENTS.getByName(LOCAL_USER_ID).recordActivity(id, activityId);
     return new Response(toSseStream(storedEvents(room, receipt.requestId, after)), {
       status: 200,
       headers: SSE_HEADERS,

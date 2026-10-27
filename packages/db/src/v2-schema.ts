@@ -131,6 +131,7 @@ export const v2GenerationTable = sqliteTable("v2_generation", {
   error: text("error"),
   createdAt: integer("created_at").notNull(),
   modelAttemptsJson: text("model_attempts_json"),
+  retrievedMemoryIdsJson: text("retrieved_memory_ids_json"),
 });
 
 export const v2ModelAttemptAuditTable = sqliteTable(
@@ -158,15 +159,25 @@ export const v2ModelAttemptAuditTable = sqliteTable(
   ],
 );
 
-export const v2MemoryTable = sqliteTable("v2_memory", {
-  id: text("id").primaryKey(),
-  conversationId: text("conversation_id")
-    .notNull()
-    .references(() => v2ConversationTable.id),
-  kind: text("kind", { enum: ["fact", "summary", "preference"] }).notNull(),
-  content: text("content").notNull(),
-  sourceTurn: integer("source_turn"),
-  // bge-m3 1024 次元 float32 の生バイト（script/rag/ingest.ts の rag_chunk と同形式）。M0 は NULL のまま。
-  embedding: blob("embedding", { mode: "buffer" }),
-  createdAt: integer("created_at").notNull(),
-});
+export const v2MemoryTable = sqliteTable(
+  "v2_memory",
+  {
+    id: text("id").primaryKey(),
+    conversationId: text("conversation_id")
+      .notNull()
+      .references(() => v2ConversationTable.id),
+    kind: text("kind", { enum: ["fact", "summary", "preference"] }).notNull(),
+    content: text("content").notNull(),
+    sourceTurn: integer("source_turn"),
+    // キーなしの既存記憶を、推測で同じ事実へまとめない。
+    memoryKey: text("memory_key"),
+    supersededById: text("superseded_by_id"),
+    embedding: blob("embedding", { mode: "buffer" }),
+    createdAt: integer("created_at").notNull(),
+  },
+  (table) => [
+    uniqueIndex("v2_memory_current_key_idx")
+      .on(table.conversationId, table.kind, table.memoryKey)
+      .where(sql`${table.memoryKey} is not null and ${table.supersededById} is null`),
+  ],
+);

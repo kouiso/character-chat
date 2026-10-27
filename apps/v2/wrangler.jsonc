@@ -4,8 +4,8 @@
   "main": "src/server.ts",
   "compatibility_date": "2026-10-26",
   "compatibility_flags": ["nodejs_compat"],
-  "durable_objects": { "bindings": [{ "name": "CHAT_ROOMS", "class_name": "ChatRoom" }] },
-  "migrations": [{ "tag": "v2-chat-room-1", "new_sqlite_classes": ["ChatRoom"] }],
+  "durable_objects": { "bindings": [{ "name": "CHAT_ROOMS", "class_name": "ChatRoom" }, { "name": "PROACTIVE_RECIPIENTS", "class_name": "ProactiveRecipient" }] },
+  "migrations": [{ "tag": "v2-chat-room-1", "new_sqlite_classes": ["ChatRoom"] }, { "tag": "v2-proactive-recipient-1", "new_sqlite_classes": ["ProactiveRecipient"] }],
   "assets": { "binding": "ASSETS", "directory": "./public", "run_worker_first": true },
   "d1_databases": [
     {

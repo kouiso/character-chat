@@ -38,3 +38,40 @@ export {
   type ContextBudget,
   type ContextUsage,
 } from "./context-window";
+
+export {
+  DocumentMetadataSchema,
+  DocumentSettingsSchema,
+  retrieveDocumentContext,
+  createDocumentProjection,
+  type DocumentChunk,
+  type DocumentMetadata,
+  type DocumentSettings,
+  type DocumentSource,
+  type DocumentProjectionInput,
+  type DocumentProjection,
+} from "./document-retrieval";
+export {
+  createDocumentService,
+  splitDocumentText,
+  DocumentServiceError,
+  MAX_DOCUMENT_BYTES,
+  type DocumentBucket,
+  type DocumentService,
+  type UploadDocumentInput,
+} from "./document-service";
+export { DocumentPdfError, extractDocumentPdf } from "./document-pdf";
+
+export {
+  appendRetrievedContext,
+  type TurnContextSources,
+  type ContextProjectionInput,
+} from "./retrieval-context";
+
+export {
+  createScopedMemoryProjection,
+  createMemoryProjectionSource,
+  type MemoryProjectionInput,
+  type MemoryProjectionResult,
+  type MemoryProjectionSource,
+} from "./memory-projection";

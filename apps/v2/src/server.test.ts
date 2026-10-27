@@ -12,6 +12,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("cloudflare:workers", () => ({ env: mocks.env }));
 vi.mock("./server/chat-room", () => ({ ChatRoom: class {} }));
+vi.mock("./server/proactive-recipient", () => ({ ProactiveRecipient: class {} }));
 vi.mock("@tanstack/react-start/server-entry", () => ({
   default: { fetch: mocks.start },
   createServerEntry: <T>(entry: T): T => entry,
@@ -33,18 +34,23 @@ describe("custom Start entry", () => {
     mocks.start.mockImplementation(() => new Response("synthetic-start"));
   });
 
-  it.each(["/", "/api/chat/synthetic", "/api/chat/synthetic/history", "/assets/app.js"])(
-    "rejects %s before invoking Start or the assets binding",
-    async (path) => {
-      for (const method of ["GET", "POST", "HEAD", "OPTIONS"]) {
-        expect(
-          (await entry.fetch(new Request(`https://local.invalid${path}`, { method }))).status,
-        ).toBe(401);
-      }
-      expect(mocks.start).not.toHaveBeenCalled();
-      expect(mocks.env.ASSETS.fetch).not.toHaveBeenCalled();
-    },
-  );
+  it.each([
+    "/",
+    "/api/chat/synthetic",
+    "/api/chat/synthetic/history",
+    "/assets/app.js",
+    "/api/memory/synthetic",
+    "/api/chat/synthetic/documents?conversationId=synthetic",
+    "/api/proactive/synthetic",
+  ])("rejects %s before invoking Start or the assets binding", async (path) => {
+    for (const method of ["GET", "POST", "HEAD", "OPTIONS"]) {
+      expect(
+        (await entry.fetch(new Request(`https://local.invalid${path}`, { method }))).status,
+      ).toBe(401);
+    }
+    expect(mocks.start).not.toHaveBeenCalled();
+    expect(mocks.env.ASSETS.fetch).not.toHaveBeenCalled();
+  });
 
   it("fails closed before any downstream work when a secret is empty", async () => {
     mocks.env.BASIC_AUTH_PASS = "";

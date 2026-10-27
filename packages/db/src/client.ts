@@ -11,6 +11,9 @@ import { messageTable } from "../../../src/schema/message";
 import { userTable } from "../../../src/schema/user";
 
 import { characterVersionTable } from "./character-version-schema";
+import * as documentSchema from "./document-schema";
+import * as memorySchema from "./memory-management-schema";
+import { v2SessionContextTable } from "./session-context-schema";
 import * as v2Schema from "./v2-schema";
 
 export const schema = {
@@ -19,7 +22,10 @@ export const schema = {
   conversationTable,
   messageTable,
   characterVersionTable,
+  v2SessionContextTable,
   ...v2Schema,
+  ...memorySchema,
+  ...documentSchema,
 };
 
 export type V2Db = ReturnType<typeof drizzle<typeof schema>>;

@@ -10,5 +10,6 @@ declare namespace Cloudflare {
     APP_ENV?: string;
     V2_FAKE_MODEL?: string;
     V2_TEST_FAULT?: string;
+    V2_PROACTIVE_MOCK?: string;
   }
 }

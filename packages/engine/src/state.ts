@@ -30,6 +30,7 @@ export const TurnState = new StateSchema({
   history: z.array(z.custom<HistoryMessage>()).default(() => []),
   ledger: z.custom<SceneLedger>(),
   retrieved: z.array(z.string()).default(() => []),
+  retrievedMemoryIds: z.array(z.string()).default(() => []),
   prompt: z.custom<ComposedPrompt>().nullable().default(null),
   raw: z.string().default(""),
   // このターンで続きを書き足した回数（上限は graph.ts の MAX_EXTENSIONS_PER_TURN）。

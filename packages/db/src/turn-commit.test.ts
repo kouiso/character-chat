@@ -206,6 +206,31 @@ describe("D1 turn commit CAS", () => {
     expect(await snapshot(conversationId)).toEqual(before);
   });
 
+  it("採用した記憶版IDを原子的に保存し、同一受付での差替えを拒否する", async () => {
+    const conversationId = id();
+    const savedInput = input(conversationId, id());
+    const using = (ids: string[]): SaveTurnInput => ({
+      ...savedInput,
+      events: savedInput.events.map((event) =>
+        event.type === "generation" ? { ...event, retrievedMemoryIds: ids } : event,
+      ),
+    });
+    await store().saveTurn(using(["current-memory-version"]));
+    const row = await local.d1
+      .prepare("SELECT retrieved_memory_ids_json FROM v2_generation WHERE conversation_id=?")
+      .bind(conversationId)
+      .first<{ retrieved_memory_ids_json: string }>();
+    expect(JSON.parse(row?.retrieved_memory_ids_json ?? "null")).toEqual([
+      "current-memory-version",
+    ]);
+    const before = await snapshot(conversationId);
+    await store().saveTurn(using(["current-memory-version"]));
+    await expect(store().saveTurn(using(["replaced-version"]))).rejects.toBeInstanceOf(
+      TurnCommitConflictError,
+    );
+    expect(await snapshot(conversationId)).toEqual(before);
+  });
+
   it("CAS 保存中の制約失敗は commit と anchor と会話作成も巻き戻す", async () => {
     const conversationId = id();
     const savedInput = input(conversationId, id());

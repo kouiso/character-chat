@@ -16,6 +16,8 @@ import {
 } from "@v2/db";
 import {
   createTurnGraph,
+  createScopedMemoryProjection,
+  createDocumentProjection,
   runTurn,
   type HistoryMessage,
   type TurnEvent,
@@ -26,8 +28,15 @@ import { and, eq } from "drizzle-orm";
 
 import { readCharacter } from "./characters";
 import { loadConversationMessages, loadConversationSnapshot } from "./conversation-data";
+import { createScopedDocumentService } from "./document-runtime";
 import { createRuntimeModel } from "./model";
 import { getPlatform } from "./platform";
+import {
+  ensureTurnSession,
+  memoryScopeOf,
+  registerAdoptedSources,
+  resolveTurnSession,
+} from "./session-context";
 import { readStoredReplyEvents, StoredReplyConflictError } from "./stored-reply";
 
 import type { BaseChatModel } from "@langchain/core/language_models/chat_models";
@@ -110,13 +119,19 @@ const loadValidCharacter = async (characterId: string) => {
 export const startTurn = async (
   input: StartTurnInput,
 ): Promise<{ conversationId: string; events: AsyncGenerator<TurnEvent> }> => {
-  const character = await loadValidCharacter(input.characterId);
+  await loadValidCharacter(input.characterId);
   const db = await getDb();
   const conversationId = input.conversationId ?? crypto.randomUUID();
   const store = createStore(db, input.characterId);
   const loaded = await store.load(conversationId);
   const expectedTurn = input.expectedTurn ?? loaded.turn;
   if (loaded.turn !== expectedTurn) throw new TurnCommitConflictError();
+  const session = await ensureTurnSession(db, {
+    ownerUserId: LOCAL_USER_ID,
+    characterId: input.characterId,
+    conversationId,
+  });
+  await registerAdoptedSources(db, session);
   const writeId = input.generationId ?? crypto.randomUUID();
   const model = await createModel(db, input.characterId, conversationId, writeId);
   // graph はターンごとに組む。前ターンの状態は intake が D1 から読み直すので checkpointer に
@@ -124,14 +139,28 @@ export const startTurn = async (
   const graph = createTurnGraph({
     model,
     id: () => writeId,
+    contextSources: {
+      memory: createScopedMemoryProjection(db, memoryScopeOf(session)),
+      documents: createDocumentProjection(
+        createScopedDocumentService((await getPlatform()).env, {
+          userId: LOCAL_USER_ID,
+          characterId: input.characterId,
+          worldlineId: session.worldlineId,
+        }).source,
+      ),
+    },
     store: {
       load: (id) => store.load(id),
-      saveTurn: (turn) => store.saveTurn({ ...turn, commit: { expectedTurn, writeId } }),
+      saveTurn: async (turn) => {
+        const delivery = await store.saveTurn({ ...turn, commit: { expectedTurn, writeId } });
+        await registerAdoptedSources(db, session);
+        return delivery;
+      },
     },
   });
   const events = runTurn(
     graph,
-    { conversationId, userText: input.text, character },
+    { conversationId, userText: input.text, character: session.character },
     conversationId,
   );
   return { conversationId, events };
@@ -209,6 +238,12 @@ export const loadStoredReply = async (
   if (!generation) return null;
   if (delivery.generationId !== generation.id)
     throw new StoredReplyConflictError("saved delivery generation mismatch");
+  const session = await resolveTurnSession(db, {
+    ownerUserId: LOCAL_USER_ID,
+    characterId,
+    conversationId,
+  });
+  if (session) await registerAdoptedSources(db, session);
   const { env } = await getPlatform();
   const savedEvents = await readStoredReplyEvents(env.DB, conversationId, turn, generation.id);
   const events = delivery.chunks.map((chunk) => {

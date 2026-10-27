@@ -90,6 +90,20 @@ describe("v2_ tables: SQL DDL と drizzle 宣言の一致", () => {
       ),
     ),
   );
+  const memoryMigration = readFileSync(
+    new URL("../../../drizzle/0084_v2_memory_supersession.sql", import.meta.url),
+    "utf8",
+  );
+  for (const match of memoryMigration.matchAll(/ALTER TABLE `(\w+)` ADD `(\w+)`/g)) {
+    parsedTables.find((table) => table.name === match[1])?.columns.push(match[2]);
+  }
+  const memoryIdsMigration = readFileSync(
+    new URL("../../../drizzle/0088_v2_generation_memory_ids.sql", import.meta.url),
+    "utf8",
+  );
+  for (const match of memoryIdsMigration.matchAll(/ALTER TABLE `(\w+)` ADD `(\w+)`/g)) {
+    parsedTables.find((table) => table.name === match[1])?.columns.push(match[2]);
+  }
   const parsedByName = new Map(parsedTables.map((t) => [t.name, t]));
 
   const drizzleTables = [
