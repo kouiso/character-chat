@@ -2,28 +2,13 @@
   "$schema": "../../node_modules/wrangler/config-schema.json",
   "name": "adult-ai-v2",
   "compatibility_date": "2026-10-26",
-  "d1_databases": [
-    {
-      "binding": "DB",
-      "database_name": "adult-ai-db",
-      "database_id": "c0ffee00-0000-4000-8000-000000000001",
-      "preview_database_id": "c0ffee00-0000-4000-8000-000000000001",
-      "migrations_dir": "../../drizzle"
-    }
-  ],
-  "r2_buckets": [
-    {
-      "binding": "BUCKET",
-      "bucket_name": "adult-ai-images"
-    }
-  ],
-  "env": {},
   "main": "src/worker.ts",
-  "compatibility_flags": [
-    "nodejs_compat"
-  ],
+  "compatibility_flags": ["nodejs_compat"],
   "workers_dev": false,
   "preview_urls": false,
+  "limits": {
+    "cpu_ms": 300000
+  },
   "assets": {
     "binding": "ASSETS",
     "run_worker_first": true
@@ -38,10 +23,45 @@
     "enabled": false
   },
   "secrets": {
-    "required": [
-      "BASIC_AUTH_USERNAME",
-      "BASIC_AUTH_PASSWORD",
-      "OPENROUTER_API_KEY"
+    "required": ["BASIC_AUTH_USERNAME", "BASIC_AUTH_PASSWORD", "OPENROUTER_API_KEY"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "adult-ai-db",
+      "database_id": "b617800c-cf4c-4122-adbb-ce872a258da6",
+      "preview_database_id": "b617800c-cf4c-4122-adbb-ce872a258da6",
+      "migrations_dir": "../../drizzle"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "BUCKET",
+      "bucket_name": "adult-ai-images"
+    }
+  ],
+  "vectorize": [
+    {
+      "binding": "MEMORY_INDEX",
+      "index_name": "v2-memory-index"
+    }
+  ],
+  "ai": {
+    "binding": "AI"
+  },
+  "queues": {
+    "producers": [
+      {
+        "binding": "MEMORY_JOBS",
+        "queue": "v2-memory-jobs"
+      }
+    ],
+    "consumers": [
+      {
+        "queue": "v2-memory-jobs",
+        "max_batch_size": 10,
+        "max_retries": 3
+      }
     ]
   },
   "durable_objects": {
@@ -55,9 +75,68 @@
   "migrations": [
     {
       "tag": "v1-chat-room",
-      "new_sqlite_classes": [
-        "ChatRoom"
+      "new_sqlite_classes": ["ChatRoom"]
+    }
+  ],
+  "env": {
+    "staging": {
+      "name": "adult-ai-v2-staging",
+      "vars": {
+        "APP_ENV": "staging"
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "character-chat-v2-staging",
+          "database_id": "0c161a82-6dca-45d6-9cbc-97b43e909099",
+          "preview_database_id": "0c161a82-6dca-45d6-9cbc-97b43e909099",
+          "migrations_dir": "../../drizzle"
+        }
+      ],
+      "r2_buckets": [
+        {
+          "binding": "BUCKET",
+          "bucket_name": "character-chat-v2-staging"
+        }
+      ],
+      "vectorize": [
+        {
+          "binding": "MEMORY_INDEX",
+          "index_name": "character-chat-v2-staging"
+        }
+      ],
+      "ai": {
+        "binding": "AI"
+      },
+      "queues": {
+        "producers": [
+          {
+            "binding": "MEMORY_JOBS",
+            "queue": "v2-memory-jobs-staging"
+          }
+        ],
+        "consumers": [
+          {
+            "queue": "v2-memory-jobs-staging",
+            "max_batch_size": 10,
+            "max_retries": 3
+          }
+        ]
+      },
+      "durable_objects": {
+        "bindings": [
+          {
+            "name": "CHAT_ROOMS",
+            "class_name": "ChatRoom"
+          }
+        ]
+      },
+      "migrations": [
+        {
+          "tag": "v1-chat-room",
+          "new_sqlite_classes": ["ChatRoom"]
+        }
       ]
     }
-  ]
+  }
 }

@@ -35,6 +35,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm v2:ci
       - run: pnpm --filter @v2/app build
+      - run: pnpm --filter @v2/app secrets:check
       - run: pnpm --filter @v2/app exec wrangler deploy --dry-run
       - run: pnpm --filter @v2/app verify:ci
 

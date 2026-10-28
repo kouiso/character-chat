@@ -6,7 +6,7 @@
     {
       "binding": "DB",
       "database_name": "adult-ai-db",
-      "database_id": "c0ffee00-0000-4000-8000-000000000001",
+      "database_id": "b617800c-cf4c-4122-adbb-ce872a258da6",
       "migrations_dir": "../../drizzle",
     },
   ],
