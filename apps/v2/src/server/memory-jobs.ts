@@ -1,6 +1,7 @@
 // 記憶まわりの後回し仕事（事実の抜き出し・埋め込み・要約）を運ぶ Queue の受け手。
-// 土台では「受け取る・形を確かめる・記録する・種類ごとに仕分ける」までを行い、
-// 抜き出しと埋め込みの中身は PBI-06（記憶）の SBI でここに育てる。
+// 土台では「受け取る・形を確かめる・記録する」までで、中身はまだ無い（PBI-06 で育てる）。
+// 届いた仕事は処理せず ack して捨てる。送り手はまだどこにも無く、送り手を足すと
+// memory-jobs.test.ts の送信探しが落ちるので、中身より先に送り手だけが出ることは無い。
 import { z } from "zod";
 
 export const MEMORY_JOB_KINDS = ["extract-facts", "embed-memory", "summarize-window"] as const;
@@ -36,9 +37,11 @@ export const handleMemoryJobBatch = async (batch: { messages: readonly AckingMes
       continue;
     }
     try {
-      console.info(
+      // 処理済みと取り違えんよう「捨てた」と記録する。
+      console.warn(
         JSON.stringify({
-          event: "memory_job_received",
+          event: "memory_job_discarded",
+          reason: "not_implemented",
           kind: job.kind,
           characterId: job.characterId,
           conversationId: job.conversationId,

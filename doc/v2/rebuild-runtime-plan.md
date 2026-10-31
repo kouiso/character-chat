@@ -55,7 +55,7 @@ RIT-48/49/50（記憶と削除・評価）、52/53/54（キャラ版・資料・
 ### 2026-10-28の観測（束ねの完成・資源の棚卸し）
 
 - `wrangler.jsonc`を設計書§4の束ねどおりに揃えた: 本番D1 `adult-ai-db`（`b617800c-…`、旧wrangler.toml公開済みの実id）・R2 `adult-ai-images`・Vectorize `v2-memory-index`・Workers AI・Queue `v2-memory-jobs`（producer+consumer）・ChatRoom DO・`limits.cpu_ms=300000`（局長指定の有料5分）。`wrangler types`でEnv型を再生成。
-- 入口に`queue`ハンドラを出し、`memory-jobs.ts`が封筒（kind/characterId/conversationId/turn）を検査して記録・ackする。中身の抜き出し・埋め込みはRIT-48系で育てる。
+- 入口に`queue`ハンドラを出し、`memory-jobs.ts`が封筒（kind/characterId/conversationId/turn）を検査して記録・ackする。中身の抜き出し・埋め込みはRIT-48系で育てる。それまで届いた仕事は処理されずに捨てられ、ログには`memory_job_discarded`（`reason: not_implemented`）と出る。送り手（`MEMORY_JOBS.send`）はまだ無く、足すと`memory-jobs.test.ts`が落ちるので、受け手の中身と同じ変更でしか足せん。
 - Cloudflare資源を読み取りだけで数えた（変更0件）: D1 `adult-ai-db`（4.1MB）・試し用`character-chat-v2-staging`（2026-10-26作成、RIT-64）がD1・R2・Vectorize（1024次元 cosine）の3点で既に存在。本番用のVectorize indexとQueueは未作成で、初回deploy前に`wrangler vectorize create`/`wrangler queues create`が要る（doc/v2/secrets.mdの資源準備節）。
 - Pages`adult-ai-chat`は稼働中（旧アプリ）。Worker`adult-ai-v2`は未デプロイ。
 - 手元Node 25で`localStorage`がメソッド無しの入れ物として露出しjsdomを隠すため、`apps/v2`のテスト8件が失敗した。`src/test/setup.ts`で実装が無い時だけStorageを差し替える対処を入れた（CIのNode 24では既存どおりjsdomが使われる）。

@@ -1,5 +1,8 @@
 // @vitest-environment node
-import { describe, expect, it } from "vitest";
+import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
+
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { handleMemoryJobBatch, MEMORY_JOB_KINDS, parseMemoryJob } from "./memory-jobs";
 
@@ -13,7 +16,13 @@ const message = (body: unknown) => {
   };
 };
 
+const repoRoot = fileURLToPath(new URL("../../../../", import.meta.url));
+
 describe("Queue の記憶仕事の受け手", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it.each(MEMORY_JOB_KINDS)("整った封筒 %s を受け取る", (kind) => {
     const job = parseMemoryJob({ kind, characterId: "char-1", conversationId: "conv-1", turn: 3 });
     expect(job).toEqual({ kind, characterId: "char-1", conversationId: "conv-1", turn: 3 });
@@ -47,5 +56,52 @@ describe("Queue の記憶仕事の受け手", () => {
     expect(good.calls).toEqual(["ack"]);
     expect(broken.calls).toEqual(["ack"]);
     expect(alsoGood.calls).toEqual(["ack"]);
+  });
+
+  // 受け手はまだ中身を持たん（PBI-06 で育てる）。届いた仕事は処理されずに消えるので、
+  // 「受け取った」でなく「捨てた」と記録し、ログを読んだ人が処理済みと取り違えんようにする。
+  it("中身が未実装の間は、整った仕事を捨てたと記録する", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    const info = vi.spyOn(console, "info").mockImplementation(() => undefined);
+    await handleMemoryJobBatch({
+      messages: [message({ kind: "embed-memory", characterId: "c", conversationId: "v", turn: 2 })],
+    });
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(JSON.parse(String(warn.mock.calls[0]?.[0]))).toEqual({
+      event: "memory_job_discarded",
+      reason: "not_implemented",
+      kind: "embed-memory",
+      characterId: "c",
+      conversationId: "v",
+      turn: 2,
+    });
+    expect(info).not.toHaveBeenCalled();
+  });
+
+  // 受け手が捨てるだけの間に送り手を足すと、仕事が黙って消える。送り手を足す変更は
+  // 受け手の中身と同時でないと通らんよう、アプリとパッケージの本体から送信を探す。
+  it("受け手が未実装の間は、MEMORY_JOBS へ送るコードがどこにも無い", () => {
+    // hook から走ると GIT_DIR 等が別の場所を指すので外す。
+    const env = Object.fromEntries(
+      Object.entries(process.env).filter(([key]) => !key.startsWith("GIT_")),
+    ) as NodeJS.ProcessEnv;
+    const result = spawnSync(
+      "git",
+      [
+        "grep",
+        "-n",
+        "--untracked",
+        "-E",
+        "MEMORY_JOBS\\??\\.send",
+        "--",
+        "apps/v2/src",
+        "packages",
+        ":!*.test.ts",
+      ],
+      { cwd: repoRoot, encoding: "utf8", env },
+    );
+    // git grep は見つからん時に 1 を返す。2 以上は検索そのものの失敗。
+    expect(result.status).toBe(1);
+    expect(result.stdout).toBe("");
   });
 });
