@@ -484,6 +484,65 @@ describe("createD1TurnStore", () => {
     expect(loaded.ledger.lastEvents).toEqual([]);
   });
 
+  // 修正前の画面は失敗後に次の番号へ進んだので、本文ゼロのターンが続けて残っとる会話がある。
+  it("本文ゼロのターンが続いても、通常の読込と再試行用の読込が同じ turn と履歴を返す", async () => {
+    const conversationId = newConversationId();
+    await store.saveTurn({
+      conversationId,
+      turn: 1,
+      userText: "user 1",
+      events: chunkEvents(1),
+      ledger: ledgerAt(1),
+    });
+    for (const turn of [2, 3]) {
+      await store.saveTurn({
+        conversationId,
+        turn,
+        userText: `失敗した質問 ${turn}`,
+        events: deadTurnEvents(turn, null),
+        ledger: ledgerAt(turn),
+      });
+    }
+    const liveHistory = [
+      { role: "user", content: "user 1" },
+      { role: "assistant", content: "<action>動作 1</action>\n\n<dialogue>台詞 1</dialogue>" },
+    ];
+
+    const loaded = await store.load(conversationId);
+    expect(loaded.history).toEqual(liveHistory);
+    expect(loaded.turn).toBe(3);
+    expect(loaded.ledger).toEqual(ledgerAt(1));
+
+    // ChatRoom は loaded.turn を job.turn に固定し、engine はその番号を beforeTurn にして読む。
+    const retryStore = createD1TurnStore(local.db, {
+      userId: "vitest",
+      characterId,
+      promptVersion: "v0001",
+      beforeTurn: loaded.turn,
+    });
+    const retried = await retryStore.load(conversationId);
+    expect(retried.history).toEqual(liveHistory);
+    expect(retried.turn).toBe(loaded.turn);
+    expect(retried.ledger).toEqual(ledgerAt(1));
+
+    await store.saveTurn({
+      conversationId,
+      turn: retried.turn,
+      userText: "送り直した質問",
+      events: chunkEvents(3),
+      ledger: ledgerAt(3),
+    });
+    const resent = await store.load(conversationId);
+    expect(resent.history.map((message) => message.content)).toEqual([
+      "user 1",
+      "<action>動作 1</action>\n\n<dialogue>台詞 1</dialogue>",
+      "送り直した質問",
+      "<action>動作 3</action>\n\n<dialogue>台詞 3</dialogue>",
+    ]);
+    expect(resent.turn).toBe(4);
+    expect(resent.ledger).toEqual(ledgerAt(3));
+  });
+
   it("末尾ターンの応答が 1 字でもあれば保存済みとして残す", async () => {
     const conversationId = newConversationId();
     await store.saveTurn({

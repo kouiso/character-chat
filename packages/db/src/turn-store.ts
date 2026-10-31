@@ -2,7 +2,7 @@
 // 契約をここ（@v2/db）に置くのは、@v2/engine が package.json で @v2/db に依存しとるため。
 // engine 側で定義すると db → engine → db の循環になる。engine は型を再 export して使う。
 import { emptyLedger, type SceneLedger, type ScenePhase } from "@v2/prompt";
-import { asc, desc, eq, and, inArray, lt, sql } from "drizzle-orm";
+import { asc, desc, eq, and, inArray, lt, lte, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import {
@@ -182,10 +182,10 @@ const parseLedger = (conversationId: string, turn: number, ledgerJson: string): 
 // role の並びは 'assistant' < 'user' の辞書順やと逆になるので、明示的に user を先にする。
 const userFirst = sql`case ${v2MessageTable.role} when 'user' then 0 else 1 end`;
 
-// engine の persist は本文ゼロで終わった生成（締切で 1 字も来ん・全塊が判定で落ちた）も保存する。
-// 末尾のそれを保存済みとして返すと、利用者の送り直しが次の turn に積まれ、model が空の応答と
-// 同じ質問の重複を読む。未保存扱いにすれば次の saveTurn が同じ turn を置き換え、
-// 画面側も「次ターン番号 = 送信時の番号」で入力を戻せる。
+// engine の persist は本文ゼロで終わった生成（締切で 1 字も来ん・全塊が判定で落ちた・空の返事）も
+// 監視用に保存し、同時に error を流してターンを失敗させる。つまり「応答が空」は失敗の印になっとる。
+// 保存済みとして返すと、利用者の送り直しが次の turn に積まれ、model が空の応答と同じ質問の重複を
+// 読む。失敗ターンは履歴から外し、末尾のそれは次の saveTurn が同じ turn を置き換える。
 const isDeadTurn = (rows: { role: "user" | "assistant"; content: string }[]): boolean => {
   const assistants = rows.filter((row) => row.role === "assistant");
   return (
@@ -193,6 +193,29 @@ const isDeadTurn = (rows: { role: "user" | "assistant"; content: string }[]): bo
     assistants.length > 0 &&
     assistants.every((row) => row.content.trim() === "")
   );
+};
+
+type StoredRow = { turn: number; role: "user" | "assistant"; content: string };
+
+// 修正前の画面は失敗後に次の番号へ進んだので、失敗ターンが続けて残っとる会話がある。
+// 途中の失敗ターンも履歴から外し、場面状態は最後に成功したターンのものを使う。
+const splitDeadTurns = (rows: StoredRow[]) => {
+  const rowsByTurn = new Map<number, StoredRow[]>();
+  for (const row of rows) {
+    rowsByTurn.set(row.turn, [...(rowsByTurn.get(row.turn) ?? []), row]);
+  }
+  const deadTurns = new Set(
+    [...rowsByTurn].filter(([, turnRows]) => isDeadTurn(turnRows)).map(([turn]) => turn),
+  );
+  const liveTurns = [...rowsByTurn.keys()].filter((turn) => !deadTurns.has(turn));
+  return {
+    history: rows
+      .filter((row) => !deadTurns.has(row.turn))
+      .map((row): HistoryMessage => ({ role: row.role, content: row.content })),
+    deadTurns,
+    maxTurn: Math.max(0, ...rowsByTurn.keys()),
+    lastLiveTurn: Math.max(0, ...liveTurns),
+  };
 };
 
 /**
@@ -240,21 +263,33 @@ export const createD1TurnStore = (db: V2Db, opts: D1TurnStoreOptions): TurnStore
           ),
         )
         .orderBy(desc(v2LedgerTable.turn))
-        .limit(2),
+        .limit(1),
     ]);
     if (conversationRows.length === 0) {
       return { history: [], ledger: emptyLedger(), turn: 1 };
     }
-    const maxTurn = messageRows.reduce((max, row) => Math.max(max, row.turn), 0);
-    const deadTurn = isDeadTurn(messageRows.filter((row) => row.turn === maxTurn));
-    const history: HistoryMessage[] = messageRows
-      .filter((row) => !deadTurn || row.turn < maxTurn)
-      .map((row) => ({ role: row.role, content: row.content }));
-    const latestLedger = deadTurn ? ledgerRows.find((row) => row.turn < maxTurn) : ledgerRows[0];
+    const { history, deadTurns, maxTurn, lastLiveTurn } = splitDeadTurns(messageRows);
+    const [latestLedger] =
+      ledgerRows[0] && ledgerRows[0].turn > lastLiveTurn
+        ? await db
+            .select({ turn: v2LedgerTable.turn, ledgerJson: v2LedgerTable.ledgerJson })
+            .from(v2LedgerTable)
+            .where(
+              and(
+                eq(v2LedgerTable.conversationId, conversationId),
+                lte(v2LedgerTable.turn, lastLiveTurn),
+              ),
+            )
+            .orderBy(desc(v2LedgerTable.turn))
+            .limit(1)
+        : ledgerRows;
     const ledger = latestLedger
       ? parseLedger(conversationId, latestLedger.turn, latestLedger.ledgerJson)
       : emptyLedger();
-    return { history, ledger, turn: deadTurn ? maxTurn : maxTurn + 1 };
+    // beforeTurn は呼び出し側（ChatRoom の job）が演じる番号を決めた後の読込。窓の中の末尾が
+    // 失敗ターンでも番号を下げると、job と別の turn へ保存してしまう。
+    const nextTurn = deadTurns.has(maxTurn) ? maxTurn : maxTurn + 1;
+    return { history, ledger, turn: opts.beforeTurn ?? nextTurn };
   },
 
   saveTurn: async (input) => {
