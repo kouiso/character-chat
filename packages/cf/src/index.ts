@@ -1,4 +1,4 @@
-// Miniflare ローカル D1/R2 束縛（既定）。CF_REMOTE=1 のときだけ Mac 専用の remote bindings を使う。
+// CLIから本番へ触れないよう、Workerの設定とローカルDBの設定を分ける。
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -17,7 +17,7 @@ export type Platform = {
 };
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
-const WRANGLER_CONFIG = path.join(REPO_ROOT, "apps/v2/wrangler.jsonc");
+const WRANGLER_CONFIG = path.join(REPO_ROOT, "packages/cf/wrangler.local.jsonc");
 // getPlatformProxy の persist.path は「v3 ディレクトリそのもの」を literal に使う。
 // 一方 wrangler CLI の --persist-to は渡した path の下にさらに "v3" を自分で足す
 // （実測: --persist-to <root>/.wrangler/state/v3 を渡すと <root>/.wrangler/state/v3/v3 が実体になる）。
@@ -28,17 +28,15 @@ const PERSIST_PATH = path.join(PERSIST_ROOT, "v3");
 
 const isRemote = (explicit?: boolean): boolean => explicit ?? process.env.CF_REMOTE === "1";
 
-/**
- * ローカル D1/R2（既定）または CF_REMOTE=1 時のみ Mac 専用 remote bindings を束縛する。
- * remoteBindings は明示 false 既定（spec: CF_REMOTE=1 の時だけ true）。
- */
+// 古いCF_REMOTE指定を黙って無視せず拒否し、接続先の取り違えを防ぐ。
 export const createPlatform = async (opts: { remote?: boolean } = {}): Promise<Platform> => {
   const remote = isRemote(opts.remote);
+  if (remote)
+    throw new Error("CLI の接続はローカル限定です。Worker は実行環境の bindings を使用します。");
   const proxy: PlatformProxy<CfEnv> = await getPlatformProxy<CfEnv>({
     configPath: WRANGLER_CONFIG,
     persist: { path: PERSIST_PATH },
-    remoteBindings: remote,
-    environment: remote ? "remote" : undefined,
+    remoteBindings: false,
   });
   return {
     env: proxy.env,

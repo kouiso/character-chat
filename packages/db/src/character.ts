@@ -24,6 +24,14 @@ export const characterSheetSchema = z.object({
 
 export type CharacterSheet = z.infer<typeof characterSheetSchema>;
 
+export type CharacterSummary = Pick<CharacterSheet, "id" | "name" | "avatar">;
+
+export const listCharacterSummaries = async (db: V2Db): Promise<CharacterSummary[]> =>
+  db
+    .select({ id: characterTable.id, name: characterTable.name, avatar: characterTable.avatar })
+    .from(characterTable)
+    .orderBy(asc(characterTable.displayOrder), asc(characterTable.createdAt));
+
 // tags は DB 上 JSON 文字列。Drizzle の json モードで読むと不正な 1 行で select 全体が
 // SyntaxError で落ちるので、生の文字列で受けてここで行ごとに解く。
 const jsonStringArray = z.string().transform((raw, ctx) => {

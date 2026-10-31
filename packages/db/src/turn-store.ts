@@ -2,7 +2,7 @@
 // 契約をここ（@v2/db）に置くのは、@v2/engine が package.json で @v2/db に依存しとるため。
 // engine 側で定義すると db → engine → db の循環になる。engine は型を再 export して使う。
 import { emptyLedger, type SceneLedger, type ScenePhase } from "@v2/prompt";
-import { asc, desc, eq, and, inArray, sql } from "drizzle-orm";
+import { asc, desc, eq, and, inArray, lt, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import {
@@ -95,6 +95,39 @@ export type D1TurnStoreOptions = {
   userId: string;
   characterId: string;
   promptVersion: string;
+  beforeTurn?: number;
+};
+
+export class ConversationAccessError extends Error {
+  constructor() {
+    super("会話が見つかりません");
+    this.name = "ConversationAccessError";
+  }
+}
+
+const assertConversationOwner = async (db: V2Db, opts: D1TurnStoreOptions, id: string) => {
+  const [row] = await db
+    .select({ userId: v2ConversationTable.userId, characterId: v2ConversationTable.characterId })
+    .from(v2ConversationTable)
+    .where(eq(v2ConversationTable.id, id));
+  if (row && (row.userId !== opts.userId || row.characterId !== opts.characterId)) {
+    throw new ConversationAccessError();
+  }
+};
+
+// 移行済み会話には挨拶や連続するassistant発言があるため、配列位置でターンを推測しない。
+export const readD1StoredTurn = async (
+  db: V2Db,
+  opts: D1TurnStoreOptions,
+  conversationId: string,
+  turn: number,
+): Promise<HistoryMessage[]> => {
+  await assertConversationOwner(db, opts, conversationId);
+  return db
+    .select({ role: v2MessageTable.role, content: v2MessageTable.content })
+    .from(v2MessageTable)
+    .where(and(eq(v2MessageTable.conversationId, conversationId), eq(v2MessageTable.turn, turn)))
+    .orderBy(asc(v2MessageTable.createdAt), asc(v2MessageTable.id));
 };
 
 type ChunkEvent = Extract<TurnEvent, { type: "chunk" }>;
@@ -149,6 +182,19 @@ const parseLedger = (conversationId: string, turn: number, ledgerJson: string): 
 // role の並びは 'assistant' < 'user' の辞書順やと逆になるので、明示的に user を先にする。
 const userFirst = sql`case ${v2MessageTable.role} when 'user' then 0 else 1 end`;
 
+// engine の persist は本文ゼロで終わった生成（締切で 1 字も来ん・全塊が判定で落ちた）も保存する。
+// 末尾のそれを保存済みとして返すと、利用者の送り直しが次の turn に積まれ、model が空の応答と
+// 同じ質問の重複を読む。未保存扱いにすれば次の saveTurn が同じ turn を置き換え、
+// 画面側も「次ターン番号 = 送信時の番号」で入力を戻せる。
+const isDeadTurn = (rows: { role: "user" | "assistant"; content: string }[]): boolean => {
+  const assistants = rows.filter((row) => row.role === "assistant");
+  return (
+    rows.some((row) => row.role === "user") &&
+    assistants.length > 0 &&
+    assistants.every((row) => row.content.trim() === "")
+  );
+};
+
 /**
  * v2_* テーブルに保存する TurnStore。
  * saveTurn は 1 回の D1 batch（トランザクション）で書くので、途中失敗で半端な行は残らん。
@@ -164,6 +210,7 @@ const userFirst = sql`case ${v2MessageTable.role} when 'user' then 0 else 1 end`
  */
 export const createD1TurnStore = (db: V2Db, opts: D1TurnStoreOptions): TurnStore => ({
   load: async (conversationId) => {
+    await assertConversationOwner(db, opts, conversationId);
     const [conversationRows, messageRows, ledgerRows] = await db.batch([
       db
         .select({ id: v2ConversationTable.id })
@@ -176,31 +223,42 @@ export const createD1TurnStore = (db: V2Db, opts: D1TurnStoreOptions): TurnStore
           content: v2MessageTable.content,
         })
         .from(v2MessageTable)
-        .where(eq(v2MessageTable.conversationId, conversationId))
+        .where(
+          and(
+            eq(v2MessageTable.conversationId, conversationId),
+            opts.beforeTurn === undefined ? undefined : lt(v2MessageTable.turn, opts.beforeTurn),
+          ),
+        )
         .orderBy(asc(v2MessageTable.turn), userFirst),
       db
         .select({ turn: v2LedgerTable.turn, ledgerJson: v2LedgerTable.ledgerJson })
         .from(v2LedgerTable)
-        .where(eq(v2LedgerTable.conversationId, conversationId))
+        .where(
+          and(
+            eq(v2LedgerTable.conversationId, conversationId),
+            opts.beforeTurn === undefined ? undefined : lt(v2LedgerTable.turn, opts.beforeTurn),
+          ),
+        )
         .orderBy(desc(v2LedgerTable.turn))
-        .limit(1),
+        .limit(2),
     ]);
     if (conversationRows.length === 0) {
       return { history: [], ledger: emptyLedger(), turn: 1 };
     }
-    const history: HistoryMessage[] = messageRows.map((row) => ({
-      role: row.role,
-      content: row.content,
-    }));
     const maxTurn = messageRows.reduce((max, row) => Math.max(max, row.turn), 0);
-    const latestLedger = ledgerRows[0];
+    const deadTurn = isDeadTurn(messageRows.filter((row) => row.turn === maxTurn));
+    const history: HistoryMessage[] = messageRows
+      .filter((row) => !deadTurn || row.turn < maxTurn)
+      .map((row) => ({ role: row.role, content: row.content }));
+    const latestLedger = deadTurn ? ledgerRows.find((row) => row.turn < maxTurn) : ledgerRows[0];
     const ledger = latestLedger
       ? parseLedger(conversationId, latestLedger.turn, latestLedger.ledgerJson)
       : emptyLedger();
-    return { history, ledger, turn: maxTurn + 1 };
+    return { history, ledger, turn: deadTurn ? maxTurn : maxTurn + 1 };
   },
 
   saveTurn: async (input) => {
+    await assertConversationOwner(db, opts, input.conversationId);
     const now = Date.now();
     const chunks = input.events.filter(isChunkEvent).sort((a, b) => a.seq - b.seq);
     const generations = input.events.filter(isGenerationEvent);

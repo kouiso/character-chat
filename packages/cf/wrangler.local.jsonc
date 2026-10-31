@@ -1,0 +1,14 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "character-chat-v2-local-database",
+  "compatibility_date": "2025-01-01",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "adult-ai-db",
+      "database_id": "c0ffee00-0000-4000-8000-000000000001",
+      "migrations_dir": "../../drizzle",
+    },
+  ],
+  "r2_buckets": [{ "binding": "BUCKET", "bucket_name": "adult-ai-images" }],
+}

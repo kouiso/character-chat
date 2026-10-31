@@ -1,9 +1,6 @@
-// @v2/engine の LangGraph（intake→…→persist）へ、ローカル D1（getPlatform().env.DB）を
-// TurnStore として差して 1 ターンを流す。会話履歴は v2_* テーブルに残るので
-// プロセス再起動をまたいで続く（M1）。V2_FAKE_MODEL=1 は model だけ固定 XML に置き換え、
-// store は同じ D1 版を使う（配線の検証が本番と同じ保存経路を通るように）。
+// WorkerのD1バインディングを共有し、接続元のプロセスに会話を閉じ込めない。
 import { FakeListChatModel } from "@langchain/core/utils/testing";
-import { createD1TurnStore, createDb, type V2Db } from "@v2/db";
+import { createD1TurnStore, createDb, readD1StoredTurn, type V2Db } from "@v2/db";
 import {
   createOpenRouterModel,
   createTurnGraph,
@@ -14,13 +11,12 @@ import {
 } from "@v2/engine";
 import { PROMPT_VERSION } from "@v2/prompt";
 
-import { readCharacter } from "./characters";
+import { readCharacter } from "./character-data.server";
 import { getPlatform } from "./platform";
 
 import type { BaseChatModel } from "@langchain/core/language_models/chat_models";
 
-// M1 は認証を持たんので、全会話をこの 1 ユーザーに紐づける（v2_conversation.user_id）。
-// 認証が入った時にここを request 由来の id へ差し替えるだけで済むよう、参照を 1 箇所に集める。
+// 個人用BASIC認証の利用者を安定した内部IDに対応づけ、パスワード変更で所有権を変えない。
 export const LOCAL_USER_ID = "local";
 
 export class CharacterNotFoundError extends Error {
@@ -44,32 +40,19 @@ export class CharacterInvalidError extends Error {
 const FAKE_RESPONSE =
   "<response><action>小さく笑って、こちらへ一歩近づく。</action><dialogue>ねえ、こっち向いて。</dialogue><inner>ちょっとドキドキしてる。</inner></response>";
 
-const isFakeModel = (): boolean => process.env.V2_FAKE_MODEL === "1";
-
 const createModel = async (): Promise<BaseChatModel> => {
-  if (isFakeModel()) return new FakeListChatModel({ responses: [FAKE_RESPONSE] });
-  // キーは apps/v2/.dev.vars（wrangler が env に載せる）を第一に、シェルの環境変数も受ける。
+  // 実行中のWorkerに束縛された設定だけを使い、別プロセスの設定を混ぜない。
   const { env } = await getPlatform();
+  if (env.APP_ENV === "test" && env.V2_FAKE_MODEL === "1") {
+    return new FakeListChatModel({ responses: [FAKE_RESPONSE], sleep: 5 });
+  }
   return createOpenRouterModel({
-    OPENROUTER_API_KEY: env.OPENROUTER_API_KEY ?? process.env.OPENROUTER_API_KEY,
-    V2_MODEL: env.V2_MODEL ?? process.env.V2_MODEL,
+    OPENROUTER_API_KEY: env.OPENROUTER_API_KEY,
+    V2_MODEL: env.V2_MODEL,
   });
 };
 
-const MODEL_KEY = Symbol.for("adult-ai-v2.chat-model");
-type ModelHolder = { [MODEL_KEY]?: Promise<BaseChatModel> };
-
-// platform.ts と同じ理由で globalThis にキャッシュする（HMR で二重に組まん）。
-// キー未設定は createModel が投げるので、失敗した Promise はキャッシュに残さん
-// （.dev.vars を置いた後、再起動せずに次のリクエストで復帰できるように）。
-const getModel = (): Promise<BaseChatModel> => {
-  const holder = globalThis as ModelHolder;
-  holder[MODEL_KEY] ??= createModel().catch((error: unknown) => {
-    delete holder[MODEL_KEY];
-    throw error;
-  });
-  return holder[MODEL_KEY];
-};
+const getModel = (): Promise<BaseChatModel> => createModel();
 
 const getDb = async (): Promise<V2Db> => {
   const { env } = await getPlatform();
@@ -77,17 +60,19 @@ const getDb = async (): Promise<V2Db> => {
 };
 
 // store は (user, character) ごとに作る（v2_conversation の初回 insert に character_id が要る）。
-const createStore = (db: V2Db, characterId: string): TurnStore =>
+const createStore = (db: V2Db, characterId: string, beforeTurn?: number): TurnStore =>
   createD1TurnStore(db, {
     userId: LOCAL_USER_ID,
     characterId,
     promptVersion: PROMPT_VERSION,
+    beforeTurn,
   });
 
 export type StartTurnInput = {
   characterId: string;
   conversationId: string | null;
   text: string;
+  expectedTurn?: number;
 };
 
 const loadValidCharacter = async (characterId: string) => {
@@ -107,7 +92,10 @@ export const startTurn = async (
   const db = await getDb();
   // graph はターンごとに組む。前ターンの状態は intake が D1 から読み直すので checkpointer に
   // 残す必要が無く、character ごとの store を持つ graph をプロセスに溜め込まん方が単純。
-  const graph = createTurnGraph({ model, store: createStore(db, input.characterId) });
+  const graph = createTurnGraph({
+    model,
+    store: createStore(db, input.characterId, input.expectedTurn),
+  });
   const conversationId = input.conversationId ?? crypto.randomUUID();
   const events = runTurn(
     graph,
@@ -134,3 +122,11 @@ export const loadHistory = async (input: {
   const loaded = await createStore(db, input.characterId).load(input.conversationId);
   return { conversationId: input.conversationId, turn: loaded.turn, history: loaded.history };
 };
+
+export const loadStoredTurn = async (characterId: string, conversationId: string, turn: number) =>
+  readD1StoredTurn(
+    await getDb(),
+    { userId: LOCAL_USER_ID, characterId, promptVersion: PROMPT_VERSION },
+    conversationId,
+    turn,
+  );

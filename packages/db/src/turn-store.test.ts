@@ -7,7 +7,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { characterTable } from "../../../src/schema/character";
 
 import { openLocalD1, type LocalD1 } from "./test/local-d1";
-import { createD1TurnStore, type TurnEvent, type TurnStore } from "./turn-store";
+import { createD1TurnStore, readD1StoredTurn, type TurnEvent, type TurnStore } from "./turn-store";
 import {
   v2ChunkTable,
   v2ConversationTable,
@@ -56,8 +56,22 @@ const chunkEvents = (turn: number): TurnEvent[] => [
     status: "ok",
   },
   // seq を逆順で渡して、保存側が seq 順に並べ直すことも同時に見る。
-  { type: "chunk", seq: 1, text: `<dialogue>台詞 ${turn}</dialogue>`, judge: OK_JUDGE, attempt: 1 },
-  { type: "chunk", seq: 0, text: `<action>動作 ${turn}</action>`, judge: OK_JUDGE, attempt: 2 },
+  {
+    type: "chunk",
+    seq: 1,
+    text: `<dialogue>台詞 ${turn}</dialogue>`,
+    judge: OK_JUDGE,
+    attempt: 1,
+    preExtend: true,
+  },
+  {
+    type: "chunk",
+    seq: 0,
+    text: `<action>動作 ${turn}</action>`,
+    judge: OK_JUDGE,
+    attempt: 2,
+    preExtend: true,
+  },
 ];
 
 describe("createD1TurnStore", () => {
@@ -243,7 +257,7 @@ describe("createD1TurnStore", () => {
       userText: "second",
       events: [
         chunkEvents(1)[0],
-        { type: "chunk", seq: 0, text: "平文だけ", judge: OK_JUDGE, attempt: 1 },
+        { type: "chunk", seq: 0, text: "平文だけ", judge: OK_JUDGE, attempt: 1, preExtend: true },
       ],
       ledger: { ...ledgerAt(1), location: "部屋" },
     });
@@ -329,5 +343,206 @@ describe("createD1TurnStore", () => {
     expect([conversations, messages, ledgers, generations].map((rows) => rows.length)).toEqual([
       0, 0, 0, 0,
     ]);
+  });
+
+  it("別ユーザー・別キャラから同じ会話を読み書きできない", async () => {
+    const conversationId = newConversationId();
+    const input = {
+      conversationId,
+      turn: 1,
+      userText: "original",
+      events: chunkEvents(1),
+      ledger: ledgerAt(1),
+    };
+    await store.saveTurn(input);
+    for (const scope of [
+      { userId: "other", characterId },
+      { userId: "vitest", characterId: "other-character" },
+    ]) {
+      const other = createD1TurnStore(local.db, { ...scope, promptVersion: "v0001" });
+      await expect(other.load(conversationId)).rejects.toThrow("会話が見つかりません");
+      await expect(other.saveTurn({ ...input, userText: "changed" })).rejects.toThrow(
+        "会話が見つかりません",
+      );
+    }
+    expect((await store.load(conversationId)).history[0].content).toBe("original");
+  });
+
+  it("再試行するターン自身を入力履歴に混ぜない", async () => {
+    const conversationId = newConversationId();
+    for (const turn of [1, 2]) {
+      await store.saveTurn({
+        conversationId,
+        turn,
+        userText: `user ${turn}`,
+        events: chunkEvents(turn),
+        ledger: ledgerAt(turn),
+      });
+    }
+    const retryStore = createD1TurnStore(local.db, {
+      userId: "vitest",
+      characterId,
+      promptVersion: "v0001",
+      beforeTurn: 2,
+    });
+    const before = await retryStore.load(conversationId);
+    expect(before.history).toHaveLength(2);
+    expect(before.turn).toBe(2);
+    expect(before.ledger).toEqual(ledgerAt(1));
+    expect((await store.load(conversationId)).history).toHaveLength(4);
+  });
+  // engine の persist は本文ゼロの失敗でも saveTurn する（締切で 1 字も来ん・全塊が判定で落ちた）。
+  const deadTurnEvents = (turn: number, chunkText: string | null): TurnEvent[] => [
+    {
+      type: "generation",
+      generationId: crypto.randomUUID(),
+      model: "fake-list",
+      promptVersion: "v0001",
+      systemPrompt: "system",
+      request: [{ role: "user", content: `user ${turn}` }],
+      rawOutput: "",
+      usage: null,
+      latencyMs: 5,
+      status: "aborted",
+      truncated: "deadline",
+    },
+    ...(chunkText === null
+      ? []
+      : [
+          {
+            type: "chunk" as const,
+            seq: 0,
+            text: chunkText,
+            judge: OK_JUDGE,
+            attempt: 1,
+            preExtend: true,
+          },
+        ]),
+  ];
+
+  it.each([
+    ["空", null],
+    ["空白だけ", " \n\t "],
+  ])(
+    "末尾ターンの応答が%sなら未保存として扱い、次の保存で同じ turn を置き換える",
+    async (_label, chunkText) => {
+      const conversationId = newConversationId();
+      await store.saveTurn({
+        conversationId,
+        turn: 1,
+        userText: "user 1",
+        events: chunkEvents(1),
+        ledger: ledgerAt(1),
+      });
+      await store.saveTurn({
+        conversationId,
+        turn: 2,
+        userText: "失敗した質問",
+        events: deadTurnEvents(2, chunkText),
+        ledger: ledgerAt(2),
+      });
+
+      const afterFailure = await store.load(conversationId);
+      expect(afterFailure.history).toEqual([
+        { role: "user", content: "user 1" },
+        { role: "assistant", content: "<action>動作 1</action>\n\n<dialogue>台詞 1</dialogue>" },
+      ]);
+      expect(afterFailure.turn).toBe(2);
+      // 失敗ターンの ledger_update 結果を次の生成へ持ち越さん。
+      expect(afterFailure.ledger).toEqual(ledgerAt(1));
+
+      await store.saveTurn({
+        conversationId,
+        turn: afterFailure.turn,
+        userText: "送り直した質問",
+        events: chunkEvents(2),
+        ledger: ledgerAt(2),
+      });
+      const resent = await store.load(conversationId);
+      expect(resent.history.map((message) => message.content)).toEqual([
+        "user 1",
+        "<action>動作 1</action>\n\n<dialogue>台詞 1</dialogue>",
+        "送り直した質問",
+        "<action>動作 2</action>\n\n<dialogue>台詞 2</dialogue>",
+      ]);
+      expect(resent.turn).toBe(3);
+    },
+  );
+
+  it("最初のターンが本文ゼロなら空履歴・初期 ledger・turn 1 に戻る", async () => {
+    const conversationId = newConversationId();
+    await store.saveTurn({
+      conversationId,
+      turn: 1,
+      userText: "失敗した最初の質問",
+      events: deadTurnEvents(1, null),
+      ledger: ledgerAt(1),
+    });
+    const loaded = await store.load(conversationId);
+    expect(loaded.history).toEqual([]);
+    expect(loaded.turn).toBe(1);
+    expect(loaded.ledger.lastEvents).toEqual([]);
+  });
+
+  it("末尾ターンの応答が 1 字でもあれば保存済みとして残す", async () => {
+    const conversationId = newConversationId();
+    await store.saveTurn({
+      conversationId,
+      turn: 1,
+      userText: "短い返事の質問",
+      events: deadTurnEvents(1, "…"),
+      ledger: ledgerAt(1),
+    });
+    const loaded = await store.load(conversationId);
+    expect(loaded.history).toEqual([
+      { role: "user", content: "短い返事の質問" },
+      { role: "assistant", content: "…" },
+    ]);
+    expect(loaded.turn).toBe(2);
+    expect(loaded.ledger).toEqual(ledgerAt(1));
+  });
+
+  it("連続する既存発言があっても復旧対象をターン番号で特定する", async () => {
+    const conversationId = newConversationId();
+    await store.saveTurn({
+      conversationId,
+      turn: 7,
+      userText: "再開した質問",
+      events: chunkEvents(7),
+      ledger: ledgerAt(7),
+    });
+    await local.db.insert(v2MessageTable).values({
+      id: crypto.randomUUID(),
+      conversationId,
+      turn: 0,
+      role: "assistant",
+      content: "以前の挨拶",
+      createdAt: 1,
+    });
+    const messages = await readD1StoredTurn(
+      local.db,
+      {
+        userId: "vitest",
+        characterId,
+        promptVersion: "v0001",
+      },
+      conversationId,
+      7,
+    );
+    expect(messages).toHaveLength(2);
+    expect(messages.find((message) => message.role === "user")?.content).toBe("再開した質問");
+    expect(messages.some((message) => message.content === "以前の挨拶")).toBe(false);
+    await expect(
+      readD1StoredTurn(
+        local.db,
+        {
+          userId: "other",
+          characterId,
+          promptVersion: "v0001",
+        },
+        conversationId,
+        7,
+      ),
+    ).rejects.toThrow("会話が見つかりません");
   });
 });

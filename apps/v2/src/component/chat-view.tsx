@@ -1,138 +1,259 @@
-import { useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
-import { parseSseEvent, type ChatSseEvent } from "../lib/sse-events";
+import {
+  connectChatTurn,
+  loadChatHistory,
+  readChatEvents,
+  readChatSession,
+  writeChatSession,
+  type ChatBubble,
+  type PendingTurn,
+} from "../lib/chat-session";
 
-export type ChatViewProps = {
-  characterId: string;
-  characterName: string;
-};
+import { ChatMessage } from "./chat-message";
 
-type Bubble = { role: "user" | "assistant"; text: string; pending?: boolean };
-type Assembled = { preview: string; confirmed: string[] };
+import type { ChatSseEvent } from "../lib/sse-events";
 
-// api-chat（src/server/api-chat.ts の BodySchema）と同じ形。
-type ChatRequestBody = { conversationId: string | null; text: string };
+export type ChatViewProps = { characterId: string; characterName: string };
 
-const updateLastAssistant = (
-  setBubbles: React.Dispatch<React.SetStateAction<Bubble[]>>,
-  text: string,
-  pending: boolean,
-): void => {
-  setBubbles((prev) => {
-    const next = [...prev];
-    const lastIndex = next.length - 1;
-    if (lastIndex < 0 || next[lastIndex].role !== "assistant") return prev;
-    next[lastIndex] = { role: "assistant", text, pending };
-    return next;
-  });
-};
+const withPending = (
+  history: ChatBubble[],
+  nextTurn: number,
+  pending: PendingTurn,
+): ChatBubble[] =>
+  nextTurn > pending.baseTurn
+    ? history
+    : [
+        ...history,
+        { role: "user", text: pending.text },
+        { role: "assistant", text: "", pending: true },
+      ];
 
-const parseSseBlock = (block: string): ChatSseEvent | null => {
-  const lines = block.split("\n");
-  const eventLine = lines.find((l) => l.startsWith("event:"));
-  const dataLine = lines.find((l) => l.startsWith("data:"));
-  if (!eventLine || !dataLine) return null;
-  const eventName = eventLine.slice("event:".length).trim();
-  return parseSseEvent(eventName, dataLine.slice("data:".length).trim());
-};
+const updateAssistant = (history: ChatBubble[], text: string): ChatBubble[] =>
+  history.map((bubble, index) =>
+    index === history.length - 1 && bubble.role === "assistant"
+      ? { ...bubble, text, pending: true }
+      : bubble,
+  );
 
-// SSE を自前パース（EventSource は POST を送れんため fetch + ReadableStream で読む）。
-// `event: <type>\ndata: <json>\n\n` のブロック単位で読み進める。
-const readSseEvents = async function* (
-  reader: ReadableStreamDefaultReader<Uint8Array>,
-): AsyncGenerator<ChatSseEvent> {
-  const decoder = new TextDecoder();
-  let buffer = "";
+const failureMessage = (cause: unknown): string =>
+  cause instanceof Error ? cause.message : "返信を確認できませんでした。";
 
-  for (;;) {
-    const { value, done } = await reader.read();
-    if (done) return;
-    buffer += decoder.decode(value, { stream: true });
+type ChatErrorEvent = Extract<ChatSseEvent, { type: "error" }>;
 
-    const blocks = buffer.split("\n\n");
-    buffer = blocks.pop() ?? "";
-
-    for (const block of blocks) {
-      const event = parseSseBlock(block);
-      if (event) yield event;
+const consumeEvents = async (
+  stream: ReadableStream<Uint8Array>,
+  signal: AbortSignal,
+  onChunk: (text: string) => void,
+  onError: (event: ChatErrorEvent) => void,
+): Promise<boolean> => {
+  const chunks = new Map<number, string>();
+  let completed = false;
+  for await (const event of readChatEvents(stream)) {
+    if (signal.aborted) return false;
+    if (event.type === "chunk") {
+      chunks.set(event.seq, event.text);
+      onChunk(
+        [...chunks.entries()]
+          .sort(([a], [b]) => a - b)
+          .map(([, value]) => value)
+          .join("\n"),
+      );
     }
+    if (event.type === "error") {
+      onError(event);
+      throw new Error(event.message);
+    }
+    if (event.type === "done") completed = true;
   }
+  return completed;
 };
 
 export const ChatView = ({ characterId, characterName }: ChatViewProps) => {
-  const [bubbles, setBubbles] = useState<Bubble[]>([]);
+  const [bubbles, setBubbles] = useState<ChatBubble[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const conversationIdRef = useRef<string | null>(null);
+  const [pending, setPending] = useState<PendingTurn | null>(null);
+  const [terminalFailure, setTerminalFailure] = useState(false);
+  const conversationId = useRef<string | null>(null);
+  const nextTurn = useRef(1);
+  const controller = useRef<AbortController | null>(null);
 
-  // token は生成中の暫定表示、chunk は judge を通った確定文。generate が終わってから
-  // chunk が届くので、最初の chunk で暫定表示を捨てて確定文へ置き換える（足すと二重に出る）。
-  const applyEvent = (event: ChatSseEvent, assembled: Assembled): void => {
-    if (event.type === "token") {
-      assembled.preview += event.text;
-      updateLastAssistant(setBubbles, assembled.preview, true);
-    } else if (event.type === "chunk") {
-      assembled.confirmed.push(event.text);
-      updateLastAssistant(setBubbles, assembled.confirmed.join("\n"), true);
-    } else if (event.type === "done") {
-      conversationIdRef.current = event.conversationId;
-      updateLastAssistant(setBubbles, assembled.confirmed.join("\n"), false);
-    } else if (event.type === "error") {
-      setError(event.message);
+  const consume = useCallback(async (turn: PendingTurn, signal: AbortSignal, retry = false) => {
+    if (signal.aborted) return;
+    setBusy(true);
+    setError(null);
+    setTerminalFailure(false);
+    try {
+      const stream = await connectChatTurn(turn, signal, retry);
+      const completed = await consumeEvents(
+        stream,
+        signal,
+        (text) => setBubbles((previous) => updateAssistant(previous, text)),
+        (event) => setTerminalFailure(event.terminal === true),
+      );
+      if (!completed) throw new Error("接続が切れました。再接続してください。");
+      const history = await loadChatHistory(turn.characterId, turn.conversationId, signal);
+      if (signal.aborted) return;
+      writeChatSession(turn.characterId, {
+        version: 1,
+        conversationId: turn.conversationId,
+        pending: null,
+      });
+      nextTurn.current = history.nextTurn;
+      setBubbles(history.bubbles);
+      setPending(null);
+    } catch (cause) {
+      if (!signal.aborted) setError(failureMessage(cause));
+    } finally {
+      if (!signal.aborted) setBusy(false);
     }
+  }, []);
+
+  const recoverPending = () => {
+    if (!pending || busy || !terminalFailure) return;
+    controller.current?.abort();
+    const abort = new AbortController();
+    controller.current = abort;
+    void (async () => {
+      setBusy(true);
+      setError(null);
+      try {
+        const history = await loadChatHistory(
+          pending.characterId,
+          pending.conversationId,
+          abort.signal,
+        );
+        if (abort.signal.aborted) return;
+        const restoreInput = history.nextTurn <= pending.baseTurn;
+        writeChatSession(pending.characterId, {
+          version: 1,
+          conversationId: pending.conversationId,
+          pending: null,
+        });
+        if (abort.signal.aborted) return;
+        nextTurn.current = history.nextTurn;
+        setBubbles(history.bubbles);
+        setInput(restoreInput ? pending.text : "");
+        setPending(null);
+        setTerminalFailure(false);
+        setError(null);
+      } catch {
+        if (!abort.signal.aborted) {
+          setError("入力を戻せませんでした。再試行してください。");
+        }
+      } finally {
+        if (!abort.signal.aborted) setBusy(false);
+      }
+    })();
   };
+
+  useEffect(() => {
+    const abort = new AbortController();
+    controller.current = abort;
+    const restore = async () => {
+      const saved = readChatSession(characterId);
+      conversationId.current = saved.conversationId;
+      setPending(saved.pending);
+      if (!saved.conversationId) return;
+      setBusy(true);
+      try {
+        const history = await loadChatHistory(characterId, saved.conversationId, abort.signal);
+        if (abort.signal.aborted) return;
+        nextTurn.current = history.nextTurn;
+        setBubbles(
+          saved.pending
+            ? withPending(history.bubbles, history.nextTurn, saved.pending)
+            : history.bubbles,
+        );
+        if (saved.pending) await consume(saved.pending, abort.signal);
+        else setBusy(false);
+      } catch {
+        if (!abort.signal.aborted) {
+          setError("会話を再開できませんでした。再試行してください。");
+          setBusy(false);
+        }
+      }
+    };
+    void restore();
+    return () => {
+      abort.abort();
+      controller.current?.abort();
+    };
+  }, [characterId, consume]);
 
   const send = async (event: React.FormEvent) => {
     event.preventDefault();
     const text = input.trim();
-    if (!text || busy) return;
-
-    setError(null);
-    setInput("");
-    setBusy(true);
-    setBubbles((prev) => [
-      ...prev,
-      { role: "user", text },
-      { role: "assistant", text: "", pending: true },
-    ]);
-
+    if (!text || busy || pending) return;
+    const turn: PendingTurn = {
+      characterId,
+      conversationId: conversationId.current ?? crypto.randomUUID(),
+      requestId: crypto.randomUUID(),
+      text,
+      baseTurn: nextTurn.current,
+    };
     try {
-      const body: ChatRequestBody = { conversationId: conversationIdRef.current, text };
-      const res = await fetch(`/api/chat/${characterId}`, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(body),
+      writeChatSession(characterId, {
+        version: 1,
+        conversationId: turn.conversationId,
+        pending: turn,
       });
-
-      if (!res.ok) {
-        const payload = (await res.json().catch(() => ({}))) as { message?: string };
-        throw new Error(payload.message ?? `サーバエラー（${res.status}）`);
-      }
-      if (!res.body) throw new Error("応答が空やった");
-
-      const assembled: Assembled = { preview: "", confirmed: [] };
-      for await (const evt of readSseEvents(res.body.getReader())) {
-        applyEvent(evt, assembled);
-      }
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "通信に失敗した");
-    } finally {
-      setBusy(false);
+    } catch {
+      setError("この端末に送信内容を保存できません。入力は保持されています。");
+      return;
     }
+    conversationId.current = turn.conversationId;
+    setPending(turn);
+    setInput("");
+    setBubbles((previous) => withPending(previous, nextTurn.current, turn));
+    controller.current?.abort();
+    const abort = new AbortController();
+    controller.current = abort;
+    await consume(turn, abort.signal);
+  };
+
+  const retry = () => {
+    if (!pending || busy) return;
+    controller.current?.abort();
+    const abort = new AbortController();
+    controller.current = abort;
+    void consume(pending, abort.signal, true);
   };
 
   return (
     <div className="v2-chat">
       <div className="v2-chat-header">{characterName}</div>
-      <div className="v2-chat-log">
-        {bubbles.map((b, i) => (
-          <div key={i} className={`v2-bubble ${b.role} ${b.pending ? "pending" : ""}`}>
-            {b.text || (b.pending ? "…" : "")}
+      <div className="v2-chat-log" aria-live="polite">
+        {bubbles.map((bubble, index) => (
+          <div
+            key={index}
+            className={`v2-bubble ${bubble.role} ${bubble.pending ? "pending" : ""}`}
+          >
+            {bubble.role === "assistant" && bubble.text ? (
+              <ChatMessage content={bubble.text} />
+            ) : (
+              bubble.text || (bubble.pending ? "…" : "")
+            )}
           </div>
         ))}
       </div>
-      {error && <div className="v2-error">{error}</div>}
+      {error && (
+        <div className="v2-error" role="alert">
+          {error}
+          {pending && (
+            <button
+              type="button"
+              onClick={terminalFailure ? recoverPending : retry}
+              disabled={busy}
+            >
+              {terminalFailure ? "入力に戻す" : "再接続・再試行"}
+            </button>
+          )}
+          <a href="/">会話一覧へ戻る</a>
+        </div>
+      )}
       <form
         className="v2-chat-form"
         onSubmit={(event) => {
@@ -141,11 +262,12 @@ export const ChatView = ({ characterId, characterName }: ChatViewProps) => {
       >
         <input
           value={input}
-          onChange={(e) => setInput(e.target.value)}
+          onChange={(event) => setInput(event.target.value)}
           placeholder="メッセージを入力"
-          disabled={busy}
+          aria-label="メッセージ"
+          disabled={busy || pending !== null}
         />
-        <button type="submit" disabled={busy || input.trim().length === 0}>
+        <button type="submit" disabled={busy || pending !== null || input.trim().length === 0}>
           送信
         </button>
       </form>
