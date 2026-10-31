@@ -162,12 +162,15 @@ describe("ChatView", () => {
         return Response.json({ turn: 1, history: [] });
       }),
     );
-    // Storage.prototype に spy せずインスタンスに刺す。実装によって localStorage は
-    // prototype を継がん独自プロパティの入れ物（Node 25 同梱・jsdom の写し方次第）で、
-    // prototype の mock が効かん時がある。
+    // setItem を持つ側に刺す。Node 25 の差し替え（setup.ts）は自前のプロパティで持ち、
+    // jsdom の Storage は prototype で持つ。jsdom の localStorage へ直に代入すると
+    // メソッドの上書きにならず "setItem" という名前の保存値になり、mock が効かん。
+    const owner: Storage = Object.hasOwn(localStorage, "setItem")
+      ? localStorage
+      : Storage.prototype;
     const originalSetItem = localStorage.setItem.bind(localStorage);
     let failPendingClear = true;
-    vi.spyOn(localStorage, "setItem").mockImplementation((key, value) => {
+    vi.spyOn(owner, "setItem").mockImplementation((key, value) => {
       if (failPendingClear && key === "v2-chat-session:a" && value.includes('"pending":null')) {
         failPendingClear = false;
         throw new Error("storage failure");
