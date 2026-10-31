@@ -312,8 +312,24 @@ export const CreateFlow = ({
     return () => window.clearInterval(id);
   }, [step]);
 
+  // プレビューの通知と作り直し中の状態はその時のプレビューにしか当てはまらん。
+  // 離れた後や別の生成を始めた後に残すと、新しいプレビューで嘘の通知を出したり、
+  // 終わらん作り直しが保存を塞いだりする。
+  const clearPreviewState = () => {
+    setIsRegenerating(false);
+    setRegenerateError(false);
+    setSaveError(false);
+  };
+
+  const leavePreview = () => {
+    generationId.current += 1;
+    clearPreviewState();
+    setStep("entry");
+  };
+
   const runGenerate = async (request: GenerateRequest) => {
     const requestId = ++generationId.current;
+    clearPreviewState();
     setLastRequest(request);
     setStep("generating");
     try {
@@ -395,7 +411,7 @@ export const CreateFlow = ({
     scenario: () => setStep("entry"),
     "wizard-step1": () => setStep("entry"),
     "wizard-step2": () => setStep("wizard-step1"),
-    preview: () => setStep("entry"),
+    preview: leavePreview,
     error: () => setStep("entry"),
   };
   const onBack = backTarget[step];
@@ -510,7 +526,7 @@ export const CreateFlow = ({
               setResult((prev) => (prev ? { ...prev, avatar } : prev))
             }
             onSaveDirectly={() => void savePreview(onSaveDirectly)}
-            onBack={() => setStep("entry")}
+            onBack={leavePreview}
             isRegenerating={isRegenerating}
           />
         ) : null;

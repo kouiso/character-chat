@@ -173,6 +173,62 @@ describe("キャラ作成下書き", () => {
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 
+  it("作り直し失敗のあと戻って作り直した新しいプレビューに古い通知を残さない", async () => {
+    render(<CreateFlow {...props()} />);
+    await generatePreview();
+    vi.mocked(generateCharacter).mockRejectedValueOnce(new Error("offline"));
+    fireEvent.click(screen.getByRole("button", { name: /画像だけ再試行|別の顔/ }));
+    await screen.findByRole("alert");
+    fireEvent.click(screen.getAllByRole("button", { name: "もどる" })[0]);
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    await generatePreview();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it("保存失敗の通知はプレビューを離れたら消える", async () => {
+    const current = props();
+    current.onSaveDirectly.mockRejectedValueOnce(new Error("offline"));
+    render(<CreateFlow {...current} />);
+    await generatePreview();
+    fireEvent.click(screen.getByRole("button", { name: /この子に/ }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("保存できませんでした");
+    fireEvent.click(screen.getAllByRole("button", { name: "もどる" })[0]);
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    await generatePreview();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it("作り直し中に戻って新しく作ったら、古い作り直しは新しいプレビューを止めも汚しもしない", async () => {
+    const current = props();
+    render(<CreateFlow {...current} />);
+    await generatePreview();
+    let fail: ((reason: Error) => void) | undefined;
+    vi.mocked(generateCharacter).mockImplementationOnce(
+      () =>
+        new Promise((_resolve, reject) => {
+          fail = reject;
+        }),
+    );
+    fireEvent.click(screen.getByRole("button", { name: /画像だけ再試行|別の顔/ }));
+    fireEvent.click(screen.getAllByRole("button", { name: "もどる" })[0]);
+    vi.mocked(generateCharacter).mockResolvedValueOnce({ ...generated, name: "ひかり" });
+    fireEvent.click(screen.getByText("おまかせでつくる"));
+    fireEvent.click(screen.getByRole("button", { name: "もう作って" }));
+    await screen.findByText("できあがり");
+    await act(async () => {
+      fail?.(new Error("offline"));
+    });
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    const save = screen.getByRole("button", { name: /この子に/ });
+    expect(save).not.toBeDisabled();
+    fireEvent.click(save);
+    await waitFor(() =>
+      expect(current.onSaveDirectly).toHaveBeenCalledWith(
+        expect.objectContaining({ name: "ひかり" }),
+      ),
+    );
+  });
+
   it("壊れた下書きでも起動できる", () => {
     localStorage.setItem(CHARACTER_DRAFT_KEY, "{broken");
     render(<CreateFlow {...props()} />);
