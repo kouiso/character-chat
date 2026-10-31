@@ -8,6 +8,7 @@ import {
   type V2Db,
 } from "@v2/db";
 import {
+  contextBudgetFromEnv,
   createOpenRouterModel,
   createTurnGraph,
   runTurn,
@@ -101,10 +102,7 @@ export const startTurn = async (
   const { env } = await getPlatform();
   const graph = createTurnGraph({
     model,
-    contextBudget: {
-      historyCharacters: Number(env.V2_HISTORY_CHARACTERS),
-      historyMessages: Number(env.V2_HISTORY_MESSAGES),
-    },
+    contextBudget: contextBudgetFromEnv(env),
     store: createStore(db, input.characterId, input.expectedTurn),
   });
   const conversationId = input.conversationId ?? crypto.randomUUID();

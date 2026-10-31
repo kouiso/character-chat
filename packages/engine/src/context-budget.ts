@@ -12,6 +12,41 @@ export const DEFAULT_CONTEXT_BUDGET: Readonly<ContextBudget> = {
   currentMessageCharacters: 4_000,
 };
 
+export class ContextBudgetConfigError extends Error {
+  constructor(name: string, value: unknown) {
+    super(`${name} は0以上の整数で指定してください: ${JSON.stringify(String(value))}`);
+    this.name = "ContextBudgetConfigError";
+  }
+}
+
+export type ContextBudgetEnv = {
+  V2_HISTORY_CHARACTERS?: unknown;
+  V2_HISTORY_MESSAGES?: unknown;
+};
+
+// wrangler は env.<name>.vars に最上位の vars を引き継がんので、未設定・空は既定値へ戻す。
+// 値がある時に読めんのは設定ミスなので、既定値へ黙って逃がさず止める。
+const readBudgetVar = (name: string, raw: unknown): number | undefined => {
+  if (raw === undefined || raw === null || raw === "") return undefined;
+  const value =
+    typeof raw === "number"
+      ? raw
+      : typeof raw === "string" && /^\d+$/.test(raw)
+        ? Number(raw)
+        : NaN;
+  if (!Number.isSafeInteger(value) || value < 0) throw new ContextBudgetConfigError(name, raw);
+  return value;
+};
+
+export const contextBudgetFromEnv = (env: ContextBudgetEnv): Partial<ContextBudget> => {
+  const historyCharacters = readBudgetVar("V2_HISTORY_CHARACTERS", env.V2_HISTORY_CHARACTERS);
+  const historyMessages = readBudgetVar("V2_HISTORY_MESSAGES", env.V2_HISTORY_MESSAGES);
+  return {
+    ...(historyCharacters === undefined ? {} : { historyCharacters }),
+    ...(historyMessages === undefined ? {} : { historyMessages }),
+  };
+};
+
 export const buildConversationContext = (
   history: readonly HistoryMessage[],
   userText: string,
