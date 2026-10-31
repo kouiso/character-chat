@@ -41,6 +41,7 @@ describe("Worker 入口の BASIC 認証", () => {
     ["GET", "/api/chat/example/history?conversationId=c1"],
     ["POST", "/api/chat/example"],
     ["OPTIONS", "/api/chat/example"],
+    ["GET", "/api/media/message-1"],
   ])("%s %s は認証なしだと静的ファイルにもアプリにも渡さない", async (method, path) => {
     const { env, assetFetch } = createEnv(200);
     const response = await call(new Request(`https://example.com${path}`, { method }), env);
