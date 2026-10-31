@@ -3,7 +3,7 @@ import { asc, desc, eq, sql } from "drizzle-orm";
 import { conversationTable } from "../../../src/schema/conversation";
 import { messageTable } from "../../../src/schema/message";
 
-import { v2ConversationTable, v2MessageTable } from "./v2-schema";
+import { v2ConversationTable, v2LedgerTable, v2MessageTable } from "./v2-schema";
 
 import type { V2Db } from "./client";
 
@@ -60,11 +60,26 @@ const validateExistingMessage = (previous: StoredMessage, message: SourceMessage
   }
 };
 
+// v2で続けたターンは saveTurn が必ず v2_ledger を同じbatchで書く。移行は ledger を書かんので、
+// ledger の無いターンの行は旧表から写したものと見なせる。
+const validateNothingMissing = (
+  source: SourceMessage[],
+  destination: StoredMessage[],
+  v2Turns: Set<number>,
+) => {
+  const sourceIds = new Set(source.map((message) => message.id));
+  if (destination.some((message) => !v2Turns.has(message.turn) && !sourceIds.has(message.id))) {
+    throw new Error("Previously migrated message missing from source; review required");
+  }
+};
+
 const planMessages = (
   source: SourceMessage[],
   destination: StoredMessage[],
   conversationId: string,
+  v2Turns: Set<number>,
 ) => {
+  validateNothingMissing(source, destination, v2Turns);
   const byId = new Map(destination.map((message) => [message.id, message]));
   const turns = new Set(destination.map((message) => message.turn));
   const missing: MigratedMessage[] = [];
@@ -117,7 +132,16 @@ const migrateConversation = async (
     .select()
     .from(v2MessageTable)
     .where(eq(v2MessageTable.conversationId, conversation.id));
-  const missing = planMessages(messages, destination, conversation.id);
+  const ledgers = await db
+    .select({ turn: v2LedgerTable.turn })
+    .from(v2LedgerTable)
+    .where(eq(v2LedgerTable.conversationId, conversation.id));
+  const missing = planMessages(
+    messages,
+    destination,
+    conversation.id,
+    new Set(ledgers.map((ledger) => ledger.turn)),
+  );
   if (!existing) {
     await db.batch([
       db.insert(v2ConversationTable).values({
