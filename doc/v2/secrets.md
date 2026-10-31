@@ -13,7 +13,25 @@
 | `OPENROUTER_API_KEY` | 返事生成のモデル呼び出し | チャット送信が 503 |
 
 `wrangler.jsonc` の `secrets.required` に同名を宣言してあるので、未設定のままでは
-`wrangler deploy` が止まる（出した後に開く状態にはならん）。
+`wrangler deploy` が止まる（出した後に開く状態にはならん）。`secrets.required` は
+`env` へ継承されんので、`env.staging` にも同じ 3 つを書いてある。
+
+## 出す（本番・staging）
+
+```sh
+cd apps/v2
+pnpm run deploy       # 本番 adult-ai-v2（`pnpm deploy` は pnpm 自身の別コマンドなので run を付ける）
+pnpm run deploy:staging   # 試し用 adult-ai-v2-staging
+# 中身を確かめるだけなら deploy:dry-run / deploy:staging:dry-run
+```
+
+`wrangler deploy` を直接打たん。Cloudflare の vite プラグインはビルド時の `CLOUDFLARE_ENV` で
+設定を平らにして `dist/server/wrangler.json` へ焼き、`wrangler deploy` はそちらを読む。
+普通の `vite build` の後に `wrangler deploy --env staging` を打つと、焼かれた**本番の設定のまま**
+（本番 D1・R2 を指す `adult-ai-v2`）出てしまう（2026-10-31 に dry-run で実測）。
+上の script は環境を合わせてビルドし直し、`script/assert-built-env.mjs` で
+「wrangler がこれから読む設定」の名前・D1・R2・Vectorize・Queue・`APP_ENV`・必須 secret が
+頼んだ環境と一致する時だけ deploy へ進む。食い違えば何も出さずに止まる。
 
 ## 入れる（初回・環境ごとに 1 回）
 
@@ -25,6 +43,9 @@ pnpm exec wrangler secret put OPENROUTER_API_KEY
 # staging は --env staging を付ける
 pnpm exec wrangler secret put BASIC_AUTH_USERNAME --env staging
 ```
+
+`wrangler secret put` はビルド済みの設定へ転送されず `wrangler.jsonc` を読むので、
+`--env staging` がそのまま効く（deploy とは違う）。
 
 ## 手元で動かす（秘密は repo に置かん）
 

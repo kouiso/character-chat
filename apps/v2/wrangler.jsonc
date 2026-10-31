@@ -84,6 +84,9 @@
       "vars": {
         "APP_ENV": "staging"
       },
+      "secrets": {
+        "required": ["BASIC_AUTH_USERNAME", "BASIC_AUTH_PASSWORD", "OPENROUTER_API_KEY"]
+      },
       "d1_databases": [
         {
           "binding": "DB",

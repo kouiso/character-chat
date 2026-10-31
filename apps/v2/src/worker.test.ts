@@ -142,7 +142,7 @@ describe("Worker 入口の BASIC 認証", () => {
   );
 
   it("staging でも認証情報が未設定なら 503 で閉じる", async () => {
-    // staging は secrets.required を継承せず、未設定のまま deploy できる。入口で閉じるしかない。
+    // staging も secrets.required で deploy 時に止まるが、出した後に secret を消された時は入口で閉じる。
     const { env, assetFetch } = createEnv(200, { APP_ENV: "staging" });
     const response = await call(
       new Request("https://example.com/assets/main.js", { headers: { authorization } }),

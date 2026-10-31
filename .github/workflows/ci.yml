@@ -36,8 +36,14 @@ jobs:
       - run: pnpm v2:ci
       - run: pnpm --filter @v2/app build
       - run: pnpm --filter @v2/app secrets:check
+      # 実際に焼かれた設定（dist/server/wrangler.json）が本番向けかを、deploy と同じ門で確かめる。
+      - run: pnpm --filter @v2/app check:built-env production
       - run: pnpm --filter @v2/app exec wrangler deploy --dry-run
       - run: pnpm --filter @v2/app verify:ci
+      # staging の deploy 経路を実ビルドで通し、焼かれた設定が staging の資源を指すことを確かめる。
+      # dist を staging で上書きするので、本番の成果物を使う手順より後に置く。
+      - run: pnpm --filter @v2/app deploy:staging:dry-run
+      - run: pnpm --filter @v2/app secrets:check
 
   # WHY(2026-08-16): このリポの runs-on 直書き12箇所が runner_budget_switch の対象から
   # 外れとった。同じ穴が別の workflow 追加時に開き直さんよう静的に検査する。

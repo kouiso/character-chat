@@ -86,6 +86,15 @@ describe("wrangler.jsonc の束ね", () => {
     }
   });
 
+  // secrets.required は env へ継承されん。staging にも書かんと、secret 未設定のまま
+  // deploy が通ってしまう（round 2 で staging ビルドの secrets が空なのを実測）。
+  it("staging も入口検査に必要な secret を deploy 時必須として宣言する", () => {
+    const staging = obj(obj(config.env).staging);
+    expect([...((obj(staging.secrets).required as string[] | undefined) ?? [])].sort()).toEqual(
+      [...((obj(config.secrets).required as string[] | undefined) ?? [])].sort(),
+    );
+  });
+
   it("staging も DO 束ねと移行設定を持つ（環境ごとに宣言が要る）", () => {
     const staging = obj(obj(config.env).staging);
     expect(obj(staging.durable_objects).bindings).toEqual([
