@@ -66,8 +66,9 @@ const BODY_PATTERNS = [
 // KEY=値 形式は「明らかに鍵らしい形」だけを拾う（誤検知で検査自体を無効化せんため）:
 // 値が引用符 or 裸のリテラルで 20 字以上・英数系のみ・英小文字+英大文字+数字の 3 種を含む。
 // `process.env.X` 等の参照・`"images/..."` のようなパス・UUID・テスト用語は弾く。
+// JSON の `"NAME": "値"` も拾えるよう、名前の後ろの引用符を許す。
 const ASSIGNMENT =
-  /\b[A-Z][A-Z0-9_]{3,}(?:KEY|TOKEN|SECRET|PASSWORD|PASS)\b\s*[:=]\s*["']?([^\s"'\n,}]{20,})/g;
+  /\b([A-Z][A-Z0-9_]{3,}(?:KEY|TOKEN|SECRET|PASSWORD|PASS))\b["']?\s*[:=]\s*["']?([^\s"'\n,}]{20,})/g;
 const PLACEHOLDER =
   /placeholder|change[-_]?me|xxx+|example|dummy|codex-local|your[-_]|<|\$\{|\.\.\.|test[-_]/i;
 const NOT_SECRET_VALUE = /^(?:process\.|import\.|env\.|node:|[@./$]|.*\/)/;
@@ -79,28 +80,32 @@ const looksTokenLike = (value) =>
   /[0-9]/.test(value);
 const PRIVATE_KEY = /-----BEGIN [A-Z ]*PRIVATE KEY-----([\s\S]*?)-----END/m;
 
+// 検査結果は CI の公開ログに出るので、見つけた値は一文字も出さず「どこの何」だけを示す。
+const lineOf = (text, index) => text.slice(0, index).split("\n").length;
+
 const scan = (path, text) => {
   for (const [pattern, label] of BODY_PATTERNS) {
     pattern.lastIndex = 0;
-    if (pattern.test(text)) fail(`${label}らしき文字列: ${path}`);
+    const found = pattern.exec(text);
+    if (found) fail(`${label}らしき文字列: ${path}:${lineOf(text, found.index)}`);
   }
   ASSIGNMENT.lastIndex = 0;
   let match;
   while ((match = ASSIGNMENT.exec(text))) {
-    const value = match[1].replace(/["'`;]+$/, "");
+    const value = match[2].replace(/["'`;]+$/, "");
     if (
       !PLACEHOLDER.test(value) &&
       !NOT_SECRET_VALUE.test(value) &&
       !UUID_LIKE.test(value) &&
       looksTokenLike(value)
     ) {
-      fail(`秘密変数への代入らしき行: ${path} (${match[0].slice(0, 40)}…)`);
+      fail(`秘密変数への代入らしき行: ${path}:${lineOf(text, match.index)} (${match[1]})`);
     }
   }
   PRIVATE_KEY.lastIndex = 0;
   const keyMatch = PRIVATE_KEY.exec(text);
   if (keyMatch && keyMatch[1].replace(/\s+/g, "").length >= 120) {
-    fail(`秘密鍵ブロックらしき文字列: ${path}`);
+    fail(`秘密鍵ブロックらしき文字列: ${path}:${lineOf(text, keyMatch.index)}`);
   }
 };
 
