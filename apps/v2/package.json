@@ -15,6 +15,7 @@
     "deploy:dry-run": "wrangler deploy --dry-run",
     "deploy": "wrangler deploy",
     "verify:runtime": "node script/verify-local-runtime.mjs",
+    "secrets:check": "node script/check-repo-secrets.mjs",
     "seed:local": "wrangler d1 execute adult-ai-db --local --persist-to ../../.wrangler/state --file script/runtime-seed.sql",
     "verify:ci": "node script/verify-ci-runtime.mjs"
   },

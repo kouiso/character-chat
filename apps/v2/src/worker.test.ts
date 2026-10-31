@@ -1,5 +1,6 @@
 // @vitest-environment node
 import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -9,6 +10,7 @@ vi.mock("@tanstack/react-start/server-entry", () => ({ default: { fetch: startFe
 vi.mock("./server/chat-room", () => ({ ChatRoom: class {} }));
 
 const { default: worker } = await import("./worker");
+const { unstable_readConfig: readWranglerConfig } = await import("wrangler");
 
 const credentials = { BASIC_AUTH_USERNAME: "reader", BASIC_AUTH_PASSWORD: "test-only-pass" };
 const authorization = `Basic ${Buffer.from("reader:test-only-pass").toString("base64")}`;
@@ -123,6 +125,35 @@ describe("Worker 入口の BASIC 認証", () => {
     }
   });
 
+  it.each(["staging"])(
+    "env.%s も wrangler が解決した結果で静的ファイルを Worker に先に通す",
+    (name) => {
+      // env 側に assets が無いと top-level を継承するので、生の JSON では確かめきれん。
+      // deploy と同じ解決を通した結果で見る。
+      const resolved = readWranglerConfig({
+        config: fileURLToPath(new URL("../wrangler.jsonc", import.meta.url)),
+        env: name,
+      });
+      expect(resolved.name).toBe(`adult-ai-v2-${name}`);
+      expect(resolved.assets?.run_worker_first).toBe(true);
+      expect(resolved.workers_dev).toBe(false);
+      expect(resolved.preview_urls).toBe(false);
+    },
+  );
+
+  it("staging でも認証情報が未設定なら 503 で閉じる", async () => {
+    // staging は secrets.required を継承せず、未設定のまま deploy できる。入口で閉じるしかない。
+    const { env, assetFetch } = createEnv(200, { APP_ENV: "staging" });
+    const response = await call(
+      new Request("https://example.com/assets/main.js", { headers: { authorization } }),
+      env,
+    );
+    expect(response.status).toBe(503);
+    expect(await response.text()).toBe("");
+    expect(assetFetch).not.toHaveBeenCalled();
+    expect(startFetch).not.toHaveBeenCalled();
+  });
+
   it("アプリが例外を投げても中身を出さず 500 を返す", async () => {
     const { env } = createEnv(404);
     startFetch.mockRejectedValue(new Error("secret detail"));
@@ -133,5 +164,35 @@ describe("Worker 入口の BASIC 認証", () => {
     expect(response.status).toBe(500);
     expect(await response.text()).toBe("");
     expect(response.headers.get("cache-control")).toBe("private, no-store");
+  });
+});
+
+describe("Worker の HTTP 以外の入口", () => {
+  it("HTTP を受ける入口は認証つきの fetch だけ", () => {
+    // queue は Cloudflare の Queue からしか呼ばれん。scheduled/email 等を足すなら認証の要否を見直す。
+    expect(Object.keys(worker).sort()).toEqual(["fetch", "queue"]);
+  });
+
+  it("queue はアプリに渡さず、仕事ごとに受け取りを返す", async () => {
+    const messages = [
+      {
+        body: { kind: "embed-memory", characterId: "c1", conversationId: "v1" },
+        ack: vi.fn(),
+        retry: vi.fn(),
+      },
+      { body: "GET / HTTP/1.1", ack: vi.fn(), retry: vi.fn() },
+    ];
+    const info = vi.spyOn(console, "info").mockImplementation(() => {});
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    await worker.queue({ messages } as unknown as Parameters<typeof worker.queue>[0]);
+    for (const message of messages) {
+      expect(message.ack).toHaveBeenCalledOnce();
+      expect(message.retry).not.toHaveBeenCalled();
+    }
+    expect(startFetch).not.toHaveBeenCalled();
+    // 形の合わん中身は記録にも出さん（何が入っとるか分からんので）。
+    expect(JSON.stringify(warn.mock.calls)).not.toContain("GET / HTTP/1.1");
+    info.mockRestore();
+    warn.mockRestore();
   });
 });

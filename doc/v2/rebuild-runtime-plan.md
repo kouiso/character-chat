@@ -51,3 +51,11 @@ RIT-48/49/50（記憶と削除・評価）、52/53/54（キャラ版・資料・
 - D1 exportを非公開領域へ保存。SHA-256検証後に外部キー依存順へ並べ、独立したローカルD1へ全45テーブル・7,746行を復元。元スナップショットとの型付き行ハッシュ比較は全テーブル一致、integrity_check=ok・外部キー違反0件。途中で切れたexportは出力前に拒否することを確認。元データへの書込みはない。
 - 本番デプロイ、実AI接続、本番への復元、本番切替は未検証。これらをローカル結果で代替しない。
 - `v2:ci`は`@v2/*`の7ワークスペースが対象。旧`apps/bench`の履歴コーパス検査は別であり、未配置の非公開バックアップを今回の合格件数に含めない。
+
+### 2026-10-28の観測（束ねの完成・資源の棚卸し）
+
+- `wrangler.jsonc`を設計書§4の束ねどおりに揃えた: 本番D1 `adult-ai-db`（`b617800c-…`、旧wrangler.toml公開済みの実id）・R2 `adult-ai-images`・Vectorize `v2-memory-index`・Workers AI・Queue `v2-memory-jobs`（producer+consumer）・ChatRoom DO・`limits.cpu_ms=300000`（局長指定の有料5分）。`wrangler types`でEnv型を再生成。
+- 入口に`queue`ハンドラを出し、`memory-jobs.ts`が封筒（kind/characterId/conversationId/turn）を検査して記録・ackする。中身の抜き出し・埋め込みはRIT-48系で育てる。
+- Cloudflare資源を読み取りだけで数えた（変更0件）: D1 `adult-ai-db`（4.1MB）・試し用`character-chat-v2-staging`（2026-10-26作成、RIT-64）がD1・R2・Vectorize（1024次元 cosine）の3点で既に存在。本番用のVectorize indexとQueueは未作成で、初回deploy前に`wrangler vectorize create`/`wrangler queues create`が要る（doc/v2/secrets.mdの資源準備節）。
+- Pages`adult-ai-chat`は稼働中（旧アプリ）。Worker`adult-ai-v2`は未デプロイ。
+- 手元Node 25で`localStorage`がメソッド無しの入れ物として露出しjsdomを隠すため、`apps/v2`のテスト8件が失敗した。`src/test/setup.ts`で実装が無い時だけStorageを差し替える対処を入れた（CIのNode 24では既存どおりjsdomが使われる）。
