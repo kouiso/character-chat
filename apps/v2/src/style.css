@@ -163,3 +163,11 @@ body {
 .v2-chat-form button:disabled {
   opacity: 0.5;
 }
+
+.v2-bubble img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: 12px;
+  margin-bottom: 8px;
+}

@@ -6,15 +6,21 @@ import {
   readChatEvents,
   readChatSession,
   writeChatSession,
+  writePendingTurn,
   type ChatBubble,
   type PendingTurn,
 } from "../lib/chat-session";
 
+import { ChatImage } from "./chat-image";
 import { ChatMessage } from "./chat-message";
 
 import type { ChatSseEvent } from "../lib/sse-events";
 
-export type ChatViewProps = { characterId: string; characterName: string };
+export type ChatViewProps = {
+  characterId: string;
+  characterName: string;
+  initialConversationId?: string;
+};
 
 const withPending = (
   history: ChatBubble[],
@@ -69,7 +75,7 @@ const consumeEvents = async (
   return completed;
 };
 
-export const ChatView = ({ characterId, characterName }: ChatViewProps) => {
+export const ChatView = ({ characterId, characterName, initialConversationId }: ChatViewProps) => {
   const [bubbles, setBubbles] = useState<ChatBubble[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -96,11 +102,7 @@ export const ChatView = ({ characterId, characterName }: ChatViewProps) => {
       if (!completed) throw new Error("接続が切れました。再接続してください。");
       const history = await loadChatHistory(turn.characterId, turn.conversationId, signal);
       if (signal.aborted) return;
-      writeChatSession(turn.characterId, {
-        version: 1,
-        conversationId: turn.conversationId,
-        pending: null,
-      });
+      writePendingTurn(turn.characterId, turn.conversationId, null);
       nextTurn.current = history.nextTurn;
       setBubbles(history.bubbles);
       setPending(null);
@@ -127,11 +129,7 @@ export const ChatView = ({ characterId, characterName }: ChatViewProps) => {
         );
         if (abort.signal.aborted) return;
         const restoreInput = history.nextTurn <= pending.baseTurn;
-        writeChatSession(pending.characterId, {
-          version: 1,
-          conversationId: pending.conversationId,
-          pending: null,
-        });
+        writePendingTurn(pending.characterId, pending.conversationId, null);
         if (abort.signal.aborted) return;
         nextTurn.current = history.nextTurn;
         setBubbles(history.bubbles);
@@ -153,7 +151,7 @@ export const ChatView = ({ characterId, characterName }: ChatViewProps) => {
     const abort = new AbortController();
     controller.current = abort;
     const restore = async () => {
-      const saved = readChatSession(characterId);
+      const saved = readChatSession(characterId, initialConversationId);
       conversationId.current = saved.conversationId;
       setPending(saved.pending);
       if (!saved.conversationId) return;
@@ -181,7 +179,7 @@ export const ChatView = ({ characterId, characterName }: ChatViewProps) => {
       abort.abort();
       controller.current?.abort();
     };
-  }, [characterId, consume]);
+  }, [characterId, consume, initialConversationId]);
 
   const send = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -231,6 +229,7 @@ export const ChatView = ({ characterId, characterName }: ChatViewProps) => {
             key={index}
             className={`v2-bubble ${bubble.role} ${bubble.pending ? "pending" : ""}`}
           >
+            {bubble.imageUrl && <ChatImage src={bubble.imageUrl} />}
             {bubble.role === "assistant" && bubble.text ? (
               <ChatMessage content={bubble.text} />
             ) : (

@@ -1,6 +1,12 @@
 // WorkerのD1バインディングを共有し、接続元のプロセスに会話を閉じ込めない。
 import { FakeListChatModel } from "@langchain/core/utils/testing";
-import { createD1TurnStore, createDb, readD1StoredTurn, type V2Db } from "@v2/db";
+import {
+  createD1TurnStore,
+  createDb,
+  readDisplayHistory,
+  readD1StoredTurn,
+  type V2Db,
+} from "@v2/db";
 import {
   createOpenRouterModel,
   createTurnGraph,
@@ -12,12 +18,12 @@ import {
 import { PROMPT_VERSION } from "@v2/prompt";
 
 import { readCharacter } from "./character-data.server";
+import { LOCAL_USER_ID } from "./identity";
 import { getPlatform } from "./platform";
 
 import type { BaseChatModel } from "@langchain/core/language_models/chat_models";
 
-// 個人用BASIC認証の利用者を安定した内部IDに対応づけ、パスワード変更で所有権を変えない。
-export const LOCAL_USER_ID = "local";
+export { LOCAL_USER_ID } from "./identity";
 
 export class CharacterNotFoundError extends Error {
   constructor(id: string) {
@@ -109,7 +115,7 @@ export type ConversationHistory = {
   conversationId: string;
   // 次に保存されるターン番号（= 保存済みターン数 + 1）。
   turn: number;
-  history: HistoryMessage[];
+  history: (HistoryMessage & { imageUrl?: string })[];
 };
 
 // GET /api/chat/:id/history 用。D1 store の load をそのまま返す（再起動をまたいだ永続化の確認口）。
@@ -120,7 +126,24 @@ export const loadHistory = async (input: {
   await loadValidCharacter(input.characterId);
   const db = await getDb();
   const loaded = await createStore(db, input.characterId).load(input.conversationId);
-  return { conversationId: input.conversationId, turn: loaded.turn, history: loaded.history };
+  const rows = await readDisplayHistory(
+    db,
+    {
+      userId: LOCAL_USER_ID,
+      characterId: input.characterId,
+      promptVersion: PROMPT_VERSION,
+    },
+    input.conversationId,
+  );
+  return {
+    conversationId: input.conversationId,
+    turn: loaded.turn,
+    history: rows.map((row) => ({
+      role: row.role,
+      content: row.content,
+      ...(row.imageKey ? { imageUrl: `/api/media/${encodeURIComponent(row.id)}` } : {}),
+    })),
+  };
 };
 
 export const loadStoredTurn = async (characterId: string, conversationId: string, turn: number) =>

@@ -29,13 +29,17 @@ const PERSIST_PATH = path.join(PERSIST_ROOT, "v3");
 const isRemote = (explicit?: boolean): boolean => explicit ?? process.env.CF_REMOTE === "1";
 
 // 古いCF_REMOTE指定を黙って無視せず拒否し、接続先の取り違えを防ぐ。
-export const createPlatform = async (opts: { remote?: boolean } = {}): Promise<Platform> => {
+export const createPlatform = async (
+  opts: { remote?: boolean; persistRoot?: string } = {},
+): Promise<Platform> => {
   const remote = isRemote(opts.remote);
   if (remote)
     throw new Error("CLI の接続はローカル限定です。Worker は実行環境の bindings を使用します。");
   const proxy: PlatformProxy<CfEnv> = await getPlatformProxy<CfEnv>({
     configPath: WRANGLER_CONFIG,
-    persist: { path: PERSIST_PATH },
+    persist: {
+      path: opts.persistRoot ? path.join(path.resolve(opts.persistRoot), "v3") : PERSIST_PATH,
+    },
     remoteBindings: false,
   });
   return {
