@@ -9,7 +9,13 @@ import { userTable } from "../../../src/schema/user";
 import { migrateLegacyConversations } from "./legacy-migration";
 import { openLocalD1, type LocalD1 } from "./test/local-d1";
 import { createD1TurnStore, readOwnedImageKey, readDisplayHistory } from "./turn-store";
-import { v2ConversationTable, v2MessageTable } from "./v2-schema";
+import {
+  v2ChunkTable,
+  v2ConversationTable,
+  v2GenerationTable,
+  v2LedgerTable,
+  v2MessageTable,
+} from "./v2-schema";
 
 const owner = `migration-test-${crypto.randomUUID()}`;
 const ids = [0, 1].map((n) => `${owner}-${n}`);
@@ -123,5 +129,140 @@ describe("legacy migration", () => {
       .from(v2MessageTable)
       .where(eq(v2MessageTable.id, `${ids[0]}-0`));
     expect(unchanged.content).toBe("元の発言 0");
+  });
+});
+
+describe("legacy migration の再実行で元から消えた発言", () => {
+  let local: LocalD1;
+  let characterId: string;
+  const owners: string[] = [];
+
+  const seed = async (count: number) => {
+    const seedOwner = `migration-missing-${crypto.randomUUID()}`;
+    owners.push(seedOwner);
+    const conversationId = `${seedOwner}-c`;
+    await local.db
+      .insert(userTable)
+      .values({ id: seedOwner, email: "test@example.invalid", createdAt: 1 });
+    await local.db.insert(conversationTable).values({
+      id: conversationId,
+      userId: seedOwner,
+      characterId,
+      title: "旧会話",
+      createdAt: 1,
+      updatedAt: 1,
+    });
+    for (let index = 0; index < count; index += 1) {
+      await local.db.insert(messageTable).values({
+        id: `${conversationId}-m${index + 1}`,
+        conversationId,
+        userId: seedOwner,
+        characterId,
+        role: index % 2 === 0 ? "user" : "assistant",
+        content: `発言 ${index + 1}`,
+        createdAt: index + 1,
+      });
+    }
+    return {
+      seedOwner,
+      conversationId,
+      options: { sourceUserId: seedOwner, targetUserId: seedOwner },
+    };
+  };
+
+  const v2Contents = async (conversationId: string) =>
+    (
+      await local.db
+        .select({ content: v2MessageTable.content })
+        .from(v2MessageTable)
+        .where(eq(v2MessageTable.conversationId, conversationId))
+    )
+      .map((row) => row.content)
+      .sort();
+
+  beforeAll(async () => {
+    local = await openLocalD1();
+    const [character] = await local.db
+      .select({ id: characterTable.id })
+      .from(characterTable)
+      .limit(1);
+    characterId = character.id;
+  });
+  afterAll(async () => {
+    const conversationIds = owners.map((id) => `${id}-c`);
+    const messageIds = local.db
+      .select({ id: v2MessageTable.id })
+      .from(v2MessageTable)
+      .where(inArray(v2MessageTable.conversationId, conversationIds));
+    await local.db.delete(v2ChunkTable).where(inArray(v2ChunkTable.messageId, messageIds));
+    await local.db
+      .delete(v2MessageTable)
+      .where(inArray(v2MessageTable.conversationId, conversationIds));
+    await local.db
+      .delete(v2LedgerTable)
+      .where(inArray(v2LedgerTable.conversationId, conversationIds));
+    await local.db
+      .delete(v2GenerationTable)
+      .where(inArray(v2GenerationTable.conversationId, conversationIds));
+    await local.db
+      .delete(v2ConversationTable)
+      .where(inArray(v2ConversationTable.id, conversationIds));
+    await local.db
+      .delete(messageTable)
+      .where(inArray(messageTable.conversationId, conversationIds));
+    await local.db.delete(conversationTable).where(inArray(conversationTable.id, conversationIds));
+    await local.db.delete(userTable).where(inArray(userTable.id, owners));
+    await local.dispose();
+  });
+
+  it("末尾の発言が元から消えたら成功扱いせず拒否する", async () => {
+    const { conversationId, options } = await seed(5);
+    await migrateLegacyConversations(local.db, options);
+    await local.db.delete(messageTable).where(eq(messageTable.id, `${conversationId}-m5`));
+    await expect(migrateLegacyConversations(local.db, options)).rejects.toThrow("missing");
+    expect(await v2Contents(conversationId)).toEqual([1, 2, 3, 4, 5].map((n) => `発言 ${n}`));
+  });
+
+  it("元の会話の発言がすべて消えても成功扱いせず拒否する", async () => {
+    const { conversationId, options } = await seed(2);
+    await migrateLegacyConversations(local.db, options);
+    await local.db.delete(messageTable).where(eq(messageTable.conversationId, conversationId));
+    await expect(migrateLegacyConversations(local.db, options)).rejects.toThrow("missing");
+  });
+
+  it("移行後にv2で続けたターンは元に無くても欠落扱いしない", async () => {
+    const { seedOwner, conversationId, options } = await seed(3);
+    await migrateLegacyConversations(local.db, options);
+    const store = createD1TurnStore(local.db, {
+      userId: seedOwner,
+      characterId,
+      promptVersion: "test",
+    });
+    const { turn } = await store.load(conversationId);
+    expect(turn).toBe(4);
+    await store.saveTurn({
+      conversationId,
+      turn,
+      userText: "v2での続き",
+      events: [],
+      ledger: {
+        phase: "conversation",
+        location: null,
+        time: null,
+        present: [],
+        clothing: {},
+        position: null,
+        lastEvents: [],
+      },
+    });
+    expect(await migrateLegacyConversations(local.db, options)).toEqual({
+      conversations: 1,
+      messages: 3,
+      insertedConversations: 0,
+      insertedMessages: 0,
+    });
+
+    await local.db.delete(messageTable).where(eq(messageTable.id, `${conversationId}-m3`));
+    await expect(migrateLegacyConversations(local.db, options)).rejects.toThrow("missing");
   });
 });

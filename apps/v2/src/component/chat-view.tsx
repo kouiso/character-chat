@@ -6,12 +6,15 @@ import {
   readChatEvents,
   readChatSession,
   writeChatSession,
+  writePendingTurn,
   type ChatBubble,
   type PendingTurn,
 } from "../lib/chat-session";
 
 import { ChatImage } from "./chat-image";
 import { ChatMessage } from "./chat-message";
+
+import type { ChatSseEvent } from "../lib/sse-events";
 
 export type ChatViewProps = {
   characterId: string;
@@ -42,42 +45,64 @@ const updateAssistant = (history: ChatBubble[], text: string): ChatBubble[] =>
 const failureMessage = (cause: unknown): string =>
   cause instanceof Error ? cause.message : "返信を確認できませんでした。";
 
+type ChatErrorEvent = Extract<ChatSseEvent, { type: "error" }>;
+
+const consumeEvents = async (
+  stream: ReadableStream<Uint8Array>,
+  signal: AbortSignal,
+  onChunk: (text: string) => void,
+  onError: (event: ChatErrorEvent) => void,
+): Promise<boolean> => {
+  const chunks = new Map<number, string>();
+  let completed = false;
+  for await (const event of readChatEvents(stream)) {
+    if (signal.aborted) return false;
+    if (event.type === "chunk") {
+      chunks.set(event.seq, event.text);
+      onChunk(
+        [...chunks.entries()]
+          .sort(([a], [b]) => a - b)
+          .map(([, value]) => value)
+          .join("\n"),
+      );
+    }
+    if (event.type === "error") {
+      onError(event);
+      throw new Error(event.message);
+    }
+    if (event.type === "done") completed = true;
+  }
+  return completed;
+};
+
 export const ChatView = ({ characterId, characterName, initialConversationId }: ChatViewProps) => {
   const [bubbles, setBubbles] = useState<ChatBubble[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState<PendingTurn | null>(null);
+  const [terminalFailure, setTerminalFailure] = useState(false);
   const conversationId = useRef<string | null>(null);
   const nextTurn = useRef(1);
   const controller = useRef<AbortController | null>(null);
 
   const consume = useCallback(async (turn: PendingTurn, signal: AbortSignal, retry = false) => {
+    if (signal.aborted) return;
     setBusy(true);
     setError(null);
+    setTerminalFailure(false);
     try {
       const stream = await connectChatTurn(turn, signal, retry);
-      const chunks = new Map<number, string>();
-      let completed = false;
-      for await (const event of readChatEvents(stream)) {
-        if (event.type === "chunk") {
-          chunks.set(event.seq, event.text);
-          const text = [...chunks.entries()]
-            .sort(([a], [b]) => a - b)
-            .map(([, value]) => value)
-            .join("\n");
-          setBubbles((previous) => updateAssistant(previous, text));
-        }
-        if (event.type === "error") throw new Error(event.message);
-        if (event.type === "done") completed = true;
-      }
+      const completed = await consumeEvents(
+        stream,
+        signal,
+        (text) => setBubbles((previous) => updateAssistant(previous, text)),
+        (event) => setTerminalFailure(event.terminal === true),
+      );
       if (!completed) throw new Error("接続が切れました。再接続してください。");
       const history = await loadChatHistory(turn.characterId, turn.conversationId, signal);
-      writeChatSession(turn.characterId, {
-        version: 1,
-        conversationId: turn.conversationId,
-        pending: null,
-      });
+      if (signal.aborted) return;
+      writePendingTurn(turn.characterId, turn.conversationId, null);
       nextTurn.current = history.nextTurn;
       setBubbles(history.bubbles);
       setPending(null);
@@ -88,15 +113,45 @@ export const ChatView = ({ characterId, characterName, initialConversationId }: 
     }
   }, []);
 
+  const recoverPending = () => {
+    if (!pending || busy || !terminalFailure) return;
+    controller.current?.abort();
+    const abort = new AbortController();
+    controller.current = abort;
+    void (async () => {
+      setBusy(true);
+      setError(null);
+      try {
+        const history = await loadChatHistory(
+          pending.characterId,
+          pending.conversationId,
+          abort.signal,
+        );
+        if (abort.signal.aborted) return;
+        const restoreInput = history.nextTurn <= pending.baseTurn;
+        writePendingTurn(pending.characterId, pending.conversationId, null);
+        if (abort.signal.aborted) return;
+        nextTurn.current = history.nextTurn;
+        setBubbles(history.bubbles);
+        setInput(restoreInput ? pending.text : "");
+        setPending(null);
+        setTerminalFailure(false);
+        setError(null);
+      } catch {
+        if (!abort.signal.aborted) {
+          setError("入力を戻せませんでした。再試行してください。");
+        }
+      } finally {
+        if (!abort.signal.aborted) setBusy(false);
+      }
+    })();
+  };
+
   useEffect(() => {
     const abort = new AbortController();
     controller.current = abort;
     const restore = async () => {
-      const stored = readChatSession(characterId);
-      const saved =
-        initialConversationId && stored.conversationId !== initialConversationId
-          ? { version: 1 as const, conversationId: initialConversationId, pending: null }
-          : stored;
+      const saved = readChatSession(characterId, initialConversationId);
       conversationId.current = saved.conversationId;
       setPending(saved.pending);
       if (!saved.conversationId) return;
@@ -120,7 +175,10 @@ export const ChatView = ({ characterId, characterName, initialConversationId }: 
       }
     };
     void restore();
-    return () => abort.abort();
+    return () => {
+      abort.abort();
+      controller.current?.abort();
+    };
   }, [characterId, consume, initialConversationId]);
 
   const send = async (event: React.FormEvent) => {
@@ -184,8 +242,12 @@ export const ChatView = ({ characterId, characterName, initialConversationId }: 
         <div className="v2-error" role="alert">
           {error}
           {pending && (
-            <button type="button" onClick={retry} disabled={busy}>
-              再接続・再試行
+            <button
+              type="button"
+              onClick={terminalFailure ? recoverPending : retry}
+              disabled={busy}
+            >
+              {terminalFailure ? "入力に戻す" : "再接続・再試行"}
             </button>
           )}
           <a href="/">会話一覧へ戻る</a>
