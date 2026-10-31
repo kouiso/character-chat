@@ -136,6 +136,43 @@ describe("キャラ作成下書き", () => {
     expect(screen.queryByText("できあがり")).not.toBeInTheDocument();
   });
 
+  it("ことばで直すが失敗してもプレビューと下書きを残す", async () => {
+    render(<CreateFlow {...props()} />);
+    await generatePreview();
+    vi.mocked(generateCharacter).mockRejectedValueOnce(new Error("offline"));
+    fireEvent.change(screen.getByPlaceholderText(/もっと強気に/), {
+      target: { value: "もっと強気に" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "直す" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("作り直せませんでした");
+    expect(screen.getByText("できあがり")).toBeInTheDocument();
+    expect(readCharacterDraft()?.step).toBe("preview");
+    expect(readCharacterDraft()?.result?.name).toBe("あおい");
+  });
+
+  it("顔の作り直しが失敗してもプレビューと下書きを残す", async () => {
+    render(<CreateFlow {...props()} />);
+    await generatePreview();
+    vi.mocked(generateCharacter).mockRejectedValueOnce(new Error("offline"));
+    fireEvent.click(screen.getByRole("button", { name: /画像だけ再試行|別の顔/ }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("作り直せませんでした");
+    expect(screen.getByText("できあがり")).toBeInTheDocument();
+    expect(readCharacterDraft()?.step).toBe("preview");
+  });
+
+  it("作り直し失敗の通知は次の作り直し成功で消える", async () => {
+    render(<CreateFlow {...props()} />);
+    await generatePreview();
+    vi.mocked(generateCharacter)
+      .mockRejectedValueOnce(new Error("offline"))
+      .mockResolvedValueOnce({ ...generated, avatar: "new-face" });
+    fireEvent.click(screen.getByRole("button", { name: /画像だけ再試行|別の顔/ }));
+    await screen.findByRole("alert");
+    fireEvent.click(screen.getByRole("button", { name: /画像だけ再試行|別の顔/ }));
+    await waitFor(() => expect(readCharacterDraft()?.result?.avatar).toBe("new-face"));
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
   it("壊れた下書きでも起動できる", () => {
     localStorage.setItem(CHARACTER_DRAFT_KEY, "{broken");
     render(<CreateFlow {...props()} />);

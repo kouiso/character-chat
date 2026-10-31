@@ -159,6 +159,41 @@ const ErrorView = ({
   </div>
 );
 
+const FlowNotices = ({
+  storageError,
+  saveError,
+  regenerateError,
+  isSaving,
+}: {
+  storageError: boolean;
+  saveError: boolean;
+  regenerateError: boolean;
+  isSaving: boolean;
+}) => (
+  <>
+    {storageError && (
+      <p role="alert" className="text-sm text-[var(--warn-text)]">
+        この端末に下書きを保存できません。画面を閉じる前に保存してください。
+      </p>
+    )}
+    {saveError && (
+      <p role="alert" className="text-sm text-[var(--warn-text)]">
+        保存できませんでした。内容は残っています。もう一度保存してください。
+      </p>
+    )}
+    {regenerateError && (
+      <p role="alert" className="text-sm text-[var(--warn-text)]">
+        作り直せませんでした。今の内容は残っています。
+      </p>
+    )}
+    {isSaving && (
+      <p role="status" className="text-sm text-[var(--dim)]">
+        保存しています…
+      </p>
+    )}
+  </>
+);
+
 export const CreateFlow = ({
   open,
   onOpenChange,
@@ -182,6 +217,7 @@ export const CreateFlow = ({
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState(false);
+  const [regenerateError, setRegenerateError] = useState(false);
   const [storageError, setStorageError] = useState(false);
   const [autoDraft, setAutoDraft] = useState<AutoDraft>(draft.autoDraft);
   const [scenarioText, setScenarioText] = useState(draft.scenarioText);
@@ -208,6 +244,7 @@ export const CreateFlow = ({
     setAutoDraft({ relation: null, answer: "", hint: "" });
     setScenarioText("");
     setSaveError(false);
+    setRegenerateError(false);
   };
 
   useEffect(() => {
@@ -296,6 +333,7 @@ export const CreateFlow = ({
     if (!result || !lastRequest) return;
     const requestId = ++generationId.current;
     setIsRegenerating(true);
+    setRegenerateError(false);
     try {
       const generated = await generateCharacter({
         ...lastRequest,
@@ -305,7 +343,8 @@ export const CreateFlow = ({
       });
       if (requestId === generationId.current) setResult(generated);
     } catch {
-      if (requestId === generationId.current) setStep("error");
+      // エラー画面へ送るとプレビューへ戻る道が無く、生成済みの内容を失う
+      if (requestId === generationId.current) setRegenerateError(true);
     } finally {
       if (requestId === generationId.current) setIsRegenerating(false);
     }
@@ -315,6 +354,7 @@ export const CreateFlow = ({
     if (!result || !lastRequest) return;
     const requestId = ++generationId.current;
     setIsRegenerating(true);
+    setRegenerateError(false);
     try {
       const generated = await generateCharacter({
         ...lastRequest,
@@ -324,7 +364,7 @@ export const CreateFlow = ({
       });
       if (requestId === generationId.current) setResult({ ...result, avatar: generated.avatar });
     } catch {
-      if (requestId === generationId.current) setStep("error");
+      if (requestId === generationId.current) setRegenerateError(true);
     } finally {
       if (requestId === generationId.current) setIsRegenerating(false);
     }
@@ -523,21 +563,12 @@ export const CreateFlow = ({
 
         {/* スクロールはこのコンテナだけに適用し、DialogContent 自体は overflow-visible のまま
             グロー演出（-top-24 の絶対配置）をクリップしない */}
-        {storageError && (
-          <p role="alert" className="text-sm text-[var(--warn-text)]">
-            この端末に下書きを保存できません。画面を閉じる前に保存してください。
-          </p>
-        )}
-        {saveError && (
-          <p role="alert" className="text-sm text-[var(--warn-text)]">
-            保存できませんでした。内容は残っています。もう一度保存してください。
-          </p>
-        )}
-        {isSaving && (
-          <p role="status" className="text-sm text-[var(--dim)]">
-            保存しています…
-          </p>
-        )}
+        <FlowNotices
+          storageError={storageError}
+          saveError={saveError}
+          regenerateError={regenerateError && step === "preview"}
+          isSaving={isSaving}
+        />
         <div className="mt-1 min-h-0 min-w-0 flex-1 overflow-y-auto">
           <fieldset disabled={isSaving} className="min-w-0">
             {renderStep()}
