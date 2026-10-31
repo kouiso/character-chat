@@ -8,6 +8,7 @@ import {
   type V2Db,
 } from "@v2/db";
 import {
+  contextBudgetFromEnv,
   createOpenRouterModel,
   createTurnGraph,
   runTurn,
@@ -98,8 +99,10 @@ export const startTurn = async (
   const db = await getDb();
   // graph はターンごとに組む。前ターンの状態は intake が D1 から読み直すので checkpointer に
   // 残す必要が無く、character ごとの store を持つ graph をプロセスに溜め込まん方が単純。
+  const { env } = await getPlatform();
   const graph = createTurnGraph({
     model,
+    contextBudget: contextBudgetFromEnv(env),
     store: createStore(db, input.characterId, input.expectedTurn),
   });
   const conversationId = input.conversationId ?? crypto.randomUUID();

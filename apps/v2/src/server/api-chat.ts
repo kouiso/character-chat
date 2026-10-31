@@ -1,4 +1,5 @@
 import { ConversationAccessError } from "@v2/db";
+import { ContextBudgetConfigError, contextBudgetFromEnv } from "@v2/engine";
 import { z } from "zod";
 
 import {
@@ -28,6 +29,12 @@ const toErrorResponse = (error: unknown): Response => {
   }
   if (error instanceof CharacterInvalidError) {
     return json(422, { message: "キャラクターの設定を確認してください。" });
+  }
+  if (error instanceof ContextBudgetConfigError) {
+    console.error(
+      JSON.stringify({ event: "context_budget_config_invalid", message: error.message }),
+    );
+    return json(500, { message: "サーバー設定に誤りがあります。" });
   }
   return json(503, { message: "処理を開始できませんでした。再試行してください。" });
 };
@@ -71,6 +78,8 @@ export const handleChatRequest = async (id: string, request: Request): Promise<R
   try {
     await loadHistory({ characterId: id, conversationId: parsed.data.conversationId });
     const { env } = await getPlatform();
+    // 設定ミスを ChatRoom の3回リトライまで持ち込まず、受付前に1回で落とす。
+    contextBudgetFromEnv(env);
     const room = env.CHAT_ROOMS.getByName(`${LOCAL_USER_ID}:${parsed.data.conversationId}`);
     const receipt = await room.submit({ ...parsed.data, characterId: id });
     if (receipt.status !== "accepted") {
