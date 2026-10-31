@@ -97,6 +97,53 @@ describe("資格情報検査の出力", () => {
     expectNoPartOf(output, value);
   });
 
+  // 実際に漏れる形は「短いが混ざったパスワード」「小文字と数字だけの長い鍵」「接頭辞つきの鍵」
+  // 「URL に埋めた資格情報」。どれも値を一文字も出さずに場所だけを示す。
+  // この試験ファイル自体も検査対象なので、行は「前・値・後」に分けて置き、実行時に繋ぐ。
+  it.each([
+    ["短いが英大小と数字が混ざったパスワード", "BASIC_AUTH_PASSWORD=", "Hunter2Pass", ""],
+    [
+      "小文字と数字だけの長い鍵",
+      'OPENROUTER_API_KEY="',
+      "abcdefghijklmnopqrstuvwxyz0123456789",
+      '"',
+    ],
+    ["AWS のアクセスキー", "aws = AKIA", "2Q7XK4M9PZ3T6WRB", ""],
+    ["Stripe の本番鍵", 'stripe("sk_live_', "4eC39HqLyjWDarjtT1zdp7dc", '")'],
+    ["GitHub の OAuth トークン", 't = "gho_', "Ab3dE6gH9jK2mN5pQ8sT1vW4yZ7bC0eF3hJ6", '"'],
+    [
+      "URL に埋めた資格情報",
+      "DATABASE_URL=postgres://admin:",
+      "Hunter2Pass",
+      "@db.internal:5432/app",
+    ],
+  ])("%s を見逃さず、値を出さない", (_label, before, value, after) => {
+    const { status, output } = runIn({ "config/leak.txt": `first\n${before}${value}${after}\n` });
+    expect(status).not.toBe(0);
+    expect(output).toContain("tracked:config/leak.txt:2");
+    expectNoPartOf(output, value);
+  });
+
+  // 誤検知が多いと検査ごと外されるので、鍵でない書き方は通すことも固定する。
+  it.each([
+    'export const API_KEY = "placeholder";',
+    "BASIC_AUTH_PASSWORD=<手元用>",
+    "PASSWORD: z.string().min(8),",
+    "const SESSION_TOKEN = crypto.randomUUID();",
+    "SECRET_KEY=${SECRET_KEY}",
+    'const CACHE_KEY = "chat-history-v2";',
+    'const STORAGE_KEY = "character-chat-v2-staging-history";',
+    "DEFAULT_MAX_TOKEN = 4096",
+    'BASIC_AUTH_PASSWORD="password"',
+    "OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY",
+    "curl -u user:pass https://example.com/",
+    "https://user:${PASSWORD}@db.internal/app",
+  ])("鍵でない書き方は通す: %s", (line) => {
+    const { status, output } = runIn({ "src/config.ts": `${line}\n` });
+    expect(output).toContain("資格情報検査: OK");
+    expect(status).toBe(0);
+  });
+
   it("形の決まった鍵も値を出さずに行で示す", () => {
     const value = `sk-or-v1-${"a1b2c3d4".repeat(8)}`;
     const { status, output } = runIn({ "src/leak.ts": `\nconst k = "${value}";\n` });

@@ -10,17 +10,15 @@ const root = fileURLToPath(new URL("../../../", import.meta.url));
 const failures = [];
 const fail = (message) => failures.push(message);
 
-const git = (args, okCodes = [0]) => {
-  const result = execFileSync("git", args, {
+// 終了コードが 0 以外だと execFileSync が投げる。終了コードを見たい呼び出しは runAllowFail を使う。
+const git = (args) =>
+  execFileSync("git", args, {
     cwd: root,
     encoding: "utf8",
     stdio: ["ignore", "pipe", "pipe"],
     shell: false,
     env: process.env,
-    // execFileSync throws on non-zero; capture via try/catch instead
   });
-  return result;
-};
 
 const runAllowFail = (args) => {
   try {
@@ -62,22 +60,35 @@ const BODY_PATTERNS = [
   [/ghp_[A-Za-z0-9]{30,}/g, "GitHub PAT"],
   [/github_pat_[A-Za-z0-9_]{30,}/g, "GitHub PAT"],
   [/AIza[0-9A-Za-z_-]{35}/g, "Google API 鍵"],
+  [/\b(?:AKIA|ASIA)[0-9A-Z]{16}\b/g, "AWS アクセスキー"],
+  [/\b[sr]k_live_[0-9A-Za-z]{20,}/g, "Stripe 本番鍵"],
+  [/\bgh[ousr]_[A-Za-z0-9]{30,}/g, "GitHub トークン"],
 ];
-// KEY=値 形式は「明らかに鍵らしい形」だけを拾う（誤検知で検査自体を無効化せんため）:
-// 値が引用符 or 裸のリテラルで 20 字以上・英数系のみ・英小文字+英大文字+数字の 3 種を含む。
+// KEY=値 形式は「明らかに鍵らしい形」だけを拾う（誤検知で検査自体を無効化せんため）。
+// 人が決めるパスワードは短いので 8 字から見る。短い値は英小文字+英大文字+数字の 3 種が揃う時だけ、
+// 生成された鍵は小文字と数字だけのことが多いので、長い値は区切りの少ない英字+数字で拾う。
 // `process.env.X` 等の参照・`"images/..."` のようなパス・UUID・テスト用語は弾く。
 // JSON の `"NAME": "値"` も拾えるよう、名前の後ろの引用符を許す。
 const ASSIGNMENT =
-  /\b([A-Z][A-Z0-9_]{3,}(?:KEY|TOKEN|SECRET|PASSWORD|PASS))\b["']?\s*[:=]\s*["']?([^\s"'\n,}]{20,})/g;
+  /\b([A-Z][A-Z0-9_]{3,}(?:KEY|TOKEN|SECRET|PASSWORD|PASS))\b["']?\s*[:=]\s*["']?([^\s"'\n,}]{8,})/g;
 const PLACEHOLDER =
   /placeholder|change[-_]?me|xxx+|example|dummy|codex-local|your[-_]|<|\$\{|\.\.\.|test[-_]/i;
 const NOT_SECRET_VALUE = /^(?:process\.|import\.|env\.|node:|[@./$]|.*\/)/;
 const UUID_LIKE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const hasMixedCase = (value) => /[a-z]/.test(value) && /[A-Z]/.test(value) && /[0-9]/.test(value);
+// `chat-history-v2` のような区切りつきの名前を鍵と取り違えんよう、長い値は区切りが少なく
+// 数字が混ざって詰まったものだけを鍵とみなす。
+const looksGeneratedKey = (value) =>
+  value.length >= 24 &&
+  /[A-Za-z]/.test(value) &&
+  /[0-9]/.test(value) &&
+  (value.match(/[-_.]/g) ?? []).length <= 2;
 const looksTokenLike = (value) =>
-  /^[A-Za-z0-9_\-+.]+$/.test(value) &&
-  /[a-z]/.test(value) &&
-  /[A-Z]/.test(value) &&
-  /[0-9]/.test(value);
+  /^[A-Za-z0-9_\-+.]+$/.test(value) && (hasMixedCase(value) || looksGeneratedKey(value));
+// `scheme://ユーザー:パスワード@ホスト` の形。`${...}` やプレースホルダは弾く。
+const URL_CREDENTIAL = /\b[a-z][a-z0-9+.-]*:\/\/[^\s:/@"'<>]+:([^\s/@"'<>]{6,})@[^\s/"'<>]/gi;
+const looksLikePassword = (value) =>
+  !PLACEHOLDER.test(value) && /[A-Za-z]/.test(value) && (/[0-9]/.test(value) || value.length >= 16);
 const PRIVATE_KEY = /-----BEGIN [A-Z ]*PRIVATE KEY-----([\s\S]*?)-----END/m;
 
 // 検査結果は CI の公開ログに出るので、見つけた値は一文字も出さず「どこの何」だけを示す。
@@ -100,6 +111,13 @@ const scan = (path, text) => {
       looksTokenLike(value)
     ) {
       fail(`秘密変数への代入らしき行: ${path}:${lineOf(text, match.index)} (${match[1]})`);
+    }
+  }
+  URL_CREDENTIAL.lastIndex = 0;
+  let url;
+  while ((url = URL_CREDENTIAL.exec(text))) {
+    if (looksLikePassword(url[1])) {
+      fail(`URL に埋めた資格情報らしき文字列: ${path}:${lineOf(text, url.index)}`);
     }
   }
   PRIVATE_KEY.lastIndex = 0;
