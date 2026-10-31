@@ -6,7 +6,7 @@ import { conversationTable } from "../../../src/schema/conversation";
 import { messageTable } from "../../../src/schema/message";
 import { userTable } from "../../../src/schema/user";
 
-import { migrateLegacyConversations } from "./legacy-migration";
+import { LegacyMigrationError, migrateLegacyConversations } from "./legacy-migration";
 import { openLocalD1, type LocalD1 } from "./test/local-d1";
 import { createD1TurnStore, readOwnedImageKey, readDisplayHistory } from "./turn-store";
 import {
@@ -124,7 +124,7 @@ describe("legacy migration", () => {
       .where(eq(messageTable.id, `${ids[0]}-0`));
     await expect(
       migrateLegacyConversations(local.db, { sourceUserId: owner, targetUserId: owner }),
-    ).rejects.toThrow("changed");
+    ).rejects.toThrow("元で変わっている");
     const [unchanged] = await local.db
       .select()
       .from(v2MessageTable)
@@ -220,7 +220,7 @@ describe("legacy migration の再実行で元から消えた発言", () => {
     const { conversationId, options } = await seed(5);
     await migrateLegacyConversations(local.db, options);
     await local.db.delete(messageTable).where(eq(messageTable.id, `${conversationId}-m5`));
-    await expect(migrateLegacyConversations(local.db, options)).rejects.toThrow("missing");
+    await expect(migrateLegacyConversations(local.db, options)).rejects.toThrow("元から消えている");
     expect(await v2Contents(conversationId)).toEqual([1, 2, 3, 4, 5].map((n) => `発言 ${n}`));
   });
 
@@ -228,7 +228,63 @@ describe("legacy migration の再実行で元から消えた発言", () => {
     const { conversationId, options } = await seed(2);
     await migrateLegacyConversations(local.db, options);
     await local.db.delete(messageTable).where(eq(messageTable.conversationId, conversationId));
-    await expect(migrateLegacyConversations(local.db, options)).rejects.toThrow("missing");
+    await expect(migrateLegacyConversations(local.db, options)).rejects.toThrow("元から消えている");
+  });
+
+  // 1 件の要確認で後ろの会話まで止めると、どの会話を見ればよいかも分からんまま全体が進まん。
+  it("要確認の会話は飛ばして会話IDと理由を返し、他の会話は移行する", async () => {
+    const bad = await seed(2);
+    const goodId = `${bad.seedOwner}-d`;
+    await local.db.insert(conversationTable).values({
+      id: goodId,
+      userId: bad.seedOwner,
+      characterId,
+      title: "旧会話",
+      createdAt: 1,
+      updatedAt: 1,
+    });
+    await local.db.insert(messageTable).values({
+      id: `${goodId}-m1`,
+      conversationId: goodId,
+      userId: bad.seedOwner,
+      characterId,
+      role: "user",
+      content: "無事な発言",
+      createdAt: 1,
+    });
+    await local.db.insert(messageTable).values({
+      id: `${bad.conversationId}-sys`,
+      conversationId: bad.conversationId,
+      userId: bad.seedOwner,
+      characterId,
+      role: "system",
+      content: "旧アプリの指示",
+      createdAt: 9,
+    });
+
+    try {
+      const failure = await migrateLegacyConversations(local.db, bad.options).catch(
+        (error: unknown) => error,
+      );
+      expect(failure).toBeInstanceOf(LegacyMigrationError);
+      const { failures, result } = failure as LegacyMigrationError;
+      expect(failures).toEqual([
+        { conversationId: bad.conversationId, reason: expect.stringContaining("system") },
+      ]);
+      expect((failure as Error).message).toContain(bad.conversationId);
+      expect(result).toMatchObject({
+        conversations: 2,
+        insertedConversations: 1,
+        insertedMessages: 1,
+      });
+      expect(await v2Contents(goodId)).toEqual(["無事な発言"]);
+      expect(await v2Contents(bad.conversationId)).toEqual([]);
+    } finally {
+      await local.db.delete(v2MessageTable).where(eq(v2MessageTable.conversationId, goodId));
+      await local.db.delete(v2ConversationTable).where(eq(v2ConversationTable.id, goodId));
+      await local.db.delete(messageTable).where(eq(messageTable.conversationId, goodId));
+      await local.db.delete(conversationTable).where(eq(conversationTable.id, goodId));
+    }
   });
 
   it("移行後にv2で続けたターンは元に無くても欠落扱いしない", async () => {
@@ -264,6 +320,6 @@ describe("legacy migration の再実行で元から消えた発言", () => {
     });
 
     await local.db.delete(messageTable).where(eq(messageTable.id, `${conversationId}-m3`));
-    await expect(migrateLegacyConversations(local.db, options)).rejects.toThrow("missing");
+    await expect(migrateLegacyConversations(local.db, options)).rejects.toThrow("元から消えている");
   });
 });

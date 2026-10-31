@@ -30,7 +30,7 @@ const validateSource = (messages: SourceMessage[], conversation: SourceConversat
         message.characterId !== conversation.characterId,
     )
   ) {
-    throw new Error("Legacy conversation requires review before migration");
+    throw new Error("移行前の確認が必要: system 役の発言か、会話と別の利用者・キャラの発言がある");
   }
 };
 
@@ -45,7 +45,7 @@ const validateDestination = (
       existing.characterId !== conversation.characterId ||
       existing.promptVersion !== "legacy-import-v1")
   ) {
-    throw new Error("Migration destination conflicts with an existing conversation");
+    throw new Error("移行先に同じIDで別の利用者・キャラ・版の会話がある");
   }
 };
 
@@ -56,7 +56,7 @@ const validateExistingMessage = (previous: StoredMessage, message: SourceMessage
     previous.content !== message.content ||
     previous.createdAt !== message.createdAt
   ) {
-    throw new Error("Previously migrated message changed; review required");
+    throw new Error("移行済みの発言が元で変わっている（要確認）");
   }
 };
 
@@ -69,7 +69,7 @@ const validateNothingMissing = (
 ) => {
   const sourceIds = new Set(source.map((message) => message.id));
   if (destination.some((message) => !v2Turns.has(message.turn) && !sourceIds.has(message.id))) {
-    throw new Error("Previously migrated message missing from source; review required");
+    throw new Error("移行済みの発言が元から消えている（要確認）");
   }
 };
 
@@ -91,8 +91,10 @@ const planMessages = (
       validateExistingMessage(previous, message, turn);
       continue;
     }
-    if (turns.has(turn)) throw new Error("New legacy messages overlap a v2 turn; review required");
-    if (message.role === "system") throw new Error("Unsupported message role");
+    if (turns.has(turn)) {
+      throw new Error("新しい旧発言の番号が v2 で続けたターンと重なる（要確認）");
+    }
+    if (message.role === "system") throw new Error("system 役の発言は移行できない");
     missing.push({
       id: message.id,
       role: message.role,
@@ -170,28 +172,67 @@ const migrateConversation = async (
   };
 };
 
+export type LegacyMigrationResult = {
+  conversations: number;
+  messages: number;
+  insertedConversations: number;
+  insertedMessages: number;
+};
+
+export type LegacyMigrationFailure = { conversationId: string; reason: string };
+
+// 要確認の会話が 1 件でもあれば成功扱いにはせんが、どの会話を見ればよいかと、他の会話を
+// 移行した結果は返す。
+export class LegacyMigrationError extends Error {
+  readonly failures: LegacyMigrationFailure[];
+  readonly result: LegacyMigrationResult;
+  constructor(failures: LegacyMigrationFailure[], result: LegacyMigrationResult) {
+    super(
+      `確認が必要な旧会話が ${failures.length} 件ある: ${failures
+        .map((failure) => `${failure.conversationId}（${failure.reason}）`)
+        .join("、")}`,
+    );
+    this.name = "LegacyMigrationError";
+    this.failures = failures;
+    this.result = result;
+  }
+}
+
 // 旧表は監査・画像・枝分かれ・記憶の参照元として保存する。本文もIDも書き換えない。
 // 会話単位のbatchで確定するため、中断後は既存の行を照合して安全に続きから進められる。
-export const migrateLegacyConversations = async (db: V2Db, options: LegacyMigrationOptions) => {
+// 要確認の会話はその会話だけ書かずに飛ばす。会話どうしは独立しとるので、後ろの会話まで止める理由が無い。
+export const migrateLegacyConversations = async (
+  db: V2Db,
+  options: LegacyMigrationOptions,
+): Promise<LegacyMigrationResult> => {
   const conversations = await db
     .select()
     .from(conversationTable)
     .where(eq(conversationTable.userId, options.sourceUserId))
     .orderBy(asc(conversationTable.id));
-  if (!conversations.length) throw new Error("No legacy conversations for the selected owner");
-  const result = {
+  if (!conversations.length) throw new Error("指定した利用者の旧会話が無い");
+  const result: LegacyMigrationResult = {
     conversations: conversations.length,
     messages: 0,
     insertedConversations: 0,
     insertedMessages: 0,
   };
+  const failures: LegacyMigrationFailure[] = [];
   for (const [index, conversation] of conversations.entries()) {
-    const current = await migrateConversation(db, conversation, options.targetUserId);
-    result.messages += current.messages;
-    result.insertedConversations += current.insertedConversations;
-    result.insertedMessages += current.insertedMessages;
+    try {
+      const current = await migrateConversation(db, conversation, options.targetUserId);
+      result.messages += current.messages;
+      result.insertedConversations += current.insertedConversations;
+      result.insertedMessages += current.insertedMessages;
+    } catch (caught) {
+      failures.push({
+        conversationId: conversation.id,
+        reason: caught instanceof Error ? caught.message : String(caught),
+      });
+    }
     options.afterConversation?.(index + 1);
   }
+  if (failures.length > 0) throw new LegacyMigrationError(failures, result);
   return result;
 };
 

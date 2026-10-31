@@ -1,6 +1,11 @@
 import { parseArgs } from "node:util";
 
-import { createDb, conversationTable, migrateLegacyConversations } from "@v2/db";
+import {
+  createDb,
+  conversationTable,
+  LegacyMigrationError,
+  migrateLegacyConversations,
+} from "@v2/db";
 
 import { createPlatform } from "./index";
 
@@ -19,7 +24,7 @@ try {
   const sourceUserId = values["source-user"] ?? (users.length === 1 ? users[0].id : undefined);
   if (!sourceUserId || !values["target-user"]) {
     throw new Error(
-      "Specify source-user and target-user; multiple owners are never implicitly merged",
+      "--source-user と --target-user を指定してください（複数の利用者を自動で統合しません）",
     );
   }
   if (!values.apply) {
@@ -27,11 +32,20 @@ try {
       `${JSON.stringify({ mode: "inspect", owners: users.length, ready: true })}\n`,
     );
   } else {
-    const result = await migrateLegacyConversations(db, {
+    const outcome = await migrateLegacyConversations(db, {
       sourceUserId,
       targetUserId: values["target-user"],
+    }).catch((error: unknown) => {
+      if (error instanceof LegacyMigrationError) return error;
+      throw error;
     });
-    process.stdout.write(`${JSON.stringify({ mode: "local-apply", ...result })}\n`);
+    // 移行できた会話の件数と、確認が要る会話の一覧を両方残して失敗で終える。
+    const report =
+      outcome instanceof LegacyMigrationError
+        ? { ...outcome.result, failures: outcome.failures }
+        : outcome;
+    process.stdout.write(`${JSON.stringify({ mode: "local-apply", ...report })}\n`);
+    if (outcome instanceof LegacyMigrationError) process.exitCode = 1;
   }
 } finally {
   await platform.dispose();
