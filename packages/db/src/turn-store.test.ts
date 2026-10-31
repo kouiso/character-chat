@@ -7,7 +7,13 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { characterTable } from "../../../src/schema/character";
 
 import { openLocalD1, type LocalD1 } from "./test/local-d1";
-import { createD1TurnStore, readD1StoredTurn, type TurnEvent, type TurnStore } from "./turn-store";
+import {
+  createD1TurnStore,
+  readD1StoredTurn,
+  readDisplayHistory,
+  type TurnEvent,
+  type TurnStore,
+} from "./turn-store";
 import {
   v2ChunkTable,
   v2ConversationTable,
@@ -391,6 +397,206 @@ describe("createD1TurnStore", () => {
     expect(before.ledger).toEqual(ledgerAt(1));
     expect((await store.load(conversationId)).history).toHaveLength(4);
   });
+  // engine の persist は本文ゼロの失敗でも saveTurn する（締切で 1 字も来ん・全塊が判定で落ちた）。
+  const deadTurnEvents = (turn: number, chunkText: string | null): TurnEvent[] => [
+    {
+      type: "generation",
+      generationId: crypto.randomUUID(),
+      model: "fake-list",
+      promptVersion: "v0001",
+      systemPrompt: "system",
+      request: [{ role: "user", content: `user ${turn}` }],
+      rawOutput: "",
+      usage: null,
+      latencyMs: 5,
+      status: "aborted",
+      truncated: "deadline",
+    },
+    ...(chunkText === null
+      ? []
+      : [
+          {
+            type: "chunk" as const,
+            seq: 0,
+            text: chunkText,
+            judge: OK_JUDGE,
+            attempt: 1,
+            preExtend: true,
+          },
+        ]),
+  ];
+
+  it.each([
+    ["空", null],
+    ["空白だけ", " \n\t "],
+  ])(
+    "末尾ターンの応答が%sなら未保存として扱い、次の保存で同じ turn を置き換える",
+    async (_label, chunkText) => {
+      const conversationId = newConversationId();
+      await store.saveTurn({
+        conversationId,
+        turn: 1,
+        userText: "user 1",
+        events: chunkEvents(1),
+        ledger: ledgerAt(1),
+      });
+      await store.saveTurn({
+        conversationId,
+        turn: 2,
+        userText: "失敗した質問",
+        events: deadTurnEvents(2, chunkText),
+        ledger: ledgerAt(2),
+      });
+
+      const afterFailure = await store.load(conversationId);
+      expect(afterFailure.history).toEqual([
+        { role: "user", content: "user 1" },
+        { role: "assistant", content: "<action>動作 1</action>\n\n<dialogue>台詞 1</dialogue>" },
+      ]);
+      expect(afterFailure.turn).toBe(2);
+      // 失敗ターンの ledger_update 結果を次の生成へ持ち越さん。
+      expect(afterFailure.ledger).toEqual(ledgerAt(1));
+
+      await store.saveTurn({
+        conversationId,
+        turn: afterFailure.turn,
+        userText: "送り直した質問",
+        events: chunkEvents(2),
+        ledger: ledgerAt(2),
+      });
+      const resent = await store.load(conversationId);
+      expect(resent.history.map((message) => message.content)).toEqual([
+        "user 1",
+        "<action>動作 1</action>\n\n<dialogue>台詞 1</dialogue>",
+        "送り直した質問",
+        "<action>動作 2</action>\n\n<dialogue>台詞 2</dialogue>",
+      ]);
+      expect(resent.turn).toBe(3);
+    },
+  );
+
+  it("最初のターンが本文ゼロなら空履歴・初期 ledger・turn 1 に戻る", async () => {
+    const conversationId = newConversationId();
+    await store.saveTurn({
+      conversationId,
+      turn: 1,
+      userText: "失敗した最初の質問",
+      events: deadTurnEvents(1, null),
+      ledger: ledgerAt(1),
+    });
+    const loaded = await store.load(conversationId);
+    expect(loaded.history).toEqual([]);
+    expect(loaded.turn).toBe(1);
+    expect(loaded.ledger.lastEvents).toEqual([]);
+  });
+
+  // 修正前の画面は失敗後に次の番号へ進んだので、本文ゼロのターンが続けて残っとる会話がある。
+  it("本文ゼロのターンが続いても、通常の読込と再試行用の読込が同じ turn と履歴を返す", async () => {
+    const conversationId = newConversationId();
+    await store.saveTurn({
+      conversationId,
+      turn: 1,
+      userText: "user 1",
+      events: chunkEvents(1),
+      ledger: ledgerAt(1),
+    });
+    for (const turn of [2, 3]) {
+      await store.saveTurn({
+        conversationId,
+        turn,
+        userText: `失敗した質問 ${turn}`,
+        events: deadTurnEvents(turn, null),
+        ledger: ledgerAt(turn),
+      });
+    }
+    const liveHistory = [
+      { role: "user", content: "user 1" },
+      { role: "assistant", content: "<action>動作 1</action>\n\n<dialogue>台詞 1</dialogue>" },
+    ];
+
+    const loaded = await store.load(conversationId);
+    expect(loaded.history).toEqual(liveHistory);
+    expect(loaded.turn).toBe(3);
+    expect(loaded.ledger).toEqual(ledgerAt(1));
+
+    // ChatRoom は loaded.turn を job.turn に固定し、engine はその番号を beforeTurn にして読む。
+    const retryStore = createD1TurnStore(local.db, {
+      userId: "vitest",
+      characterId,
+      promptVersion: "v0001",
+      beforeTurn: loaded.turn,
+    });
+    const retried = await retryStore.load(conversationId);
+    expect(retried.history).toEqual(liveHistory);
+    expect(retried.turn).toBe(loaded.turn);
+    expect(retried.ledger).toEqual(ledgerAt(1));
+
+    await store.saveTurn({
+      conversationId,
+      turn: retried.turn,
+      userText: "送り直した質問",
+      events: chunkEvents(3),
+      ledger: ledgerAt(3),
+    });
+    const resent = await store.load(conversationId);
+    expect(resent.history.map((message) => message.content)).toEqual([
+      "user 1",
+      "<action>動作 1</action>\n\n<dialogue>台詞 1</dialogue>",
+      "送り直した質問",
+      "<action>動作 3</action>\n\n<dialogue>台詞 3</dialogue>",
+    ]);
+    expect(resent.turn).toBe(4);
+    expect(resent.ledger).toEqual(ledgerAt(3));
+  });
+
+  // 画面の履歴と次の番号を別々の読込から作ると、失敗ターンが画面に残ったまま次の送信で上書きされる。
+  it("表示用の履歴は load と同じ失敗ターンを外し、同じ次の番号を返す", async () => {
+    const conversationId = newConversationId();
+    await store.saveTurn({
+      conversationId,
+      turn: 1,
+      userText: "user 1",
+      events: chunkEvents(1),
+      ledger: ledgerAt(1),
+    });
+    for (const turn of [2, 3]) {
+      await store.saveTurn({
+        conversationId,
+        turn,
+        userText: `失敗した質問 ${turn}`,
+        events: deadTurnEvents(turn, turn === 2 ? null : " "),
+        ledger: ledgerAt(turn),
+      });
+    }
+    const loaded = await store.load(conversationId);
+    const display = await readDisplayHistory(
+      local.db,
+      { userId: "vitest", characterId, promptVersion: "v0001" },
+      conversationId,
+    );
+    expect(display.turn).toBe(loaded.turn);
+    expect(display.history.map(({ role, content }) => ({ role, content }))).toEqual(loaded.history);
+    expect(display.history.map((row) => row.content)).not.toContain("失敗した質問 3");
+  });
+
+  it("末尾ターンの応答が 1 字でもあれば保存済みとして残す", async () => {
+    const conversationId = newConversationId();
+    await store.saveTurn({
+      conversationId,
+      turn: 1,
+      userText: "短い返事の質問",
+      events: deadTurnEvents(1, "…"),
+      ledger: ledgerAt(1),
+    });
+    const loaded = await store.load(conversationId);
+    expect(loaded.history).toEqual([
+      { role: "user", content: "短い返事の質問" },
+      { role: "assistant", content: "…" },
+    ]);
+    expect(loaded.turn).toBe(2);
+    expect(loaded.ledger).toEqual(ledgerAt(1));
+  });
+
   it("連続する既存発言があっても復旧対象をターン番号で特定する", async () => {
     const conversationId = newConversationId();
     await store.saveTurn({
