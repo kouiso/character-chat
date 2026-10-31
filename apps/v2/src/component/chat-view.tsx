@@ -6,6 +6,7 @@ import {
   readChatEvents,
   readChatSession,
   writeChatSession,
+  writePendingTurn,
   type ChatBubble,
   type PendingTurn,
 } from "../lib/chat-session";
@@ -101,11 +102,7 @@ export const ChatView = ({ characterId, characterName, initialConversationId }: 
       if (!completed) throw new Error("接続が切れました。再接続してください。");
       const history = await loadChatHistory(turn.characterId, turn.conversationId, signal);
       if (signal.aborted) return;
-      writeChatSession(turn.characterId, {
-        version: 1,
-        conversationId: turn.conversationId,
-        pending: null,
-      });
+      writePendingTurn(turn.characterId, turn.conversationId, null);
       nextTurn.current = history.nextTurn;
       setBubbles(history.bubbles);
       setPending(null);
@@ -132,11 +129,7 @@ export const ChatView = ({ characterId, characterName, initialConversationId }: 
         );
         if (abort.signal.aborted) return;
         const restoreInput = history.nextTurn <= pending.baseTurn;
-        writeChatSession(pending.characterId, {
-          version: 1,
-          conversationId: pending.conversationId,
-          pending: null,
-        });
+        writePendingTurn(pending.characterId, pending.conversationId, null);
         if (abort.signal.aborted) return;
         nextTurn.current = history.nextTurn;
         setBubbles(history.bubbles);
@@ -158,11 +151,7 @@ export const ChatView = ({ characterId, characterName, initialConversationId }: 
     const abort = new AbortController();
     controller.current = abort;
     const restore = async () => {
-      const stored = readChatSession(characterId);
-      const saved =
-        initialConversationId && stored.conversationId !== initialConversationId
-          ? { version: 1 as const, conversationId: initialConversationId, pending: null }
-          : stored;
+      const saved = readChatSession(characterId, initialConversationId);
       conversationId.current = saved.conversationId;
       setPending(saved.pending);
       if (!saved.conversationId) return;
