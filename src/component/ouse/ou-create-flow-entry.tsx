@@ -59,12 +59,9 @@ export const OuCreateFlowEntry = ({
 }: OuCreateFlowEntryProps) => {
   const { createCharacterEntry } = useCharacterQuery();
 
-  const handleSave = (generated: GeneratedCharacter) => {
-    void (async () => {
-      const created = await createCharacterEntry(generatedToInput(generated));
-      onOpenChange(false);
-      onCreated?.(created.id);
-    })();
+  const handleSave = async (generated: GeneratedCharacter) => {
+    const created = await createCharacterEntry(generatedToInput(generated));
+    onCreated?.(created.id);
   };
 
   return (

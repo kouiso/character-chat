@@ -8,6 +8,8 @@ import { ctaPrimaryClass, goldLabelClass, wizardInputClass } from "./wizard-step
 
 interface OuCreateScenarioProps {
   onGenerate: (input: { situation: string; details: string }) => void;
+  initialText?: string;
+  onTextChange?: (text: string) => void;
 }
 
 const extractName = (text: string): string | null => {
@@ -27,8 +29,12 @@ const extractScene = (text: string): string | null =>
     .map((line) => line.trim())
     .find((line) => line.length > 10) ?? null;
 
-export const OuCreateScenario = ({ onGenerate }: OuCreateScenarioProps) => {
-  const [text, setText] = useState("");
+export const OuCreateScenario = ({
+  onGenerate,
+  initialText = "",
+  onTextChange,
+}: OuCreateScenarioProps) => {
+  const [text, setText] = useState(initialText);
   const read = useMemo(() => ({ name: extractName(text), scene: extractScene(text) }), [text]);
   const hasText = text.trim().length > 0;
 
@@ -38,7 +44,10 @@ export const OuCreateScenario = ({ onGenerate }: OuCreateScenarioProps) => {
         <p className={goldLabelClass}>展開したい物語・設定を貼り付け</p>
         <textarea
           value={text}
-          onChange={(e) => setText(e.target.value)}
+          onChange={(e) => {
+            setText(e.target.value);
+            onTextChange?.(e.target.value);
+          }}
           placeholder="週に二度、彼女は家庭教師として俺の部屋に来る。教科書よりも近い距離。消しゴムを取る指が、今日はやけにゆっくりで——「……ここ、まちがえてる」と囁く声が、いつもより低い。"
           className={cn(wizardInputClass, "min-h-[184px] resize-y font-narrative leading-7")}
           maxLength={2000}

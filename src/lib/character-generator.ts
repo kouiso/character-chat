@@ -108,7 +108,7 @@ export interface GenerateCharacterInput {
   feedback?: string;
 }
 
-const generatedCharacterSchema = z.object({
+export const generatedCharacterSchema = z.object({
   name: z.string(),
   characterGender: z.enum(["female", "male", "other"]).optional().default("female"),
   targetUserGender: z.enum(["male", "female", "any"]).optional().default("male"),
