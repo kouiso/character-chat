@@ -71,6 +71,14 @@ export default defineConfig([
   },
 
   {
+    // Durable Object の障害診断は Workers の標準ログへ構造化して出力する。
+    files: ["src/server/chat-room.ts"],
+    rules: {
+      "no-console": "off",
+    },
+  },
+
+  {
     // TanStack Router のファイルベースルートは loader 等の named export を画面と同居させる
     files: ["src/routes/**"],
     rules: {
