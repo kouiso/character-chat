@@ -182,4 +182,75 @@ describe("ChatView", () => {
     fireEvent.click(screen.getByRole("button", { name: "入力に戻す" }));
     await waitFor(() => expect(readChatSession("a").pending).toBeNull());
   });
+  const TERMINAL_ERROR =
+    'event: error\ndata: {"message":"返信を完了できませんでした。入力に戻してください。","terminal":true}\n\n';
+  const PRIOR = [
+    { role: "user", content: "前の質問" },
+    { role: "assistant", content: "前の応答" },
+  ];
+  const renderTerminalFailure = (
+    history: () => Response | Promise<Response>,
+    baseTurn = 2,
+  ): void => {
+    const pending = {
+      characterId: "a",
+      conversationId: "conversation-a",
+      requestId: "request-old",
+      text: "失敗した質問",
+      baseTurn,
+    };
+    writeChatSession("a", { version: 1, conversationId: "conversation-a", pending });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (_url: RequestInfo | URL, init?: RequestInit) =>
+        init?.method === "POST" ? new Response(TERMINAL_ERROR) : history(),
+      ),
+    );
+    render(<ChatView characterId="a" characterName="案内役" />);
+  };
+
+  it("最終失敗の次ターン番号が送信時と同じなら入力へ戻し、失敗ターンを履歴に残さない", async () => {
+    renderTerminalFailure(() => Response.json({ turn: 2, history: PRIOR }));
+    fireEvent.click(await screen.findByRole("button", { name: "入力に戻す" }));
+    await waitFor(() => expect(screen.getByRole("textbox")).toHaveValue("失敗した質問"));
+    expect(readChatSession("a").pending).toBeNull();
+    expect(screen.getByText("前の応答")).toBeInTheDocument();
+    expect(screen.queryByText("失敗した質問")).not.toBeInTheDocument();
+    expect(document.querySelectorAll(".v2-bubble")).toHaveLength(2);
+  });
+
+  it("応答付きで保存済みなら入力へ戻さず保存済みの応答を残す", async () => {
+    renderTerminalFailure(() =>
+      Response.json({
+        turn: 3,
+        history: [
+          ...PRIOR,
+          { role: "user", content: "失敗した質問" },
+          { role: "assistant", content: "届いていた応答" },
+        ],
+      }),
+    );
+    fireEvent.click(await screen.findByRole("button", { name: "入力に戻す" }));
+    await screen.findByText("届いていた応答");
+    await waitFor(() => expect(readChatSession("a").pending).toBeNull());
+    expect(screen.getByRole("textbox")).toHaveValue("");
+  });
+
+  it("入力へ戻す途中で履歴を読めなければ保留を残し、再度押せば戻せる", async () => {
+    let historyCalls = 0;
+    renderTerminalFailure(() => {
+      historyCalls += 1;
+      // 1 回目は起動時の復元、2 回目が「入力に戻す」の読み込み。
+      if (historyCalls === 2) return new Response("", { status: 500 });
+      return Response.json({ turn: 2, history: PRIOR });
+    });
+    fireEvent.click(await screen.findByRole("button", { name: "入力に戻す" }));
+    await screen.findByText("入力を戻せませんでした。再試行してください。");
+    expect(readChatSession("a").pending?.requestId).toBe("request-old");
+    expect(screen.getByRole("textbox")).toHaveValue("");
+
+    fireEvent.click(screen.getByRole("button", { name: "入力に戻す" }));
+    await waitFor(() => expect(screen.getByRole("textbox")).toHaveValue("失敗した質問"));
+    expect(readChatSession("a").pending).toBeNull();
+  });
 });

@@ -182,6 +182,19 @@ const parseLedger = (conversationId: string, turn: number, ledgerJson: string): 
 // role の並びは 'assistant' < 'user' の辞書順やと逆になるので、明示的に user を先にする。
 const userFirst = sql`case ${v2MessageTable.role} when 'user' then 0 else 1 end`;
 
+// engine の persist は本文ゼロで終わった生成（締切で 1 字も来ん・全塊が判定で落ちた）も保存する。
+// 末尾のそれを保存済みとして返すと、利用者の送り直しが次の turn に積まれ、model が空の応答と
+// 同じ質問の重複を読む。未保存扱いにすれば次の saveTurn が同じ turn を置き換え、
+// 画面側も「次ターン番号 = 送信時の番号」で入力を戻せる。
+const isDeadTurn = (rows: { role: "user" | "assistant"; content: string }[]): boolean => {
+  const assistants = rows.filter((row) => row.role === "assistant");
+  return (
+    rows.some((row) => row.role === "user") &&
+    assistants.length > 0 &&
+    assistants.every((row) => row.content.trim() === "")
+  );
+};
+
 /**
  * v2_* テーブルに保存する TurnStore。
  * saveTurn は 1 回の D1 batch（トランザクション）で書くので、途中失敗で半端な行は残らん。
@@ -227,21 +240,21 @@ export const createD1TurnStore = (db: V2Db, opts: D1TurnStoreOptions): TurnStore
           ),
         )
         .orderBy(desc(v2LedgerTable.turn))
-        .limit(1),
+        .limit(2),
     ]);
     if (conversationRows.length === 0) {
       return { history: [], ledger: emptyLedger(), turn: 1 };
     }
-    const history: HistoryMessage[] = messageRows.map((row) => ({
-      role: row.role,
-      content: row.content,
-    }));
     const maxTurn = messageRows.reduce((max, row) => Math.max(max, row.turn), 0);
-    const latestLedger = ledgerRows[0];
+    const deadTurn = isDeadTurn(messageRows.filter((row) => row.turn === maxTurn));
+    const history: HistoryMessage[] = messageRows
+      .filter((row) => !deadTurn || row.turn < maxTurn)
+      .map((row) => ({ role: row.role, content: row.content }));
+    const latestLedger = deadTurn ? ledgerRows.find((row) => row.turn < maxTurn) : ledgerRows[0];
     const ledger = latestLedger
       ? parseLedger(conversationId, latestLedger.turn, latestLedger.ledgerJson)
       : emptyLedger();
-    return { history, ledger, turn: maxTurn + 1 };
+    return { history, ledger, turn: deadTurn ? maxTurn : maxTurn + 1 };
   },
 
   saveTurn: async (input) => {
