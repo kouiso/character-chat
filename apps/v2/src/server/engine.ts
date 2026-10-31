@@ -118,15 +118,15 @@ export type ConversationHistory = {
   history: (HistoryMessage & { imageUrl?: string })[];
 };
 
-// GET /api/chat/:id/history 用。D1 store の load をそのまま返す（再起動をまたいだ永続化の確認口）。
+// GET /api/chat/:id/history と ChatRoom の job.turn の両方がここを読む。履歴と次の番号は
+// readDisplayHistory の 1 回の読込から作り、失敗ターンの扱いを engine の load と揃える。
 export const loadHistory = async (input: {
   characterId: string;
   conversationId: string;
 }): Promise<ConversationHistory> => {
   await loadValidCharacter(input.characterId);
   const db = await getDb();
-  const loaded = await createStore(db, input.characterId).load(input.conversationId);
-  const rows = await readDisplayHistory(
+  const display = await readDisplayHistory(
     db,
     {
       userId: LOCAL_USER_ID,
@@ -137,8 +137,8 @@ export const loadHistory = async (input: {
   );
   return {
     conversationId: input.conversationId,
-    turn: loaded.turn,
-    history: rows.map((row) => ({
+    turn: display.turn,
+    history: display.history.map((row) => ({
       role: row.role,
       content: row.content,
       ...(row.imageKey ? { imageUrl: `/api/media/${encodeURIComponent(row.id)}` } : {}),

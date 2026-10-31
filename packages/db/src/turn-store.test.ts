@@ -7,7 +7,13 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { characterTable } from "../../../src/schema/character";
 
 import { openLocalD1, type LocalD1 } from "./test/local-d1";
-import { createD1TurnStore, readD1StoredTurn, type TurnEvent, type TurnStore } from "./turn-store";
+import {
+  createD1TurnStore,
+  readD1StoredTurn,
+  readDisplayHistory,
+  type TurnEvent,
+  type TurnStore,
+} from "./turn-store";
 import {
   v2ChunkTable,
   v2ConversationTable,
@@ -541,6 +547,36 @@ describe("createD1TurnStore", () => {
     ]);
     expect(resent.turn).toBe(4);
     expect(resent.ledger).toEqual(ledgerAt(3));
+  });
+
+  // 画面の履歴と次の番号を別々の読込から作ると、失敗ターンが画面に残ったまま次の送信で上書きされる。
+  it("表示用の履歴は load と同じ失敗ターンを外し、同じ次の番号を返す", async () => {
+    const conversationId = newConversationId();
+    await store.saveTurn({
+      conversationId,
+      turn: 1,
+      userText: "user 1",
+      events: chunkEvents(1),
+      ledger: ledgerAt(1),
+    });
+    for (const turn of [2, 3]) {
+      await store.saveTurn({
+        conversationId,
+        turn,
+        userText: `失敗した質問 ${turn}`,
+        events: deadTurnEvents(turn, turn === 2 ? null : " "),
+        ledger: ledgerAt(turn),
+      });
+    }
+    const loaded = await store.load(conversationId);
+    const display = await readDisplayHistory(
+      local.db,
+      { userId: "vitest", characterId, promptVersion: "v0001" },
+      conversationId,
+    );
+    expect(display.turn).toBe(loaded.turn);
+    expect(display.history.map(({ role, content }) => ({ role, content }))).toEqual(loaded.history);
+    expect(display.history.map((row) => row.content)).not.toContain("失敗した質問 3");
   });
 
   it("末尾ターンの応答が 1 字でもあれば保存済みとして残す", async () => {

@@ -113,7 +113,8 @@ describe("legacy migration", () => {
       { userId: owner, characterId, promptVersion: "test" },
       ids[0],
     );
-    expect(display[3].imageKey).toBe("preserved-image.png");
+    expect(display.turn).toBe(loaded.turn);
+    expect(display.history[3].imageKey).toBe("preserved-image.png");
   });
 
   it("移行後に元の本文が変わったら上書きせず拒否する", async () => {
