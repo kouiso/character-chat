@@ -39,7 +39,7 @@ const updateAssistant = (history: ChatBubble[], text: string): ChatBubble[] =>
 const failureMessage = (cause: unknown): string =>
   cause instanceof Error ? cause.message : "返信を確認できませんでした。";
 
-export const ChatView = ({ characterId, characterName }: ChatViewProps) => {
+const ChatSessionView = ({ characterId, characterName }: ChatViewProps) => {
   const [bubbles, setBubbles] = useState<ChatBubble[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -60,6 +60,7 @@ export const ChatView = ({ characterId, characterName }: ChatViewProps) => {
       const chunks = new Map<number, string>();
       let completed = false;
       for await (const event of readChatEvents(stream)) {
+        signal.throwIfAborted();
         if (event.type === "chunk") {
           chunks.set(event.seq, event.text);
           const text = [...chunks.entries()]
@@ -73,6 +74,7 @@ export const ChatView = ({ characterId, characterName }: ChatViewProps) => {
       }
       if (!completed) throw new Error("接続が切れました。再接続してください。");
       const history = await loadChatHistory(turn.characterId, turn.conversationId, signal);
+      signal.throwIfAborted();
       writeChatSession(turn.characterId, {
         version: 1,
         conversationId: turn.conversationId,
@@ -120,7 +122,11 @@ export const ChatView = ({ characterId, characterName }: ChatViewProps) => {
       }
     };
     void restore();
-    return () => abort.abort();
+    return () => {
+      abort.abort();
+      controller.current?.abort();
+      controller.current = null;
+    };
   }, [characterId, consume]);
 
   const send = async (event: React.FormEvent) => {
@@ -156,7 +162,7 @@ export const ChatView = ({ characterId, characterName }: ChatViewProps) => {
     try {
       await consume(turn, abort.signal);
     } finally {
-      submitting.current = false;
+      if (controller.current === abort) submitting.current = false;
     }
   };
 
@@ -216,3 +222,7 @@ export const ChatView = ({ characterId, characterName }: ChatViewProps) => {
     </div>
   );
 };
+
+export const ChatView = (props: ChatViewProps) => (
+  <ChatSessionView key={props.characterId} {...props} />
+);

@@ -1,3 +1,5 @@
+import { useLayoutEffect } from "react";
+
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -71,6 +73,144 @@ describe("ChatView", () => {
     view.rerender(<ChatView characterId="synthetic-b" characterName="Synthetic B" />);
     await screen.findByText("会話を再開できませんでした。再試行してください。");
     expect(screen.getByRole("button", { name: "再接続・再試行" })).toBeEnabled();
+  });
+
+  it("保存のない別キャラへ切り替えたら履歴と入力を消し、初回turnへ戻す", async () => {
+    localStorage.setItem(
+      "v2-chat-session:synthetic-a",
+      JSON.stringify({ version: 1, conversationId: "synthetic-room-a", pending: null }),
+    );
+    const requests: Record<string, unknown>[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (_url: RequestInfo | URL, init?: RequestInit) => {
+        if (init?.method === "POST") {
+          requests.push(JSON.parse(String(init.body)) as Record<string, unknown>);
+          return new Response("", { status: 503 });
+        }
+        return Response.json({ turn: 8, history: [{ role: "assistant", content: "合成Aの履歴" }] });
+      }),
+    );
+    const view = render(<ChatView characterId="synthetic-a" characterName="Synthetic A" />);
+    await screen.findByText("合成Aの履歴");
+    fireEvent.change(screen.getByRole("textbox"), { target: { value: "合成Aの下書き" } });
+    view.rerender(<ChatView characterId="synthetic-b" characterName="Synthetic B" />);
+    await waitFor(() => expect(screen.queryByText("合成Aの履歴")).not.toBeInTheDocument());
+    expect(screen.getByRole("textbox")).toHaveValue("");
+    expect(screen.getByRole("textbox")).toBeEnabled();
+    fireEvent.change(screen.getByRole("textbox"), { target: { value: "合成Bの入力" } });
+    fireEvent.click(screen.getByRole("button", { name: "送信" }));
+    await screen.findByRole("alert");
+    expect(requests[0]).toMatchObject({ turn: 1, text: "合成Bの入力" });
+    expect(requests[0].conversationId).not.toBe("synthetic-room-a");
+  });
+
+  it("別キャラの初回DOM commitに旧キャラの履歴と下書きを載せない", async () => {
+    localStorage.setItem(
+      "v2-chat-session:synthetic-a",
+      JSON.stringify({ version: 1, conversationId: "synthetic-room-a", pending: null }),
+    );
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        Response.json({
+          turn: 8,
+          history: [{ role: "assistant", content: "合成A初回commit履歴" }],
+        }),
+      ),
+    );
+    const commits: { characterId: string; text: string; draft: string }[] = [];
+    const Probe = ({ characterId }: { characterId: string }) => {
+      useLayoutEffect(() => {
+        commits.push({
+          characterId,
+          text: document.body.textContent ?? "",
+          draft: document.querySelector("input")?.value ?? "",
+        });
+      }, [characterId]);
+      return <ChatView characterId={characterId} characterName={characterId} />;
+    };
+    const view = render(<Probe characterId="synthetic-a" />);
+    await screen.findByText("合成A初回commit履歴");
+    fireEvent.change(screen.getByRole("textbox"), { target: { value: "合成A初回commit下書き" } });
+    view.rerender(<Probe characterId="synthetic-b" />);
+    const firstCommit = commits.find((commit) => commit.characterId === "synthetic-b");
+    expect(firstCommit).toBeDefined();
+    expect(firstCommit?.text).not.toContain("合成A初回commit履歴");
+    expect(firstCommit?.draft).toBe("");
+  });
+
+  it("同じキャラの名前変更では会話と下書きを捨てない", async () => {
+    localStorage.setItem(
+      "v2-chat-session:synthetic-a",
+      JSON.stringify({ version: 1, conversationId: "synthetic-room-a", pending: null }),
+    );
+    const fetchMock = vi.fn(async () =>
+      Response.json({
+        turn: 8,
+        history: [{ role: "assistant", content: "合成A保持履歴" }],
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    const view = render(<ChatView characterId="synthetic-a" characterName="Synthetic A" />);
+    await screen.findByText("合成A保持履歴");
+    fireEvent.change(screen.getByRole("textbox"), { target: { value: "合成A保持下書き" } });
+    view.rerender(<ChatView characterId="synthetic-a" characterName="Synthetic A renamed" />);
+    expect(screen.getByText("Synthetic A renamed")).toBeInTheDocument();
+    expect(screen.getByText("合成A保持履歴")).toBeInTheDocument();
+    expect(screen.getByRole("textbox")).toHaveValue("合成A保持下書き");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("別キャラへ切り替えたら送信中の旧readerをabortし、待ち状態を持ち越さない", async () => {
+    const requestSignals: (AbortSignal | null)[] = [];
+    const cancel = vi.fn();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (_url: RequestInfo | URL, init?: RequestInit) => {
+        requestSignals.push(init?.signal ?? null);
+        return new Response(new ReadableStream<Uint8Array>({ cancel }));
+      }),
+    );
+    const view = render(<ChatView characterId="synthetic-a" characterName="Synthetic A" />);
+    fireEvent.change(screen.getByRole("textbox"), { target: { value: "合成Aの送信" } });
+    fireEvent.click(screen.getByRole("button", { name: "送信" }));
+    await waitFor(() => expect(screen.getByRole("textbox")).toBeDisabled());
+    view.rerender(<ChatView characterId="synthetic-b" characterName="Synthetic B" />);
+    await waitFor(() => expect(cancel).toHaveBeenCalledTimes(1));
+    expect(requestSignals[0]?.aborted).toBe(true);
+    expect(screen.queryByText("合成Aの送信")).not.toBeInTheDocument();
+    expect(screen.getByRole("textbox")).toBeEnabled();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it("切替前に始めた完了履歴の応答が後着しても別キャラのstateへ書かない", async () => {
+    let resolveHistory: (response: Response) => void = () => {};
+    const historyResponse = new Promise<Response>((resolve) => {
+      resolveHistory = resolve;
+    });
+    const fetchMock = vi.fn(async (_url: RequestInfo | URL, init?: RequestInit) =>
+      init?.method === "POST"
+        ? new Response(
+            'id: 1\nevent: done\ndata: {"conversationId":"synthetic-room-a","turn":1,"generationId":"synthetic-generation-a"}\n\n',
+          )
+        : historyResponse,
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    const view = render(<ChatView characterId="synthetic-a" characterName="Synthetic A" />);
+    fireEvent.change(screen.getByRole("textbox"), { target: { value: "合成Aの送信" } });
+    fireEvent.click(screen.getByRole("button", { name: "送信" }));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    view.rerender(<ChatView characterId="synthetic-b" characterName="Synthetic B" />);
+    await act(async () => {
+      resolveHistory(
+        Response.json({ turn: 2, history: [{ role: "assistant", content: "後着の合成A返信" }] }),
+      );
+      await historyResponse;
+    });
+    expect(screen.queryByText("後着の合成A返信")).not.toBeInTheDocument();
+    expect(readChatSession("synthetic-a").pending).not.toBeNull();
+    expect(screen.getByRole("textbox")).toBeEnabled();
   });
 
   it("同一render中の二重submitでも受付番号とpendingを上書きしない", async () => {
