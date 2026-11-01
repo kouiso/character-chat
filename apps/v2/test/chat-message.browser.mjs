@@ -76,6 +76,8 @@ for (const count of [14, 15, 16, 40]) {
 }
 fixtures["modifier-41"] =
   `<action>合成の結合列。</action><dialogue>👩${"🏽".repeat(40)}</dialogue><inner>本文は変えずに読む。</inner>`;
+fixtures["whitespace"] =
+  " \n<response><action>手を振る。</action>\n\n<dialogue>「こんにちは🙂」</dialogue>\n<inner>また明日。</inner></response> \t";
 const sizes = [
   { width: 375, height: 812 },
   { width: 1280, height: 900 },
@@ -338,6 +340,9 @@ try {
       results.push({ scenario: "history-reading", scrollTop: readingScrollTop });
       await page.screenshot({ path: `${output}/history-reading-375x812.png`, fullPage: true });
       await page.setViewportSize({ width: 375, height: 400 });
+      await page.evaluate(
+        () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
+      );
       assert.equal(
         await log.evaluate((el) => el.scrollTop),
         0,

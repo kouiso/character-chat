@@ -7,6 +7,7 @@ PR #27 の transport・復旧・error 状態を保持し、表示bodyとlogだ�
 | 通常文・長台詞・改行・連続英字・標準絵文字         | 375×812 / 1280×900 / 812×375で横はみ出し0、文字重なり0、本文欠落0 |
 | 長い結合列（29/31/33/81CPのZWJ、41CPの肌色修飾子） | 同じ3viewportで横はみ出し0。user・本文・表示名も文字列を保持      |
 | 過長graphemeの表示                                 | 16CP以下は結合を維持。超過部分だけwbrを置き、元の本文文字列は保持 |
+| タグ間・wrapper前後の空白と改行                    | 隣接する本文へ保持し、空タグ由来の空の層は作らない                |
 | 通常family・肌色・couple・flag                     | 分断なし                                                          |
 | 履歴閲覧・最新返信                                 | 末尾閲覧中のみ追従。履歴閲覧中は位置保持                          |
 | 375×400への縮小・横向き・28pxへ遅延変更            | 末尾追従中は各段階で末尾距離0px                                   |
@@ -23,6 +24,6 @@ PR #27 の transport・復旧・error 状態を保持し、表示bodyとlogだ�
 
 再現は `node apps/v2/test/chat-message.browser.mjs`。Chromiumと出力先は `apps/v2/test/README.md` の環境変数で指定する。通常の回帰検査はGit履歴・実DB・外部APIを必要としない。
 
-ローカル検証: app全93試験、型、Lint、build成功。表示componentの最終34試験も成功。root標準 `task ci:fast` は検証用checkoutからcorpusを外し、3993成功/22skip、coverage閾値成功。元の作業場所とcorpusは変更しない。Gitのhookは省略しない。
+ローカル検証: app全94試験、型、Lint、build成功。表示componentの最終35試験も成功。root標準 `task ci:fast` は検証用checkoutからcorpusを外し、3993成功/22skip、coverage閾値成功。元の作業場所とcorpusは変更しない。Gitのhookは省略しない。
 
 独立敵対レビューで、透明化回帰の検出漏れ・文字組変更時の追従・過長な結合列のはみ出しを再現して修正した。画像は目視でも確認済み。実character loader/本番DB・実モデル・deployの検証結果を示すものではない。画像生成経路は変更範囲外。

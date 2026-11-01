@@ -6,6 +6,22 @@ import { ChatMessage } from "./chat-message";
 afterEach(cleanup);
 
 describe("ChatMessage", () => {
+  it("タグ間・wrapper前後の空白と改行を隣の本文へ保持し、空の層は作らない", () => {
+    const { container } = render(
+      <ChatMessage
+        role="assistant"
+        characterName="案内役"
+        text={
+          " \n<response><action>手を振る。</action>\n\n<inner> </inner><dialogue>「こんにちは」</dialogue></response> \t"
+        }
+      />,
+    );
+    expect(
+      [...container.querySelectorAll(".v2-message-layer")].map((el) => el.textContent).join(""),
+    ).toBe(" \n手を振る。\n\n「こんにちは」 \t");
+    expect(screen.queryByRole("group", { name: "心の声" })).not.toBeInTheDocument();
+  });
+
   it.each([`${"👩\u200d".repeat(40)}👩`, `👩${"🏽".repeat(40)}`])(
     "過長な結合列へ文字列を変えずに改行機会を入れ、標準絵文字は分けない: %s",
     (longEmoji) => {

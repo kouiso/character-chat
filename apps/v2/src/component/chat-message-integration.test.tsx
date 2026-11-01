@@ -46,7 +46,7 @@ describe("ChatView message 表示接続", () => {
       signal: expect.any(AbortSignal),
       body: expect.any(String),
     });
-    const posted = JSON.parse(String(fetchMock.mock.calls[0][1]?.body)) as Record<string, unknown>;
+    const posted: unknown = JSON.parse(String(fetchMock.mock.calls[0][1]?.body));
     expect(posted).toEqual({
       conversationId: expect.any(String),
       requestId: expect.any(String),
