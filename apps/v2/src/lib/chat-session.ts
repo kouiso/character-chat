@@ -16,6 +16,11 @@ const sessionSchema = z.object({
   conversationId: z.string().nullable(),
   pending: pendingSchema.nullable(),
 });
+const storedTurnSchema = z.object({
+  turn: z.number().int().positive(),
+  user: z.string().nullable(),
+  answered: z.boolean(),
+});
 const historySchema = z.object({
   history: z.array(
     z.object({
@@ -25,7 +30,9 @@ const historySchema = z.object({
     }),
   ),
   turn: z.number().int(),
+  storedTurn: storedTurnSchema.optional(),
 });
+const rejectionSchema = z.object({ code: z.string().optional() });
 export type PendingTurn = z.infer<typeof pendingSchema>;
 export type ChatSession = z.infer<typeof sessionSchema>;
 export type ChatBubble = {
@@ -34,6 +41,30 @@ export type ChatBubble = {
   pending?: boolean;
   imageUrl?: string;
 };
+export type StoredTurn = z.infer<typeof storedTurnSchema>;
+
+// 送り直しても同じ結果になる拒否（内容の不備・会話やキャラが無い・受付番号の衝突）。
+// 再接続を勧めても直らんので、画面は入力に戻す道を出す。
+export class ChatRequestRejectedError extends Error {
+  constructor() {
+    super("この内容では送信できませんでした。入力に戻して確認してください。");
+    this.name = "ChatRequestRejectedError";
+  }
+}
+
+const isDefinitiveRejection = async (response: Response): Promise<boolean> => {
+  if ([400, 404, 422].includes(response.status)) return true;
+  if (response.status !== 409) return false;
+  const body = rejectionSchema.safeParse(await response.json().catch(() => null));
+  return body.success && body.data.code === "conflict";
+};
+
+// pending.text と保存済みの発言が一致し、返信まで残っとる時だけ「送信は保存された」とみなす。
+export const isPendingSaved = (pending: PendingTurn, stored: StoredTurn | undefined): boolean =>
+  stored !== undefined &&
+  stored.turn === pending.baseTurn &&
+  stored.user === pending.text &&
+  stored.answered;
 
 // 保存済み会話を開き直せるので、保留はキャラ単位の1枠やなく会話ごとに持つ。
 // キャラ単位の枠は「次に開く会話」だけを指し、旧形式で中に入っとる保留も読めるよう残す。
@@ -129,11 +160,13 @@ export const loadChatHistory = async (
   characterId: string,
   conversationId: string,
   signal: AbortSignal,
-): Promise<{ bubbles: ChatBubble[]; nextTurn: number }> => {
-  const response = await fetch(
-    `/api/chat/${encodeURIComponent(characterId)}/history?conversationId=${encodeURIComponent(conversationId)}`,
-    { signal },
-  );
+  turn?: number,
+): Promise<{ bubbles: ChatBubble[]; nextTurn: number; storedTurn?: StoredTurn }> => {
+  const query = new URLSearchParams({ conversationId });
+  if (turn !== undefined) query.set("turn", String(turn));
+  const response = await fetch(`/api/chat/${encodeURIComponent(characterId)}/history?${query}`, {
+    signal,
+  });
   if (!response.ok) throw new Error("会話履歴を読み込めませんでした。再試行してください。");
   const history = historySchema.parse(await response.json());
   return {
@@ -143,6 +176,7 @@ export const loadChatHistory = async (
       imageUrl: item.imageUrl,
     })),
     nextTurn: history.turn,
+    storedTurn: history.storedTurn,
   };
 };
 
@@ -196,6 +230,7 @@ export const connectChatTurn = async (
       retry,
     }),
   });
+  if (!response.ok && (await isDefinitiveRejection(response))) throw new ChatRequestRejectedError();
   if (!response.ok || !response.body)
     throw new Error("返信を受け取れませんでした。再接続してください。");
   return response.body;

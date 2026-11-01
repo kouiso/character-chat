@@ -6,6 +6,32 @@ import type { ChatSseEvent } from "../lib/sse-events";
 
 const CHAT_TURN_FAILURE_EVENT = "chat_turn_failed";
 const CHAT_TURN_FAILURE_CATEGORY = "turn_processing_failure";
+const MAX_ATTEMPTS = 3;
+
+// ログへ出してよいのは、ここで決めた固定の理由だけ。外から来た例外の message には
+// 会話本文や接続先の詳細が混ざりうるので、名前しか出さん。
+type TurnFailureReason =
+  | "attempt_limit"
+  | "conversation_rewound"
+  | "conversation_advanced"
+  | "generation_failed"
+  | "test_interruption";
+
+class TurnFailure extends Error {
+  readonly reason: TurnFailureReason;
+  constructor(reason: TurnFailureReason) {
+    super(reason);
+    this.name = "TurnFailure";
+    this.reason = reason;
+  }
+}
+
+const describeFailure = (error: unknown): { reason: string } =>
+  error instanceof TurnFailure
+    ? { reason: error.reason }
+    : {
+        reason: error instanceof Error ? `unexpected:${error.name}` : `unexpected:${typeof error}`,
+      };
 
 type JobStatus = "queued" | "running" | "succeeded" | "failed";
 type Job = {
@@ -71,23 +97,13 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
       !previous ||
       previous.status === "queued" ||
       (previous.status === "running" && !this.running) ||
-      (previous.status === "failed" && input.retry && previous.attempts < 3)
+      (previous.status === "failed" && input.retry && previous.attempts < MAX_ATTEMPTS)
     ) {
       await this.ctx.storage.setAlarm(Date.now() + 50);
     }
     const receipt = this.ctx.storage.transactionSync((): TurnReceipt => {
       const existing = this.job(input.requestId);
-      if (existing) {
-        if (existing.digest !== digest) return { status: "conflict", requestId: input.requestId };
-        if (input.retry && existing.status === "failed" && existing.attempts < 3) {
-          this.ctx.storage.sql.exec(
-            "UPDATE jobs SET status = 'queued' WHERE id = ?",
-            input.requestId,
-          );
-          this.ctx.storage.sql.exec("DELETE FROM events WHERE job_id = ?", input.requestId);
-        }
-        return { status: "accepted", requestId: input.requestId };
-      }
+      if (existing) return this.resubmit(existing, input, digest);
       const room = this.ctx.storage.sql
         .exec<{
           character_id: string;
@@ -117,6 +133,24 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
       return { status: "accepted", requestId: input.requestId };
     });
     return receipt;
+  }
+
+  // 同じ受付番号の送り直し。transactionSync の中から呼ぶ。
+  private resubmit(existing: Job, input: SubmitTurn, digest: string): TurnReceipt {
+    if (existing.digest !== digest) return { status: "conflict", requestId: input.requestId };
+    if (input.retry && existing.status === "failed" && existing.attempts < MAX_ATTEMPTS) {
+      // 失敗した間に別の送信が受け付けられとったら、同じターンを二つの job が取り合う。
+      const other = this.ctx.storage.sql
+        .exec(
+          "SELECT id FROM jobs WHERE status IN ('queued','running') AND id != ? LIMIT 1",
+          input.requestId,
+        )
+        .toArray()[0];
+      if (other) return { status: "busy", requestId: input.requestId };
+      this.ctx.storage.sql.exec("UPDATE jobs SET status = 'queued' WHERE id = ?", input.requestId);
+      this.ctx.storage.sql.exec("DELETE FROM events WHERE job_id = ?", input.requestId);
+    }
+    return { status: "accepted", requestId: input.requestId };
   }
 
   readEvents(requestId: string, after: number): EventPage {
@@ -151,6 +185,11 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
     } finally {
       this.running = false;
     }
+    // alarm は 1 回で 1 件だけ処理する。残りがあれば次を予約せんと、そのまま止まる。
+    const remaining = this.ctx.storage.sql
+      .exec("SELECT id FROM jobs WHERE status IN ('queued','running') LIMIT 1")
+      .toArray()[0];
+    if (remaining) await this.ctx.storage.setAlarm(Date.now() + 50);
   }
 
   private job(id: string): Job | undefined {
@@ -176,14 +215,14 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
       characterId: job.character_id,
       conversationId: job.conversation_id,
     });
-    if (history.turn < job.turn) throw new Error("conversation rewound");
+    if (history.turn < job.turn) throw new TurnFailure("conversation_rewound");
     if (history.turn === job.turn) return false;
     const messages = await loadStoredTurn(job.character_id, job.conversation_id, job.turn);
     const user = messages.find((message) => message.role === "user");
     const assistant = messages.find((message) => message.role === "assistant");
     if (user?.content !== job.text || history.turn !== job.turn + 1)
-      throw new Error("conversation advanced");
-    if (!assistant?.content) return false;
+      throw new TurnFailure("conversation_advanced");
+    if (!assistant?.content.trim()) return false;
     this.finish(
       job,
       [{ type: "done", conversationId: job.conversation_id, turn: job.turn, generationId: null }],
@@ -208,17 +247,23 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
       }
     }
     if (failed || !events.some((event) => event.type === "done"))
-      throw new Error("generation failed");
+      throw new TurnFailure("generation_failed");
     return events;
   }
 
   private async process(job: Job): Promise<void> {
+    let attempt = job.attempts;
     try {
-      if (job.attempts >= 3) throw new Error("attempt limit");
+      // 最後の試行が D1 へ保存した直後に止まった job もここへ来る。保存済みなら生成し直さず完了にする。
+      if (job.attempts >= MAX_ATTEMPTS) {
+        if (await this.recover(job)) return;
+        throw new TurnFailure("attempt_limit");
+      }
       this.ctx.storage.sql.exec(
         "UPDATE jobs SET status = 'running', attempts = attempts + 1 WHERE id = ?",
         job.id,
       );
+      attempt = job.attempts + 1;
       if (await this.recover(job)) return;
       const events = await this.generate(job);
       if (
@@ -226,18 +271,19 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
         this.env.V2_TEST_FAULT === "after-persist-once" &&
         job.attempts === 0
       ) {
-        throw new Error("test interruption after persistence");
+        throw new TurnFailure("test_interruption");
       }
       this.finish(job, events, "succeeded");
-    } catch {
-      const attempt = job.attempts + 1;
-      const terminal = attempt >= 3;
+    } catch (error) {
+      const terminal = attempt >= MAX_ATTEMPTS;
       console.error(
         JSON.stringify({
           event: CHAT_TURN_FAILURE_EVENT,
           category: CHAT_TURN_FAILURE_CATEGORY,
           jobId: job.id,
           attempt,
+          terminal,
+          ...describeFailure(error),
         }),
       );
       this.finish(

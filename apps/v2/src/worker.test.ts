@@ -3,6 +3,8 @@ import { readFileSync } from "node:fs";
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import type { WorkerEntryEnv } from "./worker";
+
 const startFetch = vi.hoisted(() => vi.fn<(request: Request) => Promise<Response>>());
 
 vi.mock("@tanstack/react-start/server-entry", () => ({ default: { fetch: startFetch } }));
@@ -18,13 +20,13 @@ const createEnv = (assetStatus = 404, settings: Record<string, string> = credent
     async () => new Response(assetStatus === 404 ? null : "asset", { status: assetStatus }),
   );
   return {
-    env: { ...settings, ASSETS: { fetch: assetFetch } } as unknown as Cloudflare.Env,
+    env: { ...settings, ASSETS: { fetch: assetFetch } } satisfies WorkerEntryEnv,
     assetFetch,
   };
 };
 
-const call = (request: Request, env: Cloudflare.Env): Promise<Response> =>
-  worker.fetch(request as Parameters<typeof worker.fetch>[0], env);
+const call = (request: Request, env: WorkerEntryEnv): Promise<Response> =>
+  worker.fetch(request, env);
 
 beforeEach(() => {
   startFetch.mockReset();
