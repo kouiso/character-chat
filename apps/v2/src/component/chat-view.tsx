@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { MAX_MESSAGE_LENGTH } from "../lib/chat-limits";
 import {
+  ChatConnectionError,
   ChatRequestRejectedError,
   ChatTurnActiveError,
   clearPendingTurn,
@@ -53,12 +54,8 @@ const updateAssistant = (history: ChatBubble[], text: string): ChatBubble[] =>
       : bubble,
   );
 
-// 通信そのものが切れた時、fetch とストリームの読み出しはブラウザの英語の文（「Failed to fetch」など）を
-// 持つ TypeError を投げる。それをそのまま見せず、再接続を促す文に置き換える。
-const failureMessage = (cause: unknown): string => {
-  if (cause instanceof TypeError) return "通信が切れました。再接続してください。";
-  return cause instanceof Error ? cause.message : "返信を確認できませんでした。";
-};
+const failureMessage = (cause: unknown): string =>
+  cause instanceof Error ? cause.message : "返信を確認できませんでした。";
 
 type ChatErrorEvent = Extract<ChatSseEvent, { type: "error" }>;
 
@@ -114,7 +111,7 @@ export const ChatView = ({ characterId, characterName }: ChatViewProps) => {
         (text) => setBubbles((previous) => updateAssistant(previous, text)),
         (event) => setTerminalFailure(event.terminal === true),
       );
-      if (!completed) throw new Error("接続が切れました。再接続してください。");
+      if (!completed) throw new ChatConnectionError();
       // サーバーが完了を確かめた時点で保留を片付ける。履歴の読み直しで失敗しても、
       // 保存済みの送信を「入力に戻す」で戻して二重に送らせんため。
       clearPendingTurn(turn.characterId, turn);
