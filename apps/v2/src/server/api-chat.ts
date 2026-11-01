@@ -118,17 +118,18 @@ export const handleHistoryRequest = async (id: string, request: Request): Promis
   if (requestId && !requestId.success)
     return json(400, { message: "requestIdを確認してください。" });
   try {
-    const history = await loadHistory({ characterId: id, conversationId });
-    if (!requestId) return json(200, history);
+    if (!requestId) return json(200, await loadHistory({ characterId: id, conversationId }));
     const { env } = await getPlatform();
     const room = env.CHAT_ROOMS.getByName(`${LOCAL_USER_ID}:${conversationId}`);
     const job = await room.jobTurn(requestId.data);
+    // 作成中の送信は、キャラが読めん（404/422）時でも「戻してよい」と答えたらあかん。履歴より先に見る。
+    if (job?.active) {
+      return json(409, { code: "busy", message: "この会話の返信を作成中です。" });
+    }
+    const history = await loadHistory({ characterId: id, conversationId });
     return json(200, {
       ...history,
-      storedTurn:
-        job === null
-          ? null
-          : { ...(await readStoredTurn(id, conversationId, job.turn)), active: job.active },
+      storedTurn: job === null ? null : await readStoredTurn(id, conversationId, job.turn),
     });
   } catch (error) {
     return toErrorResponse(error);

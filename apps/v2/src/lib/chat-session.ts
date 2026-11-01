@@ -20,7 +20,6 @@ const storedTurnSchema = z.object({
   turn: z.number().int().positive(),
   user: z.string().nullable(),
   answered: z.boolean(),
-  active: z.boolean(),
 });
 const historySchema = z.object({
   history: z.array(
@@ -62,6 +61,14 @@ const isDefinitiveRejection = async (response: Response): Promise<boolean> => {
 
 // 送信が割り当てられたターンに pending.text が残り、返信まで残っとる時だけ「送信は保存された」とみなす。
 // サーバーが送信を知らん（null）なら、届いとらんので保存されてへん。
+// 送信がまだ作成中で、戻すと返信が後から保存されて二重になる。
+export class ChatTurnActiveError extends Error {
+  constructor() {
+    super("返信をまだ作成中です。再接続してください。");
+    this.name = "ChatTurnActiveError";
+  }
+}
+
 export const isPendingSaved = (
   pending: PendingTurn,
   stored: StoredTurn | null | undefined,
@@ -178,6 +185,7 @@ export const loadChatHistory = async (
     signal,
   });
   // 会話やキャラが無い・設定が壊れとる時は、何度読んでも同じ。送信と同じく確定的な拒否として返す。
+  if (requestId !== undefined && response.status === 409) throw new ChatTurnActiveError();
   if (response.status === 404 || response.status === 422) throw new ChatRequestRejectedError();
   if (!response.ok) throw new Error("会話履歴を読み込めませんでした。再試行してください。");
   const history = historySchema.parse(await response.json());
