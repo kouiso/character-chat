@@ -105,24 +105,26 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
 
   async submit(input: SubmitTurn): Promise<TurnReceipt> {
     const digest = await hashInput(input);
-    const previous = this.job(input.requestId);
-    if (
-      !previous ||
-      previous.status === "queued" ||
-      (previous.status === "running" && !this.running) ||
-      (previous.status === "failed" && input.retry && previous.attempts < MAX_ATTEMPTS)
-    ) {
-      await this.ctx.storage.setAlarm(Date.now() + 50);
-    }
     for (let read = 0; read < HISTORY_READ_LIMIT; read++) {
       const version = this.version();
       const history = await loadHistory(input);
       const receipt = this.ctx.storage.transactionSync(() =>
         this.admit(input, digest, history.turn, version),
       );
-      if (receipt) return receipt;
+      if (!receipt) continue;
+      if (receipt.status === "accepted") await this.scheduleIfWaiting(input.requestId);
+      return receipt;
     }
     return { status: "busy", requestId: input.requestId };
+  }
+
+  // 受け付けた後で予約する。履歴を読む前に予約すると、読んどる間に alarm が先に走って空振りし、
+  // 後から入った job が誰にも処理されんまま残る。
+  private async scheduleIfWaiting(requestId: string): Promise<void> {
+    const job = this.job(requestId);
+    if (job && (job.status === "queued" || (job.status === "running" && !this.running))) {
+      await this.ctx.storage.setAlarm(Date.now() + 50);
+    }
   }
 
   private version(): number {
