@@ -27,7 +27,7 @@
     "root contract unknown URL: back loads actual list",
     "root render error: reset and retry recover actual list"
   ],
-  "routeStateKinds": 4,
+  "routeStateKinds": 5,
   "presentations": 23,
   "deadEnds": 0,
   "errors": [],

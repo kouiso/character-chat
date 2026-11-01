@@ -389,7 +389,7 @@ try {
     JSON.stringify(
       {
         results,
-        routeStateKinds: 4,
+        routeStateKinds: 5,
         presentations: 23,
         deadEnds: 0,
         errors,
