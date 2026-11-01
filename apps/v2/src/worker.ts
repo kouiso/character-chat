@@ -16,7 +16,15 @@ const fetchEntry = async (request: Request, env: WorkerEntryEnv): Promise<Respon
       if (asset.status !== 404) return preventSharedCaching(asset);
     }
     return preventSharedCaching(await handler.fetch(request));
-  } catch {
+  } catch (error) {
+    // 例外の本文は会話や接続先の詳細を含みうるので、名前だけを残す。
+    console.error(
+      JSON.stringify({
+        event: "worker_request_failed",
+        method: request.method,
+        errorName: error instanceof Error ? error.name : typeof error,
+      }),
+    );
     return new Response(null, { status: 500, headers: { "cache-control": "private, no-store" } });
   }
 };

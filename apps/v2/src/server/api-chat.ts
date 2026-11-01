@@ -103,10 +103,10 @@ export const handleChatRequest = async (id: string, request: Request): Promise<R
   }
 };
 
-const TurnParamSchema = z.coerce.number().int().positive();
+const RequestIdParamSchema = z.string().min(1).max(120);
 
-// 「入力に戻す」が、そのターンに自分の発言と返信が保存されたかを番号の進み具合で推測せんための口。
-// 別の送信が会話を進めても、そのターンの中身で判定できる。
+// 「入力に戻す」が、その送信が保存されたかを番号の進み具合で推測せんための口。
+// 送信が割り当てられたターンを ChatRoom に聞き、そのターンの中身で判定する。
 const readStoredTurn = async (characterId: string, conversationId: string, turn: number) => {
   const messages = await loadStoredTurn(characterId, conversationId, turn);
   return {
@@ -122,15 +122,19 @@ export const handleHistoryRequest = async (id: string, request: Request): Promis
   const params = new URL(request.url).searchParams;
   const conversationId = params.get("conversationId");
   if (!conversationId) return json(400, { message: "conversationIdを指定してください。" });
-  const turnParam = params.get("turn");
-  const turn = turnParam === null ? null : TurnParamSchema.safeParse(turnParam);
-  if (turn && !turn.success) return json(400, { message: "turnを確認してください。" });
+  const requestIdParam = params.get("requestId");
+  const requestId = requestIdParam === null ? null : RequestIdParamSchema.safeParse(requestIdParam);
+  if (requestId && !requestId.success)
+    return json(400, { message: "requestIdを確認してください。" });
   try {
     const history = await loadHistory({ characterId: id, conversationId });
-    if (!turn) return json(200, history);
+    if (!requestId) return json(200, history);
+    const { env } = await getPlatform();
+    const room = env.CHAT_ROOMS.getByName(`${LOCAL_USER_ID}:${conversationId}`);
+    const turn = await room.jobTurn(requestId.data);
     return json(200, {
       ...history,
-      storedTurn: await readStoredTurn(id, conversationId, turn.data),
+      storedTurn: turn === null ? null : await readStoredTurn(id, conversationId, turn),
     });
   } catch (error) {
     return toErrorResponse(error);

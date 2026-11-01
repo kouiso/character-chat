@@ -30,7 +30,7 @@ const historySchema = z.object({
     }),
   ),
   turn: z.number().int(),
-  storedTurn: storedTurnSchema.optional(),
+  storedTurn: storedTurnSchema.nullable().optional(),
 });
 const rejectionSchema = z.object({ code: z.string().optional() });
 export type PendingTurn = z.infer<typeof pendingSchema>;
@@ -59,12 +59,13 @@ const isDefinitiveRejection = async (response: Response): Promise<boolean> => {
   return body.success && body.data.code === "conflict";
 };
 
-// pending.text と保存済みの発言が一致し、返信まで残っとる時だけ「送信は保存された」とみなす。
-export const isPendingSaved = (pending: PendingTurn, stored: StoredTurn | undefined): boolean =>
-  stored !== undefined &&
-  stored.turn === pending.baseTurn &&
-  stored.user === pending.text &&
-  stored.answered;
+// 送信が割り当てられたターンに pending.text が残り、返信まで残っとる時だけ「送信は保存された」とみなす。
+// サーバーが送信を知らん（null）なら、届いとらんので保存されてへん。
+export const isPendingSaved = (
+  pending: PendingTurn,
+  stored: StoredTurn | null | undefined,
+): boolean =>
+  stored !== null && stored !== undefined && stored.user === pending.text && stored.answered;
 
 // 保存済み会話を開き直せるので、保留はキャラ単位の1枠やなく会話ごとに持つ。
 // キャラ単位の枠は「次に開く会話」だけを指し、旧形式で中に入っとる保留も読めるよう残す。
@@ -156,17 +157,27 @@ export const writeChatSession = (characterId: string, session: ChatSession): voi
   writeActiveConversation(characterId, session.conversationId);
 };
 
+// 同じ会話を別のタブでも開いとると、会話ごとの保存枠を取り合う。自分の送信がまだ枠に残っとる時だけ
+// 片付け、別のタブが後から入れた保留は残す。「次に開く会話」もここでは動かさん。
+export const clearPendingTurn = (characterId: string, turn: PendingTurn): void => {
+  if (readChatSession(characterId, turn.conversationId).pending?.requestId !== turn.requestId)
+    return;
+  writePendingTurn(characterId, turn.conversationId, null);
+};
+
 export const loadChatHistory = async (
   characterId: string,
   conversationId: string,
   signal: AbortSignal,
-  turn?: number,
-): Promise<{ bubbles: ChatBubble[]; nextTurn: number; storedTurn?: StoredTurn }> => {
+  requestId?: string,
+): Promise<{ bubbles: ChatBubble[]; nextTurn: number; storedTurn?: StoredTurn | null }> => {
   const query = new URLSearchParams({ conversationId });
-  if (turn !== undefined) query.set("turn", String(turn));
+  if (requestId !== undefined) query.set("requestId", requestId);
   const response = await fetch(`/api/chat/${encodeURIComponent(characterId)}/history?${query}`, {
     signal,
   });
+  // 会話やキャラが無い・設定が壊れとる時は、何度読んでも同じ。送信と同じく確定的な拒否として返す。
+  if (response.status === 404 || response.status === 422) throw new ChatRequestRejectedError();
   if (!response.ok) throw new Error("会話履歴を読み込めませんでした。再試行してください。");
   const history = historySchema.parse(await response.json());
   return {
