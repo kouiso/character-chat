@@ -71,8 +71,8 @@ export default defineConfig([
   },
 
   {
-    // Durable Object の障害診断は Workers の標準ログへ構造化して出力する。
-    files: ["src/server/chat-room.ts"],
+    // Durable Object と Worker 入口の障害診断は Workers の標準ログへ構造化して出力する。
+    files: ["src/server/chat-room.ts", "src/worker.ts"],
     rules: {
       "no-console": "off",
     },

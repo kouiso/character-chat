@@ -128,6 +128,7 @@ describe("Worker 入口の BASIC 認証", () => {
   it("アプリが例外を投げても中身を出さず 500 を返す", async () => {
     const { env } = createEnv(404);
     startFetch.mockRejectedValue(new Error("secret detail"));
+    const errors = vi.spyOn(console, "error").mockImplementation(() => undefined);
     const response = await call(
       new Request("https://example.com/", { headers: { authorization } }),
       env,
@@ -135,5 +136,10 @@ describe("Worker 入口の BASIC 認証", () => {
     expect(response.status).toBe(500);
     expect(await response.text()).toBe("");
     expect(response.headers.get("cache-control")).toBe("private, no-store");
+    expect(errors.mock.calls.map((args) => JSON.parse(String(args[0])))).toEqual([
+      { event: "worker_request_failed", method: "GET", errorName: "Error" },
+    ]);
+    expect(JSON.stringify(errors.mock.calls)).not.toContain("secret detail");
+    errors.mockRestore();
   });
 });

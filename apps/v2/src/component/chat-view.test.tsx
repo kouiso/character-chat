@@ -272,7 +272,7 @@ describe("ChatView", () => {
     fireEvent.click(await screen.findByRole("button", { name: "入力に戻す" }));
     await waitFor(() => expect(screen.getByRole("textbox")).toHaveValue("失敗した質問"));
     for (const [url] of fetchMock.mock.calls) urls.push(String(url));
-    expect(urls.some((url) => url.includes("turn=2"))).toBe(true);
+    expect(urls.some((url) => url.includes("requestId=request-old"))).toBe(true);
     expect(screen.getByText("別のタブへの応答")).toBeInTheDocument();
     expect(readChatSession("a").pending).toBeNull();
   });
@@ -292,8 +292,6 @@ describe("ChatView", () => {
 
   it.each([
     [400, {}],
-    [404, {}],
-    [422, {}],
     [409, { code: "conflict" }],
   ])("送り直しても通らん拒否（%s）は再接続でなく入力に戻す道を出す", async (status, body) => {
     const pending = {
@@ -309,13 +307,83 @@ describe("ChatView", () => {
       vi.fn(async (_url: RequestInfo | URL, init?: RequestInit) =>
         init?.method === "POST"
           ? Response.json({ message: "拒否", ...body }, { status })
-          : Response.json({ turn: 1, history: [] }),
+          : Response.json({ turn: 1, history: [], storedTurn: null }),
       ),
     );
     render(<ChatView characterId="a" characterName="案内役" />);
     fireEvent.click(await screen.findByRole("button", { name: "入力に戻す" }));
     await waitFor(() => expect(screen.getByRole("textbox")).toHaveValue("通らない質問"));
     expect(readChatSession("a").pending).toBeNull();
+  });
+
+  it.each([[404], [422]])(
+    "会話やキャラを読めん（%s）時も、保留に閉じ込めず送信文を入力欄へ戻せる",
+    async (status) => {
+      const pending = {
+        characterId: "a",
+        conversationId: "conversation-a",
+        requestId: "request-old",
+        text: "読めない会話への質問",
+        baseTurn: 1,
+      };
+      writeChatSession("a", { version: 1, conversationId: "conversation-a", pending });
+      // 本番と同じく、送信も履歴も同じ理由で同じ状態を返す。
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(async () => Response.json({ message: "拒否" }, { status })),
+      );
+      render(<ChatView characterId="a" characterName="案内役" />);
+      fireEvent.click(await screen.findByRole("button", { name: "入力に戻す" }));
+      await waitFor(() => expect(screen.getByRole("textbox")).toHaveValue("読めない会話への質問"));
+      expect(readChatSession("a").pending).toBeNull();
+      expect(
+        screen.getByText("会話を読み込めませんでした。送信内容は入力欄に戻しました。"),
+      ).toBeInTheDocument();
+    },
+  );
+
+  it("別のタブが後から保留を入れたら、こちらの送信が終わってもその保留を消さない", async () => {
+    let releasePost: () => void = () => undefined;
+    const posted = new Promise<void>((resolve) => {
+      releasePost = resolve;
+    });
+    const otherTab = {
+      characterId: "a",
+      conversationId: "conversation-b",
+      requestId: "request-other-tab",
+      text: "別のタブの質問",
+      baseTurn: 1,
+    };
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (_url: RequestInfo | URL, init?: RequestInit) => {
+        if (init?.method === "POST") {
+          await posted;
+          return new Response(
+            'event: done\ndata: {"conversationId":"conversation-a","turn":1,"generationId":null}\n\n',
+          );
+        }
+        return Response.json({
+          turn: 2,
+          history: [
+            { role: "user", content: "こちらの質問" },
+            { role: "assistant", content: "こちらへの応答" },
+          ],
+        });
+      }),
+    );
+    render(<ChatView characterId="a" characterName="案内役" />);
+    fireEvent.change(screen.getByRole("textbox"), { target: { value: "こちらの質問" } });
+    fireEvent.click(screen.getByRole("button", { name: "送信" }));
+    await waitFor(() => expect(readChatSession("a").pending?.text).toBe("こちらの質問"));
+    writeChatSession("a", { version: 1, conversationId: "conversation-b", pending: otherTab });
+    releasePost();
+    await screen.findByText("こちらへの応答");
+    expect(readChatSession("a")).toEqual({
+      version: 1,
+      conversationId: "conversation-b",
+      pending: otherTab,
+    });
   });
 
   it("作成中で断られた送信（409 busy）は再試行の道を残す", async () => {
