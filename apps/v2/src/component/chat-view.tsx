@@ -110,12 +110,16 @@ export const ChatView = ({ characterId, characterName }: ChatViewProps) => {
         (event) => setTerminalFailure(event.terminal === true),
       );
       if (!completed) throw new Error("接続が切れました。再接続してください。");
+      // サーバーが完了を確かめた時点で保留を片付ける。履歴の読み直しで失敗しても、
+      // 保存済みの送信を「入力に戻す」で戻して二重に送らせんため。
+      clearPendingTurn(turn.characterId, turn);
+      setPending(null);
+      setBubbles((previous) => previous.map((bubble) => ({ ...bubble, pending: false })));
+      nextTurn.current = turn.baseTurn + 1;
       const history = await loadChatHistory(turn.characterId, turn.conversationId, signal);
       if (signal.aborted) return;
-      clearPendingTurn(turn.characterId, turn);
       nextTurn.current = history.nextTurn;
       setBubbles(history.bubbles);
-      setPending(null);
     } catch (cause) {
       if (signal.aborted) return;
       if (cause instanceof ChatRequestRejectedError) setTerminalFailure(true);
@@ -150,6 +154,12 @@ export const ChatView = ({ characterId, characterName }: ChatViewProps) => {
           pending.requestId,
         );
         if (abort.signal.aborted) return;
+        // まだ作成中の送信を戻すと、返信が後から保存されて二重になる。再接続へ戻す。
+        if (history.storedTurn?.active) {
+          setTerminalFailure(false);
+          setError("返信をまだ作成中です。再接続してください。");
+          return;
+        }
         // 番号が進んだだけでは、別の送信が会話を進めた場合と区別できん。そのターンの中身で決める。
         const restoreInput = !isPendingSaved(pending, history.storedTurn);
         clearPendingTurn(pending.characterId, pending);
