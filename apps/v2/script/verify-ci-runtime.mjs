@@ -18,6 +18,7 @@ const run = (args, env = process.env) =>
   execFileSync("pnpm", args, {
     cwd: root,
     env,
+    maxBuffer: 16 * 1024 * 1024,
     stdio: ["ignore", "pipe", "pipe"],
     encoding: "utf8",
   });
