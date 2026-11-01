@@ -17,11 +17,14 @@ import { createRoot } from 'react-dom/client';
 import { createRootRoute, createRoute, createRouter, Outlet, RouterProvider, Link } from '@tanstack/react-router';
 import { Route as ChatRoute } from '/src/routes/chat/$id.tsx';
 import { Route as ListRoute } from '/src/routes/index.tsx';
-import { AppErrorState, AppLoadingState, AppNotFoundState } from '/src/component/app-route-state.tsx';
+import { Route as RootRoute } from '/src/routes/__root.tsx';
 import '/src/style.css';
 let rootCalls = 0;
 const rootMode = new URLSearchParams(location.search).get('root');
-const root = createRootRoute({ component: Outlet, pendingComponent: rootMode ? AppLoadingState : undefined, errorComponent: AppErrorState, notFoundComponent: AppNotFoundState, loader: rootMode ? async () => {
+let renderFailure = rootMode === 'render';
+window.recoverSyntheticRoot = () => { renderFailure = false; };
+const RootFrame = () => { if (renderFailure) throw new Error('RIT85_SYNTHETIC_FAILURE'); return <Outlet />; };
+const root = createRootRoute({ component: RootFrame, pendingComponent: rootMode ? RootRoute.options.pendingComponent : undefined, errorComponent: RootRoute.options.errorComponent, notFoundComponent: RootRoute.options.notFoundComponent, loader: rootMode ? async () => {
   const mode = new URLSearchParams(location.search).get('root');
   if (mode === 'wait' && rootCalls++ === 0) return new Promise(() => {});
   if (mode === 'error' && rootCalls++ === 0) throw new Error('RIT85_SYNTHETIC_FAILURE');
@@ -43,6 +46,7 @@ export const listCharacters = async () => {
   if (mode === 'empty' && listCalls++ === 0) return [];
   return ['wait', 'retry', 'error', 'missing', 'ready'].map(id => ({ id, name: id, avatar: null }));
 };
+export const listSavedConversations = async () => [];
 export const getCharacter = async ({ data: id }) => {
   if (id === 'wait') return new Promise(resolve => { window.resolveSyntheticWait = () => resolve({ id, name: '合成テストキャラクター' }); });
   if (id === 'error' || (id === 'retry' && retries++ === 0)) throw new Error('RIT85_SYNTHETIC_FAILURE');
@@ -78,6 +82,11 @@ const server = await createServer({
       },
       configureServer(vite) {
         vite.middlewares.use(async (req, res, next) => {
+          if (req.method === "GET" && req.url?.startsWith("/api/chat/ready/history?")) {
+            res.setHeader("content-type", "application/json");
+            res.end(JSON.stringify({ history: [], turn: 1 }));
+            return;
+          }
           if (req.method === "POST" && req.url === "/api/chat/ready") {
             if (apiMode === "wait") {
               syntheticResponse = res;
@@ -92,7 +101,7 @@ const server = await createServer({
               if (apiMode === "sse-error") {
                 res.end('event: error\ndata: {"message":"合成の生成失敗"}\n\n');
               } else {
-                res.write('event: token\ndata: {"text":"合成の途中応答"}\n\n');
+                res.write('event: chunk\ndata: {"seq":1,"text":"合成の途中応答"}\n\n');
                 if (apiMode === "eof") res.end();
                 else syntheticResponse = res;
               }
@@ -125,6 +134,7 @@ try {
     args: ["--no-sandbox", "--disable-dev-shm-usage"],
   });
   const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  await context.addInitScript(() => localStorage.clear());
   await context.route("**/*", (route) => {
     const request = route.request();
     if (request.method() === "POST") posts.push(request.url());
@@ -261,11 +271,7 @@ try {
 
   for (const mode of ["http-error", "sse-error", "empty"]) {
     await sendSynthetic(mode);
-    if (mode === "empty") {
-      await page.waitForFunction(() => !document.querySelector("input").disabled);
-    } else {
-      await page.getByText("合成の生成失敗", { exact: true }).waitFor();
-    }
+    await page.getByRole("alert").waitFor();
     await snapshot(`09-generation-${mode}`);
     await home();
     results.push(`generation ${mode}: back works after synthetic failure`);
@@ -273,7 +279,7 @@ try {
 
   await sendSynthetic("eof");
   await page.getByText("合成の途中応答", { exact: true }).waitFor();
-  await page.waitForFunction(() => !document.querySelector("input").disabled);
+  await page.getByRole("alert").waitFor();
   await snapshot("10-generation-interrupted");
   await home();
   await snapshot("10-generation-interrupted-back");
@@ -369,6 +375,13 @@ try {
   await home();
   await snapshot("19-root-not-found-back");
   results.push("root contract unknown URL: back loads actual list");
+  await page.goto("http://127.0.0.1:3185/?root=render");
+  await page.getByRole("heading", { name: "画面を読み込めませんでした" }).waitFor();
+  await snapshot("23-root-render-error");
+  await page.evaluate(() => window.recoverSyntheticRoot());
+  await retryRead();
+  await listReady();
+  results.push("root render error: reset and retry recover actual list");
   assert.equal(posts.length, 6);
   assert.deepEqual(externalRequests, []);
   assert.deepEqual(errors, []);
@@ -377,7 +390,7 @@ try {
       {
         results,
         routeStateKinds: 4,
-        presentations: 22,
+        presentations: 23,
         deadEnds: 0,
         errors,
         syntheticPosts: posts.length,

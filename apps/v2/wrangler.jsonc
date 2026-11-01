@@ -1,7 +1,7 @@
 {
   "$schema": "../../node_modules/wrangler/config-schema.json",
   "name": "adult-ai-v2",
-  "compatibility_date": "2025-01-01",
+  "compatibility_date": "2026-10-26",
   "d1_databases": [
     {
       "binding": "DB",
@@ -11,18 +11,53 @@
       "migrations_dir": "../../drizzle"
     }
   ],
-  "r2_buckets": [{ "binding": "BUCKET", "bucket_name": "adult-ai-images" }],
-  "env": {
-    "remote": {
-      "d1_databases": [
-        {
-          "binding": "DB",
-          "database_name": "adult-ai-db",
-          "database_id": "c0ffee00-0000-4000-8000-000000000001",
-          "remote": true
-        }
-      ],
-      "r2_buckets": [{ "binding": "BUCKET", "bucket_name": "adult-ai-images", "remote": true }]
+  "r2_buckets": [
+    {
+      "binding": "BUCKET",
+      "bucket_name": "adult-ai-images"
     }
-  }
+  ],
+  "env": {},
+  "main": "src/worker.ts",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "workers_dev": false,
+  "preview_urls": false,
+  "assets": {
+    "binding": "ASSETS",
+    "run_worker_first": true
+  },
+  "vars": {
+    "APP_ENV": "development",
+    "V2_FAKE_MODEL": "0",
+    "V2_MODEL": "deepseek/deepseek-v3.2",
+    "V2_TEST_FAULT": "none"
+  },
+  "observability": {
+    "enabled": false
+  },
+  "secrets": {
+    "required": [
+      "BASIC_AUTH_USERNAME",
+      "BASIC_AUTH_PASSWORD",
+      "OPENROUTER_API_KEY"
+    ]
+  },
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "CHAT_ROOMS",
+        "class_name": "ChatRoom"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1-chat-room",
+      "new_sqlite_classes": [
+        "ChatRoom"
+      ]
+    }
+  ]
 }

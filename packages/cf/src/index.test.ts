@@ -25,4 +25,8 @@ describe("createPlatform", () => {
     expect(typeof row?.n).toBe("number");
     expect(row?.n).toBeGreaterThanOrEqual(0);
   });
+
+  it("CLI から本番への接続を許可しない", async () => {
+    await expect(createPlatform({ remote: true })).rejects.toThrow("ローカル限定");
+  });
 });

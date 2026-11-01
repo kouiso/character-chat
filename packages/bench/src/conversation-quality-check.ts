@@ -159,6 +159,16 @@ const overlappingToken = (tokens: string[], body: string): string | undefined =>
   return hits.sort((a, b) => b.length - a.length)[0];
 };
 
+const answersUser = (
+  user: string,
+  body: string,
+  tokens: string[],
+  hit: string | undefined,
+): boolean => {
+  if (user.length === 0) return true;
+  return hit !== undefined || (tokens.length === 0 && body.includes(user));
+};
+
 const scoreTurn = (
   userText: string,
   body: string,
@@ -170,11 +180,7 @@ const scoreTurn = (
   const hit = overlappingToken(tokens, body);
   // 空発言だけを判定対象外にする。トークンが取れない非空発言（1文字返答等）は
   // 本文に発言そのものが含まれるかで別途照合する。
-  const respondsToUser =
-    userTextTrimmed.length === 0
-      ? true
-      : hit !== undefined ||
-        (tokens.length === 0 && body.includes(userTextTrimmed));
+  const respondsToUser = answersUser(userTextTrimmed, body, tokens, hit);
   const actions = USER_ACTION_PATTERNS.map((pattern) => body.match(pattern)).filter(
     (match): match is RegExpMatchArray => match !== null,
   );

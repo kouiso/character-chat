@@ -17,7 +17,7 @@ import { ChatConnectionState } from "./chat-route-state";
 import type { AnyRootRoute } from "@tanstack/react-router";
 
 const { listCharacters } = vi.hoisted(() => ({ listCharacters: vi.fn() }));
-vi.mock("../server/characters", () => ({ listCharacters }));
+vi.mock("../server/characters", () => ({ listCharacters, listSavedConversations: async () => [] }));
 
 const fixture = [{ id: "synthetic-character", name: "合成の一覧項目", avatar: null }];
 
@@ -72,12 +72,19 @@ afterEach(() => {
 
 describe("list and root recovery", () => {
   it("一覧待機中に再試行でき、古い待機に閉じ込められない", async () => {
-    listCharacters.mockImplementationOnce(() => new Promise(() => {})).mockResolvedValue(fixture);
+    let previousSignal: AbortSignal | undefined;
+    listCharacters
+      .mockImplementationOnce(({ signal }: { signal: AbortSignal }) => {
+        previousSignal = signal;
+        return new Promise(() => {});
+      })
+      .mockResolvedValue(fixture);
     renderList();
     await screen.findByRole("heading", { name: "一覧を読み込んでいます" });
     fireEvent.click(screen.getByRole("button", { name: "読み込みをやり直す" }));
     expect(await screen.findByRole("link", { name: fixture[0].name })).toBeInTheDocument();
     expect(listCharacters).toHaveBeenCalledTimes(2);
+    expect(previousSignal?.aborted).toBe(true);
   });
 
   it("一覧失敗から再試行して実一覧を復帰する", async () => {

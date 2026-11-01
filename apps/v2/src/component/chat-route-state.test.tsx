@@ -46,6 +46,7 @@ const expectBack = () => {
 };
 
 beforeEach(() => {
+  localStorage.clear();
   vi.spyOn(window, "scrollTo").mockImplementation(() => {});
   setOnline(true);
   getCharacter.mockReset();
@@ -53,23 +54,26 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup();
+  localStorage.clear();
   vi.restoreAllMocks();
 });
 
 describe("chat route state exits", () => {
   it("待機中も戻れ、遅い完了で会話に引き戻されない", async () => {
     let resolveLoader: (value: typeof fixture) => void = () => {};
-    getCharacter.mockImplementation(
-      () =>
-        new Promise((resolve) => {
-          resolveLoader = resolve;
-        }),
-    );
+    let previousSignal: AbortSignal | undefined;
+    getCharacter.mockImplementation(({ signal }: { signal: AbortSignal }) => {
+      previousSignal = signal;
+      return new Promise((resolve) => {
+        resolveLoader = resolve;
+      });
+    });
     const router = renderChat();
     await screen.findByRole("heading", { name: "会話を読み込んでいます" });
     expectBack();
     await act(() => router.navigate({ to: "/" }));
     expect(await screen.findByText("合成一覧")).toBeInTheDocument();
+    expect(previousSignal?.aborted).toBe(true);
     await act(async () => {
       resolveLoader(fixture);
       await Promise.resolve();
@@ -195,8 +199,7 @@ describe("chat route state exits", () => {
     const input = await screen.findByPlaceholderText("メッセージを入力");
     fireEvent.change(input, { target: { value: "合成の質問" } });
     fireEvent.click(screen.getByRole("button", { name: "送信" }));
-    await screen.findByDisplayValue("");
-    await vi.waitFor(() => expect(input).toBeEnabled());
+    await screen.findByRole("alert");
     fireEvent.click(expectBack());
     expect(await screen.findByText("合成一覧")).toBeInTheDocument();
   });

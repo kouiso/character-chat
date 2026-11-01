@@ -1,13 +1,21 @@
 import type { ChatSseEvent } from "../lib/sse-events";
 
-const encodeEvent = (event: ChatSseEvent): string => {
+export type SequencedSseEvent = { id: number; event: ChatSseEvent };
+type StreamEvent = ChatSseEvent | SequencedSseEvent;
+
+const encodeEvent = (value: StreamEvent): string => {
+  const event = "event" in value ? value.event : value;
+  const prefix = "event" in value ? `id: ${value.id}\n` : "";
   const { type, ...rest } = event;
-  return `event: ${type}\ndata: ${JSON.stringify(rest)}\n\n`;
+  return `${prefix}event: ${type}\ndata: ${JSON.stringify(rest)}\n\n`;
 };
 
-export const toSseStream = (events: AsyncGenerator<ChatSseEvent>): ReadableStream<Uint8Array> => {
+export const toSseStream = (events: AsyncGenerator<StreamEvent>): ReadableStream<Uint8Array> => {
   const encoder = new TextEncoder();
   return new ReadableStream<Uint8Array>({
+    start(controller) {
+      controller.enqueue(encoder.encode(": connected\n\n"));
+    },
     async pull(controller) {
       const { value, done } = await events.next();
       if (done) {
