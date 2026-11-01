@@ -35,6 +35,10 @@ const toErrorResponse = (error: unknown): Response => {
   return json(503, { message: "処理を開始できませんでした。再試行してください。" });
 };
 
+// 送信と、その送信が保存されたかの問い合わせは、同じ ChatRoom に届かんと答えが食い違う。
+const chatRoomFor = (env: Cloudflare.Env, conversationId: string): DurableObjectStub<ChatRoom> =>
+  env.CHAT_ROOMS.getByName(`${LOCAL_USER_ID}:${conversationId}`);
+
 const storedEvents = async function* (
   room: DurableObjectStub<ChatRoom>,
   requestId: string,
@@ -48,8 +52,7 @@ const storedEvents = async function* (
       cursor = item.id;
       yield item;
     }
-    if ((page.status === "succeeded" || page.status === "failed") && page.events.length < 100)
-      return;
+    if ((page.status === "succeeded" || page.status === "failed") && !page.hasMore) return;
     if (page.status === "missing") return;
     await new Promise((resolve) => setTimeout(resolve, 250));
   }
@@ -74,7 +77,7 @@ export const handleChatRequest = async (id: string, request: Request): Promise<R
   try {
     await loadHistory({ characterId: id, conversationId: parsed.data.conversationId });
     const { env } = await getPlatform();
-    const room = env.CHAT_ROOMS.getByName(`${LOCAL_USER_ID}:${parsed.data.conversationId}`);
+    const room = chatRoomFor(env, parsed.data.conversationId);
     const receipt = await room.submit({ ...parsed.data, characterId: id });
     if (receipt.status !== "accepted") {
       return json(409, {
@@ -120,7 +123,7 @@ export const handleHistoryRequest = async (id: string, request: Request): Promis
   try {
     if (!requestId) return json(200, await loadHistory({ characterId: id, conversationId }));
     const { env } = await getPlatform();
-    const room = env.CHAT_ROOMS.getByName(`${LOCAL_USER_ID}:${conversationId}`);
+    const room = chatRoomFor(env, conversationId);
     const job = await room.jobTurn(requestId.data);
     // 作成中の送信は、キャラが読めん（404/422）時でも「戻してよい」と答えたらあかん。履歴より先に見る。
     if (job?.active) {
