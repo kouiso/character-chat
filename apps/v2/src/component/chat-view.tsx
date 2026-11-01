@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { MAX_MESSAGE_LENGTH } from "../lib/chat-limits";
 import {
   ChatRequestRejectedError,
+  ChatTurnActiveError,
   clearPendingTurn,
   connectChatTurn,
   isPendingSaved,
@@ -114,7 +115,12 @@ export const ChatView = ({ characterId, characterName }: ChatViewProps) => {
       // 保存済みの送信を「入力に戻す」で戻して二重に送らせんため。
       clearPendingTurn(turn.characterId, turn);
       setPending(null);
-      setBubbles((previous) => previous.map((bubble) => ({ ...bubble, pending: false })));
+      // 再接続で完了だけが届くと、作成中の返信は空のまま。空の枠は残さず、履歴の読み直しで埋める。
+      setBubbles((previous) =>
+        previous
+          .filter((bubble) => !(bubble.pending && bubble.role === "assistant" && !bubble.text))
+          .map((bubble) => ({ ...bubble, pending: false })),
+      );
       nextTurn.current = turn.baseTurn + 1;
       const history = await loadChatHistory(turn.characterId, turn.conversationId, signal);
       if (signal.aborted) return;
@@ -154,12 +160,6 @@ export const ChatView = ({ characterId, characterName }: ChatViewProps) => {
           pending.requestId,
         );
         if (abort.signal.aborted) return;
-        // まだ作成中の送信を戻すと、返信が後から保存されて二重になる。再接続へ戻す。
-        if (history.storedTurn?.active) {
-          setTerminalFailure(false);
-          setError("返信をまだ作成中です。再接続してください。");
-          return;
-        }
         // 番号が進んだだけでは、別の送信が会話を進めた場合と区別できん。そのターンの中身で決める。
         const restoreInput = !isPendingSaved(pending, history.storedTurn);
         clearPendingTurn(pending.characterId, pending);
@@ -172,6 +172,12 @@ export const ChatView = ({ characterId, characterName }: ChatViewProps) => {
         setError(null);
       } catch (cause) {
         if (abort.signal.aborted) return;
+        // まだ作成中の送信を戻すと、返信が後から保存されて二重になる。再接続へ戻す。
+        if (cause instanceof ChatTurnActiveError) {
+          setTerminalFailure(false);
+          setError(cause.message);
+          return;
+        }
         if (cause instanceof ChatRequestRejectedError) {
           // 会話もキャラも読めんので、保存されたかは確かめようがない。送信文を手元へ戻して止まらんようにする。
           restoreLocally(pending);
