@@ -79,7 +79,7 @@ describe("Queue の記憶仕事の受け手", () => {
   });
 
   // 受け手が捨てるだけの間に送り手を足すと、仕事が黙って消える。送り手を足す変更は
-  // 受け手の中身と同時でないと通らんよう、アプリとパッケージの本体から送信を探す。
+  // 受け手の中身と同時でないと通らんよう、アプリとパッケージの本体から束縛の参照を探す。
   it("受け手が未実装の間は、MEMORY_JOBS へ送るコードがどこにも無い", () => {
     // hook から走ると GIT_DIR 等が別の場所を指すので外す。
     const env = Object.fromEntries(
@@ -91,12 +91,15 @@ describe("Queue の記憶仕事の受け手", () => {
         "grep",
         "-n",
         "--untracked",
-        "-E",
-        "MEMORY_JOBS\\??\\.send",
+        "-w",
+        "MEMORY_JOBS",
         "--",
         "apps/v2/src",
         "packages",
         ":!*.test.ts",
+        // 束縛の型宣言だけは名前が出る。送り手は工場関数へ渡す形（createDb(env.DB) と同じ）でも
+        // 名前を参照するので、名前そのものを探せば .send の書き方に関係なく見つかる。
+        ":!apps/v2/src/worker-configuration.d.ts",
       ],
       { cwd: repoRoot, encoding: "utf8", env },
     );
