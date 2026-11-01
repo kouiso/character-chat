@@ -45,5 +45,34 @@ class RestoreStatisticsTest(unittest.TestCase):
                 self.assertEqual(restored.execute("PRAGMA integrity_check").fetchone(), ("ok",))
 
 
+class RestoreRejectionTest(unittest.TestCase):
+    def write_backup(self, directory: str) -> Path:
+        source = Path(directory) / "source.sql"
+        with sqlite3.connect(":memory:") as original:
+            original.executescript(
+                "CREATE TABLE item(id INTEGER PRIMARY KEY); INSERT INTO item VALUES(1);"
+            )
+            source.write_text("\n".join(original.iterdump()), encoding="utf-8")
+        return source
+
+    def test_digest_mismatch_writes_no_output(self):
+        with tempfile.TemporaryDirectory() as directory:
+            source = self.write_backup(directory)
+            destination = Path(directory) / "restored.sql"
+            with self.assertRaisesRegex(ValueError, "digest mismatch"):
+                restore.prepare(source, destination, "0" * 64)
+            self.assertFalse(destination.exists())
+
+    def test_truncated_backup_writes_no_output(self):
+        with tempfile.TemporaryDirectory() as directory:
+            source = self.write_backup(directory)
+            truncated = source.read_bytes()[: len(source.read_bytes()) // 2]
+            source.write_bytes(truncated)
+            destination = Path(directory) / "restored.sql"
+            with self.assertRaises((ValueError, sqlite3.Error)):
+                restore.prepare(source, destination, hashlib.sha256(truncated).hexdigest())
+            self.assertFalse(destination.exists())
+
+
 if __name__ == "__main__":
     unittest.main()

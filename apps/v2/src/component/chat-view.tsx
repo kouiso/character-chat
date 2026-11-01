@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { MAX_MESSAGE_LENGTH } from "../lib/chat-limits";
 import {
+  ChatRequestRejectedError,
   connectChatTurn,
+  isPendingSaved,
   loadChatHistory,
   readChatEvents,
   readChatSession,
@@ -105,7 +108,9 @@ export const ChatView = ({ characterId, characterName }: ChatViewProps) => {
       setBubbles(history.bubbles);
       setPending(null);
     } catch (cause) {
-      if (!signal.aborted) setError(failureMessage(cause));
+      if (signal.aborted) return;
+      if (cause instanceof ChatRequestRejectedError) setTerminalFailure(true);
+      setError(failureMessage(cause));
     } finally {
       if (!signal.aborted) setBusy(false);
     }
@@ -124,9 +129,11 @@ export const ChatView = ({ characterId, characterName }: ChatViewProps) => {
           pending.characterId,
           pending.conversationId,
           abort.signal,
+          pending.baseTurn,
         );
         if (abort.signal.aborted) return;
-        const restoreInput = history.nextTurn <= pending.baseTurn;
+        // 番号が進んだだけでは、別の送信が会話を進めた場合と区別できん。そのターンの中身で決める。
+        const restoreInput = !isPendingSaved(pending, history.storedTurn);
         writeChatSession(pending.characterId, {
           version: 1,
           conversationId: pending.conversationId,
@@ -187,6 +194,10 @@ export const ChatView = ({ characterId, characterName }: ChatViewProps) => {
     event.preventDefault();
     const text = input.trim();
     if (!text || busy || pending) return;
+    if (text.length > MAX_MESSAGE_LENGTH) {
+      setError(`${MAX_MESSAGE_LENGTH}字以内で送信してください。入力は保持されています。`);
+      return;
+    }
     const turn: PendingTurn = {
       characterId,
       conversationId: conversationId.current ?? crypto.randomUUID(),

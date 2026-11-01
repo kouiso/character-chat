@@ -7,6 +7,7 @@ import { DatabaseSync } from "node:sqlite";
 import { FakeListChatModel } from "@langchain/core/utils/testing";
 import { createDb, loadCharacter } from "@v2/db";
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { z } from "zod";
 
 import { openLocalD1, type LocalD1 } from "../../../../packages/db/src/test/local-d1";
 
@@ -48,15 +49,22 @@ vi.mock("@v2/engine", async (importOriginal) => {
 
 const { ChatRoom } = await import("./chat-room");
 const { loadHistory } = await import("./engine");
+const { handleHistoryRequest } = await import("./api-chat");
+
+const HistoryBodySchema = z
+  .object({ turn: z.number(), storedTurn: z.unknown().optional() })
+  .passthrough();
+const historyBody = async (response: Response) => HistoryBodySchema.parse(await response.json());
 
 type SqlValue = string | number | null;
 
 // Durable Object の SQLite storage と同じ呼び口だけを持つ器。
 const createDurableState = () => {
   const sqlite = new DatabaseSync(":memory:");
+  const alarms: number[] = [];
   return {
     sqlite,
-    alarms: [] as number[],
+    alarms,
     storage: {
       sql: {
         exec: <T>(query: string, ...bindings: SqlValue[]) => {
@@ -76,7 +84,7 @@ const createDurableState = () => {
         }
       },
       setAlarm: async (at: number) => {
-        state.alarms.push(at);
+        alarms.push(at);
       },
     },
   };
@@ -314,5 +322,43 @@ describe("ChatRoom", () => {
     } finally {
       errors.mockRestore();
     }
+  });
+
+  it("履歴 API は指定したターンに残った発言と、返信が残ったかを返す", async () => {
+    const room = newRoom();
+    const conversationId = newConversation();
+    replies.queue.push([""]);
+    await submitAndRun(room, { requestId: "req-8a", conversationId, text: "届かん質問" });
+    const url = (turn: string) =>
+      `https://example.com/api/chat/x/history?conversationId=${conversationId}&turn=${turn}`;
+
+    const dead = await handleHistoryRequest(characterId, new Request(url("1")));
+    expect((await historyBody(dead)).storedTurn).toEqual({
+      turn: 1,
+      user: "届かん質問",
+      answered: false,
+    });
+
+    replies.queue.push([VALID_REPLY]);
+    await submitAndRun(room, {
+      requestId: "req-8a",
+      conversationId,
+      text: "届かん質問",
+      retry: true,
+    });
+    const saved = await historyBody(await handleHistoryRequest(characterId, new Request(url("1"))));
+    expect(saved.storedTurn).toEqual({ turn: 1, user: "届かん質問", answered: true });
+    expect(saved.turn).toBe(2);
+
+    const missing = await historyBody(
+      await handleHistoryRequest(characterId, new Request(url("5"))),
+    );
+    expect(missing.storedTurn).toEqual({ turn: 5, user: null, answered: false });
+    expect((await handleHistoryRequest(characterId, new Request(url("0")))).status).toBe(400);
+    const plain = await handleHistoryRequest(
+      characterId,
+      new Request(`https://example.com/api/chat/x/history?conversationId=${conversationId}`),
+    );
+    expect(await historyBody(plain)).not.toHaveProperty("storedTurn");
   });
 });
