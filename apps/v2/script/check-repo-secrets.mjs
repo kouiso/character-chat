@@ -69,8 +69,10 @@ const BODY_PATTERNS = [
 // 生成された鍵は小文字と数字だけのことが多いので、長い値は区切りの少ない英字+数字で拾う。
 // `process.env.X` 等の参照・`"images/..."` のようなパス・UUID・テスト用語は弾く。
 // JSON の `"NAME": "値"` も拾えるよう、名前の後ろの引用符を許す。
+// YAML や設定の `openrouter_api_key: 値` のような小文字の snake_case も拾う。`sloSpeedPass` のような
+// camelCase の変数名まで拾うと誤検知で検査が止まるので、小文字は `_key` などで終わる名前だけにする。
 const ASSIGNMENT =
-  /\b([A-Z][A-Z0-9_]{3,}(?:KEY|TOKEN|SECRET|PASSWORD|PASS))\b["']?\s*[:=]\s*["']?([^\s"'\n,}]{8,})/g;
+  /\b([A-Z][A-Z0-9_]{3,}(?:KEY|TOKEN|SECRET|PASSWORD|PASS)|[a-z][a-z0-9_]*_(?:key|token|secret|password|pass))\b["']?\s*[:=]\s*["']?([^\s"'\n,}]{8,})/g;
 const PLACEHOLDER =
   /placeholder|change[-_]?me|xxx+|example|dummy|codex-local|your[-_]|<|\$\{|\.\.\.|test[-_]/i;
 const NOT_SECRET_VALUE = /^(?:process\.|import\.|env\.|node:|[@./$]|.*\/)/;

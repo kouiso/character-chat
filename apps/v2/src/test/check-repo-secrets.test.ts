@@ -87,6 +87,12 @@ describe("資格情報検査の出力", () => {
       "Mn3Bv8Cx2Zl5Kj7Hg4Fd",
       (name: string, value: string) => `{ "${name}": "${value}" }`,
     ],
+    [
+      "小文字の名前（YAML の設定など）",
+      "openrouter_api_key",
+      "Ab3Cd5Ef7Gh9Jk2Lm4Np",
+      (name: string, value: string) => `${name}: "${value}"`,
+    ],
   ])("%s: 見つけたら失敗させ、場所と変数名だけを出す", (_label, name, value, line) => {
     const { status, output } = runIn({
       "config/settings.txt": `first\nsecond\n${line(name, value)}\n`,
