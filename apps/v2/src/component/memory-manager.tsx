@@ -109,8 +109,9 @@ const MemoryManagerView = ({ target }: { target: string }) => {
   const [history, setHistory] = useState<{ id: string; memories: ManagedMemory[] } | null>(null);
   const [historyLoading, setHistoryLoading] = useState(false);
   const session = useRef(0);
+  const operation = useRef<object | null>(null);
 
-  const reload = useCallback(
+  const refresh = useCallback(
     async (signal?: AbortSignal) => {
       const currentSession = session.current;
       const canCommit = () => !signal?.aborted && currentSession === session.current;
@@ -138,6 +139,20 @@ const MemoryManagerView = ({ target }: { target: string }) => {
     [target],
   );
 
+  const reload = useCallback(
+    async (signal?: AbortSignal) => {
+      if (operation.current) return;
+      const currentOperation = {};
+      operation.current = currentOperation;
+      try {
+        await refresh(signal);
+      } finally {
+        if (operation.current === currentOperation) operation.current = null;
+      }
+    },
+    [refresh],
+  );
+
   useEffect(() => {
     const controller = new AbortController();
     session.current += 1;
@@ -154,10 +169,15 @@ const MemoryManagerView = ({ target }: { target: string }) => {
     return () => {
       session.current += 1;
       controller.abort();
+      operation.current = null;
     };
   }, [reload]);
 
   const mutate = async (command: MemoryCommand) => {
+    // 読込中の変更が読込の完了処理だけを無効にし、再試行不能になるのを防ぐ。
+    if (operation.current) return;
+    const currentOperation = {};
+    operation.current = currentOperation;
     const currentSession = ++session.current;
     setSaving(true);
     setError(null);
@@ -179,10 +199,11 @@ const MemoryManagerView = ({ target }: { target: string }) => {
       setDeletingId(null);
       setHistory(null);
       if (command.action === "add") setNewContent("");
-      await reload();
+      await refresh();
     } catch (caught) {
       if (currentSession === session.current) setError(messageOf(caught));
     } finally {
+      if (operation.current === currentOperation) operation.current = null;
       if (currentSession === session.current) setSaving(false);
     }
   };
@@ -213,9 +234,10 @@ const MemoryManagerView = ({ target }: { target: string }) => {
       content: newContent,
     });
   };
+  const busy = loading || saving;
 
   return (
-    <section className="memory-manager" aria-label="記憶の管理" aria-busy={loading || saving}>
+    <section className="memory-manager" aria-label="記憶の管理" aria-busy={busy}>
       <h1>記憶の管理</h1>
       <p>保存した内容と、次回の会話で利用する内容を確認できます。</p>
       <MemoryFeedback
@@ -232,7 +254,7 @@ const MemoryManagerView = ({ target }: { target: string }) => {
             <input
               type="checkbox"
               checked={snapshot.enabled}
-              disabled={saving}
+              disabled={busy}
               onChange={(event) =>
                 void mutate({ action: "set-enabled", enabled: event.target.checked })
               }
@@ -248,7 +270,7 @@ const MemoryManagerView = ({ target }: { target: string }) => {
               種類
               <select
                 value={newKind}
-                disabled={saving}
+                disabled={busy}
                 onChange={(event) => {
                   const kind = event.target.value;
                   if (kind === "fact" || kind === "preference" || kind === "summary")
@@ -265,11 +287,11 @@ const MemoryManagerView = ({ target }: { target: string }) => {
               <textarea
                 value={newContent}
                 onChange={(event) => setNewContent(event.target.value)}
-                disabled={saving}
+                disabled={busy}
                 rows={3}
               />
             </label>
-            <button type="submit" disabled={saving || newContent.trim().length === 0}>
+            <button type="submit" disabled={busy || newContent.trim().length === 0}>
               追加する
             </button>
           </form>
@@ -277,14 +299,14 @@ const MemoryManagerView = ({ target }: { target: string }) => {
           {uncertainDeleteIds.size > 0 && (
             <div role="status">
               <p>削除状態を確認中です。確認できるまで対象の内容を表示しません。</p>
-              <button type="button" disabled={loading || saving} onClick={() => void reload()}>
+              <button type="button" disabled={busy} onClick={() => void reload()}>
                 削除状態を再読み込み
               </button>
               {[...uncertainDeleteIds].map((id) => (
                 <button
                   key={id}
                   type="button"
-                  disabled={loading || saving}
+                  disabled={busy}
                   onClick={() => void mutate({ action: "delete", id })}
                 >
                   削除を再試行
@@ -307,7 +329,7 @@ const MemoryManagerView = ({ target }: { target: string }) => {
                   </p>
                   <button
                     type="button"
-                    disabled={saving || historyLoading}
+                    disabled={busy || historyLoading}
                     onClick={() => void showHistory(memory.id)}
                   >
                     履歴
@@ -316,7 +338,7 @@ const MemoryManagerView = ({ target }: { target: string }) => {
                     <>
                       <button
                         type="button"
-                        disabled={saving}
+                        disabled={busy}
                         onClick={() => {
                           setEditingId(memory.id);
                           setEditContent(memory.content);
@@ -327,7 +349,7 @@ const MemoryManagerView = ({ target }: { target: string }) => {
                       <button
                         type="button"
                         aria-pressed={memory.pinned}
-                        disabled={saving}
+                        disabled={busy}
                         onClick={() =>
                           void mutate({ action: "pin", id: memory.id, pinned: !memory.pinned })
                         }
@@ -338,7 +360,7 @@ const MemoryManagerView = ({ target }: { target: string }) => {
                         <input
                           type="checkbox"
                           checked={memory.enabled}
-                          disabled={saving || memory.state !== "active"}
+                          disabled={busy || memory.state !== "active"}
                           onChange={(event) =>
                             void mutate({
                               action: "enable",
@@ -351,7 +373,7 @@ const MemoryManagerView = ({ target }: { target: string }) => {
                       </label>
                       <button
                         type="button"
-                        disabled={saving}
+                        disabled={busy}
                         onClick={() => setDeletingId(memory.id)}
                       >
                         削除
@@ -381,14 +403,14 @@ const MemoryManagerView = ({ target }: { target: string }) => {
                         <textarea
                           value={editContent}
                           onChange={(event) => setEditContent(event.target.value)}
-                          disabled={saving}
+                          disabled={busy}
                           rows={3}
                         />
                       </label>
-                      <button type="submit" disabled={saving || editContent.trim().length === 0}>
+                      <button type="submit" disabled={busy || editContent.trim().length === 0}>
                         訂正を保存
                       </button>
-                      <button type="button" disabled={saving} onClick={() => setEditingId(null)}>
+                      <button type="button" disabled={busy} onClick={() => setEditingId(null)}>
                         キャンセル
                       </button>
                     </form>
@@ -398,12 +420,12 @@ const MemoryManagerView = ({ target }: { target: string }) => {
                       <p>この記憶を削除しますか？ 削除後は会話で利用しません。</p>
                       <button
                         type="button"
-                        disabled={saving}
+                        disabled={busy}
                         onClick={() => void mutate({ action: "delete", id: memory.id })}
                       >
                         削除する
                       </button>
-                      <button type="button" disabled={saving} onClick={() => setDeletingId(null)}>
+                      <button type="button" disabled={busy} onClick={() => setDeletingId(null)}>
                         キャンセル
                       </button>
                     </div>

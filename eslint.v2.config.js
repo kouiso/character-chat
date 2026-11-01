@@ -92,6 +92,14 @@ export default defineConfig([
   },
 
   {
+    // 任意サービスの失敗を握り潰さず、Workers標準ログへ内容を含まないコードだけ残す。
+    files: ["src/server/proactive-activity.ts", "src/server/api-chat.test.ts"],
+    rules: {
+      "no-console": ["error", { allow: ["warn"] }],
+    },
+  },
+
+  {
     // TanStack Router のファイルベースルートは loader 等の named export を画面と同居させる
     files: ["src/routes/**"],
     rules: {

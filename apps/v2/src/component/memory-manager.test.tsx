@@ -307,4 +307,43 @@ describe("MemoryManager", () => {
     expect(screen.getByText("好きな色は緑")).toBeInTheDocument();
     expect(screen.queryByText("次回の会話で利用可能")).not.toBeInTheDocument();
   });
+
+  it("serializes a retained snapshot refresh with mutations and keeps failed commands retryable", async () => {
+    let finishRefresh: ((response: Response) => void) | undefined;
+    render(<MemoryManager conversationId="conversation-1" />);
+    await screen.findByText("好きな色は緑");
+    fetchMock.mockRejectedValueOnce(new TypeError("history offline"));
+    fireEvent.click(screen.getByRole("button", { name: "履歴" }));
+    await screen.findByRole("alert");
+    fetchMock.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          finishRefresh = resolve;
+        }),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "再読み込み" }));
+    expect(screen.getByText("記憶を読み込んでいます…")).toBeInTheDocument();
+    expect(screen.getByLabelText("記憶を利用する")).toBeDisabled();
+    fireEvent.click(screen.getByLabelText("記憶を利用する"));
+    fireEvent.submit(screen.getByRole("form", { name: "記憶を追加" }));
+    expect(fetchMock.mock.calls.filter(([, init]) => init?.method === "POST")).toHaveLength(0);
+
+    finishRefresh?.(json({ enabled: true, memories: [memory()] }));
+    await waitFor(() => expect(screen.getByLabelText("記憶を利用する")).toBeEnabled());
+    expect(screen.queryByText("記憶を読み込んでいます…")).not.toBeInTheDocument();
+    fetchMock.mockRejectedValueOnce(new TypeError("mutation offline"));
+    fireEvent.click(screen.getByLabelText("記憶を利用する"));
+    await screen.findByRole("alert");
+    expect(screen.getByRole("button", { name: "再読み込み" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "操作を再試行" })).toBeEnabled();
+    expect(screen.queryByText("記憶を読み込んでいます…")).not.toBeInTheDocument();
+
+    fetchMock
+      .mockResolvedValueOnce(json({ ok: true }))
+      .mockResolvedValueOnce(json({ enabled: false, memories: [memory()] }));
+    fireEvent.click(screen.getByRole("button", { name: "操作を再試行" }));
+    await screen.findByText("保存済みの記憶は残ります。記憶の参照と自動追加を停止しています。");
+    expect(screen.getByLabelText("記憶を利用する")).not.toBeChecked();
+    await waitFor(() => expect(screen.getByLabelText("記憶を利用する")).toBeEnabled());
+  });
 });
