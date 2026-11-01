@@ -61,6 +61,26 @@ const isDefinitiveRejection = async (response: Response): Promise<boolean> => {
 
 // 送信が割り当てられたターンに pending.text が残り、返信まで残っとる時だけ「送信は保存された」とみなす。
 // サーバーが送信を知らん（null）なら、届いとらんので保存されてへん。
+// 通信そのものが切れた（fetch や応答の読み出しが TypeError で落ちた）時だけに使う。
+// 画面はブラウザの英語の文（「Failed to fetch」など）の代わりに、再接続を促すこの文を出す。
+export class ChatConnectionError extends Error {
+  constructor() {
+    super("通信が切れました。再接続してください。");
+    this.name = "ChatConnectionError";
+  }
+}
+
+// fetch と応答の読み出しが投げる TypeError は通信の失敗。ここでだけ ChatConnectionError へ置き換え、
+// 中断（AbortError）やそれ以外の例外はそのまま通す。
+const throughNetwork = async <T>(operation: () => Promise<T>): Promise<T> => {
+  try {
+    return await operation();
+  } catch (cause) {
+    if (cause instanceof TypeError) throw new ChatConnectionError();
+    throw cause;
+  }
+};
+
 // 送信がまだ作成中で、戻すと返信が後から保存されて二重になる。
 export class ChatTurnActiveError extends Error {
   constructor() {
@@ -181,9 +201,9 @@ export const loadChatHistory = async (
 ): Promise<{ bubbles: ChatBubble[]; nextTurn: number; storedTurn?: StoredTurn | null }> => {
   const query = new URLSearchParams({ conversationId });
   if (requestId !== undefined) query.set("requestId", requestId);
-  const response = await fetch(`/api/chat/${encodeURIComponent(characterId)}/history?${query}`, {
-    signal,
-  });
+  const response = await throughNetwork(() =>
+    fetch(`/api/chat/${encodeURIComponent(characterId)}/history?${query}`, { signal }),
+  );
   // 会話やキャラが無い・設定が壊れとる時は、何度読んでも同じ。送信と同じく確定的な拒否として返す。
   if (requestId !== undefined && response.status === 409) throw new ChatTurnActiveError();
   if (response.status === 404 || response.status === 422) throw new ChatRequestRejectedError();
@@ -221,7 +241,7 @@ export const readChatEvents = async function* (
   let buffer = "";
   try {
     for (;;) {
-      const { value, done } = await reader.read();
+      const { value, done } = await throughNetwork(() => reader.read());
       if (done) return;
       buffer += decoder.decode(value, { stream: true });
       const blocks = buffer.split("\n\n");
@@ -239,17 +259,19 @@ export const connectChatTurn = async (
   signal: AbortSignal,
   retry = false,
 ): Promise<ReadableStream<Uint8Array>> => {
-  const response = await fetch(`/api/chat/${encodeURIComponent(pending.characterId)}`, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    signal,
-    body: JSON.stringify({
-      conversationId: pending.conversationId,
-      requestId: pending.requestId,
-      text: pending.text,
-      retry,
+  const response = await throughNetwork(() =>
+    fetch(`/api/chat/${encodeURIComponent(pending.characterId)}`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      signal,
+      body: JSON.stringify({
+        conversationId: pending.conversationId,
+        requestId: pending.requestId,
+        text: pending.text,
+        retry,
+      }),
     }),
-  });
+  );
   if (!response.ok && (await isDefinitiveRejection(response))) throw new ChatRequestRejectedError();
   if (!response.ok || !response.body)
     throw new Error("返信を受け取れませんでした。再接続してください。");

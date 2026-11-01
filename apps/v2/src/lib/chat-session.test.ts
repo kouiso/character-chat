@@ -1,6 +1,9 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
+  ChatConnectionError,
+  connectChatTurn,
+  loadChatHistory,
   readChatEvents,
   readChatSession,
   writeActiveConversation,
@@ -130,5 +133,45 @@ describe("再開する会話の端末保存", () => {
       { type: "token", text: "こんにちは" },
       { type: "done", conversationId: "a", turn: 1, generationId: null },
     ]);
+  });
+});
+
+describe("通信の失敗だけを再接続の案内にする", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  const pending = {
+    characterId: "a",
+    conversationId: "c",
+    requestId: "r",
+    text: "やあ",
+    baseTurn: 1,
+  };
+
+  it("fetch が TypeError で落ちたら、再接続を促す ChatConnectionError にする", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => {
+        throw new TypeError("Failed to fetch");
+      }),
+    );
+    await expect(connectChatTurn(pending, new AbortController().signal)).rejects.toBeInstanceOf(
+      ChatConnectionError,
+    );
+    await expect(loadChatHistory("a", "c", new AbortController().signal)).rejects.toBeInstanceOf(
+      ChatConnectionError,
+    );
+  });
+
+  it("通信の失敗でない例外は置き換えず、そのまま通す", async () => {
+    const bug = new RangeError("コードの誤り");
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => {
+        throw bug;
+      }),
+    );
+    await expect(connectChatTurn(pending, new AbortController().signal)).rejects.toBe(bug);
   });
 });
