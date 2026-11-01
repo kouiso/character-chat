@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { MAX_MESSAGE_LENGTH } from "../lib/chat-limits";
 import {
   ChatRequestRejectedError,
+  clearPendingTurn,
   connectChatTurn,
   isPendingSaved,
   loadChatHistory,
@@ -31,6 +32,18 @@ const withPending = (
         { role: "user", text: pending.text },
         { role: "assistant", text: "", pending: true },
       ];
+
+// withPending で足した「送信文 + 作成中の返信」の 2 つを外す。
+const withoutPending = (history: ChatBubble[], pending: PendingTurn): ChatBubble[] => {
+  const last = history.at(-1);
+  const user = history.at(-2);
+  return last?.role === "assistant" &&
+    last.pending &&
+    user?.role === "user" &&
+    user.text === pending.text
+    ? history.slice(0, -2)
+    : history;
+};
 
 const updateAssistant = (history: ChatBubble[], text: string): ChatBubble[] =>
   history.map((bubble, index) =>
@@ -99,11 +112,7 @@ export const ChatView = ({ characterId, characterName }: ChatViewProps) => {
       if (!completed) throw new Error("接続が切れました。再接続してください。");
       const history = await loadChatHistory(turn.characterId, turn.conversationId, signal);
       if (signal.aborted) return;
-      writeChatSession(turn.characterId, {
-        version: 1,
-        conversationId: turn.conversationId,
-        pending: null,
-      });
+      clearPendingTurn(turn.characterId, turn);
       nextTurn.current = history.nextTurn;
       setBubbles(history.bubbles);
       setPending(null);
@@ -115,6 +124,15 @@ export const ChatView = ({ characterId, characterName }: ChatViewProps) => {
       if (!signal.aborted) setBusy(false);
     }
   }, []);
+
+  const restoreLocally = (turn: PendingTurn) => {
+    clearPendingTurn(turn.characterId, turn);
+    setBubbles((previous) => withoutPending(previous, turn));
+    setInput(turn.text);
+    setPending(null);
+    setTerminalFailure(false);
+    setError("会話を読み込めませんでした。送信内容は入力欄に戻しました。");
+  };
 
   const recoverPending = () => {
     if (!pending || busy || !terminalFailure) return;
@@ -129,16 +147,12 @@ export const ChatView = ({ characterId, characterName }: ChatViewProps) => {
           pending.characterId,
           pending.conversationId,
           abort.signal,
-          pending.baseTurn,
+          pending.requestId,
         );
         if (abort.signal.aborted) return;
         // 番号が進んだだけでは、別の送信が会話を進めた場合と区別できん。そのターンの中身で決める。
         const restoreInput = !isPendingSaved(pending, history.storedTurn);
-        writeChatSession(pending.characterId, {
-          version: 1,
-          conversationId: pending.conversationId,
-          pending: null,
-        });
+        clearPendingTurn(pending.characterId, pending);
         if (abort.signal.aborted) return;
         nextTurn.current = history.nextTurn;
         setBubbles(history.bubbles);
@@ -146,10 +160,14 @@ export const ChatView = ({ characterId, characterName }: ChatViewProps) => {
         setPending(null);
         setTerminalFailure(false);
         setError(null);
-      } catch {
-        if (!abort.signal.aborted) {
-          setError("入力を戻せませんでした。再試行してください。");
+      } catch (cause) {
+        if (abort.signal.aborted) return;
+        if (cause instanceof ChatRequestRejectedError) {
+          // 会話もキャラも読めんので、保存されたかは確かめようがない。送信文を手元へ戻して止まらんようにする。
+          restoreLocally(pending);
+          return;
         }
+        setError("入力を戻せませんでした。再試行してください。");
       } finally {
         if (!abort.signal.aborted) setBusy(false);
       }
@@ -176,8 +194,10 @@ export const ChatView = ({ characterId, characterName }: ChatViewProps) => {
         );
         if (saved.pending) await consume(saved.pending, abort.signal);
         else setBusy(false);
-      } catch {
+      } catch (cause) {
         if (!abort.signal.aborted) {
+          // 確定的な拒否なら再試行しても直らんので、保留は「入力に戻す」で抜けられるようにする。
+          if (saved.pending && cause instanceof ChatRequestRejectedError) setTerminalFailure(true);
           setError("会話を再開できませんでした。再試行してください。");
           setBusy(false);
         }
