@@ -533,10 +533,17 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
         // 保存用の events は generation を先頭に置く（v2_message.generation_id が v2_generation を
         // 参照するので、store が先に generation 行を作れる順にしとく）。SSE には generation を流さん。
         const accepted = state.chunks.filter((chunkItem) => chunkItem.judge.ok);
-        if (accepted.length === 0 && state.chunks.length > 0) {
+        // 配れる本文が空のターンは、理由を問わず失敗として知らせる。store はこの形の保存を
+        // 未保存扱いにして履歴から外すので、成功で終えると送信文が画面から黙って消える。
+        // 締切で 1 字も来んかった時は generate が既に error を流しとるので重ねん。
+        const blank = accepted.every((chunkItem) => chunkItem.text.trim() === "");
+        if (blank && !state.generation?.error) {
           runtime.writer({
             type: "error",
-            message: "全塊が判定で落ちた（配れる本文が無い）",
+            message:
+              state.chunks.length > 0
+                ? "全塊が判定で落ちた（配れる本文が無い）"
+                : "モデルの返事が空のまま終わった（配れる本文が無い）",
           } satisfies TurnEvent);
         }
         const events: TurnEvent[] = [

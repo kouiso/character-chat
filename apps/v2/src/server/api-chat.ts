@@ -1,10 +1,13 @@
 import { ConversationAccessError } from "@v2/db";
 import { z } from "zod";
 
+import { MAX_MESSAGE_LENGTH } from "../lib/chat-limits";
+
 import {
   CharacterInvalidError,
   CharacterNotFoundError,
   loadHistory,
+  loadStoredTurn,
   LOCAL_USER_ID,
 } from "./engine";
 import { getPlatform } from "./platform";
@@ -15,7 +18,7 @@ import type { ChatRoom } from "./chat-room";
 const BodySchema = z.object({
   conversationId: z.string().min(1).max(120),
   requestId: z.string().min(1).max(120),
-  text: z.string().min(1).max(4000),
+  text: z.string().min(1).max(MAX_MESSAGE_LENGTH),
   retry: z.boolean().optional(),
 });
 
@@ -75,6 +78,7 @@ export const handleChatRequest = async (id: string, request: Request): Promise<R
     const receipt = await room.submit({ ...parsed.data, characterId: id });
     if (receipt.status !== "accepted") {
       return json(409, {
+        code: receipt.status,
         message:
           receipt.status === "busy"
             ? "この会話の返信を作成中です。"
@@ -90,11 +94,35 @@ export const handleChatRequest = async (id: string, request: Request): Promise<R
   }
 };
 
+const TurnParamSchema = z.coerce.number().int().positive();
+
+// 「入力に戻す」が、そのターンに自分の発言と返信が保存されたかを番号の進み具合で推測せんための口。
+// 別の送信が会話を進めても、そのターンの中身で判定できる。
+const readStoredTurn = async (characterId: string, conversationId: string, turn: number) => {
+  const messages = await loadStoredTurn(characterId, conversationId, turn);
+  return {
+    turn,
+    user: messages.find((message) => message.role === "user")?.content ?? null,
+    answered: messages.some(
+      (message) => message.role === "assistant" && message.content.trim() !== "",
+    ),
+  };
+};
+
 export const handleHistoryRequest = async (id: string, request: Request): Promise<Response> => {
-  const conversationId = new URL(request.url).searchParams.get("conversationId");
+  const params = new URL(request.url).searchParams;
+  const conversationId = params.get("conversationId");
   if (!conversationId) return json(400, { message: "conversationIdを指定してください。" });
+  const turnParam = params.get("turn");
+  const turn = turnParam === null ? null : TurnParamSchema.safeParse(turnParam);
+  if (turn && !turn.success) return json(400, { message: "turnを確認してください。" });
   try {
-    return json(200, await loadHistory({ characterId: id, conversationId }));
+    const history = await loadHistory({ characterId: id, conversationId });
+    if (!turn) return json(200, history);
+    return json(200, {
+      ...history,
+      storedTurn: await readStoredTurn(id, conversationId, turn.data),
+    });
   } catch (error) {
     return toErrorResponse(error);
   }
