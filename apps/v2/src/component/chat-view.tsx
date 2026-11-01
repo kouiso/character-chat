@@ -16,7 +16,8 @@ import {
   type PendingTurn,
 } from "../lib/chat-session";
 
-import { ChatMessage } from "./chat-message";
+import { ChatMessage, ChatMessageText } from "./chat-message";
+import { ChatMessageLog } from "./chat-message-log";
 
 import type { ChatSseEvent } from "../lib/sse-events";
 
@@ -272,21 +273,24 @@ export const ChatView = ({ characterId, characterName }: ChatViewProps) => {
 
   return (
     <div className="v2-chat">
-      <div className="v2-chat-header">{characterName}</div>
-      <div className="v2-chat-log" aria-live="polite">
+      <div className="v2-chat-header">
+        <ChatMessageText text={characterName} />
+      </div>
+      <ChatMessageLog key={characterId} busy={busy}>
         {bubbles.map((bubble, index) => (
           <div
             key={index}
-            className={`v2-bubble ${bubble.role} ${bubble.pending ? "pending" : ""}`}
+            className={`v2-bubble v2-message-turn ${bubble.role} ${bubble.pending ? "pending" : ""}`}
           >
-            {bubble.role === "assistant" && bubble.text ? (
-              <ChatMessage content={bubble.text} />
-            ) : (
-              bubble.text || (bubble.pending ? "…" : "")
-            )}
+            <ChatMessage
+              role={bubble.role}
+              text={bubble.text || (bubble.pending ? "…" : "")}
+              characterName={characterName}
+              streaming={bubble.pending}
+            />
           </div>
         ))}
-      </div>
+      </ChatMessageLog>
       {error && (
         <div className="v2-error" role="alert">
           {error}
