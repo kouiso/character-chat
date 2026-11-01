@@ -15,6 +15,8 @@ pnpm --filter @v2/cf migrate:legacy --persist-root /absolute/path/to/restored-d1
 pnpm --filter @v2/cf migrate:legacy --persist-root /absolute/path/to/restored-d1 --target-user local --apply
 ```
 
+1 行目（`--apply` なし）は確認だけで、`--apply` と同じ照合を通し、書き込みだけを飛ばす。移す予定の件数（`insertedConversations`・`insertedMessages`・`updatedConversations`）と、要確認の会話を出す。要確認があれば終了コード1で終える。再実行では、旧側で付け直した題名と新しい更新日時も移す（`updatedConversations`）。
+
 元の利用者が複数いる場合は `--source-user` を明示する。異なる所有者を自動で統合しない。`target-user=local`は個人用BASIC認証の所有者に対応する。
 
 ```sh
