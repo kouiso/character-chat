@@ -52,7 +52,7 @@ vi.mock("@v2/engine", async (importOriginal) => {
 
 const { ChatRoom } = await import("./chat-room");
 const { loadHistory } = await import("./engine");
-const { handleHistoryRequest } = await import("./api-chat");
+const { handleChatRequest, handleHistoryRequest } = await import("./api-chat");
 
 const HistoryBodySchema = z
   .object({ turn: z.number(), storedTurn: z.unknown().optional() })
@@ -509,5 +509,77 @@ describe("ChatRoom", () => {
     expect(receipt.status).toBe("accepted");
     expect(room.readEvents("req-11", 0).status).toBe("queued");
     expect(state.alarms).toHaveLength(1);
+  });
+
+  describe("POST /api/chat", () => {
+    const post = (
+      body: Record<string, unknown>,
+      headers: Record<string, string> = {},
+    ): Promise<Response> =>
+      handleChatRequest(
+        characterId,
+        new Request("https://example.com/api/chat/x", {
+          method: "POST",
+          headers: { "content-type": "application/json", ...headers },
+          body: JSON.stringify(body),
+        }),
+      );
+    const withRoom = (room: InstanceType<typeof ChatRoom>) => {
+      platform.env = { ...platform.env, CHAT_ROOMS: { getByName: () => room } };
+    };
+    const ErrorBodySchema = z.object({ code: z.string().optional(), message: z.string() });
+
+    it("作成中の会話への別の送信は 409 busy、同じ受付番号で中身が違う送信は 409 conflict を返す", async () => {
+      const room = newRoom();
+      withRoom(room);
+      const conversationId = newConversation();
+      await room.submit({ requestId: "req-12a", conversationId, text: "先", characterId });
+
+      const busy = await post({ conversationId, requestId: "req-12b", text: "後" });
+      expect(busy.status).toBe(409);
+      expect(ErrorBodySchema.parse(await busy.json()).code).toBe("busy");
+
+      const conflict = await post({ conversationId, requestId: "req-12a", text: "書き換え" });
+      expect(conflict.status).toBe(409);
+      expect(ErrorBodySchema.parse(await conflict.json()).code).toBe("conflict");
+    });
+
+    it.each([["abc"], ["-1"], ["1.5"]])(
+      "Last-Event-ID が %s なら 400 で受け付けない",
+      async (value) => {
+        withRoom(newRoom());
+        const response = await post(
+          { conversationId: newConversation(), requestId: "req-13", text: "x" },
+          { "last-event-id": value },
+        );
+        expect(response.status).toBe(400);
+      },
+    );
+
+    it("終わった job の事象が 1 ページを超えても、途中で切らずに最後まで配る", async () => {
+      const room = newRoom();
+      withRoom(room);
+      const conversationId = newConversation();
+      await room.submit({ requestId: "req-14", conversationId, text: "長い返事", characterId });
+      const insert = state.sqlite.prepare("INSERT INTO events (job_id,event) VALUES (?,?)");
+      for (let seq = 0; seq < 150; seq++) {
+        insert.run("req-14", JSON.stringify({ type: "chunk", seq, text: `t${seq}` }));
+      }
+      insert.run(
+        "req-14",
+        JSON.stringify({ type: "done", conversationId, turn: 1, generationId: null }),
+      );
+      state.sqlite.exec("UPDATE jobs SET status = 'succeeded' WHERE id = 'req-14'");
+
+      const first = room.readEvents("req-14", 0);
+      expect(first.events).toHaveLength(100);
+      expect(first.hasMore).toBe(true);
+
+      const response = await post({ conversationId, requestId: "req-14", text: "長い返事" });
+      expect(response.status).toBe(200);
+      const text = await response.text();
+      expect(text.match(/^event: chunk$/gm)).toHaveLength(150);
+      expect(text).toMatch(/^event: done$/m);
+    });
   });
 });

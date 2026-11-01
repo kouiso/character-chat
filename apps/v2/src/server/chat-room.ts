@@ -7,6 +7,10 @@ import type { ChatSseEvent } from "../lib/sse-events";
 const CHAT_TURN_FAILURE_EVENT = "chat_turn_failed";
 const CHAT_TURN_FAILURE_CATEGORY = "turn_processing_failure";
 const MAX_ATTEMPTS = 3;
+// 受付・alarm の拾い上げ・予約・状態の問い合わせが、同じ「処理中」の定義を使う。
+const ACTIVE_STATUS_SQL = "status IN ('queued','running')";
+// 1 回に返す事象の上限。readEvents は続きがあるかを hasMore で返すので、呼び出し側はこの数を知らん。
+const EVENT_PAGE_SIZE = 100;
 const HISTORY_READ_LIMIT = 3;
 
 // ログへ出してよいのは、ここで決めた固定の理由だけ。外から来た例外の message には
@@ -64,7 +68,13 @@ export type SubmitTurn = {
 
 export type TurnReceipt = { status: "accepted" | "conflict" | "busy"; requestId: string };
 export type StoredEvent = { id: number; event: ChatSseEvent };
-export type EventPage = { events: StoredEvent[]; status: JobStatus | "missing" };
+export type EventPage = {
+  events: StoredEvent[];
+  status: JobStatus | "missing";
+  hasMore: boolean;
+};
+
+const isActive = (status: JobStatus): boolean => status === "queued" || status === "running";
 
 const hashInput = async (input: SubmitTurn): Promise<string> => {
   const bytes = new TextEncoder().encode(
@@ -85,22 +95,13 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
       attempts INTEGER NOT NULL DEFAULT 0, status TEXT NOT NULL, created_at INTEGER NOT NULL
     )`);
     this.ctx.storage.sql.exec(`CREATE TABLE IF NOT EXISTS events (
-      id INTEGER PRIMARY KEY AUTOINCREMENT, job_id TEXT NOT NULL, event TEXT NOT NULL,
-      confirmed INTEGER NOT NULL DEFAULT 0
+      id INTEGER PRIMARY KEY AUTOINCREMENT, job_id TEXT NOT NULL, event TEXT NOT NULL
     )`);
     // job が終わるたびに上がる番号。D1 の履歴を読む間に別の job が終わったかを、受付の時に見分ける。
     this.ctx.storage.sql.exec(
       "CREATE TABLE IF NOT EXISTS room_state (id INTEGER PRIMARY KEY CHECK (id = 1), version INTEGER NOT NULL)",
     );
     this.ctx.storage.sql.exec("INSERT OR IGNORE INTO room_state (id, version) VALUES (1, 0)");
-    const columns = this.ctx.storage.sql
-      .exec<{ name: string }>("PRAGMA table_info(events)")
-      .toArray();
-    if (!columns.some((column) => column.name === "confirmed")) {
-      this.ctx.storage.sql.exec(
-        "ALTER TABLE events ADD COLUMN confirmed INTEGER NOT NULL DEFAULT 0",
-      );
-    }
   }
 
   async submit(input: SubmitTurn): Promise<TurnReceipt> {
@@ -122,7 +123,7 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
   // 後から入った job が誰にも処理されんまま残る。
   private async scheduleIfWaiting(requestId: string): Promise<void> {
     const job = this.job(requestId);
-    if (job && (job.status === "queued" || (job.status === "running" && !this.running))) {
+    if (job && isActive(job.status) && !(job.status === "running" && this.running)) {
       await this.ctx.storage.setAlarm(Date.now() + 50);
     }
   }
@@ -157,7 +158,7 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
       return { status: "conflict", requestId: input.requestId };
     }
     const active = this.ctx.storage.sql
-      .exec("SELECT id FROM jobs WHERE status IN ('queued','running') LIMIT 1")
+      .exec(`SELECT id FROM jobs WHERE ${ACTIVE_STATUS_SQL} LIMIT 1`)
       .toArray()[0];
     if (active) return { status: "busy", requestId: input.requestId };
     // 履歴を読んどる間に別の job が終わると、読んだターン番号はもう埋まっとる。
@@ -181,10 +182,7 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
     if (input.retry && existing.status === "failed" && existing.attempts < MAX_ATTEMPTS) {
       // 失敗した間に別の送信が受け付けられとったら、同じターンを二つの job が取り合う。
       const other = this.ctx.storage.sql
-        .exec(
-          "SELECT id FROM jobs WHERE status IN ('queued','running') AND id != ? LIMIT 1",
-          input.requestId,
-        )
+        .exec(`SELECT id FROM jobs WHERE ${ACTIVE_STATUS_SQL} AND id != ? LIMIT 1`, input.requestId)
         .toArray()[0];
       if (other) return { status: "busy", requestId: input.requestId };
       this.ctx.storage.sql.exec("UPDATE jobs SET status = 'queued' WHERE id = ?", input.requestId);
@@ -198,25 +196,29 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
   jobTurn(requestId: string): { turn: number; active: boolean } | null {
     const job = this.job(requestId);
     if (!job) return null;
-    return { turn: job.turn, active: job.status === "queued" || job.status === "running" };
+    return { turn: job.turn, active: isActive(job.status) };
   }
 
   readEvents(requestId: string, after: number): EventPage {
     const job = this.job(requestId);
-    if (!job) return { events: [], status: "missing" };
+    if (!job) return { events: [], status: "missing", hasMore: false };
     const rows = this.ctx.storage.sql
       .exec<{
         id: number;
         event: string;
       }>(
-        "SELECT id,event FROM events WHERE job_id = ? AND id > ? AND confirmed = 1 ORDER BY id LIMIT 100",
+        "SELECT id,event FROM events WHERE job_id = ? AND id > ? ORDER BY id LIMIT ?",
         requestId,
         after,
+        EVENT_PAGE_SIZE + 1,
       )
       .toArray();
     return {
-      events: rows.map((row) => ({ id: row.id, event: JSON.parse(row.event) as ChatSseEvent })),
+      events: rows
+        .slice(0, EVENT_PAGE_SIZE)
+        .map((row) => ({ id: row.id, event: JSON.parse(row.event) as ChatSseEvent })),
       status: job.status,
+      hasMore: rows.length > EVENT_PAGE_SIZE,
     };
   }
 
@@ -225,9 +227,7 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
     this.running = true;
     try {
       const job = this.ctx.storage.sql
-        .exec<Job>(
-          "SELECT * FROM jobs WHERE status IN ('queued','running') ORDER BY created_at LIMIT 1",
-        )
+        .exec<Job>(`SELECT * FROM jobs WHERE ${ACTIVE_STATUS_SQL} ORDER BY created_at LIMIT 1`)
         .toArray()[0];
       if (job) await this.process(job);
     } finally {
@@ -235,7 +235,7 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
     }
     // alarm は 1 回で 1 件だけ処理する。残りがあれば次を予約せんと、そのまま止まる。
     const remaining = this.ctx.storage.sql
-      .exec("SELECT id FROM jobs WHERE status IN ('queued','running') LIMIT 1")
+      .exec(`SELECT id FROM jobs WHERE ${ACTIVE_STATUS_SQL} LIMIT 1`)
       .toArray()[0];
     if (remaining) await this.ctx.storage.setAlarm(Date.now() + 50);
   }
@@ -249,7 +249,7 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
       this.ctx.storage.sql.exec("DELETE FROM events WHERE job_id = ?", job.id);
       for (const event of events) {
         this.ctx.storage.sql.exec(
-          "INSERT INTO events (job_id,event,confirmed) VALUES (?,?,1)",
+          "INSERT INTO events (job_id,event) VALUES (?,?)",
           job.id,
           JSON.stringify(event),
         );
