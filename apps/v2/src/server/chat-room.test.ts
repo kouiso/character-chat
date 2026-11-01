@@ -95,6 +95,42 @@ const createDurableState = () => {
 
 let state: ReturnType<typeof createDurableState>;
 
+// 履歴は 1 回の batch か、v2_message を読む 1 つの select で読む。どちらでも、その読み込みが
+// 済んだ所で 1 回だけ onRead を走らせる D1 を作る（受付と alarm の競り合いを再現する）。
+const interruptAfterHistoryRead = (d1: D1Database, onRead: () => Promise<void>) => {
+  const progress = { armed: true };
+  const interrupt = async <T>(result: T): Promise<T> => {
+    if (progress.armed) {
+      progress.armed = false;
+      await onRead();
+    }
+    return result;
+  };
+  const watch = (statement: D1PreparedStatement, query: string): D1PreparedStatement =>
+    new Proxy(statement, {
+      get(target, property) {
+        const value = Reflect.get(target, property, target);
+        if (typeof value !== "function") return value;
+        if (property === "bind")
+          return (...values: unknown[]) => watch(target.bind(...values), query);
+        if (["all", "raw", "first"].includes(String(property)) && /from "v2_message"/.test(query))
+          return async (...args: unknown[]) => interrupt(await value.apply(target, args));
+        return value.bind(target);
+      },
+    });
+  const db = new Proxy(d1, {
+    get(target, property) {
+      if (property === "batch")
+        return async (statements: D1PreparedStatement[]) =>
+          interrupt(await target.batch(statements));
+      if (property === "prepare") return (query: string) => watch(target.prepare(query), query);
+      const value = Reflect.get(target, property, target);
+      return typeof value === "function" ? value.bind(target) : value;
+    },
+  });
+  return { db, state: progress };
+};
+
 describe("ChatRoom", () => {
   let local: LocalD1;
   let characterId: string;
@@ -419,39 +455,11 @@ describe("ChatRoom", () => {
         .status,
     ).toBe("accepted");
 
-    // 次の送信が履歴を読み終えた直後に、先の job を最後まで走らせる。履歴は 1 回の batch か、
-    // v2_message を読む 1 つの select で読む（どちらでも、その読み込みが済んだ所で割り込む）。
-    let armed = true;
+    // 次の送信が履歴を読み終えた直後に、先の job を最後まで走らせる。
     const d1 = local.d1;
-    const interrupt = async <T>(result: T): Promise<T> => {
-      if (armed) {
-        armed = false;
-        platform.env = { ...platform.env, DB: d1 };
-        await room.alarm();
-      }
-      return result;
-    };
-    const watch = (statement: D1PreparedStatement, query: string): D1PreparedStatement =>
-      new Proxy(statement, {
-        get(target, property) {
-          const value = Reflect.get(target, property, target);
-          if (typeof value !== "function") return value;
-          if (property === "bind")
-            return (...values: unknown[]) => watch(target.bind(...values), query);
-          if (["all", "raw", "first"].includes(String(property)) && /from "v2_message"/.test(query))
-            return async (...args: unknown[]) => interrupt(await value.apply(target, args));
-          return value.bind(target);
-        },
-      });
-    const racing = new Proxy(d1, {
-      get(target, property) {
-        if (property === "batch")
-          return async (statements: D1PreparedStatement[]) =>
-            interrupt(await target.batch(statements));
-        if (property === "prepare") return (query: string) => watch(target.prepare(query), query);
-        const value = Reflect.get(target, property, target);
-        return typeof value === "function" ? value.bind(target) : value;
-      },
+    const { db: racing, state: race } = interruptAfterHistoryRead(d1, async () => {
+      platform.env = { ...platform.env, DB: d1 };
+      await room.alarm();
     });
     platform.env = { ...platform.env, DB: racing };
 
@@ -462,7 +470,7 @@ describe("ChatRoom", () => {
       characterId,
     });
     platform.env = { ...platform.env, DB: d1 };
-    expect(armed).toBe(false);
+    expect(race.armed).toBe(false);
     expect(state.sqlite.prepare("SELECT turn FROM jobs WHERE id = ?").get("req-9b")).toEqual({
       turn: 2,
     });
@@ -483,28 +491,13 @@ describe("ChatRoom", () => {
   it("履歴を読む間に alarm が空振りしても、受け付けた job には次の alarm が残る", async () => {
     const room = newRoom();
     const conversationId = newConversation();
-    let armed = true;
     const d1 = local.d1;
     // 履歴の読み込みが済んだ所で、先に予約された alarm が走り切った状態を作る。
-    platform.env = {
-      ...platform.env,
-      DB: new Proxy(d1, {
-        get(target, property) {
-          if (property === "batch")
-            return async (statements: D1PreparedStatement[]) => {
-              const result = await target.batch(statements);
-              if (armed) {
-                armed = false;
-                await room.alarm();
-                state.alarms.length = 0;
-              }
-              return result;
-            };
-          const value = Reflect.get(target, property, target);
-          return typeof value === "function" ? value.bind(target) : value;
-        },
-      }),
-    };
+    const { db, state: race } = interruptAfterHistoryRead(d1, async () => {
+      await room.alarm();
+      state.alarms.length = 0;
+    });
+    platform.env = { ...platform.env, DB: db };
     const receipt = await room.submit({
       requestId: "req-11",
       conversationId,
@@ -512,7 +505,7 @@ describe("ChatRoom", () => {
       characterId,
     });
     platform.env = { ...platform.env, DB: d1 };
-    expect(armed).toBe(false);
+    expect(race.armed).toBe(false);
     expect(receipt.status).toBe("accepted");
     expect(room.readEvents("req-11", 0).status).toBe("queued");
     expect(state.alarms).toHaveLength(1);
