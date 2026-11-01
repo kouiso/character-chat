@@ -8,6 +8,7 @@
 - 復元先 integrity_check: ok、foreign_key_check: 0件。
 - exportを途中で切ったファイルは期待SHA-256との不一致で拒否。出力ファイルは作られない。
 - `script/prepare-d1-restore.py` がSHA-256、元データ整合性、外部キーを検査後、D1で復元可能な挿入順を生成する。
+- この拒否と復元の挙動は `python3 script/test-prepare-d1-restore.py` で確かめられる（SHA-256 不一致・途中で切れた export のどちらも出力を作らない）。
 - 以下は件数のみ。会話本文、資格情報、バックアップ本体を含まない。
 
 | 表 | export | 復元先D1 | 全行ハッシュ |
