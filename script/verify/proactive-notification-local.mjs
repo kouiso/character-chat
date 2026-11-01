@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import path from "node:path";
+import { setTimeout as delay } from "node:timers/promises";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 const repoRoot = fileURLToPath(new URL("../../", import.meta.url));
@@ -14,7 +15,7 @@ await mkdir(output, { recursive: true });
 const persist = await mkdtemp(path.join(output, "isolated-do-"));
 const storePath = path.join(repoRoot, "apps/v2/src/server/proactive-notification-store.ts");
 
-// 実時刻による自動発火を避け、alarm 本体は合成時計で明示的に呼び出す。
+// 通常は合成時計で再現し、自動発火だけ独立した合成 DO で確かめる。
 const source = `
 import { DurableObject } from "cloudflare:workers";
 import { ProactiveNotificationStore } from ${JSON.stringify(storePath)};
@@ -39,6 +40,7 @@ export class SyntheticNotificationObject extends DurableObject {
     }});
   }
   async trigger(failure) { this.failure = failure; return await this.alarm(); }
+  async armNative() { await this.ctx.storage.setAlarm(Date.now() + 100); }
   async replay(occurrence) { return await this.store.handleAlarm(occurrence, { send: async () => { throw new Error("Unexpected duplicate sink call"); } }); }
   async summary(characterId) {
     return { sent: (await this.ctx.storage.get("synthetic-sink")) ?? [], settings: await this.store.getCharacterSettings(characterId), schedule: await this.store.getSchedule(), alarmAt: await this.ctx.storage.getAlarm() };
@@ -55,6 +57,7 @@ export default { async fetch(request, env) {
       case "activity": result = await stub.activity(body.characterId); break;
       case "enabled": result = await stub.enabled(body.characterId, body.enabled); break;
       case "alarm": result = await stub.trigger(body.failure ?? false); break;
+      case "arm-native": result = await stub.armNative(); break;
       case "replay": result = await stub.replay(body.occurrence); break;
       case "summary": result = await stub.summary(body.characterId); break;
       default: throw new Error("Unknown synthetic operation");
@@ -149,6 +152,25 @@ try {
   assert.equal(summary.sent.length, 1);
   assert.equal(summary.alarmAt, Date.parse("2099-10-26T02:00:00.000Z"));
   evidence.retry = { notifications: 1, retries: 2, nextAlarmAt: summary.alarmAt };
+
+  await call({ op: "configure", name: "synthetic-automatic", characterId, settings });
+  await call({ op: "clock", name: "synthetic-automatic", instant: "2099-10-26T01:00:00.000Z" });
+  await call({ op: "arm-native", name: "synthetic-automatic" });
+  for (let poll = 0; poll < 100; poll++) {
+    summary = await call({ op: "summary", name: "synthetic-automatic", characterId });
+    if (summary.sent.length > 0) break;
+    await delay(50);
+  }
+  assert.equal(summary.sent.length, 1, "Native automatic alarm did not dispatch exactly once");
+  assert.equal(summary.alarmAt, Date.parse("2099-10-26T02:00:00.000Z"));
+  await call({ op: "alarm", name: "synthetic-automatic" });
+  summary = await call({ op: "summary", name: "synthetic-automatic", characterId });
+  assert.equal(summary.sent.length, 1);
+  evidence.automaticAlarm = {
+    notifications: 1,
+    nativeEventFired: true,
+    nextSchedulePreserved: true,
+  };
 
   for (let index = 0; index < 8; index++)
     await call({
