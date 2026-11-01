@@ -405,24 +405,38 @@ describe("ChatRoom", () => {
         .status,
     ).toBe("accepted");
 
-    // 次の送信が履歴を読み終えた直後（load は 1 回の batch で読む）に、先の job を最後まで走らせる。
+    // 次の送信が履歴を読み終えた直後に、先の job を最後まで走らせる。履歴は 1 回の batch か、
+    // v2_message を読む 1 つの select で読む（どちらでも、その読み込みが済んだ所で割り込む）。
     let armed = true;
     const d1 = local.d1;
+    const interrupt = async <T>(result: T): Promise<T> => {
+      if (armed) {
+        armed = false;
+        platform.env = { ...platform.env, DB: d1 };
+        await room.alarm();
+      }
+      return result;
+    };
+    const watch = (statement: D1PreparedStatement, query: string): D1PreparedStatement =>
+      new Proxy(statement, {
+        get(target, property) {
+          const value = Reflect.get(target, property, target);
+          if (typeof value !== "function") return value;
+          if (property === "bind")
+            return (...values: unknown[]) => watch(target.bind(...values), query);
+          if (["all", "raw", "first"].includes(String(property)) && /from "v2_message"/.test(query))
+            return async (...args: unknown[]) => interrupt(await value.apply(target, args));
+          return value.bind(target);
+        },
+      });
     const racing = new Proxy(d1, {
       get(target, property) {
-        if (property !== "batch") {
-          const value = Reflect.get(target, property, target);
-          return typeof value === "function" ? value.bind(target) : value;
-        }
-        return async (statements: D1PreparedStatement[]) => {
-          const result = await target.batch(statements);
-          if (armed) {
-            armed = false;
-            platform.env = { ...platform.env, DB: d1 };
-            await room.alarm();
-          }
-          return result;
-        };
+        if (property === "batch")
+          return async (statements: D1PreparedStatement[]) =>
+            interrupt(await target.batch(statements));
+        if (property === "prepare") return (query: string) => watch(target.prepare(query), query);
+        const value = Reflect.get(target, property, target);
+        return typeof value === "function" ? value.bind(target) : value;
       },
     });
     platform.env = { ...platform.env, DB: racing };
