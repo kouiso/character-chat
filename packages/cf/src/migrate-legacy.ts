@@ -7,8 +7,12 @@ import {
   migrateLegacyConversations,
 } from "@v2/db";
 
+import { assertLocalOnly } from "./assert-local";
+
 import { createPlatform } from "./index";
 
+// 復元コピーの移行は手元だけで回す。--remote を付けても本番 D1 へは届かせん。
+assertLocalOnly(process.argv.slice(2));
 const { values } = parseArgs({
   options: {
     "persist-root": { type: "string" },
