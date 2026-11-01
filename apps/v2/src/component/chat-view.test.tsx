@@ -234,7 +234,7 @@ describe("ChatView", () => {
           { role: "user", content: "失敗した質問" },
           { role: "assistant", content: "届いていた応答" },
         ],
-        storedTurn: { turn: 2, user: "失敗した質問", answered: true, active: false },
+        storedTurn: { turn: 2, user: "失敗した質問", answered: true },
       }),
     );
     fireEvent.click(await screen.findByRole("button", { name: "入力に戻す" }));
@@ -271,7 +271,7 @@ describe("ChatView", () => {
           { role: "user", content: "別のタブの質問" },
           { role: "assistant", content: "別のタブへの応答" },
         ],
-        storedTurn: { turn: 2, user: "別のタブの質問", answered: true, active: false },
+        storedTurn: { turn: 2, user: "別のタブの質問", answered: true },
       }),
     );
     const fetchMock = vi.mocked(fetch);
@@ -413,14 +413,46 @@ describe("ChatView", () => {
     expect(screen.getByText("届いた質問")).toBeInTheDocument();
   });
 
-  it("まだ作成中の送信は入力へ戻さず、保留と再接続の道を残す", async () => {
-    renderTerminalFailure(() =>
-      Response.json({
-        turn: 2,
-        history: PRIOR,
-        storedTurn: { turn: 2, user: "失敗した質問", answered: false, active: true },
+  it("再接続で完了だけが届き履歴を読めなくても、空の返信枠を残さない", async () => {
+    const pending = {
+      characterId: "a",
+      conversationId: "conversation-a",
+      requestId: "request-old",
+      text: "前に送った質問",
+      baseTurn: 1,
+    };
+    writeChatSession("a", { version: 1, conversationId: "conversation-a", pending });
+    let historyCalls = 0;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (_url: RequestInfo | URL, init?: RequestInit) => {
+        if (init?.method === "POST") {
+          return new Response(
+            'event: done\ndata: {"conversationId":"conversation-a","turn":1,"generationId":null}\n\n',
+          );
+        }
+        historyCalls += 1;
+        return historyCalls === 1
+          ? Response.json({ turn: 1, history: [] })
+          : new Response("", { status: 503 });
       }),
     );
+    render(<ChatView characterId="a" characterName="案内役" />);
+    await screen.findByRole("alert");
+    expect(readChatSession("a").pending).toBeNull();
+    expect(screen.getByText("前に送った質問")).toBeInTheDocument();
+    expect(document.querySelectorAll(".v2-bubble.assistant")).toHaveLength(0);
+  });
+
+  it("まだ作成中の送信は入力へ戻さず、保留と再接続の道を残す", async () => {
+    let historyCalls = 0;
+    renderTerminalFailure(() => {
+      historyCalls += 1;
+      // 1 回目は起動時の復元、2 回目が「入力に戻す」の読み込み（作成中は 409 busy）。
+      return historyCalls === 2
+        ? Response.json({ code: "busy", message: "作成中" }, { status: 409 })
+        : Response.json({ turn: 2, history: PRIOR });
+    });
     fireEvent.click(await screen.findByRole("button", { name: "入力に戻す" }));
     await screen.findByText("返信をまだ作成中です。再接続してください。");
     expect(screen.getByRole("textbox")).toHaveValue("");
