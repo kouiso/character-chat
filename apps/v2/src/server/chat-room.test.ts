@@ -341,6 +341,7 @@ describe("ChatRoom", () => {
       turn: 1,
       user: "届かん質問",
       answered: false,
+      active: false,
     });
 
     replies.queue.push([VALID_REPLY]);
@@ -353,7 +354,19 @@ describe("ChatRoom", () => {
     const saved = await historyBody(
       await handleHistoryRequest(characterId, new Request(url("req-8a"))),
     );
-    expect(saved.storedTurn).toEqual({ turn: 1, user: "届かん質問", answered: true });
+    expect(saved.storedTurn).toEqual({
+      turn: 1,
+      user: "届かん質問",
+      answered: true,
+      active: false,
+    });
+
+    // 受け付けたがまだ処理しとらん送信は active。画面はこれを見て入力へ戻さん。
+    await room.submit({ requestId: "req-8b", conversationId, text: "待ち中", characterId });
+    const queued = await historyBody(
+      await handleHistoryRequest(characterId, new Request(url("req-8b"))),
+    );
+    expect(queued.storedTurn).toEqual({ turn: 2, user: null, answered: false, active: true });
     expect(saved.turn).toBe(2);
 
     // サーバーに届いとらん送信は null（保存されてへん）。

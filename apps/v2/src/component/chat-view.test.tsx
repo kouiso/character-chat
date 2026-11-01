@@ -344,7 +344,7 @@ describe("ChatView", () => {
           { role: "user", content: "失敗した質問" },
           { role: "assistant", content: "届いていた応答" },
         ],
-        storedTurn: { turn: 2, user: "失敗した質問", answered: true },
+        storedTurn: { turn: 2, user: "失敗した質問", answered: true, active: false },
       }),
     );
     fireEvent.click(await screen.findByRole("button", { name: "入力に戻す" }));
@@ -381,7 +381,7 @@ describe("ChatView", () => {
           { role: "user", content: "別のタブの質問" },
           { role: "assistant", content: "別のタブへの応答" },
         ],
-        storedTurn: { turn: 2, user: "別のタブの質問", answered: true },
+        storedTurn: { turn: 2, user: "別のタブの質問", answered: true, active: false },
       }),
     );
     const fetchMock = vi.mocked(fetch);
@@ -536,6 +536,42 @@ describe("ChatView", () => {
     releasePost();
     await waitFor(() => expect(screen.getByRole("textbox")).toBeEnabled());
     expect(readChatSession("a", "conversation-a").pending).toEqual(otherTab);
+  });
+
+  it("完了した送信は、直後の履歴の読み直しが失敗しても保留に残さず、入力にも戻さない", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (_url: RequestInfo | URL, init?: RequestInit) =>
+        init?.method === "POST"
+          ? new Response(
+              'event: chunk\ndata: {"seq":0,"text":"届いた返事"}\n\nevent: done\ndata: {"conversationId":"conversation-a","turn":1,"generationId":null}\n\n',
+            )
+          : Response.json({ message: "設定が壊れています" }, { status: 422 }),
+      ),
+    );
+    render(<ChatView characterId="a" characterName="案内役" />);
+    fireEvent.change(screen.getByRole("textbox"), { target: { value: "届いた質問" } });
+    fireEvent.click(screen.getByRole("button", { name: "送信" }));
+    await screen.findByRole("alert");
+    expect(readChatSession("a").pending).toBeNull();
+    expect(screen.queryByRole("button", { name: "入力に戻す" })).not.toBeInTheDocument();
+    expect(screen.getByRole("textbox")).toHaveValue("");
+    expect(screen.getByText("届いた質問")).toBeInTheDocument();
+  });
+
+  it("まだ作成中の送信は入力へ戻さず、保留と再接続の道を残す", async () => {
+    renderTerminalFailure(() =>
+      Response.json({
+        turn: 2,
+        history: PRIOR,
+        storedTurn: { turn: 2, user: "失敗した質問", answered: false, active: true },
+      }),
+    );
+    fireEvent.click(await screen.findByRole("button", { name: "入力に戻す" }));
+    await screen.findByText("返信をまだ作成中です。再接続してください。");
+    expect(screen.getByRole("textbox")).toHaveValue("");
+    expect(readChatSession("a").pending?.requestId).toBe("request-old");
+    expect(screen.getByRole("button", { name: "再接続・再試行" })).toBeInTheDocument();
   });
 
   it("作成中で断られた送信（409 busy）は再試行の道を残す", async () => {

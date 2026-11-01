@@ -131,10 +131,13 @@ export const handleHistoryRequest = async (id: string, request: Request): Promis
     if (!requestId) return json(200, history);
     const { env } = await getPlatform();
     const room = env.CHAT_ROOMS.getByName(`${LOCAL_USER_ID}:${conversationId}`);
-    const turn = await room.jobTurn(requestId.data);
+    const job = await room.jobTurn(requestId.data);
     return json(200, {
       ...history,
-      storedTurn: turn === null ? null : await readStoredTurn(id, conversationId, turn),
+      storedTurn:
+        job === null
+          ? null
+          : { ...(await readStoredTurn(id, conversationId, job.turn)), active: job.active },
     });
   } catch (error) {
     return toErrorResponse(error);

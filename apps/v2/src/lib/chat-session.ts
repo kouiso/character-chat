@@ -20,6 +20,7 @@ const storedTurnSchema = z.object({
   turn: z.number().int().positive(),
   user: z.string().nullable(),
   answered: z.boolean(),
+  active: z.boolean(),
 });
 const historySchema = z.object({
   history: z.array(
