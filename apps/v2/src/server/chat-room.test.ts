@@ -17,6 +17,9 @@ import type * as EngineModule from "@v2/engine";
 const VALID_REPLY =
   "<response><action>窓辺から振り向いて、湯気の立つ湯呑みを差し出す。</action><dialogue>おかえり。寒かったでしょ、先に温まって。</dialogue><inner>声を聞けただけで肩の力が抜けた。</inner></response>";
 
+const SECOND_REPLY =
+  "<response><action>マフラーをほどいて、隣の椅子をそっと引いた。</action><dialogue>座って。今日あったこと、全部聞かせてよ。</dialogue><inner>帰ってきてくれて、ほんまに嬉しい。</inner></response>";
+
 const platform = vi.hoisted(() => ({ env: {} as Record<string, unknown> }));
 const replies = vi.hoisted(() => ({ queue: [] as string[][], calls: 0 }));
 
@@ -324,15 +327,16 @@ describe("ChatRoom", () => {
     }
   });
 
-  it("履歴 API は指定したターンに残った発言と、返信が残ったかを返す", async () => {
+  it("履歴 API は送信が割り当てられたターンに残った発言と、返信が残ったかを返す", async () => {
     const room = newRoom();
+    platform.env = { ...platform.env, CHAT_ROOMS: { getByName: () => room } };
     const conversationId = newConversation();
     replies.queue.push([""]);
     await submitAndRun(room, { requestId: "req-8a", conversationId, text: "届かん質問" });
-    const url = (turn: string) =>
-      `https://example.com/api/chat/x/history?conversationId=${conversationId}&turn=${turn}`;
+    const url = (requestId: string) =>
+      `https://example.com/api/chat/x/history?conversationId=${conversationId}&requestId=${requestId}`;
 
-    const dead = await handleHistoryRequest(characterId, new Request(url("1")));
+    const dead = await handleHistoryRequest(characterId, new Request(url("req-8a")));
     expect((await historyBody(dead)).storedTurn).toEqual({
       turn: 1,
       user: "届かん質問",
@@ -346,19 +350,119 @@ describe("ChatRoom", () => {
       text: "届かん質問",
       retry: true,
     });
-    const saved = await historyBody(await handleHistoryRequest(characterId, new Request(url("1"))));
+    const saved = await historyBody(
+      await handleHistoryRequest(characterId, new Request(url("req-8a"))),
+    );
     expect(saved.storedTurn).toEqual({ turn: 1, user: "届かん質問", answered: true });
     expect(saved.turn).toBe(2);
 
-    const missing = await historyBody(
-      await handleHistoryRequest(characterId, new Request(url("5"))),
+    // サーバーに届いとらん送信は null（保存されてへん）。
+    const unknown = await historyBody(
+      await handleHistoryRequest(characterId, new Request(url("req-never-sent"))),
     );
-    expect(missing.storedTurn).toEqual({ turn: 5, user: null, answered: false });
-    expect((await handleHistoryRequest(characterId, new Request(url("0")))).status).toBe(400);
+    expect(unknown.storedTurn).toBeNull();
+    expect(
+      (await handleHistoryRequest(characterId, new Request(url("x".repeat(121))))).status,
+    ).toBe(400);
     const plain = await handleHistoryRequest(
       characterId,
       new Request(`https://example.com/api/chat/x/history?conversationId=${conversationId}`),
     );
     expect(await historyBody(plain)).not.toHaveProperty("storedTurn");
+  });
+
+  it("別の送信が同じターンを埋めた後の再試行は、1 回で入力へ戻す失敗にし、それ以上受けん", async () => {
+    const room = newRoom();
+    const conversationId = newConversation();
+    const first = { requestId: "req-10a", conversationId, text: "一通目" };
+    replies.queue.push([""]);
+    await submitAndRun(room, first);
+    replies.queue.push([VALID_REPLY]);
+    await submitAndRun(room, { requestId: "req-10b", conversationId, text: "別のタブから" });
+
+    const retried = await submitAndRun(room, { ...first, retry: true });
+    expect(retried.status).toBe("failed");
+    expect(retried.events.map((item) => item.event)).toEqual([
+      {
+        type: "error",
+        message: "返信を完了できませんでした。入力に戻してください。",
+        terminal: true,
+      },
+    ]);
+    await room.submit({ ...first, retry: true, characterId });
+    expect(state.sqlite.prepare("SELECT status FROM jobs WHERE id = 'req-10a'").get()).toEqual({
+      status: "failed",
+    });
+    expect(replies.calls).toBe(2);
+  });
+
+  it("履歴を読む間に別の job が終わっても、古いターン番号で受け付けず読み直す", async () => {
+    const room = newRoom();
+    const conversationId = newConversation();
+    replies.queue.push([VALID_REPLY], [SECOND_REPLY]);
+    expect(
+      (await room.submit({ requestId: "req-9a", conversationId, text: "先の送信", characterId }))
+        .status,
+    ).toBe("accepted");
+
+    // 次の送信が履歴を読み終えた直後に、先の job を最後まで走らせる。履歴は 1 回の batch か、
+    // v2_message を読む 1 つの select で読む（どちらでも、その読み込みが済んだ所で割り込む）。
+    let armed = true;
+    const d1 = local.d1;
+    const interrupt = async <T>(result: T): Promise<T> => {
+      if (armed) {
+        armed = false;
+        platform.env = { ...platform.env, DB: d1 };
+        await room.alarm();
+      }
+      return result;
+    };
+    const watch = (statement: D1PreparedStatement, query: string): D1PreparedStatement =>
+      new Proxy(statement, {
+        get(target, property) {
+          const value = Reflect.get(target, property, target);
+          if (typeof value !== "function") return value;
+          if (property === "bind")
+            return (...values: unknown[]) => watch(target.bind(...values), query);
+          if (["all", "raw", "first"].includes(String(property)) && /from "v2_message"/.test(query))
+            return async (...args: unknown[]) => interrupt(await value.apply(target, args));
+          return value.bind(target);
+        },
+      });
+    const racing = new Proxy(d1, {
+      get(target, property) {
+        if (property === "batch")
+          return async (statements: D1PreparedStatement[]) =>
+            interrupt(await target.batch(statements));
+        if (property === "prepare") return (query: string) => watch(target.prepare(query), query);
+        const value = Reflect.get(target, property, target);
+        return typeof value === "function" ? value.bind(target) : value;
+      },
+    });
+    platform.env = { ...platform.env, DB: racing };
+
+    const late = await room.submit({
+      requestId: "req-9b",
+      conversationId,
+      text: "後の送信",
+      characterId,
+    });
+    platform.env = { ...platform.env, DB: d1 };
+    expect(armed).toBe(false);
+    expect(state.sqlite.prepare("SELECT turn FROM jobs WHERE id = ?").get("req-9b")).toEqual({
+      turn: 2,
+    });
+    expect(room.readEvents("req-9a", 0).status).toBe("succeeded");
+    expect(late.status).toBe("accepted");
+
+    await room.alarm();
+    const done = room.readEvents("req-9b", 0);
+    expect(done.status).toBe("succeeded");
+    expect(done.events.at(-1)?.event).toMatchObject({ type: "done", turn: 2 });
+    const history = await loadHistory({ characterId, conversationId });
+    expect(history.history.filter((message) => message.role === "user")).toEqual([
+      { role: "user", content: "先の送信" },
+      { role: "user", content: "後の送信" },
+    ]);
   });
 });

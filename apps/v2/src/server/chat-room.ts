@@ -7,6 +7,7 @@ import type { ChatSseEvent } from "../lib/sse-events";
 const CHAT_TURN_FAILURE_EVENT = "chat_turn_failed";
 const CHAT_TURN_FAILURE_CATEGORY = "turn_processing_failure";
 const MAX_ATTEMPTS = 3;
+const HISTORY_READ_LIMIT = 3;
 
 // ログへ出してよいのは、ここで決めた固定の理由だけ。外から来た例外の message には
 // 会話本文や接続先の詳細が混ざりうるので、名前しか出さん。
@@ -25,6 +26,14 @@ class TurnFailure extends Error {
     this.reason = reason;
   }
 }
+
+// 会話が別の送信で進んだ・巻き戻ったのは、何回やり直しても同じ結果になる。
+const DETERMINISTIC_REASONS: ReadonlySet<TurnFailureReason> = new Set([
+  "conversation_advanced",
+  "conversation_rewound",
+]);
+const isDeterministic = (error: unknown): boolean =>
+  error instanceof TurnFailure && DETERMINISTIC_REASONS.has(error.reason);
 
 const describeFailure = (error: unknown): { reason: string } =>
   error instanceof TurnFailure
@@ -79,6 +88,11 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
       id INTEGER PRIMARY KEY AUTOINCREMENT, job_id TEXT NOT NULL, event TEXT NOT NULL,
       confirmed INTEGER NOT NULL DEFAULT 0
     )`);
+    // job が終わるたびに上がる番号。D1 の履歴を読む間に別の job が終わったかを、受付の時に見分ける。
+    this.ctx.storage.sql.exec(
+      "CREATE TABLE IF NOT EXISTS room_state (id INTEGER PRIMARY KEY CHECK (id = 1), version INTEGER NOT NULL)",
+    );
+    this.ctx.storage.sql.exec("INSERT OR IGNORE INTO room_state (id, version) VALUES (1, 0)");
     const columns = this.ctx.storage.sql
       .exec<{ name: string }>("PRAGMA table_info(events)")
       .toArray();
@@ -91,7 +105,6 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
 
   async submit(input: SubmitTurn): Promise<TurnReceipt> {
     const digest = await hashInput(input);
-    const history = await loadHistory(input);
     const previous = this.job(input.requestId);
     if (
       !previous ||
@@ -101,38 +114,63 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
     ) {
       await this.ctx.storage.setAlarm(Date.now() + 50);
     }
-    const receipt = this.ctx.storage.transactionSync((): TurnReceipt => {
-      const existing = this.job(input.requestId);
-      if (existing) return this.resubmit(existing, input, digest);
-      const room = this.ctx.storage.sql
-        .exec<{
-          character_id: string;
-          conversation_id: string;
-        }>("SELECT character_id, conversation_id FROM jobs LIMIT 1")
-        .toArray()[0];
-      if (
-        room &&
-        (room.character_id !== input.characterId || room.conversation_id !== input.conversationId)
-      ) {
-        return { status: "conflict", requestId: input.requestId };
-      }
-      const active = this.ctx.storage.sql
-        .exec("SELECT id FROM jobs WHERE status IN ('queued','running') LIMIT 1")
-        .toArray()[0];
-      if (active) return { status: "busy", requestId: input.requestId };
-      this.ctx.storage.sql.exec(
-        "INSERT INTO jobs (id,character_id,conversation_id,text,digest,turn,status,created_at) VALUES (?,?,?,?,?,?,'queued',?)",
-        input.requestId,
-        input.characterId,
-        input.conversationId,
-        input.text,
-        digest,
-        history.turn,
-        Date.now(),
+    for (let read = 0; read < HISTORY_READ_LIMIT; read++) {
+      const version = this.version();
+      const history = await loadHistory(input);
+      const receipt = this.ctx.storage.transactionSync(() =>
+        this.admit(input, digest, history.turn, version),
       );
-      return { status: "accepted", requestId: input.requestId };
-    });
-    return receipt;
+      if (receipt) return receipt;
+    }
+    return { status: "busy", requestId: input.requestId };
+  }
+
+  private version(): number {
+    return (
+      this.ctx.storage.sql
+        .exec<{ version: number }>("SELECT version FROM room_state WHERE id = 1")
+        .toArray()[0]?.version ?? 0
+    );
+  }
+
+  // transactionSync の中から呼ぶ。読んだ履歴が古くなっとったら null を返し、読み直させる。
+  private admit(
+    input: SubmitTurn,
+    digest: string,
+    turn: number,
+    version: number,
+  ): TurnReceipt | null {
+    const existing = this.job(input.requestId);
+    if (existing) return this.resubmit(existing, input, digest);
+    const room = this.ctx.storage.sql
+      .exec<{
+        character_id: string;
+        conversation_id: string;
+      }>("SELECT character_id, conversation_id FROM jobs LIMIT 1")
+      .toArray()[0];
+    if (
+      room &&
+      (room.character_id !== input.characterId || room.conversation_id !== input.conversationId)
+    ) {
+      return { status: "conflict", requestId: input.requestId };
+    }
+    const active = this.ctx.storage.sql
+      .exec("SELECT id FROM jobs WHERE status IN ('queued','running') LIMIT 1")
+      .toArray()[0];
+    if (active) return { status: "busy", requestId: input.requestId };
+    // 履歴を読んどる間に別の job が終わると、読んだターン番号はもう埋まっとる。
+    if (this.version() !== version) return null;
+    this.ctx.storage.sql.exec(
+      "INSERT INTO jobs (id,character_id,conversation_id,text,digest,turn,status,created_at) VALUES (?,?,?,?,?,?,'queued',?)",
+      input.requestId,
+      input.characterId,
+      input.conversationId,
+      input.text,
+      digest,
+      turn,
+      Date.now(),
+    );
+    return { status: "accepted", requestId: input.requestId };
   }
 
   // 同じ受付番号の送り直し。transactionSync の中から呼ぶ。
@@ -151,6 +189,12 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
       this.ctx.storage.sql.exec("DELETE FROM events WHERE job_id = ?", input.requestId);
     }
     return { status: "accepted", requestId: input.requestId };
+  }
+
+  // 「入力に戻す」が、その送信が実際に割り当てられたターンを確かめる口。画面が覚えとる番号は、
+  // 別のタブが会話を進めとるとずれる。
+  jobTurn(requestId: string): number | null {
+    return this.job(requestId)?.turn ?? null;
   }
 
   readEvents(requestId: string, after: number): EventPage {
@@ -207,6 +251,7 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
         );
       }
       this.ctx.storage.sql.exec("UPDATE jobs SET status = ? WHERE id = ?", status, job.id);
+      this.ctx.storage.sql.exec("UPDATE room_state SET version = version + 1 WHERE id = 1");
     });
   }
 
@@ -275,30 +320,39 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
       }
       this.finish(job, events, "succeeded");
     } catch (error) {
-      const terminal = attempt >= MAX_ATTEMPTS;
-      console.error(
-        JSON.stringify({
-          event: CHAT_TURN_FAILURE_EVENT,
-          category: CHAT_TURN_FAILURE_CATEGORY,
-          jobId: job.id,
-          attempt,
-          terminal,
-          ...describeFailure(error),
-        }),
-      );
-      this.finish(
-        job,
-        [
-          {
-            type: "error",
-            message: terminal
-              ? "返信を完了できませんでした。入力に戻してください。"
-              : "返信を完了できませんでした。再試行してください。",
-            terminal,
-          },
-        ],
-        "failed",
-      );
+      this.fail(job, attempt, error);
     }
+  }
+
+  private fail(job: Job, attempt: number, error: unknown): void {
+    const deterministic = isDeterministic(error);
+    const terminal = deterministic || attempt >= MAX_ATTEMPTS;
+    // 再試行を受け付けんよう、試行回数を上限まで進めておく。
+    if (deterministic) {
+      this.ctx.storage.sql.exec("UPDATE jobs SET attempts = ? WHERE id = ?", MAX_ATTEMPTS, job.id);
+    }
+    console.error(
+      JSON.stringify({
+        event: CHAT_TURN_FAILURE_EVENT,
+        category: CHAT_TURN_FAILURE_CATEGORY,
+        jobId: job.id,
+        attempt,
+        terminal,
+        ...describeFailure(error),
+      }),
+    );
+    this.finish(
+      job,
+      [
+        {
+          type: "error",
+          message: terminal
+            ? "返信を完了できませんでした。入力に戻してください。"
+            : "返信を完了できませんでした。再試行してください。",
+          terminal,
+        },
+      ],
+      "failed",
+    );
   }
 }
