@@ -1,10 +1,10 @@
 import { ConversationAccessError } from "@v2/db";
 import { DurableObject } from "cloudflare:workers";
 
+import { parseChatSseEvent, type ChatSseEvent } from "../lib/sse-events";
+
 import { loadRoomHistory, loadStoredReply, loadStoredTurn, startTurn } from "./engine";
 import { StoredReplyConflictError } from "./stored-reply";
-
-import type { ChatSseEvent } from "../lib/sse-events";
 
 type JobStatus = "queued" | "running" | "succeeded" | "failed";
 type Job = {
@@ -38,6 +38,17 @@ const hashInput = async (input: SubmitTurn): Promise<string> => {
   );
   const digest = await crypto.subtle.digest("SHA-256", bytes);
   return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+};
+
+const parseStoredEvent = (raw: string): ChatSseEvent => {
+  try {
+    const value: unknown = JSON.parse(raw);
+    const event = parseChatSseEvent(value);
+    if (event) return event;
+  } catch {
+    // 保存内容を例外本文へ含めず、破損行で再送位置を進めない。
+  }
+  throw new Error("保存されたイベントの形式が不正です。");
 };
 
 class RecoveryConflictError extends Error {}
@@ -142,7 +153,7 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
       .toArray();
     return {
       events: rows.map((row) => {
-        const event = JSON.parse(row.event) as ChatSseEvent;
+        const event = parseStoredEvent(row.event);
         // 再接続時に古い時差を再適用して配送を遅らせない。
         return {
           id: row.id,
@@ -299,12 +310,13 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
     let failed = false;
     for await (const event of turn.events) {
       if (event.type === "error") failed = true;
-      if (["chunk", "delivery", "turn-meta", "done"].includes(event.type)) {
-        events.push(event);
+      const publicEvent = parseChatSseEvent(event);
+      if (publicEvent && ["chunk", "delivery", "turn-meta", "done"].includes(publicEvent.type)) {
+        events.push(publicEvent);
         this.ctx.storage.sql.exec(
           "INSERT INTO events (job_id,event,confirmed) VALUES (?,?,0)",
           job.id,
-          JSON.stringify(event),
+          JSON.stringify(publicEvent),
         );
       }
     }

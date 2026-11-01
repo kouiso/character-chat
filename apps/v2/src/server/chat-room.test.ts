@@ -197,6 +197,46 @@ describe("ChatRoom: 受付・alarm再実行（独立SQLite storage fake / 合成
     vi.restoreAllMocks();
   });
 
+  it.each([
+    "{",
+    JSON.stringify(null),
+    JSON.stringify({ type: "unknown" }),
+    JSON.stringify({ type: "done", turn: 1 }),
+    JSON.stringify({ type: "chunk", seq: "0", text: "synthetic" }),
+    JSON.stringify({ type: "generation", systemPrompt: "synthetic private metadata" }),
+  ])("破損した保存イベントを拒否し、本文を例外へ含めない: %s", async (raw) => {
+    await room.submit(input);
+    await room.alarm();
+    database.prepare("DELETE FROM events WHERE job_id = ?").run(input.requestId);
+    database
+      .prepare("INSERT INTO events (job_id,event,confirmed) VALUES (?,?,1)")
+      .run(input.requestId, raw);
+    expect(() => room.readEvents(input.requestId, 0)).toThrow(
+      "保存されたイベントの形式が不正です。",
+    );
+    expect(fixture.generated).toHaveLength(1);
+    expect(fixture.saved.size).toBe(1);
+  });
+
+  it("正常な保存イベントに混ざった内部metadataはwireへ返さない", async () => {
+    await room.submit(input);
+    await room.alarm();
+    database.prepare("DELETE FROM events WHERE job_id = ?").run(input.requestId);
+    database.prepare("INSERT INTO events (job_id,event,confirmed) VALUES (?,?,1)").run(
+      input.requestId,
+      JSON.stringify({
+        type: "token",
+        text: "synthetic public text",
+        systemPrompt: "synthetic private metadata",
+        request: [{ role: "user", content: "synthetic internal request" }],
+      }),
+    );
+    expect(room.readEvents(input.requestId, 0).events[0]?.event).toEqual({
+      type: "token",
+      text: "synthetic public text",
+    });
+  });
+
   it("alarm予約に失敗したら受付もrollbackし、未実行の受付だけを残さない", async () => {
     vi.mocked(context.storage.setAlarm).mockRejectedValueOnce(
       new Error("synthetic alarm storage failure"),
@@ -237,7 +277,10 @@ describe("ChatRoom: 受付・alarm再実行（独立SQLite storage fake / 合成
     const staged = database
       .prepare("SELECT event FROM events WHERE job_id = ? ORDER BY id")
       .all(input.requestId)
-      .map((row) => JSON.parse(String(row.event)) as ChatSseEvent);
+      .map((row) => {
+        const event: unknown = JSON.parse(String(row.event));
+        return event;
+      });
     room = new ChatRoom(context, env);
     await room.alarm();
     expect(fixture.generated).toHaveLength(1);
