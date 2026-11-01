@@ -252,6 +252,57 @@ describe("RIT-95 opt-in, JST quiet time and durable alarm schedule", () => {
     expect(fixture.notifications).toHaveLength(3);
   });
 
+  it.each([2, 3, 4])(
+    "keeps the new JST day's quota usable when transaction %i crosses midnight after a daily-limit decision",
+    async (crossingCommit) => {
+      const fixture = createFixture();
+      fixture.advanceTo("2026-10-26T00:00:00.000Z");
+      await fixture.store.configureCharacter(characterId, settings());
+      for (let hour = 1; hour <= 3; hour++) {
+        fixture.advanceTo(`2026-10-26T0${hour}:00:00.000Z`);
+        await fixture.store.runAlarm(fixture.sink);
+      }
+      fixture.advanceTo("2026-10-26T14:59:59.999Z");
+      let commits = 0;
+      fixture.storage.beforeCommit = () => {
+        if (++commits === crossingCommit) {
+          fixture.advanceTo("2026-10-26T15:00:00.000Z");
+          fixture.storage.beforeCommit = undefined;
+        }
+        return Promise.resolve();
+      };
+      expect(await fixture.store.runAlarm(fixture.sink)).toEqual([
+        { characterId, outcome: "daily-limit" },
+      ]);
+      expect(fixture.notifications).toHaveLength(3);
+      const nextAt = fixture.storage.alarmAt;
+      expect(nextAt).not.toBeNull();
+      expect(nextAt).toBeGreaterThanOrEqual(Date.parse("2026-10-26T15:00:00.000Z"));
+      expect(nextAt).toBeLessThanOrEqual(Date.parse("2026-10-26T16:00:00.000Z"));
+      fixture.advanceTo(new Date(nextAt ?? 0).toISOString());
+      expect(await fixture.open().runAlarm(fixture.sink)).toEqual([
+        { characterId, outcome: "attempted" },
+      ]);
+      expect(fixture.notifications).toHaveLength(4);
+    },
+  );
+
+  it("keeps the exact next JST midnight when a late daily-limit decision needs no additional idle interval", async () => {
+    const fixture = createFixture();
+    fixture.advanceTo("2026-10-26T00:00:00.000Z");
+    await fixture.store.configureCharacter(characterId, settings());
+    for (let hour = 1; hour <= 3; hour++) {
+      fixture.advanceTo(`2026-10-26T0${hour}:00:00.000Z`);
+      await fixture.store.runAlarm(fixture.sink);
+    }
+    fixture.advanceTo("2026-10-26T14:30:00.000Z");
+    expect(await fixture.store.runAlarm(fixture.sink)).toEqual([
+      { characterId, outcome: "daily-limit" },
+    ]);
+    expect(fixture.storage.alarmAt).toBe(Date.parse("2026-10-26T15:00:00.000Z"));
+    expect(fixture.notifications).toHaveLength(3);
+  });
+
   it("suppresses a notification if quiet time begins during reservation commit", async () => {
     const fixture = createFixture();
     fixture.advanceTo("2026-10-26T11:59:59.999Z");

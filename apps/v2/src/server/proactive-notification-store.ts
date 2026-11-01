@@ -37,6 +37,9 @@ export type ProactiveAlarmOutcome =
   | "send-failed";
 type ScheduleState = { sequence: number; entries: ProactiveSchedule[] };
 type Reservation = { day: string; characterId: string };
+type ProactiveDispatchResult =
+  | { outcome: "daily-limit"; dailyResetAt: number }
+  | { outcome: Exclude<ProactiveAlarmOutcome, "daily-limit"> };
 
 // OFF 完了後に、同じ storage を使う別インスタンスの送信も始まらんよう直列化する。
 const storageTails = new WeakMap<ProactiveNotificationStorage, Promise<void>>();
@@ -233,7 +236,7 @@ export class ProactiveNotificationStore {
   private async dispatch(
     alarm: ProactiveAlarm,
     sink: ProactiveNotificationSink,
-  ): Promise<ProactiveAlarmOutcome> {
+  ): Promise<ProactiveDispatchResult> {
     const characterId = validateId(alarm.characterId);
     const reservationKey = `${this.prefix}:alarm:${validateId(alarm.alarmId)}`;
     const settingsKey = this.settingsKey(alarm.characterId);
@@ -269,21 +272,24 @@ export class ProactiveNotificationStore {
         await transaction.put(reservationKey, { day, characterId: alarm.characterId });
         await transaction.put(counterKey, reservedToday + 1);
       }
-      return { decision, day, settings, lastActivityAt };
+      return { decision, day, settings, lastActivityAt, dailyResetAt: nextJapanMidnight(now) };
     });
-    if (reservation.decision !== "allowed") return reservation.decision;
+    if (reservation.decision === "daily-limit")
+      return { outcome: "daily-limit", dailyResetAt: reservation.dailyResetAt };
+    if (reservation.decision !== "allowed") return { outcome: reservation.decision };
 
     const currentTime = validTime(this.clock().getTime());
     // commit 待ちに日付や静穏時間を跨いだ通知は、古い許可のまま送らん。
     if (proactiveNotificationDay(new Date(currentTime)) !== reservation.day)
-      return "expired-window";
+      return { outcome: "expired-window" };
     if (reservation.settings) {
-      if (isProactiveQuietTime(currentTime, reservation.settings.quietHours)) return "quiet-hours";
+      if (isProactiveQuietTime(currentTime, reservation.settings.quietHours))
+        return { outcome: "quiet-hours" };
       if (
         reservation.lastActivityAt !== undefined &&
         currentTime < reservation.lastActivityAt + reservation.settings.idleMinutes * MINUTE_MS
       )
-        return "idle";
+        return { outcome: "idle" };
     }
     // 送信先の結果が不明でも予約を戻さず、重複防止と上限を優先する。
     try {
@@ -291,7 +297,7 @@ export class ProactiveNotificationStore {
     } catch (error) {
       throw new ProactiveNotificationSendError(error);
     }
-    return "attempted";
+    return { outcome: "attempted" };
   }
 
   handleAlarm(
@@ -301,7 +307,7 @@ export class ProactiveNotificationStore {
     const occurrence = { ...alarm };
     validateId(occurrence.characterId);
     validateId(occurrence.alarmId);
-    return this.serialize(() => this.dispatch(occurrence, sink));
+    return this.serialize(async () => (await this.dispatch(occurrence, sink)).outcome);
   }
 
   runAlarm(
@@ -316,14 +322,15 @@ export class ProactiveNotificationStore {
       let sinkFailure: ProactiveNotificationSendError | undefined;
       for (const entry of entries) {
         if (entry.dueAt === null || entry.dueAt > now) continue;
-        let outcome: ProactiveAlarmOutcome;
+        let dispatchResult: ProactiveDispatchResult;
         try {
-          outcome = await this.dispatch(entry, sink);
+          dispatchResult = await this.dispatch(entry, sink);
         } catch (error) {
           if (!(error instanceof ProactiveNotificationSendError)) throw error;
           sinkFailure ??= error;
-          outcome = "send-failed";
+          dispatchResult = { outcome: "send-failed" };
         }
+        const { outcome } = dispatchResult;
         results.push({ characterId: entry.characterId, outcome });
         await this.storage.transaction(async (transaction) => {
           const state = await this.readSchedule(transaction);
@@ -338,8 +345,12 @@ export class ProactiveNotificationStore {
           let nextAt: number | null = null;
           if (settings?.enabled) {
             const minimum =
-              outcome === "daily-limit"
-                ? nextJapanMidnight(currentTime)
+              dispatchResult.outcome === "daily-limit"
+                ? Math.max(
+                    dispatchResult.dailyResetAt,
+                    currentTime,
+                    lastActivityAt + settings.idleMinutes * MINUTE_MS,
+                  )
                 : outcome === "quiet-hours" || outcome === "idle"
                   ? Math.max(currentTime, lastActivityAt + settings.idleMinutes * MINUTE_MS)
                   : currentTime + settings.idleMinutes * MINUTE_MS;

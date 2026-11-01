@@ -82,7 +82,7 @@ TZ=America/Los_Angeles ../../node_modules/.bin/vitest run --maxWorkers=1 --repor
 ../../node_modules/.bin/eslint --config ../../eslint.v2.config.js src/server/proactive-notification-*.ts src/test/proactive-notification-fixture.ts
 ```
 
-Result: 29 synthetic tests passed; app typecheck and changed-TypeScript lint passed. The environment's global pnpm 11 tried an automatic install and failed at `/home/agent/.local/share/pnpm` during the initial work; direct installed binaries avoid it. No root dependency or lockfile changes were made. Repository-wide tests are not claimed because unrelated real-character/corpus fixtures must not be read.
+Result: 33 synthetic tests passed after the November 1 adversarial-review fix; app typecheck and changed-TypeScript lint passed. The environment's global pnpm 11 tried an automatic install and failed at `/home/agent/.local/share/pnpm` during the initial work; direct installed binaries avoid it. No root dependency or lockfile changes were made. Repository-wide tests are not claimed because unrelated real-character/corpus fixtures must not be read.
 
 From the repository root:
 
@@ -99,3 +99,15 @@ No real notifications, LLM/provider calls, live database reads, character/corpus
 ## Transfer status
 
 No inter-task send tool is exposed in this environment; the collaboration tools reach only local review subagents. Direct communication with the Mac integration task cannot be claimed. A final patch/archive, SHA256 and Library identifiers are emitted in the task outcome for independent retrieval. Library-side re-read/byte verification, if successful, proves availability through that artifact path; it does not prove the Mac integrator has already imported or re-tested the change.
+
+## November 1 adversarial review and local checks
+
+The user subsequently authorized ordinary branch push and PR bot discussion/resolution, with local CI accepted. Earlier no-push/no-CI notes above describe the October 26 authorization. Merge, deployment, real notifications, protected app entry/configuration edits, real-user data and corpus access remain outside this task.
+
+Premortem review found a P2: when a daily-limit decision commits across JST midnight, calculating reset from the later clock can skip the entire fresh day. The fix carries `dailyResetAt` from the quota-decision transaction to schedule rearming. The next time is `max(dailyResetAt, currentTime, lastActivityAt + idleMs)`, adjusted for quiet hours. A proposed extra idle interval was rejected during mutual review because it would delay an ordinary 23:30 JST cap decision from 00:00 to 00:30.
+
+Regression tests cover dispatch/rearm/final-alarm transaction commits crossing midnight and preserve the normal exact-midnight reset. Public `handleAlarm` outcomes are unchanged. Two independent reviewers agreed after discussing the initial finding and the additional-idle objection. Their probes covered four strict midnight cases and 2,000 seeded synthetic operations (292 sink notifications, 22 injected failures, no cap/OFF/quiet/duplicate violations). See `rit-109-adversarial-review.json` for the scope and limits of their agreement.
+
+Current local results: 33 scoped tests, app typecheck, changed-file lint, native isolated SQLite DO probe, and 7 shared-CI contract tests pass. No real notification or provider call was made. Self-review and both reviewers score the explicitly implemented policy/store/scheduler contract 100/100 with no unresolved reproduced finding. That score does not cover product integration, automatic wall-clock firing, real PWA delivery or an iPhone device.
+
+GitHub discussion, remote push and Dots approval status are reported from their actual tool results separately; no external review or integration completion is inferred from this local score.
