@@ -1,0 +1,18 @@
+## 確認（--apply なし）
+apps/bench                               |  WARN  Unsupported engine: wanted: {"node":">=24"} (current: {"node":"v22.23.4","pnpm":"9.15.9"})
+
+> @v2/cf@0.0.0 migrate:legacy /home/user/wt28/packages/cf
+> tsx src/migrate-legacy.ts --source-user legacy-owner-1793512330765 --target-user local
+
+Proxy environment variables detected. We'll use your proxy for fetch requests.
+{"mode":"inspect","owners":2,"conversations":1,"messages":6,"insertedConversations":1,"insertedMessages":6,"updatedConversations":0}
+
+## 適用（--apply）
+apps/bench                               |  WARN  Unsupported engine: wanted: {"node":">=24"} (current: {"node":"v22.23.4","pnpm":"9.15.9"})
+
+> @v2/cf@0.0.0 migrate:legacy /home/user/wt28/packages/cf
+> tsx src/migrate-legacy.ts --source-user legacy-owner-1793512330765 --target-user local --apply
+
+Proxy environment variables detected. We'll use your proxy for fetch requests.
+{"mode":"local-apply","owners":2,"conversations":1,"messages":6,"insertedConversations":1,"insertedMessages":6,"updatedConversations":0}
+

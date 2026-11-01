@@ -1,6 +1,6 @@
-// 使い方: node record.mjs <作業ツリー> <ラベル> <出力先> [saved]
-// verify:ci と同じ形（APP_ENV=test・試験用の固定モデル・手元の D1）で v2 を起動し、
-// 会話画面の動きを注記つきの動画と静止画で Playwright に残す。
+// Usage: node record.mjs <worktree> <label> <outdir>
+// Boots the v2 app the same way verify:ci does (APP_ENV=test, fake model, local D1), then records
+// annotated videos of the chat behaviours with Playwright.
 import { createRequire } from "node:module";
 import { randomBytes } from "node:crypto";
 import { spawn, execFileSync } from "node:child_process";
