@@ -62,6 +62,9 @@ V2_FAKE_MODEL=1
 `APP_ENV=test` と `V2_FAKE_MODEL=1` の両方がある時だけ固定モデルが返る
 （実キーを呼ばん検証は `verify:ci` / `verify:runtime` がこの形で回す）。
 
+手元の `vite dev` は、Workers AI と Vectorize を Cloudflare の本物へつながん（`remoteBindings` は既定で無効）。
+本物で試す時だけ、`wrangler login` 済みの端末で `V2_REMOTE_BINDINGS=1` を付けて起動する。
+
 ## 入れ替える（漏れた・定期交換）
 
 1. `wrangler secret put <名前>` で新しい値を入れる。Workers の secret は即時反映。

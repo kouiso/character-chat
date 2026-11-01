@@ -103,3 +103,15 @@ describe("wrangler.jsonc の束ね", () => {
     expect(migrationClasses(staging.migrations)).toContain("ChatRoom");
   });
 });
+
+describe("手元の dev", () => {
+  // AI・Vectorize を束ねると、既定の dev は Cloudflare の本物へつなぎに行く。資格情報の無い CI の
+  // verify:ci が止まり、手元の試験が本番の資源へ触る。明示した時だけ本物を使う。
+  it("本物の Cloudflare 資源へは、明示した時しかつながん", () => {
+    const source = readFileSync(
+      fileURLToPath(new URL("../../vite.config.ts", import.meta.url)),
+      "utf8",
+    );
+    expect(source).toContain('remoteBindings: process.env.V2_REMOTE_BINDINGS === "1"');
+  });
+});

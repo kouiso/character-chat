@@ -10,6 +10,9 @@ export default defineConfig({
     cloudflare({
       viteEnvironment: { name: "ssr" },
       persistState: { path: "../../.wrangler/state" },
+      // Workers AI・Vectorize は手元に偽物が無く、既定のままやと dev が Cloudflare の本物へ
+      // つなぎに行く（資格情報が要り、CI の verify:ci も止まる）。本物で試す時だけ明示して有効にする。
+      remoteBindings: process.env.V2_REMOTE_BINDINGS === "1",
     }),
     tanstackStart(),
     viteReact(),
