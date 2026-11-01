@@ -55,6 +55,8 @@ type SqlValue = string | number | null;
 const createDurableState = () => {
   const sqlite = new DatabaseSync(":memory:");
   return {
+    sqlite,
+    alarms: [] as number[],
     storage: {
       sql: {
         exec: <T>(query: string, ...bindings: SqlValue[]) => {
@@ -73,10 +75,14 @@ const createDurableState = () => {
           throw error;
         }
       },
-      setAlarm: async () => undefined,
+      setAlarm: async (at: number) => {
+        state.alarms.push(at);
+      },
     },
   };
 };
+
+let state: ReturnType<typeof createDurableState>;
 
 describe("ChatRoom", () => {
   let local: LocalD1;
@@ -85,8 +91,9 @@ describe("ChatRoom", () => {
 
   const newRoom = (env: Record<string, unknown> = {}) => {
     platform.env = { DB: local.d1, APP_ENV: "test", ...env };
+    state = createDurableState();
     return new ChatRoom(
-      createDurableState() as unknown as DurableObjectState,
+      state as unknown as DurableObjectState,
       platform.env as unknown as Cloudflare.Env,
     );
   };
@@ -217,5 +224,95 @@ describe("ChatRoom", () => {
     ]);
     expect(replies.calls).toBe(1);
     expect((await loadHistory({ characterId, conversationId })).history).toEqual(stored.history);
+  });
+
+  it("最後の試行が保存した直後に止まった job は、試行上限で失敗にせず保存済みの返事で成功にする", async () => {
+    const room = newRoom();
+    const conversationId = newConversation();
+    const input = { requestId: "req-4", conversationId, text: "三度目の正直" };
+    replies.queue.push([""], [""], [VALID_REPLY]);
+
+    await submitAndRun(room, input);
+    await submitAndRun(room, { ...input, retry: true });
+    const third = await submitAndRun(room, { ...input, retry: true });
+    expect(third.status).toBe("succeeded");
+    // D1 への保存は済んだが、finish() が成功を記録する前に Worker が止まった状態を作る。
+    state.sqlite.exec("UPDATE jobs SET status = 'running' WHERE id = 'req-4'");
+    state.sqlite.exec("DELETE FROM events WHERE job_id = 'req-4'");
+
+    await room.alarm();
+    const resumed = room.readEvents("req-4", 0);
+    expect(resumed.status).toBe("succeeded");
+    expect(resumed.events.map((item) => item.event)).toEqual([
+      { type: "done", conversationId, turn: 1, generationId: null },
+    ]);
+    expect(replies.calls).toBe(3);
+  });
+
+  it("失敗した送信の再試行は、その間に受け付けた別の送信が残っとる間は busy で断る", async () => {
+    const room = newRoom();
+    const conversationId = newConversation();
+    const first = { requestId: "req-5a", conversationId, text: "一通目" };
+    replies.queue.push([""]);
+    expect((await submitAndRun(room, first)).status).toBe("failed");
+
+    const second = await room.submit({
+      requestId: "req-5b",
+      conversationId,
+      text: "別のタブから",
+      characterId,
+    });
+    expect(second.status).toBe("accepted");
+    const retried = await room.submit({ ...first, retry: true, characterId });
+    expect(retried.status).toBe("busy");
+
+    replies.queue.push([VALID_REPLY]);
+    await room.alarm();
+    expect(room.readEvents("req-5b", 0).status).toBe("succeeded");
+    expect(room.readEvents("req-5a", 0).status).toBe("failed");
+    const history = await loadHistory({ characterId, conversationId });
+    expect(history.history[0]).toEqual({ role: "user", content: "別のタブから" });
+  });
+
+  it("alarm は残った job があれば次の alarm を予約する", async () => {
+    const room = newRoom();
+    const conversationId = newConversation();
+    replies.queue.push([VALID_REPLY]);
+    expect(
+      (await room.submit({ requestId: "req-6a", conversationId, text: "先", characterId })).status,
+    ).toBe("accepted");
+    state.sqlite
+      .prepare(
+        "INSERT INTO jobs (id,character_id,conversation_id,text,digest,turn,status,created_at) VALUES (?,?,?,?,?,?,'queued',?)",
+      )
+      .run("req-6b", characterId, conversationId, "後", "digest", 2, Date.now() + 1000);
+    state.alarms.length = 0;
+
+    await room.alarm();
+    expect(room.readEvents("req-6a", 0).status).toBe("succeeded");
+    expect(state.alarms).toHaveLength(1);
+  });
+
+  it("失敗の記録には固定の理由だけを出し、送信文や例外の本文を出さん", async () => {
+    const errors = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    try {
+      const room = newRoom();
+      const conversationId = newConversation();
+      replies.queue.push([""]);
+      await submitAndRun(room, { requestId: "req-7", conversationId, text: "秘密の合言葉" });
+      const logged = errors.mock.calls.map((call) => String(call[0]));
+      expect(logged).toHaveLength(1);
+      expect(JSON.parse(logged[0] ?? "{}")).toEqual({
+        event: "chat_turn_failed",
+        category: "turn_processing_failure",
+        jobId: "req-7",
+        attempt: 1,
+        terminal: false,
+        reason: "generation_failed",
+      });
+      expect(logged[0]).not.toContain("秘密の合言葉");
+    } finally {
+      errors.mockRestore();
+    }
   });
 });
