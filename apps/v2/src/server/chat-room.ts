@@ -193,8 +193,10 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
 
   // 「入力に戻す」が、その送信が実際に割り当てられたターンを確かめる口。画面が覚えとる番号は、
   // 別のタブが会話を進めとるとずれる。
-  jobTurn(requestId: string): number | null {
-    return this.job(requestId)?.turn ?? null;
+  jobTurn(requestId: string): { turn: number; active: boolean } | null {
+    const job = this.job(requestId);
+    if (!job) return null;
+    return { turn: job.turn, active: job.status === "queued" || job.status === "running" };
   }
 
   readEvents(requestId: string, after: number): EventPage {
