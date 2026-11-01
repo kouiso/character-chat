@@ -1,5 +1,8 @@
 // @vitest-environment node
+import { DEFAULT_CONTEXT_BUDGET } from "@v2/engine";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { MAX_MESSAGE_LENGTH } from "../lib/chat-limits";
 
 import type * as Engine from "./engine";
 
@@ -51,5 +54,12 @@ describe("POST /api/chat の履歴予算設定", () => {
     platform.env = envWith({});
     await post();
     expect(submit).toHaveBeenCalledOnce();
+  });
+});
+
+describe("送信文の上限", () => {
+  // 画面・API・model へ渡す文脈の 3 か所で上限がずれると、どこかで受けた文が後ろで弾かれる。
+  it("画面と API の上限は、model へ渡す現在の発言の予算と同じ", () => {
+    expect(MAX_MESSAGE_LENGTH).toBe(DEFAULT_CONTEXT_BUDGET.currentMessageCharacters);
   });
 });
