@@ -62,8 +62,9 @@ V2_FAKE_MODEL=1
 `APP_ENV=test` と `V2_FAKE_MODEL=1` の両方がある時だけ固定モデルが返る
 （実キーを呼ばん検証は `verify:ci` / `verify:runtime` がこの形で回す）。
 
-手元の `vite dev` は、Workers AI と Vectorize を Cloudflare の本物へつながん（`remoteBindings` は既定で無効）。
-本物で試す時だけ、`wrangler login` 済みの端末で `V2_REMOTE_BINDINGS=1` を付けて起動する。
+手元の `vite dev` と `vite preview` は、Workers AI と Vectorize を Cloudflare の本物へつながん（`remoteBindings` は既定で無効。build と deploy には影響しない）。
+本物で試す時だけ、`wrangler login` 済みの端末で、シェルに `V2_REMOTE_BINDINGS=1` を付けて起動する（`.env` に書いても効かん）。
+いまは `AI`・`MEMORY_INDEX` を使うコードが無い。使い始めたら、手元の試験では偽物を用意するか、この値を付ける。
 
 ## 入れ替える（漏れた・定期交換）
 
