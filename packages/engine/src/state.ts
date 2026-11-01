@@ -44,6 +44,8 @@ export const TurnState = new StateSchema({
   // chunk が raw 内の塊の開始位置と preExtendRawLength を比べて pendingPreExtend を決める。
   // チャンネル宣言しないと generate で書いても persist へ届かん（2b4c1c90 の失敗と同じ型）。
   preExtendVisibleChars: z.number().default(0),
+  // compose が文脈の予算で落とした古い履歴の件数。persist が turn-meta に載せる。
+  omittedHistoryMessages: z.number().default(0),
   preExtendRawLength: z.number().default(0),
   cursor: z.number().default(0),
   chunks: z.array(z.custom<JudgedChunk>()).default(() => []),

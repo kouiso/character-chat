@@ -345,13 +345,13 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
           dropMinChars: deps.dropMinChars,
           soloReaction: deps.soloReaction,
         });
-        const { messages } = buildConversationContext(
+        const { messages, omittedMessages } = buildConversationContext(
           state.history,
           state.userText,
           deps.contextBudget,
         );
         const prompt: ComposedPrompt = { version: "v0001", system, messages };
-        return { prompt };
+        return { prompt, omittedHistoryMessages: omittedMessages };
       })
       .addNode("generate", async (state, runtime) => {
         if (!state.prompt) throw new Error("prompt が未生成のまま generate に到達した");
@@ -581,6 +581,7 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
             latencyMs: state.generation.latencyMs,
             mechanicsPhase: mechanics(state),
             preExtendVisibleChars: state.preExtendVisibleChars,
+            omittedHistoryMessages: state.omittedHistoryMessages,
           } satisfies TurnEvent);
         }
         runtime.writer({

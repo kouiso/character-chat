@@ -101,9 +101,15 @@ describe("conversation context budget", () => {
       },
       "budget-test",
     );
+    const streamed = [];
     for await (const event of turn) {
       expect(event.type).not.toBe("error");
+      streamed.push(event);
     }
+    // 切った件数は turn-meta に載る。長い会話で「切った」と「忘れた」を見分けるため。
+    expect(streamed.find((event) => event.type === "turn-meta")).toMatchObject({
+      omittedHistoryMessages: 1,
+    });
     const generation = saved[0].events.find((event) => event.type === "generation");
     expect(generation?.type === "generation" ? generation.request : []).toEqual([
       { role: "user", content: "直近の質問" },
@@ -111,6 +117,19 @@ describe("conversation context budget", () => {
       { role: "user", content: "今回の質問" },
     ]);
   });
+  test("値が undefined の上書きは既定値を消さず、そのまま既定値で組む", () => {
+    const history = [
+      { role: "user" as const, content: "前" },
+      { role: "assistant" as const, content: "前の返事" },
+    ];
+    expect(
+      buildConversationContext(history, "今", {
+        historyMessages: undefined,
+        historyCharacters: undefined,
+      }),
+    ).toEqual(buildConversationContext(history, "今"));
+  });
+
   test("履歴が空でも今回の発言だけを返す", () => {
     expect(buildConversationContext([], "今")).toEqual({
       messages: [{ role: "user", content: "今" }],

@@ -52,7 +52,12 @@ export const buildConversationContext = (
   userText: string,
   overrides: Partial<ContextBudget> = {},
 ): { messages: HistoryMessage[]; historyCharacters: number; omittedMessages: number } => {
-  const budget = { ...DEFAULT_CONTEXT_BUDGET, ...overrides };
+  // 値が undefined の上書きは既定値を消さん。Partial は undefined を許すので、呼び出し側ごとに
+  // 気を付けるのやなく、ここで落とす。
+  const defined = Object.fromEntries(
+    Object.entries(overrides).filter(([, value]) => value !== undefined),
+  );
+  const budget: ContextBudget = { ...DEFAULT_CONTEXT_BUDGET, ...defined };
   for (const value of Object.values(budget)) {
     if (!Number.isSafeInteger(value) || value < 0) throw new Error("Invalid context budget");
   }
