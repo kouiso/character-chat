@@ -27,26 +27,23 @@ try {
       "--source-user と --target-user を指定してください（複数の利用者を自動で統合しません）",
     );
   }
-  if (!values.apply) {
-    process.stdout.write(
-      `${JSON.stringify({ mode: "inspect", owners: users.length, ready: true })}\n`,
-    );
-  } else {
-    const outcome = await migrateLegacyConversations(db, {
-      sourceUserId,
-      targetUserId: values["target-user"],
-    }).catch((error: unknown) => {
-      if (error instanceof LegacyMigrationError) return error;
-      throw error;
-    });
-    // 移行できた会話の件数と、確認が要る会話の一覧を両方残して失敗で終える。
-    const report =
-      outcome instanceof LegacyMigrationError
-        ? { ...outcome.result, failures: outcome.failures }
-        : outcome;
-    process.stdout.write(`${JSON.stringify({ mode: "local-apply", ...report })}\n`);
-    if (outcome instanceof LegacyMigrationError) process.exitCode = 1;
-  }
+  // 確認（--apply なし）も本番と同じ照合を通し、書き込みだけを飛ばす。「確認は通ったのに適用で失敗」を無くす。
+  const mode = values.apply ? "local-apply" : "inspect";
+  const outcome = await migrateLegacyConversations(db, {
+    sourceUserId,
+    targetUserId: values["target-user"],
+    dryRun: !values.apply,
+  }).catch((error: unknown) => {
+    if (error instanceof LegacyMigrationError) return error;
+    throw error;
+  });
+  // 移行できた会話の件数と、確認が要る会話の一覧を両方残して失敗で終える。
+  const report =
+    outcome instanceof LegacyMigrationError
+      ? { ...outcome.result, failures: outcome.failures }
+      : outcome;
+  process.stdout.write(`${JSON.stringify({ mode, owners: users.length, ...report })}\n`);
+  if (outcome instanceof LegacyMigrationError) process.exitCode = 1;
 } finally {
   await platform.dispose();
 }

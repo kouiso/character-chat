@@ -78,12 +78,14 @@ describe("legacy migration", () => {
       messages: 8,
       insertedConversations: 1,
       insertedMessages: 4,
+      updatedConversations: 0,
     });
     expect(await migrateLegacyConversations(local.db, options)).toEqual({
       conversations: 2,
       messages: 8,
       insertedConversations: 0,
       insertedMessages: 0,
+      updatedConversations: 0,
     });
     const store = createD1TurnStore(local.db, {
       userId: owner,
@@ -317,9 +319,63 @@ describe("legacy migration の再実行で元から消えた発言", () => {
       messages: 3,
       insertedConversations: 0,
       insertedMessages: 0,
+      updatedConversations: 0,
     });
 
     await local.db.delete(messageTable).where(eq(messageTable.id, `${conversationId}-m3`));
     await expect(migrateLegacyConversations(local.db, options)).rejects.toThrow("元から消えている");
+  });
+
+  it("再実行で元の題名と更新日時の変更を移し、変更が無ければ書かない", async () => {
+    const { conversationId, options } = await seed(2);
+    await migrateLegacyConversations(local.db, options);
+    await local.db
+      .update(conversationTable)
+      .set({ title: "付け直した題名", updatedAt: 50 })
+      .where(eq(conversationTable.id, conversationId));
+
+    expect(await migrateLegacyConversations(local.db, options)).toMatchObject({
+      insertedMessages: 0,
+      updatedConversations: 1,
+    });
+    const [row] = await local.db
+      .select({ title: v2ConversationTable.title, updatedAt: v2ConversationTable.updatedAt })
+      .from(v2ConversationTable)
+      .where(eq(v2ConversationTable.id, conversationId));
+    expect(row).toEqual({ title: "付け直した題名", updatedAt: 50 });
+    expect(await migrateLegacyConversations(local.db, options)).toMatchObject({
+      updatedConversations: 0,
+    });
+  });
+
+  it("確認（dryRun）は本番と同じ照合を通し、何も書かずに件数と要確認の会話を返す", async () => {
+    const { conversationId, options } = await seed(2);
+    expect(await migrateLegacyConversations(local.db, { ...options, dryRun: true })).toEqual({
+      conversations: 1,
+      messages: 2,
+      insertedConversations: 1,
+      insertedMessages: 2,
+      updatedConversations: 0,
+    });
+    expect(await v2Contents(conversationId)).toEqual([]);
+    const created = await local.db
+      .select({ id: v2ConversationTable.id })
+      .from(v2ConversationTable)
+      .where(eq(v2ConversationTable.id, conversationId));
+    expect(created).toEqual([]);
+
+    await local.db.insert(messageTable).values({
+      id: `${conversationId}-system`,
+      conversationId,
+      userId: options.sourceUserId,
+      characterId,
+      role: "system",
+      content: "旧アプリの指示",
+      createdAt: 99,
+    });
+    await expect(
+      migrateLegacyConversations(local.db, { ...options, dryRun: true }),
+    ).rejects.toBeInstanceOf(LegacyMigrationError);
+    expect(await v2Contents(conversationId)).toEqual([]);
   });
 });

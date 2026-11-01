@@ -19,6 +19,8 @@ export type LegacyMigrationOptions = {
   sourceUserId: string;
   targetUserId: string;
   afterConversation?: (completed: number) => void;
+  // 書き込みだけを飛ばし、照合と計画は本番と同じ道を通る（移行前の確認用）。
+  dryRun?: boolean;
 };
 
 const validateSource = (messages: SourceMessage[], conversation: SourceConversation) => {
@@ -107,10 +109,66 @@ const planMessages = (
   return missing;
 };
 
+type DestinationConversation = typeof v2ConversationTable.$inferSelect;
+type MissingMessage = typeof v2MessageTable.$inferInsert;
+
+// 旧アプリは作成後も題名と更新日時を書き換える。再実行で最後の差分を移す時に、それも揃える。
+// 更新日時は v2 で続けた方が新しいこともあるので、新しい方を残す。
+const needsRefresh = (
+  existing: DestinationConversation | undefined,
+  conversation: SourceConversation,
+): boolean =>
+  existing !== undefined &&
+  (existing.title !== conversation.title || existing.updatedAt < conversation.updatedAt);
+
+const writeConversation = async (
+  db: V2Db,
+  plan: {
+    existing: DestinationConversation | undefined;
+    conversation: SourceConversation;
+    targetUserId: string;
+    missing: MissingMessage[];
+    refresh: boolean;
+  },
+) => {
+  const { existing, conversation, targetUserId, missing, refresh } = plan;
+  const inserts = missing.map((message) => db.insert(v2MessageTable).values(message));
+  if (!existing) {
+    await db.batch([
+      db.insert(v2ConversationTable).values({
+        id: conversation.id,
+        userId: targetUserId,
+        characterId: conversation.characterId,
+        title: conversation.title,
+        threadId: conversation.id,
+        promptVersion: "legacy-import-v1",
+        createdAt: conversation.createdAt,
+        updatedAt: conversation.updatedAt,
+      }),
+      ...inserts,
+    ]);
+    return;
+  }
+  const update = db
+    .update(v2ConversationTable)
+    .set({
+      title: conversation.title,
+      updatedAt: Math.max(existing.updatedAt, conversation.updatedAt),
+    })
+    .where(eq(v2ConversationTable.id, conversation.id));
+  if (refresh) {
+    await db.batch([update, ...inserts]);
+  } else if (inserts.length > 0) {
+    const [first, ...rest] = inserts;
+    await db.batch([first, ...rest]);
+  }
+};
+
 const migrateConversation = async (
   db: V2Db,
   conversation: SourceConversation,
   targetUserId: string,
+  dryRun: boolean,
 ) => {
   const messages = await db
     .select({
@@ -144,31 +202,15 @@ const migrateConversation = async (
     conversation.id,
     new Set(ledgers.map((ledger) => ledger.turn)),
   );
-  if (!existing) {
-    await db.batch([
-      db.insert(v2ConversationTable).values({
-        id: conversation.id,
-        userId: targetUserId,
-        characterId: conversation.characterId,
-        title: conversation.title,
-        threadId: conversation.id,
-        promptVersion: "legacy-import-v1",
-        createdAt: conversation.createdAt,
-        updatedAt: conversation.updatedAt,
-      }),
-      ...missing.map((message) => db.insert(v2MessageTable).values(message)),
-    ]);
-  } else if (missing.length) {
-    const [first, ...rest] = missing;
-    await db.batch([
-      db.insert(v2MessageTable).values(first),
-      ...rest.map((message) => db.insert(v2MessageTable).values(message)),
-    ]);
+  const refresh = needsRefresh(existing, conversation);
+  if (!dryRun) {
+    await writeConversation(db, { existing, conversation, targetUserId, missing, refresh });
   }
   return {
     messages: messages.length,
     insertedMessages: missing.length,
     insertedConversations: existing ? 0 : 1,
+    updatedConversations: refresh ? 1 : 0,
   };
 };
 
@@ -177,6 +219,7 @@ export type LegacyMigrationResult = {
   messages: number;
   insertedConversations: number;
   insertedMessages: number;
+  updatedConversations: number;
 };
 
 export type LegacyMigrationFailure = { conversationId: string; reason: string };
@@ -216,14 +259,21 @@ export const migrateLegacyConversations = async (
     messages: 0,
     insertedConversations: 0,
     insertedMessages: 0,
+    updatedConversations: 0,
   };
   const failures: LegacyMigrationFailure[] = [];
   for (const [index, conversation] of conversations.entries()) {
     try {
-      const current = await migrateConversation(db, conversation, options.targetUserId);
+      const current = await migrateConversation(
+        db,
+        conversation,
+        options.targetUserId,
+        options.dryRun === true,
+      );
       result.messages += current.messages;
       result.insertedConversations += current.insertedConversations;
       result.insertedMessages += current.insertedMessages;
+      result.updatedConversations += current.updatedConversations;
     } catch (caught) {
       failures.push({
         conversationId: conversation.id,
