@@ -460,6 +460,23 @@ describe("ChatView", () => {
     expect(screen.getByRole("button", { name: "再接続・再試行" })).toBeInTheDocument();
   });
 
+  it("通信が切れた時はブラウザの英語の文を出さず、再接続を促して保留を残す", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (_url: RequestInfo | URL, init?: RequestInit) => {
+        if (init?.method === "POST") throw new TypeError("Failed to fetch");
+        return Response.json({ turn: 1, history: [] });
+      }),
+    );
+    render(<ChatView characterId="a" characterName="案内役" />);
+    fireEvent.change(screen.getByRole("textbox"), { target: { value: "届くかな" } });
+    fireEvent.click(screen.getByRole("button", { name: "送信" }));
+    await screen.findByText("通信が切れました。再接続してください。");
+    expect(screen.queryByText(/Failed to fetch/)).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "再接続・再試行" })).toBeInTheDocument();
+    expect(readChatSession("a").pending?.text).toBe("届くかな");
+  });
+
   it("作成中で断られた送信（409 busy）は再試行の道を残す", async () => {
     const pending = {
       characterId: "a",

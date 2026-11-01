@@ -53,8 +53,12 @@ const updateAssistant = (history: ChatBubble[], text: string): ChatBubble[] =>
       : bubble,
   );
 
-const failureMessage = (cause: unknown): string =>
-  cause instanceof Error ? cause.message : "返信を確認できませんでした。";
+// 通信そのものが切れた時、fetch とストリームの読み出しはブラウザの英語の文（「Failed to fetch」など）を
+// 持つ TypeError を投げる。それをそのまま見せず、再接続を促す文に置き換える。
+const failureMessage = (cause: unknown): string => {
+  if (cause instanceof TypeError) return "通信が切れました。再接続してください。";
+  return cause instanceof Error ? cause.message : "返信を確認できませんでした。";
+};
 
 type ChatErrorEvent = Extract<ChatSseEvent, { type: "error" }>;
 
