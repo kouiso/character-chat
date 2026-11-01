@@ -479,4 +479,42 @@ describe("ChatRoom", () => {
       { role: "user", content: "後の送信" },
     ]);
   });
+
+  it("履歴を読む間に alarm が空振りしても、受け付けた job には次の alarm が残る", async () => {
+    const room = newRoom();
+    const conversationId = newConversation();
+    let armed = true;
+    const d1 = local.d1;
+    // 履歴の読み込みが済んだ所で、先に予約された alarm が走り切った状態を作る。
+    platform.env = {
+      ...platform.env,
+      DB: new Proxy(d1, {
+        get(target, property) {
+          if (property === "batch")
+            return async (statements: D1PreparedStatement[]) => {
+              const result = await target.batch(statements);
+              if (armed) {
+                armed = false;
+                await room.alarm();
+                state.alarms.length = 0;
+              }
+              return result;
+            };
+          const value = Reflect.get(target, property, target);
+          return typeof value === "function" ? value.bind(target) : value;
+        },
+      }),
+    };
+    const receipt = await room.submit({
+      requestId: "req-11",
+      conversationId,
+      text: "遅い読み込み",
+      characterId,
+    });
+    platform.env = { ...platform.env, DB: d1 };
+    expect(armed).toBe(false);
+    expect(receipt.status).toBe("accepted");
+    expect(room.readEvents("req-11", 0).status).toBe("queued");
+    expect(state.alarms).toHaveLength(1);
+  });
 });
