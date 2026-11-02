@@ -32,7 +32,9 @@
     "APP_ENV": "development",
     "V2_FAKE_MODEL": "0",
     "V2_MODEL": "deepseek/deepseek-v3.2",
-    "V2_TEST_FAULT": "none"
+    "V2_TEST_FAULT": "none",
+    "V2_HISTORY_CHARACTERS": 12000,
+    "V2_HISTORY_MESSAGES": 40
   },
   "observability": {
     "enabled": false

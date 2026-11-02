@@ -70,6 +70,8 @@ export type TurnEvent =
       // extend が走る前の本文（初回生成）の可視字数。extend が走らんかったターンでも
       // 常に入る（shortfall の連続量は発火の有無に関わらず要る）。
       preExtendVisibleChars: number;
+      // 文脈の予算で model へ渡さんかった古い履歴の件数。長い会話で「忘れた」と「切った」を見分ける。
+      omittedHistoryMessages: number;
     }
   | { type: "done"; conversationId: string; turn: number; generationId: string | null }
   | { type: "error"; message: string };

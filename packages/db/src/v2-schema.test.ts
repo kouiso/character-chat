@@ -1,14 +1,8 @@
-// drizzle/0070_v2_tables.sql の DDL と、v2-schema.ts の drizzle 宣言が
-// テーブル名・列名でずれてへんことを機械的に確認する。手書き migration と
-// drizzle-kit を使わん構成（journal が idx 64 で止まっとる）やから、
-// この一致は人間がレビューで見るしかなかった。ここでテスト化する。
-import { readFileSync } from "node:fs";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-
+// 後続の ALTER TABLE も含め、適用済み D1 と drizzle 宣言を照合する。
 import { getTableColumns, getTableName } from "drizzle-orm";
-import { describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
+import { openLocalD1, type LocalD1 } from "./test/local-d1";
 import {
   v2ChunkTable,
   v2ConversationTable,
@@ -18,36 +12,16 @@ import {
   v2MessageTable,
 } from "./v2-schema";
 
-const SQL_PATH = path.resolve(
-  path.dirname(fileURLToPath(import.meta.url)),
-  "../../../drizzle/0070_v2_tables.sql",
-);
-
-type ParsedTable = { name: string; columns: string[] };
-
-// CREATE TABLE 本体は1列1行で、CHECK(...) は同じ行に inline されて "))," で閉じる
-// （"..." のパターンで閉じるのは outer paren だけ）ので、非貪欲マッチで安全に切れる。
-const parseSql = (sql: string): ParsedTable[] => {
-  const tables: ParsedTable[] = [];
-  const tableRe = /CREATE TABLE IF NOT EXISTS (\w+)\s*\(([\S\s]*?)\n\);/g;
-  for (const match of sql.matchAll(tableRe)) {
-    const [, name, body] = match;
-    if (!name || body === undefined) continue;
-    const columns = body
-      .split("\n")
-      .map((line) => line.trim().replace(/,$/, ""))
-      .filter((line) => line.length > 0)
-      .filter((line) => !/^primary key/i.test(line))
-      .map((line) => line.split(/\s+/)[0]);
-    tables.push({ name, columns });
-  }
-  return tables;
-};
-
 describe("v2_ tables: SQL DDL と drizzle 宣言の一致", () => {
-  const sql = readFileSync(SQL_PATH, "utf8");
-  const parsedTables = parseSql(sql);
-  const parsedByName = new Map(parsedTables.map((t) => [t.name, t]));
+  let local: LocalD1;
+
+  beforeAll(async () => {
+    local = await openLocalD1();
+  });
+
+  afterAll(async () => {
+    await local.dispose();
+  });
 
   const drizzleTables = [
     v2ConversationTable,
@@ -58,8 +32,11 @@ describe("v2_ tables: SQL DDL と drizzle 宣言の一致", () => {
     v2MemoryTable,
   ];
 
-  it("SQL 側に6つの v2_ テーブルが存在する", () => {
-    expect(parsedTables.map((t) => t.name).sort()).toEqual(
+  it("SQL 側に6つの v2_ テーブルが存在する", async () => {
+    const { results } = await local.d1
+      .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name GLOB 'v2_*'")
+      .all<{ name: string }>();
+    expect(results.map((table) => table.name).sort()).toEqual(
       [
         "v2_chunk",
         "v2_conversation",
@@ -73,14 +50,16 @@ describe("v2_ tables: SQL DDL と drizzle 宣言の一致", () => {
 
   const cases = drizzleTables.map((table) => [getTableName(table), table] as const);
 
-  it.each(cases)("%s", (tableName, table) => {
-    const parsed = parsedByName.get(tableName);
-    expect(parsed, `drizzle テーブル ${tableName} が SQL に無い`).toBeDefined();
+  it.each(cases)("%s", async (tableName, table) => {
+    const { results } = await local.d1
+      .prepare(`PRAGMA table_info(${tableName})`)
+      .all<{ name: string }>();
+    expect(results.length, `drizzle テーブル ${tableName} が SQL に無い`).toBeGreaterThan(0);
 
     const drizzleColumns = Object.values(getTableColumns(table))
       .map((column) => column.name)
       .sort();
-    const sqlColumns = [...(parsed?.columns ?? [])].sort();
+    const sqlColumns = results.map((column) => column.name).sort();
 
     expect(drizzleColumns).toEqual(sqlColumns);
   });
