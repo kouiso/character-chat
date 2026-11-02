@@ -87,6 +87,9 @@ export const v2MemoryTable = sqliteTable("v2_memory", {
   // bge-m3 1024 次元 float32 の生バイト（script/rag/ingest.ts の rag_chunk と同形式）。M0 は NULL のまま。
   embedding: blob("embedding", { mode: "buffer" }),
   createdAt: integer("created_at").notNull(),
+  updatedAt: integer("updated_at").notNull().default(0),
+  revision: integer("revision").notNull().default(0),
+  pinned: integer("pinned", { mode: "boolean" }).notNull().default(false),
 });
 
 export const v2MemoryJobTable = sqliteTable(

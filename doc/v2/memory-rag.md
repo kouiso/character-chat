@@ -21,7 +21,7 @@ Vectorizeには本文を保存しない。namespaceは利用者IDとキャラID�
 ## この経路だけでは満たさない項目
 
 - 固定vectorのテストは配線と境界の検査であり、意味の近い言い換えが上位3件へ入る品質検証ではない。
-- 矛盾する新旧事実の置換（RIT-86）、手入力記憶の統合、世界線・版の管理は別の接続が必要。
+- 手入力記憶はRAG検索結果より先に同じ文脈予算へ統合する。明示編集した自動抽出記憶は元発言との自動有効性連携を外すが、矛盾する新旧事実の意味的な自動置換（RIT-86）や世界線・記憶版の管理は未実装。
 - 古いvectorの物理削除と派生要約からの削除（RIT-94）、二段要約（RIT-72）は未接続。検索時の除外だけで削除完了とは扱わない。
 
 参照: [bge-m3](https://developers.cloudflare.com/workers-ai/models/bge-m3/)、[Vectorize API](https://developers.cloudflare.com/vectorize/reference/client-api/)、[metadata index](https://developers.cloudflare.com/vectorize/reference/metadata-filtering/)、[bindingのローカル対応](https://developers.cloudflare.com/workers/local-development/bindings-per-env/)。

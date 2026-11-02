@@ -20,8 +20,7 @@ import { PROMPT_VERSION } from "@v2/prompt";
 
 import { readCharacter } from "./character-data.server";
 import { LOCAL_USER_ID } from "./identity";
-import { retrieveMemories } from "./memory-rag";
-import { memoryVectorReady } from "./memory-vector";
+import { readTurnMemories } from "./memory-rag";
 import { getPlatform } from "./platform";
 
 import type { BaseChatModel } from "@langchain/core/language_models/chat_models";
@@ -111,20 +110,18 @@ export const startTurn = async (
   const graph = createTurnGraph({
     model,
     contextBudget: contextBudgetFromEnv(env),
-    retrieveMemories: memoryVectorReady(env)
-      ? (conversationId, query) =>
-          retrieveMemories(
-            db,
-            env,
-            {
-              userId: LOCAL_USER_ID,
-              characterId: input.characterId,
-              conversationId,
-              beforeTurn: input.expectedTurn,
-            },
-            query,
-          )
-      : undefined,
+    retrieveMemories: (conversationId, query) =>
+      readTurnMemories(
+        db,
+        env,
+        {
+          userId: LOCAL_USER_ID,
+          characterId: input.characterId,
+          conversationId,
+          beforeTurn: input.expectedTurn,
+        },
+        query,
+      ),
     store: createStore(db, input.characterId, input.expectedTurn, Boolean(env.MEMORY_QUEUE)),
   });
   const conversationId = input.conversationId ?? crypto.randomUUID();

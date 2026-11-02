@@ -10,3 +10,5 @@ export * from "./legacy-migration";
 export * from "./memory-extraction-contract";
 export * from "./memory-extraction-store";
 export * from "./memory-index-store";
+export * from "./memory-contract";
+export * from "./memory-store";

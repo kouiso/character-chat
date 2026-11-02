@@ -17,6 +17,7 @@ const CharacterListPage = () => {
     <div className="v2-list">
       {characters.length > 0 && <ListConnectionState />}
       <h1>キャラクター</h1>
+      <Link to="/memories">記憶を見る・直す</Link>
       {conversations.length > 0 && (
         <section>
           <h2>保存した会話</h2>

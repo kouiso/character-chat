@@ -40,7 +40,8 @@ export const listPendingMemoryJobs = async (
             ? and(
                 eq(v2MemoryJobTable.state, "completed"),
                 sql`exists (select 1 from v2_memory m join v2_memory_source s on s.memory_id = m.id
-            where s.source_message_id = ${v2MemoryJobTable.sourceMessageId} and m.embedding is null)`,
+            where s.source_message_id = ${v2MemoryJobTable.sourceMessageId}
+              and m.source_turn is not null and m.embedding is null)`,
               )
             : undefined,
         ),
@@ -155,6 +156,9 @@ export const completeMemoryExtraction = async (
                 sourceTurn: sql<number>`${source.sourceTurn}`.as("source_turn"),
                 embedding: sql<Buffer | null>`null`.as("embedding"),
                 createdAt: sql<number>`${now}`.as("created_at"),
+                updatedAt: sql<number>`${now}`.as("updated_at"),
+                revision: sql<number>`0`.as("revision"),
+                pinned: sql<boolean>`false`.as("pinned"),
               })
               .from(v2MemoryJobTable)
               .where(and(eq(v2MemoryJobTable.id, source.id), eligible)),

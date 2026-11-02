@@ -1,4 +1,4 @@
-import { and, eq, inArray, isNull, lt, sql } from "drizzle-orm";
+import { and, eq, inArray, isNotNull, isNull, lt, sql } from "drizzle-orm";
 
 import {
   v2ConversationTable,
@@ -94,6 +94,7 @@ export const saveMemoryEmbedding = async (db: V2Db, memory: IndexableMemory, vec
         eq(v2MemoryTable.id, memory.id),
         eq(v2MemoryTable.content, memory.content),
         eq(v2MemoryTable.conversationId, memory.conversationId),
+        isNotNull(v2MemoryTable.sourceTurn),
         sql`exists (select 1 from v2_memory_source s
         join v2_message m on m.id = s.source_message_id
         join v2_conversation c on c.id = m.conversation_id

@@ -5,10 +5,14 @@ import { join } from "node:path";
 
 import {
   characterTable,
+  addMemory,
+  changeMemory,
   completeMemoryExtraction,
   hashMemorySource,
   listPendingMemoryJobs,
   loadMemoryExtractionSource,
+  readManualMemories,
+  removeMemory,
   userTable,
   v2ConversationTable,
   v2MemoryJobTable,
@@ -20,7 +24,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { openLocalD1, type LocalD1 } from "../../../../packages/db/src/test/local-d1";
 
 import { consumeMemoryJobs } from "./memory-queue";
-import { indexMemoryJob, retrieveMemories } from "./memory-rag";
+import { indexMemoryJob, readTurnMemories, retrieveMemories } from "./memory-rag";
 import { memoryNamespace, memoryVectorId } from "./memory-vector";
 
 const owner = `rag-${crypto.randomUUID()}`;
@@ -203,6 +207,72 @@ describe("memory RAG with local D1", () => {
         },
       }),
     );
+  });
+
+  it("手入力はRAG無効でも読め、固定を優先し、編集・削除が次の取得へ反映される", async () => {
+    const fixture = await seed();
+    const env = { ...bindings(), V2_RAG_ENABLED: "0" };
+    const first = await addMemory(local.db, fixture.scope, {
+      id: crypto.randomUUID(),
+      kind: "preference",
+      content: "紅茶が好き",
+      pinned: true,
+    });
+    await addMemory(local.db, fixture.scope, {
+      id: crypto.randomUUID(),
+      kind: "fact",
+      content: "集合場所は図書館",
+      pinned: false,
+    });
+    expect((await readTurnMemories(local.db, env, fixture.scope, "好み", now))[0]).toEqual({
+      id: first.id,
+      content: first.content,
+    });
+    const changed = await changeMemory(local.db, fixture.scope, {
+      ...first,
+      content: "今は珈琲が好き",
+    });
+    expect((await readTurnMemories(local.db, env, fixture.scope, "好み", now))[0]).toEqual({
+      id: first.id,
+      content: changed.content,
+    });
+    await removeMemory(local.db, fixture.scope, changed);
+    expect(
+      (await readTurnMemories(local.db, env, fixture.scope, "好み", now)).some(
+        (row) => row.id === first.id,
+      ),
+    ).toBe(false);
+    expect(await readManualMemories(local.db, { ...fixture.scope, userId: "other" })).toEqual([]);
+    expect(
+      await readManualMemories(local.db, { ...fixture.scope, characterId: characterIds[1] }),
+    ).toEqual([]);
+    expect(env.runMock).not.toHaveBeenCalled();
+  });
+
+  it("自動抽出を訂正したら明示的な手入力として扱い、再抽出や古いvectorで上書きしない", async () => {
+    const fixture = await seed();
+    const env = bindings();
+    await indexMemoryJob(local.db, env, fixture.jobId);
+    const changed = await changeMemory(local.db, fixture.scope, {
+      id: fixture.memoryId,
+      revision: 0,
+      kind: "preference",
+      content: "今は麦茶が好き",
+      pinned: true,
+    });
+    await local.d1
+      .prepare("UPDATE v2_message SET content = ? WHERE id = ?")
+      .bind("訂正済み", fixture.jobId)
+      .run();
+    expect(await retrieveMemories(local.db, env, fixture.scope, "飲み物", now)).toEqual([]);
+    expect(await readTurnMemories(local.db, env, fixture.scope, "飲み物", now)).toEqual([
+      { id: fixture.memoryId, content: changed.content },
+    ]);
+    expect(await listPendingMemoryJobs(local.db, fixture.scope, true)).toEqual([]);
+    await indexMemoryJob(local.db, env, fixture.jobId);
+    expect(env.upsertMock).toHaveBeenCalledTimes(1);
+    await removeMemory(local.db, fixture.scope, changed);
+    expect(await readTurnMemories(local.db, env, fixture.scope, "飲み物", now)).toEqual([]);
   });
 
   it("同名の別キャラ・同じ話題の別会話・別利用者・未来ターンを混ぜない", async () => {

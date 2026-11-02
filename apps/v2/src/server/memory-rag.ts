@@ -3,6 +3,7 @@ import {
   hashMemorySource,
   loadMemoryCandidates,
   loadUnindexedMemoryJob,
+  readManualMemories,
   saveMemoryEmbedding,
   type ExtractionScope,
   type V2Db,
@@ -124,3 +125,14 @@ export const retrieveMemories = async (
     return [];
   }
 };
+
+export const readTurnMemories = async (
+  db: V2Db,
+  env: MemoryVectorBindings,
+  scope: ExtractionScope & { beforeTurn?: number },
+  query: string,
+  now = Date.now(),
+): Promise<MemoryContextEntry[]> => [
+  ...(await readManualMemories(db, scope)),
+  ...(await retrieveMemories(db, env, scope, query, now)),
+];
