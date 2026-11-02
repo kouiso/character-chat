@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "b5010996-8e56-4fe9-94c2-69798456f13b",
+  "id": "56a87ad6-61b4-4787-b902-dbaf05f83937",
   "prevId": "2d94ec13-8152-4fa7-a5a3-541a79fa5dca",
   "tables": {
     "character_default_outfit_tag": {
@@ -401,13 +401,6 @@
         }
       },
       "indexes": {
-        "character_slug_unique": {
-          "name": "character_slug_unique",
-          "columns": [
-            "slug"
-          ],
-          "isUnique": true
-        },
         "character_user_id_idx": {
           "name": "character_user_id_idx",
           "columns": [
@@ -428,7 +421,7 @@
           "columns": [
             "slug"
           ],
-          "isUnique": false
+          "isUnique": true
         }
       },
       "foreignKeys": {
@@ -1096,7 +1089,12 @@
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
-      "checkConstraints": {}
+      "checkConstraints": {
+        "group_message_role_check": {
+          "name": "group_message_role_check",
+          "value": "\"group_message\".\"role\" in ('user','assistant')"
+        }
+      }
     },
     "chat_group": {
       "name": "chat_group",

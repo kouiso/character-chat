@@ -7,6 +7,9 @@ import { getTableColumns, getTableName } from "drizzle-orm";
 import { getTableConfig, SQLiteSyncDialect } from "drizzle-orm/sqlite-core";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
+import { characterTable } from "../../../src/schema/character";
+import { groupMessageTable } from "../../../src/schema/group";
+
 import { openLocalD1, type LocalD1 } from "./test/local-d1";
 import {
   v2ChunkTable,
@@ -63,7 +66,13 @@ describe("v2_ tables: SQL DDL と drizzle 宣言の一致", () => {
     );
   });
 
-  const cases = drizzleTables.map((table) => [getTableName(table), table] as const);
+  const cases = [...drizzleTables, characterTable, groupMessageTable].map(
+    (table) => [getTableName(table), table] as const,
+  );
+
+  it("character slug uses the historical unique index", () => {
+    expect(getTableColumns(characterTable).slug.isUnique).toBe(false);
+  });
 
   it.each(cases)("%s", async (tableName, table) => {
     const { results } = await local.d1
@@ -106,13 +115,15 @@ describe("v2_ tables: SQL DDL と drizzle 宣言の一致", () => {
     const normalize = (sql: string) =>
       sql
         .replace(/["`]/g, "")
-        .replace(/\bv2_\w+\./g, "")
+        .replace(/\b(?:v2_\w+|character|group_message)\./g, "")
         .replace(/\s+/g, "")
         .toLowerCase();
+    const normalizedDefinition = normalize(definition?.sql ?? "");
+    expect(normalizedDefinition.match(/check\(/g)?.length ?? 0).toBe(config.checks.length);
     const dialect = new SQLiteSyncDialect();
     for (const constraint of config.checks) {
       const expression = dialect.sqlToQuery(constraint.value).sql;
-      expect(normalize(definition?.sql ?? "")).toContain(`check(${normalize(expression)})`);
+      expect(normalizedDefinition).toContain(`check(${normalize(expression)})`);
     }
   });
 });
