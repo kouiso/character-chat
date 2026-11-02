@@ -12,6 +12,9 @@ import {
   v2ConversationTable,
   v2GenerationTable,
   v2LedgerTable,
+  v2MemoryJobTable,
+  v2MemorySourceTable,
+  v2MemoryTable,
   v2MessageTable,
 } from "./v2-schema";
 
@@ -100,6 +103,7 @@ export type D1TurnStoreOptions = {
   characterId: string;
   promptVersion: string;
   beforeTurn?: number;
+  extractMemory?: boolean;
 };
 
 export class ConversationAccessError extends Error {
@@ -369,6 +373,20 @@ export const createD1TurnStore = (db: V2Db, opts: D1TurnStoreOptions): TurnStore
           target: v2ConversationTable.id,
           set: { updatedAt: now, threadId: input.threadId ?? input.conversationId },
         }),
+      db.delete(v2MemoryTable).where(
+        inArray(
+          v2MemoryTable.id,
+          db
+            .select({ id: v2MemorySourceTable.memoryId })
+            .from(v2MemorySourceTable)
+            .where(
+              inArray(
+                v2MemorySourceTable.sourceMessageId,
+                db.select({ id: v2MessageTable.id }).from(v2MessageTable).where(sameTurn),
+              ),
+            ),
+        ),
+      ),
       // 置き換え: 同じ turn の既存行を chunk → message → ledger → generation の順（FK の子から）で消す。
       db
         .delete(v2ChunkTable)
@@ -450,6 +468,22 @@ export const createD1TurnStore = (db: V2Db, opts: D1TurnStoreOptions): TurnStore
         ledgerJson: JSON.stringify(input.ledger),
         createdAt: now,
       }),
+      ...(opts.extractMemory &&
+      assistantText.trim() &&
+      (!lastGeneration || lastGeneration.status !== "error")
+        ? [
+            db.insert(v2MemoryJobTable).values({
+              id: userMessageId,
+              sourceMessageId: userMessageId,
+              conversationId: input.conversationId,
+              userId: opts.userId,
+              characterId: opts.characterId,
+              sourceTurn: input.turn,
+              createdAt: now,
+              updatedAt: now,
+            }),
+          ]
+        : []),
     ]);
   },
 });

@@ -1,4 +1,4 @@
-import { index, integer, real, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { index, integer, real, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 import { userTable } from "./user";
 
@@ -41,12 +41,12 @@ export const characterTable = sqliteTable(
     userPersonaPersonality: text("user_persona_personality"),
     // 0 = 元キャラ最優先 / 100 = import-* を後方に。並び順は ASC で評価される
     displayOrder: integer("display_order", { mode: "number" }).notNull().default(0),
-    slug: text("slug").unique(),
+    slug: text("slug"),
     createdAt: integer("created_at", { mode: "number" }).notNull(),
   },
   (table) => [
     index("character_user_id_idx").on(table.userId),
     index("character_display_order_idx").on(table.displayOrder, table.createdAt),
-    index("character_slug_idx").on(table.slug),
+    uniqueIndex("character_slug_idx").on(table.slug),
   ],
 );

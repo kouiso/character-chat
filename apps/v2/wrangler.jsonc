@@ -17,7 +17,55 @@
       "bucket_name": "adult-ai-images"
     }
   ],
-  "env": {},
+  // AIとVectorizeはローカルで模擬できないため、通常の開発では接続しない。
+  "env": {
+    "rag": {
+      "vars": {
+        "APP_ENV": "production",
+        "V2_FAKE_MODEL": "0",
+        "V2_RAG_ENABLED": "1",
+        "V2_MODEL": "deepseek/deepseek-v3.2",
+        "V2_TEST_FAULT": "none",
+        "V2_HISTORY_CHARACTERS": 12000,
+        "V2_HISTORY_MESSAGES": 40
+      },
+      "secrets": {
+        "required": [
+          "BASIC_AUTH_USERNAME",
+          "BASIC_AUTH_PASSWORD",
+          "OPENROUTER_API_KEY"
+        ]
+      },
+      "ai": { "binding": "AI", "remote": true },
+      "vectorize": [
+        { "binding": "MEMORY_INDEX", "index_name": "adult-ai-v2-memory", "remote": true }
+      ],
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "adult-ai-db",
+          "database_id": "c0ffee00-0000-4000-8000-000000000001",
+          "preview_database_id": "c0ffee00-0000-4000-8000-000000000001",
+          "migrations_dir": "../../drizzle"
+        }
+      ],
+      "r2_buckets": [{ "binding": "BUCKET", "bucket_name": "adult-ai-images" }],
+      "durable_objects": { "bindings": [{ "name": "CHAT_ROOMS", "class_name": "ChatRoom" }] },
+      "queues": {
+        "producers": [{ "binding": "MEMORY_QUEUE", "queue": "adult-ai-v2-memory" }],
+        "consumers": [
+          {
+            "queue": "adult-ai-v2-memory",
+            "max_batch_size": 1,
+            "max_batch_timeout": 1,
+            "max_retries": 4,
+            "max_concurrency": 1,
+            "retry_delay": 30
+          }
+        ]
+      }
+    }
+  },
   "main": "src/worker.ts",
   "compatibility_flags": [
     "nodejs_compat"
@@ -31,6 +79,7 @@
   "vars": {
     "APP_ENV": "development",
     "V2_FAKE_MODEL": "0",
+    "V2_RAG_ENABLED": "0",
     "V2_MODEL": "deepseek/deepseek-v3.2",
     "V2_TEST_FAULT": "none",
     "V2_HISTORY_CHARACTERS": 12000,

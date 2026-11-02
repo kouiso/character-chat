@@ -1,6 +1,7 @@
 import handler from "@tanstack/react-start/server-entry";
 
 import { preventSharedCaching, requireBasicAuth, type BasicAuthConfig } from "./server/basic-auth";
+import { consumeMemoryJobs } from "./server/memory-queue";
 
 export { ChatRoom } from "./server/chat-room";
 
@@ -29,4 +30,7 @@ const fetchEntry = async (request: Request, env: WorkerEntryEnv): Promise<Respon
   }
 };
 
-export default { fetch: fetchEntry } satisfies ExportedHandler<Cloudflare.Env>;
+export default {
+  fetch: fetchEntry,
+  queue: consumeMemoryJobs,
+} satisfies ExportedHandler<Cloudflare.Env>;

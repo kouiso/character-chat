@@ -7,3 +7,6 @@ export * from "./client";
 export * from "./turn-store";
 export * from "./v2-schema";
 export * from "./legacy-migration";
+export * from "./memory-extraction-contract";
+export * from "./memory-extraction-store";
+export * from "./memory-index-store";
