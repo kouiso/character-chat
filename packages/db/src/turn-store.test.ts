@@ -195,13 +195,24 @@ describe("createD1TurnStore", () => {
         seq: v2ChunkTable.seq,
         attempt: v2ChunkTable.attempt,
         judgeJson: v2ChunkTable.judgeJson,
+        scheduledAt: v2ChunkTable.scheduledAt,
       })
       .from(v2ChunkTable)
       .where(eq(v2ChunkTable.messageId, assistantRows[0].id))
       .orderBy(asc(v2ChunkTable.seq));
     expect(chunkRows).toEqual([
-      { seq: 0, attempt: 2, judgeJson: JSON.stringify(OK_JUDGE) },
-      { seq: 1, attempt: 1, judgeJson: JSON.stringify(OK_JUDGE) },
+      {
+        seq: 0,
+        attempt: 2,
+        judgeJson: JSON.stringify(OK_JUDGE),
+        scheduledAt: assistantRows[0].createdAt + 200,
+      },
+      {
+        seq: 1,
+        attempt: 1,
+        judgeJson: JSON.stringify(OK_JUDGE),
+        scheduledAt: assistantRows[0].createdAt + 400,
+      },
     ]);
 
     const generationRows = await local.db

@@ -7,6 +7,7 @@ import { z } from "zod";
 
 import { messageTable } from "../../../src/schema/message";
 
+import { scheduleChunks } from "./chunk-schedule";
 import {
   v2ChunkTable,
   v2ConversationTable,
@@ -341,7 +342,10 @@ export const createD1TurnStore = (db: V2Db, opts: D1TurnStoreOptions): TurnStore
   saveTurn: async (input) => {
     await assertConversationOwner(db, opts, input.conversationId);
     const now = Date.now();
-    const chunks = input.events.filter(isChunkEvent).sort((a, b) => a.seq - b.seq);
+    const chunks = scheduleChunks(
+      input.events.filter(isChunkEvent).sort((a, b) => a.seq - b.seq),
+      now,
+    );
     const generations = input.events.filter(isGenerationEvent);
     const assistantText = assistantTextOf(chunks);
     const userMessageId = crypto.randomUUID();
@@ -441,6 +445,7 @@ export const createD1TurnStore = (db: V2Db, opts: D1TurnStoreOptions): TurnStore
           text: chunkEvent.text,
           judgeJson: JSON.stringify(chunkEvent.judge),
           attempt: chunkEvent.attempt,
+          scheduledAt: chunkEvent.scheduledAt,
           createdAt: now,
         }),
       ),

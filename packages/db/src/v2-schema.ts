@@ -42,6 +42,7 @@ export const v2ChunkTable = sqliteTable("v2_chunk", {
   text: text("text").notNull(),
   judgeJson: text("judge_json").notNull(),
   attempt: integer("attempt").notNull().default(1),
+  scheduledAt: integer("scheduled_at").notNull().default(0),
   createdAt: integer("created_at").notNull(),
 });
 
