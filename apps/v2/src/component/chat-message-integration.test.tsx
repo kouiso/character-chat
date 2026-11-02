@@ -1,5 +1,5 @@
-import { extractVoice, judgeChunk } from "@v2/judge";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { extractVoice, judgeChunk } from "@v2/judge";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { ChatView } from "./chat-view";
