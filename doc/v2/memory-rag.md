@@ -4,7 +4,7 @@
 
 ## 保存と検索
 
-確定ターンと同じD1 batchで抽出jobを保存し、Queueにはjob IDだけを渡す。抽出済みjobの再配送では抽出を繰り返さず、未indexの記憶だけを処理する。bge-m3の応答は1024次元の有限値に限定する。
+確定ターンと同じD1 batchで抽出jobを保存し、Queueにはjob IDだけを渡す。文字数上限またはdeadlineで生成が打ち切られても、非空の応答を受理したターンは抽出対象にする。明示的な生成errorと空応答は除く。Queue送信が受理された後のD1状態更新失敗は送信失敗回数に加えず、jobをpendingのままにする。Queueは重複配送を前提に、job IDで冪等に処理する。抽出済みjobの再配送では抽出を繰り返さず、未indexの記憶だけを処理する。bge-m3の応答は1024次元の有限値に限定する。
 
 Vectorizeには本文を保存しない。namespaceは利用者IDとキャラIDの組をhash化した値、metadataはmemory ID・本文hash・kind・conversation_id。vector IDもmemory IDと本文hashから作り、旧版の遅い書込みが新版を上書きしないようにする。upsertの受付後に、元発言と本文が変わっていない場合だけD1のembeddingを保存する。受付は検索反映の完了を意味しない。
 

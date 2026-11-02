@@ -470,7 +470,7 @@ export const createD1TurnStore = (db: V2Db, opts: D1TurnStoreOptions): TurnStore
       }),
       ...(opts.extractMemory &&
       assistantText.trim() &&
-      (!lastGeneration || lastGeneration.status === "ok")
+      (!lastGeneration || lastGeneration.status !== "error")
         ? [
             db.insert(v2MemoryJobTable).values({
               id: userMessageId,

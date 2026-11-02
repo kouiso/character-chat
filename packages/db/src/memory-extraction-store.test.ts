@@ -14,6 +14,7 @@ import { createD1TurnStore } from "./turn-store";
 import {
   v2ConversationTable,
   v2ChunkTable,
+  v2GenerationTable,
   v2LedgerTable,
   v2MemoryJobTable,
   v2MemoryTable,
@@ -50,6 +51,20 @@ const reply: TurnEvent = {
     },
   },
 };
+
+const generation = (status: "aborted" | "error"): TurnEvent => ({
+  type: "generation",
+  generationId: crypto.randomUUID(),
+  model: "test",
+  promptVersion: "test",
+  systemPrompt: "system",
+  request: [{ role: "user", content: "私は紅茶が好きです。" }],
+  rawOutput: reply.text,
+  usage: null,
+  latencyMs: 1,
+  status,
+  ...(status === "aborted" ? { truncated: "deadline" } : { error: "generation failed" }),
+});
 
 describe("memory extraction store", () => {
   let local: LocalD1;
@@ -90,6 +105,7 @@ describe("memory extraction store", () => {
       local.db.delete(v2ChunkTable).where(inArray(v2ChunkTable.messageId, messages)),
       local.db.delete(v2MessageTable).where(inArray(v2MessageTable.conversationId, ids)),
       local.db.delete(v2LedgerTable).where(inArray(v2LedgerTable.conversationId, ids)),
+      local.db.delete(v2GenerationTable).where(inArray(v2GenerationTable.conversationId, ids)),
       local.db.delete(v2ConversationTable).where(inArray(v2ConversationTable.id, ids)),
     ]);
     await local.dispose();
@@ -106,6 +122,20 @@ describe("memory extraction store", () => {
       await listPendingMemoryJobs(local.db, { ...scope(id), conversationId: "other" }),
     ).toEqual([]);
     expect(await listPendingMemoryJobs(local.db, scope(await save(undefined, [])))).toEqual([]);
+  });
+
+  it("非空の中断ターンを予約し、明示的な失敗と空応答は除外する", async () => {
+    const abortedId = await save(crypto.randomUUID(), [generation("aborted"), reply]);
+    expect(await listPendingMemoryJobs(local.db, scope(abortedId))).toHaveLength(1);
+
+    const blankId = await save(crypto.randomUUID(), [
+      generation("aborted"),
+      { ...reply, text: " \n\t " },
+    ]);
+    expect(await listPendingMemoryJobs(local.db, scope(blankId))).toEqual([]);
+
+    const failedId = await save(crypto.randomUUID(), [generation("error"), reply]);
+    expect(await listPendingMemoryJobs(local.db, scope(failedId))).toEqual([]);
   });
 
   it("同時配送でも重複せず、削除済みの記憶を再配送で復活させない", async () => {

@@ -42,11 +42,12 @@ export const publishMemoryJobs = async (
   const ids = jobs.map((job) => job.id);
   try {
     await queue.sendBatch(ids.map((jobId) => ({ body: { jobId } })));
-    await markMemoryJobsQueued(db, ids);
   } catch {
     await markMemoryPublishFailure(db, ids);
     reportMemoryEvent({ event: "memory_queue_publish_failed", jobs: ids.length });
+    return (await listPendingMemoryJobs(db, scope, includeUnindexed)).length > 0;
   }
+  await markMemoryJobsQueued(db, ids);
   return (await listPendingMemoryJobs(db, scope, includeUnindexed)).length > 0;
 };
 
