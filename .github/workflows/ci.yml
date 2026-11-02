@@ -36,12 +36,12 @@ jobs:
       - run: pnpm v2:ci
       - run: pnpm --filter @v2/app build
       - run: pnpm --filter @v2/app secrets:check
-      # 実際に焼かれた設定（dist/server/wrangler.json）が本番向けかを、deploy と同じ門で確かめる。
-      - run: pnpm --filter @v2/app check:built-env production
       - run: pnpm --filter @v2/app exec wrangler deploy --dry-run
       - run: pnpm --filter @v2/app verify:ci
-      # staging の deploy 経路を実ビルドで通し、焼かれた設定が staging の資源を指すことを確かめる。
-      # dist を staging で上書きするので、本番の成果物を使う手順より後に置く。
+      # 本番（env.rag）と staging の deploy 経路を実ビルドで通し、焼かれた設定が
+      # 頼んだ環境の資源を指すことを deploy と同じ門で確かめる。dist を上書きするので verify:ci の後に置く。
+      - run: pnpm --filter @v2/app deploy:dry-run
+      - run: pnpm --filter @v2/app secrets:check
       - run: pnpm --filter @v2/app deploy:staging:dry-run
       - run: pnpm --filter @v2/app secrets:check
 
@@ -59,8 +59,13 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Fail on hardcoded GitHub-hosted runners
-        run: bash ./.github/script/check-runner-hardcode.sh
+      - name: Check runner policy and regression tests
+        run: |
+          python3 -m venv "$RUNNER_TEMP/runner-guard"
+          . "$RUNNER_TEMP/runner-guard/bin/activate"
+          python3 -m pip install -r .github/script/requirements-runner-guard.txt
+          python3 .github/script/test-runner-hardcode.py
+          bash ./.github/script/check-runner-hardcode.sh
 
   ci:
     name: CI (${{ matrix.check-type }})

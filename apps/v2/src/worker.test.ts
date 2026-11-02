@@ -1,5 +1,6 @@
 // @vitest-environment node
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
+import { sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -35,24 +36,58 @@ beforeEach(() => {
   startFetch.mockResolvedValue(new Response("app", { headers: { "cache-control": "public" } }));
 });
 
+const UNAUTHENTICATED_PROBES = [
+  ["GET", "/"],
+  ["GET", "/chat/example"],
+  ["GET", "/assets/main.js"],
+  ["HEAD", "/assets/main.js"],
+  ["GET", "/api/health"],
+  ["GET", "/api/chat/example/history?conversationId=c1"],
+  ["POST", "/api/chat/example"],
+  ["OPTIONS", "/api/chat/example"],
+  ["GET", "/api/media/message-1"],
+] as const;
+
+// routes/ のファイル名と URL を区切りごとに突き合わせる（$id は任意の 1 区切り、末尾 _ は入れ子を外す印、index は親）。
+const routeMatches = (file: string, path: string): boolean => {
+  const routeSegments = file
+    .replace(/\.tsx?$/, "")
+    .split("/")
+    .filter((segment) => segment !== "index")
+    .map((segment) => segment.replace(/_$/, ""));
+  const pathSegments = path.split("/").filter(Boolean);
+  return (
+    routeSegments.length === pathSegments.length &&
+    routeSegments.every(
+      (segment, index) => segment.startsWith("$") || segment === pathSegments[index],
+    )
+  );
+};
+
 describe("Worker 入口の BASIC 認証", () => {
-  it.each([
-    ["GET", "/"],
-    ["GET", "/chat/example"],
-    ["GET", "/assets/main.js"],
-    ["HEAD", "/assets/main.js"],
-    ["GET", "/api/health"],
-    ["GET", "/api/chat/example/history?conversationId=c1"],
-    ["POST", "/api/chat/example"],
-    ["OPTIONS", "/api/chat/example"],
-  ])("%s %s は認証なしだと静的ファイルにもアプリにも渡さない", async (method, path) => {
-    const { env, assetFetch } = createEnv(200);
-    const response = await call(new Request(`https://example.com${path}`, { method }), env);
-    expect(response.status).toBe(401);
-    expect(await response.text()).toBe("");
-    expect(assetFetch).not.toHaveBeenCalled();
-    expect(startFetch).not.toHaveBeenCalled();
+  // 経路を足して確認表へ足し忘れると、その経路の認証は試験されんまま出る。
+  it("routes/ の全ファイルが認証なしの確認表に載っとる", () => {
+    const routesDir = fileURLToPath(new URL("./routes", import.meta.url));
+    const files = readdirSync(routesDir, { recursive: true, encoding: "utf8" })
+      .map((file) => file.split(sep).join("/"))
+      .filter((file) => /\.tsx?$/.test(file) && !file.endsWith("__root.tsx"));
+    expect(files.length).toBeGreaterThan(0);
+    const probed = UNAUTHENTICATED_PROBES.map(([, path]) => path.split("?")[0]);
+    const missing = files.filter((file) => !probed.some((path) => routeMatches(file, path)));
+    expect(missing).toEqual([]);
   });
+
+  it.each(UNAUTHENTICATED_PROBES)(
+    "%s %s は認証なしだと静的ファイルにもアプリにも渡さない",
+    async (method, path) => {
+      const { env, assetFetch } = createEnv(200);
+      const response = await call(new Request(`https://example.com${path}`, { method }), env);
+      expect(response.status).toBe(401);
+      expect(await response.text()).toBe("");
+      expect(assetFetch).not.toHaveBeenCalled();
+      expect(startFetch).not.toHaveBeenCalled();
+    },
+  );
 
   it("誤ったパスワードでは通さない", async () => {
     const { env, assetFetch } = createEnv(200);
@@ -127,21 +162,21 @@ describe("Worker 入口の BASIC 認証", () => {
     }
   });
 
-  it.each(["staging"])(
-    "env.%s も wrangler が解決した結果で静的ファイルを Worker に先に通す",
-    (name) => {
-      // env 側に assets が無いと top-level を継承するので、生の JSON では確かめきれん。
-      // deploy と同じ解決を通した結果で見る。
-      const resolved = readWranglerConfig({
-        config: fileURLToPath(new URL("../wrangler.jsonc", import.meta.url)),
-        env: name,
-      });
-      expect(resolved.name).toBe(`adult-ai-v2-${name}`);
-      expect(resolved.assets?.run_worker_first).toBe(true);
-      expect(resolved.workers_dev).toBe(false);
-      expect(resolved.preview_urls).toBe(false);
-    },
-  );
+  it.each([
+    ["rag", "adult-ai-v2"],
+    ["staging", "adult-ai-v2-staging"],
+  ])("env.%s も wrangler が解決した結果で静的ファイルを Worker に先に通す", (name, workerName) => {
+    // env 側に assets が無いと top-level を継承するので、生の JSON では確かめきれん。
+    // deploy と同じ解決を通した結果で見る。
+    const resolved = readWranglerConfig({
+      config: fileURLToPath(new URL("../wrangler.jsonc", import.meta.url)),
+      env: name,
+    });
+    expect(resolved.name).toBe(workerName);
+    expect(resolved.assets?.run_worker_first).toBe(true);
+    expect(resolved.workers_dev).toBe(false);
+    expect(resolved.preview_urls).toBe(false);
+  });
 
   it("staging でも認証情報が未設定なら 503 で閉じる", async () => {
     // staging も secrets.required で deploy 時に止まるが、出した後に secret を消された時は入口で閉じる。
@@ -181,26 +216,8 @@ describe("Worker の HTTP 以外の入口", () => {
     expect(Object.keys(worker).sort()).toEqual(["fetch", "queue"]);
   });
 
-  it("queue はアプリに渡さず、仕事ごとに受け取りを返す", async () => {
-    const messages = [
-      {
-        body: { kind: "embed-memory", characterId: "c1", conversationId: "v1" },
-        ack: vi.fn(),
-        retry: vi.fn(),
-      },
-      { body: "GET / HTTP/1.1", ack: vi.fn(), retry: vi.fn() },
-    ];
-    const info = vi.spyOn(console, "info").mockImplementation(() => {});
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-    await worker.queue({ messages } as unknown as Parameters<typeof worker.queue>[0]);
-    for (const message of messages) {
-      expect(message.ack).toHaveBeenCalledOnce();
-      expect(message.retry).not.toHaveBeenCalled();
-    }
-    expect(startFetch).not.toHaveBeenCalled();
-    // 形の合わん中身は記録にも出さん（何が入っとるか分からんので）。
-    expect(JSON.stringify(warn.mock.calls)).not.toContain("GET / HTTP/1.1");
-    info.mockRestore();
-    warn.mockRestore();
+  it("queue は記憶の consumer だけへ渡し、アプリの fetch は通さん", async () => {
+    const { consumeMemoryJobs } = await import("./server/memory-queue");
+    expect(worker.queue).toBe(consumeMemoryJobs);
   });
 });

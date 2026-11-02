@@ -1,7 +1,14 @@
 // WorkerのD1バインディングを共有し、接続元のプロセスに会話を閉じ込めない。
 import { FakeListChatModel } from "@langchain/core/utils/testing";
-import { createD1TurnStore, createDb, readD1StoredTurn, type V2Db } from "@v2/db";
 import {
+  createD1TurnStore,
+  createDb,
+  readDisplayHistory,
+  readD1StoredTurn,
+  type V2Db,
+} from "@v2/db";
+import {
+  contextBudgetFromEnv,
   createOpenRouterModel,
   createTurnGraph,
   runTurn,
@@ -12,12 +19,14 @@ import {
 import { PROMPT_VERSION } from "@v2/prompt";
 
 import { readCharacter } from "./character-data.server";
+import { LOCAL_USER_ID } from "./identity";
+import { retrieveMemories } from "./memory-rag";
+import { memoryVectorReady } from "./memory-vector";
 import { getPlatform } from "./platform";
 
 import type { BaseChatModel } from "@langchain/core/language_models/chat_models";
 
-// 個人用BASIC認証の利用者を安定した内部IDに対応づけ、パスワード変更で所有権を変えない。
-export const LOCAL_USER_ID = "local";
+export { LOCAL_USER_ID } from "./identity";
 
 export class CharacterNotFoundError extends Error {
   constructor(id: string) {
@@ -60,12 +69,18 @@ const getDb = async (): Promise<V2Db> => {
 };
 
 // store は (user, character) ごとに作る（v2_conversation の初回 insert に character_id が要る）。
-const createStore = (db: V2Db, characterId: string, beforeTurn?: number): TurnStore =>
+const createStore = (
+  db: V2Db,
+  characterId: string,
+  beforeTurn?: number,
+  extractMemory = false,
+): TurnStore =>
   createD1TurnStore(db, {
     userId: LOCAL_USER_ID,
     characterId,
     promptVersion: PROMPT_VERSION,
     beforeTurn,
+    extractMemory,
   });
 
 export type StartTurnInput = {
@@ -92,9 +107,25 @@ export const startTurn = async (
   const db = await getDb();
   // graph はターンごとに組む。前ターンの状態は intake が D1 から読み直すので checkpointer に
   // 残す必要が無く、character ごとの store を持つ graph をプロセスに溜め込まん方が単純。
+  const { env } = await getPlatform();
   const graph = createTurnGraph({
     model,
-    store: createStore(db, input.characterId, input.expectedTurn),
+    contextBudget: contextBudgetFromEnv(env),
+    retrieveMemories: memoryVectorReady(env)
+      ? (conversationId, query) =>
+          retrieveMemories(
+            db,
+            env,
+            {
+              userId: LOCAL_USER_ID,
+              characterId: input.characterId,
+              conversationId,
+              beforeTurn: input.expectedTurn,
+            },
+            query,
+          )
+      : undefined,
+    store: createStore(db, input.characterId, input.expectedTurn, Boolean(env.MEMORY_QUEUE)),
   });
   const conversationId = input.conversationId ?? crypto.randomUUID();
   const events = runTurn(
@@ -109,18 +140,35 @@ export type ConversationHistory = {
   conversationId: string;
   // 次に保存されるターン番号（= 保存済みターン数 + 1）。
   turn: number;
-  history: HistoryMessage[];
+  history: (HistoryMessage & { imageUrl?: string })[];
 };
 
-// GET /api/chat/:id/history 用。D1 store の load をそのまま返す（再起動をまたいだ永続化の確認口）。
+// GET /api/chat/:id/history と ChatRoom の job.turn の両方がここを読む。履歴と次の番号は
+// readDisplayHistory の 1 回の読込から作り、失敗ターンの扱いを engine の load と揃える。
 export const loadHistory = async (input: {
   characterId: string;
   conversationId: string;
 }): Promise<ConversationHistory> => {
   await loadValidCharacter(input.characterId);
   const db = await getDb();
-  const loaded = await createStore(db, input.characterId).load(input.conversationId);
-  return { conversationId: input.conversationId, turn: loaded.turn, history: loaded.history };
+  const display = await readDisplayHistory(
+    db,
+    {
+      userId: LOCAL_USER_ID,
+      characterId: input.characterId,
+      promptVersion: PROMPT_VERSION,
+    },
+    input.conversationId,
+  );
+  return {
+    conversationId: input.conversationId,
+    turn: display.turn,
+    history: display.history.map((row) => ({
+      role: row.role,
+      content: row.content,
+      ...(row.imageKey ? { imageUrl: `/api/media/${encodeURIComponent(row.id)}` } : {}),
+    })),
+  };
 };
 
 export const loadStoredTurn = async (characterId: string, conversationId: string, turn: number) =>

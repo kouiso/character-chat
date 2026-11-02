@@ -6,11 +6,13 @@ import { DatabaseSync } from "node:sqlite";
 
 import { FakeListChatModel } from "@langchain/core/utils/testing";
 import { createDb, loadCharacter } from "@v2/db";
+import { judgeChunk, extractVoice } from "@v2/judge";
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 
 import { openLocalD1, type LocalD1 } from "../../../../packages/db/src/test/local-d1";
 
+import type { ChatSseEvent } from "../lib/sse-events";
 import type { BaseChatModel } from "@langchain/core/language_models/chat_models";
 import type * as EngineModule from "@v2/engine";
 
@@ -51,6 +53,7 @@ vi.mock("@v2/engine", async (importOriginal) => {
 });
 
 const { ChatRoom } = await import("./chat-room");
+const { consumeMemoryJobs } = await import("./memory-queue");
 const { loadHistory } = await import("./engine");
 const { handleChatRequest, handleHistoryRequest } = await import("./api-chat");
 
@@ -175,6 +178,7 @@ describe("ChatRoom", () => {
     // 子の表から消す（v2_chunk → v2_message → … → v2_conversation の FK 順）。
     for (const id of conversationIds) {
       await local.d1.batch([
+        local.d1.prepare("DELETE FROM v2_memory WHERE conversation_id = ?").bind(id),
         local.d1
           .prepare(
             "DELETE FROM v2_chunk WHERE message_id IN (SELECT id FROM v2_message WHERE conversation_id = ?)",
@@ -189,15 +193,78 @@ describe("ChatRoom", () => {
     await local?.dispose();
   });
 
-  const submitAndRun = async (
+  async function submitAndRun(
     room: InstanceType<typeof ChatRoom>,
     input: { requestId: string; conversationId: string; text: string; retry?: boolean },
-  ) => {
+  ) {
     const receipt = await room.submit({ ...input, characterId });
     expect(receipt.status).toBe("accepted");
     await room.alarm();
     return room.readEvents(input.requestId, 0);
-  };
+  }
+
+  it("確定した返信の記憶をQueue失敗後も配送し、再配送で二重保存しない", async () => {
+    const delivered: { body: unknown }[] = [];
+    let offline = true;
+    const queue = {
+      sendBatch: vi.fn(async (messages: Iterable<{ body: unknown }>) => {
+        if (offline) throw new Error("offline");
+        delivered.push(...messages);
+      }),
+    };
+    const room = newRoom({ MEMORY_QUEUE: queue });
+    const conversationId = newConversation();
+    replies.queue.push([VALID_REPLY]);
+    const startedAt = Date.now();
+    const result = await submitAndRun(room, {
+      requestId: crypto.randomUUID(),
+      conversationId,
+      text: "私は紅茶が好きです。",
+    });
+    expect(result.status).toBe("succeeded");
+    expect(state.alarms.some((alarm) => alarm >= startedAt + 30_000)).toBe(true);
+    const calls = replies.calls;
+    offline = false;
+    await room.alarm();
+    expect(replies.calls).toBe(calls);
+    expect(delivered).toHaveLength(1);
+    const ack = vi.fn();
+    const retry = vi.fn();
+    const batch: MessageBatch<unknown> = {
+      queue: "memory",
+      metadata: { metrics: { backlogCount: 0, backlogBytes: 0 } },
+      ackAll: vi.fn(),
+      retryAll: vi.fn(),
+      messages: delivered.map(({ body }) => ({
+        id: crypto.randomUUID(),
+        timestamp: new Date(),
+        body,
+        attempts: 1,
+        ack,
+        retry,
+      })),
+    };
+    const env = {
+      DB: local.d1,
+      APP_ENV: "test",
+      V2_FAKE_MODEL: "1",
+      V2_MODEL: "fake",
+      OPENROUTER_API_KEY: "unused",
+    };
+    await consumeMemoryJobs(batch, { ...env, V2_FAKE_MODEL: "0" });
+    expect(retry).toHaveBeenCalledWith({ delaySeconds: 30 });
+    expect(ack).not.toHaveBeenCalled();
+    retry.mockClear();
+    await consumeMemoryJobs(batch, env);
+    await consumeMemoryJobs(batch, env);
+    const { results } = await local.d1
+      .prepare("SELECT content FROM v2_memory WHERE conversation_id = ?")
+      .bind(conversationId)
+      .all();
+    expect(results).toEqual([{ content: "私は紅茶が好きです。" }]);
+    expect(ack).toHaveBeenCalledTimes(2);
+    expect(retry).not.toHaveBeenCalled();
+  });
 
   it("モデルが空の返事を返したら失敗として配り、再試行で同じ番号に本文を保存する", async () => {
     const room = newRoom();
@@ -319,6 +386,20 @@ describe("ChatRoom", () => {
     expect(room.readEvents("req-5a", 0).status).toBe("failed");
     const history = await loadHistory({ characterId, conversationId });
     expect(history.history[0]).toEqual({ role: "user", content: "別のタブから" });
+  });
+
+  it("Queueなしで最後のjobが完了したら記憶回復用alarmを予約しない", async () => {
+    const room = newRoom();
+    const conversationId = newConversation();
+    const requestId = crypto.randomUUID();
+    replies.queue.push([VALID_REPLY]);
+    expect(
+      (await room.submit({ requestId, conversationId, text: "お茶を飲もう", characterId })).status,
+    ).toBe("accepted");
+    state.alarms.length = 0;
+    await room.alarm();
+    expect(room.readEvents(requestId, 0).status).toBe("succeeded");
+    expect(state.alarms).toEqual([]);
   });
 
   it("alarm は残った job があれば次の alarm を予約する", async () => {
@@ -562,8 +643,20 @@ describe("ChatRoom", () => {
       const conversationId = newConversation();
       await room.submit({ requestId: "req-14", conversationId, text: "長い返事", characterId });
       const insert = state.sqlite.prepare("INSERT INTO events (job_id,event) VALUES (?,?)");
+      const judge = judgeChunk("synthetic fixture", {
+        previousChunks: [],
+        voice: extractVoice("synthetic"),
+      });
       for (let seq = 0; seq < 150; seq++) {
-        insert.run("req-14", JSON.stringify({ type: "chunk", seq, text: `t${seq}` }));
+        const event = {
+          type: "chunk",
+          seq,
+          text: `t${seq}`,
+          judge,
+          attempt: 1,
+          preExtend: false,
+        } satisfies ChatSseEvent;
+        insert.run("req-14", JSON.stringify(event));
       }
       insert.run(
         "req-14",

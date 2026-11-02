@@ -1,7 +1,7 @@
 import handler from "@tanstack/react-start/server-entry";
 
 import { preventSharedCaching, requireBasicAuth, type BasicAuthConfig } from "./server/basic-auth";
-import { handleMemoryJobBatch } from "./server/memory-jobs";
+import { consumeMemoryJobs } from "./server/memory-queue";
 
 export { ChatRoom } from "./server/chat-room";
 
@@ -32,8 +32,5 @@ const fetchEntry = async (request: Request, env: WorkerEntryEnv): Promise<Respon
 
 export default {
   fetch: fetchEntry,
-  // Queue は外から呼べる口を持たんので BASIC 認証の対象外（設計書 §4.8）。
-  async queue(batch) {
-    await handleMemoryJobBatch(batch);
-  },
+  queue: consumeMemoryJobs,
 } satisfies ExportedHandler<Cloudflare.Env>;

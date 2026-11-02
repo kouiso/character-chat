@@ -1,8 +1,23 @@
+import { createDb } from "@v2/db";
 import { DurableObject } from "cloudflare:workers";
 
-import { loadHistory, loadStoredTurn, startTurn } from "./engine";
+import { parseChatSseEvent, type ChatSseEvent } from "../lib/sse-events";
 
-import type { ChatSseEvent } from "../lib/sse-events";
+import { loadHistory, loadStoredTurn, startTurn } from "./engine";
+import { LOCAL_USER_ID } from "./identity";
+import { MEMORY_RETRY_DELAY_MS, publishMemoryJobs } from "./memory-queue";
+import { memoryVectorReady } from "./memory-vector";
+
+const parseStoredEvent = (raw: string): ChatSseEvent => {
+  try {
+    const value: unknown = JSON.parse(raw);
+    const event = parseChatSseEvent(value);
+    if (event) return event;
+  } catch {
+    // 保存内容を例外本文へ含めず、破損行で再送位置を進めない。
+  }
+  throw new Error("保存されたイベントの形式が不正です。");
+};
 
 const CHAT_TURN_FAILURE_EVENT = "chat_turn_failed";
 const CHAT_TURN_FAILURE_CATEGORY = "turn_processing_failure";
@@ -216,7 +231,7 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
     return {
       events: rows
         .slice(0, EVENT_PAGE_SIZE)
-        .map((row) => ({ id: row.id, event: JSON.parse(row.event) as ChatSseEvent })),
+        .map((row) => ({ id: row.id, event: parseStoredEvent(row.event) })),
       status: job.status,
       hasMore: rows.length > EVENT_PAGE_SIZE,
     };
@@ -229,7 +244,14 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
       const job = this.ctx.storage.sql
         .exec<Job>(`SELECT * FROM jobs WHERE ${ACTIVE_STATUS_SQL} ORDER BY created_at LIMIT 1`)
         .toArray()[0];
-      if (job) await this.process(job);
+      if (job) {
+        // D1確定後に実行が止まっても、未送信の記憶予約を次のalarmで拾えるよう先に予約する。
+        if (this.env.MEMORY_QUEUE) {
+          await this.ctx.storage.setAlarm(Date.now() + MEMORY_RETRY_DELAY_MS);
+        }
+        await this.process(job);
+      }
+      await this.publishMemories();
     } finally {
       this.running = false;
     }
@@ -242,6 +264,27 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
 
   private job(id: string): Job | undefined {
     return this.ctx.storage.sql.exec<Job>("SELECT * FROM jobs WHERE id = ?", id).toArray()[0];
+  }
+
+  private async publishMemories(): Promise<void> {
+    if (!this.env.MEMORY_QUEUE) return;
+    const room = this.ctx.storage.sql
+      .exec<Job>("SELECT * FROM jobs ORDER BY created_at DESC LIMIT 1")
+      .toArray()[0];
+    if (!room) return;
+    const reserve = () => this.ctx.storage.setAlarm(Date.now() + MEMORY_RETRY_DELAY_MS);
+    const pending = await publishMemoryJobs(
+      createDb(this.env.DB),
+      this.env.MEMORY_QUEUE,
+      {
+        userId: LOCAL_USER_ID,
+        characterId: room.character_id,
+        conversationId: room.conversation_id,
+      },
+      reserve,
+      memoryVectorReady(this.env),
+    );
+    if (pending) await reserve();
   }
 
   private finish(job: Job, events: ChatSseEvent[], status: JobStatus): void {
@@ -291,8 +334,9 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
     let failed = false;
     for await (const event of turn.events) {
       if (event.type === "error") failed = true;
-      if (["chunk", "turn-meta", "done"].includes(event.type)) {
-        events.push(event);
+      const publicEvent = parseChatSseEvent(event);
+      if (publicEvent && ["chunk", "turn-meta", "done"].includes(publicEvent.type)) {
+        events.push(publicEvent);
       }
     }
     if (failed || !events.some((event) => event.type === "done"))

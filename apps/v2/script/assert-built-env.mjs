@@ -2,13 +2,15 @@
 // Cloudflare の vite プラグインはビルド時の CLOUDFLARE_ENV で設定を平らにして
 // dist/server/wrangler.json へ焼き、wrangler deploy はそちらへ転送される。
 // 普通のビルドの後に `--env staging` を付けても、その焼かれた本番設定のまま出てしまう
-// （本番 D1・R2 を指す本番 Worker を staging のつもりで上書きする）ので、ここで止める。
+// （別の環境の Worker を、その環境の資源のまま上書きする）ので、ここで止める。
+// 本番は wrangler の env.rag、試し用は env.staging。top-level は手元用で、出す先ではない。
 // 使い方: node script/assert-built-env.mjs <production|staging> [--app-dir <dir>]
 import { existsSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const ENVS = ["production", "staging"];
+const WRANGLER_ENVS = { production: "rag", staging: "staging" };
+const ENVS = Object.keys(WRANGLER_ENVS);
 
 const parseArgs = (argv) => {
   const args = { envName: undefined, appDir: fileURLToPath(new URL("..", import.meta.url)) };
@@ -40,14 +42,14 @@ const deployTarget = (config) => ({
 const main = async () => {
   const { envName, appDir } = parseArgs(process.argv.slice(2));
   const problems = [];
-  if (!ENVS.includes(envName)) {
+  if (!Object.hasOwn(WRANGLER_ENVS, envName ?? "")) {
     console.error(`出す環境を ${ENVS.join(" か ")} で指定してください`);
     process.exit(2);
   }
   // CLOUDFLARE_ENV が残っとると、wrangler はビルドも deploy もそちらへ寄せる。
   // 頼んだ環境と食い違う時は、どちらが本当の意図か分からんので出さん。
   const shellEnv = process.env.CLOUDFLARE_ENV || undefined;
-  const wranglerEnv = envName === "production" ? undefined : envName;
+  const wranglerEnv = WRANGLER_ENVS[envName];
   if (shellEnv !== wranglerEnv) {
     problems.push(`CLOUDFLARE_ENV（${shellEnv ?? "未設定"}）が頼んだ環境 ${envName} と食い違う`);
   }
@@ -68,7 +70,7 @@ const main = async () => {
       const expected = deployTarget(
         readConfig({ config: join(appDir, "wrangler.jsonc"), env: wranglerEnv }),
       );
-      expected.targetEnvironment = wranglerEnv ?? null;
+      expected.targetEnvironment = wranglerEnv;
       const built = deployTarget(JSON.parse(readFileSync(builtPath, "utf8")));
       for (const key of Object.keys(expected)) {
         if (JSON.stringify(expected[key]) !== JSON.stringify(built[key])) {

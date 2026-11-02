@@ -1,0 +1,48 @@
+{
+  "reviewer": "review_proactive",
+  "baseSha": "bb7536c412f31ebfe1b2c94492f82ebc95f6f43f",
+  "reviewedState": "base plus uncommitted daily-limit reset-boundary fix",
+  "finding": {
+    "status": "fixed and reviewed",
+    "severity": "P2",
+    "description": "A daily-limit decision committed across JST midnight used the next day's midnight when rearming, delaying a fresh day's usable quota by nearly 24 hours.",
+    "originalReproduction": {
+      "dailyLimit": 3,
+      "idleMinutes": 60,
+      "notificationsBeforeBoundary": 3,
+      "dispatchAt": "2026-10-26T14:59:59.999Z",
+      "secondTransactionCommitAt": "2026-10-26T15:00:00.000Z",
+      "incorrectNextAlarm": "2026-10-27T15:00:00.000Z"
+    },
+    "reviewedFix": "Carry dailyResetAt from the quota decision transaction into rearm; use max(resetAt, currentTime, lastActivityAt + idleMs) and quiet-hour adjustment. Preserve public handleAlarm string outcome."
+  },
+  "independentRandomProbe": {
+    "status": "PASS",
+    "seed": 4109,
+    "operations": 2000,
+    "notifications": 292,
+    "injectedSinkFailures": 22,
+    "violations": 0,
+    "checks": [
+      "latest configured quota",
+      "OFF",
+      "JST quiet",
+      "stale occurrence",
+      "replayed receipt",
+      "clock reversal"
+    ]
+  },
+  "peerConsensus": {
+    "peer": "adversarial_schedule",
+    "independentBoundaryCases": "commit 2/3/4 crossings and normal 23:30 JST cap decision; all four PASS per peer",
+    "implementedCoreScore": 100,
+    "denominator": 100,
+    "unresolvedCoreFindings": 0
+  },
+  "limitations": [
+    "Score applies only to the implemented policy/store/scheduler contract with documented at-most-once delivery semantics.",
+    "Existing product entry, authenticated preference/activity routing and DO binding are not integrated here.",
+    "Real Web Push delivery, iPhone device behavior and automatic wall-clock alarm triggering are not claimed as verified.",
+    "No application implementation files were edited by this reviewer; all probes used synthetic storage/clock/sink with no real APIs, databases, character fixtures or secrets."
+  ]
+}

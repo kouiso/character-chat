@@ -1,4 +1,5 @@
-import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { sql } from "drizzle-orm";
+import { check, index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 import { userTable } from "./user";
 
@@ -37,5 +38,6 @@ export const groupMessageTable = sqliteTable(
   (table) => [
     index("group_message_group_id_created_at_idx").on(table.groupId, table.createdAt),
     index("group_message_user_id_idx").on(table.userId),
+    check("group_message_role_check", sql`${table.role} in ('user','assistant')`),
   ],
 );

@@ -59,3 +59,10 @@ RIT-48/49/50（記憶と削除・評価）、52/53/54（キャラ版・資料・
 - Cloudflare資源を読み取りだけで数えた（変更0件）: D1 `adult-ai-db`（4.1MB）・試し用`character-chat-v2-staging`（2026-10-26作成、RIT-64）がD1・R2・Vectorize（1024次元 cosine）の3点で既に存在。本番用のVectorize indexとQueueは未作成で、初回deploy前に`wrangler vectorize create`/`wrangler queues create`が要る（doc/v2/secrets.mdの資源準備節）。
 - Pages`adult-ai-chat`は稼働中（旧アプリ）。Worker`adult-ai-v2`は未デプロイ。
 - 手元Node 25で`localStorage`がメソッド無しの入れ物として露出しjsdomを隠すため、`apps/v2`のテスト8件が失敗した。`src/test/setup.ts`で実装が無い時だけStorageを差し替える対処を入れた（CIのNode 24では既存どおりjsdomが使われる）。
+
+### 2026-11-02の改訂（mainの記憶処理と合わせた）
+
+- 上の10-28の束ねは、mainへ先に入った記憶処理（RIT-73ほか、`memory-queue.ts`）と合わせて組み直した。top-levelは手元用（ローカル用D1 id、Queue・AI・Vectorize無し、`V2_RAG_ENABLED=0`）のまま。本番は`env.rag`（Worker `adult-ai-v2`、本番D1 `b617800c-…`）、試し用は`env.staging`。
+- Queueは`MEMORY_QUEUE`→`adult-ai-v2-memory`（staging は`adult-ai-v2-memory-staging`）、Vectorizeは`adult-ai-v2-memory`。10-28の`v2-memory-index`・`v2-memory-jobs`はどちらも未作成のまま廃止した。
+- 受け手の仮実装`memory-jobs.ts`は、mainの`consumeMemoryJobs`が本処理を持つので削除した。
+

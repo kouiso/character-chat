@@ -22,14 +22,25 @@ const storedTurnSchema = z.object({
   answered: z.boolean(),
 });
 const historySchema = z.object({
-  history: z.array(z.object({ role: z.enum(["user", "assistant"]), content: z.string() })),
+  history: z.array(
+    z.object({
+      role: z.enum(["user", "assistant"]),
+      content: z.string(),
+      imageUrl: z.string().optional(),
+    }),
+  ),
   turn: z.number().int(),
   storedTurn: storedTurnSchema.nullable().optional(),
 });
 const rejectionSchema = z.object({ code: z.string().optional() });
 export type PendingTurn = z.infer<typeof pendingSchema>;
 export type ChatSession = z.infer<typeof sessionSchema>;
-export type ChatBubble = { role: "user" | "assistant"; text: string; pending?: boolean };
+export type ChatBubble = {
+  role: "user" | "assistant";
+  text: string;
+  pending?: boolean;
+  imageUrl?: string;
+};
 export type StoredTurn = z.infer<typeof storedTurnSchema>;
 
 // 送り直しても同じ結果になる拒否（内容の不備・会話やキャラが無い・受付番号の衝突）。
@@ -84,32 +95,102 @@ export const isPendingSaved = (
 ): boolean =>
   stored !== null && stored !== undefined && stored.user === pending.text && stored.answered;
 
-const key = (characterId: string) => `v2-chat-session:${characterId}`;
+// 保存済み会話を開き直せるので、保留はキャラ単位の1枠やなく会話ごとに持つ。
+// キャラ単位の枠は「次に開く会話」だけを指し、旧形式で中に入っとる保留も読めるよう残す。
+const activeKey = (characterId: string) => `v2-chat-session:${characterId}`;
+const pendingKey = (characterId: string, conversationId: string) =>
+  `v2-chat-pending:${characterId}:${conversationId}`;
 
-export const readChatSession = (characterId: string): ChatSession => {
-  const empty: ChatSession = { version: 1, conversationId: null, pending: null };
-  if (typeof window === "undefined") return empty;
+const EMPTY_SESSION: ChatSession = { version: 1, conversationId: null, pending: null };
+
+const parseStored = <T>(schema: z.ZodType<T>, raw: string | null): T | null => {
   try {
-    const parsed = sessionSchema.safeParse(
-      JSON.parse(localStorage.getItem(key(characterId)) ?? "null"),
-    );
-    if (!parsed.success || (parsed.data.pending && parsed.data.pending.characterId !== characterId))
-      return empty;
-    return parsed.data;
+    const parsed = schema.safeParse(JSON.parse(raw ?? "null"));
+    return parsed.success ? parsed.data : null;
   } catch {
-    return empty;
+    return null;
   }
 };
 
-export const writeChatSession = (characterId: string, session: ChatSession): void => {
-  localStorage.setItem(key(characterId), JSON.stringify(session));
+const readActive = (characterId: string): ChatSession =>
+  parseStored(sessionSchema, localStorage.getItem(activeKey(characterId))) ?? EMPTY_SESSION;
+
+const belongsTo = (
+  pending: PendingTurn | null,
+  characterId: string,
+  conversationId: string,
+): pending is PendingTurn =>
+  pending !== null &&
+  pending.characterId === characterId &&
+  pending.conversationId === conversationId;
+
+const readPending = (characterId: string, conversationId: string): PendingTurn | null => {
+  const raw = localStorage.getItem(pendingKey(characterId, conversationId));
+  if (raw !== null) {
+    const stored = parseStored(pendingSchema, raw);
+    return belongsTo(stored, characterId, conversationId) ? stored : null;
+  }
+  const legacy = readActive(characterId).pending;
+  return belongsTo(legacy, characterId, conversationId) ? legacy : null;
 };
 
-// 同じキャラを別のタブでも開いとると、保存枠は 1 つを取り合う。自分の送信がまだ枠に残っとる時だけ
-// 片付け、別のタブが後から入れた保留や会話は残す。
+export const readChatSession = (characterId: string, conversationId?: string): ChatSession => {
+  if (typeof window === "undefined") return EMPTY_SESSION;
+  try {
+    const target = conversationId ?? readActive(characterId).conversationId;
+    if (!target) return EMPTY_SESSION;
+    return { version: 1, conversationId: target, pending: readPending(characterId, target) };
+  } catch {
+    return EMPTY_SESSION;
+  }
+};
+
+export const writePendingTurn = (
+  characterId: string,
+  conversationId: string,
+  pending: PendingTurn | null,
+): void => {
+  if (pending) {
+    localStorage.setItem(pendingKey(characterId, conversationId), JSON.stringify(pending));
+    return;
+  }
+  const active = readActive(characterId);
+  // 旧形式の枠に残った同じ保留を消さんと、会話ごとの枠が空いた時に読み戻して再送してまう
+  if (belongsTo(active.pending, characterId, conversationId)) {
+    localStorage.setItem(activeKey(characterId), JSON.stringify({ ...active, pending: null }));
+  }
+  localStorage.removeItem(pendingKey(characterId, conversationId));
+};
+
+export const writeActiveConversation = (characterId: string, conversationId: string): void => {
+  const active = readActive(characterId);
+  const legacy = active.pending;
+  // 旧形式の枠を上書きする前に、中の保留を会話ごとの枠へ移して失わんようにする
+  if (
+    legacy &&
+    belongsTo(legacy, characterId, legacy.conversationId) &&
+    localStorage.getItem(pendingKey(characterId, legacy.conversationId)) === null
+  ) {
+    localStorage.setItem(pendingKey(characterId, legacy.conversationId), JSON.stringify(legacy));
+  }
+  localStorage.setItem(
+    activeKey(characterId),
+    JSON.stringify({ version: 1, conversationId, pending: null } satisfies ChatSession),
+  );
+};
+
+export const writeChatSession = (characterId: string, session: ChatSession): void => {
+  if (!session.conversationId) return;
+  writePendingTurn(characterId, session.conversationId, session.pending);
+  writeActiveConversation(characterId, session.conversationId);
+};
+
+// 同じ会話を別のタブでも開いとると、会話ごとの保存枠を取り合う。自分の送信がまだ枠に残っとる時だけ
+// 片付け、別のタブが後から入れた保留は残す。「次に開く会話」もここでは動かさん。
 export const clearPendingTurn = (characterId: string, turn: PendingTurn): void => {
-  if (readChatSession(characterId).pending?.requestId !== turn.requestId) return;
-  writeChatSession(characterId, { version: 1, conversationId: turn.conversationId, pending: null });
+  if (readChatSession(characterId, turn.conversationId).pending?.requestId !== turn.requestId)
+    return;
+  writePendingTurn(characterId, turn.conversationId, null);
 };
 
 export const loadChatHistory = async (
@@ -129,7 +210,11 @@ export const loadChatHistory = async (
   if (!response.ok) throw new Error("会話履歴を読み込めませんでした。再試行してください。");
   const history = historySchema.parse(await response.json());
   return {
-    bubbles: history.history.map((item) => ({ role: item.role, text: item.content })),
+    bubbles: history.history.map((item) => ({
+      role: item.role,
+      text: item.content,
+      imageUrl: item.imageUrl,
+    })),
     nextTurn: history.turn,
     storedTurn: history.storedTurn,
   };

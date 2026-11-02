@@ -16,11 +16,17 @@ import {
   type PendingTurn,
 } from "../lib/chat-session";
 
-import { ChatMessage } from "./chat-message";
+import { ChatImage } from "./chat-image";
+import { ChatMessage, ChatMessageText } from "./chat-message";
+import { ChatMessageLog } from "./chat-message-log";
 
 import type { ChatSseEvent } from "../lib/sse-events";
 
-export type ChatViewProps = { characterId: string; characterName: string };
+export type ChatViewProps = {
+  characterId: string;
+  characterName: string;
+  initialConversationId?: string;
+};
 
 const withPending = (
   history: ChatBubble[],
@@ -87,7 +93,7 @@ const consumeEvents = async (
   return completed;
 };
 
-export const ChatView = ({ characterId, characterName }: ChatViewProps) => {
+export const ChatView = ({ characterId, characterName, initialConversationId }: ChatViewProps) => {
   const [bubbles, setBubbles] = useState<ChatBubble[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -195,7 +201,7 @@ export const ChatView = ({ characterId, characterName }: ChatViewProps) => {
     const abort = new AbortController();
     controller.current = abort;
     const restore = async () => {
-      const saved = readChatSession(characterId);
+      const saved = readChatSession(characterId, initialConversationId);
       conversationId.current = saved.conversationId;
       setPending(saved.pending);
       if (!saved.conversationId) return;
@@ -225,7 +231,7 @@ export const ChatView = ({ characterId, characterName }: ChatViewProps) => {
       abort.abort();
       controller.current?.abort();
     };
-  }, [characterId, consume]);
+  }, [characterId, consume, initialConversationId]);
 
   const send = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -272,21 +278,25 @@ export const ChatView = ({ characterId, characterName }: ChatViewProps) => {
 
   return (
     <div className="v2-chat">
-      <div className="v2-chat-header">{characterName}</div>
-      <div className="v2-chat-log" aria-live="polite">
+      <div className="v2-chat-header">
+        <ChatMessageText text={characterName} />
+      </div>
+      <ChatMessageLog key={characterId} busy={busy}>
         {bubbles.map((bubble, index) => (
           <div
             key={index}
-            className={`v2-bubble ${bubble.role} ${bubble.pending ? "pending" : ""}`}
+            className={`v2-bubble v2-message-turn ${bubble.role} ${bubble.pending ? "pending" : ""}`}
           >
-            {bubble.role === "assistant" && bubble.text ? (
-              <ChatMessage content={bubble.text} />
-            ) : (
-              bubble.text || (bubble.pending ? "…" : "")
-            )}
+            {bubble.imageUrl && <ChatImage src={bubble.imageUrl} />}
+            <ChatMessage
+              role={bubble.role}
+              text={bubble.text || (bubble.pending ? "…" : "")}
+              characterName={characterName}
+              streaming={bubble.pending}
+            />
           </div>
         ))}
-      </div>
+      </ChatMessageLog>
       {error && (
         <div className="v2-error" role="alert">
           {error}
