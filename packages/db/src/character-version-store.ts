@@ -2,7 +2,6 @@
 import { and, desc, eq, or, sql } from "drizzle-orm";
 
 import { characterTable } from "../../../src/schema/character";
-import { conversationTable } from "../../../src/schema/conversation";
 
 import {
   canonicalContentJson,
@@ -402,20 +401,7 @@ export const deleteCharacterWithVersions = async (
     .select({ id: characterTable.id })
     .from(characterTable)
     .where(and(eq(characterTable.id, input.id), eq(characterTable.userId, input.userId)));
-  if (!owned) return "not-found";
-
-  const [legacyUse] = await db
-    .select({ id: conversationTable.id })
-    .from(conversationTable)
-    .where(eq(conversationTable.characterId, input.id))
-    .limit(1);
-  if (legacyUse) return "in-use";
-  const [v2Use] = await db
-    .select({ id: v2ConversationTable.id })
-    .from(v2ConversationTable)
-    .where(eq(v2ConversationTable.characterId, input.id))
-    .limit(1);
-  return v2Use ? "in-use" : "not-found";
+  return owned ? "in-use" : "not-found";
 };
 
 const matchingCurrentVersion = async (

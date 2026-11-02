@@ -18,14 +18,17 @@ const WRANGLER_CONFIG = path.join(REPO_ROOT, "packages/cf/wrangler.local.jsonc")
 const PERSIST_ROOT = path.resolve(
   process.env.WRANGLER_PERSIST_DIR ?? path.join(REPO_ROOT, ".wrangler/state"),
 );
-const PERSIST_PATH = path.join(PERSIST_ROOT, "v3");
 const WRANGLER_BIN = path.join(PACKAGE_ROOT, "node_modules/.bin/wrangler");
 
 type LocalEnv = { DB: D1Database };
 
 export type LocalD1 = { db: V2Db; d1: D1Database; dispose: () => Promise<void> };
+export type OpenLocalD1Options = { persistRoot?: string };
 
-export const openLocalD1 = async (): Promise<LocalD1> => {
+export const openLocalD1 = async ({
+  persistRoot = PERSIST_ROOT,
+}: OpenLocalD1Options = {}): Promise<LocalD1> => {
+  const resolvedPersistRoot = path.resolve(persistRoot);
   execFileSync(
     WRANGLER_BIN,
     [
@@ -37,13 +40,13 @@ export const openLocalD1 = async (): Promise<LocalD1> => {
       "-c",
       WRANGLER_CONFIG,
       "--persist-to",
-      PERSIST_ROOT,
+      resolvedPersistRoot,
     ],
     { cwd: REPO_ROOT, stdio: "inherit" },
   );
   const proxy = await getPlatformProxy<LocalEnv>({
     configPath: WRANGLER_CONFIG,
-    persist: { path: PERSIST_PATH },
+    persist: { path: path.join(resolvedPersistRoot, "v3") },
     remoteBindings: false,
   });
   return { db: createDb(proxy.env.DB), d1: proxy.env.DB, dispose: () => proxy.dispose() };
