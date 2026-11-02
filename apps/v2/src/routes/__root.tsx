@@ -1,5 +1,6 @@
 import { createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 
+import { AppErrorState, AppLoadingState, AppNotFoundState } from "../component/app-route-state";
 import appCss from "../style.css?url";
 
 const RootDocument = ({ children }: { children: React.ReactNode }) => (
@@ -15,6 +16,9 @@ const RootDocument = ({ children }: { children: React.ReactNode }) => (
 );
 
 export const Route = createRootRoute({
+  pendingComponent: AppLoadingState,
+  errorComponent: AppErrorState,
+  notFoundComponent: AppNotFoundState,
   head: () => ({
     meta: [
       { charSet: "utf-8" },

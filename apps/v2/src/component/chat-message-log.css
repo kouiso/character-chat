@@ -1,0 +1,14 @@
+.v2-message-log {
+  min-block-size: 0;
+  min-inline-size: 0;
+  overscroll-behavior-block: contain;
+  overflow-anchor: none;
+}
+
+.v2-message-log-content {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: inherit;
+  min-inline-size: 0;
+}

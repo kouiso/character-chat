@@ -2,14 +2,19 @@
 // 契約をここ（@v2/db）に置くのは、@v2/engine が package.json で @v2/db に依存しとるため。
 // engine 側で定義すると db → engine → db の循環になる。engine は型を再 export して使う。
 import { emptyLedger, type SceneLedger, type ScenePhase } from "@v2/prompt";
-import { asc, desc, eq, and, inArray, sql } from "drizzle-orm";
+import { asc, desc, eq, and, inArray, lt, lte, sql } from "drizzle-orm";
 import { z } from "zod";
+
+import { messageTable } from "../../../src/schema/message";
 
 import {
   v2ChunkTable,
   v2ConversationTable,
   v2GenerationTable,
   v2LedgerTable,
+  v2MemoryJobTable,
+  v2MemorySourceTable,
+  v2MemoryTable,
   v2MessageTable,
 } from "./v2-schema";
 
@@ -68,6 +73,8 @@ export type TurnEvent =
       // extend が走る前の本文（初回生成）の可視字数。extend が走らんかったターンでも
       // 常に入る（shortfall の連続量は発火の有無に関わらず要る）。
       preExtendVisibleChars: number;
+      // 文脈の予算で model へ渡さんかった古い履歴の件数。長い会話で「忘れた」と「切った」を見分ける。
+      omittedHistoryMessages: number;
     }
   | { type: "done"; conversationId: string; turn: number; generationId: string | null }
   | { type: "error"; message: string };
@@ -95,6 +102,50 @@ export type D1TurnStoreOptions = {
   userId: string;
   characterId: string;
   promptVersion: string;
+  beforeTurn?: number;
+  extractMemory?: boolean;
+};
+
+export class ConversationAccessError extends Error {
+  constructor() {
+    super("会話が見つかりません");
+    this.name = "ConversationAccessError";
+  }
+}
+
+const assertConversationOwner = async (db: V2Db, opts: D1TurnStoreOptions, id: string) => {
+  const [row] = await db
+    .select({ userId: v2ConversationTable.userId, characterId: v2ConversationTable.characterId })
+    .from(v2ConversationTable)
+    .where(eq(v2ConversationTable.id, id));
+  if (row && (row.userId !== opts.userId || row.characterId !== opts.characterId)) {
+    throw new ConversationAccessError();
+  }
+};
+
+// 移行済み会話には挨拶や連続するassistant発言があるため、配列位置でターンを推測しない。
+export const readD1StoredTurn = async (
+  db: V2Db,
+  opts: D1TurnStoreOptions,
+  conversationId: string,
+  turn: number,
+): Promise<HistoryMessage[]> => {
+  await assertConversationOwner(db, opts, conversationId);
+  return db
+    .select({ role: v2MessageTable.role, content: v2MessageTable.content })
+    .from(v2MessageTable)
+    .where(and(eq(v2MessageTable.conversationId, conversationId), eq(v2MessageTable.turn, turn)))
+    .orderBy(asc(v2MessageTable.createdAt), asc(v2MessageTable.id));
+};
+
+export const readOwnedImageKey = async (db: V2Db, userId: string, messageId: string) => {
+  const [row] = await db
+    .select({ key: messageTable.imageKey })
+    .from(v2MessageTable)
+    .innerJoin(v2ConversationTable, eq(v2ConversationTable.id, v2MessageTable.conversationId))
+    .innerJoin(messageTable, eq(messageTable.id, v2MessageTable.id))
+    .where(and(eq(v2MessageTable.id, messageId), eq(v2ConversationTable.userId, userId)));
+  return row?.key ?? null;
 };
 
 type ChunkEvent = Extract<TurnEvent, { type: "chunk" }>;
@@ -149,6 +200,74 @@ const parseLedger = (conversationId: string, turn: number, ledgerJson: string): 
 // role の並びは 'assistant' < 'user' の辞書順やと逆になるので、明示的に user を先にする。
 const userFirst = sql`case ${v2MessageTable.role} when 'user' then 0 else 1 end`;
 
+// engine の persist は本文ゼロで終わった生成（締切で 1 字も来ん・全塊が判定で落ちた・空の返事）も
+// 監視用に保存し、同時に error を流してターンを失敗させる。つまり「応答が空」は失敗の印になっとる。
+// 保存済みとして返すと、利用者の送り直しが次の turn に積まれ、model が空の応答と同じ質問の重複を
+// 読む。失敗ターンは履歴から外し、末尾のそれは次の saveTurn が同じ turn を置き換える。
+const isDeadTurn = (rows: { role: "user" | "assistant"; content: string }[]): boolean => {
+  const assistants = rows.filter((row) => row.role === "assistant");
+  return (
+    rows.some((row) => row.role === "user") &&
+    assistants.length > 0 &&
+    assistants.every((row) => row.content.trim() === "")
+  );
+};
+
+type StoredRow = { turn: number; role: "user" | "assistant"; content: string };
+
+// 修正前の画面は失敗後に次の番号へ進んだので、失敗ターンが続けて残っとる会話がある。
+// 途中の失敗ターンも履歴から外し、場面状態は最後に成功したターンのものを使う。
+// 画面用の読込（readDisplayHistory）も同じ規則を通す。別の規則で数えると、画面に残った
+// 失敗ターンが次の送信で黙って上書きされる。
+const splitDeadTurns = <Row extends StoredRow>(rows: Row[]) => {
+  const rowsByTurn = new Map<number, Row[]>();
+  for (const row of rows) {
+    rowsByTurn.set(row.turn, [...(rowsByTurn.get(row.turn) ?? []), row]);
+  }
+  const deadTurns = new Set(
+    [...rowsByTurn].filter(([, turnRows]) => isDeadTurn(turnRows)).map(([turn]) => turn),
+  );
+  const liveTurns = [...rowsByTurn.keys()].filter((turn) => !deadTurns.has(turn));
+  const maxTurn = Math.max(0, ...rowsByTurn.keys());
+  return {
+    live: rows.filter((row) => !deadTurns.has(row.turn)),
+    lastLiveTurn: Math.max(0, ...liveTurns),
+    // 末尾の失敗ターンは次の saveTurn が同じ番号で置き換える。
+    nextTurn: deadTurns.has(maxTurn) ? maxTurn : maxTurn + 1,
+  };
+};
+
+export type DisplayHistoryRow = {
+  id: string;
+  turn: number;
+  role: "user" | "assistant";
+  content: string;
+  imageKey: string | null;
+};
+
+// 画面の履歴と次の番号を 1 回の読込から作る（GET history と ChatRoom の job.turn が同じ値を見る）。
+export const readDisplayHistory = async (
+  db: V2Db,
+  opts: D1TurnStoreOptions,
+  conversationId: string,
+): Promise<{ turn: number; history: DisplayHistoryRow[] }> => {
+  await assertConversationOwner(db, opts, conversationId);
+  const rows = await db
+    .select({
+      id: v2MessageTable.id,
+      turn: v2MessageTable.turn,
+      role: v2MessageTable.role,
+      content: v2MessageTable.content,
+      imageKey: messageTable.imageKey,
+    })
+    .from(v2MessageTable)
+    .leftJoin(messageTable, eq(messageTable.id, v2MessageTable.id))
+    .where(eq(v2MessageTable.conversationId, conversationId))
+    .orderBy(asc(v2MessageTable.turn), userFirst);
+  const { live, nextTurn } = splitDeadTurns(rows);
+  return { turn: nextTurn, history: live };
+};
+
 /**
  * v2_* テーブルに保存する TurnStore。
  * saveTurn は 1 回の D1 batch（トランザクション）で書くので、途中失敗で半端な行は残らん。
@@ -164,6 +283,7 @@ const userFirst = sql`case ${v2MessageTable.role} when 'user' then 0 else 1 end`
  */
 export const createD1TurnStore = (db: V2Db, opts: D1TurnStoreOptions): TurnStore => ({
   load: async (conversationId) => {
+    await assertConversationOwner(db, opts, conversationId);
     const [conversationRows, messageRows, ledgerRows] = await db.batch([
       db
         .select({ id: v2ConversationTable.id })
@@ -176,31 +296,54 @@ export const createD1TurnStore = (db: V2Db, opts: D1TurnStoreOptions): TurnStore
           content: v2MessageTable.content,
         })
         .from(v2MessageTable)
-        .where(eq(v2MessageTable.conversationId, conversationId))
+        .where(
+          and(
+            eq(v2MessageTable.conversationId, conversationId),
+            opts.beforeTurn === undefined ? undefined : lt(v2MessageTable.turn, opts.beforeTurn),
+          ),
+        )
         .orderBy(asc(v2MessageTable.turn), userFirst),
       db
         .select({ turn: v2LedgerTable.turn, ledgerJson: v2LedgerTable.ledgerJson })
         .from(v2LedgerTable)
-        .where(eq(v2LedgerTable.conversationId, conversationId))
+        .where(
+          and(
+            eq(v2LedgerTable.conversationId, conversationId),
+            opts.beforeTurn === undefined ? undefined : lt(v2LedgerTable.turn, opts.beforeTurn),
+          ),
+        )
         .orderBy(desc(v2LedgerTable.turn))
         .limit(1),
     ]);
     if (conversationRows.length === 0) {
       return { history: [], ledger: emptyLedger(), turn: 1 };
     }
-    const history: HistoryMessage[] = messageRows.map((row) => ({
-      role: row.role,
-      content: row.content,
-    }));
-    const maxTurn = messageRows.reduce((max, row) => Math.max(max, row.turn), 0);
-    const latestLedger = ledgerRows[0];
+    const { live, lastLiveTurn, nextTurn } = splitDeadTurns(messageRows);
+    const history = live.map((row): HistoryMessage => ({ role: row.role, content: row.content }));
+    const [latestLedger] =
+      ledgerRows[0] && ledgerRows[0].turn > lastLiveTurn
+        ? await db
+            .select({ turn: v2LedgerTable.turn, ledgerJson: v2LedgerTable.ledgerJson })
+            .from(v2LedgerTable)
+            .where(
+              and(
+                eq(v2LedgerTable.conversationId, conversationId),
+                lte(v2LedgerTable.turn, lastLiveTurn),
+              ),
+            )
+            .orderBy(desc(v2LedgerTable.turn))
+            .limit(1)
+        : ledgerRows;
     const ledger = latestLedger
       ? parseLedger(conversationId, latestLedger.turn, latestLedger.ledgerJson)
       : emptyLedger();
-    return { history, ledger, turn: maxTurn + 1 };
+    // beforeTurn は呼び出し側（ChatRoom の job）が演じる番号を決めた後の読込。窓の中の末尾が
+    // 失敗ターンでも番号を下げると、job と別の turn へ保存してしまう。
+    return { history, ledger, turn: opts.beforeTurn ?? nextTurn };
   },
 
   saveTurn: async (input) => {
+    await assertConversationOwner(db, opts, input.conversationId);
     const now = Date.now();
     const chunks = input.events.filter(isChunkEvent).sort((a, b) => a.seq - b.seq);
     const generations = input.events.filter(isGenerationEvent);
@@ -230,6 +373,20 @@ export const createD1TurnStore = (db: V2Db, opts: D1TurnStoreOptions): TurnStore
           target: v2ConversationTable.id,
           set: { updatedAt: now, threadId: input.threadId ?? input.conversationId },
         }),
+      db.delete(v2MemoryTable).where(
+        inArray(
+          v2MemoryTable.id,
+          db
+            .select({ id: v2MemorySourceTable.memoryId })
+            .from(v2MemorySourceTable)
+            .where(
+              inArray(
+                v2MemorySourceTable.sourceMessageId,
+                db.select({ id: v2MessageTable.id }).from(v2MessageTable).where(sameTurn),
+              ),
+            ),
+        ),
+      ),
       // 置き換え: 同じ turn の既存行を chunk → message → ledger → generation の順（FK の子から）で消す。
       db
         .delete(v2ChunkTable)
@@ -311,6 +468,22 @@ export const createD1TurnStore = (db: V2Db, opts: D1TurnStoreOptions): TurnStore
         ledgerJson: JSON.stringify(input.ledger),
         createdAt: now,
       }),
+      ...(opts.extractMemory &&
+      assistantText.trim() &&
+      (!lastGeneration || lastGeneration.status !== "error")
+        ? [
+            db.insert(v2MemoryJobTable).values({
+              id: userMessageId,
+              sourceMessageId: userMessageId,
+              conversationId: input.conversationId,
+              userId: opts.userId,
+              characterId: opts.characterId,
+              sourceTurn: input.turn,
+              createdAt: now,
+              updatedAt: now,
+            }),
+          ]
+        : []),
     ]);
   },
 });

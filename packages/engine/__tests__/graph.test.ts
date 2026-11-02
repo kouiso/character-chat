@@ -61,7 +61,54 @@ const expectFirstTurnSaved = (store: MemoryTurnStore, streamed: TurnEvent[]): vo
   expect(done).toMatchObject({ generationId: generation?.generationId });
 };
 
+const generationAt = (store: MemoryTurnStore, index: number) => {
+  const turns = store.turns.get("conv-memory");
+  if (!turns) throw new Error("Missing memory test turns");
+  const turn = turns[index];
+  if (!turn) throw new Error("Missing memory test turn");
+  const generation = turn.events.find(isGenerationEvent);
+  if (!generation) throw new Error("Missing memory test generation");
+  return generation;
+};
+
 describe("createTurnGraph", () => {
+  test("毎ターン記憶を取得し、採用IDと本文を保存するがsystemへは混ぜない", async () => {
+    const store = createMemoryTurnStore();
+    const retrieveMemories = jest
+      .fn()
+      .mockResolvedValue([{ id: "fact-tea", content: "紅茶が好きです。" }]);
+    const graph = createTurnGraph({
+      model: new FakeListChatModel({ responses: [VALID_XML, VALID_XML_SECOND] }),
+      store,
+      extendBelowRatio: 0,
+      retrieveMemories,
+    });
+    await drain(
+      runTurn(
+        graph,
+        { conversationId: "conv-memory", userText: "好きな飲み物は？", character },
+        "conv-memory",
+      ),
+    );
+    const first = generationAt(store, 0);
+    expect(retrieveMemories).toHaveBeenCalledWith("conv-memory", "好きな飲み物は？");
+    expect(first.request[0]).toMatchObject({ role: "user" });
+    expect(first.request[0]?.content).toContain('"id":"fact-tea"');
+    expect(first.request[0]?.content).toContain("紅茶が好きです。");
+    expect(first.systemPrompt).not.toContain("fact-tea");
+    retrieveMemories.mockResolvedValue([]);
+    await drain(
+      runTurn(
+        graph,
+        { conversationId: "conv-memory", userText: "今は？", character },
+        "conv-memory",
+      ),
+    );
+    const second = generationAt(store, 1);
+    expect(retrieveMemories).toHaveBeenCalledTimes(2);
+    expect(second.request.some((message) => message.content.includes("fact-tea"))).toBe(false);
+  });
+
   test("token* → chunk+ → done の順でイベントが流れ、store に1ターン保存される", async () => {
     const store = createMemoryTurnStore();
     const model = new FakeListChatModel({ responses: [VALID_XML, VALID_XML_SECOND] });
@@ -385,6 +432,29 @@ describe("createTurnGraph", () => {
     });
     const saved = store.turns.get("conv-h")?.[0];
     expect(saved?.events.find(isGenerationEvent)?.rawOutput).toContain("風邪ひくよ");
+  });
+
+  // 空の返事を成功として終えると、画面は送信文ごと履歴から消え、誤りも出ん（PR 27 第 2 回レビュー F1）。
+  test.each([
+    ["空文字", ""],
+    ["空白だけ", "   \n "],
+    ["中身の無い包み", "<response></response>"],
+  ])("モデルの返事が%sなら error を流し、本文ゼロのまま成功で終えん", async (_label, reply) => {
+    const store = createMemoryTurnStore();
+    const model = new FakeListChatModel({ responses: [reply] });
+    const graph = createTurnGraph({ model, store });
+    const events: TurnEvent[] = [];
+    for await (const event of runTurn(
+      graph,
+      { conversationId: "conv-empty", userText: "聞こえてる？", character },
+      "conv-empty",
+    )) {
+      events.push(event);
+    }
+    expect(events.filter((event) => event.type === "chunk")).toHaveLength(0);
+    expect(events.filter((event) => event.type === "error")).toHaveLength(1);
+    // 生成記録は監視用に残す（store 側が本文ゼロのターンを未保存として扱う）。
+    expect(store.turns.get("conv-empty")).toHaveLength(1);
   });
 
   test("本文が目安に届いとるターンは続きを書かせん", async () => {

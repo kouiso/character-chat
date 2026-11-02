@@ -1,7 +1,9 @@
 {
   "$schema": "../../node_modules/wrangler/config-schema.json",
   "name": "adult-ai-v2",
-  "compatibility_date": "2025-01-01",
+  "compatibility_date": "2026-10-26",
+  // top-level は手元の開発・試験用。D1 はローカル専用の id で、Cloudflare に実体が無いので
+  // 素の `wrangler deploy` は束ね解決で止まる。本番は env.rag、試し用は env.staging から出す。
   "d1_databases": [
     {
       "binding": "DB",
@@ -11,18 +13,159 @@
       "migrations_dir": "../../drizzle"
     }
   ],
-  "r2_buckets": [{ "binding": "BUCKET", "bucket_name": "adult-ai-images" }],
+  "r2_buckets": [
+    {
+      "binding": "BUCKET",
+      "bucket_name": "adult-ai-images"
+    }
+  ],
+  // AIとVectorizeはローカルで模擬できないため、通常の開発では接続しない。
   "env": {
-    "remote": {
+    // 本番 Worker adult-ai-v2。name を書かんと wrangler が adult-ai-v2-rag という別 Worker にする。
+    "rag": {
+      "name": "adult-ai-v2",
+      "vars": {
+        "APP_ENV": "production",
+        "V2_FAKE_MODEL": "0",
+        "V2_RAG_ENABLED": "1",
+        "V2_MODEL": "deepseek/deepseek-v3.2",
+        "V2_TEST_FAULT": "none",
+        "V2_HISTORY_CHARACTERS": 12000,
+        "V2_HISTORY_MESSAGES": 40
+      },
+      "secrets": {
+        "required": [
+          "BASIC_AUTH_USERNAME",
+          "BASIC_AUTH_PASSWORD",
+          "OPENROUTER_API_KEY"
+        ]
+      },
+      "ai": { "binding": "AI", "remote": true },
+      "vectorize": [
+        { "binding": "MEMORY_INDEX", "index_name": "adult-ai-v2-memory", "remote": true }
+      ],
+      // 新旧同居の間は旧アプリと同じ本番 D1 を正本として読む。
       "d1_databases": [
         {
           "binding": "DB",
           "database_name": "adult-ai-db",
-          "database_id": "c0ffee00-0000-4000-8000-000000000001",
-          "remote": true
+          "database_id": "b617800c-cf4c-4122-adbb-ce872a258da6",
+          "preview_database_id": "b617800c-cf4c-4122-adbb-ce872a258da6",
+          "migrations_dir": "../../drizzle"
         }
       ],
-      "r2_buckets": [{ "binding": "BUCKET", "bucket_name": "adult-ai-images", "remote": true }]
+      "r2_buckets": [{ "binding": "BUCKET", "bucket_name": "adult-ai-images" }],
+      "durable_objects": { "bindings": [{ "name": "CHAT_ROOMS", "class_name": "ChatRoom" }] },
+      "queues": {
+        "producers": [{ "binding": "MEMORY_QUEUE", "queue": "adult-ai-v2-memory" }],
+        "consumers": [
+          {
+            "queue": "adult-ai-v2-memory",
+            "max_batch_size": 1,
+            "max_batch_timeout": 1,
+            "max_retries": 4,
+            "max_concurrency": 1,
+            "retry_delay": 30
+          }
+        ]
+      }
+    },
+    // 試し用 Worker adult-ai-v2-staging。vars・secrets・束ねは env へ継承されんので全部書く。
+    "staging": {
+      "name": "adult-ai-v2-staging",
+      "vars": {
+        "APP_ENV": "staging",
+        "V2_FAKE_MODEL": "0",
+        "V2_RAG_ENABLED": "1",
+        "V2_MODEL": "deepseek/deepseek-v3.2",
+        "V2_TEST_FAULT": "none",
+        "V2_HISTORY_CHARACTERS": 12000,
+        "V2_HISTORY_MESSAGES": 40
+      },
+      "secrets": {
+        "required": [
+          "BASIC_AUTH_USERNAME",
+          "BASIC_AUTH_PASSWORD",
+          "OPENROUTER_API_KEY"
+        ]
+      },
+      "ai": { "binding": "AI", "remote": true },
+      "vectorize": [
+        { "binding": "MEMORY_INDEX", "index_name": "character-chat-v2-staging", "remote": true }
+      ],
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "character-chat-v2-staging",
+          "database_id": "0c161a82-6dca-45d6-9cbc-97b43e909099",
+          "preview_database_id": "0c161a82-6dca-45d6-9cbc-97b43e909099",
+          "migrations_dir": "../../drizzle"
+        }
+      ],
+      "r2_buckets": [{ "binding": "BUCKET", "bucket_name": "character-chat-v2-staging" }],
+      "durable_objects": { "bindings": [{ "name": "CHAT_ROOMS", "class_name": "ChatRoom" }] },
+      "queues": {
+        "producers": [{ "binding": "MEMORY_QUEUE", "queue": "adult-ai-v2-memory-staging" }],
+        "consumers": [
+          {
+            "queue": "adult-ai-v2-memory-staging",
+            "max_batch_size": 1,
+            "max_batch_timeout": 1,
+            "max_retries": 4,
+            "max_concurrency": 1,
+            "retry_delay": 30
+          }
+        ]
+      }
     }
-  }
+  },
+  "main": "src/worker.ts",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "workers_dev": false,
+  "preview_urls": false,
+  // 長い生成に耐えるよう有料 standard の上限 5 分まで許す（env へ継承される）。
+  "limits": {
+    "cpu_ms": 300000
+  },
+  "assets": {
+    "binding": "ASSETS",
+    "run_worker_first": true
+  },
+  "vars": {
+    "APP_ENV": "development",
+    "V2_FAKE_MODEL": "0",
+    "V2_RAG_ENABLED": "0",
+    "V2_MODEL": "deepseek/deepseek-v3.2",
+    "V2_TEST_FAULT": "none",
+    "V2_HISTORY_CHARACTERS": 12000,
+    "V2_HISTORY_MESSAGES": 40
+  },
+  "observability": {
+    "enabled": false
+  },
+  "secrets": {
+    "required": [
+      "BASIC_AUTH_USERNAME",
+      "BASIC_AUTH_PASSWORD",
+      "OPENROUTER_API_KEY"
+    ]
+  },
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "CHAT_ROOMS",
+        "class_name": "ChatRoom"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1-chat-room",
+      "new_sqlite_classes": [
+        "ChatRoom"
+      ]
+    }
+  ]
 }
