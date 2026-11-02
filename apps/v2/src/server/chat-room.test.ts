@@ -6,11 +6,13 @@ import { DatabaseSync } from "node:sqlite";
 
 import { FakeListChatModel } from "@langchain/core/utils/testing";
 import { createDb, loadCharacter } from "@v2/db";
+import { judgeChunk, extractVoice } from "@v2/judge";
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 
 import { openLocalD1, type LocalD1 } from "../../../../packages/db/src/test/local-d1";
 
+import type { ChatSseEvent } from "../lib/sse-events";
 import type { BaseChatModel } from "@langchain/core/language_models/chat_models";
 import type * as EngineModule from "@v2/engine";
 
@@ -562,8 +564,20 @@ describe("ChatRoom", () => {
       const conversationId = newConversation();
       await room.submit({ requestId: "req-14", conversationId, text: "長い返事", characterId });
       const insert = state.sqlite.prepare("INSERT INTO events (job_id,event) VALUES (?,?)");
+      const judge = judgeChunk("synthetic fixture", {
+        previousChunks: [],
+        voice: extractVoice("synthetic"),
+      });
       for (let seq = 0; seq < 150; seq++) {
-        insert.run("req-14", JSON.stringify({ type: "chunk", seq, text: `t${seq}` }));
+        const event = {
+          type: "chunk",
+          seq,
+          text: `t${seq}`,
+          judge,
+          attempt: 1,
+          preExtend: false,
+        } satisfies ChatSseEvent;
+        insert.run("req-14", JSON.stringify(event));
       }
       insert.run(
         "req-14",

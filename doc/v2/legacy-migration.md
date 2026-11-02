@@ -19,6 +19,10 @@ pnpm --filter @v2/cf migrate:legacy --persist-root /absolute/path/to/restored-d1
 
 元の利用者が複数いる場合は `--source-user` を明示する。異なる所有者を自動で統合しない。`target-user=local`は個人用BASIC認証の所有者に対応する。
 
+`0076_v2_legacy_source_user.sql` から移行元の利用者を保存する。再実行時は移行先も照合し、旧側で会話ごと削除された場合を要確認として返す（確認のみの実行でも同じ）。移行済みの会話や本文を削除せず、残っている他の会話の移行は続ける。同じ移行先へ別の利用者から移した会話と、v2 で新規作成した会話は欠落に数えない。
+
+旧版で移行済みの行は、旧表が残っていれば migration で元の利用者を補う。既に旧会話が消えていて元の利用者を特定できない行は、同じ移行先の実行で要確認にする。推測で所有者を付けたり、黙って成功扱いにしたりしない。
+
 ```sh
 V2_LOCAL_PERSIST_ROOT=/absolute/path/to/restored-d1 pnpm --filter @v2/app dev
 ```

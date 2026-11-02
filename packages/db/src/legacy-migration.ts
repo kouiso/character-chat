@@ -1,4 +1,4 @@
-import { asc, desc, eq, sql } from "drizzle-orm";
+import { and, asc, desc, eq, isNull, or, sql } from "drizzle-orm";
 
 import { conversationTable } from "../../../src/schema/conversation";
 import { messageTable } from "../../../src/schema/message";
@@ -45,6 +45,8 @@ const validateDestination = (
     existing &&
     (existing.userId !== targetUserId ||
       existing.characterId !== conversation.characterId ||
+      (existing.legacySourceUserId !== null &&
+        existing.legacySourceUserId !== conversation.userId) ||
       existing.promptVersion !== "legacy-import-v1")
   ) {
     throw new Error("移行先に同じIDで別の利用者・キャラ・版の会話がある");
@@ -119,7 +121,9 @@ const needsRefresh = (
   conversation: SourceConversation,
 ): boolean =>
   existing !== undefined &&
-  (existing.title !== conversation.title || existing.updatedAt < conversation.updatedAt);
+  (existing.title !== conversation.title ||
+    existing.updatedAt < conversation.updatedAt ||
+    existing.legacySourceUserId === null);
 
 const writeConversation = async (
   db: V2Db,
@@ -138,6 +142,7 @@ const writeConversation = async (
       db.insert(v2ConversationTable).values({
         id: conversation.id,
         userId: targetUserId,
+        legacySourceUserId: conversation.userId,
         characterId: conversation.characterId,
         title: conversation.title,
         threadId: conversation.id,
@@ -153,6 +158,7 @@ const writeConversation = async (
     .update(v2ConversationTable)
     .set({
       title: conversation.title,
+      legacySourceUserId: conversation.userId,
       updatedAt: Math.max(existing.updatedAt, conversation.updatedAt),
     })
     .where(eq(v2ConversationTable.id, conversation.id));
@@ -241,6 +247,45 @@ export class LegacyMigrationError extends Error {
   }
 }
 
+const findMissingConversations = async (
+  db: V2Db,
+  options: LegacyMigrationOptions,
+): Promise<LegacyMigrationFailure[]> => {
+  const imported = await db
+    .select({
+      id: v2ConversationTable.id,
+      sourceUserId: v2ConversationTable.legacySourceUserId,
+      currentSourceUserId: conversationTable.userId,
+    })
+    .from(v2ConversationTable)
+    .leftJoin(conversationTable, eq(conversationTable.id, v2ConversationTable.id))
+    .where(
+      and(
+        eq(v2ConversationTable.userId, options.targetUserId),
+        eq(v2ConversationTable.promptVersion, "legacy-import-v1"),
+        or(
+          eq(v2ConversationTable.legacySourceUserId, options.sourceUserId),
+          isNull(v2ConversationTable.legacySourceUserId),
+        ),
+      ),
+    )
+    .orderBy(asc(v2ConversationTable.id));
+  // 旧版の移行行は所有者の記録が無い。旧表が残る場合だけ照合し、不明な由来を推測しない。
+  return imported
+    .filter((conversation) =>
+      conversation.sourceUserId === null
+        ? conversation.currentSourceUserId === null
+        : conversation.currentSourceUserId !== options.sourceUserId,
+    )
+    .map((conversation) => ({
+      conversationId: conversation.id,
+      reason:
+        conversation.sourceUserId === null
+          ? "移行済みの会話が元から消えており、元の利用者も不明（要確認）"
+          : "移行済みの会話が元から消えている（要確認）",
+    }));
+};
+
 // 旧表は監査・画像・枝分かれ・記憶の参照元として保存する。本文もIDも書き換えない。
 // 会話単位のbatchで確定するため、中断後は既存の行を照合して安全に続きから進められる。
 // 要確認の会話はその会話だけ書かずに飛ばす。会話どうしは独立しとるので、後ろの会話まで止める理由が無い。
@@ -253,7 +298,10 @@ export const migrateLegacyConversations = async (
     .from(conversationTable)
     .where(eq(conversationTable.userId, options.sourceUserId))
     .orderBy(asc(conversationTable.id));
-  if (!conversations.length) throw new Error("指定した利用者の旧会話が無い");
+  const failures = await findMissingConversations(db, options);
+  if (!conversations.length && !failures.length) {
+    throw new Error("指定した利用者の旧会話が無い");
+  }
   const result: LegacyMigrationResult = {
     conversations: conversations.length,
     messages: 0,
@@ -261,7 +309,6 @@ export const migrateLegacyConversations = async (
     insertedMessages: 0,
     updatedConversations: 0,
   };
-  const failures: LegacyMigrationFailure[] = [];
   for (const [index, conversation] of conversations.entries()) {
     try {
       const current = await migrateConversation(

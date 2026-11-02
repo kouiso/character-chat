@@ -1,8 +1,19 @@
 import { DurableObject } from "cloudflare:workers";
 
+import { parseChatSseEvent, type ChatSseEvent } from "../lib/sse-events";
+
 import { loadHistory, loadStoredTurn, startTurn } from "./engine";
 
-import type { ChatSseEvent } from "../lib/sse-events";
+const parseStoredEvent = (raw: string): ChatSseEvent => {
+  try {
+    const value: unknown = JSON.parse(raw);
+    const event = parseChatSseEvent(value);
+    if (event) return event;
+  } catch {
+    // 保存内容を例外本文へ含めず、破損行で再送位置を進めない。
+  }
+  throw new Error("保存されたイベントの形式が不正です。");
+};
 
 const CHAT_TURN_FAILURE_EVENT = "chat_turn_failed";
 const CHAT_TURN_FAILURE_CATEGORY = "turn_processing_failure";
@@ -216,7 +227,7 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
     return {
       events: rows
         .slice(0, EVENT_PAGE_SIZE)
-        .map((row) => ({ id: row.id, event: JSON.parse(row.event) as ChatSseEvent })),
+        .map((row) => ({ id: row.id, event: parseStoredEvent(row.event) })),
       status: job.status,
       hasMore: rows.length > EVENT_PAGE_SIZE,
     };
@@ -291,8 +302,9 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
     let failed = false;
     for await (const event of turn.events) {
       if (event.type === "error") failed = true;
-      if (["chunk", "turn-meta", "done"].includes(event.type)) {
-        events.push(event);
+      const publicEvent = parseChatSseEvent(event);
+      if (publicEvent && ["chunk", "turn-meta", "done"].includes(publicEvent.type)) {
+        events.push(publicEvent);
       }
     }
     if (failed || !events.some((event) => event.type === "done"))
