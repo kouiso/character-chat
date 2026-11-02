@@ -8,8 +8,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { run, scanArtifact, scanIndex } from "./secret-scan";
 
-describe("資格情報の混入検査", () => {
+describe.sequential("資格情報の混入検査", () => {
   let cwd: string;
+  const inheritedGitEnvironment = new Map(
+    ["GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_PREFIX", "GIT_COMMON_DIR"].map(
+      (name) => [name, process.env[name]] as const,
+    ),
+  );
   const token = ["sk", "or", "v1", "synthetic".repeat(8)].join("-");
   const pemHeader = ["-----BEGIN", "RSA", "PRIVATE", "KEY-----"].join(" ");
   const pemPayload = "A".repeat(32);
@@ -19,12 +24,17 @@ describe("資格情報の混入検査", () => {
   };
 
   beforeEach(() => {
+    for (const name of inheritedGitEnvironment.keys()) delete process.env[name];
     cwd = mkdtempSync(join(tmpdir(), "secret-scan-"));
     execFileSync("git", ["init", "--quiet"], { cwd });
   });
   afterEach(() => {
     vi.restoreAllMocks();
     rmSync(cwd, { recursive: true, force: true });
+    for (const [name, value] of inheritedGitEnvironment) {
+      if (value === undefined) delete process.env[name];
+      else process.env[name] = value;
+    }
   });
 
   it("空の index と値の無い見本は許可する", () => {
