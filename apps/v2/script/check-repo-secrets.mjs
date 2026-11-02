@@ -4,11 +4,18 @@
 // 使い方: `pnpm --filter @v2/app secrets:check`
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = fileURLToPath(new URL("../../../", import.meta.url));
 const failures = [];
 const fail = (message) => failures.push(message);
+
+// git の hook から走ると GIT_DIR・GIT_WORK_TREE などが別の repo を指したまま渡り、cwd より優先される。
+// 渡ったまま呼ぶと別の repo の追跡一覧を検査して通すので外す。
+const gitEnv = Object.fromEntries(
+  Object.entries(process.env).filter(([key]) => !key.startsWith("GIT_")),
+);
 
 // 終了コードが 0 以外だと execFileSync が投げる。終了コードを見たい呼び出しは runAllowFail を使う。
 const git = (args) =>
@@ -17,7 +24,7 @@ const git = (args) =>
     encoding: "utf8",
     stdio: ["ignore", "pipe", "pipe"],
     shell: false,
-    env: process.env,
+    env: gitEnv,
   });
 
 const runAllowFail = (args) => {
@@ -134,9 +141,13 @@ for (const path of tracked) {
   if (!TEXT_FILE.test(path)) continue;
   let text;
   try {
-    text = readFileSync(new URL(`../../../${path}`, import.meta.url), "utf8");
-  } catch {
-    continue;
+    // URL として読むと # ? % を含む名前が別のファイルになる。ファイルのパスとして読む。
+    text = readFileSync(join(root, path), "utf8");
+  } catch (error) {
+    // 追跡一覧にあって作業ツリーに無い（消した直後・submodule）ものだけ飛ばす。
+    // ほかの理由で読めんのを飛ばすと、検査されんまま通る。
+    if (error.code === "ENOENT" || error.code === "EISDIR") continue;
+    throw error;
   }
   scan(`tracked:${path}`, text);
 }
@@ -149,7 +160,7 @@ for (const dir of ["apps/v2/dist", "apps/v2/.output", "dist"]) {
     .filter(Boolean)
     .filter((path) => TEXT_FILE.test(path));
   for (const path of files) {
-    scan(`build:${path}`, readFileSync(new URL(`../../../${path}`, import.meta.url), "utf8"));
+    scan(`build:${path}`, readFileSync(join(root, path), "utf8"));
   }
 }
 

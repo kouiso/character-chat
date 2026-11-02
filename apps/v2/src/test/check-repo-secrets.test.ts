@@ -28,7 +28,11 @@ afterEach(() => {
 });
 
 // 検査は自分の置き場所から 3 つ上を repo とみなすので、使い捨ての repo へ写して走らせる。
-const runIn = (files: Record<string, string>, untracked: Record<string, string> = {}) => {
+const runIn = (
+  files: Record<string, string>,
+  untracked: Record<string, string> = {},
+  scriptEnv: NodeJS.ProcessEnv = isolatedEnv,
+) => {
   const root = mkdtempSync(join(tmpdir(), "secrets-check-"));
   roots.push(root);
   const git = (...args: string[]) =>
@@ -47,7 +51,7 @@ const runIn = (files: Record<string, string>, untracked: Record<string, string> 
   const result = spawnSync(process.execPath, ["apps/v2/script/check-repo-secrets.mjs"], {
     cwd: root,
     encoding: "utf8",
-    env: isolatedEnv,
+    env: scriptEnv,
   });
   return { status: result.status, output: `${result.stdout}${result.stderr}` };
 };
@@ -167,6 +171,40 @@ describe("資格情報検査の出力", () => {
     expect(status).not.toBe(0);
     expect(output).toContain("build:apps/v2/dist/server/index.js:1");
     expect(output).toContain("BASIC_AUTH_PASSWORD");
+    expectNoPartOf(output, value);
+  });
+
+  // URL として読むと # 以降が fragment、? 以降が query、% が復号になり、別の名前を読みに行く。
+  // 読めずに飛ばすと、その追跡ファイルは検査されんまま通る。
+  it.each(["config/leak#1.txt", "config/leak?1.txt", "config/leak%41.txt"])(
+    "名前に URL の記号を含む追跡ファイル %s も検査する",
+    (path) => {
+      const value = "Rt5Yu8Io2Pa4Sd6Fg9Hj";
+      const { status, output } = runIn({ [path]: `BASIC_AUTH_PASSWORD=${value}\n` });
+      expect(status).not.toBe(0);
+      expect(output).toContain(`tracked:${path}:1`);
+      expectNoPartOf(output, value);
+    },
+  );
+
+  // git の hook から走ると GIT_DIR・GIT_WORK_TREE が別の repo を指したまま渡ってくる。
+  // そのまま git を呼ぶと、別の repo の追跡一覧を検査して通してしまう。
+  it("親から GIT_DIR を渡されても、自分の置き場所の repo を検査する", () => {
+    const other = mkdtempSync(join(tmpdir(), "secrets-other-"));
+    roots.push(other);
+    spawnSync("git", ["init", "-q"], { cwd: other, env: isolatedEnv });
+    const value = "Kl3Zx7Cv1Bn5Mq8We2Rt";
+    const { status, output } = runIn(
+      { "config/leak.txt": `BASIC_AUTH_PASSWORD=${value}\n` },
+      {},
+      {
+        ...isolatedEnv,
+        GIT_DIR: join(other, ".git"),
+        GIT_WORK_TREE: other,
+      },
+    );
+    expect(status).not.toBe(0);
+    expect(output).toContain("tracked:config/leak.txt:1");
     expectNoPartOf(output, value);
   });
 });
