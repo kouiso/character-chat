@@ -27,68 +27,68 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
-} as any)
+})
 const ApiCharactersRoute = ApiCharactersRouteImport.update({
   id: '/api/characters',
   path: '/api/characters',
   getParentRoute: () => rootRouteImport,
-} as any)
+})
 const ApiHealthRoute = ApiHealthRouteImport.update({
   id: '/api/health',
   path: '/api/health',
   getParentRoute: () => rootRouteImport,
-} as any)
+})
 const CharactersIdRoute = CharactersIdRouteImport.update({
   id: '/characters/$id',
   path: '/characters/$id',
   getParentRoute: () => rootRouteImport,
-} as any)
+})
 const CharactersNewRoute = CharactersNewRouteImport.update({
   id: '/characters/new',
   path: '/characters/new',
   getParentRoute: () => rootRouteImport,
-} as any)
+})
 const ChatIdRoute = ChatIdRouteImport.update({
   id: '/chat/$id',
   path: '/chat/$id',
   getParentRoute: () => rootRouteImport,
-} as any)
+})
 const ApiCharactersIdRoute = ApiCharactersIdRouteImport.update({
   id: '/$id',
   path: '/$id',
   getParentRoute: () => ApiCharactersRoute,
-} as any)
+})
 const ApiChatIdRoute = ApiChatIdRouteImport.update({
   id: '/api/chat/$id',
   path: '/api/chat/$id',
   getParentRoute: () => rootRouteImport,
-} as any)
+})
 const ApiMediaIdRoute = ApiMediaIdRouteImport.update({
   id: '/api/media/$id',
   path: '/api/media/$id',
   getParentRoute: () => rootRouteImport,
-} as any)
+})
 const ApiCharactersIdRestoreRoute = ApiCharactersIdRestoreRouteImport.update({
   id: '/$id_/restore',
   path: '/$id/restore',
   getParentRoute: () => ApiCharactersRoute,
-} as any)
+})
 const ApiCharactersIdVersionsRoute = ApiCharactersIdVersionsRouteImport.update({
   id: '/$id_/versions',
   path: '/$id/versions',
   getParentRoute: () => ApiCharactersRoute,
-} as any)
+})
 const ApiChatIdHistoryRoute = ApiChatIdHistoryRouteImport.update({
   id: '/api/chat/$id_/history',
   path: '/api/chat/$id/history',
   getParentRoute: () => rootRouteImport,
-} as any)
+})
 const ApiCharactersIdVersionsVersionRoute =
   ApiCharactersIdVersionsVersionRouteImport.update({
     id: '/$version',
     path: '/$version',
     getParentRoute: () => ApiCharactersIdVersionsRoute,
-  } as any)
+  })
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute

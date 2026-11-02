@@ -167,6 +167,9 @@
       "body-parser": "^2.3.0",
       "esbuild": "^0.28.1",
       "qs": "^6.15.2"
+    },
+    "patchedDependencies": {
+      "@tanstack/router-generator@1.167.33": "patches/@tanstack__router-generator@1.167.33.patch"
     }
   }
 }
