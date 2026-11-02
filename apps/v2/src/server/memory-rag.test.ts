@@ -274,6 +274,15 @@ describe("memory RAG with local D1", () => {
     ).toEqual([fixture.memoryId, greenId]);
   });
 
+  it("ranking中の例外は空の結果として扱う", async () => {
+    const fixture = await seed();
+    const env = bindings();
+    await indexMemoryJob(local.db, env, fixture.jobId);
+    await expect(
+      retrieveMemories(local.db, env, fixture.scope, "好み", Number.NaN),
+    ).resolves.toEqual([]);
+  });
+
   it("indexの失敗はQueueで再試行し、抽出を再実行せずに完了する", async () => {
     const fixture = await seed();
     const env = bindings();

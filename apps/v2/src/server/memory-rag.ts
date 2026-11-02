@@ -118,7 +118,7 @@ export const retrieveMemories = async (
       scope,
       matches.map((match) => match.id),
     );
-    return rankMemoryCandidates(rows, matches, now);
+    return await rankMemoryCandidates(rows, matches, now);
   } catch {
     globalThis.console.error(JSON.stringify({ event: "memory_retrieval_failed" }));
     return [];

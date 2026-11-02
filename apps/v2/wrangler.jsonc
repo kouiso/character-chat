@@ -29,6 +29,13 @@
         "V2_HISTORY_CHARACTERS": 12000,
         "V2_HISTORY_MESSAGES": 40
       },
+      "secrets": {
+        "required": [
+          "BASIC_AUTH_USERNAME",
+          "BASIC_AUTH_PASSWORD",
+          "OPENROUTER_API_KEY"
+        ]
+      },
       "ai": { "binding": "AI", "remote": true },
       "vectorize": [
         { "binding": "MEMORY_INDEX", "index_name": "adult-ai-v2-memory", "remote": true }
