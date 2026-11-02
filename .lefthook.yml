@@ -1,5 +1,12 @@
+pre-commit:
+  commands:
+    secret-scan:
+      run: pnpm verify:secrets
+
 pre-push:
   commands:
+    secret-scan:
+      run: pnpm verify:secrets
     ci-fast:
       env:
         NODE_OPTIONS: "--experimental-sqlite"

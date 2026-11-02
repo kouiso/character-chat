@@ -33,8 +33,10 @@ jobs:
           node-version: "24"
           cache: "pnpm"
       - run: pnpm install --frozen-lockfile
+      - run: pnpm verify:secrets
       - run: pnpm v2:ci
       - run: pnpm --filter @v2/app build
+      - run: pnpm verify:secrets --artifact apps/v2/dist
       - run: pnpm --filter @v2/app exec wrangler deploy --dry-run
       - run: pnpm --filter @v2/app verify:ci
 
@@ -85,7 +87,9 @@ jobs:
 
       - name: Lint
         if: matrix.check-type == 'lint'
-        run: node .github/ci/run.mjs lint
+        run: |
+          pnpm verify:secrets
+          node .github/ci/run.mjs lint
 
       # vitest.config.ts の coverage.thresholds は定義されとるだけで CI から一度も
       # 実行されておらず、閾値割れを検知できんかった。test を coverage 付きに変えて強制する。
@@ -96,6 +100,10 @@ jobs:
       - name: Build
         if: matrix.check-type == 'build'
         run: node .github/ci/run.mjs build
+
+      - name: Scan build for credentials
+        if: matrix.check-type == 'build'
+        run: pnpm verify:secrets --artifact dist
 
       # なぜ: 起動検査へ同じコミットの全配布ファイルを渡して二重ビルドを避ける。
       - name: Preserve current-run build for boot smoke

@@ -16,6 +16,7 @@
     "dev:reset": "pnpm db:migrate:local && pnpm db:seed:reset",
     "notify:gate": "tsx script/notify-user-gate.ts",
     "verify:solo": "tsx script/verify/solo-features.ts",
+    "verify:secrets": "tsx script/verify/secret-scan.ts",
     "verify:no-github-actions-deploy": "tsx script/verify/no-github-actions-deploy.ts",
     "verify:pages-deploy-readiness": "tsx script/verify/pages-deploy-readiness.ts",
     "verify:prod": "tsx script/verify/prod-smoke.ts",

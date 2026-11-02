@@ -10,7 +10,7 @@ BASIC_AUTH_USER=codex
 BASIC_AUTH_PASS=codex-local
 
 # --- LLM / image providers (placeholder keys — presence-guards pass, no real calls) ---
-OPENROUTER_API_KEY=sk-or-v1-PLACEHOLDER-no-network
+OPENROUTER_API_KEY=local-placeholder-not-a-provider-key
 NOVITA_API_KEY=PLACEHOLDER-no-network
 RUNWARE_API_KEY=PLACEHOLDER-no-network
 ATLASCLOUD_API_KEY=PLACEHOLDER-no-network

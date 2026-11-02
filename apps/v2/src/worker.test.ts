@@ -19,8 +19,9 @@ const createEnv = (assetStatus = 404, settings: Record<string, string> = credent
   const assetFetch = vi.fn(
     async () => new Response(assetStatus === 404 ? null : "asset", { status: assetStatus }),
   );
+  const env: WorkerEntryEnv = { ...settings, ASSETS: { fetch: assetFetch } };
   return {
-    env: { ...settings, ASSETS: { fetch: assetFetch } } satisfies WorkerEntryEnv,
+    env,
     assetFetch,
   };
 };
@@ -63,6 +64,19 @@ describe("Worker 入口の BASIC 認証", () => {
     expect(response.status).toBe(401);
     expect(assetFetch).not.toHaveBeenCalled();
     expect(startFetch).not.toHaveBeenCalled();
+  });
+
+  it("secret の入れ替え後は旧パスワードを拒否し、新しい値だけ通す", async () => {
+    const { env, assetFetch } = createEnv(200);
+    const request = (value: string) =>
+      new Request("https://example.com/assets/main.js", { headers: { authorization: value } });
+    expect((await call(request(authorization), env)).status).toBe(200);
+    env.BASIC_AUTH_PASSWORD = "rotated-test-only-pass";
+    assetFetch.mockClear();
+    expect((await call(request(authorization), env)).status).toBe(401);
+    expect(assetFetch).not.toHaveBeenCalled();
+    const updated = `Basic ${Buffer.from("reader:rotated-test-only-pass").toString("base64")}`;
+    expect((await call(request(updated), env)).status).toBe(200);
   });
 
   it("認証情報が未設定なら 503 で閉じる", async () => {

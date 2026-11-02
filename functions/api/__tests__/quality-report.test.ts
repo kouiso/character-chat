@@ -39,8 +39,11 @@ describe("createQualityIssue", () => {
     await createQualityIssue(
       {
         appId: "12345",
-        appPrivateKey:
-          "-----BEGIN PRIVATE KEY-----\nMIIBVwIBADANBgkqhkiG9w0BAQEFAASCAT8wggE7AgEAAkEAzA==\n-----END PRIVATE KEY-----",
+        appPrivateKey: [
+          "-----BEGIN PRIVATE KEY-----",
+          btoa("synthetic-test-only-key"),
+          "-----END PRIVATE KEY-----",
+        ].join("\n"),
         appInstallationId: "98765",
       },
       { title: "t", body: "b" },
