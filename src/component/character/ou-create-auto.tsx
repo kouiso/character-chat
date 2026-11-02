@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { ArrowUp, Sparkles } from "lucide-react";
 
+import type { AutoDraft } from "@/lib/character-draft";
 import { CHIP_CATEGORIES, type CharacterSelections } from "@/lib/character-generator";
 import { cn } from "@/lib/utils";
 
@@ -14,6 +15,8 @@ interface OuCreateAutoProps {
   onGenerate: (input: AutoInput) => void;
   // 親（ヘッダーの「もう作って」）が最新入力で生成できるよう同期する
   onInputChange?: (input: AutoInput) => void;
+  initialDraft?: AutoDraft;
+  onDraftChange?: (draft: AutoDraft) => void;
 }
 
 const initialSelections: CharacterSelections = {
@@ -46,12 +49,17 @@ const Bubble = ({ role, children }: { role: "ai" | "user"; children: React.React
     </div>
   );
 
-export const OuCreateAuto = ({ onGenerate, onInputChange }: OuCreateAutoProps) => {
-  const [relation, setRelation] = useState<string | null>(null);
-  const [answer, setAnswer] = useState("");
-  const [hint, setHint] = useState("");
+export const OuCreateAuto = ({
+  onGenerate,
+  onInputChange,
+  initialDraft,
+  onDraftChange,
+}: OuCreateAutoProps) => {
+  const [relation, setRelation] = useState<string | null>(initialDraft?.relation ?? null);
+  const [answer, setAnswer] = useState(initialDraft?.answer ?? "");
+  const [hint, setHint] = useState(initialDraft?.hint ?? "");
 
-  const buildInput = (): AutoInput => {
+  const input = useMemo((): AutoInput => {
     const detailParts = [answer, relation ? `ふたりの関係は${relation}` : "", hint].filter(Boolean);
     const details = detailParts.join("。");
     return {
@@ -62,19 +70,22 @@ export const OuCreateAuto = ({ onGenerate, onInputChange }: OuCreateAutoProps) =
       },
       details,
     };
-  };
+  }, [answer, relation, hint]);
 
   useEffect(() => {
-    onInputChange?.(buildInput());
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [relation, answer, hint]);
+    onInputChange?.(input);
+  }, [input, onInputChange]);
+
+  useEffect(() => {
+    onDraftChange?.({ relation, answer, hint });
+  }, [relation, answer, hint, onDraftChange]);
 
   const send = () => {
     if (hint.trim()) {
       setAnswer((prev) => (prev ? `${prev}。${hint.trim()}` : hint.trim()));
       setHint("");
     }
-    onGenerate(buildInput());
+    onGenerate(input);
   };
 
   return (
