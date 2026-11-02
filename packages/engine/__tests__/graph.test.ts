@@ -387,6 +387,29 @@ describe("createTurnGraph", () => {
     expect(saved?.events.find(isGenerationEvent)?.rawOutput).toContain("風邪ひくよ");
   });
 
+  // 空の返事を成功として終えると、画面は送信文ごと履歴から消え、誤りも出ん（PR 27 第 2 回レビュー F1）。
+  test.each([
+    ["空文字", ""],
+    ["空白だけ", "   \n "],
+    ["中身の無い包み", "<response></response>"],
+  ])("モデルの返事が%sなら error を流し、本文ゼロのまま成功で終えん", async (_label, reply) => {
+    const store = createMemoryTurnStore();
+    const model = new FakeListChatModel({ responses: [reply] });
+    const graph = createTurnGraph({ model, store });
+    const events: TurnEvent[] = [];
+    for await (const event of runTurn(
+      graph,
+      { conversationId: "conv-empty", userText: "聞こえてる？", character },
+      "conv-empty",
+    )) {
+      events.push(event);
+    }
+    expect(events.filter((event) => event.type === "chunk")).toHaveLength(0);
+    expect(events.filter((event) => event.type === "error")).toHaveLength(1);
+    // 生成記録は監視用に残す（store 側が本文ゼロのターンを未保存として扱う）。
+    expect(store.turns.get("conv-empty")).toHaveLength(1);
+  });
+
   test("本文が目安に届いとるターンは続きを書かせん", async () => {
     const store = createMemoryTurnStore();
     // conversation の目安 220 字 × 0.8 = 176 字を超える本文。

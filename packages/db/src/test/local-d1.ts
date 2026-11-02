@@ -12,7 +12,7 @@ import { createDb, type V2Db } from "../client";
 
 const PACKAGE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const REPO_ROOT = path.resolve(PACKAGE_ROOT, "../..");
-const WRANGLER_CONFIG = path.join(REPO_ROOT, "apps/v2/wrangler.jsonc");
+const WRANGLER_CONFIG = path.join(REPO_ROOT, "packages/cf/wrangler.local.jsonc");
 // getPlatformProxy の persist.path は v3 ディレクトリそのもの、wrangler CLI の --persist-to は
 // その親（CLI が自分で /v3 を足す）。@v2/cf と同じ非対称の吸収。
 const PERSIST_ROOT = path.join(REPO_ROOT, ".wrangler/state");
