@@ -11,13 +11,16 @@ export const ChatMessageLog = ({ children, busy }: ChatMessageLogProps) => {
   const logRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const followLatestRef = useRef(true);
-  const sizeRef = useRef({ clientHeight: 0, scrollHeight: 0 });
+  const pointerDownRef = useRef(false);
+  const touchYRef = useRef<number | null>(null);
 
   const syncPosition = useCallback(() => {
     const log = logRef.current;
     if (!log) return;
     if (followLatestRef.current) log.scrollTop = log.scrollHeight - log.clientHeight;
-    sizeRef.current = { clientHeight: log.clientHeight, scrollHeight: log.scrollHeight };
+  }, []);
+  const pauseFollowLatest = useCallback(() => {
+    if (logRef.current && logRef.current.scrollTop > 0) followLatestRef.current = false;
   }, []);
 
   useLayoutEffect(syncPosition, [children, syncPosition]);
@@ -31,14 +34,25 @@ export const ChatMessageLog = ({ children, busy }: ChatMessageLogProps) => {
     return () => observer.disconnect();
   }, [syncPosition]);
 
+  useLayoutEffect(() => {
+    const log = logRef.current;
+    if (!log) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (
+        ["ArrowUp", "PageUp", "Home"].includes(event.key) ||
+        (event.key === " " && event.shiftKey)
+      )
+        pauseFollowLatest();
+    };
+    log.addEventListener("keydown", onKeyDown);
+    return () => log.removeEventListener("keydown", onKeyDown);
+  }, [pauseFollowLatest]);
+
   const updateFollowLatest = () => {
     const log = logRef.current;
     if (!log) return;
-    // 回転・文字拡大のscrollはresize通知より先に来るため、閲覧者の操作と区別する。
-    if (
-      sizeRef.current.clientHeight !== log.clientHeight ||
-      sizeRef.current.scrollHeight !== log.scrollHeight
-    ) {
+    // 回転後の遅延scrollもtrustedになるため、入力なしでは追従の意図を解除しない。
+    if (followLatestRef.current && !pointerDownRef.current) {
       syncPosition();
       return;
     }
@@ -54,6 +68,35 @@ export const ChatMessageLog = ({ children, busy }: ChatMessageLogProps) => {
       aria-busy={busy}
       tabIndex={0}
       onScroll={updateFollowLatest}
+      onWheel={(event) => {
+        if (event.deltaY < 0) pauseFollowLatest();
+      }}
+      onTouchStart={(event) => {
+        touchYRef.current = event.touches[0]?.clientY ?? null;
+      }}
+      onTouchMove={(event) => {
+        const y = event.touches[0]?.clientY ?? null;
+        if (y !== null && touchYRef.current !== null && y > touchYRef.current) pauseFollowLatest();
+        touchYRef.current = y;
+      }}
+      onTouchEnd={() => {
+        touchYRef.current = null;
+      }}
+      onTouchCancel={() => {
+        touchYRef.current = null;
+      }}
+      onPointerDown={() => {
+        pointerDownRef.current = true;
+      }}
+      onPointerUp={() => {
+        pointerDownRef.current = false;
+      }}
+      onPointerCancel={() => {
+        pointerDownRef.current = false;
+      }}
+      onPointerLeave={() => {
+        pointerDownRef.current = false;
+      }}
     >
       <div ref={contentRef} className="v2-message-log-content">
         {children}

@@ -9,6 +9,30 @@ afterEach(() => {
 });
 
 describe("ChatMessageLog", () => {
+  it.each(["keyboard", "touch", "scrollbar"])("%sで履歴へ移動すると追従を止める", (input) => {
+    const { rerender } = render(<ChatMessageLog busy={false}>合成の履歴</ChatMessageLog>);
+    const log = screen.getByRole("log");
+    Object.defineProperties(log, {
+      scrollHeight: { configurable: true, value: 1200 },
+      clientHeight: { value: 400 },
+    });
+    rerender(<ChatMessageLog busy={false}>合成の履歴を表示</ChatMessageLog>);
+    expect(log.scrollTop).toBe(800);
+    if (input === "keyboard") fireEvent.keyDown(log, { key: "PageUp" });
+    if (input === "touch") {
+      fireEvent.touchStart(log, { touches: [{ clientY: 100 }] });
+      fireEvent.touchMove(log, { touches: [{ clientY: 200 }] });
+    }
+    if (input === "scrollbar") fireEvent.pointerDown(log);
+    log.scrollTop = 100;
+    fireEvent.scroll(log);
+    fireEvent.pointerUp(log);
+    fireEvent.touchEnd(log);
+    Object.defineProperty(log, "scrollHeight", { value: 1600 });
+    rerender(<ChatMessageLog busy>合成の本文の続き</ChatMessageLog>);
+    expect(log.scrollTop).toBe(100);
+  });
+
   it("回転のscrollがresize通知より先でも、操作なしの位置変更で末尾追従を解除しない", () => {
     let resize: (() => void) | undefined;
     vi.stubGlobal(
@@ -39,6 +63,12 @@ describe("ChatMessageLog", () => {
     resize?.();
     expect(log.scrollTop).toBe(201);
 
+    log.scrollTop = 124;
+    fireEvent.scroll(log);
+    resize?.();
+    expect(log.scrollTop).toBe(201);
+
+    fireEvent.wheel(log, { deltaY: -100 });
     log.scrollTop = 20;
     fireEvent.scroll(log);
     Object.defineProperty(log, "scrollHeight", { value: 500 });
@@ -73,6 +103,7 @@ describe("ChatMessageLog", () => {
     resize?.();
     expect(log.scrollTop).toBe(960);
 
+    fireEvent.wheel(log, { deltaY: -100 });
     log.scrollTop = 100;
     fireEvent.scroll(log);
     Object.defineProperty(log, "clientHeight", { value: 340 });
@@ -109,6 +140,7 @@ describe("ChatMessageLog", () => {
     });
     rerender(<ChatMessageLog busy={false}>合成の履歴を表示</ChatMessageLog>);
     expect(log.scrollTop).toBe(800);
+    fireEvent.wheel(log, { deltaY: -100 });
     log.scrollTop = 150;
     fireEvent.scroll(log);
 

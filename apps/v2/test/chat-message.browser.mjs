@@ -224,6 +224,7 @@ try {
         "chat should finish without a recovery error",
       );
       await page.evaluate(() => document.fonts.ready);
+      await page.locator(".v2-chat-log").press("Home");
       await page.locator(".v2-chat-log").evaluate((el) => {
         el.scrollTop = 0;
       });
@@ -336,6 +337,7 @@ try {
     });
     if (!baseline) {
       const log = page.getByRole("log", { name: "会話のメッセージ" });
+      await log.press("Home");
       await log.evaluate((el) => {
         el.scrollTop = 0;
       });
