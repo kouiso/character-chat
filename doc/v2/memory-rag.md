@@ -14,9 +14,9 @@ Vectorizeには本文を保存しない。namespaceは利用者IDとキャラID�
 
 ## 有効化の境界
 
-通常のローカル設定は`V2_RAG_ENABLED=0`。AIとVectorizeにはローカル模擬環境がないため、`env.rag`だけにremote bindingを宣言している。この環境の起動・デプロイは外部リソースへ接続する。テストはローカルD1と差し替えたbindingで実行し、この環境は起動しない。
+通常のローカル設定は`V2_RAG_ENABLED=0`。AIとVectorizeにはローカル模擬環境がないため、本番の`env.rag`と試し用の`env.staging`だけにremote bindingを宣言している。これらの環境のデプロイは外部リソースへ接続する。`vite dev`/`vite preview`で起こす時は、シェルで`V2_REMOTE_BINDINGS=1`を付けた時だけ本物へつなぐ。テストはローカルD1と差し替えたbindingで実行し、これらの環境は起動しない。
 
-本番接続には承認済みのD1・Queue・Vectorizeが必要。現在のD1 IDは既存のローカル用値であり、本番設定ではない。Vectorizeは1024次元・cosine、`kind`と`conversation_id`のstring metadata indexを投入前に用意する。本変更でリソース作成、実API呼出し、デプロイは行わない。
+本番接続には承認済みのD1・Queue・Vectorizeが必要。`env.rag`は旧アプリと同じ本番D1（`adult-ai-db`）を束ねる。top-levelのD1 IDはローカル用値で、本番設定ではない。Vectorizeは1024次元・cosine、`kind`と`conversation_id`のstring metadata indexを投入前に用意する（作り方は[secrets.md](./secrets.md)の資源準備節）。本変更でリソース作成、実API呼出し、デプロイは行わない。
 
 ## この経路だけでは満たさない項目
 
