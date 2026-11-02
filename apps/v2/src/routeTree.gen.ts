@@ -10,15 +10,22 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as MemoriesRouteImport } from './routes/memories'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ChatIdRouteImport } from './routes/chat/$id'
 import { Route as ApiChatIdRouteImport } from './routes/api/chat/$id'
 import { Route as ApiMediaIdRouteImport } from './routes/api/media/$id'
+import { Route as ApiMemoryIdRouteImport } from './routes/api/memory/$id'
 import { Route as ApiChatIdHistoryRouteImport } from './routes/api/chat/$id_/history'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MemoriesRoute = MemoriesRouteImport.update({
+  id: '/memories',
+  path: '/memories',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiHealthRoute = ApiHealthRouteImport.update({
@@ -41,6 +48,11 @@ const ApiMediaIdRoute = ApiMediaIdRouteImport.update({
   path: '/api/media/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiMemoryIdRoute = ApiMemoryIdRouteImport.update({
+  id: '/api/memory/$id',
+  path: '/api/memory/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiChatIdHistoryRoute = ApiChatIdHistoryRouteImport.update({
   id: '/api/chat/$id_/history',
   path: '/api/chat/$id/history',
@@ -49,62 +61,76 @@ const ApiChatIdHistoryRoute = ApiChatIdHistoryRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/memories': typeof MemoriesRoute
   '/api/health': typeof ApiHealthRoute
   '/chat/$id': typeof ChatIdRoute
   '/api/chat/$id': typeof ApiChatIdRoute
   '/api/media/$id': typeof ApiMediaIdRoute
+  '/api/memory/$id': typeof ApiMemoryIdRoute
   '/api/chat/$id/history': typeof ApiChatIdHistoryRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/memories': typeof MemoriesRoute
   '/api/health': typeof ApiHealthRoute
   '/chat/$id': typeof ChatIdRoute
   '/api/chat/$id': typeof ApiChatIdRoute
   '/api/media/$id': typeof ApiMediaIdRoute
+  '/api/memory/$id': typeof ApiMemoryIdRoute
   '/api/chat/$id/history': typeof ApiChatIdHistoryRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/memories': typeof MemoriesRoute
   '/api/health': typeof ApiHealthRoute
   '/chat/$id': typeof ChatIdRoute
   '/api/chat/$id': typeof ApiChatIdRoute
   '/api/media/$id': typeof ApiMediaIdRoute
+  '/api/memory/$id': typeof ApiMemoryIdRoute
   '/api/chat/$id_/history': typeof ApiChatIdHistoryRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/memories'
     | '/api/health'
     | '/chat/$id'
     | '/api/chat/$id'
     | '/api/media/$id'
+    | '/api/memory/$id'
     | '/api/chat/$id/history'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/memories'
     | '/api/health'
     | '/chat/$id'
     | '/api/chat/$id'
     | '/api/media/$id'
+    | '/api/memory/$id'
     | '/api/chat/$id/history'
   id:
     | '__root__'
     | '/'
+    | '/memories'
     | '/api/health'
     | '/chat/$id'
     | '/api/chat/$id'
     | '/api/media/$id'
+    | '/api/memory/$id'
     | '/api/chat/$id_/history'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  MemoriesRoute: typeof MemoriesRoute
   ApiHealthRoute: typeof ApiHealthRoute
   ChatIdRoute: typeof ChatIdRoute
   ApiChatIdRoute: typeof ApiChatIdRoute
   ApiMediaIdRoute: typeof ApiMediaIdRoute
+  ApiMemoryIdRoute: typeof ApiMemoryIdRoute
   ApiChatIdHistoryRoute: typeof ApiChatIdHistoryRoute
 }
 
@@ -115,6 +141,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/memories': {
+      id: '/memories'
+      path: '/memories'
+      fullPath: '/memories'
+      preLoaderRoute: typeof MemoriesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/health': {
@@ -145,6 +178,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiMediaIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/memory/$id': {
+      id: '/api/memory/$id'
+      path: '/api/memory/$id'
+      fullPath: '/api/memory/$id'
+      preLoaderRoute: typeof ApiMemoryIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/chat/$id_/history': {
       id: '/api/chat/$id_/history'
       path: '/api/chat/$id/history'
@@ -157,10 +197,12 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  MemoriesRoute: MemoriesRoute,
   ApiHealthRoute: ApiHealthRoute,
   ChatIdRoute: ChatIdRoute,
   ApiChatIdRoute: ApiChatIdRoute,
   ApiMediaIdRoute: ApiMediaIdRoute,
+  ApiMemoryIdRoute: ApiMemoryIdRoute,
   ApiChatIdHistoryRoute: ApiChatIdHistoryRoute,
 }
 export const routeTree = rootRouteImport

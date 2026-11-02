@@ -7,6 +7,32 @@
   --accent: #ff5f8f;
 }
 
+.v2-memory-panel fieldset {
+  min-width: 0;
+  margin: 16px 0;
+  border: 1px solid var(--muted);
+}
+.v2-memory-panel textarea {
+  display: block;
+  width: 100%;
+  min-height: 100px;
+  font: inherit;
+}
+.v2-memory-panel button,
+.v2-memory-page select {
+  min-height: 44px;
+  margin: 6px 4px 6px 0;
+  font: inherit;
+  max-width: 100%;
+}
+.v2-memory-panel p {
+  overflow-wrap: anywhere;
+}
+.v2-memory-page label {
+  display: block;
+  margin-top: 12px;
+}
+
 * {
   box-sizing: border-box;
 }

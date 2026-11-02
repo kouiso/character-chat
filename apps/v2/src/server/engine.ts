@@ -5,6 +5,7 @@ import {
   createDb,
   readDisplayHistory,
   readD1StoredTurn,
+  readConversationMemories,
   type V2Db,
 } from "@v2/db";
 import {
@@ -104,6 +105,12 @@ export const startTurn = async (
     model,
     contextBudget: contextBudgetFromEnv(env),
     store: createStore(db, input.characterId, input.expectedTurn),
+    readMemories: (conversationId) =>
+      readConversationMemories(db, {
+        userId: LOCAL_USER_ID,
+        characterId: input.characterId,
+        conversationId,
+      }),
   });
   const conversationId = input.conversationId ?? crypto.randomUUID();
   const events = runTurn(

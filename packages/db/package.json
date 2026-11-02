@@ -5,6 +5,7 @@
   "sideEffects": false,
   "version": "0.0.0",
   "exports": {
+    "./memory-contract": "./src/memory-contract.ts",
     ".": {
       "types": "./src/index.ts",
       "default": "./src/index.ts"

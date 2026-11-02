@@ -22,6 +22,7 @@ import {
 } from "@v2/prompt";
 
 import { buildConversationContext, type ContextBudget } from "./context-budget";
+import { withMemoryContext } from "./memory-context";
 import { TurnState, type JudgedChunk } from "./state";
 
 import type {
@@ -198,6 +199,7 @@ const usageOf = (piece: AIMessageChunk): GenerationRecord["usage"] => {
 };
 
 export type TurnGraphDeps = {
+  readMemories?: (conversationId: string) => Promise<string[]>;
   contextBudget?: Partial<ContextBudget>;
   model: TurnModel;
   store: TurnStore;
@@ -324,7 +326,9 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
         const phase = state.phase ?? state.ledger.phase;
         return { ledger: { ...state.ledger, lastEvents, phase } };
       })
-      .addNode("retrieve", () => ({ retrieved: [] }))
+      .addNode("retrieve", async (state) => ({
+        retrieved: (await deps.readMemories?.(state.conversationId)) ?? [],
+      }))
       .addNode("compose", (state) => {
         const voice = extractVoice(state.character.systemPrompt);
         const system = composeSystemPrompt({
@@ -350,7 +354,11 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
           state.userText,
           deps.contextBudget,
         );
-        const prompt: ComposedPrompt = { version: "v0001", system, messages };
+        const prompt: ComposedPrompt = {
+          version: "v0001",
+          system,
+          messages: withMemoryContext(messages, state.retrieved),
+        };
         return { prompt, omittedHistoryMessages: omittedMessages };
       })
       .addNode("generate", async (state, runtime) => {
