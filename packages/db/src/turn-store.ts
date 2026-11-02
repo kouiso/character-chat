@@ -234,12 +234,15 @@ const splitDeadTurns = <Row extends StoredRow>(rows: Row[]) => {
   };
 };
 
+export type ScheduledChunk = { seq: number; text: string; scheduledAt: number };
+
 export type DisplayHistoryRow = {
   id: string;
   turn: number;
   role: "user" | "assistant";
   content: string;
   imageKey: string | null;
+  chunks?: ScheduledChunk[];
 };
 
 // 画面の履歴と次の番号を 1 回の読込から作る（GET history と ChatRoom の job.turn が同じ値を見る）。
@@ -249,20 +252,47 @@ export const readDisplayHistory = async (
   conversationId: string,
 ): Promise<{ turn: number; history: DisplayHistoryRow[] }> => {
   await assertConversationOwner(db, opts, conversationId);
-  const rows = await db
-    .select({
-      id: v2MessageTable.id,
-      turn: v2MessageTable.turn,
-      role: v2MessageTable.role,
-      content: v2MessageTable.content,
-      imageKey: messageTable.imageKey,
-    })
-    .from(v2MessageTable)
-    .leftJoin(messageTable, eq(messageTable.id, v2MessageTable.id))
-    .where(eq(v2MessageTable.conversationId, conversationId))
-    .orderBy(asc(v2MessageTable.turn), userFirst);
+  const [rows, chunks] = await db.batch([
+    db
+      .select({
+        id: v2MessageTable.id,
+        turn: v2MessageTable.turn,
+        role: v2MessageTable.role,
+        content: v2MessageTable.content,
+        imageKey: messageTable.imageKey,
+      })
+      .from(v2MessageTable)
+      .leftJoin(messageTable, eq(messageTable.id, v2MessageTable.id))
+      .where(eq(v2MessageTable.conversationId, conversationId))
+      .orderBy(asc(v2MessageTable.turn), userFirst),
+    db
+      .select({
+        messageId: v2ChunkTable.messageId,
+        seq: v2ChunkTable.seq,
+        text: v2ChunkTable.text,
+        scheduledAt: v2ChunkTable.scheduledAt,
+      })
+      .from(v2ChunkTable)
+      .innerJoin(v2MessageTable, eq(v2MessageTable.id, v2ChunkTable.messageId))
+      .where(eq(v2MessageTable.conversationId, conversationId))
+      .orderBy(asc(v2ChunkTable.seq)),
+  ]);
   const { live, nextTurn } = splitDeadTurns(rows);
-  return { turn: nextTurn, history: live };
+  const byMessage = new Map<string, ScheduledChunk[]>();
+  for (const { messageId, ...chunk } of chunks) {
+    const group = byMessage.get(messageId) ?? [];
+    group.push(chunk);
+    byMessage.set(messageId, group);
+  }
+  return {
+    turn: nextTurn,
+    history: live.map((row) => ({
+      ...row,
+      ...(row.role === "assistant" && byMessage.has(row.id)
+        ? { chunks: byMessage.get(row.id) }
+        : {}),
+    })),
+  };
 };
 
 /**

@@ -11,6 +11,31 @@ import {
   writePendingTurn,
 } from "./chat-session";
 
+describe("返信予定の読み込み", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("予定があるのにサーバー時刻が欠けた応答は早出しせず拒否する", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        Response.json({
+          turn: 2,
+          history: [
+            {
+              role: "assistant",
+              content: "予定の返事",
+              chunks: [{ seq: 0, text: "予定の返事", scheduledAt: 2_000 }],
+            },
+          ],
+        }),
+      ),
+    );
+    await expect(loadChatHistory("a", "conv", new AbortController().signal)).rejects.toThrow(
+      "予定時刻を確認できません",
+    );
+  });
+});
+
 describe("再開する会話の端末保存", () => {
   afterEach(() => localStorage.clear());
 

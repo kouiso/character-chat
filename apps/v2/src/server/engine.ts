@@ -5,6 +5,7 @@ import {
   createDb,
   readDisplayHistory,
   readD1StoredTurn,
+  type ScheduledChunk,
   type V2Db,
 } from "@v2/db";
 import {
@@ -118,7 +119,7 @@ export type ConversationHistory = {
   conversationId: string;
   // 次に保存されるターン番号（= 保存済みターン数 + 1）。
   turn: number;
-  history: (HistoryMessage & { imageUrl?: string })[];
+  history: (HistoryMessage & { imageUrl?: string; chunks?: ScheduledChunk[] })[];
 };
 
 // GET /api/chat/:id/history と ChatRoom の job.turn の両方がここを読む。履歴と次の番号は
@@ -144,6 +145,7 @@ export const loadHistory = async (input: {
     history: display.history.map((row) => ({
       role: row.role,
       content: row.content,
+      ...(row.chunks ? { chunks: row.chunks } : {}),
       ...(row.imageKey ? { imageUrl: `/api/media/${encodeURIComponent(row.id)}` } : {}),
     })),
   };

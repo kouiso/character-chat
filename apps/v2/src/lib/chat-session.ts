@@ -21,16 +21,24 @@ const storedTurnSchema = z.object({
   user: z.string().nullable(),
   answered: z.boolean(),
 });
+const timestampSchema = z.number().int().nonnegative().max(8_640_000_000_000_000);
+const scheduledChunkSchema = z.object({
+  seq: z.number().int().nonnegative(),
+  text: z.string(),
+  scheduledAt: timestampSchema,
+});
 const historySchema = z.object({
   history: z.array(
     z.object({
       role: z.enum(["user", "assistant"]),
       content: z.string(),
       imageUrl: z.string().optional(),
+      chunks: z.array(scheduledChunkSchema).optional(),
     }),
   ),
   turn: z.number().int(),
   storedTurn: storedTurnSchema.nullable().optional(),
+  serverTime: timestampSchema.optional(),
 });
 const rejectionSchema = z.object({ code: z.string().optional() });
 export type PendingTurn = z.infer<typeof pendingSchema>;
@@ -40,6 +48,11 @@ export type ChatBubble = {
   text: string;
   pending?: boolean;
   imageUrl?: string;
+  delivery?: {
+    chunks: z.infer<typeof scheduledChunkSchema>[];
+    serverTime: number;
+    receivedAt: number;
+  };
 };
 export type StoredTurn = z.infer<typeof storedTurnSchema>;
 
@@ -209,11 +222,24 @@ export const loadChatHistory = async (
   if (response.status === 404 || response.status === 422) throw new ChatRequestRejectedError();
   if (!response.ok) throw new Error("会話履歴を読み込めませんでした。再試行してください。");
   const history = historySchema.parse(await response.json());
+  const receivedAt = performance.now();
+  if (history.history.some((item) => item.chunks?.length) && history.serverTime === undefined) {
+    throw new Error("返信の予定時刻を確認できませんでした。再試行してください。");
+  }
   return {
     bubbles: history.history.map((item) => ({
       role: item.role,
       text: item.content,
       imageUrl: item.imageUrl,
+      ...(item.role === "assistant" && item.chunks?.length && history.serverTime !== undefined
+        ? {
+            delivery: {
+              chunks: [...item.chunks].sort((a, b) => a.seq - b.seq),
+              serverTime: history.serverTime,
+              receivedAt,
+            },
+          }
+        : {}),
     })),
     nextTurn: history.turn,
     storedTurn: history.storedTurn,

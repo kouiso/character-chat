@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { useChatDelivery } from "../lib/chat-delivery";
 import { MAX_MESSAGE_LENGTH } from "../lib/chat-limits";
 import {
   ChatConnectionError,
@@ -52,37 +53,38 @@ const withoutPending = (history: ChatBubble[], pending: PendingTurn): ChatBubble
     : history;
 };
 
-const updateAssistant = (history: ChatBubble[], text: string): ChatBubble[] =>
-  history.map((bubble, index) =>
-    index === history.length - 1 && bubble.role === "assistant"
-      ? { ...bubble, text, pending: true }
-      : bubble,
-  );
-
 const failureMessage = (cause: unknown): string =>
   cause instanceof Error ? cause.message : "返信を確認できませんでした。";
+
+const isChatBlocked = (
+  busy: boolean,
+  pending: PendingTurn | null,
+  deliveryWaiting: boolean,
+): boolean => busy || pending !== null || deliveryWaiting;
+
+const canSubmitText = (
+  text: string,
+  busy: boolean,
+  pending: PendingTurn | null,
+  deliveryWaiting: boolean,
+): boolean => text.trim().length > 0 && !isChatBlocked(busy, pending, deliveryWaiting);
+
+const shouldShowBubble = (bubble: ChatBubble): boolean => Boolean(bubble.text || bubble.imageUrl);
+
+const isStatusVisible = (busy: boolean, deliveryWaiting: boolean): boolean =>
+  busy || deliveryWaiting;
 
 type ChatErrorEvent = Extract<ChatSseEvent, { type: "error" }>;
 
 const consumeEvents = async (
   stream: ReadableStream<Uint8Array>,
   signal: AbortSignal,
-  onChunk: (text: string) => void,
   onError: (event: ChatErrorEvent) => void,
 ): Promise<boolean> => {
-  const chunks = new Map<number, string>();
   let completed = false;
   for await (const event of readChatEvents(stream)) {
     if (signal.aborted) return false;
-    if (event.type === "chunk") {
-      chunks.set(event.seq, event.text);
-      onChunk(
-        [...chunks.entries()]
-          .sort(([a], [b]) => a - b)
-          .map(([, value]) => value)
-          .join("\n"),
-      );
-    }
+    // SSE の塊には保存済みの予定時刻がないため、本文は完了後の履歴からだけ表示する。
     if (event.type === "error") {
       onError(event);
       throw new Error(event.message);
@@ -94,6 +96,7 @@ const consumeEvents = async (
 
 export const ChatView = ({ characterId, characterName, initialConversationId }: ChatViewProps) => {
   const [bubbles, setBubbles] = useState<ChatBubble[]>([]);
+  const delivery = useChatDelivery(bubbles);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -110,11 +113,8 @@ export const ChatView = ({ characterId, characterName, initialConversationId }: 
     setTerminalFailure(false);
     try {
       const stream = await connectChatTurn(turn, signal, retry);
-      const completed = await consumeEvents(
-        stream,
-        signal,
-        (text) => setBubbles((previous) => updateAssistant(previous, text)),
-        (event) => setTerminalFailure(event.terminal === true),
+      const completed = await consumeEvents(stream, signal, (event) =>
+        setTerminalFailure(event.terminal === true),
       );
       if (!completed) throw new ChatConnectionError();
       // サーバーが完了を確かめた時点で保留を片付ける。履歴の読み直しで失敗しても、
@@ -235,7 +235,7 @@ export const ChatView = ({ characterId, characterName, initialConversationId }: 
   const send = async (event: React.FormEvent) => {
     event.preventDefault();
     const text = input.trim();
-    if (!text || busy || pending) return;
+    if (!canSubmitText(text, busy, pending, delivery.waiting)) return;
     if (text.length > MAX_MESSAGE_LENGTH) {
       setError(`${MAX_MESSAGE_LENGTH}字以内で送信してください。入力は保持されています。`);
       return;
@@ -279,7 +279,7 @@ export const ChatView = ({ characterId, characterName, initialConversationId }: 
     <div className="v2-chat">
       <div className="v2-chat-header">{characterName}</div>
       <div className="v2-chat-log" aria-live="polite">
-        {bubbles.map((bubble, index) => (
+        {delivery.visible.filter(shouldShowBubble).map((bubble, index) => (
           <div
             key={index}
             className={`v2-bubble ${bubble.role} ${bubble.pending ? "pending" : ""}`}
@@ -292,6 +292,7 @@ export const ChatView = ({ characterId, characterName, initialConversationId }: 
             )}
           </div>
         ))}
+        {isStatusVisible(busy, delivery.waiting) && <div role="status">入力中…</div>}
       </div>
       {error && (
         <div className="v2-error" role="alert">
@@ -319,9 +320,9 @@ export const ChatView = ({ characterId, characterName, initialConversationId }: 
           onChange={(event) => setInput(event.target.value)}
           placeholder="メッセージを入力"
           aria-label="メッセージ"
-          disabled={busy || pending !== null}
+          disabled={isChatBlocked(busy, pending, delivery.waiting)}
         />
-        <button type="submit" disabled={busy || pending !== null || input.trim().length === 0}>
+        <button type="submit" disabled={!canSubmitText(input, busy, pending, delivery.waiting)}>
           送信
         </button>
       </form>

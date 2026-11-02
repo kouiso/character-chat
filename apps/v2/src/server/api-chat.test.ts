@@ -15,7 +15,7 @@ vi.mock("./engine", async (importOriginal) => ({
   loadHistory: async () => ({ conversationId: "conv", turn: 1, history: [] }),
 }));
 
-const { handleChatRequest } = await import("./api-chat");
+const { handleChatRequest, handleHistoryRequest } = await import("./api-chat");
 
 const post = () =>
   handleChatRequest(
@@ -62,4 +62,16 @@ describe("送信文の上限", () => {
   it("画面と API の上限は、model へ渡す現在の発言の予算と同じ", () => {
     expect(MAX_MESSAGE_LENGTH).toBe(DEFAULT_CONTEXT_BUDGET.currentMessageCharacters);
   });
+});
+
+it("履歴と一緒にサーバー時刻を返す", async () => {
+  const before = Date.now();
+  const response = await handleHistoryRequest(
+    "c",
+    new Request("https://example.com/api/chat/c/history?conversationId=conv"),
+  );
+  const body: { serverTime: number } = await response.json();
+  expect(response.status).toBe(200);
+  expect(body.serverTime).toBeGreaterThanOrEqual(before);
+  expect(body.serverTime).toBeLessThanOrEqual(Date.now());
 });

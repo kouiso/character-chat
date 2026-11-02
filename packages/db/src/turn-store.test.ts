@@ -215,6 +215,21 @@ describe("createD1TurnStore", () => {
       },
     ]);
 
+    const display = await readDisplayHistory(
+      local.db,
+      { userId: "vitest", characterId, promptVersion: "v0001" },
+      conversationId,
+    );
+    expect(display.history.find((row) => row.role === "assistant")?.chunks).toEqual([
+      { seq: 0, text: "<action>動作 1</action>", scheduledAt: assistantRows[0].createdAt + 200 },
+      {
+        seq: 1,
+        text: "<dialogue>台詞 1</dialogue>",
+        scheduledAt: assistantRows[0].createdAt + 400,
+      },
+    ]);
+    expect(display.history.find((row) => row.role === "user")?.chunks).toBeUndefined();
+
     const generationRows = await local.db
       .select()
       .from(v2GenerationTable)

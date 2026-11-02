@@ -130,7 +130,10 @@ export const handleHistoryRequest = async (id: string, request: Request): Promis
   if (requestId && !requestId.success)
     return json(400, { message: "requestIdを確認してください。" });
   try {
-    if (!requestId) return json(200, await loadHistory({ characterId: id, conversationId }));
+    if (!requestId) {
+      const history = await loadHistory({ characterId: id, conversationId });
+      return json(200, { ...history, serverTime: Date.now() });
+    }
     const { env } = await getPlatform();
     const room = chatRoomFor(env, conversationId);
     const job = await room.jobTurn(requestId.data);
@@ -142,6 +145,7 @@ export const handleHistoryRequest = async (id: string, request: Request): Promis
     return json(200, {
       ...history,
       storedTurn: job === null ? null : await readStoredTurn(id, conversationId, job.turn),
+      serverTime: Date.now(),
     });
   } catch (error) {
     return toErrorResponse(error);
