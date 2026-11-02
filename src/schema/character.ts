@@ -42,6 +42,10 @@ export const characterTable = sqliteTable(
     // 0 = 元キャラ最優先 / 100 = import-* を後方に。並び順は ASC で評価される
     displayOrder: integer("display_order", { mode: "number" }).notNull().default(0),
     slug: text("slug").unique(),
+    // 版管理: current_version_id が指す character_version 行が現在版。未移行行は NULL。
+    // 保存APIは revision をCASとして使い、別画面の古い保存は 409 にする。
+    revision: integer("revision", { mode: "number" }).notNull().default(0),
+    currentVersionId: text("current_version_id"),
     createdAt: integer("created_at", { mode: "number" }).notNull(),
   },
   (table) => [

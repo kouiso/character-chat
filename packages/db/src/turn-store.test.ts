@@ -9,6 +9,7 @@ import { characterTable } from "../../../src/schema/character";
 import { openLocalD1, type LocalD1 } from "./test/local-d1";
 import {
   createD1TurnStore,
+  ensureConversationVersion,
   readD1StoredTurn,
   readDisplayHistory,
   type TurnEvent,
@@ -224,6 +225,29 @@ describe("createD1TurnStore", () => {
       status: "ok",
       error: null,
     });
+  });
+
+  it("saveTurn は既存会話の pinned character version を上書きしない", async () => {
+    const conversationId = newConversationId();
+    await ensureConversationVersion(local.db, {
+      conversationId,
+      userId: "vitest",
+      characterId,
+      promptVersion: "v0001",
+      versionId: "pinned-version",
+    });
+    await store.saveTurn({
+      conversationId,
+      turn: 1,
+      userText: "会話を続ける。",
+      events: chunkEvents(1),
+      ledger: ledgerAt(1),
+    });
+    const [conversation] = await local.db
+      .select({ characterVersionId: v2ConversationTable.characterVersionId })
+      .from(v2ConversationTable)
+      .where(eq(v2ConversationTable.id, conversationId));
+    expect(conversation.characterVersionId).toBe("pinned-version");
   });
 
   it("未知の conversationId は空履歴・初期 ledger・turn 1", async () => {

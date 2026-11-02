@@ -6,9 +6,18 @@ import { conversationTable } from "../../../src/schema/conversation";
 import { messageTable } from "../../../src/schema/message";
 import { userTable } from "../../../src/schema/user";
 
-import { LegacyMigrationError, migrateLegacyConversations } from "./legacy-migration";
+import {
+  LegacyMigrationError,
+  listConversations,
+  migrateLegacyConversations,
+} from "./legacy-migration";
 import { openLocalD1, type LocalD1 } from "./test/local-d1";
-import { createD1TurnStore, readOwnedImageKey, readDisplayHistory } from "./turn-store";
+import {
+  createD1TurnStore,
+  ensureConversationVersion,
+  readDisplayHistory,
+  readOwnedImageKey,
+} from "./turn-store";
 import {
   v2ChunkTable,
   v2ConversationTable,
@@ -132,6 +141,84 @@ describe("legacy migration", () => {
       .from(v2MessageTable)
       .where(eq(v2MessageTable.id, `${ids[0]}-0`));
     expect(unchanged.content).toBe("元の発言 0");
+  });
+});
+
+describe("v2 conversation list", () => {
+  it("hides a pin-only retry placeholder until its first message is saved", async () => {
+    const local = await openLocalD1();
+    const listOwner = `list-test-${crypto.randomUUID()}`;
+    const [character] = await local.db
+      .select({ id: characterTable.id })
+      .from(characterTable)
+      .limit(1);
+    await local.db
+      .insert(userTable)
+      .values({ id: listOwner, email: `${listOwner}@example.invalid`, createdAt: 1 });
+    const conversationId = `${listOwner}-conversation`;
+    await ensureConversationVersion(local.db, {
+      conversationId,
+      userId: listOwner,
+      characterId: character.id,
+      promptVersion: "test",
+      versionId: "pinned-version",
+    });
+    expect(await listConversations(local.db, listOwner)).toEqual([]);
+    await local.db.insert(v2ConversationTable).values({
+      id: `${listOwner}-legacy`,
+      userId: listOwner,
+      legacySourceUserId: listOwner,
+      characterId: character.id,
+      threadId: `${listOwner}-legacy`,
+      promptVersion: "legacy-import-v1",
+      createdAt: 1,
+      updatedAt: 1,
+    });
+    const otherOwner = `${listOwner}-other`;
+    const otherConversation = `${listOwner}-other-conversation`;
+    await local.db.insert(v2ConversationTable).values({
+      id: otherConversation,
+      userId: otherOwner,
+      characterId: character.id,
+      threadId: otherConversation,
+      promptVersion: "test",
+      createdAt: 1,
+      updatedAt: 1,
+    });
+    expect((await listConversations(local.db, listOwner)).map((row) => row.id)).toEqual([
+      `${listOwner}-legacy`,
+    ]);
+    await local.db.insert(v2MessageTable).values({
+      id: `${conversationId}-message`,
+      conversationId,
+      turn: 1,
+      role: "user",
+      content: "再試行",
+      createdAt: 2,
+    });
+    await local.db.insert(v2MessageTable).values({
+      id: `${otherConversation}-message`,
+      conversationId: otherConversation,
+      turn: 1,
+      role: "user",
+      content: "別の利用者",
+      createdAt: 2,
+    });
+    const visible = (await listConversations(local.db, listOwner)).map((row) => row.id);
+    expect(visible).toContain(conversationId);
+    expect(visible).toContain(`${listOwner}-legacy`);
+    expect(visible).not.toContain(otherConversation);
+    await local.db.delete(v2MessageTable).where(eq(v2MessageTable.conversationId, conversationId));
+    await local.db
+      .delete(v2MessageTable)
+      .where(eq(v2MessageTable.conversationId, otherConversation));
+    await local.db.delete(v2ConversationTable).where(eq(v2ConversationTable.id, conversationId));
+    await local.db.delete(v2ConversationTable).where(eq(v2ConversationTable.id, otherConversation));
+    await local.db
+      .delete(v2ConversationTable)
+      .where(eq(v2ConversationTable.id, `${listOwner}-legacy`));
+    await local.db.delete(userTable).where(eq(userTable.id, listOwner));
+    await local.dispose();
   });
 });
 

@@ -8,6 +8,10 @@
     ".": {
       "types": "./src/index.ts",
       "default": "./src/index.ts"
+    },
+    "./character-version": {
+      "types": "./src/character-version.ts",
+      "default": "./src/character-version.ts"
     }
   },
   "scripts": {

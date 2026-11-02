@@ -1,6 +1,6 @@
 // 既存 character テーブルを Drizzle で読み、zod で行ごとに検証する。
 // 壊れた行（tags の JSON 不正、greeting 空など）は投げずに failures へ寄せ、他の行は返す。
-import { asc, eq, sql } from "drizzle-orm";
+import { and, asc, eq, or, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import { characterTable } from "../../../src/schema/character";
@@ -24,12 +24,23 @@ export const characterSheetSchema = z.object({
 
 export type CharacterSheet = z.infer<typeof characterSheetSchema>;
 
-export type CharacterSummary = Pick<CharacterSheet, "id" | "name" | "avatar">;
+export type CharacterSummary = Pick<CharacterSheet, "id" | "name" | "avatar"> & {
+  canEdit: boolean;
+};
 
-export const listCharacterSummaries = async (db: V2Db): Promise<CharacterSummary[]> =>
+export const listCharacterSummaries = async (
+  db: V2Db,
+  userId = "local",
+): Promise<CharacterSummary[]> =>
   db
-    .select({ id: characterTable.id, name: characterTable.name, avatar: characterTable.avatar })
+    .select({
+      id: characterTable.id,
+      name: characterTable.name,
+      avatar: characterTable.avatar,
+      canEdit: sql<boolean>`${characterTable.userId} = ${userId}`.mapWith(Boolean),
+    })
     .from(characterTable)
+    .where(or(eq(characterTable.userId, userId), eq(characterTable.isOfficial, true)))
     .orderBy(asc(characterTable.displayOrder), asc(characterTable.createdAt));
 
 // tags は DB 上 JSON 文字列。Drizzle の json モードで読むと不正な 1 行で select 全体が
@@ -93,8 +104,19 @@ export const loadCharacters = async (db: V2Db): Promise<CharacterLoadResult> => 
 export const loadCharacter = async (
   db: V2Db,
   id: string,
+  userId?: string,
 ): Promise<{ ok: CharacterSheet | null; failures: CharacterLoadFailure[] }> => {
-  const rows = await db.select(selectColumns).from(characterTable).where(eq(characterTable.id, id));
+  const rows = await db
+    .select(selectColumns)
+    .from(characterTable)
+    .where(
+      userId === undefined
+        ? eq(characterTable.id, id)
+        : and(
+            eq(characterTable.id, id),
+            or(eq(characterTable.userId, userId), eq(characterTable.isOfficial, true)),
+          ),
+    );
   const parsed = parseRows(rows);
   return { ok: parsed.ok[0] ?? null, failures: parsed.failures };
 };

@@ -14,22 +14,26 @@ const routeApi = getRouteApi("/chat/$id");
 
 const ChatPage = () => {
   const character = routeApi.useLoaderData();
-  const { conversationId } = routeApi.useSearch();
+  const { conversationId, newChat } = routeApi.useSearch();
   return (
     <div className="v2-chat-page">
       <ChatConnectionState />
       <ChatView
-        key={`${character.id}:${conversationId ?? "saved"}`}
+        key={`${character.id}:${conversationId ?? newChat ?? "saved"}`}
         characterId={character.id}
         characterName={character.name}
         initialConversationId={conversationId}
+        newConversationKey={newChat}
       />
     </div>
   );
 };
 
 export const Route = createFileRoute("/chat/$id")({
-  validateSearch: z.object({ conversationId: z.string().min(1).max(120).optional() }),
+  validateSearch: z.object({
+    conversationId: z.string().min(1).max(120).optional(),
+    newChat: z.string().uuid().optional(),
+  }),
   loader: async ({ params, abortController }) => {
     const character = await getCharacter({ data: params.id, signal: abortController.signal });
     if (!character) throw notFound();

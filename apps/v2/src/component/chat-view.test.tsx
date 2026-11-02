@@ -20,6 +20,31 @@ describe("ChatView", () => {
     expect(screen.getByRole("button", { name: "送信" })).toBeDisabled();
   });
 
+  it("新規会話の入口では前の会話を再開せず、再読込時は新しい保留を復元する", async () => {
+    writeChatSession("a", { version: 1, conversationId: "old", pending: null });
+    const fetchMock = vi.fn(async (_url: RequestInfo | URL, init?: RequestInit) => {
+      if (init?.method === "POST") return new Response(null, { status: 503 });
+      return Response.json({ turn: 1, history: [] });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const first = render(
+      <ChatView characterId="a" characterName="案内役" newConversationKey="fresh" />,
+    );
+    expect(fetchMock).not.toHaveBeenCalled();
+    fireEvent.change(screen.getByRole("textbox"), { target: { value: "新しい会話" } });
+    fireEvent.click(screen.getByRole("button", { name: "送信" }));
+    await screen.findByRole("alert");
+    const created = readChatSession("a");
+    expect(created.conversationId).not.toBe("old");
+    expect(localStorage.getItem("v2-new-chat:a:fresh")).toBe(created.conversationId);
+    first.unmount();
+    fetchMock.mockClear();
+    render(<ChatView characterId="a" characterName="案内役" newConversationKey="fresh" />);
+    await screen.findByRole("alert");
+    expect(readChatSession("a").pending?.requestId).toBe(created.pending?.requestId);
+    expect(fetchMock).toHaveBeenCalled();
+  });
+
   it("送信失敗後に再起動しても同じ受付番号で再開する", async () => {
     const requests: Record<string, unknown>[] = [];
     let succeeded = false;
