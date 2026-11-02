@@ -38,10 +38,14 @@ const CharacterListPage = () => {
       {characters.length === 0 ? (
         <ListEmptyState />
       ) : (
-        <ul>
+        <ul aria-label="キャラクター一覧">
           {characters.map((c) => (
             <li key={c.id}>
-              <Link to="/chat/$id" params={{ id: c.id }}>
+              <Link
+                to="/chat/$id"
+                params={{ id: c.id }}
+                search={{ conversationId: c.lastConversation?.id }}
+              >
                 {c.name}
               </Link>
             </li>
@@ -60,7 +64,25 @@ export const Route = createFileRoute("/")({
       listCharacters({ signal: abortController.signal }),
       listSavedConversations({ signal: abortController.signal }),
     ]);
-    return { characters, conversations };
+    const latest = new Map<string, (typeof conversations)[number]>();
+    for (const conversation of conversations) {
+      const previous = latest.get(conversation.characterId);
+      if (
+        !previous ||
+        conversation.updatedAt > previous.updatedAt ||
+        (conversation.updatedAt === previous.updatedAt && conversation.id < previous.id)
+      ) {
+        latest.set(conversation.characterId, conversation);
+      }
+    }
+    const recentCharacters = characters
+      .map((character) => ({ ...character, lastConversation: latest.get(character.id) }))
+      .sort((a, b) => {
+        if (!a.lastConversation) return b.lastConversation ? 1 : 0;
+        if (!b.lastConversation) return -1;
+        return b.lastConversation.updatedAt - a.lastConversation.updatedAt;
+      });
+    return { characters: recentCharacters, conversations };
   },
   component: CharacterListPage,
 });
