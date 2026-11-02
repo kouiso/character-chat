@@ -64,6 +64,18 @@ await server.listen();
 let browser;
 const results = [];
 const events = (type, payload) => `event: ${type}\ndata: ${JSON.stringify(payload)}\n\n`;
+const syntheticJudge = {
+  ok: true,
+  reasons: [],
+  warnings: [],
+  checks: {
+    ngram: { ok: true, ratio: 0, matchedPhrases: [], exactRepeat: false },
+    nearDuplicate: { ok: true, matches: [] },
+    voice: { ok: true },
+    format: { ok: true },
+    empty: { ok: true },
+  },
+};
 const fixtures = {
   normal:
     "<response><action>公園のベンチに地図を広げる。木の葉が静かに揺れている。</action><dialogue>「次は図書館まで歩こう。途中で休んでも大丈夫だよ🙂」</dialogue><inner>初めての道を見つけるのが楽しみ。</inner><action>道の先を指さす。</action></response>",
@@ -98,7 +110,7 @@ const mockChat = async (page, text) => {
       assert.equal(typeof input.text, "string");
       history.push({ role: "user", content: input.text }, { role: "assistant", content: text });
       const body =
-        events("chunk", { seq: 0, text }) +
+        events("chunk", { seq: 0, text, judge: syntheticJudge, attempt: 1, preExtend: false }) +
         events("done", {
           conversationId: input.conversationId ?? "synthetic-conversation",
           turn: history.length / 2,

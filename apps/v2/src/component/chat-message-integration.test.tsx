@@ -1,7 +1,10 @@
+import { extractVoice, judgeChunk } from "@v2/judge";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { ChatView } from "./chat-view";
+
+import type { ChatSseEvent } from "../lib/sse-events";
 
 afterEach(() => {
   cleanup();
@@ -57,23 +60,29 @@ describe("ChatView message 表示接続", () => {
       "合成の公園へ行こう🙂",
     );
     const encoder = new TextEncoder();
-    const emit = (type: string, payload: object) => {
+    const emit = (event: ChatSseEvent) => {
       if (!streamController) throw new Error("合成ストリームが未接続");
       streamController.enqueue(
-        encoder.encode(`event: ${type}\ndata: ${JSON.stringify(payload)}\n\n`),
+        encoder.encode(`event: ${event.type}\ndata: ${JSON.stringify(event)}\n\n`),
       );
     };
+    const emitChunk = (seq: number, text: string) =>
+      emit({
+        type: "chunk",
+        seq,
+        text,
+        judge: judgeChunk(text, { previousChunks: [], voice: extractVoice("合成案内役") }),
+        attempt: 1,
+        preExtend: false,
+      });
 
-    emit("chunk", { seq: 0, text: "<response><action>仮の描写。</action><dia" });
+    emitChunk(0, "<response><action>仮の描写。</action><dia");
     expect(await screen.findByRole("group", { name: "描写" })).toHaveTextContent("仮の描写。");
     expect(screen.queryByText(/<dia/)).not.toBeInTheDocument();
 
-    emit("chunk", {
-      seq: 0,
-      text: "<action>地図を開く。</action><dialogue>「出発しよう👩🏽‍🚀」</dialogue>",
-    });
-    emit("chunk", { seq: 1, text: "<inner>次の道が楽しみ。</inner>" });
-    emit("done", { conversationId: "synthetic-conversation", turn: 1, generationId: null });
+    emitChunk(0, "<action>地図を開く。</action><dialogue>「出発しよう👩🏽‍🚀」</dialogue>");
+    emitChunk(1, "<inner>次の道が楽しみ。</inner>");
+    emit({ type: "done", conversationId: "synthetic-conversation", turn: 1, generationId: null });
     streamController?.close();
 
     expect(await screen.findByRole("group", { name: "心の声" })).toHaveTextContent(
