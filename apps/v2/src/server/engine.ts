@@ -67,12 +67,18 @@ const getDb = async (): Promise<V2Db> => {
 };
 
 // store は (user, character) ごとに作る（v2_conversation の初回 insert に character_id が要る）。
-const createStore = (db: V2Db, characterId: string, beforeTurn?: number): TurnStore =>
+const createStore = (
+  db: V2Db,
+  characterId: string,
+  beforeTurn?: number,
+  extractMemory = false,
+): TurnStore =>
   createD1TurnStore(db, {
     userId: LOCAL_USER_ID,
     characterId,
     promptVersion: PROMPT_VERSION,
     beforeTurn,
+    extractMemory,
   });
 
 export type StartTurnInput = {
@@ -103,7 +109,7 @@ export const startTurn = async (
   const graph = createTurnGraph({
     model,
     contextBudget: contextBudgetFromEnv(env),
-    store: createStore(db, input.characterId, input.expectedTurn),
+    store: createStore(db, input.characterId, input.expectedTurn, Boolean(env.MEMORY_QUEUE)),
   });
   const conversationId = input.conversationId ?? crypto.randomUUID();
   const events = runTurn(

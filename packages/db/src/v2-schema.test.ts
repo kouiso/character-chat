@@ -9,6 +9,8 @@ import {
   v2GenerationTable,
   v2LedgerTable,
   v2MemoryTable,
+  v2MemoryJobTable,
+  v2MemorySourceTable,
   v2MessageTable,
 } from "./v2-schema";
 
@@ -30,9 +32,11 @@ describe("v2_ tables: SQL DDL と drizzle 宣言の一致", () => {
     v2LedgerTable,
     v2GenerationTable,
     v2MemoryTable,
+    v2MemoryJobTable,
+    v2MemorySourceTable,
   ];
 
-  it("SQL 側に6つの v2_ テーブルが存在する", async () => {
+  it("SQL 側にすべての v2_ テーブルが存在する", async () => {
     const { results } = await local.d1
       .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name GLOB 'v2_*'")
       .all<{ name: string }>();
@@ -43,6 +47,8 @@ describe("v2_ tables: SQL DDL と drizzle 宣言の一致", () => {
         "v2_generation",
         "v2_ledger",
         "v2_memory",
+        "v2_memory_job",
+        "v2_memory_source",
         "v2_message",
       ].sort(),
     );

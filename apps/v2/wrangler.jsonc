@@ -54,6 +54,21 @@
       }
     ]
   },
+  "queues": {
+    "producers": [
+      { "binding": "MEMORY_QUEUE", "queue": "adult-ai-v2-memory" }
+    ],
+    "consumers": [
+      {
+        "queue": "adult-ai-v2-memory",
+        "max_batch_size": 1,
+        "max_batch_timeout": 1,
+        "max_retries": 4,
+        "max_concurrency": 1,
+        "retry_delay": 30
+      }
+    ]
+  },
   "migrations": [
     {
       "tag": "v1-chat-room",

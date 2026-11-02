@@ -1,6 +1,6 @@
 // v2 リビルド用テーブル宣言。既存テーブル（character 等）は src/schema/* 側の宣言を再 export して使う。
 // 列名・制約は drizzle/0070_v2_tables.sql と一致させる。
-import { blob, integer, primaryKey, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { blob, index, integer, primaryKey, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 import { characterTable } from "../../../src/schema/character";
 
@@ -87,4 +87,41 @@ export const v2MemoryTable = sqliteTable("v2_memory", {
   // bge-m3 1024 次元 float32 の生バイト（script/rag/ingest.ts の rag_chunk と同形式）。M0 は NULL のまま。
   embedding: blob("embedding", { mode: "buffer" }),
   createdAt: integer("created_at").notNull(),
+});
+
+export const v2MemoryJobTable = sqliteTable(
+  "v2_memory_job",
+  {
+    id: text("id").primaryKey(),
+    conversationId: text("conversation_id")
+      .notNull()
+      .references(() => v2ConversationTable.id, { onDelete: "cascade" }),
+    userId: text("user_id").notNull(),
+    characterId: text("character_id").notNull(),
+    sourceMessageId: text("source_message_id")
+      .notNull()
+      .references(() => v2MessageTable.id, { onDelete: "cascade" }),
+    sourceTurn: integer("source_turn").notNull(),
+    state: text("state", { enum: ["pending", "queued", "completed", "failed"] })
+      .notNull()
+      .default("pending"),
+    publishAttempts: integer("publish_attempts").notNull().default(0),
+    errorCode: text("error_code"),
+    createdAt: integer("created_at").notNull(),
+    updatedAt: integer("updated_at").notNull(),
+  },
+  (table) => [index("v2_memory_job_pending").on(table.conversationId, table.state)],
+);
+
+export const v2MemorySourceTable = sqliteTable("v2_memory_source", {
+  memoryId: text("memory_id")
+    .primaryKey()
+    .references(() => v2MemoryTable.id, { onDelete: "cascade" }),
+  sourceMessageId: text("source_message_id")
+    .notNull()
+    .references(() => v2MessageTable.id, { onDelete: "cascade" }),
+  sourceContentHash: text("source_content_hash").notNull(),
+  importance: integer("importance").notNull(),
+  validFrom: text("valid_from"),
+  validUntil: text("valid_until"),
 });

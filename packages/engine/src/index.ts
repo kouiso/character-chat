@@ -21,6 +21,7 @@ export {
 } from "./graph";
 export { createOpenRouterModel, OpenRouterKeyMissingError, type ModelEnv } from "./model";
 export { createMemoryTurnStore, type MemoryTurnStore } from "./memory-store";
+export { extractMemories } from "./memory-extractor";
 export { TurnState, type JudgedChunk, type TurnStateUpdate, type TurnStateValue } from "./state";
 export {
   buildConversationContext,

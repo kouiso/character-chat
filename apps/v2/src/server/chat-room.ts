@@ -1,8 +1,11 @@
+import { createDb } from "@v2/db";
 import { DurableObject } from "cloudflare:workers";
 
 import { parseChatSseEvent, type ChatSseEvent } from "../lib/sse-events";
 
 import { loadHistory, loadStoredTurn, startTurn } from "./engine";
+import { LOCAL_USER_ID } from "./identity";
+import { MEMORY_RETRY_DELAY_MS, publishMemoryJobs } from "./memory-queue";
 
 const parseStoredEvent = (raw: string): ChatSseEvent => {
   try {
@@ -240,7 +243,12 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
       const job = this.ctx.storage.sql
         .exec<Job>(`SELECT * FROM jobs WHERE ${ACTIVE_STATUS_SQL} ORDER BY created_at LIMIT 1`)
         .toArray()[0];
-      if (job) await this.process(job);
+      if (job) {
+        // D1確定後に実行が止まっても、未送信の記憶予約を次のalarmで拾えるよう先に予約する。
+        await this.ctx.storage.setAlarm(Date.now() + MEMORY_RETRY_DELAY_MS);
+        await this.process(job);
+      }
+      await this.publishMemories();
     } finally {
       this.running = false;
     }
@@ -253,6 +261,26 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
 
   private job(id: string): Job | undefined {
     return this.ctx.storage.sql.exec<Job>("SELECT * FROM jobs WHERE id = ?", id).toArray()[0];
+  }
+
+  private async publishMemories(): Promise<void> {
+    if (!this.env.MEMORY_QUEUE) return;
+    const room = this.ctx.storage.sql
+      .exec<Job>("SELECT * FROM jobs ORDER BY created_at DESC LIMIT 1")
+      .toArray()[0];
+    if (!room) return;
+    const reserve = () => this.ctx.storage.setAlarm(Date.now() + MEMORY_RETRY_DELAY_MS);
+    const pending = await publishMemoryJobs(
+      createDb(this.env.DB),
+      this.env.MEMORY_QUEUE,
+      {
+        userId: LOCAL_USER_ID,
+        characterId: room.character_id,
+        conversationId: room.conversation_id,
+      },
+      reserve,
+    );
+    if (pending) await reserve();
   }
 
   private finish(job: Job, events: ChatSseEvent[], status: JobStatus): void {
