@@ -13,6 +13,7 @@ describe("Workers 入口の BASIC 認証", () => {
     "/assets/main.js",
     "/api/chat/example",
     "/api/chat/example/history",
+    "/api/media/example",
   ])("%s は認証なしで本文を返さない", async (path) => {
     const response = await requireBasicAuth(new Request(`https://example.com${path}`), config);
     expect(response?.status).toBe(401);

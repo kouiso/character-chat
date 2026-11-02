@@ -9,7 +9,7 @@ export default defineConfig({
   plugins: [
     cloudflare({
       viteEnvironment: { name: "ssr" },
-      persistState: { path: "../../.wrangler/state" },
+      persistState: { path: process.env.V2_LOCAL_PERSIST_ROOT ?? "../../.wrangler/state" },
     }),
     tanstackStart(),
     viteReact(),

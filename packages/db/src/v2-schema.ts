@@ -7,6 +7,7 @@ import { characterTable } from "../../../src/schema/character";
 export const v2ConversationTable = sqliteTable("v2_conversation", {
   id: text("id").primaryKey(),
   userId: text("user_id").notNull(),
+  legacySourceUserId: text("legacy_source_user_id"),
   characterId: text("character_id")
     .notNull()
     .references(() => characterTable.id),

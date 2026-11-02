@@ -23,7 +23,7 @@ assert.equal(
   "Live model verification is not allowed by this script",
 );
 
-for (const path of ["/", "/assets/private.js", endpoint, `${endpoint}/history`, "/api/health"]) {
+for (const path of ["/", "/assets/private.js", endpoint, `${endpoint}/history`, "/api/health", "/api/media/example"]) {
   const denied = await fetch(new URL(path, base));
   assert.equal(denied.status, 401);
   assert.equal((await denied.arrayBuffer()).byteLength, 0);

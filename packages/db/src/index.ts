@@ -6,3 +6,4 @@ export * from "./character";
 export * from "./client";
 export * from "./turn-store";
 export * from "./v2-schema";
+export * from "./legacy-migration";
