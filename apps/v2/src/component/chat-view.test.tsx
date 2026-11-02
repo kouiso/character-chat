@@ -62,7 +62,7 @@ describe("ChatView", () => {
   it("挨拶と連続応答を含む既存履歴ではサーバーの次ターン番号を使う", async () => {
     localStorage.setItem(
       "v2-chat-session:a",
-      JSON.stringify({ version: 1, conversationId: "legacy", pending: null }),
+      JSON.stringify({ version: 1, conversationId: "another-conversation", pending: null }),
     );
     vi.stubGlobal(
       "fetch",
@@ -79,12 +79,13 @@ describe("ChatView", () => {
         });
       }),
     );
-    render(<ChatView characterId="a" characterName="案内役" />);
+    render(<ChatView characterId="a" characterName="案内役" initialConversationId="legacy" />);
     await screen.findByText("追加の応答");
     fireEvent.change(screen.getByRole("textbox"), { target: { value: "新しい質問" } });
     fireEvent.click(screen.getByRole("button", { name: "送信" }));
     await screen.findByRole("alert");
     expect(readChatSession("a").pending?.baseTurn).toBe(8);
+    expect(readChatSession("a").pending?.conversationId).toBe("legacy");
     expect(screen.getAllByText("新しい質問")).toHaveLength(1);
     expect(screen.getByText("最初の挨拶")).toBeInTheDocument();
   });
@@ -162,14 +163,14 @@ describe("ChatView", () => {
         return Response.json({ turn: 1, history: [] });
       }),
     );
-    const originalSetItem = Storage.prototype.setItem;
+    const originalRemoveItem = Storage.prototype.removeItem;
     let failPendingClear = true;
-    vi.spyOn(Storage.prototype, "setItem").mockImplementation((key, value) => {
-      if (failPendingClear && key === "v2-chat-session:a" && value.includes('"pending":null')) {
+    vi.spyOn(Storage.prototype, "removeItem").mockImplementation((key) => {
+      if (failPendingClear && key === "v2-chat-pending:a:conversation-a") {
         failPendingClear = false;
         throw new Error("storage failure");
       }
-      originalSetItem.call(localStorage, key, value);
+      originalRemoveItem.call(localStorage, key);
     });
 
     render(<ChatView characterId="a" characterName="案内役" />);
@@ -182,6 +183,121 @@ describe("ChatView", () => {
     fireEvent.click(screen.getByRole("button", { name: "入力に戻す" }));
     await waitFor(() => expect(readChatSession("a").pending).toBeNull());
   });
+
+  it("保存済みの会話Bで送信しても会話Aの保留を失わず、それぞれの会話で再開する", async () => {
+    const pendingA = {
+      characterId: "a",
+      conversationId: "conversation-a",
+      requestId: "request-a",
+      text: "Aの保留",
+      baseTurn: 1,
+    };
+    // 旧形式（キャラ単位の1件保存）のまま残った保留も読めることを兼ねて確かめる
+    localStorage.setItem(
+      "v2-chat-session:a",
+      JSON.stringify({ version: 1, conversationId: "conversation-a", pending: pendingA }),
+    );
+    const requests: Record<string, unknown>[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (_url: RequestInfo | URL, init?: RequestInit) => {
+        if (init?.method === "POST") {
+          requests.push(JSON.parse(String(init.body)) as Record<string, unknown>);
+          return new Response("", { status: 503 });
+        }
+        return Response.json({ turn: 1, history: [] });
+      }),
+    );
+
+    const viewB = render(
+      <ChatView characterId="a" characterName="案内役" initialConversationId="conversation-b" />,
+    );
+    await waitFor(() => expect(screen.getByRole("textbox")).toBeEnabled());
+    fireEvent.change(screen.getByRole("textbox"), { target: { value: "Bの質問" } });
+    fireEvent.click(screen.getByRole("button", { name: "送信" }));
+    await screen.findByRole("alert");
+    expect(readChatSession("a", "conversation-a").pending).toEqual(pendingA);
+    expect(readChatSession("a", "conversation-b").pending?.text).toBe("Bの質問");
+    viewB.unmount();
+
+    const viewA = render(
+      <ChatView characterId="a" characterName="案内役" initialConversationId="conversation-a" />,
+    );
+    await waitFor(() => expect(requests).toHaveLength(2));
+    expect(requests[1]).toMatchObject({ conversationId: "conversation-a", requestId: "request-a" });
+    viewA.unmount();
+
+    render(<ChatView characterId="a" characterName="案内役" />);
+    await waitFor(() => expect(requests).toHaveLength(3));
+    expect(requests[2]).toMatchObject({ conversationId: "conversation-b", text: "Bの質問" });
+    expect(requests[2].requestId).toBe(requests[0].requestId);
+  });
+
+  it("画面を離れた会話Aの受信が後から終わっても会話Bの保存を書き換えない", async () => {
+    const pendingA = {
+      characterId: "a",
+      conversationId: "conversation-a",
+      requestId: "request-a",
+      text: "Aの保留",
+      baseTurn: 1,
+    };
+    writeChatSession("a", { version: 1, conversationId: "conversation-a", pending: pendingA });
+    const finishA: { current: (() => void) | null } = { current: null };
+    let postedA = false;
+    const streamA = new ReadableStream<Uint8Array>({
+      start(controller) {
+        finishA.current = () => {
+          controller.enqueue(
+            new TextEncoder().encode(
+              'event: done\ndata: {"conversationId":"conversation-a","turn":2,"generationId":null}\n\n',
+            ),
+          );
+          controller.close();
+        };
+      },
+    });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: RequestInfo | URL, init?: RequestInit) => {
+        if (init?.method === "POST") {
+          const body = JSON.parse(String(init.body)) as { conversationId: string };
+          if (body.conversationId === "conversation-a") {
+            postedA = true;
+            return new Response(streamA);
+          }
+          return new Response("", { status: 503 });
+        }
+        if (String(url).includes("conversation-a"))
+          return Response.json({
+            turn: 2,
+            history: [
+              { role: "user", content: "Aの保留" },
+              { role: "assistant", content: "Aの応答" },
+            ],
+          });
+        return Response.json({ turn: 1, history: [] });
+      }),
+    );
+
+    const viewA = render(<ChatView characterId="a" characterName="案内役" />);
+    await waitFor(() => expect(postedA).toBe(true));
+    viewA.unmount();
+    render(
+      <ChatView characterId="a" characterName="案内役" initialConversationId="conversation-b" />,
+    );
+    await waitFor(() => expect(screen.getByRole("textbox")).toBeEnabled());
+    fireEvent.change(screen.getByRole("textbox"), { target: { value: "Bの質問" } });
+    fireEvent.click(screen.getByRole("button", { name: "送信" }));
+    await screen.findByRole("alert");
+    finishA.current?.();
+    await new Promise((resolve) => setTimeout(resolve, 20));
+
+    expect(readChatSession("a", "conversation-b").pending?.text).toBe("Bの質問");
+    expect(readChatSession("a").conversationId).toBe("conversation-b");
+    expect(readChatSession("a", "conversation-a").pending).toEqual(pendingA);
+    expect(screen.queryByText("Aの応答")).not.toBeInTheDocument();
+  });
+
   const TERMINAL_ERROR =
     'event: error\ndata: {"message":"返信を完了できませんでした。入力に戻してください。","terminal":true}\n\n';
   const PRIOR = [
@@ -384,6 +500,42 @@ describe("ChatView", () => {
       conversationId: "conversation-b",
       pending: otherTab,
     });
+  });
+
+  it("同じ会話を開いた別のタブが保留を入れ直したら、こちらの送信が終わってもその保留を消さない", async () => {
+    let releasePost: () => void = () => undefined;
+    const posted = new Promise<void>((resolve) => {
+      releasePost = resolve;
+    });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (_url: RequestInfo | URL, init?: RequestInit) => {
+        if (init?.method === "POST") {
+          await posted;
+          return new Response(
+            'event: done\ndata: {"conversationId":"conversation-a","turn":1,"generationId":null}\n\n',
+          );
+        }
+        return Response.json({ turn: 1, history: [] });
+      }),
+    );
+    writeChatSession("a", { version: 1, conversationId: "conversation-a", pending: null });
+    render(<ChatView characterId="a" characterName="案内役" />);
+    await waitFor(() => expect(screen.getByRole("textbox")).toBeEnabled());
+    fireEvent.change(screen.getByRole("textbox"), { target: { value: "こちらの質問" } });
+    fireEvent.click(screen.getByRole("button", { name: "送信" }));
+    await waitFor(() => expect(readChatSession("a").pending?.text).toBe("こちらの質問"));
+    const otherTab = {
+      characterId: "a",
+      conversationId: "conversation-a",
+      requestId: "request-other-tab",
+      text: "別のタブの質問",
+      baseTurn: 1,
+    };
+    writeChatSession("a", { version: 1, conversationId: "conversation-a", pending: otherTab });
+    releasePost();
+    await waitFor(() => expect(screen.getByRole("textbox")).toBeEnabled());
+    expect(readChatSession("a", "conversation-a").pending).toEqual(otherTab);
   });
 
   it("完了した送信は、直後の履歴の読み直しが失敗しても保留に残さず、入力にも戻さない", async () => {

@@ -5,6 +5,8 @@ import { emptyLedger, type SceneLedger, type ScenePhase } from "@v2/prompt";
 import { asc, desc, eq, and, inArray, lt, lte, sql } from "drizzle-orm";
 import { z } from "zod";
 
+import { messageTable } from "../../../src/schema/message";
+
 import {
   v2ChunkTable,
   v2ConversationTable,
@@ -68,6 +70,8 @@ export type TurnEvent =
       // extend が走る前の本文（初回生成）の可視字数。extend が走らんかったターンでも
       // 常に入る（shortfall の連続量は発火の有無に関わらず要る）。
       preExtendVisibleChars: number;
+      // 文脈の予算で model へ渡さんかった古い履歴の件数。長い会話で「忘れた」と「切った」を見分ける。
+      omittedHistoryMessages: number;
     }
   | { type: "done"; conversationId: string; turn: number; generationId: string | null }
   | { type: "error"; message: string };
@@ -128,6 +132,16 @@ export const readD1StoredTurn = async (
     .from(v2MessageTable)
     .where(and(eq(v2MessageTable.conversationId, conversationId), eq(v2MessageTable.turn, turn)))
     .orderBy(asc(v2MessageTable.createdAt), asc(v2MessageTable.id));
+};
+
+export const readOwnedImageKey = async (db: V2Db, userId: string, messageId: string) => {
+  const [row] = await db
+    .select({ key: messageTable.imageKey })
+    .from(v2MessageTable)
+    .innerJoin(v2ConversationTable, eq(v2ConversationTable.id, v2MessageTable.conversationId))
+    .innerJoin(messageTable, eq(messageTable.id, v2MessageTable.id))
+    .where(and(eq(v2MessageTable.id, messageId), eq(v2ConversationTable.userId, userId)));
+  return row?.key ?? null;
 };
 
 type ChunkEvent = Extract<TurnEvent, { type: "chunk" }>;
@@ -199,8 +213,10 @@ type StoredRow = { turn: number; role: "user" | "assistant"; content: string };
 
 // 修正前の画面は失敗後に次の番号へ進んだので、失敗ターンが続けて残っとる会話がある。
 // 途中の失敗ターンも履歴から外し、場面状態は最後に成功したターンのものを使う。
-const splitDeadTurns = (rows: StoredRow[]) => {
-  const rowsByTurn = new Map<number, StoredRow[]>();
+// 画面用の読込（readDisplayHistory）も同じ規則を通す。別の規則で数えると、画面に残った
+// 失敗ターンが次の送信で黙って上書きされる。
+const splitDeadTurns = <Row extends StoredRow>(rows: Row[]) => {
+  const rowsByTurn = new Map<number, Row[]>();
   for (const row of rows) {
     rowsByTurn.set(row.turn, [...(rowsByTurn.get(row.turn) ?? []), row]);
   }
@@ -208,14 +224,44 @@ const splitDeadTurns = (rows: StoredRow[]) => {
     [...rowsByTurn].filter(([, turnRows]) => isDeadTurn(turnRows)).map(([turn]) => turn),
   );
   const liveTurns = [...rowsByTurn.keys()].filter((turn) => !deadTurns.has(turn));
+  const maxTurn = Math.max(0, ...rowsByTurn.keys());
   return {
-    history: rows
-      .filter((row) => !deadTurns.has(row.turn))
-      .map((row): HistoryMessage => ({ role: row.role, content: row.content })),
-    deadTurns,
-    maxTurn: Math.max(0, ...rowsByTurn.keys()),
+    live: rows.filter((row) => !deadTurns.has(row.turn)),
     lastLiveTurn: Math.max(0, ...liveTurns),
+    // 末尾の失敗ターンは次の saveTurn が同じ番号で置き換える。
+    nextTurn: deadTurns.has(maxTurn) ? maxTurn : maxTurn + 1,
   };
+};
+
+export type DisplayHistoryRow = {
+  id: string;
+  turn: number;
+  role: "user" | "assistant";
+  content: string;
+  imageKey: string | null;
+};
+
+// 画面の履歴と次の番号を 1 回の読込から作る（GET history と ChatRoom の job.turn が同じ値を見る）。
+export const readDisplayHistory = async (
+  db: V2Db,
+  opts: D1TurnStoreOptions,
+  conversationId: string,
+): Promise<{ turn: number; history: DisplayHistoryRow[] }> => {
+  await assertConversationOwner(db, opts, conversationId);
+  const rows = await db
+    .select({
+      id: v2MessageTable.id,
+      turn: v2MessageTable.turn,
+      role: v2MessageTable.role,
+      content: v2MessageTable.content,
+      imageKey: messageTable.imageKey,
+    })
+    .from(v2MessageTable)
+    .leftJoin(messageTable, eq(messageTable.id, v2MessageTable.id))
+    .where(eq(v2MessageTable.conversationId, conversationId))
+    .orderBy(asc(v2MessageTable.turn), userFirst);
+  const { live, nextTurn } = splitDeadTurns(rows);
+  return { turn: nextTurn, history: live };
 };
 
 /**
@@ -268,7 +314,8 @@ export const createD1TurnStore = (db: V2Db, opts: D1TurnStoreOptions): TurnStore
     if (conversationRows.length === 0) {
       return { history: [], ledger: emptyLedger(), turn: 1 };
     }
-    const { history, deadTurns, maxTurn, lastLiveTurn } = splitDeadTurns(messageRows);
+    const { live, lastLiveTurn, nextTurn } = splitDeadTurns(messageRows);
+    const history = live.map((row): HistoryMessage => ({ role: row.role, content: row.content }));
     const [latestLedger] =
       ledgerRows[0] && ledgerRows[0].turn > lastLiveTurn
         ? await db
@@ -288,7 +335,6 @@ export const createD1TurnStore = (db: V2Db, opts: D1TurnStoreOptions): TurnStore
       : emptyLedger();
     // beforeTurn は呼び出し側（ChatRoom の job）が演じる番号を決めた後の読込。窓の中の末尾が
     // 失敗ターンでも番号を下げると、job と別の turn へ保存してしまう。
-    const nextTurn = deadTurns.has(maxTurn) ? maxTurn : maxTurn + 1;
     return { history, ledger, turn: opts.beforeTurn ?? nextTurn };
   },
 

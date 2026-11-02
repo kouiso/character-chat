@@ -9,9 +9,16 @@ export default defineConfig({
   plugins: [
     cloudflare({
       viteEnvironment: { name: "ssr" },
-      persistState: { path: "../../.wrangler/state" },
+      persistState: { path: process.env.V2_LOCAL_PERSIST_ROOT ?? "../../.wrangler/state" },
     }),
-    tanstackStart(),
+    tanstackStart({
+      router: {
+        codeSplittingOptions: {
+          // 圏外の復帰先も初回表示済みとは限らないため、画面遷移に追加JS取得を要求しない。
+          defaultBehavior: [],
+        },
+      },
+    }),
     viteReact(),
   ],
 });
