@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import { getTableColumns, getTableName } from "drizzle-orm";
+import { getTableConfig, SQLiteSyncDialect } from "drizzle-orm/sqlite-core";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { openLocalD1, type LocalD1 } from "./test/local-d1";
@@ -76,5 +77,42 @@ describe("v2_ tables: SQL DDL と drizzle 宣言の一致", () => {
     const sqlColumns = results.map((column) => column.name).sort();
 
     expect(drizzleColumns).toEqual(sqlColumns);
+
+    const config = getTableConfig(table);
+    const { results: indexes } = await local.d1
+      .prepare(`PRAGMA index_list(${tableName})`)
+      .all<{ name: string; unique: number; origin: string }>();
+    expect(
+      indexes
+        .filter((index) => index.origin !== "pk")
+        .map((index) => index.name)
+        .sort(),
+    ).toEqual(config.indexes.map((index) => index.config.name).sort());
+    for (const index of config.indexes) {
+      const actual = indexes.find((candidate) => candidate.name === index.config.name);
+      expect(actual?.unique).toBe(index.config.unique ? 1 : 0);
+      const { results: columns } = await local.d1
+        .prepare(`PRAGMA index_info(${index.config.name})`)
+        .all<{ name: string }>();
+      expect(columns.map((column) => column.name)).toEqual(
+        index.config.columns.map((column) => ("name" in column ? column.name : "expression")),
+      );
+    }
+
+    const definition = await local.d1
+      .prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = ?")
+      .bind(tableName)
+      .first<{ sql: string }>();
+    const normalize = (sql: string) =>
+      sql
+        .replace(/["`]/g, "")
+        .replace(/\bv2_\w+\./g, "")
+        .replace(/\s+/g, "")
+        .toLowerCase();
+    const dialect = new SQLiteSyncDialect();
+    for (const constraint of config.checks) {
+      const expression = dialect.sqlToQuery(constraint.value).sql;
+      expect(normalize(definition?.sql ?? "")).toContain(`check(${normalize(expression)})`);
+    }
   });
 });

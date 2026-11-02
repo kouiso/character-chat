@@ -204,6 +204,13 @@
       "when": 1786534800000,
       "tag": "0064_update_sakura_downer_persona_compressed",
       "breakpoints": true
+    },
+    {
+      "idx": 65,
+      "version": "6",
+      "when": 1793617923401,
+      "tag": "20261102111203_v2_schema_baseline",
+      "breakpoints": true
     }
   ]
 }

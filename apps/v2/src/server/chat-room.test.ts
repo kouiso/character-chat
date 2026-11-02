@@ -215,12 +215,14 @@ describe("ChatRoom", () => {
     const room = newRoom({ MEMORY_QUEUE: queue });
     const conversationId = newConversation();
     replies.queue.push([VALID_REPLY]);
+    const startedAt = Date.now();
     const result = await submitAndRun(room, {
       requestId: crypto.randomUUID(),
       conversationId,
       text: "私は紅茶が好きです。",
     });
     expect(result.status).toBe("succeeded");
+    expect(state.alarms.some((alarm) => alarm >= startedAt + 30_000)).toBe(true);
     const calls = replies.calls;
     offline = false;
     await room.alarm();
@@ -386,6 +388,20 @@ describe("ChatRoom", () => {
     expect(history.history[0]).toEqual({ role: "user", content: "別のタブから" });
   });
 
+  it("Queueなしで最後のjobが完了したら記憶回復用alarmを予約しない", async () => {
+    const room = newRoom();
+    const conversationId = newConversation();
+    const requestId = crypto.randomUUID();
+    replies.queue.push([VALID_REPLY]);
+    expect(
+      (await room.submit({ requestId, conversationId, text: "お茶を飲もう", characterId })).status,
+    ).toBe("accepted");
+    state.alarms.length = 0;
+    await room.alarm();
+    expect(room.readEvents(requestId, 0).status).toBe("succeeded");
+    expect(state.alarms).toEqual([]);
+  });
+
   it("alarm は残った job があれば次の alarm を予約する", async () => {
     const room = newRoom();
     const conversationId = newConversation();
@@ -402,7 +418,7 @@ describe("ChatRoom", () => {
 
     await room.alarm();
     expect(room.readEvents("req-6a", 0).status).toBe("succeeded");
-    expect(state.alarms).toHaveLength(2);
+    expect(state.alarms).toHaveLength(1);
   });
 
   it("失敗の記録には固定の理由だけを出し、送信文や例外の本文を出さん", async () => {

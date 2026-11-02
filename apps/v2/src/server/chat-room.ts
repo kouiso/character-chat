@@ -246,7 +246,9 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
         .toArray()[0];
       if (job) {
         // D1確定後に実行が止まっても、未送信の記憶予約を次のalarmで拾えるよう先に予約する。
-        await this.ctx.storage.setAlarm(Date.now() + MEMORY_RETRY_DELAY_MS);
+        if (this.env.MEMORY_QUEUE) {
+          await this.ctx.storage.setAlarm(Date.now() + MEMORY_RETRY_DELAY_MS);
+        }
         await this.process(job);
       }
       await this.publishMemories();
