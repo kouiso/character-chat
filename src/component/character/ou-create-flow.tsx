@@ -16,6 +16,7 @@ import {
   type CharacterSelections,
   type GeneratedCharacter,
 } from "@/lib/character-generator";
+import { createLogger } from "@/lib/logger";
 import { cn } from "@/lib/utils";
 import { useSettingsStore } from "@/store/settings-store";
 
@@ -40,11 +41,16 @@ type FlowStep =
   | "preview"
   | "error";
 
+// 保存できたら作ったキャラの id を返す。返した id は画面を閉じた後に onCreated へ渡す。
+type SaveHandler = (result: GeneratedCharacter) => void | string | Promise<void | string>;
+
 interface CreateFlowProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSaveDirectly: (result: GeneratedCharacter) => void | Promise<void>;
-  onEditAndSave: (result: GeneratedCharacter) => void | Promise<void>;
+  onSaveDirectly: SaveHandler;
+  onEditAndSave: SaveHandler;
+  // 閉じる操作は開く前の画面へ戻る移動を伴うので、会話への移動は必ず閉じた後に行う
+  onCreated?: (characterId: string) => void;
   // 素材管理から選んで来た画像。開いた時点でアップロード側に寄せる（#823）
   initialUploadedImage?: string | null;
 }
@@ -62,6 +68,8 @@ const initialSelections: CharacterSelections = {
   bodyTypes: [],
   freeText: "",
 };
+
+const logger = createLogger("create-flow");
 
 // 生成中の段階（design C-1 : SSEで項目ごとに届く の見立て）
 const genStages = ["なまえ", "性格・見た目", "シナリオ", "はじまりのひと言"] as const;
@@ -199,6 +207,7 @@ export const CreateFlow = ({
   onOpenChange,
   onSaveDirectly,
   onEditAndSave,
+  onCreated,
   initialUploadedImage,
 }: CreateFlowProps) => {
   const model = useSettingsStore((s) => s.model);
@@ -219,6 +228,7 @@ export const CreateFlow = ({
   const [saveError, setSaveError] = useState(false);
   const [regenerateError, setRegenerateError] = useState(false);
   const [storageError, setStorageError] = useState(false);
+  const [confirmDiscard, setConfirmDiscard] = useState(false);
   const [autoDraft, setAutoDraft] = useState<AutoDraft>(draft.autoDraft);
   const [scenarioText, setScenarioText] = useState(draft.scenarioText);
   const generationId = useRef(0);
@@ -261,10 +271,10 @@ export const CreateFlow = ({
       autoDraft,
       scenarioText,
     };
-    const stored = hasCharacterDraftContent(snapshot)
-      ? writeCharacterDraft(snapshot)
-      : clearCharacterDraft();
-    setStorageError(!stored);
+    // 何も入力していない時は失うものが無いので、消せなくても警告せん
+    const hasContent = hasCharacterDraftContent(snapshot);
+    const stored = hasContent ? writeCharacterDraft(snapshot) : clearCharacterDraft();
+    setStorageError(hasContent && !stored);
   }, [
     step,
     selections,
@@ -296,11 +306,24 @@ export const CreateFlow = ({
   // 素材管理から画像を持って開かれたら、アップロード側に寄せた状態で始める（#823）。
   // CreateFlow は常時マウントされ open で開閉するので、useState の初期値では
   // 2回目以降の「この素材でつくる」に反映されん。
+  // 下書きが別の顔のプレビューのままやと、選んだ画像が表に出ず黙って下書きへ混ざるので、作り始めの画面へ戻す。
+  // 同じ素材で作ったプレビューなら（履歴で戻って開き直した等）そのまま出す。
+  const resultRef = useRef(result);
+  useEffect(() => {
+    resultRef.current = result;
+  }, [result]);
   useEffect(() => {
     if (!open || !initialUploadedImage) return;
     setImageMode("upload");
     setUploadedImageDataUrl(initialUploadedImage);
+    if (resultRef.current?.avatar !== initialUploadedImage) {
+      setStep((previous) => (previous === "preview" ? "entry" : previous));
+    }
   }, [open, initialUploadedImage]);
+
+  useEffect(() => {
+    setConfirmDiscard(false);
+  }, [step]);
 
   useEffect(() => {
     if (step !== "generating") return undefined;
@@ -345,63 +368,74 @@ export const CreateFlow = ({
     }
   };
 
-  const regenerateFull = async (feedback: string) => {
+  // 作り直しは 2 種あるが、「今の依頼か」の確かめと通知の扱いは 1 か所に置く。
+  // 書き漏らすと、離れた後に届いた結果が新しいプレビューを汚す。
+  const regenerate = async (
+    feedback: string,
+    apply: (generated: GeneratedCharacter, current: GeneratedCharacter) => GeneratedCharacter,
+  ) => {
     if (!result || !lastRequest) return;
+    const current = result;
     const requestId = ++generationId.current;
+    const isCurrent = () => requestId === generationId.current;
     setIsRegenerating(true);
     setRegenerateError(false);
     try {
       const generated = await generateCharacter({
         ...lastRequest,
         model,
-        previousResult: result,
+        previousResult: current,
         feedback,
       });
-      if (requestId === generationId.current) setResult(generated);
+      if (isCurrent()) setResult(apply(generated, current));
     } catch {
       // エラー画面へ送るとプレビューへ戻る道が無く、生成済みの内容を失う
-      if (requestId === generationId.current) setRegenerateError(true);
+      if (isCurrent()) setRegenerateError(true);
     } finally {
-      if (requestId === generationId.current) setIsRegenerating(false);
+      if (isCurrent()) setIsRegenerating(false);
     }
   };
 
-  const regenerateFace = async () => {
-    if (!result || !lastRequest) return;
-    const requestId = ++generationId.current;
-    setIsRegenerating(true);
-    setRegenerateError(false);
-    try {
-      const generated = await generateCharacter({
-        ...lastRequest,
-        model,
-        previousResult: result,
-        feedback: "顔立ち・見た目の印象だけ作り直して。名前・性格・シナリオは変えないで",
-      });
-      if (requestId === generationId.current) setResult({ ...result, avatar: generated.avatar });
-    } catch {
-      if (requestId === generationId.current) setRegenerateError(true);
-    } finally {
-      if (requestId === generationId.current) setIsRegenerating(false);
-    }
-  };
+  const regenerateFull = (feedback: string) => regenerate(feedback, (generated) => generated);
 
-  const savePreview = async (handler: (r: GeneratedCharacter) => void | Promise<void>) => {
+  const regenerateFace = () =>
+    regenerate(
+      "顔立ち・見た目の印象だけ作り直して。名前・性格・シナリオは変えないで",
+      (generated, current) => ({ ...current, avatar: generated.avatar }),
+    );
+
+  const savePreview = async (handler: SaveHandler) => {
     if (!result || saving.current || isRegenerating) return;
     saving.current = true;
     setIsSaving(true);
     setSaveError(false);
+    let createdId: string | void;
     try {
-      await handler(result);
-      reset();
-      setStorageError(!clearCharacterDraft());
-      onOpenChange(false);
+      createdId = await handler(result);
     } catch {
       setSaveError(true);
+      return;
     } finally {
       saving.current = false;
       setIsSaving(false);
     }
+    // ここから先は保存済み。失敗扱いにすると内容が残り、再試行で二重に作られる。
+    reset();
+    setStorageError(!clearCharacterDraft());
+    try {
+      onOpenChange(false);
+      if (typeof createdId === "string") onCreated?.(createdId);
+    } catch (error) {
+      logger.error("failed to leave the create flow after saving", error);
+    }
+  };
+
+  const discardDraft = () => {
+    if (!confirmDiscard) {
+      setConfirmDiscard(true);
+      return;
+    }
+    reset();
   };
 
   // ヘッダーの戻る先（無い画面は閉じる）
@@ -599,10 +633,10 @@ export const CreateFlow = ({
           <button
             type="button"
             disabled={isSaving}
-            onClick={reset}
+            onClick={discardDraft}
             className="min-h-11 shrink-0 text-[var(--lamp)] disabled:opacity-50"
           >
-            下書きを破棄
+            {confirmDiscard ? "本当に破棄する" : "下書きを破棄"}
           </button>
         </div>
       </DialogContent>

@@ -243,4 +243,82 @@ describe("キャラ作成下書き", () => {
     fireEvent.click(screen.getByText("シナリオからつくる"));
     expect(screen.getByRole("alert")).toHaveTextContent("この端末に下書きを保存できません");
   });
+
+  // 素材管理の「この素材でつくる」は、選んだ画像で作り始める操作。古いプレビューのまま開くと
+  // 選んだ画像が表に出ず、下書きへ黙って混ざる。
+  it("プレビューの下書きが残っていても、素材を選んで開いたらその素材で作り始める", async () => {
+    const first = render(<CreateFlow {...props()} />);
+    await generatePreview();
+    first.unmount();
+    const asset = "data:image/png;base64,QUJD";
+    render(<CreateFlow {...props()} initialUploadedImage={asset} />);
+    expect(screen.queryByText("できあがり")).not.toBeInTheDocument();
+    vi.mocked(generateCharacter).mockResolvedValueOnce({ ...generated, avatar: "ai-face" });
+    fireEvent.click(screen.getByText("おまかせでつくる"));
+    fireEvent.click(screen.getByRole("button", { name: "もう作って" }));
+    await screen.findByText("できあがり");
+    expect(readCharacterDraft()?.result?.avatar).toBe(asset);
+  });
+
+  it("生成済みのプレビューは、確かめずに下書きを破棄しない", async () => {
+    render(<CreateFlow {...props()} />);
+    await generatePreview();
+    fireEvent.click(screen.getByRole("button", { name: "下書きを破棄" }));
+    expect(screen.getByText("できあがり")).toBeInTheDocument();
+    expect(readCharacterDraft()?.result?.name).toBe("あおい");
+    fireEvent.click(screen.getByRole("button", { name: "本当に破棄する" }));
+    expect(screen.queryByText("できあがり")).not.toBeInTheDocument();
+    expect(localStorage.getItem(CHARACTER_DRAFT_KEY)).toBeNull();
+  });
+
+  it("破棄の確かめは画面を移ると取り消される", async () => {
+    render(<CreateFlow {...props()} />);
+    fireEvent.click(screen.getByText("シナリオからつくる"));
+    fireEvent.change(screen.getByRole("textbox"), { target: { value: "図書館" } });
+    fireEvent.click(screen.getByRole("button", { name: "下書きを破棄" }));
+    fireEvent.click(screen.getByRole("button", { name: "もどる" }));
+    expect(screen.getByRole("button", { name: "下書きを破棄" })).toBeInTheDocument();
+    expect(readCharacterDraft()?.scenarioText).toBe("図書館");
+  });
+
+  // 保存は成功したのに閉じる・移る処理で例外が出た時、失敗扱いにすると再試行で二重に作られる。
+  it("保存が成功した後の処理で例外が出ても、失敗の通知も二重保存も出さない", async () => {
+    const current = props();
+    current.onSaveDirectly.mockResolvedValueOnce(undefined);
+    current.onOpenChange.mockImplementationOnce(() => {
+      throw new Error("navigation");
+    });
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    render(<CreateFlow {...current} />);
+    await generatePreview();
+    fireEvent.click(screen.getByRole("button", { name: /この子に/ }));
+    await waitFor(() => expect(current.onOpenChange).toHaveBeenCalledWith(false));
+    expect(
+      screen.queryByText("保存できませんでした。内容は残っています。もう一度保存してください。"),
+    ).not.toBeInTheDocument();
+    expect(current.onSaveDirectly).toHaveBeenCalledTimes(1);
+    expect(localStorage.getItem(CHARACTER_DRAFT_KEY)).toBeNull();
+  });
+
+  it("何も入力していない画面では、保存領域が使えなくても警告を出さない", () => {
+    vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+      throw new Error("quota");
+    });
+    vi.spyOn(Storage.prototype, "removeItem").mockImplementation(() => {
+      throw new Error("denied");
+    });
+    render(<CreateFlow {...props()} />);
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  // 素材で作ったプレビューを、同じ素材を持ったまま開き直した時（履歴で戻るなど）は、そのプレビューを出す。
+  it("同じ素材で作ったプレビューは、同じ素材を持って開き直しても残す", async () => {
+    const asset = "data:image/png;base64,QUJD";
+    const first = render(<CreateFlow {...props()} initialUploadedImage={asset} />);
+    await generatePreview();
+    expect(readCharacterDraft()?.result?.avatar).toBe(asset);
+    first.unmount();
+    render(<CreateFlow {...props()} initialUploadedImage={asset} />);
+    expect(screen.getByText("できあがり")).toBeInTheDocument();
+  });
 });
