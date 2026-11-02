@@ -1,5 +1,11 @@
 import { createFileRoute, getRouteApi, Link } from "@tanstack/react-router";
 
+import {
+  ListConnectionState,
+  ListEmptyState,
+  ListErrorState,
+  ListLoadingState,
+} from "../component/list-route-state";
 import { listCharacters, listSavedConversations } from "../server/characters";
 
 const routeApi = getRouteApi("/");
@@ -9,6 +15,7 @@ const CharacterListPage = () => {
 
   return (
     <div className="v2-list">
+      {characters.length > 0 && <ListConnectionState />}
       <h1>キャラクター</h1>
       {conversations.length > 0 && (
         <section>
@@ -29,7 +36,7 @@ const CharacterListPage = () => {
         </section>
       )}
       {characters.length === 0 ? (
-        <p className="v2-empty">キャラクターが登録されてへん。</p>
+        <ListEmptyState />
       ) : (
         <ul>
           {characters.map((c) => (
@@ -46,10 +53,12 @@ const CharacterListPage = () => {
 };
 
 export const Route = createFileRoute("/")({
-  loader: async () => {
+  pendingComponent: ListLoadingState,
+  errorComponent: ListErrorState,
+  loader: async ({ abortController }) => {
     const [characters, conversations] = await Promise.all([
-      listCharacters(),
-      listSavedConversations(),
+      listCharacters({ signal: abortController.signal }),
+      listSavedConversations({ signal: abortController.signal }),
     ]);
     return { characters, conversations };
   },
