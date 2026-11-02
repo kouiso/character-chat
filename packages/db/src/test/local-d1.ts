@@ -16,14 +16,14 @@ const WRANGLER_CONFIG = path.join(REPO_ROOT, "packages/cf/wrangler.local.jsonc")
 // getPlatformProxy の persist.path は v3 ディレクトリそのもの、wrangler CLI の --persist-to は
 // その親（CLI が自分で /v3 を足す）。@v2/cf と同じ非対称の吸収。
 const PERSIST_ROOT = path.join(REPO_ROOT, ".wrangler/state");
-const PERSIST_PATH = path.join(PERSIST_ROOT, "v3");
 const WRANGLER_BIN = path.join(PACKAGE_ROOT, "node_modules/.bin/wrangler");
 
 type LocalEnv = { DB: D1Database };
 
 export type LocalD1 = { db: V2Db; d1: D1Database; dispose: () => Promise<void> };
 
-export const openLocalD1 = async (): Promise<LocalD1> => {
+export const openLocalD1 = async (options: { persistRoot?: string } = {}): Promise<LocalD1> => {
+  const persistRoot = options.persistRoot ?? PERSIST_ROOT;
   execFileSync(
     WRANGLER_BIN,
     [
@@ -35,13 +35,13 @@ export const openLocalD1 = async (): Promise<LocalD1> => {
       "-c",
       WRANGLER_CONFIG,
       "--persist-to",
-      PERSIST_ROOT,
+      persistRoot,
     ],
     { cwd: REPO_ROOT, stdio: "inherit" },
   );
   const proxy = await getPlatformProxy<LocalEnv>({
     configPath: WRANGLER_CONFIG,
-    persist: { path: PERSIST_PATH },
+    persist: { path: path.join(persistRoot, "v3") },
     remoteBindings: false,
   });
   return { db: createDb(proxy.env.DB), d1: proxy.env.DB, dispose: () => proxy.dispose() };

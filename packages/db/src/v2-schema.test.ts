@@ -1,4 +1,8 @@
 // 後続の ALTER TABLE も含め、適用済み D1 と drizzle 宣言を照合する。
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+
 import { getTableColumns, getTableName } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
@@ -16,13 +20,17 @@ import {
 
 describe("v2_ tables: SQL DDL と drizzle 宣言の一致", () => {
   let local: LocalD1;
+  let persistRoot: string | undefined;
 
   beforeAll(async () => {
-    local = await openLocalD1();
+    // 他branchで適用済みのmigrationを混ぜず、このcheckoutのDDLを照合する。
+    persistRoot = await mkdtemp(join(tmpdir(), "v2-schema-"));
+    local = await openLocalD1({ persistRoot });
   });
 
   afterAll(async () => {
-    await local.dispose();
+    await local?.dispose();
+    if (persistRoot) await rm(persistRoot, { recursive: true, force: true });
   });
 
   const drizzleTables = [
