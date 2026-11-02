@@ -151,8 +151,11 @@ describe("chat route state exits", () => {
     renderChat();
     const input = await screen.findByPlaceholderText("メッセージを入力");
     fireEvent.change(input, { target: { value: "合成の未送信文" } });
+    const page = input.closest(".v2-chat-page");
+    expect(page).toContainElement(expectBack());
     setOnline(false);
     expect(await screen.findByRole("heading", { name: "オフラインです" })).toBeInTheDocument();
+    expect(page).toContainElement(screen.getByRole("heading", { name: "オフラインです" }));
     expectBack();
     expect(input).toHaveValue("合成の未送信文");
     setOnline(true);

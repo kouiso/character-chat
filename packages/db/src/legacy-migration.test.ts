@@ -226,6 +226,130 @@ describe("legacy migration の再実行で元から消えた発言", () => {
     expect(await v2Contents(conversationId)).toEqual([1, 2, 3, 4, 5].map((n) => `発言 ${n}`));
   });
 
+  it("旧会話ごとの削除を検出し、残る会話は移行し、別の移行元は混同しない", async () => {
+    const removed = await seed(2);
+    const remaining = await seed(1);
+    const other = await seed(1);
+    const targetUserId = `target-${crypto.randomUUID()}`;
+    const options = { sourceUserId: removed.seedOwner, targetUserId };
+    await migrateLegacyConversations(local.db, options);
+    await migrateLegacyConversations(local.db, { sourceUserId: other.seedOwner, targetUserId });
+    await local.db
+      .delete(messageTable)
+      .where(eq(messageTable.conversationId, removed.conversationId));
+    await local.db
+      .delete(conversationTable)
+      .where(eq(conversationTable.id, removed.conversationId));
+
+    for (const dryRun of [true, false]) {
+      const failure: unknown = await migrateLegacyConversations(local.db, {
+        ...options,
+        dryRun,
+      }).catch((error: unknown) => error);
+      expect(failure).toBeInstanceOf(LegacyMigrationError);
+      expect((failure as LegacyMigrationError).failures).toEqual([
+        {
+          conversationId: removed.conversationId,
+          reason: expect.stringContaining("元から消えている"),
+        },
+      ]);
+    }
+    expect(await v2Contents(removed.conversationId)).toEqual(["発言 1", "発言 2"]);
+
+    await local.db
+      .update(conversationTable)
+      .set({ userId: removed.seedOwner })
+      .where(eq(conversationTable.id, remaining.conversationId));
+    await local.db
+      .update(messageTable)
+      .set({ userId: removed.seedOwner })
+      .where(eq(messageTable.conversationId, remaining.conversationId));
+    const failure: unknown = await migrateLegacyConversations(local.db, options).catch(
+      (error: unknown) => error,
+    );
+    expect(failure).toBeInstanceOf(LegacyMigrationError);
+    expect((failure as LegacyMigrationError).result.insertedConversations).toBe(1);
+    expect(await v2Contents(remaining.conversationId)).toEqual(["発言 1"]);
+    await expect(
+      migrateLegacyConversations(local.db, {
+        sourceUserId: other.seedOwner,
+        targetUserId,
+      }),
+    ).resolves.toMatchObject({ insertedConversations: 0 });
+  });
+
+  it("移行元の所有者変更を検出し、dryRunでは移行元を補完しない", async () => {
+    const originalOwner = await seed(1);
+    const newOwner = await seed(1);
+    const targetUserId = `target-${crypto.randomUUID()}`;
+    const originalOptions = { sourceUserId: originalOwner.seedOwner, targetUserId };
+    await migrateLegacyConversations(local.db, originalOptions);
+    const [imported] = await local.db
+      .select({ legacySourceUserId: v2ConversationTable.legacySourceUserId })
+      .from(v2ConversationTable)
+      .where(eq(v2ConversationTable.id, originalOwner.conversationId));
+    expect(imported.legacySourceUserId).toBe(originalOwner.seedOwner);
+
+    await local.db
+      .update(v2ConversationTable)
+      .set({ legacySourceUserId: null })
+      .where(eq(v2ConversationTable.id, originalOwner.conversationId));
+    const dryRun = await migrateLegacyConversations(local.db, {
+      ...originalOptions,
+      dryRun: true,
+    });
+    expect(dryRun.updatedConversations).toBe(1);
+    const [previewed] = await local.db
+      .select({ legacySourceUserId: v2ConversationTable.legacySourceUserId })
+      .from(v2ConversationTable)
+      .where(eq(v2ConversationTable.id, originalOwner.conversationId));
+    expect(previewed.legacySourceUserId).toBeNull();
+    await migrateLegacyConversations(local.db, originalOptions);
+
+    await local.db
+      .update(conversationTable)
+      .set({ userId: newOwner.seedOwner })
+      .where(eq(conversationTable.id, originalOwner.conversationId));
+    await local.db
+      .update(messageTable)
+      .set({ userId: newOwner.seedOwner })
+      .where(eq(messageTable.conversationId, originalOwner.conversationId));
+    const originalFailure: unknown = await migrateLegacyConversations(
+      local.db,
+      originalOptions,
+    ).catch((error: unknown) => error);
+    expect(originalFailure).toBeInstanceOf(LegacyMigrationError);
+    expect((originalFailure as LegacyMigrationError).failures).toContainEqual({
+      conversationId: originalOwner.conversationId,
+      reason: expect.stringContaining("元から消えている"),
+    });
+
+    const reassigned: unknown = await migrateLegacyConversations(local.db, {
+      sourceUserId: newOwner.seedOwner,
+      targetUserId,
+    }).catch((error: unknown) => error);
+    expect(reassigned).toBeInstanceOf(LegacyMigrationError);
+    expect((reassigned as LegacyMigrationError).failures).toContainEqual({
+      conversationId: originalOwner.conversationId,
+      reason: expect.stringContaining("別の利用者"),
+    });
+  });
+
+  it("旧版で元の利用者を保存していない孤立会話も要確認にする", async () => {
+    const { conversationId, options } = await seed(1);
+    await migrateLegacyConversations(local.db, options);
+    await local.db
+      .update(v2ConversationTable)
+      .set({ legacySourceUserId: null })
+      .where(eq(v2ConversationTable.id, conversationId));
+    await local.db.delete(messageTable).where(eq(messageTable.conversationId, conversationId));
+    await local.db.delete(conversationTable).where(eq(conversationTable.id, conversationId));
+    await expect(
+      migrateLegacyConversations(local.db, { ...options, dryRun: true }),
+    ).rejects.toThrow("元の利用者も不明");
+    expect(await v2Contents(conversationId)).toEqual(["発言 1"]);
+  });
+
   it("元の会話の発言がすべて消えても成功扱いせず拒否する", async () => {
     const { conversationId, options } = await seed(2);
     await migrateLegacyConversations(local.db, options);

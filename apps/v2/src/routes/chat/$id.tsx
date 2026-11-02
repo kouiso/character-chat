@@ -16,7 +16,7 @@ const ChatPage = () => {
   const character = routeApi.useLoaderData();
   const { conversationId } = routeApi.useSearch();
   return (
-    <>
+    <div className="v2-chat-page">
       <ChatConnectionState />
       <ChatView
         key={`${character.id}:${conversationId ?? "saved"}`}
@@ -24,7 +24,7 @@ const ChatPage = () => {
         characterName={character.name}
         initialConversationId={conversationId}
       />
-    </>
+    </div>
   );
 };
 
