@@ -23,6 +23,7 @@ const valid = {
     latencyMs: 1,
     mechanicsPhase: "conversation",
     preExtendVisibleChars: 10,
+    omittedHistoryMessages: 3,
   },
   done: { type: "done", conversationId: "synthetic room", turn: 1, generationId: null },
   error: { type: "error", message: "synthetic failure" },
@@ -40,10 +41,24 @@ describe("公開SSEの実行時検証", () => {
   it("各イベントの必須fieldを省略できない", () => {
     for (const event of Object.values(valid)) {
       for (const field of Object.keys(event)) {
+        if (field === "omittedHistoryMessages") continue;
         const invalid = { ...event };
         Reflect.deleteProperty(invalid, field);
         expect(parseChatSseEvent(invalid), `${event.type}.${field}`).toBeNull();
       }
+    }
+  });
+
+  it("履歴省略数を配信し、導入前の保存イベントも再生する", () => {
+    const legacy = { ...valid["turn-meta"] };
+    Reflect.deleteProperty(legacy, "omittedHistoryMessages");
+    expect(parseChatSseEvent(legacy)).toEqual(legacy);
+    expect(isChatSseEvent(legacy)).toBe(true);
+    expect(parseSseEvent("turn-meta", JSON.stringify(valid["turn-meta"]))).toEqual(
+      valid["turn-meta"],
+    );
+    for (const omittedHistoryMessages of [-1, 1.5, "3", null]) {
+      expect(parseChatSseEvent({ ...valid["turn-meta"], omittedHistoryMessages })).toBeNull();
     }
   });
 
