@@ -9,3 +9,4 @@ export * from "./v2-schema";
 export * from "./character-version";
 export * from "./character-version-store";
 export * from "./legacy-migration";
+export * from "./local-user";

@@ -4,6 +4,7 @@ import {
   characterContentSchema,
   createCharacterWithVersion,
   createDb,
+  ensureLocalUser,
   listCharacterVersions,
   readCharacterDetail,
   readCharacterVersion,
@@ -97,7 +98,9 @@ export const handleCharactersRequest = async (request: Request): Promise<Respons
   const content = await readBody(request, characterContentSchema);
   if (content instanceof Response) return content;
   try {
-    const result = await createCharacterWithVersion(await db(), LOCAL_USER_ID, content);
+    const database = await db();
+    await ensureLocalUser(database);
+    const result = await createCharacterWithVersion(database, LOCAL_USER_ID, content);
     return privateJson(result, 201);
   } catch (error) {
     return handleError(error);

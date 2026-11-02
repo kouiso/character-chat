@@ -23,6 +23,7 @@ const validContent = (name = "入力") => ({
 
 const mocks = vi.hoisted(() => ({
   createDb: vi.fn(() => ({ database: true })),
+  ensureLocalUser: vi.fn(),
   createCharacterWithVersion: vi.fn(),
   updateCharacterWithVersion: vi.fn(),
   restoreCharacterVersion: vi.fn(),
@@ -35,6 +36,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@v2/db", async (importOriginal) => ({
   ...(await importOriginal<typeof Db>()),
   createDb: mocks.createDb,
+  ensureLocalUser: mocks.ensureLocalUser,
   createCharacterWithVersion: mocks.createCharacterWithVersion,
   updateCharacterWithVersion: mocks.updateCharacterWithVersion,
   restoreCharacterVersion: mocks.restoreCharacterVersion,
@@ -77,6 +79,10 @@ describe("character REST handlers", () => {
       { database: true },
       "local",
       expect.objectContaining({ name: "入力" }),
+    );
+    expect(mocks.ensureLocalUser).toHaveBeenCalledWith({ database: true });
+    expect(mocks.ensureLocalUser.mock.invocationCallOrder[0]).toBeLessThan(
+      mocks.createCharacterWithVersion.mock.invocationCallOrder[0],
     );
   });
 

@@ -21,6 +21,7 @@ import {
   restoreCharacterVersion,
   updateCharacterWithVersion,
 } from "./character-version-store";
+import { ensureLocalUser } from "./local-user";
 import { openLocalD1, type LocalD1 } from "./test/local-d1";
 import { ensureConversationVersion } from "./turn-store";
 import {
@@ -140,6 +141,37 @@ describe("immutable character version store", () => {
       versionId: result.versionId,
       action: "create",
     });
+  });
+
+  it("recreates a missing local owner without overwriting an existing email", async () => {
+    const [before] = await local.db.select().from(userTable).where(eq(userTable.id, "local"));
+    if (before) await local.db.delete(userTable).where(eq(userTable.id, "local"));
+    await ensureLocalUser(local.db);
+    const [created] = await local.db.select().from(userTable).where(eq(userTable.id, "local"));
+    expect(created?.email).toBe("local@example.invalid");
+    const result = await createCharacterWithVersion(local.db, "local", content("local owner"));
+    characterIds.push(result.id);
+
+    await local.db
+      .update(userTable)
+      .set({ email: "preserved@example.invalid" })
+      .where(eq(userTable.id, "local"));
+    await ensureLocalUser(local.db);
+    const [preserved] = await local.db.select().from(userTable).where(eq(userTable.id, "local"));
+    expect(preserved?.email).toBe("preserved@example.invalid");
+
+    if (before) {
+      await local.db
+        .update(userTable)
+        .set({
+          email: before.email,
+          createdAt: before.createdAt,
+          displayName: before.displayName,
+        })
+        .where(eq(userTable.id, "local"));
+    } else {
+      createdLocalUser = true;
+    }
   });
 
   it("rolls the entire create batch back when a later statement fails", async () => {
