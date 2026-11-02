@@ -1,8 +1,15 @@
 import { createServerFn } from "@tanstack/react-start";
 
-import type { CharacterSheet } from "@v2/engine";
+export type CharacterListItem = {
+  id: string;
+  name: string;
+  avatar: string | null;
+  canEdit: boolean;
+};
 
-export type CharacterListItem = { id: string; name: string; avatar: string | null };
+export const toCharacterDisplay = <Character extends { id: string; name: string }>(
+  character: Character | null,
+) => (character ? { id: character.id, name: character.name } : null);
 
 export const listCharacters = createServerFn({ method: "GET" }).handler(
   async (): Promise<CharacterListItem[]> => {
@@ -13,10 +20,10 @@ export const listCharacters = createServerFn({ method: "GET" }).handler(
 
 export const getCharacter = createServerFn({ method: "GET" })
   .validator((id: string) => id)
-  .handler(async ({ data: id }): Promise<CharacterSheet | null> => {
+  .handler(async ({ data: id }): Promise<{ id: string; name: string } | null> => {
     const { readCharacter } = await import("./character-data.server");
     const { ok } = await readCharacter(id);
-    return ok ?? null;
+    return toCharacterDisplay(ok);
   });
 
 export const listSavedConversations = createServerFn({ method: "GET" }).handler(async () => {

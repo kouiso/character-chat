@@ -102,7 +102,8 @@ const makeRealD1 = (): TestHarness => {
       lora_model TEXT, lora_weight REAL, lora_trigger_prompt TEXT,
       greeting TEXT NOT NULL DEFAULT '', tags TEXT NOT NULL DEFAULT '[]', sub_avatars TEXT,
       user_persona_name TEXT, user_persona_gender TEXT, user_persona_personality TEXT,
-      display_order INTEGER NOT NULL DEFAULT 0, slug TEXT UNIQUE, created_at INTEGER NOT NULL DEFAULT 0
+      display_order INTEGER NOT NULL DEFAULT 0, slug TEXT UNIQUE, created_at INTEGER NOT NULL DEFAULT 0,
+      revision INTEGER NOT NULL DEFAULT 0, current_version_id TEXT
     );
     CREATE TABLE conversation (
       id TEXT PRIMARY KEY, user_id TEXT NOT NULL, character_id TEXT NOT NULL,

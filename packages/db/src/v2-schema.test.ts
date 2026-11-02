@@ -2,8 +2,12 @@
 import { getTableColumns, getTableName } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
+import { characterTable } from "../../../src/schema/character";
+
 import { openLocalD1, type LocalD1 } from "./test/local-d1";
 import {
+  characterRevisionTable,
+  characterVersionTable,
   v2ChunkTable,
   v2ConversationTable,
   v2GenerationTable,
@@ -30,6 +34,9 @@ describe("v2_ tables: SQL DDL と drizzle 宣言の一致", () => {
     v2LedgerTable,
     v2GenerationTable,
     v2MemoryTable,
+    characterVersionTable,
+    characterRevisionTable,
+    characterTable,
   ];
 
   it("SQL 側に6つの v2_ テーブルが存在する", async () => {

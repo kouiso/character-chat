@@ -7,12 +7,12 @@ import type { CharacterListItem } from "./characters";
 
 export const listCharacterRows = async (): Promise<CharacterListItem[]> => {
   const { env } = await getPlatform();
-  return listCharacterSummaries(createDb(env.DB));
+  return listCharacterSummaries(createDb(env.DB), LOCAL_USER_ID);
 };
 
 export const readCharacter = async (id: string): ReturnType<typeof loadCharacter> => {
   const { env } = await getPlatform();
-  return loadCharacter(createDb(env.DB), id);
+  return loadCharacter(createDb(env.DB), id, LOCAL_USER_ID);
 };
 
 export const listSavedConversationRows = async () => {

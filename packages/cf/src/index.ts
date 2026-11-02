@@ -23,7 +23,9 @@ const WRANGLER_CONFIG = path.join(REPO_ROOT, "packages/cf/wrangler.local.jsonc")
 // （実測: --persist-to <root>/.wrangler/state/v3 を渡すと <root>/.wrangler/state/v3/v3 が実体になる）。
 // この非対称を PERSIST_ROOT / PERSIST_PATH の2値で吸収する: CLI には ROOT を、
 // getPlatformProxy には PATH（ROOT + "/v3"）を渡す。
-const PERSIST_ROOT = path.join(REPO_ROOT, ".wrangler/state");
+const PERSIST_ROOT = path.resolve(
+  process.env.WRANGLER_PERSIST_DIR ?? path.join(REPO_ROOT, ".wrangler/state"),
+);
 const PERSIST_PATH = path.join(PERSIST_ROOT, "v3");
 
 const isRemote = (explicit?: boolean): boolean => explicit ?? process.env.CF_REMOTE === "1";

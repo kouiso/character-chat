@@ -7,6 +7,7 @@ import type * as V2Engine from "@v2/engine";
 
 const platform = vi.hoisted(() => ({ env: {} as Record<string, unknown> }));
 const captured = vi.hoisted(() => ({ budget: undefined as Partial<ContextBudget> | undefined }));
+const versionState = vi.hoisted(() => ({ available: true, calls: [] as string[] }));
 
 vi.mock("./platform", () => ({ getPlatform: async () => platform }));
 vi.mock("./character-data.server", () => ({
@@ -19,22 +20,57 @@ vi.mock("@v2/db", async (importOriginal) => ({
   ...(await importOriginal<typeof V2Db>()),
   createDb: () => ({}),
   createD1TurnStore: () => ({}),
+  ensureCurrentVersion: async () => {
+    versionState.calls.push("ensure-current");
+    return { versionId: "version-1", revision: 1 };
+  },
+  ensureConversationVersion: async () => {
+    versionState.calls.push("pin-conversation");
+    return "version-1";
+  },
+  loadVersionedCharacter: async () => {
+    versionState.calls.push("load-pinned");
+    return versionState.available
+      ? {
+          characterId: "c",
+          content: {
+            name: "案内役",
+            bio: "",
+            personality: "丁寧に話す。",
+            speechStyle: "穏やか。",
+            appearance: "",
+            background: "",
+            worldSetting: "",
+            prologue: "",
+            greeting: "こんにちは。",
+            privateNotes: "",
+            tags: [],
+            voiceRef: null,
+            avatarRef: null,
+            visibility: "private",
+          },
+        }
+      : null;
+  },
 }));
 vi.mock("@v2/engine", async (importOriginal) => ({
   ...(await importOriginal<typeof V2Engine>()),
   createTurnGraph: (deps: { contextBudget?: Partial<ContextBudget> }) => {
+    versionState.calls.push("create-graph");
     captured.budget = deps.contextBudget;
     return {};
   },
   runTurn: async function* () {},
 }));
 
-const { startTurn } = await import("./engine");
+const { CharacterNotFoundError, startTurn } = await import("./engine");
 
 const start = () => startTurn({ characterId: "c", conversationId: "conv", text: "今" });
 
 beforeEach(() => {
   captured.budget = undefined;
+  versionState.available = true;
+  versionState.calls = [];
 });
 
 describe("startTurn の履歴予算", () => {
@@ -57,5 +93,23 @@ describe("startTurn の履歴予算", () => {
     };
     await start();
     expect(captured.budget).toEqual({ historyCharacters: 300, historyMessages: 6 });
+  });
+
+  it("fixed conversation の版が欠落していれば最新 character へフォールバックしない", async () => {
+    platform.env = { APP_ENV: "test", V2_FAKE_MODEL: "1" };
+    versionState.available = false;
+    await expect(start()).rejects.toBeInstanceOf(CharacterNotFoundError);
+    expect(versionState.calls).toEqual(["ensure-current", "pin-conversation", "load-pinned"]);
+  });
+
+  it("pins the conversation version before creating the generation graph", async () => {
+    platform.env = { APP_ENV: "test", V2_FAKE_MODEL: "1" };
+    await start();
+    expect(versionState.calls).toEqual([
+      "ensure-current",
+      "pin-conversation",
+      "load-pinned",
+      "create-graph",
+    ]);
   });
 });
