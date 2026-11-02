@@ -9,6 +9,45 @@ afterEach(() => {
 });
 
 describe("ChatMessageLog", () => {
+  it("回転のscrollがresize通知より先でも、操作なしの位置変更で末尾追従を解除しない", () => {
+    let resize: (() => void) | undefined;
+    vi.stubGlobal(
+      "ResizeObserver",
+      class {
+        constructor(callback: () => void) {
+          resize = callback;
+        }
+        observe() {}
+        disconnect() {}
+      },
+    );
+    const { rerender } = render(<ChatMessageLog busy={false}>合成の返信</ChatMessageLog>);
+    const log = screen.getByRole("log");
+    Object.defineProperties(log, {
+      scrollHeight: { configurable: true, value: 617 },
+      clientHeight: { configurable: true, value: 617 },
+    });
+    resize?.();
+    expect(log.scrollTop).toBe(0);
+
+    Object.defineProperties(log, {
+      scrollHeight: { configurable: true, value: 381 },
+      clientHeight: { configurable: true, value: 180 },
+    });
+    log.scrollTop = 124;
+    fireEvent.scroll(log);
+    resize?.();
+    expect(log.scrollTop).toBe(201);
+
+    log.scrollTop = 20;
+    fireEvent.scroll(log);
+    Object.defineProperty(log, "scrollHeight", { value: 500 });
+    resize?.();
+    expect(log.scrollTop).toBe(20);
+    rerender(<ChatMessageLog busy>合成の続き</ChatMessageLog>);
+    expect(log.scrollTop).toBe(20);
+  });
+
   it("画面高が縮んでも末尾追従を維持し、履歴閲覧中は位置を保持する", () => {
     let resize: (() => void) | undefined;
     const disconnect = vi.fn();
@@ -68,6 +107,8 @@ describe("ChatMessageLog", () => {
       scrollHeight: { configurable: true, value: 1200 },
       clientHeight: { value: 400 },
     });
+    rerender(<ChatMessageLog busy={false}>合成の履歴を表示</ChatMessageLog>);
+    expect(log.scrollTop).toBe(800);
     log.scrollTop = 150;
     fireEvent.scroll(log);
 

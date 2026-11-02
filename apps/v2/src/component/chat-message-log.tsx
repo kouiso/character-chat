@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, type ReactNode } from "react";
+import { useCallback, useLayoutEffect, useRef, type ReactNode } from "react";
 
 import "./chat-message-log.css";
 
@@ -11,26 +11,38 @@ export const ChatMessageLog = ({ children, busy }: ChatMessageLogProps) => {
   const logRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const followLatestRef = useRef(true);
+  const sizeRef = useRef({ clientHeight: 0, scrollHeight: 0 });
 
-  useLayoutEffect(() => {
+  const syncPosition = useCallback(() => {
     const log = logRef.current;
-    if (log && followLatestRef.current) log.scrollTop = log.scrollHeight - log.clientHeight;
-  }, [children]);
+    if (!log) return;
+    if (followLatestRef.current) log.scrollTop = log.scrollHeight - log.clientHeight;
+    sizeRef.current = { clientHeight: log.clientHeight, scrollHeight: log.scrollHeight };
+  }, []);
+
+  useLayoutEffect(syncPosition, [children, syncPosition]);
 
   useLayoutEffect(() => {
     const log = logRef.current;
     if (!log || typeof ResizeObserver === "undefined") return;
-    const observer = new ResizeObserver(() => {
-      if (followLatestRef.current) log.scrollTop = log.scrollHeight - log.clientHeight;
-    });
+    const observer = new ResizeObserver(syncPosition);
     observer.observe(log);
     if (contentRef.current) observer.observe(contentRef.current);
     return () => observer.disconnect();
-  }, []);
+  }, [syncPosition]);
 
   const updateFollowLatest = () => {
     const log = logRef.current;
-    if (log) followLatestRef.current = log.scrollHeight - log.clientHeight - log.scrollTop <= 16;
+    if (!log) return;
+    // 回転・文字拡大のscrollはresize通知より先に来るため、閲覧者の操作と区別する。
+    if (
+      sizeRef.current.clientHeight !== log.clientHeight ||
+      sizeRef.current.scrollHeight !== log.scrollHeight
+    ) {
+      syncPosition();
+      return;
+    }
+    followLatestRef.current = log.scrollHeight - log.clientHeight - log.scrollTop <= 16;
   };
 
   return (
