@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, or, sql } from "drizzle-orm";
 
 import {
   MEMORY_PUBLISH_ATTEMPTS,
@@ -18,7 +18,11 @@ import type { V2Db } from "./client";
 
 const unfinished = inArray(v2MemoryJobTable.state, ["pending", "queued"]);
 
-export const listPendingMemoryJobs = async (db: V2Db, scope: ExtractionScope) =>
+export const listPendingMemoryJobs = async (
+  db: V2Db,
+  scope: ExtractionScope,
+  includeUnindexed = false,
+) =>
   db
     .select({ id: v2MemoryJobTable.id })
     .from(v2MemoryJobTable)
@@ -30,7 +34,16 @@ export const listPendingMemoryJobs = async (db: V2Db, scope: ExtractionScope) =>
         eq(v2MemoryJobTable.characterId, scope.characterId),
         eq(v2ConversationTable.userId, scope.userId),
         eq(v2ConversationTable.characterId, scope.characterId),
-        eq(v2MemoryJobTable.state, "pending"),
+        or(
+          eq(v2MemoryJobTable.state, "pending"),
+          includeUnindexed
+            ? and(
+                eq(v2MemoryJobTable.state, "completed"),
+                sql`exists (select 1 from v2_memory m join v2_memory_source s on s.memory_id = m.id
+            where s.source_message_id = ${v2MemoryJobTable.sourceMessageId} and m.embedding is null)`,
+              )
+            : undefined,
+        ),
       ),
     )
     .orderBy(asc(v2MemoryJobTable.createdAt), asc(v2MemoryJobTable.id))
@@ -50,11 +63,16 @@ export const markMemoryPublishFailure = async (db: V2Db, ids: string[]) => {
     .update(v2MemoryJobTable)
     .set({
       publishAttempts: sql`${v2MemoryJobTable.publishAttempts} + 1`,
-      state: sql`case when ${v2MemoryJobTable.publishAttempts} + 1 >= ${MEMORY_PUBLISH_ATTEMPTS} then 'failed' else 'pending' end`,
+      state: sql`case when ${v2MemoryJobTable.publishAttempts} + 1 >= ${MEMORY_PUBLISH_ATTEMPTS} then 'failed' else ${v2MemoryJobTable.state} end`,
       errorCode: "queue_delivery_failed",
       updatedAt: Date.now(),
     })
-    .where(and(inArray(v2MemoryJobTable.id, ids), eq(v2MemoryJobTable.state, "pending")));
+    .where(
+      and(
+        inArray(v2MemoryJobTable.id, ids),
+        inArray(v2MemoryJobTable.state, ["pending", "completed"]),
+      ),
+    );
 };
 
 export const loadMemoryExtractionSource = async (db: V2Db, id: string) => {

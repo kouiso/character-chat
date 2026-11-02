@@ -3,6 +3,7 @@ import {
   completeMemoryExtraction,
   createDb,
   failMemoryExtraction,
+  failMemoryIndex,
   listPendingMemoryJobs,
   loadMemoryExtractionSource,
   markMemoryJobsQueued,
@@ -13,6 +14,9 @@ import {
   type V2Db,
 } from "@v2/db";
 import { createOpenRouterModel, extractMemories } from "@v2/engine";
+
+import { indexMemoryJob } from "./memory-rag";
+import { memoryVectorReady, type MemoryVectorBindings } from "./memory-vector";
 
 import type { BaseChatModel } from "@langchain/core/language_models/chat_models";
 
@@ -30,8 +34,9 @@ export const publishMemoryJobs = async (
   queue: QueuePublisher,
   scope: ExtractionScope,
   beforeSend: () => Promise<void>,
+  includeUnindexed = false,
 ): Promise<boolean> => {
-  const jobs = await listPendingMemoryJobs(db, scope);
+  const jobs = await listPendingMemoryJobs(db, scope, includeUnindexed);
   if (jobs.length === 0) return false;
   await beforeSend();
   const ids = jobs.map((job) => job.id);
@@ -42,7 +47,7 @@ export const publishMemoryJobs = async (
     await markMemoryPublishFailure(db, ids);
     reportMemoryEvent({ event: "memory_queue_publish_failed", jobs: ids.length });
   }
-  return (await listPendingMemoryJobs(db, scope)).length > 0;
+  return (await listPendingMemoryJobs(db, scope, includeUnindexed)).length > 0;
 };
 
 type MemoryModelEnv = Pick<
@@ -75,7 +80,7 @@ export const createMemoryExtractionModel = (env: MemoryModelEnv, source: string)
 
 export const consumeMemoryJobs = async (
   batch: MessageBatch<unknown>,
-  env: MemoryModelEnv & Pick<Cloudflare.Env, "DB">,
+  env: MemoryModelEnv & Pick<Cloudflare.Env, "DB"> & MemoryVectorBindings,
 ): Promise<void> => {
   const db = createDb(env.DB);
   for (const message of batch.messages) {
@@ -86,6 +91,7 @@ export const consumeMemoryJobs = async (
       continue;
     }
     const { jobId } = parsed.data;
+    let indexing = false;
     try {
       const source = await loadMemoryExtractionSource(db, jobId);
       if (source) {
@@ -94,6 +100,10 @@ export const consumeMemoryJobs = async (
           source.content,
         );
         await completeMemoryExtraction(db, source, memories);
+      }
+      if (memoryVectorReady(env)) {
+        indexing = true;
+        await indexMemoryJob(db, env, jobId);
       }
       message.ack();
     } catch {
@@ -105,7 +115,7 @@ export const consumeMemoryJobs = async (
         terminal,
       });
       if (terminal) {
-        await failMemoryExtraction(db, jobId);
+        await (indexing ? failMemoryIndex(db, jobId) : failMemoryExtraction(db, jobId));
         message.ack();
       } else {
         message.retry({ delaySeconds: MEMORY_RETRY_DELAY_MS / 1_000 });

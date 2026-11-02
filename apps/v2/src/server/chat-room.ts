@@ -6,6 +6,7 @@ import { parseChatSseEvent, type ChatSseEvent } from "../lib/sse-events";
 import { loadHistory, loadStoredTurn, startTurn } from "./engine";
 import { LOCAL_USER_ID } from "./identity";
 import { MEMORY_RETRY_DELAY_MS, publishMemoryJobs } from "./memory-queue";
+import { memoryVectorReady } from "./memory-vector";
 
 const parseStoredEvent = (raw: string): ChatSseEvent => {
   try {
@@ -279,6 +280,7 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
         conversationId: room.conversation_id,
       },
       reserve,
+      memoryVectorReady(this.env),
     );
     if (pending) await reserve();
   }
