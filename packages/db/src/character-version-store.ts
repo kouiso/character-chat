@@ -2,6 +2,7 @@
 import { and, desc, eq, or, sql } from "drizzle-orm";
 
 import { characterTable } from "../../../src/schema/character";
+import { conversationTable } from "../../../src/schema/conversation";
 
 import {
   canonicalContentJson,
@@ -358,6 +359,63 @@ export const createCharacterWithVersion = async (
     }),
   ]);
   return { id, versionId, revision: 1 };
+};
+
+export type CharacterDeleteResult = "deleted" | "in-use" | "not-found";
+
+const deletableCharacter = (id: string, userId: string) => sql`
+  exists (
+    select 1 from character
+    where id = ${id} and user_id = ${userId}
+      and not exists (select 1 from conversation where character_id = ${id})
+      and not exists (select 1 from v2_conversation where character_id = ${id})
+  )
+`;
+
+export const deleteCharacterWithVersions = async (
+  db: V2Db,
+  input: { id: string; userId: string },
+): Promise<CharacterDeleteResult> => {
+  const canDelete = deletableCharacter(input.id, input.userId);
+  const result = await db.batch([
+    db
+      .delete(characterRevisionTable)
+      .where(and(eq(characterRevisionTable.characterId, input.id), canDelete)),
+    db
+      .delete(characterVersionTable)
+      .where(and(eq(characterVersionTable.characterId, input.id), canDelete)),
+    db
+      .delete(characterTable)
+      .where(
+        and(
+          eq(characterTable.id, input.id),
+          eq(characterTable.userId, input.userId),
+          sql`not exists (select 1 from conversation where character_id = ${input.id})`,
+          sql`not exists (select 1 from v2_conversation where character_id = ${input.id})`,
+        ),
+      )
+      .returning({ id: characterTable.id }),
+  ]);
+  if (hasReturnedRow(result[2])) return "deleted";
+
+  const [owned] = await db
+    .select({ id: characterTable.id })
+    .from(characterTable)
+    .where(and(eq(characterTable.id, input.id), eq(characterTable.userId, input.userId)));
+  if (!owned) return "not-found";
+
+  const [legacyUse] = await db
+    .select({ id: conversationTable.id })
+    .from(conversationTable)
+    .where(eq(conversationTable.characterId, input.id))
+    .limit(1);
+  if (legacyUse) return "in-use";
+  const [v2Use] = await db
+    .select({ id: v2ConversationTable.id })
+    .from(v2ConversationTable)
+    .where(eq(v2ConversationTable.characterId, input.id))
+    .limit(1);
+  return v2Use ? "in-use" : "not-found";
 };
 
 const matchingCurrentVersion = async (

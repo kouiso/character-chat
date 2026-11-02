@@ -92,6 +92,7 @@ type SubAvatarEnvelope = { subKey: string };
 const makeRealD1 = (): TestHarness => {
   if (!DatabaseSyncCtor) throw new Error("node:sqlite is not available");
   const db = new DatabaseSyncCtor(":memory:");
+  db.exec("PRAGMA foreign_keys = ON");
   db.exec(`
     CREATE TABLE user (id TEXT PRIMARY KEY, email TEXT NOT NULL, created_at INTEGER NOT NULL DEFAULT 0);
     CREATE TABLE character (
@@ -109,10 +110,34 @@ const makeRealD1 = (): TestHarness => {
       id TEXT PRIMARY KEY, user_id TEXT NOT NULL, character_id TEXT NOT NULL,
       title TEXT NOT NULL, created_at INTEGER NOT NULL DEFAULT 0, updated_at INTEGER NOT NULL DEFAULT 0
     );
+    CREATE TABLE v2_conversation (
+      id TEXT PRIMARY KEY, user_id TEXT NOT NULL,
+      character_id TEXT NOT NULL REFERENCES character(id), title TEXT NOT NULL DEFAULT '',
+      thread_id TEXT NOT NULL, prompt_version TEXT NOT NULL,
+      created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL,
+      legacy_source_user_id TEXT, character_version_id TEXT
+    );
+    CREATE TABLE character_version (
+      id TEXT PRIMARY KEY, character_id TEXT NOT NULL REFERENCES character(id),
+      owner_user_id TEXT NOT NULL, version INTEGER NOT NULL, schema_version INTEGER NOT NULL DEFAULT 1,
+      content_json TEXT NOT NULL, content_hash TEXT NOT NULL, created_at INTEGER NOT NULL
+    );
+    CREATE TABLE character_revision (
+      character_id TEXT NOT NULL REFERENCES character(id),
+      revision INTEGER NOT NULL, version_id TEXT NOT NULL REFERENCES character_version(id),
+      action TEXT NOT NULL, created_at INTEGER NOT NULL,
+      PRIMARY KEY (character_id, revision)
+    );
     CREATE TABLE message (
       id TEXT PRIMARY KEY, user_id TEXT NOT NULL, conversation_id TEXT NOT NULL,
       character_id TEXT NOT NULL, role TEXT NOT NULL, content TEXT NOT NULL DEFAULT '',
       image_url TEXT, image_key TEXT, created_at INTEGER NOT NULL
+    );
+    CREATE TABLE v2_message (
+      id TEXT PRIMARY KEY, conversation_id TEXT NOT NULL REFERENCES v2_conversation(id),
+      turn INTEGER NOT NULL, role TEXT NOT NULL CHECK (role IN ('user','assistant')),
+      content TEXT NOT NULL, action TEXT, dialogue TEXT, inner TEXT, generation_id TEXT,
+      created_at INTEGER NOT NULL
     );
     CREATE TABLE character_visual (
       character_id TEXT PRIMARY KEY, hair_color TEXT NOT NULL, hair_style TEXT NOT NULL,
@@ -218,6 +243,24 @@ const seedCharacter = (db: DatabaseSync, seed: CharacterSeed) => {
 
 const readCharacter = (db: DatabaseSync, id: string) =>
   db.prepare("SELECT * FROM character WHERE id = ?").get(id) as Record<string, unknown> | undefined;
+
+const seedVersion = (db: DatabaseSync, characterId: string, userId = OWNER_ID) => {
+  const versionId = `${characterId}-version`;
+  db.prepare(
+    `INSERT INTO character_version
+       (id, character_id, owner_user_id, version, content_json, content_hash, created_at)
+     VALUES (?, ?, ?, 1, '{}', ?, 1)`,
+  ).run(versionId, characterId, userId, `${characterId}-hash`);
+  db.prepare("UPDATE character SET current_version_id = ?, revision = 1 WHERE id = ?").run(
+    versionId,
+    characterId,
+  );
+  db.prepare(
+    `INSERT INTO character_revision (character_id, revision, version_id, action, created_at)
+     VALUES (?, 1, ?, 'create', 1)`,
+  ).run(characterId, versionId);
+  return versionId;
+};
 
 const countCharacters = (db: DatabaseSync) =>
   (db.prepare("SELECT COUNT(*) AS n FROM character").get() as { n: number }).n;
@@ -1117,6 +1160,65 @@ describe.skipIf(!DatabaseSyncCtor)("DELETE /api/characters/:characterId (実SQLi
     expect(await response.json()).toEqual({ ok: true });
     expect(readCharacter(harness.db, OWNED_ID)).toBeUndefined();
     expect(readCharacter(harness.db, "char-keep")).toBeDefined();
+  });
+
+  it("版と履歴があっても未使用なら子行から削除する", async () => {
+    const harness = makeRealD1();
+    seedCharacter(harness.db, { id: OWNED_ID });
+    const versionId = seedVersion(harness.db, OWNED_ID);
+
+    const response = await request(harness, `/api/characters/${OWNED_ID}`, {
+      method: "DELETE",
+      headers: AUTH_HEADERS,
+    });
+
+    expect(response.status).toBe(200);
+    expect(readCharacter(harness.db, OWNED_ID)).toBeUndefined();
+    expect(
+      harness.db.prepare("SELECT * FROM character_version WHERE id = ?").get(versionId),
+    ).toBeUndefined();
+    expect(
+      harness.db.prepare("SELECT * FROM character_revision WHERE character_id = ?").all(OWNED_ID),
+    ).toEqual([]);
+  });
+
+  it("v2会話で使用中なら版と会話を残して409にする", async () => {
+    const harness = makeRealD1();
+    seedCharacter(harness.db, { id: OWNED_ID });
+    const versionId = seedVersion(harness.db, OWNED_ID);
+    harness.db
+      .prepare(
+        `INSERT INTO v2_conversation
+         (id, user_id, character_id, thread_id, prompt_version, character_version_id, created_at, updated_at)
+         VALUES ('v2-conv', ?, ?, 'v2-conv', 'test', ?, 1, 1)`,
+      )
+      .run(INTRUDER_ID, OWNED_ID, versionId);
+    harness.db
+      .prepare(
+        `INSERT INTO v2_message (id, conversation_id, turn, role, content, created_at)
+         VALUES ('v2-message', 'v2-conv', 1, 'user', '保存', 2)`,
+      )
+      .run();
+
+    const response = await request(harness, `/api/characters/${OWNED_ID}`, {
+      method: "DELETE",
+      headers: AUTH_HEADERS,
+    });
+
+    expect(response.status).toBe(409);
+    expect(readCharacter(harness.db, OWNED_ID)).toBeDefined();
+    expect(
+      harness.db.prepare("SELECT id FROM character_version WHERE id = ?").get(versionId),
+    ).toBeDefined();
+    expect(
+      harness.db.prepare("SELECT id FROM v2_conversation WHERE id = 'v2-conv'").get(),
+    ).toBeDefined();
+    expect(
+      harness.db.prepare("SELECT * FROM character_revision WHERE character_id = ?").all(OWNED_ID),
+    ).toHaveLength(1);
+    expect(
+      harness.db.prepare("SELECT id FROM v2_message WHERE id = 'v2-message'").get(),
+    ).toBeDefined();
   });
 
   it("存在せん id でも 200 {ok:true}（冪等 DELETE）", async () => {

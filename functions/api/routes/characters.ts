@@ -3,10 +3,11 @@ import { and, asc, desc, eq, isNull, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import { Hono } from "hono";
 
+import { deleteCharacterWithVersions } from "../../../packages/db/src/character-version-store";
+import { createDb } from "../../../packages/db/src/client";
 import {
   characterSubImageTable,
   characterTable,
-  conversationTable,
   messageTable,
   visualMetaSchema,
   type VisualMeta,
@@ -337,21 +338,13 @@ export const characterRoutes = new Hono<{ Bindings: Bindings }>()
     const userId = await ensureUser(database, userEmail);
 
     // このキャラクターを使用中の会話があれば削除不可
-    const inUse = await database
-      .select({ id: conversationTable.id })
-      .from(conversationTable)
-      .where(
-        and(eq(conversationTable.characterId, characterId), eq(conversationTable.userId, userId)),
-      )
-      .limit(1);
-
-    if (inUse.length > 0) {
+    const deletion = await deleteCharacterWithVersions(createDb(c.env.DB), {
+      id: characterId,
+      userId,
+    });
+    if (deletion === "in-use") {
       return c.json({ error: "character is in use by conversations" }, 409);
     }
-
-    await database
-      .delete(characterTable)
-      .where(and(eq(characterTable.id, characterId), eq(characterTable.userId, userId)));
 
     return c.json({ ok: true });
   })
