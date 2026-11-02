@@ -4,7 +4,11 @@ import { z } from "zod";
 import type { TurnEvent } from "@v2/engine";
 
 export type ChatSseEvent =
-  | Exclude<TurnEvent, { type: "error" | "generation" }>
+  | Exclude<TurnEvent, { type: "error" | "generation" | "turn-meta" }>
+  // 導入前に保存された事象には履歴省略数がないため、再生時も受け入れる。
+  | (Omit<Extract<TurnEvent, { type: "turn-meta" }>, "omittedHistoryMessages"> & {
+      omittedHistoryMessages?: number;
+    })
   | { type: "error"; message: string; terminal?: boolean };
 
 const finiteNumber = z.number().finite();
@@ -61,6 +65,7 @@ const eventSchemas = {
     latencyMs: finiteNumber,
     mechanicsPhase: z.enum(["conversation", "intimate", "erotic", "climax", "afterglow"]),
     preExtendVisibleChars: finiteNumber,
+    omittedHistoryMessages: z.number().int().nonnegative().optional(),
   }),
   done: z.object({
     type: z.literal("done"),
