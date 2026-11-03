@@ -1,0 +1,32 @@
+{
+  "purpose": "Historical Mac recovery documents, public editions",
+  "originalSourceBase": "f22964270853996c708bab794d8d6e83d7730590",
+  "originalSourceBranch": "docs/feature-parity-4apps",
+  "publicEditions": [
+    {
+      "path": "doc/plan/charchat-design-v2.md",
+      "publicEditionBytes": 42476,
+      "publicEditionSha256": "f0586cf7bafd8f1b5fc2155257819c06d920285ec28eb94a9cf7443bc2ee3302",
+      "historicalScopeNoticeAdded": true,
+      "privateReferenceLineOmitted": true
+    },
+    {
+      "path": "doc/research/feature-parity-4apps.md",
+      "publicEditionBytes": 40956,
+      "publicEditionSha256": "9e1ebf22a5f3f30555aaf8db3c944b1621e94fa30462bfa4939d31a95d999108",
+      "historicalScopeNoticeAdded": true,
+      "privateReferenceLineOmitted": false
+    },
+    {
+      "path": "doc/research/starred-repo-survey.md",
+      "publicEditionBytes": 14546,
+      "publicEditionSha256": "00cddb187a188a9f264550a765bdfcdaef1f22843eb742b0b1066c4f514fd269",
+      "historicalScopeNoticeAdded": true,
+      "privateReferenceLineOmitted": false
+    }
+  ],
+  "originalHandling": "Faithful originals remain only in protected local recovery storage. These public editions are not byte-identical originals. Private original hashes, identifying reference text and original blobs are not included.",
+  "changes": "A historical/current-scope notice in all3 documents; one unrelated private reference line explicitly omitted from the design document.",
+  "restore": "Use the public files at their listed paths on the originalSourceBase in an isolated checkout. Ask the repository owner for authorized access to the protected original backup if exact original restoration is required.",
+  "authority": "Historical documents do not grant implementation, publication, billing, credential or production authority; current accepted issue scope and owner instructions prevail."
+}
