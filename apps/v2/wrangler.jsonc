@@ -129,12 +129,11 @@
   "compatibility_flags": [
     "nodejs_compat"
   ],
-  "workers_dev": false,
+  // 独自ドメインが付くまでは workers.dev で届く形にする。env 側で未指定なら継承される。
+  "workers_dev": true,
   "preview_urls": false,
-  // 長い生成に耐えるよう有料 standard の上限 5 分まで許す（env へ継承される）。
-  "limits": {
-    "cpu_ms": 300000
-  },
+  // limits.cpu_ms は有料プラン専用。Free プランの今のアカウントでは deploy が蹴られる（100328）ので
+  // 置かない。有料へ上げたら cpu_ms: 300000 を戻す（長い生成はその上限が要る）。
   "assets": {
     "binding": "ASSETS",
     "run_worker_first": true
