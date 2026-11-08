@@ -1,0 +1,138 @@
+import { and, asc, eq } from "drizzle-orm";
+
+import {
+  v2GroupMemberTable,
+  v2GroupMemoryTable,
+  v2GroupMessageTable,
+  v2GroupTable,
+} from "./v2-schema";
+
+import type { V2Db } from "./client";
+
+export type GroupMember = { characterId: string; position: number };
+export type GroupMessage = {
+  turn: number;
+  speakerCharacterId: string | null;
+  content: string;
+  voiceMismatch: number | null;
+};
+
+export const createGroup = async (
+  db: V2Db,
+  input: { userId: string; title: string; promptVersion: string; now: number },
+): Promise<string> => {
+  const id = crypto.randomUUID();
+  await db.insert(v2GroupTable).values({
+    id,
+    userId: input.userId,
+    title: input.title,
+    promptVersion: input.promptVersion,
+    createdAt: input.now,
+    updatedAt: input.now,
+  });
+  return id;
+};
+
+export const addGroupMember = async (
+  db: V2Db,
+  input: { groupId: string; characterId: string; position: number; now: number },
+): Promise<void> => {
+  await db.insert(v2GroupMemberTable).values({
+    id: crypto.randomUUID(),
+    groupId: input.groupId,
+    characterId: input.characterId,
+    position: input.position,
+    createdAt: input.now,
+  });
+};
+
+export const listGroupMembers = async (db: V2Db, groupId: string): Promise<GroupMember[]> =>
+  db
+    .select({ characterId: v2GroupMemberTable.characterId, position: v2GroupMemberTable.position })
+    .from(v2GroupMemberTable)
+    .where(eq(v2GroupMemberTable.groupId, groupId))
+    .orderBy(asc(v2GroupMemberTable.position));
+
+export const saveGroupMessage = async (
+  db: V2Db,
+  input: {
+    groupId: string;
+    speakerCharacterId: string | null;
+    content: string;
+    voiceMismatch?: number;
+    generationId?: string;
+    now: number;
+  },
+): Promise<{ turn: number }> => {
+  const rows = await db
+    .select({ turn: v2GroupMessageTable.turn })
+    .from(v2GroupMessageTable)
+    .where(eq(v2GroupMessageTable.groupId, input.groupId))
+    .orderBy(asc(v2GroupMessageTable.turn));
+  const turn = (rows[rows.length - 1]?.turn ?? 0) + 1;
+  await db.insert(v2GroupMessageTable).values({
+    id: crypto.randomUUID(),
+    groupId: input.groupId,
+    turn,
+    speakerCharacterId: input.speakerCharacterId,
+    content: input.content,
+    voiceMismatch: input.voiceMismatch ?? null,
+    generationId: input.generationId ?? null,
+    createdAt: input.now,
+  });
+  return { turn };
+};
+
+export const listGroupHistory = async (
+  db: V2Db,
+  groupId: string,
+  limit?: number,
+): Promise<GroupMessage[]> => {
+  const rows = await db
+    .select({
+      turn: v2GroupMessageTable.turn,
+      speakerCharacterId: v2GroupMessageTable.speakerCharacterId,
+      content: v2GroupMessageTable.content,
+      voiceMismatch: v2GroupMessageTable.voiceMismatch,
+    })
+    .from(v2GroupMessageTable)
+    .where(eq(v2GroupMessageTable.groupId, groupId))
+    .orderBy(asc(v2GroupMessageTable.turn));
+  return limit === undefined ? rows : rows.slice(-limit);
+};
+
+// 場の出来事は場にいた全員の記憶へ同じ文面で入れる（決まりは単純な方が検査しやすい）。
+export const rememberGroupEvent = async (
+  db: V2Db,
+  input: { groupId: string; characterIds: string[]; content: string; now: number },
+): Promise<void> => {
+  if (input.characterIds.length === 0) return;
+  await db.insert(v2GroupMemoryTable).values(
+    input.characterIds.map((characterId) => ({
+      id: crypto.randomUUID(),
+      groupId: input.groupId,
+      characterId,
+      content: input.content,
+      createdAt: input.now,
+    })),
+  );
+};
+
+export const listGroupMemories = async (
+  db: V2Db,
+  input: { groupId: string; characterId: string; limit?: number },
+): Promise<string[]> =>
+  (
+    await db
+      .select({ content: v2GroupMemoryTable.content })
+      .from(v2GroupMemoryTable)
+      .where(
+        and(
+          eq(v2GroupMemoryTable.groupId, input.groupId),
+          eq(v2GroupMemoryTable.characterId, input.characterId),
+        ),
+      )
+      .orderBy(asc(v2GroupMemoryTable.createdAt))
+  )
+    .map((row) => row.content)
+    .slice(-(input.limit ?? 20));

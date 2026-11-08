@@ -237,6 +237,70 @@ export const v2MemorySourceTable = sqliteTable("v2_memory_source", {
   validUntil: text("valid_until"),
 });
 
+// グループ会話（同じ場）。1場=1行。メンバーは v2_group_member。
+export const v2GroupTable = sqliteTable("v2_group", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull(),
+  title: text("title").notNull(),
+  promptVersion: text("prompt_version").notNull(),
+  createdAt: integer("created_at").notNull(),
+  updatedAt: integer("updated_at").notNull(),
+});
+
+export const v2GroupMemberTable = sqliteTable(
+  "v2_group_member",
+  {
+    id: text("id").primaryKey(),
+    groupId: text("group_id")
+      .notNull()
+      .references(() => v2GroupTable.id, { onDelete: "cascade" }),
+    characterId: text("character_id").notNull(),
+    position: integer("position").notNull(),
+    createdAt: integer("created_at").notNull(),
+  },
+  (table) => [
+    uniqueIndex("v2_group_member_unique").on(table.groupId, table.characterId),
+    index("v2_group_member_group_idx").on(table.groupId, table.position),
+  ],
+);
+
+// 場の発言。speaker_character_id が NULL ならユーザー。turn は場内の連番。
+export const v2GroupMessageTable = sqliteTable(
+  "v2_group_message",
+  {
+    id: text("id").primaryKey(),
+    groupId: text("group_id")
+      .notNull()
+      .references(() => v2GroupTable.id, { onDelete: "cascade" }),
+    turn: integer("turn").notNull(),
+    speakerCharacterId: text("speaker_character_id"),
+    content: text("content").notNull(),
+    // 声混ざり検査の記録（RIT-112）。NULL は未検査。
+    voiceMismatch: integer("voice_mismatch"),
+    generationId: text("generation_id"),
+    createdAt: integer("created_at").notNull(),
+  },
+  (table) => [
+    uniqueIndex("v2_group_message_turn_unique").on(table.groupId, table.turn),
+    index("v2_group_message_speaker_idx").on(table.groupId, table.speakerCharacterId),
+  ],
+);
+
+// 場での出来事は場にいたキャラだけの記憶へ（RIT-111: その場にいなかったキャラは知らん）。
+export const v2GroupMemoryTable = sqliteTable(
+  "v2_group_memory",
+  {
+    id: text("id").primaryKey(),
+    groupId: text("group_id")
+      .notNull()
+      .references(() => v2GroupTable.id, { onDelete: "cascade" }),
+    characterId: text("character_id").notNull(),
+    content: text("content").notNull(),
+    createdAt: integer("created_at").notNull(),
+  },
+  (table) => [index("v2_group_memory_character_idx").on(table.characterId, table.groupId)],
+);
+
 // Web Push の購読。端末ごとに1行。話しかけの着信に使う。
 export const v2PushSubscriptionTable = sqliteTable(
   "v2_push_subscription",

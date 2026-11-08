@@ -80,8 +80,9 @@ describe.each(DEPLOYED)("出す環境 env.$env の束ね", ({ env, name, appEnv 
     expect(config.vars.V2_TEST_FAULT).toBe("none");
   });
 
-  it("別 URL を全部閉じ、静的ファイルも必ず Worker を通す", () => {
-    expect(config.workers_dev).toBe(false);
+  it("workers.dev で届けつつ preview URL は閉じ、静的ファイルも必ず Worker を通す", () => {
+    // 独自ドメイン未接続の間は workers.dev を開ける。ドメインを繋いだら閉じ直す。
+    expect(config.workers_dev).toBe(true);
     expect(config.preview_urls).toBe(false);
     expect(config.assets?.run_worker_first).toBe(true);
   });
@@ -124,9 +125,10 @@ describe.each(DEPLOYED)("出す環境 env.$env の束ね", ({ env, name, appEnv 
     expect(migrationClasses(config)).toContain("ProactiveScheduler");
   });
 
-  it("長い生成に耐える CPU 上限（有料 standard で 5 分まで）", () => {
-    expect(config.limits?.cpu_ms).toBeGreaterThanOrEqual(30_000);
-    expect(config.limits?.cpu_ms).toBeLessThanOrEqual(300_000);
+  it("Free プランでは CPU 上限を設定しない（有料化したら 5 分まで上げ直す）", () => {
+    // limits.cpu_ms は Free プランで deploy 拒否される（code 100328）。standard 化したら
+    // 300_000 を復活させる。wrangler.jsonc 側のコメントも参照。
+    expect(config.limits).toBeUndefined();
   });
 });
 

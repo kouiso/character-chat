@@ -18,6 +18,8 @@ import { Route as ChatIdRouteImport } from './routes/chat/$id'
 import { Route as ApiCharactersIdRouteImport } from './routes/api/characters/$id'
 import { Route as ApiChatIdRouteImport } from './routes/api/chat/$id'
 import { Route as ApiMediaIdRouteImport } from './routes/api/media/$id'
+import { Route as ApiGroupsRouteImport } from './routes/api/groups'
+import { Route as ApiGroupsIdMessagesRouteImport } from './routes/api/groups/$id_/messages'
 import { Route as ApiPushSubscriptionsRouteImport } from './routes/api/push/subscriptions'
 import { Route as ApiPushVapidKeyRouteImport } from './routes/api/push/vapid-key'
 import { Route as ApiCharactersIdRestoreRouteImport } from './routes/api/characters/$id_/restore'
@@ -71,6 +73,16 @@ const ApiMediaIdRoute = ApiMediaIdRouteImport.update({
   path: '/api/media/$id',
   getParentRoute: () => rootRouteImport,
 })
+const ApiGroupsRoute = ApiGroupsRouteImport.update({
+  id: '/api/groups',
+  path: '/api/groups',
+  getParentRoute: () => rootRouteImport,
+})
+const ApiGroupsIdMessagesRoute = ApiGroupsIdMessagesRouteImport.update({
+  id: '/api/groups/$id_/messages',
+  path: '/api/groups/$id/messages',
+  getParentRoute: () => rootRouteImport,
+})
 const ApiPushSubscriptionsRoute = ApiPushSubscriptionsRouteImport.update({
   id: '/api/push/subscriptions',
   path: '/api/push/subscriptions',
@@ -119,6 +131,8 @@ export interface FileRoutesByFullPath {
   '/api/characters/$id': typeof ApiCharactersIdRoute
   '/api/chat/$id': typeof ApiChatIdRoute
   '/api/media/$id': typeof ApiMediaIdRoute
+  '/api/groups': typeof ApiGroupsRoute
+  '/api/groups/$id/messages': typeof ApiGroupsIdMessagesRoute
   '/api/push/subscriptions': typeof ApiPushSubscriptionsRoute
   '/api/push/vapid-key': typeof ApiPushVapidKeyRoute
   '/api/characters/$id/restore': typeof ApiCharactersIdRestoreRoute
@@ -137,6 +151,8 @@ export interface FileRoutesByTo {
   '/api/characters/$id': typeof ApiCharactersIdRoute
   '/api/chat/$id': typeof ApiChatIdRoute
   '/api/media/$id': typeof ApiMediaIdRoute
+  '/api/groups': typeof ApiGroupsRoute
+  '/api/groups/$id/messages': typeof ApiGroupsIdMessagesRoute
   '/api/push/subscriptions': typeof ApiPushSubscriptionsRoute
   '/api/push/vapid-key': typeof ApiPushVapidKeyRoute
   '/api/characters/$id/restore': typeof ApiCharactersIdRestoreRoute
@@ -156,6 +172,8 @@ export interface FileRoutesById {
   '/api/characters/$id': typeof ApiCharactersIdRoute
   '/api/chat/$id': typeof ApiChatIdRoute
   '/api/media/$id': typeof ApiMediaIdRoute
+  '/api/groups': typeof ApiGroupsRoute
+  '/api/groups/$id_/messages': typeof ApiGroupsIdMessagesRoute
   '/api/push/subscriptions': typeof ApiPushSubscriptionsRoute
   '/api/push/vapid-key': typeof ApiPushVapidKeyRoute
   '/api/characters/$id_/restore': typeof ApiCharactersIdRestoreRoute
@@ -176,6 +194,8 @@ export interface FileRouteTypes {
     | '/api/characters/$id'
     | '/api/chat/$id'
     | '/api/media/$id'
+    | '/api/groups'
+    | '/api/groups/$id/messages'
     | '/api/push/subscriptions'
     | '/api/push/vapid-key'
     | '/api/characters/$id/restore'
@@ -194,6 +214,8 @@ export interface FileRouteTypes {
     | '/api/characters/$id'
     | '/api/chat/$id'
     | '/api/media/$id'
+    | '/api/groups'
+    | '/api/groups/$id/messages'
     | '/api/push/subscriptions'
     | '/api/push/vapid-key'
     | '/api/characters/$id/restore'
@@ -212,6 +234,8 @@ export interface FileRouteTypes {
     | '/api/characters/$id'
     | '/api/chat/$id'
     | '/api/media/$id'
+    | '/api/groups'
+    | '/api/groups/$id_/messages'
     | '/api/push/subscriptions'
     | '/api/push/vapid-key'
     | '/api/characters/$id_/restore'
@@ -230,6 +254,8 @@ export interface RootRouteChildren {
   ChatIdRoute: typeof ChatIdRoute
   ApiChatIdRoute: typeof ApiChatIdRoute
   ApiMediaIdRoute: typeof ApiMediaIdRoute
+  ApiGroupsRoute: typeof ApiGroupsRoute
+  ApiGroupsIdMessagesRoute: typeof ApiGroupsIdMessagesRoute
   ApiPushSubscriptionsRoute: typeof ApiPushSubscriptionsRoute
   ApiPushVapidKeyRoute: typeof ApiPushVapidKeyRoute
   ApiChatIdHistoryRoute: typeof ApiChatIdHistoryRoute
@@ -299,6 +325,20 @@ declare module '@tanstack/react-router' {
       path: '/api/media/$id'
       fullPath: '/api/media/$id'
       preLoaderRoute: typeof ApiMediaIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/groups': {
+      id: '/api/groups'
+      path: '/api/groups'
+      fullPath: '/api/groups'
+      preLoaderRoute: typeof ApiGroupsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/groups/$id_/messages': {
+      id: '/api/groups/$id_/messages'
+      path: '/api/groups/$id/messages'
+      fullPath: '/api/groups/$id/messages'
+      preLoaderRoute: typeof ApiGroupsIdMessagesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/push/subscriptions': {
@@ -392,6 +432,8 @@ const rootRouteChildren: RootRouteChildren = {
   ChatIdRoute: ChatIdRoute,
   ApiChatIdRoute: ApiChatIdRoute,
   ApiMediaIdRoute: ApiMediaIdRoute,
+  ApiGroupsRoute: ApiGroupsRoute,
+  ApiGroupsIdMessagesRoute: ApiGroupsIdMessagesRoute,
   ApiPushSubscriptionsRoute: ApiPushSubscriptionsRoute,
   ApiPushVapidKeyRoute: ApiPushVapidKeyRoute,
   ApiChatIdHistoryRoute: ApiChatIdHistoryRoute,
