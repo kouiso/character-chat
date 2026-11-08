@@ -104,9 +104,9 @@ describe("selectQualityRetryModel", () => {
       expect(result).toBe(expected);
     });
 
-    it("qwen から deepseek への retry は次に DEFAULT_CHAT_MODEL へ降下する", () => {
+    it("deepseek からの retry は次に euryale へ降下する", () => {
       const result = selectQualityRetryModel(DEFAULT_CHAT_MODEL, EROTIC_CHAT_MODEL, "other", false);
-      expect(result).toBe(DEFAULT_CHAT_MODEL);
+      expect(result).toBe(EURYALE_CHAT_MODEL);
     });
 
     it("euryale から euryale への retry は fallback chain の次のモデルへ", () => {

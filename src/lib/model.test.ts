@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   DEFAULT_CHAT_MODEL,
   EROTIC_CHAT_MODEL,
+  QWEN_CHAT_MODEL,
   EURYALE_CHAT_MODEL,
   NSFW_CHAT_MODEL_RECOMMENDATION,
   MODEL_CATALOG,
@@ -47,12 +48,12 @@ describe("phase-based model routing", () => {
   it("keeps Euryale fallback away from unavailable Magnum", () => {
     expect(MODEL_FALLBACKS["sao10k/l3.3-euryale-70b"]).toEqual([
       EROTIC_CHAT_MODEL,
-      DEFAULT_CHAT_MODEL,
+      QWEN_CHAT_MODEL,
     ]);
   });
 
   it("adds Euryale as the third fallback for conversational model chains", () => {
-    expect(MODEL_FALLBACKS[DEFAULT_CHAT_MODEL]).toEqual([EROTIC_CHAT_MODEL, EURYALE_CHAT_MODEL]);
+    expect(MODEL_FALLBACKS[DEFAULT_CHAT_MODEL]).toEqual([EURYALE_CHAT_MODEL, QWEN_CHAT_MODEL]);
   });
 
   it("keeps model picker copy focused on behavior instead of regulatory wording", () => {

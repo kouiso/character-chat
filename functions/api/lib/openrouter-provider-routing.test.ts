@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { DEFAULT_CHAT_MODEL } from "../../../src/lib/model";
+import { QWEN_CHAT_MODEL } from "../../../src/lib/model";
 
 import { buildOpenRouterProviderRouting } from "./openrouter-provider-routing";
 
 describe("buildOpenRouterProviderRouting", () => {
   it("Qwenではchat completions非対応providerを除外する", () => {
-    expect(buildOpenRouterProviderRouting(DEFAULT_CHAT_MODEL)).toEqual({
+    expect(buildOpenRouterProviderRouting(QWEN_CHAT_MODEL)).toEqual({
       allow_fallbacks: true,
       ignore: ["novita"],
     });
