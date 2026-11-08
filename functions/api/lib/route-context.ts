@@ -6590,7 +6590,8 @@ export const requestMemoryExtractionFacts = async (
         temperature: 0.1,
         max_tokens: 700,
         response_format: { type: "json_object" },
-        provider: { allow_fallbacks: true },
+        // 会話本文を上流へ送るので、本家 DeepSeek への流出もここで防ぐ（RIT-88）。
+        provider: buildOpenRouterProviderRouting(MEMORY_EXTRACTION_MODEL),
       }),
       signal: abortController.signal,
     });

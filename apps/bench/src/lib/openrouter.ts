@@ -57,6 +57,9 @@ function buildRequestBody(options: CompletionOptions, stream: boolean): string {
     frequency_penalty: options.frequencyPenalty ?? 0,
     presence_penalty: options.presencePenalty ?? 0,
     stream,
+    // 評価台本もアダルト内容を含むので本家 DeepSeek へは送らん
+    // （functions/api/lib/openrouter-provider-routing.ts と同じ除外・RIT-88）。
+    provider: { allow_fallbacks: true, ignore: ["deepseek"] },
   });
 }
 

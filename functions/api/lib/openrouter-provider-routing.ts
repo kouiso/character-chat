@@ -1,6 +1,10 @@
 import { EROTIC_CHAT_MODEL, LLM_ROUTER_MODEL, QWEN_CHAT_MODEL } from "../../../src/lib/model";
 
 const PROVIDERS_WITHOUT_QWEN_CHAT_COMPLETIONS = ["novita"] as const;
+// このアプリの会話は全部アダルト区分。本家 DeepSeek（provider "deepseek"）は
+// データ取り扱いの観点からアダルトの会話を送れへんので、全モデルで除外する
+// （RIT-88。fallback で流れ着くことも含めて OpenRouter 側で禁止）。
+const PROVIDERS_EXCLUDED_FOR_ADULT_CHAT = ["deepseek"] as const;
 // very_long では 1300 字到達までの生成時間が Cloudflare Worker 制限に抵触しやすい。
 // #1370: streamlake 単独では遅延/障害時に 503 に至るケースがあったため、
 // 第一優先は streamlake、フォールバックは DeepInfra とし、availability を確保する。
@@ -28,7 +32,10 @@ export const buildOpenRouterProviderRouting = (
   ...(model === EROTIC_CHAT_MODEL && maxTokens !== undefined && maxTokens <= VERY_LONG_MAX_TOKENS
     ? { order: VERY_LONG_DEEPSEEK_PROVIDER_ORDER }
     : {}),
-  ...(model === QWEN_CHAT_MODEL || model === LLM_ROUTER_MODEL
-    ? { ignore: PROVIDERS_WITHOUT_QWEN_CHAT_COMPLETIONS }
-    : {}),
+  ignore: [
+    ...(model === QWEN_CHAT_MODEL || model === LLM_ROUTER_MODEL
+      ? PROVIDERS_WITHOUT_QWEN_CHAT_COMPLETIONS
+      : []),
+    ...PROVIDERS_EXCLUDED_FOR_ADULT_CHAT,
+  ],
 });

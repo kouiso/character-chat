@@ -1,3 +1,5 @@
+import { buildOpenRouterProviderRouting } from "../openrouter-provider-routing";
+
 import type { CharacterVisualSnapshot, EvalViolation, SceneStateSnapshot } from "./types";
 
 // 生成済み画像をVLMで採点する。prompt-text 評価とは独立した「実画像」評価レイヤー。
@@ -243,7 +245,7 @@ export async function gradeGeneratedImage(
           stream: false,
           temperature: 0,
           max_tokens: 200,
-          provider: { allow_fallbacks: true },
+          provider: buildOpenRouterProviderRouting(deps.model ?? VLM_MODEL),
         }),
         signal: abortController.signal,
       });
