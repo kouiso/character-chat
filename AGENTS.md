@@ -49,6 +49,10 @@ node .codex/mock-server.mjs   # 外部 LLM/画像 API のモック（no network 
 - 新規スキーマ変更は **autogenerate 優先**: `pnpm db:generate`（drizzle-kit）で生成し、D1 が未対応の箇所だけ手当てする。フル手書き migration は禁止。
 - placeholder secret は `.codex/dev-vars.example` → `.dev.vars`（gitignore 済み・実鍵なし。既存の本物は上書きしない）。
 
+## さくら台本ドッグフード
+
+`script/verify/run-sakura-dogfood.sh [run番号]` で bench 実行 → core-check 採点 → HTML レポート生成まで一発で行く（`OPENROUTER_API_KEY` は環境変数優先・無ければ `apps/v2/.dev.vars` から拾い、未設定のままでは課金 API を叩かず止まる）。出力は `.work/e2e-results/vlong-dogfood/` と `.work/report/`。
+
 ## アーキテクチャ
 
 `prompt/` を詳細指示のシングルソースとする。Claude Code は常時ロードを

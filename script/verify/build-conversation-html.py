@@ -2,11 +2,18 @@
 """transcript の .txt から、男の発言とキャラ返答を並べた会話 HTML を作る。
 
 手打ちで本文を写すと文字化けするので、必ず transcript を読んで生成する。
+
+RIT-7: 先頭に core-check（fantasy-core-check）の集計表を載せる。採点ロジックの
+正本は packages/bench/src/fantasy-core-check.ts（@v2/judge）なので、subprocess で
+JSONL を受け取ってここでは表示だけを組み立てる。pnpm/tsx が無い環境では
+集計セクションを省略して会話本体だけ出す。
 """
 import glob
 import html
+import json
 import os
 import re
+import subprocess
 import sys
 
 RUN_DIR = sys.argv[1] if len(sys.argv) > 1 else (
@@ -24,6 +31,11 @@ h2{font-size:1.05rem;border-bottom:2px solid #ddd;padding-bottom:.2rem;margin-to
 .dialogue{color:#1a4d8f;font-weight:600;margin:.5rem 0;padding-left:1rem}
 .inner{color:#888;font-style:italic;font-size:.9rem;margin:.4rem 0;padding-left:1rem}
 .meta{color:#999;font-size:.8rem}
+table.core{border-collapse:collapse;margin:1rem 0;font-size:.85rem}
+table.core th,table.core td{border:1px solid #ccc;padding:.25rem .5rem;text-align:left}
+table.core th{background:#f5f5f5}
+td.on{background:#fde7e7;font-weight:600}
+.ev{color:#555;font-size:.78rem}
 """
 
 
@@ -48,9 +60,92 @@ def parse(path):
     }
 
 
+def run_core_check(run_dir):
+    """fantasy-core-check の JSONL を実行して (per-turn 行, totals) を返す。
+
+    採点の正本は packages/bench/src/fantasy-core-check.ts（@v2/judge）。
+    pnpm/tsx が無い、または実行に失敗した時は None を返し、レポート側は
+    集計なしで続行する（会話本体の生成を止めんため）。
+    """
+    repo = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    cmd = [
+        "pnpm",
+        "--filter",
+        "@v2/bench",
+        "exec",
+        "tsx",
+        "src/fantasy-core-check.ts",
+        "--dirs",
+        os.path.abspath(run_dir),
+    ]
+    try:
+        proc = subprocess.run(cmd, cwd=repo, capture_output=True, text=True, timeout=180)
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    if proc.returncode != 0:
+        return None
+    rows, totals = [], None
+    for line in proc.stdout.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            rec = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if "totals" in rec:
+            totals = rec["totals"]
+        elif "items" in rec:
+            rows.append(rec)
+    return rows, totals
+
+
+def core_summary_html(core):
+    rows, totals = core
+    if not rows:
+        return ""
+    items = [k for k in rows[0]["items"].keys()]
+    parts = [
+        "<h2>core-check 集計</h2>",
+        '<table class="core"><tr><th>turn</th>'
+        + "".join(f"<th>{html.escape(k)}</th>" for k in items)
+        + "</tr>",
+    ]
+    for row in rows:
+        cells = [f"<td>{row['turn']}</td>"]
+        for k in items:
+            if row["items"].get(k):
+                ev = html.escape(row.get("evidence", {}).get(k, ""))
+                cells.append(f'<td class="on">●<br><span class="ev">{ev}</span></td>')
+            else:
+                cells.append("<td></td>")
+        parts.append("<tr>" + "".join(cells) + "</tr>")
+    if totals:
+        parts.append(
+            "<tr><td><b>合計</b></td>"
+            + "".join(f"<td><b>{totals.get(k, 0)}</b></td>" for k in items)
+            + "</tr>"
+        )
+    parts.append("</table>")
+    parts.append(
+        '<p class="meta">scream は「出ないのが正解」のネガティブ項目。'
+        "各セルの断片はヒットした本文の証拠。誤検知らしきヒットは断片を見て自分で判断する。</p>"
+    )
+    return "\n".join(parts)
+
+
 files = sorted(glob.glob(os.path.join(RUN_DIR, "Sakura-*.txt")))
 turns = [parse(p) for p in files]
 turns = [t for t in turns if t["blocks"]]
+core = run_core_check(RUN_DIR)
+if core:
+    # 同じ run dir に別キャラの transcript が居ても、レポートは Sakura の表だけにする。
+    shown = {os.path.basename(p) for p in files}
+    rows, totals = core
+    kept = [r for r in rows if r.get("file") in shown]
+    if totals:
+        totals = {k: sum(1 for r in kept if r["items"].get(k)) for k in totals}
+    core = (kept, totals) if kept else None
 
 parts = [
     "<!doctype html>",
@@ -62,6 +157,14 @@ parts = [
     f"{len(turns)} ターン。オレンジがあなたの発言、青がさくらの台詞、"
     "グレーがさくらの内心。</p>",
 ]
+
+if core:
+    parts.append(core_summary_html(core))
+else:
+    parts.append(
+        '<p class="meta">core-check 集計なし（pnpm/tsx 未導入か実行失敗。'
+        "手動: pnpm --filter @v2/bench exec tsx src/fantasy-core-check.ts --dirs <run dir>）</p>"
+    )
 
 for t in turns:
     parts.append(

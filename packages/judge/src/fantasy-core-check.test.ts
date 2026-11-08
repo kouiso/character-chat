@@ -51,4 +51,34 @@ describe("fantasyCoreCheck", () => {
       expect(fantasyCoreCheck(body).items.creampie).toBe(true);
     }
   });
+
+  // RIT-5: 2026-09-18 script2-3/4 の実走行で観測した誤爆の回帰。
+  it("乱交の誤爆を抑える（抱き回され／…させるで）", () => {
+    const cases = [
+      "<response><action>抱き回されるまま、畳に横たえられる。</action></response>",
+      "<response><action>体を起こさせるでなく、腕を掴まれるだけ。</action></response>",
+      "<response><action>順番に並んで、交代で絵を描く。</action></response>",
+    ];
+    for (const body of cases) {
+      expect(fantasyCoreCheck(body).items.gangbang).toBe(false);
+    }
+    const real = "<response><action>他の男たちに回されてしまう。</action></response>";
+    expect(fantasyCoreCheck(real).items.gangbang).toBe(true);
+  });
+
+  it("中出しの誤爆を抑える（味覚の比喩の『中で広がる』）", () => {
+    const body = "<response><action>甘さが口の中で広がる。</action></response>";
+    expect(fantasyCoreCheck(body).items.creampie).toBe(false);
+  });
+
+  it("心理堕落を検出する（戻れない・あなたのもの・受け止めた）", () => {
+    const cases = [
+      "<response><inner>もう戻れない。元の私には。</inner></response>",
+      "<response><inner>あなたのものになってしまった。</inner></response>",
+      "<response><action>全部、受け止めた。体も心も。</action></response>",
+    ];
+    for (const body of cases) {
+      expect(fantasyCoreCheck(body).items.corruption).toBe(true);
+    }
+  });
 });
