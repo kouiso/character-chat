@@ -115,7 +115,13 @@ describe("memories API", () => {
         )
         .bind(...conversations)
         .run();
-      for (const table of ["v2_memory", "v2_message", "v2_ledger", "v2_generation"]) {
+      for (const table of [
+        "v2_memory",
+        "v2_memory_tombstone",
+        "v2_message",
+        "v2_ledger",
+        "v2_generation",
+      ]) {
         await local.d1
           .prepare(`DELETE FROM ${table} WHERE conversation_id IN (${placeholders})`)
           .bind(...conversations)

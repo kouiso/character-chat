@@ -217,3 +217,17 @@ export const v2MemorySourceTable = sqliteTable("v2_memory_source", {
   validFrom: text("valid_from"),
   validUntil: text("valid_until"),
 });
+
+// 手で消した記憶の内容ハッシュ。抽出の再実行で同じ内容が蘇らんようにする（RIT-94）。
+// 会話ごとの帳簿なので、別会話で同じ内容を覚えるのは妨げない。
+export const v2MemoryTombstoneTable = sqliteTable(
+  "v2_memory_tombstone",
+  {
+    conversationId: text("conversation_id")
+      .notNull()
+      .references(() => v2ConversationTable.id),
+    contentHash: text("content_hash").notNull(),
+    createdAt: integer("created_at").notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.conversationId, table.contentHash] })],
+);

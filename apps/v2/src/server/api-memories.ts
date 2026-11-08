@@ -213,9 +213,12 @@ export const handleMemoriesRequest = async (
     if (request.method === "DELETE") {
       const payload = await readBody(request, deleteSchema);
       if (payload instanceof Response) return payload;
-      const previous = await deleteMemory(database, scope, payload.memoryId);
-      if (previous === null) return message(404, "会話または記憶が見つかりません。");
-      await dropMemoryVector(env, payload.memoryId, previous);
+      const deleted = await deleteMemory(database, scope, payload.memoryId);
+      if (deleted === null) return message(404, "会話または記憶が見つかりません。");
+      // 本体に加えて掃討された要約の vector も消す（RIT-94 の3か所）
+      for (const row of deleted) {
+        await dropMemoryVector(env, row.id, row.content);
+      }
       return privateJson({ ok: true });
     }
 

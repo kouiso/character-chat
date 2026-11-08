@@ -121,6 +121,10 @@ export const completeMemoryExtraction = async (
 ): Promise<void> => {
   const memories = validateExtractedMemories({ memories: extracted }, source.content);
   const hash = await hashMemorySource(source.content);
+  // 手で消された内容はこの会話では書き戻さん（RIT-94 の tombstone）
+  const contentHashes = await Promise.all(
+    memories.map((memory) => hashMemorySource(memory.content)),
+  );
   const now = Date.now();
   // 推論中に元発言や所有者が変わった場合も、書込と同じトランザクション内で止める。
   const eligible = sql`exists (
@@ -142,6 +146,12 @@ export const completeMemoryExtraction = async (
       .where(and(eq(v2MemoryJobTable.id, source.id), eligible)),
     ...memories.flatMap((memory, ordinal) => {
       const id = `${source.id}:${ordinal}`;
+      const notTombstoned = and(
+        eligible,
+        sql`not exists (select 1 from v2_memory_tombstone t
+          where t.conversation_id = ${source.conversationId}
+            and t.content_hash = ${contentHashes[ordinal]})`,
+      );
       return [
         db
           .insert(v2MemoryTable)
@@ -159,7 +169,7 @@ export const completeMemoryExtraction = async (
                 createdAt: sql<number>`${now}`.as("created_at"),
               })
               .from(v2MemoryJobTable)
-              .where(and(eq(v2MemoryJobTable.id, source.id), eligible)),
+              .where(and(eq(v2MemoryJobTable.id, source.id), notTombstoned)),
           )
           .onConflictDoNothing(),
         db
@@ -175,7 +185,7 @@ export const completeMemoryExtraction = async (
                 validUntil: sql<string | null>`${memory.validUntil}`.as("valid_until"),
               })
               .from(v2MemoryJobTable)
-              .where(and(eq(v2MemoryJobTable.id, source.id), eligible)),
+              .where(and(eq(v2MemoryJobTable.id, source.id), notTombstoned)),
           )
           .onConflictDoNothing(),
       ];
