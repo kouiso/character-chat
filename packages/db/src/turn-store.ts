@@ -7,6 +7,7 @@ import { z } from "zod";
 
 import { messageTable } from "../../../src/schema/message";
 
+import { chunkSendTimes } from "./chunk-schedule";
 import {
   v2ChunkTable,
   v2ConversationTable,
@@ -17,7 +18,6 @@ import {
   v2MemoryTable,
   v2MessageTable,
 } from "./v2-schema";
-import { chunkSendTimes } from "./chunk-schedule";
 
 import type { V2Db } from "./client";
 import type { JudgeResult } from "@v2/judge";
@@ -77,7 +77,15 @@ export type TurnEvent =
       // 文脈の予算で model へ渡さんかった古い履歴の件数。長い会話で「忘れた」と「切った」を見分ける。
       omittedHistoryMessages: number;
     }
-  | { type: "done"; conversationId: string; turn: number; generationId: string | null }
+  | {
+      type: "done";
+      conversationId: string;
+      turn: number;
+      generationId: string | null;
+      // 各塊の表示予定時刻（v2_chunk.send_at と同じ値）。塊が無い失敗ターンは空配列。
+      // 古い保存済みイベント再生では欠けるため optional。
+      sendAt?: number[];
+    }
   | { type: "error"; message: string };
 
 export type TurnStoreLoaded = { history: HistoryMessage[]; ledger: SceneLedger; turn: number };
@@ -96,7 +104,7 @@ export type SaveTurnInput = {
 // persist が同じ値で saveTurn する）。空の会話は 1。createMemoryTurnStore と同じ意味。
 export type TurnStore = {
   load: (conversationId: string) => Promise<TurnStoreLoaded>;
-  saveTurn: (input: SaveTurnInput) => Promise<void>;
+  saveTurn: (input: SaveTurnInput) => Promise<{ chunkSendAt: number[] }>;
 };
 
 export type D1TurnStoreOptions = {
@@ -417,6 +425,10 @@ export const createD1TurnStore = (db: V2Db, opts: D1TurnStoreOptions): TurnStore
     await assertConversationOwner(db, opts, input.conversationId);
     const now = Date.now();
     const chunks = input.events.filter(isChunkEvent).sort((a, b) => a.seq - b.seq);
+    const sendTimes = chunkSendTimes(
+      chunks.map((chunk) => chunk.text),
+      now,
+    );
     const generations = input.events.filter(isGenerationEvent);
     const assistantText = assistantTextOf(chunks);
     const userMessageId = crypto.randomUUID();
@@ -524,24 +536,18 @@ export const createD1TurnStore = (db: V2Db, opts: D1TurnStoreOptions): TurnStore
       }),
       // D1 は 1 文あたりのバインド変数が 100 個までなので、chunk は 1 行 1 文で入れる。
       // 予定時刻は塊列から一括計算して行ごとに割り当てる（RIT-67）。
-      ...(() => {
-        const sendTimes = chunkSendTimes(
-          chunks.map((c) => c.text),
-          now,
-        );
-        return chunks.map((chunkEvent, index) =>
-          db.insert(v2ChunkTable).values({
-            id: crypto.randomUUID(),
-            messageId: assistantMessageId,
-            seq: chunkEvent.seq,
-            text: chunkEvent.text,
-            judgeJson: JSON.stringify(chunkEvent.judge),
-            attempt: chunkEvent.attempt,
-            sendAt: sendTimes[index],
-            createdAt: now,
-          }),
-        );
-      })(),
+      ...chunks.map((chunkEvent, index) =>
+        db.insert(v2ChunkTable).values({
+          id: crypto.randomUUID(),
+          messageId: assistantMessageId,
+          seq: chunkEvent.seq,
+          text: chunkEvent.text,
+          judgeJson: JSON.stringify(chunkEvent.judge),
+          attempt: chunkEvent.attempt,
+          sendAt: sendTimes[index],
+          createdAt: now,
+        }),
+      ),
       db.insert(v2LedgerTable).values({
         conversationId: input.conversationId,
         turn: input.turn,
@@ -565,5 +571,6 @@ export const createD1TurnStore = (db: V2Db, opts: D1TurnStoreOptions): TurnStore
           ]
         : []),
     ]);
+    return { chunkSendAt: sendTimes };
   },
 });

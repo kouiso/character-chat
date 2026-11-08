@@ -1,5 +1,6 @@
 // テスト用の TurnStore 実装（インメモリ、永続化なし）。
 // 本番実装（D1 版）は @v2/db 側が createD1TurnStore として提供する想定（M1）。
+import { chunkSendTimes } from "@v2/db/chunk-schedule";
 import { emptyLedger, type SceneLedger } from "@v2/prompt";
 
 import type { HistoryMessage, TurnEvent, TurnStore } from "./types";
@@ -32,6 +33,17 @@ export const createMemoryTurnStore = (): MemoryTurnStore => {
       const list = turns.get(input.conversationId) ?? [];
       list.push({ userText: input.userText, events: input.events, ledger: input.ledger });
       turns.set(input.conversationId, list);
+      return {
+        chunkSendAt: chunkSendTimes(
+          input.events
+            .filter(
+              (event): event is Extract<TurnEvent, { type: "chunk" }> => event.type === "chunk",
+            )
+            .sort((a, b) => a.seq - b.seq)
+            .map((event) => event.text),
+          Date.now(),
+        ),
+      };
     },
   };
 };

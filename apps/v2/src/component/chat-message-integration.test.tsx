@@ -13,7 +13,7 @@ afterEach(() => {
 });
 
 describe("ChatView message 表示接続", () => {
-  it("既存の復旧対応経路から chunk を表示し、更新と履歴読込でも本文を重複させない", async () => {
+  it("ストリーム中は入力中だけを出し、done の予定時刻で塊を出して履歴と重複させない", async () => {
     let streamController: ReadableStreamDefaultController<Uint8Array> | undefined;
     const reply =
       "<action>地図を開く。</action><dialogue>「出発しよう👩🏽‍🚀」</dialogue><inner>次の道が楽しみ。</inner>";
@@ -77,11 +77,14 @@ describe("ChatView message 表示接続", () => {
       });
 
     emitChunk(0, "<response><action>仮の描写。</action><dia");
-    expect(await screen.findByRole("group", { name: "描写" })).toHaveTextContent("仮の描写。");
+    // 予定時刻が分かる done が来るまで、塊の本文は出さず入力中だけが出る（RIT-69）。
+    expect(screen.queryByText(/仮の描写/)).not.toBeInTheDocument();
     expect(screen.queryByText(/<dia/)).not.toBeInTheDocument();
+    expect(document.querySelector(".v2-message-turn.assistant.pending")).not.toBeNull();
 
     emitChunk(0, "<action>地図を開く。</action><dialogue>「出発しよう👩🏽‍🚀」</dialogue>");
     emitChunk(1, "<inner>次の道が楽しみ。</inner>");
+    // sendAt を載せない旧形式の done は、全塊が即座に出る。
     emit({ type: "done", conversationId: "synthetic-conversation", turn: 1, generationId: null });
     streamController?.close();
 

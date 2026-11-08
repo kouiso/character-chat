@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { Dispatch, RefObject, SetStateAction } from "react";
 
 import { MAX_MESSAGE_LENGTH } from "../lib/chat-limits";
 import {
@@ -15,6 +16,7 @@ import {
   type ChatBubble,
   type PendingTurn,
 } from "../lib/chat-session";
+import { revealChunk, scheduleReveal } from "../lib/chunk-reveal";
 
 import { ChatImage } from "./chat-image";
 import { ChatMessage, ChatMessageText } from "./chat-message";
@@ -54,13 +56,6 @@ const withoutPending = (history: ChatBubble[], pending: PendingTurn): ChatBubble
     : history;
 };
 
-const updateAssistant = (history: ChatBubble[], text: string): ChatBubble[] =>
-  history.map((bubble, index) =>
-    index === history.length - 1 && bubble.role === "assistant"
-      ? { ...bubble, text, pending: true }
-      : bubble,
-  );
-
 const failureMessage = (cause: unknown): string =>
   cause instanceof Error ? cause.message : "返信を確認できませんでした。";
 
@@ -89,29 +84,59 @@ const isTerminalPendingRejection = (pending: PendingTurn | null, cause: unknown)
 const consumeEvents = async (
   stream: ReadableStream<Uint8Array>,
   signal: AbortSignal,
-  onChunk: (text: string) => void,
   onError: (event: ChatErrorEvent) => void,
-): Promise<boolean> => {
+): Promise<{ completed: boolean; texts: string[]; sendAt?: number[] }> => {
   const chunks = new Map<number, string>();
   let completed = false;
+  let sendAt: number[] | undefined;
   for await (const event of readChatEvents(stream)) {
-    if (signal.aborted) return false;
-    if (event.type === "chunk") {
-      chunks.set(event.seq, event.text);
-      onChunk(
-        [...chunks.entries()]
-          .sort(([a], [b]) => a - b)
-          .map(([, value]) => value)
-          .join("\n"),
-      );
-    }
+    if (signal.aborted) return { completed: false, texts: [] };
+    if (event.type === "chunk") chunks.set(event.seq, event.text);
     if (event.type === "error") {
       onError(event);
       throw new Error(event.message);
     }
-    if (event.type === "done") completed = true;
+    if (event.type === "done") {
+      completed = true;
+      sendAt = event.sendAt;
+    }
   }
-  return completed;
+  return {
+    completed,
+    sendAt,
+    texts: [...chunks.entries()].sort(([a], [b]) => a - b).map(([, value]) => value),
+  };
+};
+
+// 完了だけ届いた再接続は塊が無いので、空の作成中枠を外して履歴の読み直しで埋める。
+const dropPendingAssistant = (setBubbles: Dispatch<SetStateAction<ChatBubble[]>>) =>
+  setBubbles((previous) =>
+    previous
+      .filter((bubble) => !(bubble.pending && bubble.role === "assistant" && !bubble.text))
+      .map((bubble) => ({ ...bubble, pending: false })),
+  );
+
+const reportConsumeFailure = (
+  cause: unknown,
+  signal: AbortSignal,
+  setError: Dispatch<SetStateAction<string | null>>,
+  setTerminalFailure: Dispatch<SetStateAction<boolean>>,
+) => {
+  if (signal.aborted) return;
+  if (cause instanceof ChatRequestRejectedError) setTerminalFailure(true);
+  setError(failureMessage(cause));
+};
+
+const startScheduledReveal = (
+  revealCancel: RefObject<(() => void) | null>,
+  setBubbles: Dispatch<SetStateAction<ChatBubble[]>>,
+  texts: string[],
+  sendAt: number[] | undefined,
+) => {
+  revealCancel.current?.();
+  revealCancel.current = scheduleReveal(texts, sendAt, (text, more) =>
+    setBubbles((previous) => revealChunk(previous, text, more)),
+  );
 };
 
 export const ChatView = ({
@@ -129,6 +154,7 @@ export const ChatView = ({
   const conversationId = useRef<string | null>(null);
   const nextTurn = useRef(1);
   const controller = useRef<AbortController | null>(null);
+  const revealCancel = useRef<(() => void) | null>(null);
 
   const consume = useCallback(async (turn: PendingTurn, signal: AbortSignal, retry = false) => {
     if (signal.aborted) return;
@@ -137,32 +163,26 @@ export const ChatView = ({
     setTerminalFailure(false);
     try {
       const stream = await connectChatTurn(turn, signal, retry);
-      const completed = await consumeEvents(
-        stream,
-        signal,
-        (text) => setBubbles((previous) => updateAssistant(previous, text)),
-        (event) => setTerminalFailure(event.terminal === true),
+      const result = await consumeEvents(stream, signal, (event) =>
+        setTerminalFailure(event.terminal === true),
       );
-      if (!completed) throw new ChatConnectionError();
+      if (!result.completed) throw new ChatConnectionError();
       // サーバーが完了を確かめた時点で保留を片付ける。履歴の読み直しで失敗しても、
       // 保存済みの送信を「入力に戻す」で戻して二重に送らせんため。
       clearPendingTurn(turn.characterId, turn);
       setPending(null);
-      // 再接続で完了だけが届くと、作成中の返信は空のまま。空の枠は残さず、履歴の読み直しで埋める。
-      setBubbles((previous) =>
-        previous
-          .filter((bubble) => !(bubble.pending && bubble.role === "assistant" && !bubble.text))
-          .map((bubble) => ({ ...bubble, pending: false })),
-      );
+      // 塊が取れたターンは予定時刻で順に出す（RIT-69）。完了だけ届いた再接続は
+      // 塊が無いので、従来どおり履歴の読み直しで埋める。
+      const reveal = result.texts.length > 0;
+      if (!reveal) dropPendingAssistant(setBubbles);
       nextTurn.current = turn.baseTurn + 1;
       const history = await loadChatHistory(turn.characterId, turn.conversationId, signal);
       if (signal.aborted) return;
       nextTurn.current = history.nextTurn;
-      setBubbles(history.bubbles);
+      if (reveal) startScheduledReveal(revealCancel, setBubbles, result.texts, result.sendAt);
+      else setBubbles(history.bubbles);
     } catch (cause) {
-      if (signal.aborted) return;
-      if (cause instanceof ChatRequestRejectedError) setTerminalFailure(true);
-      setError(failureMessage(cause));
+      reportConsumeFailure(cause, signal, setError, setTerminalFailure);
     } finally {
       if (!signal.aborted) setBusy(false);
     }
@@ -267,6 +287,8 @@ export const ChatView = ({
     return () => {
       abort.abort();
       controller.current?.abort();
+      revealCancel.current?.();
+      revealCancel.current = null;
     };
   }, [characterId, consume, initialConversationId, newConversationKey]);
 

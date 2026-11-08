@@ -12,6 +12,10 @@
     "./character-version": {
       "types": "./src/character-version.ts",
       "default": "./src/character-version.ts"
+    },
+    "./chunk-schedule": {
+      "types": "./src/chunk-schedule.ts",
+      "default": "./src/chunk-schedule.ts"
     }
   },
   "scripts": {

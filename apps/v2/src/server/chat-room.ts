@@ -317,7 +317,16 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
     if (!assistant?.content.trim()) return false;
     this.finish(
       job,
-      [{ type: "done", conversationId: job.conversation_id, turn: job.turn, generationId: null }],
+      [
+        {
+          type: "done",
+          conversationId: job.conversation_id,
+          turn: job.turn,
+          generationId: null,
+          // 保存済みターンの回復は予定時刻を持たん。空 = 全部経過済みとして即出す。
+          sendAt: [],
+        },
+      ],
       "succeeded",
     );
     return true;

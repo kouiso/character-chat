@@ -591,7 +591,7 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
             }),
           ),
         ];
-        await deps.store.saveTurn({
+        const saved = await deps.store.saveTurn({
           conversationId: state.conversationId,
           turn: state.turn,
           userText: state.userText,
@@ -615,6 +615,7 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
           conversationId: state.conversationId,
           turn: state.turn,
           generationId: state.generationId,
+          sendAt: saved.chunkSendAt,
         } satisfies TurnEvent);
         return {};
       })

@@ -82,6 +82,7 @@ describe("conversation context budget", () => {
         }),
         saveTurn: async (input) => {
           saved.push(input);
+          return { chunkSendAt: [] };
         },
       },
       contextBudget: { historyCharacters: 20, historyMessages: 2 },

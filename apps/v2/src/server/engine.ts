@@ -164,14 +164,14 @@ export const startTurn = async (
     model,
     contextBudget: contextBudgetFromEnv(env),
     retrieveMemories: memoryVectorReady(env)
-      ? (conversationId, query) =>
+      ? (targetConversationId, query) =>
           retrieveMemories(
             db,
             env,
             {
               userId: LOCAL_USER_ID,
               characterId: input.characterId,
-              conversationId,
+              conversationId: targetConversationId,
               beforeTurn: input.expectedTurn,
             },
             query,
