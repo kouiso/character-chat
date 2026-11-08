@@ -7,6 +7,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { characterTable } from "../../../src/schema/character";
 
 import { openLocalD1, type LocalD1 } from "./test/local-d1";
+import { CHUNK_MS_PER_CHAR } from "./chunk-schedule";
 import {
   createD1TurnStore,
   ensureConversationVersion,
@@ -225,6 +226,44 @@ describe("createD1TurnStore", () => {
       status: "ok",
       error: null,
     });
+  });
+
+  it("塊ごとの送る予定時刻が seq 順に一度で保存される（RIT-67）", async () => {
+    const conversationId = newConversationId();
+    await store.saveTurn({
+      conversationId,
+      turn: 1,
+      userText: "user 1",
+      events: chunkEvents(1),
+      ledger: ledgerAt(1),
+    });
+
+    const [assistant] = await local.db
+      .select({ id: v2MessageTable.id })
+      .from(v2MessageTable)
+      .where(
+        and(
+          eq(v2MessageTable.conversationId, conversationId),
+          eq(v2MessageTable.role, "assistant"),
+        ),
+      );
+    const chunkRows = await local.db
+      .select({
+        seq: v2ChunkTable.seq,
+        sendAt: v2ChunkTable.sendAt,
+        createdAt: v2ChunkTable.createdAt,
+      })
+      .from(v2ChunkTable)
+      .where(eq(v2ChunkTable.messageId, assistant.id))
+      .orderBy(asc(v2ChunkTable.seq));
+
+    // 先頭の塊は保存時刻そのもの、2個目は先頭の字数に比例した間。
+    const firstText = `<action>動作 1</action>`;
+    expect(chunkRows).toHaveLength(2);
+    expect(chunkRows[0].sendAt).toBe(chunkRows[0].createdAt);
+    expect(chunkRows[1].sendAt).toBe(
+      chunkRows[0].createdAt + firstText.length * CHUNK_MS_PER_CHAR,
+    );
   });
 
   it("saveTurn は既存会話の pinned character version を上書きしない", async () => {

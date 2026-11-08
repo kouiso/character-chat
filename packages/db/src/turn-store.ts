@@ -17,6 +17,7 @@ import {
   v2MemoryTable,
   v2MessageTable,
 } from "./v2-schema";
+import { chunkSendTimes } from "./chunk-schedule";
 
 import type { V2Db } from "./client";
 import type { JudgeResult } from "@v2/judge";
@@ -522,17 +523,25 @@ export const createD1TurnStore = (db: V2Db, opts: D1TurnStoreOptions): TurnStore
         createdAt: now,
       }),
       // D1 は 1 文あたりのバインド変数が 100 個までなので、chunk は 1 行 1 文で入れる。
-      ...chunks.map((chunkEvent) =>
-        db.insert(v2ChunkTable).values({
-          id: crypto.randomUUID(),
-          messageId: assistantMessageId,
-          seq: chunkEvent.seq,
-          text: chunkEvent.text,
-          judgeJson: JSON.stringify(chunkEvent.judge),
-          attempt: chunkEvent.attempt,
-          createdAt: now,
-        }),
-      ),
+      // 予定時刻は塊列から一括計算して行ごとに割り当てる（RIT-67）。
+      ...(() => {
+        const sendTimes = chunkSendTimes(
+          chunks.map((c) => c.text),
+          now,
+        );
+        return chunks.map((chunkEvent, index) =>
+          db.insert(v2ChunkTable).values({
+            id: crypto.randomUUID(),
+            messageId: assistantMessageId,
+            seq: chunkEvent.seq,
+            text: chunkEvent.text,
+            judgeJson: JSON.stringify(chunkEvent.judge),
+            attempt: chunkEvent.attempt,
+            sendAt: sendTimes[index],
+            createdAt: now,
+          }),
+        );
+      })(),
       db.insert(v2LedgerTable).values({
         conversationId: input.conversationId,
         turn: input.turn,

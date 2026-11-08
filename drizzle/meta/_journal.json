@@ -218,6 +218,13 @@
       "when": 1794144109557,
       "tag": "20261108132149_v2_character_version",
       "breakpoints": true
+    },
+    {
+      "idx": 67,
+      "version": "6",
+      "when": 1794150082393,
+      "tag": "20261108150122_lively_swordsman",
+      "breakpoints": true
     }
   ]
 }
