@@ -110,8 +110,13 @@ describe.each(DEPLOYED)("出す環境 env.$env の束ね", ({ env, name, appEnv 
   it("ChatRoom DO の束ねと移行設定は両方必要（片方だけでは出せん）", () => {
     expect(config.durable_objects.bindings).toEqual([
       expect.objectContaining({ name: "CHAT_ROOMS", class_name: "ChatRoom" }),
+      expect.objectContaining({
+        name: "PROACTIVE_SCHEDULERS",
+        class_name: "ProactiveScheduler",
+      }),
     ]);
     expect(migrationClasses(config)).toContain("ChatRoom");
+    expect(migrationClasses(config)).toContain("ProactiveScheduler");
   });
 
   it("長い生成に耐える CPU 上限（有料 standard で 5 分まで）", () => {

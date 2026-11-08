@@ -21,6 +21,7 @@ import { Route as ApiMediaIdRouteImport } from './routes/api/media/$id'
 import { Route as ApiCharactersIdRestoreRouteImport } from './routes/api/characters/$id_/restore'
 import { Route as ApiCharactersIdVersionsRouteImport } from './routes/api/characters/$id_/versions'
 import { Route as ApiChatIdHistoryRouteImport } from './routes/api/chat/$id_/history'
+import { Route as ApiProactiveCharactersIdSettingsRouteImport } from './routes/api/proactive/characters/$id_/settings'
 import { Route as ApiCharactersIdVersionsVersionRouteImport } from './routes/api/characters/$id_/versions/$version'
 
 const IndexRoute = IndexRouteImport.update({
@@ -83,6 +84,12 @@ const ApiChatIdHistoryRoute = ApiChatIdHistoryRouteImport.update({
   path: '/api/chat/$id/history',
   getParentRoute: () => rootRouteImport,
 })
+const ApiProactiveCharactersIdSettingsRoute =
+  ApiProactiveCharactersIdSettingsRouteImport.update({
+    id: '/api/proactive/characters/$id_/settings',
+    path: '/api/proactive/characters/$id/settings',
+    getParentRoute: () => rootRouteImport,
+  })
 const ApiCharactersIdVersionsVersionRoute =
   ApiCharactersIdVersionsVersionRouteImport.update({
     id: '/$version',
@@ -119,6 +126,7 @@ export interface FileRoutesByTo {
   '/api/characters/$id/versions': typeof ApiCharactersIdVersionsRouteWithChildren
   '/api/chat/$id/history': typeof ApiChatIdHistoryRoute
   '/api/characters/$id/versions/$version': typeof ApiCharactersIdVersionsVersionRoute
+  '/api/proactive/characters/$id/settings': typeof ApiProactiveCharactersIdSettingsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -135,6 +143,7 @@ export interface FileRoutesById {
   '/api/characters/$id_/versions': typeof ApiCharactersIdVersionsRouteWithChildren
   '/api/chat/$id_/history': typeof ApiChatIdHistoryRoute
   '/api/characters/$id_/versions/$version': typeof ApiCharactersIdVersionsVersionRoute
+  '/api/proactive/characters/$id_/settings': typeof ApiProactiveCharactersIdSettingsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -152,6 +161,7 @@ export interface FileRouteTypes {
     | '/api/characters/$id/versions'
     | '/api/chat/$id/history'
     | '/api/characters/$id/versions/$version'
+    | '/api/proactive/characters/$id/settings'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -167,6 +177,7 @@ export interface FileRouteTypes {
     | '/api/characters/$id/versions'
     | '/api/chat/$id/history'
     | '/api/characters/$id/versions/$version'
+    | '/api/proactive/characters/$id/settings'
   id:
     | '__root__'
     | '/'
@@ -182,6 +193,7 @@ export interface FileRouteTypes {
     | '/api/characters/$id_/versions'
     | '/api/chat/$id_/history'
     | '/api/characters/$id_/versions/$version'
+    | '/api/proactive/characters/$id_/settings'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -194,6 +206,7 @@ export interface RootRouteChildren {
   ApiChatIdRoute: typeof ApiChatIdRoute
   ApiMediaIdRoute: typeof ApiMediaIdRoute
   ApiChatIdHistoryRoute: typeof ApiChatIdHistoryRoute
+  ApiProactiveCharactersIdSettingsRoute: typeof ApiProactiveCharactersIdSettingsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -289,6 +302,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCharactersIdVersionsVersionRouteImport
       parentRoute: typeof ApiCharactersIdVersionsRoute
     }
+    '/api/proactive/characters/$id_/settings': {
+      id: '/api/proactive/characters/$id_/settings'
+      path: '/api/proactive/characters/$id/settings'
+      fullPath: '/api/proactive/characters/$id/settings'
+      preLoaderRoute: typeof ApiProactiveCharactersIdSettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -332,6 +352,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiChatIdRoute: ApiChatIdRoute,
   ApiMediaIdRoute: ApiMediaIdRoute,
   ApiChatIdHistoryRoute: ApiChatIdHistoryRoute,
+  ApiProactiveCharactersIdSettingsRoute: ApiProactiveCharactersIdSettingsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

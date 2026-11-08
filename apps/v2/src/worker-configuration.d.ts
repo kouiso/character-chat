@@ -17,11 +17,12 @@ interface __BaseEnv_Env {
 	BASIC_AUTH_PASSWORD: string;
 	OPENROUTER_API_KEY: string;
 	CHAT_ROOMS: DurableObjectNamespace<import("./worker").ChatRoom>;
+	PROACTIVE_SCHEDULERS: DurableObjectNamespace<import("./worker").ProactiveScheduler>;
 }
 declare namespace Cloudflare {
 	interface GlobalProps {
 		mainModule: typeof import("./worker");
-		durableNamespaces: "ChatRoom";
+		durableNamespaces: "ChatRoom" | "ProactiveScheduler";
 	}
 	interface RagEnv {
 		BUCKET: R2Bucket;
@@ -41,6 +42,7 @@ declare namespace Cloudflare {
 		BASIC_AUTH_PASSWORD: string;
 		OPENROUTER_API_KEY: string;
 		CHAT_ROOMS: DurableObjectNamespace<import("./worker").ChatRoom>;
+	PROACTIVE_SCHEDULERS: DurableObjectNamespace<import("./worker").ProactiveScheduler>;
 	}
 	interface StagingEnv {
 		BUCKET: R2Bucket;
@@ -60,6 +62,7 @@ declare namespace Cloudflare {
 		BASIC_AUTH_PASSWORD: string;
 		OPENROUTER_API_KEY: string;
 		CHAT_ROOMS: DurableObjectNamespace<import("./worker").ChatRoom>;
+	PROACTIVE_SCHEDULERS: DurableObjectNamespace<import("./worker").ProactiveScheduler>;
 	}
 	interface Env extends __BaseEnv_Env {}
 }
