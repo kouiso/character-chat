@@ -34,6 +34,9 @@ export {
   packMemoryContext,
   MEMORY_CONTEXT_HEADER,
   MEMORY_CONTEXT_CHARACTERS,
+  packDocumentContext,
+  DOCUMENT_CONTEXT_HEADER,
+  DOCUMENT_CONTEXT_CHARACTERS,
   type MemoryContextEntry,
 } from "./memory-context";
 export { TurnState, type JudgedChunk, type TurnStateUpdate, type TurnStateValue } from "./state";

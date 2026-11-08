@@ -25,6 +25,8 @@ import { buildConversationContext, type ContextBudget } from "./context-budget";
 import {
   packMemoryContext,
   MEMORY_CONTEXT_HEADER,
+  packDocumentContext,
+  DOCUMENT_CONTEXT_HEADER,
   type MemoryContextEntry,
 } from "./memory-context";
 import { hardRefusalDetect } from "./refusal-detect";
@@ -259,6 +261,8 @@ const usageOf = (piece: AIMessageChunk): GenerationRecord["usage"] => {
 export type TurnGraphDeps = {
   contextBudget?: Partial<ContextBudget>;
   retrieveMemories?: (conversationId: string, query: string) => Promise<MemoryContextEntry[]>;
+  // RIT-115: キャラの設定資料の検索。記憶とは別口（キャラごと・会話を跨ぐ）。
+  retrieveDocuments?: (query: string) => Promise<MemoryContextEntry[]>;
   model: TurnModel;
   // RIT-102: 拒否・時間切れ・5xx で順に試す逃げ道チェーン。未指定時は model 1 本だけ。
   models?: ModelCandidate[];
@@ -632,6 +636,9 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
         retrieved: packMemoryContext(
           (await deps.retrieveMemories?.(state.conversationId, state.userText)) ?? [],
         ),
+        retrievedDocuments: packDocumentContext(
+          (await deps.retrieveDocuments?.(state.userText)) ?? [],
+        ),
       }))
       .addNode("compose", async (state) => {
         const voice = extractVoice(state.character.systemPrompt);
@@ -681,6 +688,15 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
                     content:
                       MEMORY_CONTEXT_HEADER +
                       (state.retrieved.join("\n") || "該当する記憶はありません。"),
+                  },
+                ]
+              : []),
+            // 設定資料は記憶の後ろ。資料が無い時はメッセージ自体を出さん（空約束を書かん）。
+            ...(deps.retrieveDocuments && state.retrievedDocuments.length > 0
+              ? [
+                  {
+                    role: "user" as const,
+                    content: DOCUMENT_CONTEXT_HEADER + state.retrievedDocuments.join("\n"),
                   },
                 ]
               : []),
