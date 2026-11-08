@@ -101,7 +101,26 @@ const server = await createServer({
               if (apiMode === "sse-error") {
                 res.end('event: error\ndata: {"message":"合成の生成失敗"}\n\n');
               } else {
-                res.write('event: chunk\ndata: {"seq":1,"text":"合成の途中応答"}\n\n');
+                // parseSseEvent が chunk 判定に judge/attempt/preExtend まで要求するので完全形で出す
+                const syntheticChunk = JSON.stringify({
+                  seq: 1,
+                  text: "合成の途中応答",
+                  attempt: 1,
+                  preExtend: false,
+                  judge: {
+                    ok: true,
+                    reasons: [],
+                    warnings: [],
+                    checks: {
+                      ngram: { ok: true, ratio: 0, matchedPhrases: [], exactRepeat: false },
+                      nearDuplicate: { ok: true, matches: [] },
+                      voice: { ok: true },
+                      format: { ok: true },
+                      empty: { ok: true },
+                    },
+                  },
+                });
+                res.write(`event: chunk\ndata: ${syntheticChunk}\n\n`);
                 if (apiMode === "eof") res.end();
                 else syntheticResponse = res;
               }
