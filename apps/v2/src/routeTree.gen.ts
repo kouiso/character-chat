@@ -22,6 +22,7 @@ import { Route as ApiChatIdRouteImport } from './routes/api/chat/$id'
 import { Route as ApiMediaIdRouteImport } from './routes/api/media/$id'
 import { Route as ApiPushSubscriptionsRouteImport } from './routes/api/push/subscriptions'
 import { Route as ApiPushVapidKeyRouteImport } from './routes/api/push/vapid-key'
+import { Route as ApiCharactersIdMemoriesRouteImport } from './routes/api/characters/$id_/memories'
 import { Route as ApiCharactersIdRestoreRouteImport } from './routes/api/characters/$id_/restore'
 import { Route as ApiCharactersIdVersionsRouteImport } from './routes/api/characters/$id_/versions'
 import { Route as ApiChatIdHistoryRouteImport } from './routes/api/chat/$id_/history'
@@ -94,6 +95,10 @@ const ApiPushVapidKeyRoute = ApiPushVapidKeyRouteImport.update({
   id: '/api/push/vapid-key',
   path: '/api/push/vapid-key',
   getParentRoute: () => rootRouteImport,
+const ApiCharactersIdMemoriesRoute = ApiCharactersIdMemoriesRouteImport.update({
+  id: '/$id_/memories',
+  path: '/$id/memories',
+  getParentRoute: () => ApiCharactersRoute,
 })
 const ApiCharactersIdRestoreRoute = ApiCharactersIdRestoreRouteImport.update({
   id: '/$id_/restore',
@@ -147,6 +152,7 @@ export interface FileRoutesByFullPath {
   '/api/media/$id': typeof ApiMediaIdRoute
   '/api/push/subscriptions': typeof ApiPushSubscriptionsRoute
   '/api/push/vapid-key': typeof ApiPushVapidKeyRoute
+  '/api/characters/$id/memories': typeof ApiCharactersIdMemoriesRoute
   '/api/characters/$id/restore': typeof ApiCharactersIdRestoreRoute
   '/api/characters/$id/versions': typeof ApiCharactersIdVersionsRouteWithChildren
   '/api/chat/$id/history': typeof ApiChatIdHistoryRoute
@@ -169,6 +175,7 @@ export interface FileRoutesByTo {
   '/api/media/$id': typeof ApiMediaIdRoute
   '/api/push/subscriptions': typeof ApiPushSubscriptionsRoute
   '/api/push/vapid-key': typeof ApiPushVapidKeyRoute
+  '/api/characters/$id/memories': typeof ApiCharactersIdMemoriesRoute
   '/api/characters/$id/restore': typeof ApiCharactersIdRestoreRoute
   '/api/characters/$id/versions': typeof ApiCharactersIdVersionsRouteWithChildren
   '/api/chat/$id/history': typeof ApiChatIdHistoryRoute
@@ -192,6 +199,7 @@ export interface FileRoutesById {
   '/api/media/$id': typeof ApiMediaIdRoute
   '/api/push/subscriptions': typeof ApiPushSubscriptionsRoute
   '/api/push/vapid-key': typeof ApiPushVapidKeyRoute
+  '/api/characters/$id_/memories': typeof ApiCharactersIdMemoriesRoute
   '/api/characters/$id_/restore': typeof ApiCharactersIdRestoreRoute
   '/api/characters/$id_/versions': typeof ApiCharactersIdVersionsRouteWithChildren
   '/api/chat/$id_/history': typeof ApiChatIdHistoryRoute
@@ -216,6 +224,7 @@ export interface FileRouteTypes {
     | '/api/media/$id'
     | '/api/push/subscriptions'
     | '/api/push/vapid-key'
+    | '/api/characters/$id/memories'
     | '/api/characters/$id/restore'
     | '/api/characters/$id/versions'
     | '/api/chat/$id/history'
@@ -238,6 +247,7 @@ export interface FileRouteTypes {
     | '/api/media/$id'
     | '/api/push/subscriptions'
     | '/api/push/vapid-key'
+    | '/api/characters/$id/memories'
     | '/api/characters/$id/restore'
     | '/api/characters/$id/versions'
     | '/api/chat/$id/history'
@@ -260,6 +270,7 @@ export interface FileRouteTypes {
     | '/api/media/$id'
     | '/api/push/subscriptions'
     | '/api/push/vapid-key'
+    | '/api/characters/$id_/memories'
     | '/api/characters/$id_/restore'
     | '/api/characters/$id_/versions'
     | '/api/chat/$id_/history'
@@ -379,6 +390,12 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/push/vapid-key'
       preLoaderRoute: typeof ApiPushVapidKeyRouteImport
       parentRoute: typeof rootRouteImport
+    '/api/characters/$id_/memories': {
+      id: '/api/characters/$id_/memories'
+      path: '/$id/memories'
+      fullPath: '/api/characters/$id/memories'
+      preLoaderRoute: typeof ApiCharactersIdMemoriesRouteImport
+      parentRoute: typeof ApiCharactersRoute
     }
     '/api/characters/$id_/restore': {
       id: '/api/characters/$id_/restore'
@@ -448,12 +465,14 @@ const ApiCharactersIdVersionsRouteWithChildren =
 
 interface ApiCharactersRouteChildren {
   ApiCharactersIdRoute: typeof ApiCharactersIdRoute
+  ApiCharactersIdMemoriesRoute: typeof ApiCharactersIdMemoriesRoute
   ApiCharactersIdRestoreRoute: typeof ApiCharactersIdRestoreRoute
   ApiCharactersIdVersionsRoute: typeof ApiCharactersIdVersionsRouteWithChildren
 }
 
 const ApiCharactersRouteChildren: ApiCharactersRouteChildren = {
   ApiCharactersIdRoute: ApiCharactersIdRoute,
+  ApiCharactersIdMemoriesRoute: ApiCharactersIdMemoriesRoute,
   ApiCharactersIdRestoreRoute: ApiCharactersIdRestoreRoute,
   ApiCharactersIdVersionsRoute: ApiCharactersIdVersionsRouteWithChildren,
 }

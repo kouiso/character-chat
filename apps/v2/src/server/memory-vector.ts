@@ -4,17 +4,20 @@ import { z } from "zod";
 export const MEMORY_EMBEDDING_MODEL = "@cf/baai/bge-m3";
 export const MEMORY_VECTOR_DIMENSIONS = 1024;
 
+export type MemoryVectorIndex = Pick<VectorizeIndex, "upsert" | "query"> &
+  Partial<Pick<VectorizeIndex, "deleteByIds">>;
+
 export type MemoryVectorBindings = {
   V2_RAG_ENABLED?: string;
   AI?: Pick<Ai, "run">;
-  MEMORY_INDEX?: Pick<VectorizeIndex, "upsert" | "query">;
+  MEMORY_INDEX?: MemoryVectorIndex;
 };
 
 export const memoryVectorReady = (
   env: MemoryVectorBindings,
 ): env is MemoryVectorBindings & {
   AI: Pick<Ai, "run">;
-  MEMORY_INDEX: Pick<VectorizeIndex, "upsert" | "query">;
+  MEMORY_INDEX: MemoryVectorIndex;
 } => env.V2_RAG_ENABLED === "1" && Boolean(env.AI && env.MEMORY_INDEX);
 
 const vectorSchema = z
