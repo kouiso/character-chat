@@ -161,7 +161,10 @@ describe("chat route state exits", () => {
     setOnline(true);
     expect(screen.queryByRole("heading", { name: "オフラインです" })).not.toBeInTheDocument();
     expect(input).toHaveValue("合成の未送信文");
-    expect(fetchSpy).not.toHaveBeenCalled();
+    // 自動送信しないことだけを見る。話しかけ設定の読み出し等の会話送信以外は数えん。
+    expect(
+      fetchSpy.mock.calls.filter(([url]) => String(url).startsWith("/api/chat/")),
+    ).toHaveLength(0);
     expect(getCharacter).toHaveBeenCalledTimes(1);
   });
 

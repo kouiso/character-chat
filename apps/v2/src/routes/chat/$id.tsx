@@ -8,6 +8,7 @@ import {
   ChatUnavailableState,
 } from "../../component/chat-route-state";
 import { ChatView } from "../../component/chat-view";
+import { ProactiveToggle } from "../../component/proactive-toggle";
 import { getCharacter } from "../../server/characters";
 
 const routeApi = getRouteApi("/chat/$id");
@@ -18,6 +19,7 @@ const ChatPage = () => {
   return (
     <div className="v2-chat-page">
       <ChatConnectionState />
+      <ProactiveToggle key={character.id} characterId={character.id} />
       <ChatView
         key={`${character.id}:${conversationId ?? newChat ?? "saved"}`}
         characterId={character.id}
