@@ -35,6 +35,10 @@ task ci              # CI チェック（lint + build）
 task deploy          # デプロイ（D1 migration auto-apply ゲートあり）
 ```
 
+さくら台本ドッグフードは `script/verify/run-sakura-dogfood.sh [--run N]` の1コマンドで
+bench 実行→fantasy-core-check→HTML レポート生成まで通る（`.dev.vars` の OPENROUTER_API_KEY
+を自動読込、未設定なら課金 API を叩かず中断）。結果は `.work/report/` に出る。
+
 ## Codex Cloud コンテナ環境（自己プロビジョニング）
 
 DB / サービス / 結合系タスクをクラウド委譲可能にするための自己完結セットアップ。
