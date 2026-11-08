@@ -6,6 +6,11 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { characterTable } from "../../../src/schema/character";
 
 import {
+  completeMemoryExtraction,
+  listPendingMemoryJobs,
+  loadMemoryExtractionSource,
+} from "./memory-extraction-store";
+import {
   deleteMemory,
   insertManualMemory,
   listCharacterMemories,
@@ -23,6 +28,7 @@ import {
   v2LedgerTable,
   v2MemorySourceTable,
   v2MemoryTable,
+  v2MemoryTombstoneTable,
   v2MessageTable,
 } from "./v2-schema";
 
@@ -56,13 +62,17 @@ describe("memory crud store", () => {
   const scope = { userId: owner };
 
   // 1ターン会話を作る（ユーザー発言 + assistant chunk）。
-  const talk = async (conversationId = crypto.randomUUID(), userText = "私は紅茶が好きです。") => {
+  const talk = async (
+    conversationId = crypto.randomUUID(),
+    userText = "私は紅茶が好きです。",
+    extractMemory = false,
+  ) => {
     ids.push(conversationId);
     await createD1TurnStore(local.db, {
       userId: owner,
       characterId,
       promptVersion: "test",
-      extractMemory: false,
+      extractMemory,
     }).saveTurn({ conversationId, turn: 1, userText, ledger: emptyLedger(), events: [reply] });
     return conversationId;
   };
@@ -99,6 +109,9 @@ describe("memory crud store", () => {
       .from(v2MessageTable)
       .where(inArray(v2MessageTable.conversationId, ids));
     await local.db.batch([
+      local.db
+        .delete(v2MemoryTombstoneTable)
+        .where(inArray(v2MemoryTombstoneTable.conversationId, ids)),
       local.db.delete(v2MemoryTable).where(inArray(v2MemoryTable.conversationId, ids)),
       local.db.delete(v2ChunkTable).where(inArray(v2ChunkTable.messageId, messages)),
       local.db.delete(v2MessageTable).where(inArray(v2MessageTable.conversationId, ids)),
@@ -208,8 +221,8 @@ describe("memory crud store", () => {
       { content: "消す対象", kind: "fact" },
     );
     expect(await deleteMemory(local.db, { userId: "other", characterId }, memory!.id)).toBeNull();
-    const previous = await deleteMemory(local.db, { ...scope, characterId }, memory!.id);
-    expect(previous).toBe("消す対象");
+    const deleted = await deleteMemory(local.db, { ...scope, characterId }, memory!.id);
+    expect(deleted?.[0].content).toBe("消す対象");
     expect(
       await local.db.select().from(v2MemoryTable).where(eq(v2MemoryTable.id, memory!.id)),
     ).toEqual([]);
@@ -219,6 +232,116 @@ describe("memory crud store", () => {
         .from(v2MemorySourceTable)
         .where(eq(v2MemorySourceTable.memoryId, memory!.id)),
     ).toEqual([]);
+  });
+
+  it("消した内容は抽出の再実行でも蘇らず、手で足し直せる（RIT-94）", async () => {
+    const conversationId = await talk(undefined, "私は紅茶が好きです。", true);
+    const scope3 = { ...scope, characterId, conversationId };
+    const [job] = await listPendingMemoryJobs(local.db, scope3);
+    const source = await loadMemoryExtractionSource(local.db, job.id);
+    if (!source) throw new Error("source missing");
+    const fact = {
+      kind: "preference" as const,
+      content: "紅茶が好き",
+      importance: 3,
+      validFrom: null,
+      validUntil: null,
+    };
+    await completeMemoryExtraction(local.db, source, [fact]);
+    const [memory] = await local.db
+      .select({ id: v2MemoryTable.id })
+      .from(v2MemoryTable)
+      .where(eq(v2MemoryTable.conversationId, conversationId));
+
+    // 消す → tombstone に乗る
+    await deleteMemory(local.db, { ...scope, characterId }, memory.id);
+    const tombstones = await local.db
+      .select()
+      .from(v2MemoryTombstoneTable)
+      .where(eq(v2MemoryTombstoneTable.conversationId, conversationId));
+    expect(tombstones).toHaveLength(1);
+
+    // 同じ内容の再抽出は書き戻さん（Queue の再配送・ターン置換でも同じ）
+    await completeMemoryExtraction(local.db, source, [fact]);
+    expect(
+      await local.db
+        .select()
+        .from(v2MemoryTable)
+        .where(eq(v2MemoryTable.conversationId, conversationId)),
+    ).toEqual([]);
+
+    // 手で明示的に足し直すと帳から外れて普通に残る
+    const readded = await insertManualMemory(local.db, scope3, {
+      content: "紅茶が好き",
+      kind: "preference",
+    });
+    expect(readded).not.toBeNull();
+    expect(
+      await local.db
+        .select()
+        .from(v2MemoryTombstoneTable)
+        .where(eq(v2MemoryTombstoneTable.conversationId, conversationId)),
+    ).toEqual([]);
+  });
+
+  it("消すとその後の要約も一緒に消え、前の要約は残る（RIT-94）", async () => {
+    const conversationId = await talk();
+    const scope3 = { ...scope, characterId, conversationId };
+    const fact = await insertManualMemory(local.db, scope3, {
+      content: "消す対象",
+      kind: "fact",
+    });
+    const now = Date.now();
+    // 対象のターン(1)より前・後の要約を直接植える
+    for (const [id, turn] of [
+      ["summary-before", 0],
+      ["summary-after", 5],
+    ] as const) {
+      await local.db.insert(v2MemoryTable).values({
+        id: `${id}-${crypto.randomUUID()}`,
+        conversationId,
+        kind: "summary",
+        content: `要約${turn}`,
+        pinned: 0,
+        sourceTurn: turn,
+        createdAt: now,
+      });
+    }
+    const deleted = await deleteMemory(local.db, { ...scope, characterId }, fact!.id);
+    const remaining = await local.db
+      .select({ kind: v2MemoryTable.kind, sourceTurn: v2MemoryTable.sourceTurn })
+      .from(v2MemoryTable)
+      .where(eq(v2MemoryTable.conversationId, conversationId));
+    expect(deleted).toHaveLength(2); // 本体 + 後の要約
+    expect(remaining.map((row) => row.kind)).toEqual(["summary"]);
+    expect(remaining[0].sourceTurn).toBe(0);
+  });
+
+  it("直した記憶の旧内容も tombstone に乗り再抽出で蘇らん（RIT-94）", async () => {
+    const conversationId = await talk(undefined, "私は紅茶が好きです。", true);
+    const scope3 = { ...scope, characterId, conversationId };
+    const memory = await insertManualMemory(local.db, scope3, {
+      content: "紅茶が好き",
+      kind: "preference",
+    });
+    await updateMemoryContent(local.db, { ...scope, characterId }, memory!.id, "珈琲が好き");
+    const [job] = await listPendingMemoryJobs(local.db, scope3);
+    const source = await loadMemoryExtractionSource(local.db, job.id);
+    if (!source) throw new Error("source missing");
+    await completeMemoryExtraction(local.db, source, [
+      {
+        kind: "preference",
+        content: "紅茶が好き",
+        importance: 3,
+        validFrom: null,
+        validUntil: null,
+      },
+    ]);
+    const rows = await local.db
+      .select({ content: v2MemoryTable.content })
+      .from(v2MemoryTable)
+      .where(eq(v2MemoryTable.conversationId, conversationId));
+    expect(rows.map((row) => row.content)).toEqual(["珈琲が好き"]);
   });
 
   it("長い記憶も往復できる", async () => {
