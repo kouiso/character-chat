@@ -264,6 +264,130 @@ const insertUnsavedRememberNotes = async (input: {
   );
 };
 
+// POST /chat の配信が終わった後に waitUntil から呼ぶ。返信の永続化は従来クライアントの
+// POST /conversations/:id/messages 任せやったので、タブを閉じると生成が完走しても
+// 結果がどこにも残らんかった（バックグラウンド受け取り）。ここで同じ形の行を
+// idempotent に書いておくと、開き直した時に D1 からそのまま復元できる。
+// クライアント側の保存が先に着いた場合は ON CONFLICT で no-op、こちらが先なら
+// POST 側は PK 衝突を読み直しで「在る」と確定させる（persist-turn.ts の往復）。
+const persistCompletedChatTurn = async (input: {
+  db: D1Database;
+  database: DatabaseClient;
+  userId: string;
+  conversationId: string;
+  userMessageId: string | null;
+  userText: string;
+  assistantMessageId: string;
+  content: string;
+  usedModel: string;
+  phase: ScenePhase;
+  retryCount: number;
+  refusalDetected: boolean;
+  sseFrames: readonly string[];
+}): Promise<void> => {
+  const now = Date.now();
+  try {
+    // 録画は復帰専用の短寿命データ。先に古い分を捨ててから今回分を書く。
+    await input.db
+      .prepare("DELETE FROM streaming_chunk WHERE created_at < unixepoch() - 600")
+      .run();
+    for (let start = 0; start < input.sseFrames.length; start += 100) {
+      const slice = input.sseFrames.slice(start, start + 100);
+      await input.db.batch(
+        slice.map((frame, index) =>
+          input.db
+            .prepare(
+              "INSERT OR IGNORE INTO streaming_chunk (stream_id, seq, raw_data, is_done, user_id) VALUES (?, ?, ?, ?, ?)",
+            )
+            .bind(input.assistantMessageId, start + index, frame, 0, input.userId),
+        ),
+      );
+    }
+    if (input.sseFrames.length > 0) {
+      await input.db
+        .prepare("UPDATE streaming_chunk SET is_done = 1 WHERE stream_id = ? AND seq = ?")
+        .bind(input.assistantMessageId, input.sseFrames.length - 1)
+        .run();
+    }
+
+    const convRows = await input.database
+      .select({ characterId: conversationTable.characterId })
+      .from(conversationTable)
+      .where(
+        and(
+          eq(conversationTable.id, input.conversationId),
+          eq(conversationTable.userId, input.userId),
+        ),
+      )
+      .limit(1);
+    const characterId = convRows[0]?.characterId;
+    if (!characterId) return;
+
+    if (input.userMessageId && input.userText) {
+      await input.database
+        .insert(messageTable)
+        .values({
+          id: input.userMessageId,
+          userId: input.userId,
+          conversationId: input.conversationId,
+          characterId,
+          role: "user",
+          content: input.userText,
+          createdAt: now,
+        })
+        .onConflictDoNothing();
+    }
+
+    const assistantContent = prepareAssistantContent(input.content);
+    const inserted = await input.database
+      .insert(messageTable)
+      .values({
+        id: input.assistantMessageId,
+        userId: input.userId,
+        conversationId: input.conversationId,
+        characterId,
+        role: "assistant",
+        content: assistantContent.visibleContent,
+        retryCount: input.retryCount,
+        refusalDetected: input.refusalDetected ? 1 : 0,
+        generationModel: input.usedModel,
+        generationPhase: input.phase,
+        createdAt: now,
+      })
+      .onConflictDoNothing()
+      .returning({ id: messageTable.id });
+
+    // クライアントの POST が先に着いとる。記憶・場面・updatedAt の後始末は向こうが済ませとる。
+    if (inserted.length === 0) return;
+
+    await insertUnsavedRememberNotes({
+      database: input.database,
+      userId: input.userId,
+      characterId,
+      notes: assistantContent.rememberNotes,
+      sourceMessageId: input.assistantMessageId,
+      createdAt: now,
+    });
+    await input.database
+      .update(conversationTable)
+      .set({ updatedAt: now })
+      .where(
+        and(
+          eq(conversationTable.id, input.conversationId),
+          eq(conversationTable.userId, input.userId),
+        ),
+      );
+    await updateConversationSceneState(
+      input.database,
+      input.conversationId,
+      assistantContent.visibleContent,
+      now,
+    );
+  } catch (error) {
+    console.error("failed to persist completed chat turn in background", error);
+  }
+};
+
 export const app = new Hono<{ Bindings: Bindings }>()
   .basePath("/api")
   .use(
@@ -1120,6 +1244,11 @@ export const app = new Hono<{ Bindings: Bindings }>()
       rawAssistantMessageId && idSchema.safeParse(rawAssistantMessageId).success
         ? rawAssistantMessageId
         : null;
+    // 返信と同じく、自分の発言も確定するまで D1 に無い。サーバ側で復帰用に書く時に
+    // クライアント採番の id が要る。
+    const rawUserMessageId = c.req.header("x-user-message-id");
+    const userMessageId =
+      rawUserMessageId && idSchema.safeParse(rawUserMessageId).success ? rawUserMessageId : null;
     // 1 件やと「今どこか」しか分からん。「どれだけそこに留まっとるか」も要るので窓で取る。
     const recentAssistantPhasesPromise = conversationId
       ? fetchRecentAssistantGenerationPhases(database, userId, conversationId)
@@ -1575,6 +1704,14 @@ export const app = new Hono<{ Bindings: Bindings }>()
     // 生成が終わるのを待たずに配信する。ヘッダは1トークン目が出た時点で確定させ、
     // それまでに上流が落ちた場合だけ従来どおり HTTP ステータス付きで返す。
     const sink = createDeferredSseSink();
+    // クライアントが途中で落ちても、配り切った返信を後から取り直せるようにするため、
+    // 流した SSE フレームを丸ごと控える（GET /chat/stream で再生する）。
+    const recordedSseFrames: string[] = [];
+    const rawSinkPush = sink.push;
+    sink.push = (text: string) => {
+      if (text) recordedSseFrames.push(text);
+      rawSinkPush(text);
+    };
     let liveUsedModel: string = chatModel;
     let lastRelayedText = "";
     const live: LiveChatRelay = {
@@ -1961,6 +2098,25 @@ export const app = new Hono<{ Bindings: Bindings }>()
         })}\n\n`,
       );
       sink.push("data: [DONE]\n\n");
+      if (conversationId && assistantMessageId) {
+        c.executionCtx.waitUntil(
+          persistCompletedChatTurn({
+            db: c.env.DB,
+            database,
+            userId,
+            conversationId,
+            userMessageId,
+            userText: latestUserMessage,
+            assistantMessageId,
+            content: servedText,
+            usedModel: qualityResult.usedModel,
+            phase,
+            retryCount: refusalRetryCount,
+            refusalDetected: refusalRetryCount > 0,
+            sseFrames: recordedSseFrames,
+          }),
+        );
+      }
       return null;
     };
 

@@ -1769,6 +1769,7 @@ export const OuApp = ({ route }: { route: AppRoute }) => {
             updateMessage(assistantId, heldText, true, false, true);
           },
           assistantId,
+          userMsg.id,
         );
       } catch (err) {
         logger.error("send error", { err });

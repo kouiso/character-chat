@@ -575,6 +575,9 @@ export const streamChatWithQualityGuard = async (
   // assistant の行はストリーム中には存在せず、終わってから別リクエストで作られるので、
   // サーバ側では id を知りようがない。採番はここより前なので、送れば埋まる。
   assistantMessageId?: string,
+  // user の行も確定保存はストリーム完了後。タブを閉じた場合にサーバが同じ id で
+  // 復帰用に書けるよう、こちらも事前採番したものを送る。
+  userMessageId?: string,
 ): Promise<void> => {
   try {
     const transportMessages = trimMessagesForTransport(messages);
@@ -585,6 +588,7 @@ export const streamChatWithQualityGuard = async (
         "Content-Type": "application/json",
         ...(conversationId ? { "x-conversation-id": conversationId } : {}),
         ...(assistantMessageId ? { "x-assistant-message-id": assistantMessageId } : {}),
+        ...(userMessageId ? { "x-user-message-id": userMessageId } : {}),
       },
       body: JSON.stringify({
         messages: transportMessages,
