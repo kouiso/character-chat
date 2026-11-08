@@ -334,7 +334,7 @@ describe("ChatRoom", () => {
     const recovered = await submitAndRun(room, { ...input, retry: true });
     expect(recovered.status).toBe("succeeded");
     expect(recovered.events.map((item) => item.event)).toEqual([
-      { type: "done", conversationId, turn: 1, generationId: null },
+      { type: "done", conversationId, turn: 1, generationId: null, sendAt: [] },
     ]);
     expect(replies.calls).toBe(1);
     expect((await loadHistory({ characterId, conversationId })).history).toEqual(stored.history);
@@ -358,7 +358,7 @@ describe("ChatRoom", () => {
     const resumed = room.readEvents("req-4", 0);
     expect(resumed.status).toBe("succeeded");
     expect(resumed.events.map((item) => item.event)).toEqual([
-      { type: "done", conversationId, turn: 1, generationId: null },
+      { type: "done", conversationId, turn: 1, generationId: null, sendAt: [] },
     ]);
     expect(replies.calls).toBe(3);
   });

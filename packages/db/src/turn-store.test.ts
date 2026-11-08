@@ -6,8 +6,8 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { characterTable } from "../../../src/schema/character";
 
-import { openLocalD1, type LocalD1 } from "./test/local-d1";
 import { CHUNK_MS_PER_CHAR } from "./chunk-schedule";
+import { openLocalD1, type LocalD1 } from "./test/local-d1";
 import {
   createD1TurnStore,
   ensureConversationVersion,
@@ -261,9 +261,7 @@ describe("createD1TurnStore", () => {
     const firstText = `<action>動作 1</action>`;
     expect(chunkRows).toHaveLength(2);
     expect(chunkRows[0].sendAt).toBe(chunkRows[0].createdAt);
-    expect(chunkRows[1].sendAt).toBe(
-      chunkRows[0].createdAt + firstText.length * CHUNK_MS_PER_CHAR,
-    );
+    expect(chunkRows[1].sendAt).toBe(chunkRows[0].createdAt + firstText.length * CHUNK_MS_PER_CHAR);
   });
 
   it("saveTurn は既存会話の pinned character version を上書きしない", async () => {

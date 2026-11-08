@@ -72,6 +72,8 @@ const eventSchemas = {
     conversationId: z.string(),
     turn: finiteNumber,
     generationId: z.string().nullable(),
+    // 塊ごとの表示予定時刻。無い・空の done は全部即出し（回復・旧形式）。
+    sendAt: z.array(finiteNumber).optional(),
   }),
   error: z.object({
     type: z.literal("error"),

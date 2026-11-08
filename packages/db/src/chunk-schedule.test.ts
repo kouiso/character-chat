@@ -1,10 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  CHUNK_MAX_GAP_MS,
-  CHUNK_MS_PER_CHAR,
-  chunkSendTimes,
-} from "./chunk-schedule";
+import { CHUNK_MAX_GAP_MS, CHUNK_MS_PER_CHAR, chunkSendTimes } from "./chunk-schedule";
 
 const BASE = 1_700_000_000_000;
 

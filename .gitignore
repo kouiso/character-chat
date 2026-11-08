@@ -137,3 +137,6 @@ test-results/
 
 # scratch / working files (kept out of public tree)
 .work/
+
+# TypeScript incremental build cache
+*.tsbuildinfo
