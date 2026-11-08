@@ -11,6 +11,7 @@ import { PROMPT_VERSION } from "@v2/prompt";
 
 import { readCharacter } from "./character-data.server";
 import { LOCAL_USER_ID } from "./identity";
+import { sendProactivePush } from "./push";
 
 import type { ProactiveNotificationSink } from "./proactive-notification-store";
 import type { BaseChatModel } from "@langchain/core/language_models/chat_models";
@@ -25,6 +26,13 @@ export type ProactiveSinkDeps = {
   model: BaseChatModel;
   db: V2Db;
   now?: () => number;
+  // PWA 通知。無い環境では保存だけして終わる。
+  push?: (input: {
+    characterId: string;
+    characterName: string;
+    text: string;
+    conversationId: string;
+  }) => Promise<void>;
 };
 
 // 一言はモデルの素直な文章をそのまま保存する（ターンの XML 形式は使わん）。
@@ -90,6 +98,15 @@ export const createProactiveSink = (deps: ProactiveSinkDeps): ProactiveNotificat
       idempotencyKey,
       now,
     });
+
+    // 通知は保存が済んでから。失敗しても本文は消えんので投げっぱでOK。
+    deps
+      .push?.({ characterId, characterName: ok.name, text, conversationId })
+      .catch((error) =>
+        globalThis.console.error(
+          JSON.stringify({ event: "proactive_push_failed", errorName: String(error) }),
+        ),
+      );
   },
 });
 
@@ -97,11 +114,27 @@ export const createEnvProactiveSink = async (env: {
   DB: Parameters<typeof createDb>[0];
   OPENROUTER_API_KEY?: string;
   V2_MODEL?: string;
-}): Promise<ProactiveNotificationSink> =>
-  createProactiveSink({
-    db: createDb(env.DB),
+  VAPID_PUBLIC_KEY?: string;
+  VAPID_PRIVATE_KEY?: string;
+  VAPID_SUBJECT?: string;
+}): Promise<ProactiveNotificationSink> => {
+  const db = createDb(env.DB);
+  return createProactiveSink({
+    db,
     model: createOpenRouterModel({
       OPENROUTER_API_KEY: env.OPENROUTER_API_KEY,
       V2_MODEL: env.V2_MODEL,
     }),
+    push: async ({ characterId, characterName, text, conversationId }) => {
+      await sendProactivePush(db, env, {
+        userId: LOCAL_USER_ID,
+        payload: {
+          title: characterName,
+          body: text,
+          url: `/chat/${characterId}?conversationId=${conversationId}`,
+          tag: conversationId,
+        },
+      });
+    },
   });
+};

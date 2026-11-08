@@ -115,6 +115,35 @@ describe("話しかけの生成と保存", () => {
     expect(await loadRecentMemories(db, conversationId, 8)).toContain("ユーザーは鉄道が好き");
   });
 
+  it("保存が済んだら push 送信口へ本文と会話URL要素を渡す", async () => {
+    const db = createDb(local.d1);
+    const key = uniqueKey();
+    const pushed: {
+      characterId: string;
+      characterName: string;
+      text: string;
+      conversationId: string;
+    }[] = [];
+    const sink = createProactiveSink({
+      model: model(),
+      db,
+      push: async (input) => {
+        pushed.push(input);
+      },
+    });
+    await sink.send({ alarmId: "a-push", characterId, idempotencyKey: key });
+
+    // push は fire-and-forget なので、中身が来るまで1イベント回す。
+    await vi.waitFor(() => expect(pushed).toHaveLength(1));
+    const messages = await selectByKey(local.d1, key);
+    expect(pushed[0]).toEqual({
+      characterId,
+      characterName: "試し役",
+      text: "そろそろお茶にしよ？さっきの続きが気になってん。",
+      conversationId: messages[0].conversation_id,
+    });
+  });
+
   it("キャラが読めん時は何も残さん", async () => {
     const db = createDb(local.d1);
     const sink = createProactiveSink({ model: model(), db });

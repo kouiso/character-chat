@@ -239,6 +239,13 @@
       "when": 1794151532191,
       "tag": "20261108152532_lazy_avengers",
       "breakpoints": true
+    },
+    {
+      "idx": 70,
+      "version": "6",
+      "when": 1794160459868,
+      "tag": "20261108175419_v2_push_subscription",
+      "breakpoints": true
     }
   ]
 }

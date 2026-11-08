@@ -31,13 +31,16 @@
         "V2_MODEL": "deepseek/deepseek-v3.2",
         "V2_TEST_FAULT": "none",
         "V2_HISTORY_CHARACTERS": 12000,
-        "V2_HISTORY_MESSAGES": 40
+        "V2_HISTORY_MESSAGES": 40,
+        "VAPID_PUBLIC_KEY": "BHlCOMkST-7w3VDvwjNMWEcxFXWcf_6plP4H--WcgCLuGt8LgNjbbCAL3tdCKfD-t_SB-WjFqP513fLnD0I2MM8",
+        "VAPID_SUBJECT": "mailto:kouiso@ritmo.co.jp"
       },
       "secrets": {
         "required": [
           "BASIC_AUTH_USERNAME",
           "BASIC_AUTH_PASSWORD",
-          "OPENROUTER_API_KEY"
+          "OPENROUTER_API_KEY",
+          "VAPID_PRIVATE_KEY"
         ]
       },
       "ai": { "binding": "AI", "remote": true },
@@ -80,13 +83,16 @@
         "V2_MODEL": "deepseek/deepseek-v3.2",
         "V2_TEST_FAULT": "none",
         "V2_HISTORY_CHARACTERS": 12000,
-        "V2_HISTORY_MESSAGES": 40
+        "V2_HISTORY_MESSAGES": 40,
+        "VAPID_PUBLIC_KEY": "BHlCOMkST-7w3VDvwjNMWEcxFXWcf_6plP4H--WcgCLuGt8LgNjbbCAL3tdCKfD-t_SB-WjFqP513fLnD0I2MM8",
+        "VAPID_SUBJECT": "mailto:kouiso@ritmo.co.jp"
       },
       "secrets": {
         "required": [
           "BASIC_AUTH_USERNAME",
           "BASIC_AUTH_PASSWORD",
-          "OPENROUTER_API_KEY"
+          "OPENROUTER_API_KEY",
+          "VAPID_PRIVATE_KEY"
         ]
       },
       "ai": { "binding": "AI", "remote": true },
@@ -140,7 +146,9 @@
     "V2_MODEL": "deepseek/deepseek-v3.2",
     "V2_TEST_FAULT": "none",
     "V2_HISTORY_CHARACTERS": 12000,
-    "V2_HISTORY_MESSAGES": 40
+    "V2_HISTORY_MESSAGES": 40,
+    "VAPID_PUBLIC_KEY": "BHlCOMkST-7w3VDvwjNMWEcxFXWcf_6plP4H--WcgCLuGt8LgNjbbCAL3tdCKfD-t_SB-WjFqP513fLnD0I2MM8",
+    "VAPID_SUBJECT": "mailto:kouiso@ritmo.co.jp"
   },
   "observability": {
     "enabled": false
@@ -149,7 +157,8 @@
     "required": [
       "BASIC_AUTH_USERNAME",
       "BASIC_AUTH_PASSWORD",
-      "OPENROUTER_API_KEY"
+      "OPENROUTER_API_KEY",
+      "VAPID_PRIVATE_KEY"
     ]
   },
   "durable_objects": {

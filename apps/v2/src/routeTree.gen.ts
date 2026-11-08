@@ -18,11 +18,13 @@ import { Route as ChatIdRouteImport } from './routes/chat/$id'
 import { Route as ApiCharactersIdRouteImport } from './routes/api/characters/$id'
 import { Route as ApiChatIdRouteImport } from './routes/api/chat/$id'
 import { Route as ApiMediaIdRouteImport } from './routes/api/media/$id'
+import { Route as ApiPushSubscriptionsRouteImport } from './routes/api/push/subscriptions'
+import { Route as ApiPushVapidKeyRouteImport } from './routes/api/push/vapid-key'
 import { Route as ApiCharactersIdRestoreRouteImport } from './routes/api/characters/$id_/restore'
 import { Route as ApiCharactersIdVersionsRouteImport } from './routes/api/characters/$id_/versions'
 import { Route as ApiChatIdHistoryRouteImport } from './routes/api/chat/$id_/history'
-import { Route as ApiProactiveCharactersIdSettingsRouteImport } from './routes/api/proactive/characters/$id_/settings'
 import { Route as ApiCharactersIdVersionsVersionRouteImport } from './routes/api/characters/$id_/versions/$version'
+import { Route as ApiProactiveCharactersIdSettingsRouteImport } from './routes/api/proactive/characters/$id_/settings'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -69,6 +71,16 @@ const ApiMediaIdRoute = ApiMediaIdRouteImport.update({
   path: '/api/media/$id',
   getParentRoute: () => rootRouteImport,
 })
+const ApiPushSubscriptionsRoute = ApiPushSubscriptionsRouteImport.update({
+  id: '/api/push/subscriptions',
+  path: '/api/push/subscriptions',
+  getParentRoute: () => rootRouteImport,
+})
+const ApiPushVapidKeyRoute = ApiPushVapidKeyRouteImport.update({
+  id: '/api/push/vapid-key',
+  path: '/api/push/vapid-key',
+  getParentRoute: () => rootRouteImport,
+})
 const ApiCharactersIdRestoreRoute = ApiCharactersIdRestoreRouteImport.update({
   id: '/$id_/restore',
   path: '/$id/restore',
@@ -84,17 +96,17 @@ const ApiChatIdHistoryRoute = ApiChatIdHistoryRouteImport.update({
   path: '/api/chat/$id/history',
   getParentRoute: () => rootRouteImport,
 })
-const ApiProactiveCharactersIdSettingsRoute =
-  ApiProactiveCharactersIdSettingsRouteImport.update({
-    id: '/api/proactive/characters/$id_/settings',
-    path: '/api/proactive/characters/$id/settings',
-    getParentRoute: () => rootRouteImport,
-  })
 const ApiCharactersIdVersionsVersionRoute =
   ApiCharactersIdVersionsVersionRouteImport.update({
     id: '/$version',
     path: '/$version',
     getParentRoute: () => ApiCharactersIdVersionsRoute,
+  })
+const ApiProactiveCharactersIdSettingsRoute =
+  ApiProactiveCharactersIdSettingsRouteImport.update({
+    id: '/api/proactive/characters/$id_/settings',
+    path: '/api/proactive/characters/$id/settings',
+    getParentRoute: () => rootRouteImport,
   })
 
 export interface FileRoutesByFullPath {
@@ -107,10 +119,13 @@ export interface FileRoutesByFullPath {
   '/api/characters/$id': typeof ApiCharactersIdRoute
   '/api/chat/$id': typeof ApiChatIdRoute
   '/api/media/$id': typeof ApiMediaIdRoute
+  '/api/push/subscriptions': typeof ApiPushSubscriptionsRoute
+  '/api/push/vapid-key': typeof ApiPushVapidKeyRoute
   '/api/characters/$id/restore': typeof ApiCharactersIdRestoreRoute
   '/api/characters/$id/versions': typeof ApiCharactersIdVersionsRouteWithChildren
   '/api/chat/$id/history': typeof ApiChatIdHistoryRoute
   '/api/characters/$id/versions/$version': typeof ApiCharactersIdVersionsVersionRoute
+  '/api/proactive/characters/$id/settings': typeof ApiProactiveCharactersIdSettingsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -122,6 +137,8 @@ export interface FileRoutesByTo {
   '/api/characters/$id': typeof ApiCharactersIdRoute
   '/api/chat/$id': typeof ApiChatIdRoute
   '/api/media/$id': typeof ApiMediaIdRoute
+  '/api/push/subscriptions': typeof ApiPushSubscriptionsRoute
+  '/api/push/vapid-key': typeof ApiPushVapidKeyRoute
   '/api/characters/$id/restore': typeof ApiCharactersIdRestoreRoute
   '/api/characters/$id/versions': typeof ApiCharactersIdVersionsRouteWithChildren
   '/api/chat/$id/history': typeof ApiChatIdHistoryRoute
@@ -139,6 +156,8 @@ export interface FileRoutesById {
   '/api/characters/$id': typeof ApiCharactersIdRoute
   '/api/chat/$id': typeof ApiChatIdRoute
   '/api/media/$id': typeof ApiMediaIdRoute
+  '/api/push/subscriptions': typeof ApiPushSubscriptionsRoute
+  '/api/push/vapid-key': typeof ApiPushVapidKeyRoute
   '/api/characters/$id_/restore': typeof ApiCharactersIdRestoreRoute
   '/api/characters/$id_/versions': typeof ApiCharactersIdVersionsRouteWithChildren
   '/api/chat/$id_/history': typeof ApiChatIdHistoryRoute
@@ -157,6 +176,8 @@ export interface FileRouteTypes {
     | '/api/characters/$id'
     | '/api/chat/$id'
     | '/api/media/$id'
+    | '/api/push/subscriptions'
+    | '/api/push/vapid-key'
     | '/api/characters/$id/restore'
     | '/api/characters/$id/versions'
     | '/api/chat/$id/history'
@@ -173,6 +194,8 @@ export interface FileRouteTypes {
     | '/api/characters/$id'
     | '/api/chat/$id'
     | '/api/media/$id'
+    | '/api/push/subscriptions'
+    | '/api/push/vapid-key'
     | '/api/characters/$id/restore'
     | '/api/characters/$id/versions'
     | '/api/chat/$id/history'
@@ -189,6 +212,8 @@ export interface FileRouteTypes {
     | '/api/characters/$id'
     | '/api/chat/$id'
     | '/api/media/$id'
+    | '/api/push/subscriptions'
+    | '/api/push/vapid-key'
     | '/api/characters/$id_/restore'
     | '/api/characters/$id_/versions'
     | '/api/chat/$id_/history'
@@ -205,6 +230,8 @@ export interface RootRouteChildren {
   ChatIdRoute: typeof ChatIdRoute
   ApiChatIdRoute: typeof ApiChatIdRoute
   ApiMediaIdRoute: typeof ApiMediaIdRoute
+  ApiPushSubscriptionsRoute: typeof ApiPushSubscriptionsRoute
+  ApiPushVapidKeyRoute: typeof ApiPushVapidKeyRoute
   ApiChatIdHistoryRoute: typeof ApiChatIdHistoryRoute
   ApiProactiveCharactersIdSettingsRoute: typeof ApiProactiveCharactersIdSettingsRoute
 }
@@ -272,6 +299,20 @@ declare module '@tanstack/react-router' {
       path: '/api/media/$id'
       fullPath: '/api/media/$id'
       preLoaderRoute: typeof ApiMediaIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/push/subscriptions': {
+      id: '/api/push/subscriptions'
+      path: '/api/push/subscriptions'
+      fullPath: '/api/push/subscriptions'
+      preLoaderRoute: typeof ApiPushSubscriptionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/push/vapid-key': {
+      id: '/api/push/vapid-key'
+      path: '/api/push/vapid-key'
+      fullPath: '/api/push/vapid-key'
+      preLoaderRoute: typeof ApiPushVapidKeyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/characters/$id_/restore': {
@@ -351,6 +392,8 @@ const rootRouteChildren: RootRouteChildren = {
   ChatIdRoute: ChatIdRoute,
   ApiChatIdRoute: ApiChatIdRoute,
   ApiMediaIdRoute: ApiMediaIdRoute,
+  ApiPushSubscriptionsRoute: ApiPushSubscriptionsRoute,
+  ApiPushVapidKeyRoute: ApiPushVapidKeyRoute,
   ApiChatIdHistoryRoute: ApiChatIdHistoryRoute,
   ApiProactiveCharactersIdSettingsRoute: ApiProactiveCharactersIdSettingsRoute,
 }

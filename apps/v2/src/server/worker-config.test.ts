@@ -52,7 +52,12 @@ const resolve = (env?: string): ResolvedConfig =>
 
 const PROD_D1_ID = "b617800c-cf4c-4122-adbb-ce872a258da6";
 const LOCAL_D1_ID = "c0ffee00-0000-4000-8000-000000000001";
-const REQUIRED_SECRETS = ["BASIC_AUTH_PASSWORD", "BASIC_AUTH_USERNAME", "OPENROUTER_API_KEY"];
+const REQUIRED_SECRETS = [
+  "BASIC_AUTH_PASSWORD",
+  "BASIC_AUTH_USERNAME",
+  "OPENROUTER_API_KEY",
+  "VAPID_PRIVATE_KEY",
+];
 const DEPLOYED = [
   { env: "rag", name: "adult-ai-v2", appEnv: "production" },
   { env: "staging", name: "adult-ai-v2-staging", appEnv: "staging" },
