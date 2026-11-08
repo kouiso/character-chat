@@ -54,7 +54,7 @@ const expectFirstTurnSaved = (store: MemoryTurnStore, streamed: TurnEvent[]): vo
   const generation = savedEvents.find(isGenerationEvent);
   expect(generation).toMatchObject({
     model: "fake-list",
-    promptVersion: "v0001",
+    promptVersion: "v0002",
     rawOutput: VALID_XML,
     status: "ok",
     request: [{ role: "user", content: "こんにちは" }],

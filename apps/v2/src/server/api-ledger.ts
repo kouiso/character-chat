@@ -1,8 +1,9 @@
-// PATCH /api/chat/:id/ledger — 会話の最新台帳を手で直す（RIT-118）。
+// GET・PATCH /api/chat/:id/ledger — 会話の最新台帳を読み・手で直す（RIT-118）。
 // load が最新台帳を拾うので、直した値がそのまま次のターンの指示文に入る。
 import {
   ConversationAccessError,
   createDb,
+  loadLatestLedger,
   sceneLedgerSchema,
   updateLatestLedger,
 } from "@v2/db";
@@ -19,6 +20,33 @@ const BodySchema = z.object({
 
 const json = (status: number, body: Record<string, unknown>): Response =>
   Response.json(body, { status });
+
+const storeOpts = (characterId: string) => ({
+  userId: LOCAL_USER_ID,
+  characterId,
+  promptVersion: PROMPT_VERSION,
+});
+
+export const handleLedgerGet = async (
+  characterId: string,
+  request: Request,
+): Promise<Response> => {
+  const conversationId = new URL(request.url).searchParams.get("conversationId");
+  if (!conversationId || conversationId.length > 120) {
+    return json(422, { message: "conversationId が必要です。" });
+  }
+  try {
+    const { env } = await getPlatform();
+    const db = createDb(env.DB);
+    const ledger = await loadLatestLedger(db, storeOpts(characterId), conversationId);
+    return json(200, { ledger });
+  } catch (error) {
+    if (error instanceof ConversationAccessError) {
+      return json(404, { message: "会話が見つかりません。" });
+    }
+    throw error;
+  }
+};
 
 export const handleLedgerRequest = async (
   characterId: string,
@@ -39,7 +67,7 @@ export const handleLedgerRequest = async (
     const db = createDb(env.DB);
     const turn = await updateLatestLedger(
       db,
-      { userId: LOCAL_USER_ID, characterId, promptVersion: PROMPT_VERSION },
+      storeOpts(characterId),
       parsed.data.conversationId,
       parsed.data.ledger,
     );

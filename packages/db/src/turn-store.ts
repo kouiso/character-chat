@@ -306,6 +306,8 @@ export const sceneLedgerSchema = z.object({
   clothing: z.record(z.string(), z.string()),
   position: z.string().nullable(),
   lastEvents: z.array(z.string()),
+  // v0002 で持ち物を追加。旧台帳行には無いので、無ければ空として読む（後方互換）。
+  items: z.record(z.string(), z.string()).default({}),
 }) satisfies z.ZodType<SceneLedger>;
 
 // 壊れた ledger_json は null を返し、呼び出し側が一個前の台帳へ遡る。
@@ -351,6 +353,43 @@ export const updateLatestLedger = async (
       ),
     );
   return latest.turn;
+};
+
+/**
+ * 手直し画面用: 会話の最新台帳を返す（RIT-118）。
+ * load と同じく壊れた行は直近3件の中で遡り、全滅なら初期台帳。
+ * 台帳行そのものが無い会話は null（画面は「まだ台帳がない」を出す）。
+ */
+export const loadLatestLedger = async (
+  db: V2Db,
+  opts: D1TurnStoreOptions,
+  conversationId: string,
+): Promise<SceneLedger | null> => {
+  await assertConversationOwner(db, opts, conversationId);
+  const rows = await db
+    .select({ turn: v2LedgerTable.turn, ledgerJson: v2LedgerTable.ledgerJson })
+    .from(v2LedgerTable)
+    .where(eq(v2LedgerTable.conversationId, conversationId))
+    .orderBy(desc(v2LedgerTable.turn))
+    .limit(3);
+  if (rows.length === 0) return null;
+  const skippedTurns: number[] = [];
+  for (const row of rows) {
+    const ledger = tryParseLedger(row.ledgerJson);
+    if (ledger) {
+      if (skippedTurns.length > 0) {
+        console.warn(
+          JSON.stringify({ event: "ledger_fallback", conversationId, skippedTurns }),
+        );
+      }
+      return ledger;
+    }
+    skippedTurns.push(row.turn);
+  }
+  console.warn(
+    JSON.stringify({ event: "ledger_fallback", conversationId, skippedTurns }),
+  );
+  return emptyLedger();
 };
 
 // engine の persist は本文ゼロで終わった生成（締切で 1 字も来ん・全塊が判定で落ちた・空の返事）も

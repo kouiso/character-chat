@@ -23,6 +23,7 @@ import { revealChunk, scheduleReveal } from "../lib/chunk-reveal";
 import { ChatImage } from "./chat-image";
 import { ChatMessage, ChatMessageText } from "./chat-message";
 import { ChatMessageLog } from "./chat-message-log";
+import { LedgerPanel } from "./ledger-panel";
 
 import type { ChatSseEvent } from "../lib/sse-events";
 
@@ -517,6 +518,7 @@ export const ChatView = ({
     <div className="v2-chat">
       <div className="v2-chat-header">
         <ChatMessageText text={characterName} />
+        <LedgerPanel characterId={characterId} getConversationId={() => conversationId.current} />
       </div>
       <ChatMessageLog key={characterId} busy={busy}>
         {bubbles.map((bubble, index) => (
