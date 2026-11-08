@@ -52,6 +52,7 @@ import {
   resolveVisualAnchorWeight,
   stripFloatingCumTags,
 } from "./lib/image-prompt-anchors";
+import { buildOpenRouterProviderRouting } from "./lib/openrouter-provider-routing";
 import { containsApologyLeak, shouldRetryWithPhase } from "./lib/persona-break-detect";
 import {
   classifyPhaseDeEscalation,
@@ -2875,9 +2876,7 @@ export const app = new Hono<{ Bindings: Bindings }>()
         top_p: 0.95,
         max_tokens: 2500,
         response_format: { type: "json_object" },
-        provider: {
-          allow_fallbacks: true,
-        },
+        provider: buildOpenRouterProviderRouting(DEFAULT_CHARACTER_GENERATION_MODEL),
       }),
     });
 
