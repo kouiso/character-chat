@@ -31,6 +31,7 @@ const now = Date.now();
 const preference: ExtractedMemory = {
   kind: "preference",
   content: "紅茶が好き",
+  subject: "",
   importance: 3,
   validFrom: null,
   validUntil: null,

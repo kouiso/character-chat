@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNull, or, sql } from "drizzle-orm";
 
 import { storedCharacterContentSchema } from "./character-version";
 import {
@@ -218,6 +218,8 @@ export const completeMemoryExtraction = async (
                 sourceTurn: sql<number>`${source.sourceTurn}`.as("source_turn"),
                 embedding: sql<Buffer | null>`null`.as("embedding"),
                 createdAt: sql<number>`${now}`.as("created_at"),
+                subject: sql<string>`${memory.subject}`.as("subject"),
+                supersededBy: sql<string | null>`null`.as("superseded_by"),
               })
               .from(v2MemoryJobTable)
               .where(and(eq(v2MemoryJobTable.id, source.id), notTombstoned)),
@@ -239,6 +241,23 @@ export const completeMemoryExtraction = async (
               .where(and(eq(v2MemoryJobTable.id, source.id), notTombstoned)),
           )
           .onConflictDoNothing(),
+        // 同じ主題の古い記憶は新しい方が勝つ印を付ける（RIT-86）。tombstone 済み・失格ジョブでは付けん。
+        ...(memory.subject === ""
+          ? []
+          : [
+              db
+                .update(v2MemoryTable)
+                .set({ supersededBy: id })
+                .where(
+                  and(
+                    notTombstoned,
+                    eq(v2MemoryTable.conversationId, source.conversationId),
+                    eq(v2MemoryTable.subject, memory.subject),
+                    isNull(v2MemoryTable.supersededBy),
+                    sql`${v2MemoryTable.id} <> ${id}`,
+                  ),
+                ),
+            ]),
       ];
     }),
     db

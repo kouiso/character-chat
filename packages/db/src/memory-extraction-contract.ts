@@ -7,6 +7,8 @@ export const extractedMemorySchema = z
   .object({
     kind: z.enum(["fact", "preference"]),
     content: z.string().trim().min(1).max(500),
+    // 食い違い判定の主題ラベル（RIT-86）。同じ話題の事実を同じ短い語で名付ける。
+    subject: z.string().trim().max(80).default(""),
     importance: z.number().int().min(1).max(5),
     validFrom: z.iso.date().nullable(),
     validUntil: z.iso.date().nullable(),

@@ -8,6 +8,9 @@ export const memorySchema = z.object({
   pinned: z.boolean(),
   sourceTurn: z.number().nullable(),
   createdAt: z.number(),
+  // 食い違いの置き換え印（RIT-86）。supersededBy が指す先が今使われる記憶。
+  subject: z.string().default(""),
+  supersededBy: z.string().nullable().default(null),
 });
 export type Memory = z.infer<typeof memorySchema>;
 

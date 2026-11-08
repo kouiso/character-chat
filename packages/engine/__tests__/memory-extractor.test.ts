@@ -5,6 +5,7 @@ import { extractMemories } from "../src/memory-extractor";
 const memory = {
   kind: "preference",
   content: "紅茶が好き",
+  subject: "好きな飲み物",
   importance: 3,
   validFrom: null,
   validUntil: null,

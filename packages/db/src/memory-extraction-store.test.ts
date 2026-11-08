@@ -13,6 +13,7 @@ import {
   loadMemoryExtractionPolicy,
   loadMemoryExtractionSource,
 } from "./memory-extraction-store";
+import { loadMemoryCandidates } from "./memory-index-store";
 import { openLocalD1, type LocalD1 } from "./test/local-d1";
 import { createD1TurnStore } from "./turn-store";
 import {
@@ -34,6 +35,7 @@ const owner = `memory-test-${crypto.randomUUID()}`;
 const fact: ExtractedMemory = {
   kind: "preference",
   content: "紅茶が好き",
+  subject: "好きな飲み物",
   importance: 3,
   validFrom: null,
   validUntil: null,
@@ -283,5 +285,60 @@ describe("memory extraction store", () => {
     } finally {
       await local.d1.exec("DROP TRIGGER memory_test_abort");
     }
+  });
+
+  it("同じ主題は新しい方が勝ち、3 回変えると最後のだけが残る（RIT-86）", async () => {
+    const conversationId = crypto.randomUUID();
+    ids.push(conversationId);
+    const store = createD1TurnStore(local.db, {
+      userId: owner,
+      characterId,
+      promptVersion: "test",
+      extractMemory: true,
+    });
+    const drinks = ["紅茶が好き", "烏龍茶が好き", "麦茶が好き"];
+    for (const [index, drink] of drinks.entries()) {
+      await store.saveTurn({
+        conversationId,
+        turn: index + 1,
+        userText: `私は${drink}です。`,
+        ledger: emptyLedger(),
+        events: [reply],
+      });
+      const [job] = await listPendingMemoryJobs(local.db, scope(conversationId));
+      const source = await loadMemoryExtractionSource(local.db, job.id);
+      if (!source) throw new Error("source missing");
+      await completeMemoryExtraction(local.db, source, [
+        {
+          kind: "preference",
+          content: drink,
+          subject: "好きな飲み物",
+          importance: 3,
+          validFrom: null,
+          validUntil: null,
+        },
+      ]);
+    }
+    const rows = await local.db
+      .select({
+        id: v2MemoryTable.id,
+        content: v2MemoryTable.content,
+        supersededBy: v2MemoryTable.supersededBy,
+      })
+      .from(v2MemoryTable)
+      .where(eq(v2MemoryTable.conversationId, conversationId))
+      .orderBy(v2MemoryTable.sourceTurn);
+    // 古い 2 件は新しい記憶の id を指し、最後のだけが現役
+    expect(rows.map((row) => row.content)).toEqual(drinks);
+    expect(rows[0].supersededBy).toBe(rows[1].id);
+    expect(rows[1].supersededBy).toBe(rows[2].id);
+    expect(rows[2].supersededBy).toBeNull();
+    // 一覧では辿れるが、ベクトル検索の候補からは置き換わった分が外れる
+    const active = await loadMemoryCandidates(
+      local.db,
+      scope(conversationId),
+      rows.map((row) => row.id),
+    );
+    expect(active.map((row) => row.content)).toEqual(["麦茶が好き"]);
   });
 });

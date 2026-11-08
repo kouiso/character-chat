@@ -72,6 +72,9 @@ export const MemoryPanel = ({ characterId }: Props) => {
               <li key={memory.id} className={memory.pinned ? "v2-memory-pinned" : undefined}>
                 <div className="v2-memory-meta">
                   <span>{KIND_LABEL[memory.kind]}</span>
+                  {memory.supersededBy && (
+                    <span className="v2-memory-superseded">新しい記憶に置き換わった</span>
+                  )}
                   <button
                     type="button"
                     disabled={busy}

@@ -243,6 +243,7 @@ describe("memory crud store", () => {
     const fact = {
       kind: "preference" as const,
       content: "紅茶が好き",
+      subject: "",
       importance: 3,
       validFrom: null,
       validUntil: null,
@@ -332,6 +333,7 @@ describe("memory crud store", () => {
       {
         kind: "preference",
         content: "紅茶が好き",
+        subject: "",
         importance: 3,
         validFrom: null,
         validUntil: null,

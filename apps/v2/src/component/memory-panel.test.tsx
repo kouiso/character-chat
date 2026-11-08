@@ -37,6 +37,22 @@ describe("MemoryPanel", () => {
     expect(screen.queryByDisplayValue("紅茶が好き")).toBeNull();
   });
 
+  it("新しい記憶に置き換わった記憶は印が出る（RIT-86）", async () => {
+    stubFetch(() =>
+      Response.json({
+        memories: [
+          { ...memory, id: "old", supersededBy: "new" },
+          { ...memory, id: "new", content: "麦茶が好き", pinned: false },
+        ],
+      }),
+    );
+    render(<MemoryPanel characterId="c1" />);
+    fireEvent.click(screen.getByRole("button", { name: "記憶を見る" }));
+    expect(await screen.findByDisplayValue("麦茶が好き")).toBeTruthy();
+    expect(screen.getByText("新しい記憶に置き換わった")).toBeTruthy();
+    expect(screen.getAllByText("新しい記憶に置き換わった")).toHaveLength(1);
+  });
+
   it("内容を直すと PATCH が飛び、保存後に再読込する", async () => {
     stubFetch((init) => {
       if (init?.method === "PATCH")
