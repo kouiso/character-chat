@@ -1,0 +1,39 @@
+diff --git a/dist/cjs/generator.cjs b/dist/cjs/generator.cjs
+index 0219459ae5fd112c074446412e9696bf36d0fb71..c0dc24b7ddeb440f3bd8c0963b81b8acf1efc80d 100644
+--- a/dist/cjs/generator.cjs
++++ b/dist/cjs/generator.cjs
+@@ -336,7 +336,7 @@ var Generator = class Generator {
+ 					!node.isNonPath || node._fsRouteType === "pathless_layout" && node.cleanedPath ? `path: '${node.cleanedPath}'` : void 0,
+ 					`getParentRoute: () => ${require_utils.findParent(node)}`
+ 				].filter(Boolean).join(",")}
+-          }${config.disableTypes ? "" : "as any"})`,
++          })`,
+ 				loaderNode ? `.updateLoader({ loader: lazyFn(() => import('./${require_utils.replaceBackslash(require_utils.removeExt(node_path.default.relative(node_path.default.dirname(config.generatedRouteTree), node_path.default.resolve(config.routesDirectory, loaderNode.filePath)), config.addExtensions))}'), 'loader') })` : "",
+ 				componentNode || errorComponentNode || notFoundComponentNode || pendingComponentNode ? `.update({
+                 ${[
+diff --git a/dist/esm/generator.js b/dist/esm/generator.js
+index 4644813cfaf2440f27e789a62b1ecfdfbfbef6dd..d8f1de1bf9584910e42f20cdc975a4009727b33b 100644
+--- a/dist/esm/generator.js
++++ b/dist/esm/generator.js
+@@ -332,7 +332,7 @@ var Generator = class Generator {
+ 					!node.isNonPath || node._fsRouteType === "pathless_layout" && node.cleanedPath ? `path: '${node.cleanedPath}'` : void 0,
+ 					`getParentRoute: () => ${findParent(node)}`
+ 				].filter(Boolean).join(",")}
+-          }${config.disableTypes ? "" : "as any"})`,
++          })`,
+ 				loaderNode ? `.updateLoader({ loader: lazyFn(() => import('./${replaceBackslash(removeExt(path.relative(path.dirname(config.generatedRouteTree), path.resolve(config.routesDirectory, loaderNode.filePath)), config.addExtensions))}'), 'loader') })` : "",
+ 				componentNode || errorComponentNode || notFoundComponentNode || pendingComponentNode ? `.update({
+                 ${[
+diff --git a/src/generator.ts b/src/generator.ts
+index e8cd170e40674a60779ae520d777e5d36a679894..fd9cf72724ff47f174a172e87325dd9e012d2c21 100644
+--- a/src/generator.ts
++++ b/src/generator.ts
+@@ -709,7 +709,7 @@ export class Generator {
+             ]
+               .filter(Boolean)
+               .join(',')}
+-          }${config.disableTypes ? '' : 'as any'})`,
++          })`,
+           loaderNode
+             ? `.updateLoader({ loader: lazyFn(() => import('./${replaceBackslash(
+                 removeExt(

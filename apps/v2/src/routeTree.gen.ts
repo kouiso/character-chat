@@ -10,98 +10,186 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiCharactersRouteImport } from './routes/api/characters'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
+import { Route as CharactersIdRouteImport } from './routes/characters/$id'
+import { Route as CharactersNewRouteImport } from './routes/characters/new'
 import { Route as ChatIdRouteImport } from './routes/chat/$id'
+import { Route as ApiCharactersIdRouteImport } from './routes/api/characters/$id'
 import { Route as ApiChatIdRouteImport } from './routes/api/chat/$id'
 import { Route as ApiMediaIdRouteImport } from './routes/api/media/$id'
+import { Route as ApiCharactersIdRestoreRouteImport } from './routes/api/characters/$id_/restore'
+import { Route as ApiCharactersIdVersionsRouteImport } from './routes/api/characters/$id_/versions'
 import { Route as ApiChatIdHistoryRouteImport } from './routes/api/chat/$id_/history'
+import { Route as ApiCharactersIdVersionsVersionRouteImport } from './routes/api/characters/$id_/versions/$version'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
-} as any)
+})
+const ApiCharactersRoute = ApiCharactersRouteImport.update({
+  id: '/api/characters',
+  path: '/api/characters',
+  getParentRoute: () => rootRouteImport,
+})
 const ApiHealthRoute = ApiHealthRouteImport.update({
   id: '/api/health',
   path: '/api/health',
   getParentRoute: () => rootRouteImport,
-} as any)
+})
+const CharactersIdRoute = CharactersIdRouteImport.update({
+  id: '/characters/$id',
+  path: '/characters/$id',
+  getParentRoute: () => rootRouteImport,
+})
+const CharactersNewRoute = CharactersNewRouteImport.update({
+  id: '/characters/new',
+  path: '/characters/new',
+  getParentRoute: () => rootRouteImport,
+})
 const ChatIdRoute = ChatIdRouteImport.update({
   id: '/chat/$id',
   path: '/chat/$id',
   getParentRoute: () => rootRouteImport,
-} as any)
+})
+const ApiCharactersIdRoute = ApiCharactersIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiCharactersRoute,
+})
 const ApiChatIdRoute = ApiChatIdRouteImport.update({
   id: '/api/chat/$id',
   path: '/api/chat/$id',
   getParentRoute: () => rootRouteImport,
-} as any)
+})
 const ApiMediaIdRoute = ApiMediaIdRouteImport.update({
   id: '/api/media/$id',
   path: '/api/media/$id',
   getParentRoute: () => rootRouteImport,
-} as any)
+})
+const ApiCharactersIdRestoreRoute = ApiCharactersIdRestoreRouteImport.update({
+  id: '/$id_/restore',
+  path: '/$id/restore',
+  getParentRoute: () => ApiCharactersRoute,
+})
+const ApiCharactersIdVersionsRoute = ApiCharactersIdVersionsRouteImport.update({
+  id: '/$id_/versions',
+  path: '/$id/versions',
+  getParentRoute: () => ApiCharactersRoute,
+})
 const ApiChatIdHistoryRoute = ApiChatIdHistoryRouteImport.update({
   id: '/api/chat/$id_/history',
   path: '/api/chat/$id/history',
   getParentRoute: () => rootRouteImport,
-} as any)
+})
+const ApiCharactersIdVersionsVersionRoute =
+  ApiCharactersIdVersionsVersionRouteImport.update({
+    id: '/$version',
+    path: '/$version',
+    getParentRoute: () => ApiCharactersIdVersionsRoute,
+  })
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/api/characters': typeof ApiCharactersRouteWithChildren
   '/api/health': typeof ApiHealthRoute
+  '/characters/$id': typeof CharactersIdRoute
+  '/characters/new': typeof CharactersNewRoute
   '/chat/$id': typeof ChatIdRoute
+  '/api/characters/$id': typeof ApiCharactersIdRoute
   '/api/chat/$id': typeof ApiChatIdRoute
   '/api/media/$id': typeof ApiMediaIdRoute
+  '/api/characters/$id/restore': typeof ApiCharactersIdRestoreRoute
+  '/api/characters/$id/versions': typeof ApiCharactersIdVersionsRouteWithChildren
   '/api/chat/$id/history': typeof ApiChatIdHistoryRoute
+  '/api/characters/$id/versions/$version': typeof ApiCharactersIdVersionsVersionRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/api/characters': typeof ApiCharactersRouteWithChildren
   '/api/health': typeof ApiHealthRoute
+  '/characters/$id': typeof CharactersIdRoute
+  '/characters/new': typeof CharactersNewRoute
   '/chat/$id': typeof ChatIdRoute
+  '/api/characters/$id': typeof ApiCharactersIdRoute
   '/api/chat/$id': typeof ApiChatIdRoute
   '/api/media/$id': typeof ApiMediaIdRoute
+  '/api/characters/$id/restore': typeof ApiCharactersIdRestoreRoute
+  '/api/characters/$id/versions': typeof ApiCharactersIdVersionsRouteWithChildren
   '/api/chat/$id/history': typeof ApiChatIdHistoryRoute
+  '/api/characters/$id/versions/$version': typeof ApiCharactersIdVersionsVersionRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/api/characters': typeof ApiCharactersRouteWithChildren
   '/api/health': typeof ApiHealthRoute
+  '/characters/$id': typeof CharactersIdRoute
+  '/characters/new': typeof CharactersNewRoute
   '/chat/$id': typeof ChatIdRoute
+  '/api/characters/$id': typeof ApiCharactersIdRoute
   '/api/chat/$id': typeof ApiChatIdRoute
   '/api/media/$id': typeof ApiMediaIdRoute
+  '/api/characters/$id_/restore': typeof ApiCharactersIdRestoreRoute
+  '/api/characters/$id_/versions': typeof ApiCharactersIdVersionsRouteWithChildren
   '/api/chat/$id_/history': typeof ApiChatIdHistoryRoute
+  '/api/characters/$id_/versions/$version': typeof ApiCharactersIdVersionsVersionRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/api/characters'
     | '/api/health'
+    | '/characters/$id'
+    | '/characters/new'
     | '/chat/$id'
+    | '/api/characters/$id'
     | '/api/chat/$id'
     | '/api/media/$id'
+    | '/api/characters/$id/restore'
+    | '/api/characters/$id/versions'
     | '/api/chat/$id/history'
+    | '/api/characters/$id/versions/$version'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/api/characters'
     | '/api/health'
+    | '/characters/$id'
+    | '/characters/new'
     | '/chat/$id'
+    | '/api/characters/$id'
     | '/api/chat/$id'
     | '/api/media/$id'
+    | '/api/characters/$id/restore'
+    | '/api/characters/$id/versions'
     | '/api/chat/$id/history'
+    | '/api/characters/$id/versions/$version'
   id:
     | '__root__'
     | '/'
+    | '/api/characters'
     | '/api/health'
+    | '/characters/$id'
+    | '/characters/new'
     | '/chat/$id'
+    | '/api/characters/$id'
     | '/api/chat/$id'
     | '/api/media/$id'
+    | '/api/characters/$id_/restore'
+    | '/api/characters/$id_/versions'
     | '/api/chat/$id_/history'
+    | '/api/characters/$id_/versions/$version'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ApiCharactersRoute: typeof ApiCharactersRouteWithChildren
   ApiHealthRoute: typeof ApiHealthRoute
+  CharactersIdRoute: typeof CharactersIdRoute
+  CharactersNewRoute: typeof CharactersNewRoute
   ChatIdRoute: typeof ChatIdRoute
   ApiChatIdRoute: typeof ApiChatIdRoute
   ApiMediaIdRoute: typeof ApiMediaIdRoute
@@ -117,11 +205,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/characters': {
+      id: '/api/characters'
+      path: '/api/characters'
+      fullPath: '/api/characters'
+      preLoaderRoute: typeof ApiCharactersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/health': {
       id: '/api/health'
       path: '/api/health'
       fullPath: '/api/health'
       preLoaderRoute: typeof ApiHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/characters/$id': {
+      id: '/characters/$id'
+      path: '/characters/$id'
+      fullPath: '/characters/$id'
+      preLoaderRoute: typeof CharactersIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/characters/new': {
+      id: '/characters/new'
+      path: '/characters/new'
+      fullPath: '/characters/new'
+      preLoaderRoute: typeof CharactersNewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/chat/$id': {
@@ -130,6 +239,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/chat/$id'
       preLoaderRoute: typeof ChatIdRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/api/characters/$id': {
+      id: '/api/characters/$id'
+      path: '/$id'
+      fullPath: '/api/characters/$id'
+      preLoaderRoute: typeof ApiCharactersIdRouteImport
+      parentRoute: typeof ApiCharactersRoute
     }
     '/api/chat/$id': {
       id: '/api/chat/$id'
@@ -145,6 +261,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiMediaIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/characters/$id_/restore': {
+      id: '/api/characters/$id_/restore'
+      path: '/$id/restore'
+      fullPath: '/api/characters/$id/restore'
+      preLoaderRoute: typeof ApiCharactersIdRestoreRouteImport
+      parentRoute: typeof ApiCharactersRoute
+    }
+    '/api/characters/$id_/versions': {
+      id: '/api/characters/$id_/versions'
+      path: '/$id/versions'
+      fullPath: '/api/characters/$id/versions'
+      preLoaderRoute: typeof ApiCharactersIdVersionsRouteImport
+      parentRoute: typeof ApiCharactersRoute
+    }
     '/api/chat/$id_/history': {
       id: '/api/chat/$id_/history'
       path: '/api/chat/$id/history'
@@ -152,12 +282,52 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiChatIdHistoryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/characters/$id_/versions/$version': {
+      id: '/api/characters/$id_/versions/$version'
+      path: '/$version'
+      fullPath: '/api/characters/$id/versions/$version'
+      preLoaderRoute: typeof ApiCharactersIdVersionsVersionRouteImport
+      parentRoute: typeof ApiCharactersIdVersionsRoute
+    }
   }
 }
 
+interface ApiCharactersIdVersionsRouteChildren {
+  ApiCharactersIdVersionsVersionRoute: typeof ApiCharactersIdVersionsVersionRoute
+}
+
+const ApiCharactersIdVersionsRouteChildren: ApiCharactersIdVersionsRouteChildren =
+  {
+    ApiCharactersIdVersionsVersionRoute: ApiCharactersIdVersionsVersionRoute,
+  }
+
+const ApiCharactersIdVersionsRouteWithChildren =
+  ApiCharactersIdVersionsRoute._addFileChildren(
+    ApiCharactersIdVersionsRouteChildren,
+  )
+
+interface ApiCharactersRouteChildren {
+  ApiCharactersIdRoute: typeof ApiCharactersIdRoute
+  ApiCharactersIdRestoreRoute: typeof ApiCharactersIdRestoreRoute
+  ApiCharactersIdVersionsRoute: typeof ApiCharactersIdVersionsRouteWithChildren
+}
+
+const ApiCharactersRouteChildren: ApiCharactersRouteChildren = {
+  ApiCharactersIdRoute: ApiCharactersIdRoute,
+  ApiCharactersIdRestoreRoute: ApiCharactersIdRestoreRoute,
+  ApiCharactersIdVersionsRoute: ApiCharactersIdVersionsRouteWithChildren,
+}
+
+const ApiCharactersRouteWithChildren = ApiCharactersRoute._addFileChildren(
+  ApiCharactersRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ApiCharactersRoute: ApiCharactersRouteWithChildren,
   ApiHealthRoute: ApiHealthRoute,
+  CharactersIdRoute: CharactersIdRoute,
+  CharactersNewRoute: CharactersNewRoute,
   ChatIdRoute: ChatIdRoute,
   ApiChatIdRoute: ApiChatIdRoute,
   ApiMediaIdRoute: ApiMediaIdRoute,

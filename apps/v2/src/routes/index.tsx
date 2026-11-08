@@ -17,6 +17,7 @@ const CharacterListPage = () => {
     <div className="v2-list">
       {characters.length > 0 && <ListConnectionState />}
       <h1>キャラクター</h1>
+      <Link to="/characters/new">キャラクターを作る</Link>
       {conversations.length > 0 && (
         <section>
           <h2>保存した会話</h2>
@@ -44,6 +45,11 @@ const CharacterListPage = () => {
               <Link to="/chat/$id" params={{ id: c.id }}>
                 {c.name}
               </Link>
+              {c.canEdit && (
+                <Link to="/characters/$id" params={{ id: c.id }}>
+                  設定・版の履歴
+                </Link>
+              )}
             </li>
           ))}
         </ul>

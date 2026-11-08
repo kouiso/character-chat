@@ -1,9 +1,10 @@
 // seed 済みローカル D1 の character 全件を loadCharacters（Drizzle → zod）に通す。
 // 1 行でも落ちたら、その id と issues を出力して FAIL にする（schema を緩めて通さん）。
-import { count } from "drizzle-orm";
+import { count, eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { characterTable } from "../../../src/schema/character";
+import { userTable } from "../../../src/schema/user";
 
 import {
   characterSheetSchema,
@@ -56,7 +57,57 @@ describe("loadCharacters / loadCharacter", () => {
   it("一覧には本文や内部設定を含めず必要な項目を返す", async () => {
     const summaries = await listCharacterSummaries(local.db);
     expect(summaries.length).toBeGreaterThan(0);
-    expect(Object.keys(summaries[0]).sort()).toEqual(["avatar", "id", "name"]);
+    expect(Object.keys(summaries[0]).sort()).toEqual(["avatar", "canEdit", "id", "name"]);
+    expect(summaries.every(({ canEdit }) => typeof canEdit === "boolean")).toBe(true);
+  });
+
+  it("owner detail reads and display lists hide private characters from other users", async () => {
+    const id = crypto.randomUUID();
+    const ownerId = crypto.randomUUID();
+    await local.db.insert(userTable).values({
+      id: ownerId,
+      email: `${ownerId}@example.invalid`,
+      createdAt: Date.now(),
+    });
+    try {
+      await local.db.insert(characterTable).values({
+        id,
+        userId: ownerId,
+        name: "非公開キャラクター",
+        systemPrompt: "内部設定。",
+        greeting: "こんにちは。",
+        tags: [],
+        createdAt: Date.now(),
+      });
+
+      await expect(loadCharacter(local.db, id, "local")).resolves.toEqual({
+        ok: null,
+        failures: [],
+      });
+      expect((await listCharacterSummaries(local.db, "local")).some((row) => row.id === id)).toBe(
+        false,
+      );
+      await expect(loadCharacter(local.db, id, ownerId)).resolves.toMatchObject({
+        ok: { id },
+        failures: [],
+      });
+
+      await local.db
+        .update(characterTable)
+        .set({ isOfficial: true })
+        .where(eq(characterTable.id, id));
+      await expect(loadCharacter(local.db, id, "local")).resolves.toMatchObject({
+        ok: { id },
+        failures: [],
+      });
+      const officialSummary = (await listCharacterSummaries(local.db, "local")).find(
+        (row) => row.id === id,
+      );
+      expect(officialSummary).toMatchObject({ id, canEdit: false });
+    } finally {
+      await local.db.delete(characterTable).where(eq(characterTable.id, id));
+      await local.db.delete(userTable).where(eq(userTable.id, ownerId));
+    }
   });
 
   it("壊れた行は投げずに failures へ寄せる", () => {

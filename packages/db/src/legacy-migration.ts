@@ -342,5 +342,16 @@ export const listConversations = async (db: V2Db, userId: string) =>
       updatedAt: v2ConversationTable.updatedAt,
     })
     .from(v2ConversationTable)
-    .where(eq(v2ConversationTable.userId, userId))
+    .where(
+      and(
+        eq(v2ConversationTable.userId, userId),
+        or(
+          sql`${v2ConversationTable.legacySourceUserId} is not null`,
+          sql`exists (
+            select 1 from v2_message
+            where v2_message.conversation_id = v2_conversation.id
+          )`,
+        ),
+      ),
+    )
     .orderBy(desc(v2ConversationTable.updatedAt));

@@ -26,10 +26,57 @@ export const v2ConversationTable = sqliteTable(
     title: text("title").notNull().default(""),
     threadId: text("thread_id").notNull(),
     promptVersion: text("prompt_version").notNull(),
+    // 会話開始時のキャラ版を固定する。旧会話は NULL のまま character 行を使う。
+    characterVersionId: text("character_version_id"),
     createdAt: integer("created_at").notNull(),
     updatedAt: integer("updated_at").notNull(),
   },
   (table) => [index("v2_conversation_user_updated_idx").on(table.userId, table.updatedAt)],
+);
+
+// キャラの版。content_json が正で、character 表の同名列は互換ミラー。
+// 版は不変（INSERT専用）で、現在版は character.current_version_id の参照切替。
+export const characterVersionTable = sqliteTable(
+  "character_version",
+  {
+    id: text("id").primaryKey(),
+    characterId: text("character_id")
+      .notNull()
+      .references(() => characterTable.id),
+    ownerUserId: text("owner_user_id").notNull(),
+    version: integer("version").notNull(),
+    schemaVersion: integer("schema_version").notNull().default(1),
+    contentJson: text("content_json").notNull(),
+    // 同内容の再送で版を増やさんよう canonical contentJson の SHA-256 で一意にする。
+    contentHash: text("content_hash").notNull(),
+    createdAt: integer("created_at").notNull(),
+  },
+  (table) => [
+    uniqueIndex("character_version_character_hash_unique").on(table.characterId, table.contentHash),
+    uniqueIndex("character_version_character_version_unique").on(table.characterId, table.version),
+    index("character_version_character_idx").on(table.characterId),
+  ],
+);
+
+export const characterRevisionTable = sqliteTable(
+  "character_revision",
+  {
+    characterId: text("character_id")
+      .notNull()
+      .references(() => characterTable.id),
+    revision: integer("revision").notNull(),
+    versionId: text("version_id")
+      .notNull()
+      .references(() => characterVersionTable.id),
+    action: text("action", {
+      enum: ["create", "update", "restore", "legacy"],
+    }).notNull(),
+    createdAt: integer("created_at").notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.characterId, table.revision] }),
+    index("character_revision_character_idx").on(table.characterId),
+  ],
 );
 
 export const v2MessageTable = sqliteTable(

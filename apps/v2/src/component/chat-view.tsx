@@ -26,6 +26,7 @@ export type ChatViewProps = {
   characterId: string;
   characterName: string;
   initialConversationId?: string;
+  newConversationKey?: string;
 };
 
 const withPending = (
@@ -63,7 +64,27 @@ const updateAssistant = (history: ChatBubble[], text: string): ChatBubble[] =>
 const failureMessage = (cause: unknown): string =>
   cause instanceof Error ? cause.message : "返信を確認できませんでした。";
 
+const resolveInitialConversation = (
+  characterId: string,
+  initialConversationId: string | undefined,
+  newConversationKey: string | undefined,
+): { conversationId?: string; missingKey?: boolean; storageError?: boolean } => {
+  if (!newConversationKey || initialConversationId) {
+    return { conversationId: initialConversationId };
+  }
+  try {
+    const conversationId =
+      localStorage.getItem(`v2-new-chat:${characterId}:${newConversationKey}`) ?? undefined;
+    return conversationId ? { conversationId } : { missingKey: true };
+  } catch {
+    return { storageError: true };
+  }
+};
+
 type ChatErrorEvent = Extract<ChatSseEvent, { type: "error" }>;
+
+const isTerminalPendingRejection = (pending: PendingTurn | null, cause: unknown): boolean =>
+  pending !== null && cause instanceof ChatRequestRejectedError;
 
 const consumeEvents = async (
   stream: ReadableStream<Uint8Array>,
@@ -93,7 +114,12 @@ const consumeEvents = async (
   return completed;
 };
 
-export const ChatView = ({ characterId, characterName, initialConversationId }: ChatViewProps) => {
+export const ChatView = ({
+  characterId,
+  characterName,
+  initialConversationId,
+  newConversationKey,
+}: ChatViewProps) => {
   const [bubbles, setBubbles] = useState<ChatBubble[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -201,7 +227,18 @@ export const ChatView = ({ characterId, characterName, initialConversationId }: 
     const abort = new AbortController();
     controller.current = abort;
     const restore = async () => {
-      const saved = readChatSession(characterId, initialConversationId);
+      const resolved = resolveInitialConversation(
+        characterId,
+        initialConversationId,
+        newConversationKey,
+      );
+      if (resolved.storageError) {
+        setError("この端末に保存した会話を確認できません。保存設定を確認してください。");
+        return;
+      }
+      if (resolved.missingKey) return;
+      const targetConversationId = resolved.conversationId;
+      const saved = readChatSession(characterId, targetConversationId);
       conversationId.current = saved.conversationId;
       setPending(saved.pending);
       if (!saved.conversationId) return;
@@ -220,7 +257,7 @@ export const ChatView = ({ characterId, characterName, initialConversationId }: 
       } catch (cause) {
         if (!abort.signal.aborted) {
           // 確定的な拒否なら再試行しても直らんので、保留は「入力に戻す」で抜けられるようにする。
-          if (saved.pending && cause instanceof ChatRequestRejectedError) setTerminalFailure(true);
+          if (isTerminalPendingRejection(saved.pending, cause)) setTerminalFailure(true);
           setError("会話を再開できませんでした。再試行してください。");
           setBusy(false);
         }
@@ -231,7 +268,7 @@ export const ChatView = ({ characterId, characterName, initialConversationId }: 
       abort.abort();
       controller.current?.abort();
     };
-  }, [characterId, consume, initialConversationId]);
+  }, [characterId, consume, initialConversationId, newConversationKey]);
 
   const send = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -249,6 +286,12 @@ export const ChatView = ({ characterId, characterName, initialConversationId }: 
       baseTurn: nextTurn.current,
     };
     try {
+      if (newConversationKey) {
+        localStorage.setItem(
+          `v2-new-chat:${characterId}:${newConversationKey}`,
+          turn.conversationId,
+        );
+      }
       writeChatSession(characterId, {
         version: 1,
         conversationId: turn.conversationId,

@@ -12,6 +12,8 @@ import { groupMessageTable } from "../../../src/schema/group";
 
 import { openLocalD1, type LocalD1 } from "./test/local-d1";
 import {
+  characterRevisionTable,
+  characterVersionTable,
   v2ChunkTable,
   v2ConversationTable,
   v2GenerationTable,
@@ -44,6 +46,8 @@ describe("v2_ tables: SQL DDL と drizzle 宣言の一致", () => {
     v2LedgerTable,
     v2GenerationTable,
     v2MemoryTable,
+    characterVersionTable,
+    characterRevisionTable,
     v2MemoryJobTable,
     v2MemorySourceTable,
   ];

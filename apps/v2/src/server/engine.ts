@@ -1,10 +1,16 @@
 // WorkerのD1バインディングを共有し、接続元のプロセスに会話を閉じ込めない。
 import { FakeListChatModel } from "@langchain/core/utils/testing";
 import {
+  composeSystemPrompt,
   createD1TurnStore,
   createDb,
+  ensureConversationVersion,
+  ensureCurrentVersion,
+  loadVersionedCharacter,
   readDisplayHistory,
   readD1StoredTurn,
+  type CharacterContent,
+  type CharacterSheet,
   type V2Db,
 } from "@v2/db";
 import {
@@ -73,6 +79,7 @@ const createStore = (
   db: V2Db,
   characterId: string,
   beforeTurn?: number,
+  characterVersionId?: string,
   extractMemory = false,
 ): TurnStore =>
   createD1TurnStore(db, {
@@ -80,6 +87,7 @@ const createStore = (
     characterId,
     promptVersion: PROMPT_VERSION,
     beforeTurn,
+    characterVersionId,
     extractMemory,
   });
 
@@ -97,14 +105,58 @@ const loadValidCharacter = async (characterId: string) => {
   throw new CharacterNotFoundError(characterId);
 };
 
+// 版の content を CharacterSheet へ写す。版に無い表示用の列（gender・表示順等）は
+// character 行の値をそのまま使う。systemPrompt は保存しない派生値なので毎回ここで合成する。
+const applyCharacterVersion = (
+  sheet: CharacterSheet,
+  content: CharacterContent,
+): CharacterSheet => ({
+  ...sheet,
+  name: content.name,
+  systemPrompt: composeSystemPrompt(content),
+  greeting: content.greeting,
+  tags: content.tags,
+  avatar: content.avatarRef,
+});
+
+// 会話が固定した版のキャラを返す。旧会話も最初のターン前に現在版を固定する。
+const resolveConversationCharacter = async (
+  db: V2Db,
+  input: { characterId: string; conversationId: string | null },
+): Promise<{ character: CharacterSheet; versionId: string | null }> => {
+  const sheet = await loadValidCharacter(input.characterId);
+  const ensured = await ensureCurrentVersion(db, input.characterId, LOCAL_USER_ID);
+  if (!ensured) throw new CharacterNotFoundError(input.characterId);
+  const versionId = input.conversationId
+    ? await ensureConversationVersion(db, {
+        conversationId: input.conversationId,
+        userId: LOCAL_USER_ID,
+        characterId: input.characterId,
+        promptVersion: PROMPT_VERSION,
+        versionId: ensured.versionId,
+      })
+    : ensured.versionId;
+  const version = await loadVersionedCharacter(db, {
+    versionId,
+    characterId: input.characterId,
+    userId: LOCAL_USER_ID,
+  });
+  if (!version) throw new CharacterNotFoundError(input.characterId);
+  return { character: applyCharacterVersion(sheet, version.content), versionId };
+};
+
 // キー未設定・character 不在はストリームを開く前に throw して、呼び出し側が
 // ステータスコード（503/404/422）を確定できるようにする。
 export const startTurn = async (
   input: StartTurnInput,
 ): Promise<{ conversationId: string; events: AsyncGenerator<TurnEvent> }> => {
   const model = await getModel();
-  const character = await loadValidCharacter(input.characterId);
   const db = await getDb();
+  const conversationId = input.conversationId ?? crypto.randomUUID();
+  const { character, versionId } = await resolveConversationCharacter(db, {
+    characterId: input.characterId,
+    conversationId,
+  });
   // graph はターンごとに組む。前ターンの状態は intake が D1 から読み直すので checkpointer に
   // 残す必要が無く、character ごとの store を持つ graph をプロセスに溜め込まん方が単純。
   const { env } = await getPlatform();
@@ -125,9 +177,14 @@ export const startTurn = async (
             query,
           )
       : undefined,
-    store: createStore(db, input.characterId, input.expectedTurn, Boolean(env.MEMORY_QUEUE)),
+    store: createStore(
+      db,
+      input.characterId,
+      input.expectedTurn,
+      versionId ?? undefined,
+      Boolean(env.MEMORY_QUEUE),
+    ),
   });
-  const conversationId = input.conversationId ?? crypto.randomUUID();
   const events = runTurn(
     graph,
     { conversationId, userText: input.text, character },

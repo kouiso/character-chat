@@ -101,6 +101,9 @@ export type TurnStore = {
 export type D1TurnStoreOptions = {
   userId: string;
   characterId: string;
+  // 会話の初回 insert で固定するキャラ版。以後のターンで参照は変えん
+  //（onConflictDoUpdate の set に含めておらん）。旧会話・版未導入の流れでは省略。
+  characterVersionId?: string;
   promptVersion: string;
   beforeTurn?: number;
   extractMemory?: boolean;
@@ -112,6 +115,73 @@ export class ConversationAccessError extends Error {
     this.name = "ConversationAccessError";
   }
 }
+
+export const ensureConversationVersion = async (
+  db: V2Db,
+  input: {
+    conversationId: string;
+    userId: string;
+    characterId: string;
+    promptVersion: string;
+    versionId: string;
+  },
+): Promise<string> => {
+  const now = Date.now();
+  await db
+    .insert(v2ConversationTable)
+    .values({
+      id: input.conversationId,
+      userId: input.userId,
+      characterId: input.characterId,
+      title: "",
+      threadId: input.conversationId,
+      promptVersion: input.promptVersion,
+      characterVersionId: input.versionId,
+      createdAt: now,
+      updatedAt: now,
+    })
+    .onConflictDoNothing();
+  let [row] = await db
+    .select({
+      userId: v2ConversationTable.userId,
+      characterId: v2ConversationTable.characterId,
+      characterVersionId: v2ConversationTable.characterVersionId,
+    })
+    .from(v2ConversationTable)
+    .where(eq(v2ConversationTable.id, input.conversationId));
+  if (!row || row.userId !== input.userId || row.characterId !== input.characterId) {
+    throw new ConversationAccessError();
+  }
+  if (row.characterVersionId) return row.characterVersionId;
+  await db
+    .update(v2ConversationTable)
+    .set({ characterVersionId: input.versionId })
+    .where(
+      and(
+        eq(v2ConversationTable.id, input.conversationId),
+        eq(v2ConversationTable.userId, input.userId),
+        eq(v2ConversationTable.characterId, input.characterId),
+        sql`${v2ConversationTable.characterVersionId} is null`,
+      ),
+    );
+  [row] = await db
+    .select({
+      userId: v2ConversationTable.userId,
+      characterId: v2ConversationTable.characterId,
+      characterVersionId: v2ConversationTable.characterVersionId,
+    })
+    .from(v2ConversationTable)
+    .where(eq(v2ConversationTable.id, input.conversationId));
+  if (
+    !row ||
+    row.userId !== input.userId ||
+    row.characterId !== input.characterId ||
+    !row.characterVersionId
+  ) {
+    throw new ConversationAccessError();
+  }
+  return row.characterVersionId;
+};
 
 const assertConversationOwner = async (db: V2Db, opts: D1TurnStoreOptions, id: string) => {
   const [row] = await db
@@ -366,6 +436,7 @@ export const createD1TurnStore = (db: V2Db, opts: D1TurnStoreOptions): TurnStore
           characterId: opts.characterId,
           threadId: input.threadId ?? input.conversationId,
           promptVersion: opts.promptVersion,
+          characterVersionId: opts.characterVersionId ?? null,
           createdAt: now,
           updatedAt: now,
         })

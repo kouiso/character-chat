@@ -46,6 +46,13 @@ const UNAUTHENTICATED_PROBES = [
   ["POST", "/api/chat/example"],
   ["OPTIONS", "/api/chat/example"],
   ["GET", "/api/media/message-1"],
+  ["GET", "/api/characters"],
+  ["GET", "/api/characters/example"],
+  ["GET", "/characters/example"],
+  ["GET", "/characters/new"],
+  ["POST", "/api/characters/example/restore"],
+  ["GET", "/api/characters/example/versions"],
+  ["GET", "/api/characters/example/versions/1"],
 ] as const;
 
 // routes/ のファイル名と URL を区切りごとに突き合わせる（$id は任意の 1 区切り、末尾 _ は入れ子を外す印、index は親）。
