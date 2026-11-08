@@ -114,6 +114,8 @@ export const v2ChunkTable = sqliteTable(
     attempt: integer("attempt").notNull().default(1),
     // 塊を画面へ出す予定時刻。既存行は NULL（出し分け側は created_at へ倒す）。
     sendAt: integer("send_at"),
+    // 1 = 判定で落ちて配らんかった塊。理由は judge_json に残す（RIT-70）。
+    dropped: integer("dropped").notNull().default(0),
     createdAt: integer("created_at").notNull(),
   },
   (table) => [uniqueIndex("v2_chunk_message_seq_idx").on(table.messageId, table.seq)],

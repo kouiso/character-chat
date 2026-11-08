@@ -1,0 +1,1 @@
+ALTER TABLE `v2_chunk` ADD `dropped` integer DEFAULT 0 NOT NULL;

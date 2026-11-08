@@ -264,6 +264,75 @@ describe("createD1TurnStore", () => {
     expect(chunkRows[1].sendAt).toBe(chunkRows[0].createdAt + firstText.length * CHUNK_MS_PER_CHAR);
   });
 
+  it("判定で落ちた塊は本文に入らず、理由つきで dropped=1 の行が残る（RIT-70）", async () => {
+    const conversationId = newConversationId();
+    const droppedJudge: JudgeResult = {
+      ...OK_JUDGE,
+      ok: false,
+      reasons: ["repetition"],
+      checks: {
+        ...OK_JUDGE.checks,
+        ngram: { ok: false, ratio: 0.9, matchedPhrases: ["同じ文"], exactRepeat: true },
+      },
+    };
+    await store.saveTurn({
+      conversationId,
+      turn: 1,
+      userText: "user 1",
+      events: [
+        ...chunkEvents(1),
+        {
+          type: "dropped",
+          seq: 2,
+          reasons: ["repetition"],
+          attempt: 3,
+          text: "<action>同じ文</action>",
+          judge: droppedJudge,
+        },
+      ],
+      ledger: ledgerAt(1),
+    });
+
+    const [assistant] = await local.db
+      .select({ id: v2MessageTable.id, content: v2MessageTable.content })
+      .from(v2MessageTable)
+      .where(
+        and(
+          eq(v2MessageTable.conversationId, conversationId),
+          eq(v2MessageTable.role, "assistant"),
+        ),
+      );
+    // 落ちた塊は配る本文に混ざらん。
+    expect(assistant.content).not.toContain("同じ文");
+
+    const chunkRows = await local.db
+      .select({
+        seq: v2ChunkTable.seq,
+        text: v2ChunkTable.text,
+        judgeJson: v2ChunkTable.judgeJson,
+        attempt: v2ChunkTable.attempt,
+        sendAt: v2ChunkTable.sendAt,
+        dropped: v2ChunkTable.dropped,
+      })
+      .from(v2ChunkTable)
+      .where(eq(v2ChunkTable.messageId, assistant.id))
+      .orderBy(asc(v2ChunkTable.seq));
+
+    expect(chunkRows).toHaveLength(3);
+    expect(chunkRows.filter((row) => row.dropped === 0)).toHaveLength(2);
+    const [droppedRow] = chunkRows.filter((row) => row.dropped === 1);
+    expect(droppedRow).toMatchObject({
+      seq: 2,
+      text: "<action>同じ文</action>",
+      attempt: 3,
+      sendAt: null,
+    });
+    expect(JSON.parse(droppedRow.judgeJson)).toMatchObject({
+      ok: false,
+      reasons: ["repetition"],
+    });
+  });
+
   it("saveTurn は既存会話の pinned character version を上書きしない", async () => {
     const conversationId = newConversationId();
     await ensureConversationVersion(local.db, {

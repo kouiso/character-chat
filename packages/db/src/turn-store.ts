@@ -57,7 +57,15 @@ export type TurnEvent =
       preExtend: boolean;
     }
   // 判定で 2 回落ちて配らんことにした塊。本文には出さず、監視と transcript の数字にだけ使う。
-  | { type: "dropped"; seq: number; reasons: string[]; attempt: number }
+  // text/judge は保存用の events だけが持つ。配信には載せん（SSE スキーマが削る）。
+  | {
+      type: "dropped";
+      seq: number;
+      reasons: string[];
+      attempt: number;
+      text?: string;
+      judge?: JudgeResult;
+    }
   | ({ type: "generation" } & GenerationRecord)
   // ターンの観測値だけを SSE へ流す。generation 本体は systemPrompt と request 丸ごとを抱えとるので
   // 配信に載せられん（engine テストが not.toContain("generation") で固定しとる）。ベンチが要るのは
@@ -231,6 +239,8 @@ type ChunkEvent = Extract<TurnEvent, { type: "chunk" }>;
 type GenerationEvent = Extract<TurnEvent, { type: "generation" }>;
 
 const isChunkEvent = (event: TurnEvent): event is ChunkEvent => event.type === "chunk";
+const isDroppedEvent = (event: TurnEvent): event is Extract<TurnEvent, { type: "dropped" }> =>
+  event.type === "dropped";
 const isGenerationEvent = (event: TurnEvent): event is GenerationEvent =>
   event.type === "generation";
 
@@ -429,6 +439,7 @@ export const createD1TurnStore = (db: V2Db, opts: D1TurnStoreOptions): TurnStore
       chunks.map((chunk) => chunk.text),
       now,
     );
+    const dropped = input.events.filter(isDroppedEvent);
     const generations = input.events.filter(isGenerationEvent);
     const assistantText = assistantTextOf(chunks);
     const userMessageId = crypto.randomUUID();
@@ -545,6 +556,21 @@ export const createD1TurnStore = (db: V2Db, opts: D1TurnStoreOptions): TurnStore
           judgeJson: JSON.stringify(chunkEvent.judge),
           attempt: chunkEvent.attempt,
           sendAt: sendTimes[index],
+          createdAt: now,
+        }),
+      ),
+      // 判定で落ちて配らんかった塊も、理由つきで残す（RIT-70）。sendAt は無し。
+      ...dropped.map((droppedEvent) =>
+        db.insert(v2ChunkTable).values({
+          id: crypto.randomUUID(),
+          messageId: assistantMessageId,
+          seq: droppedEvent.seq,
+          text: droppedEvent.text ?? "",
+          judgeJson: JSON.stringify(
+            droppedEvent.judge ?? { ok: false, reasons: droppedEvent.reasons },
+          ),
+          attempt: droppedEvent.attempt,
+          dropped: 1,
           createdAt: now,
         }),
       ),

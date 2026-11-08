@@ -590,6 +590,18 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
               preExtend: chunkItem.preExtend,
             }),
           ),
+          // 配らんかった塊も理由つきで D1 に残す（RIT-70）。SSE に出す dropped とは別で、
+          // 保存用は本文と判定結果を持つ。
+          ...state.dropped.map(
+            (chunkItem): TurnEvent => ({
+              type: "dropped",
+              seq: chunkItem.seq,
+              reasons: chunkItem.judge.reasons,
+              attempt: chunkItem.attempt,
+              text: chunkItem.text,
+              judge: chunkItem.judge,
+            }),
+          ),
         ];
         const saved = await deps.store.saveTurn({
           conversationId: state.conversationId,
