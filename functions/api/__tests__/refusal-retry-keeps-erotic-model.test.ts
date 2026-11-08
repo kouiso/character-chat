@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { DEFAULT_CHAT_MODEL, EROTIC_CHAT_MODEL, EURYALE_CHAT_MODEL } from "../../../src/lib/model";
+import { EROTIC_CHAT_MODEL, EURYALE_CHAT_MODEL, QWEN_CHAT_MODEL } from "../../../src/lib/model";
 import { app } from "../[[route]]";
 
 // issue #1495 §5-5「very_long だけ守られとって medium が無防備」の 3 箇所目。
@@ -130,7 +130,7 @@ describe("#1495 拒否リカバリの撮り直しが抜き所を qwen へ落と�
 
       // 撮り直しが走っとること自体を先に固定する。走らんかったら宛先の話にならん。
       expect(models.length).toBeGreaterThan(1);
-      expect(models[0]).not.toBe(DEFAULT_CHAT_MODEL);
+      expect(models[0]).not.toBe(QWEN_CHAT_MODEL);
       expect(EROTIC_CAPABLE).toContain(models[models.length - 1]);
     },
   );

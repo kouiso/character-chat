@@ -31,7 +31,7 @@ describe("抜き所の撮り直しは官能が書けるモデルから降りん"
   it("抜き所やない段は今までどおり fallback 連鎖に従う", () => {
     expect(
       selectQualityRetryModel(EROTIC_CHAT_MODEL, EROTIC_CHAT_MODEL, "repetition", false, false),
-    ).toBe(DEFAULT_CHAT_MODEL);
+    ).toBe(TOO_SHORT_VERBOSE_RETRY_MODEL);
   });
 });
 
@@ -52,6 +52,8 @@ describe("上流の一時エラーでも抜き所は qwen へ落とさん", () =
   });
 
   it("抜き所やない段は今までどおり fallback 連鎖に従う", () => {
-    expect(getUpstreamFallbackModel(EROTIC_CHAT_MODEL, false, false)).toBe(DEFAULT_CHAT_MODEL);
+    expect(getUpstreamFallbackModel(EROTIC_CHAT_MODEL, false, false)).toBe(
+      TOO_SHORT_VERBOSE_RETRY_MODEL,
+    );
   });
 });

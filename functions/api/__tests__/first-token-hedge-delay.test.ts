@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { DEFAULT_CHAT_MODEL, EROTIC_CHAT_MODEL, EURYALE_CHAT_MODEL } from "../../../src/lib/model";
+import { DEFAULT_CHAT_MODEL, EURYALE_CHAT_MODEL, QWEN_CHAT_MODEL } from "../../../src/lib/model";
 import { getFirstTokenHedgeDelayMs } from "../[[route]]";
 
 // #983: 短文ターンが11.1〜11.6秒になった窓では、ヘッジ(2本目の並走)が3/3で発火しとった。
@@ -23,7 +23,7 @@ describe("getFirstTokenHedgeDelayMs", () => {
   });
 
   it("既定会話モデル以外は品質優先の待ちを使う", () => {
-    for (const model of [EROTIC_CHAT_MODEL, "nousresearch/hermes-4-70b", "unknown/model"]) {
+    for (const model of [QWEN_CHAT_MODEL, "nousresearch/hermes-4-70b", "unknown/model"]) {
       expect(getFirstTokenHedgeDelayMs(model)).toBe(3_500);
     }
   });
