@@ -181,11 +181,14 @@ const throwQuotaExceededIfNeeded = async (response: Response): Promise<void> => 
 
 export class ApiResponseError extends Error {
   readonly status: number;
+  // サーバが理由を返した時の本文（保存拒否など、画面に出す理由）。
+  readonly reason: string | null;
 
-  constructor(message: string, status: number) {
+  constructor(message: string, status: number, reason: string | null = null) {
     super(`${message}: ${status}`);
     this.name = "ApiResponseError";
     this.status = status;
+    this.reason = reason;
   }
 }
 
@@ -1632,13 +1635,32 @@ export const listCharacters = async (): Promise<Character[]> => {
   return listCharactersSchema.parse(await response.json()).characters;
 };
 
+// 保存拒否系の応答に乗る理由を拾う。画面に「なぜ止まったか」を出す唯一の経路。
+const readRejectReason = async (response: Response): Promise<string | null> => {
+  try {
+    const body: unknown = await response.clone().json();
+    if (typeof body === "object" && body !== null && "reason" in body) {
+      return typeof body.reason === "string" ? body.reason : null;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+};
+
 export const createCharacter = async (input: CharacterInput): Promise<Character> => {
   const response = await apiFetch("/api/characters", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(input),
   });
-  ensureOk(response, "create character failed");
+  if (!response.ok) {
+    throw new ApiResponseError(
+      "create character failed",
+      response.status,
+      await readRejectReason(response),
+    );
+  }
   return createCharacterResponseSchema.parse(await response.json()).character;
 };
 
@@ -1654,7 +1676,13 @@ export const updateCharacter = async (
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(input),
   });
-  ensureOk(response, "update character failed");
+  if (!response.ok) {
+    throw new ApiResponseError(
+      "update character failed",
+      response.status,
+      await readRejectReason(response),
+    );
+  }
   const data = updateCharacterResponseSchema.parse(await response.json());
   return data.updates ?? {};
 };

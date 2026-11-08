@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { ChevronLeft } from "lucide-react";
 
 import { Dialog, DialogContent, DialogTitle } from "@/component/ui/dialog";
+import { ApiResponseError } from "@/lib/api";
 import {
   clearCharacterDraft,
   createEmptyCharacterDraft,
@@ -174,7 +175,8 @@ const FlowNotices = ({
   isSaving,
 }: {
   storageError: boolean;
-  saveError: boolean;
+  // 文字列の時はサーバが返した拒否理由をそのまま出す（未成年判定など）。
+  saveError: boolean | string;
   regenerateError: boolean;
   isSaving: boolean;
 }) => (
@@ -186,7 +188,9 @@ const FlowNotices = ({
     )}
     {saveError && (
       <p role="alert" className="text-sm text-[var(--warn-text)]">
-        保存できませんでした。内容は残っています。もう一度保存してください。
+        {typeof saveError === "string"
+          ? saveError
+          : "保存できませんでした。内容は残っています。もう一度保存してください。"}
       </p>
     )}
     {regenerateError && (
@@ -225,7 +229,7 @@ export const CreateFlow = ({
   const [stageIndex, setStageIndex] = useState(0);
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [saveError, setSaveError] = useState(false);
+  const [saveError, setSaveError] = useState<boolean | string>(false);
   const [regenerateError, setRegenerateError] = useState(false);
   const [storageError, setStorageError] = useState(false);
   const [confirmDiscard, setConfirmDiscard] = useState(false);
@@ -412,8 +416,9 @@ export const CreateFlow = ({
     let createdId: string | void;
     try {
       createdId = await handler(result);
-    } catch {
-      setSaveError(true);
+    } catch (error) {
+      // サーバが理由を返した時はそのまま出す（未成年判定・内容拒否）。
+      setSaveError(error instanceof ApiResponseError && error.reason ? error.reason : true);
       return;
     } finally {
       saving.current = false;
