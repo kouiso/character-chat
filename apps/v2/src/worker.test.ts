@@ -57,6 +57,9 @@ const UNAUTHENTICATED_PROBES = [
   ["GET", "/api/proactive/characters/example/settings"],
   ["GET", "/api/push/vapid-key"],
   ["POST", "/api/push/subscriptions"],
+  ["POST", "/api/groups"],
+  ["GET", "/api/groups/example/messages"],
+  ["POST", "/api/groups/example/messages"],
 ] as const;
 
 // routes/ のファイル名と URL を区切りごとに突き合わせる（$id は任意の 1 区切り、末尾 _ は入れ子を外す印、index は親）。
@@ -185,7 +188,8 @@ describe("Worker 入口の BASIC 認証", () => {
     });
     expect(resolved.name).toBe(workerName);
     expect(resolved.assets?.run_worker_first).toBe(true);
-    expect(resolved.workers_dev).toBe(false);
+    // 独自ドメイン未接続の間は workers.dev で届ける。preview URL は閉じたまま。
+    expect(resolved.workers_dev).toBe(true);
     expect(resolved.preview_urls).toBe(false);
   });
 
