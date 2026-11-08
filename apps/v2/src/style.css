@@ -229,3 +229,17 @@ body {
 .v2-version-history li { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 16px 0; }
 .v2-version-history dt { color: var(--muted); }
 .v2-version-history dd { white-space: pre-wrap; overflow-wrap: anywhere; margin: 4px 0 16px; }
+
+.v2-memory textarea {
+  width: 100%;
+  min-height: 4.5rem;
+}
+.v2-memory-pinned {
+  border-left: 3px solid currentColor;
+  padding-left: 0.5rem;
+}
+.v2-memory-meta {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}

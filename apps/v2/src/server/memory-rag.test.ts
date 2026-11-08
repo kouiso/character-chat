@@ -9,6 +9,7 @@ import {
   hashMemorySource,
   listPendingMemoryJobs,
   loadMemoryExtractionSource,
+  setMemoryPinned,
   userTable,
   v2ConversationTable,
   v2MemoryJobTable,
@@ -281,6 +282,37 @@ describe("memory RAG with local D1", () => {
     await expect(
       retrieveMemories(local.db, env, fixture.scope, "好み", Number.NaN),
     ).resolves.toEqual([]);
+  });
+
+  it("固定した記憶は類似度もindexも要らず、先頭に必ず載る（RIT-92）", async () => {
+    const fixture = await seed();
+    const env = bindings();
+    await indexMemoryJob(local.db, env, fixture.jobId);
+    await setMemoryPinned(local.db, fixture.scope, fixture.memoryId, true);
+
+    // vector が無効でも空クエリでも固定分は返る
+    expect(
+      await retrieveMemories(local.db, { V2_RAG_ENABLED: "0" }, fixture.scope, "", now),
+    ).toEqual([{ id: fixture.memoryId, content: preference.content }]);
+
+    // vector 側にも載る時は重複せず先頭になる
+    const another = await seed([{ ...preference, content: "緑茶も好き", importance: 5 }]);
+    await indexMemoryJob(local.db, env, another.jobId);
+    const merged = await retrieveMemories(
+      local.db,
+      env,
+      { ...fixture.scope, conversationId: fixture.scope.conversationId },
+      "好み",
+      now,
+    );
+    expect(merged[0]).toEqual({ id: fixture.memoryId, content: preference.content });
+    expect(merged.filter((entry) => entry.id === fixture.memoryId)).toHaveLength(1);
+
+    // 解除すれば vector 経路だけに戻る
+    await setMemoryPinned(local.db, fixture.scope, fixture.memoryId, false);
+    expect(
+      await retrieveMemories(local.db, { V2_RAG_ENABLED: "0" }, fixture.scope, "", now),
+    ).toEqual([]);
   });
 
   it("indexの失敗はQueueで再試行し、抽出を再実行せずに完了する", async () => {

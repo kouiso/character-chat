@@ -152,6 +152,8 @@ export const completeMemoryExtraction = async (
                 conversationId: sql<string>`${source.conversationId}`.as("conversation_id"),
                 kind: sql<"fact" | "preference">`${memory.kind}`.as("kind"),
                 content: sql<string>`${memory.content}`.as("content"),
+                // 抽出された記憶は固定しない（手で植えたものだけ 1）
+                pinned: sql<number>`0`.as("pinned"),
                 sourceTurn: sql<number>`${source.sourceTurn}`.as("source_turn"),
                 embedding: sql<Buffer | null>`null`.as("embedding"),
                 createdAt: sql<number>`${now}`.as("created_at"),

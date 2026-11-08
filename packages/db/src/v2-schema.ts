@@ -168,6 +168,8 @@ export const v2MemoryTable = sqliteTable(
       .references(() => v2ConversationTable.id),
     kind: text("kind", { enum: ["fact", "summary", "preference"] }).notNull(),
     content: text("content").notNull(),
+    // 手で固定した記憶は類似度に負けても指示文へ入る（RIT-92）。手で足した記憶は 1 が既定。
+    pinned: integer("pinned").notNull().default(0),
     sourceTurn: integer("source_turn"),
     // bge-m3 1024 次元 float32 の生バイト（script/rag/ingest.ts の rag_chunk と同形式）。M0 は NULL のまま。
     embedding: blob("embedding", { mode: "buffer" }),
