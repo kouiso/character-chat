@@ -66,6 +66,7 @@ describe("v2_ tables: SQL DDL と drizzle 宣言の一致", () => {
         "v2_memory_job",
         "v2_memory_source",
         "v2_message",
+        "v2_summary",
       ].sort(),
     );
   });
