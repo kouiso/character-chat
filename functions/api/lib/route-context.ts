@@ -32,6 +32,7 @@ import {
   EURYALE_CHAT_MODEL,
   DEFAULT_FALLBACK_MODELS,
   MODEL_FALLBACKS,
+  QWEN_CHAT_MODEL,
 } from "../../../src/lib/model";
 import {
   buildNameIdentityReminderFromMessages,
@@ -623,7 +624,7 @@ export const generateCharacterSchema = z.object({
 export const FALLBACK_CHAIN = [
   "sao10k/l3.3-euryale-70b",
   EROTIC_CHAT_MODEL,
-  DEFAULT_CHAT_MODEL,
+  QWEN_CHAT_MODEL,
   "nousresearch/hermes-4-70b",
 ] as const;
 
@@ -5422,7 +5423,6 @@ export const getUpstreamFallbackModel = (
   // （selectQualityRetryModel と同じ穴。実測 2026-08-19 phase50 で t7/t9 が qwen 配信）。
   isEroticPhase = false,
 ): string | undefined => {
-  if (model === DEFAULT_CHAT_MODEL) return undefined;
   // very_long は長さ下限を守るため NSFW 対応モデルに逃がす。deepseek 失敗時に qwen だと短縮しやすい。
   if ((isVeryLongResponse || isEroticPhase) && model === EROTIC_CHAT_MODEL) {
     return TOO_SHORT_VERBOSE_RETRY_MODEL;

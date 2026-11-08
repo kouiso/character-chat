@@ -1,4 +1,4 @@
-import { DEFAULT_CHAT_MODEL, EROTIC_CHAT_MODEL, LLM_ROUTER_MODEL } from "../../../src/lib/model";
+import { EROTIC_CHAT_MODEL, LLM_ROUTER_MODEL, QWEN_CHAT_MODEL } from "../../../src/lib/model";
 
 const PROVIDERS_WITHOUT_QWEN_CHAT_COMPLETIONS = ["novita"] as const;
 // very_long では 1300 字到達までの生成時間が Cloudflare Worker 制限に抵触しやすい。
@@ -28,7 +28,7 @@ export const buildOpenRouterProviderRouting = (
   ...(model === EROTIC_CHAT_MODEL && maxTokens !== undefined && maxTokens <= VERY_LONG_MAX_TOKENS
     ? { order: VERY_LONG_DEEPSEEK_PROVIDER_ORDER }
     : {}),
-  ...(model === DEFAULT_CHAT_MODEL || model === LLM_ROUTER_MODEL
+  ...(model === QWEN_CHAT_MODEL || model === LLM_ROUTER_MODEL
     ? { ignore: PROVIDERS_WITHOUT_QWEN_CHAT_COMPLETIONS }
     : {}),
 });

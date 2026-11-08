@@ -1,6 +1,10 @@
 // OpenRouter 経由のチャット生成用デフォルトモデル。
-export const DEFAULT_CHAT_MODEL = "qwen/qwen-2.5-72b-instruct" as const;
+// deepseek の最新モデルベース要件（局長指示 2026-11-08）。deepseek-chat は
+// OpenRouter 側で常に最新安定版へ解決される alias。
+export const DEFAULT_CHAT_MODEL = "deepseek/deepseek-chat" as const;
 export const EROTIC_CHAT_MODEL = "deepseek/deepseek-chat" as const;
+// deepseek が既定へ上がったため、日本語安定の実績がある qwen は退避先として名前を残す。
+export const QWEN_CHAT_MODEL = "qwen/qwen-2.5-72b-instruct" as const;
 // 6/20 eval で erotic 品質最強と確定した RP 特化モデル。7/9 に「合計生成時間が遅い」
 // だけを理由に外され品質27点まで退行したため、7/12 の TTFT ベンチ
 // (.work/bench/ttft-bench-2026-07-12T09-31-44.md: TTFT p50=2968ms / 25.5c/s、両SLO達成)
@@ -10,7 +14,7 @@ export const LLM_ROUTER_MODEL = "qwen/qwen-2.5-72b-instruct" as const;
 
 export const NSFW_CHAT_MODEL_RECOMMENDATION = {
   primaryModel: EURYALE_CHAT_MODEL,
-  backupModels: [EROTIC_CHAT_MODEL, DEFAULT_CHAT_MODEL] as const,
+  backupModels: [EROTIC_CHAT_MODEL, QWEN_CHAT_MODEL] as const,
   providerPath:
     "Euryale primary for erotic/climax with DeepSeek/Qwen fallback chain; avoid Magnum because availability is unstable.",
   reviewedAt: "2026-07-12",
@@ -18,13 +22,13 @@ export const NSFW_CHAT_MODEL_RECOMMENDATION = {
     "Euryale 70B won the 2026-06-20 quality eval for explicit roleplay; 2026-07-12 TTFT bench confirmed it meets streaming SLOs (TTFT p50 2968ms, 25.5 chars/s).",
 } as const;
 
-export const DEFAULT_CHAT_MODEL_FALLBACKS = [EROTIC_CHAT_MODEL, EURYALE_CHAT_MODEL] as const;
+export const DEFAULT_CHAT_MODEL_FALLBACKS = [EURYALE_CHAT_MODEL, QWEN_CHAT_MODEL] as const;
 
 export const MODEL_FALLBACKS: Readonly<Record<string, readonly string[]>> = {
   [DEFAULT_CHAT_MODEL]: DEFAULT_CHAT_MODEL_FALLBACKS,
-  "deepseek/deepseek-chat": ["qwen/qwen-2.5-72b-instruct"],
-  "sao10k/l3.3-euryale-70b": [EROTIC_CHAT_MODEL, DEFAULT_CHAT_MODEL],
-  "anthracite-org/magnum-v4-72b": [EROTIC_CHAT_MODEL, DEFAULT_CHAT_MODEL],
+  [QWEN_CHAT_MODEL]: [EURYALE_CHAT_MODEL],
+  "sao10k/l3.3-euryale-70b": [EROTIC_CHAT_MODEL, QWEN_CHAT_MODEL],
+  "anthracite-org/magnum-v4-72b": [EROTIC_CHAT_MODEL, QWEN_CHAT_MODEL],
   "deepseek/deepseek-chat-v3-0324": [],
 };
 
@@ -100,9 +104,9 @@ export const MODEL_CATALOG = [
   // ── プレミアム ───────────────────────────────────────────────────────────
   {
     id: "deepseek/deepseek-chat",
-    name: "DeepSeek V3",
+    name: "DeepSeek V3 ⭐ 既定",
     tier: "プレミアム",
-    desc: "長文・低単価の代替候補。Qwen失敗時の退避先",
+    desc: "通常会話と抜き所の既定。最新安定版へ解決される alias。失敗時は Euryale→Qwen へ退避",
   },
   {
     id: "sao10k/l3.3-euryale-70b",
@@ -124,9 +128,9 @@ export const MODEL_CATALOG = [
   },
   {
     id: "qwen/qwen-2.5-72b-instruct",
-    name: "Qwen 2.5 72B Instruct ⭐ 日本語安定",
+    name: "Qwen 2.5 72B Instruct",
     tier: "プレミアム",
-    desc: "通常会話と成人向け山場の既定。日本語・指示追従が安定",
+    desc: "日本語・指示追従が安定な実績のある退避先",
   },
   {
     id: "anthracite-org/magnum-v4-72b",
