@@ -298,7 +298,7 @@ const extractTag = (content: string, tag: keyof typeof TAG_PATTERNS): string | n
   return parts.length > 0 ? parts.join("\n\n") : null;
 };
 
-const sceneLedgerSchema = z.object({
+export const sceneLedgerSchema = z.object({
   phase: z.enum(["conversation", "intimate", "erotic", "climax", "afterglow"]),
   location: z.string().nullable(),
   time: z.string().nullable(),
@@ -321,6 +321,37 @@ const tryParseLedger = (ledgerJson: string): SceneLedger | null => {
 
 // role の並びは 'assistant' < 'user' の辞書順やと逆になるので、明示的に user を先にする。
 const userFirst = sql`case ${v2MessageTable.role} when 'user' then 0 else 1 end`;
+
+/**
+ * 手直し用: 会話の最新台帳行をまるごと差し替える（RIT-118）。
+ * load は最新台帳を拾うので、直した値がそのまま次のターンの指示文に入る。
+ * 台帳行が無い会話（1 ターンも persist されてない）は null を返す。
+ */
+export const updateLatestLedger = async (
+  db: V2Db,
+  opts: D1TurnStoreOptions,
+  conversationId: string,
+  ledger: SceneLedger,
+): Promise<number | null> => {
+  await assertConversationOwner(db, opts, conversationId);
+  const [latest] = await db
+    .select({ turn: v2LedgerTable.turn })
+    .from(v2LedgerTable)
+    .where(eq(v2LedgerTable.conversationId, conversationId))
+    .orderBy(desc(v2LedgerTable.turn))
+    .limit(1);
+  if (!latest) return null;
+  await db
+    .update(v2LedgerTable)
+    .set({ ledgerJson: JSON.stringify(ledger) })
+    .where(
+      and(
+        eq(v2LedgerTable.conversationId, conversationId),
+        eq(v2LedgerTable.turn, latest.turn),
+      ),
+    );
+  return latest.turn;
+};
 
 // engine の persist は本文ゼロで終わった生成（締切で 1 字も来ん・全塊が判定で落ちた・空の返事）も
 // 監視用に保存し、同時に error を流してターンを失敗させる。つまり「応答が空」は失敗の印になっとる。

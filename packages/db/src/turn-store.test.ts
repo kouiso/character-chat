@@ -14,6 +14,7 @@ import {
   readD1StoredTurn,
   readDisplayHistory,
   updateGenerationProvider,
+  updateLatestLedger,
   type TurnEvent,
   type TurnStore,
 } from "./turn-store";
@@ -89,6 +90,11 @@ describe("createD1TurnStore", () => {
   let local: LocalD1;
   let characterId: string;
   let store: TurnStore;
+  const storeOpts = (): { userId: string; characterId: string; promptVersion: string } => ({
+    userId: "vitest",
+    characterId,
+    promptVersion: "v0001",
+  });
   const createdConversationIds: string[] = [];
 
   const newConversationId = (): string => {
@@ -422,6 +428,45 @@ describe("createD1TurnStore", () => {
     const loaded = await store.load(conversationId);
     expect(loaded.ledger.lastEvents).toEqual([]);
     expect(loaded.turn).toBe(2);
+  });
+
+  it("手で直した台帳が次の load に載る（RIT-118）", async () => {
+    const conversationId = newConversationId();
+    await store.saveTurn({
+      conversationId,
+      turn: 1,
+      userText: "user 1",
+      events: chunkEvents(1),
+      ledger: ledgerAt(1),
+    });
+    await store.saveTurn({
+      conversationId,
+      turn: 2,
+      userText: "user 2",
+      events: chunkEvents(2),
+      ledger: ledgerAt(2),
+    });
+
+    const fixed = { ...ledgerAt(2), location: "台所", position: "立ったまま" };
+    const updated = await updateLatestLedger(local.db, storeOpts(), conversationId, fixed);
+    expect(updated).toBe(2);
+
+    const loaded = await store.load(conversationId);
+    expect(loaded.ledger).toEqual(fixed);
+    expect(loaded.turn).toBe(3);
+  });
+
+  it("台帳行が無い会話の手直しは null（対話未開始）", async () => {
+    const conversationId = newConversationId();
+    await ensureConversationVersion(local.db, {
+      conversationId,
+      userId: "vitest",
+      characterId,
+      promptVersion: "v0001",
+      versionId: `ver-${conversationId}`,
+    });
+    const updated = await updateLatestLedger(local.db, storeOpts(), conversationId, ledgerAt(1));
+    expect(updated).toBeNull();
   });
 
   it("saveTurn は既存会話の pinned character version を上書きしない", async () => {

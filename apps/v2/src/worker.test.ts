@@ -44,6 +44,7 @@ const UNAUTHENTICATED_PROBES = [
   ["HEAD", "/assets/main.js"],
   ["GET", "/api/health"],
   ["GET", "/api/chat/example/history?conversationId=c1"],
+  ["PATCH", "/api/chat/example/ledger"],
   ["POST", "/api/chat/example"],
   ["POST", "/api/chat/example/images"],
   ["OPTIONS", "/api/chat/example"],
