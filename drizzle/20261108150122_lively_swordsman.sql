@@ -1,0 +1,1 @@
+ALTER TABLE `v2_chunk` ADD `send_at` integer;

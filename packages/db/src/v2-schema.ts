@@ -112,6 +112,8 @@ export const v2ChunkTable = sqliteTable(
     text: text("text").notNull(),
     judgeJson: text("judge_json").notNull(),
     attempt: integer("attempt").notNull().default(1),
+    // 塊を画面へ出す予定時刻。既存行は NULL（出し分け側は created_at へ倒す）。
+    sendAt: integer("send_at"),
     createdAt: integer("created_at").notNull(),
   },
   (table) => [uniqueIndex("v2_chunk_message_seq_idx").on(table.messageId, table.seq)],
