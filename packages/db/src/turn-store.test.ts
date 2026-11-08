@@ -374,6 +374,56 @@ describe("createD1TurnStore", () => {
     });
   });
 
+  it("最新の台帳が壊れとっても一個前の台帳へ遡って会話は止まらん（RIT-118）", async () => {
+    const conversationId = newConversationId();
+    await store.saveTurn({
+      conversationId,
+      turn: 1,
+      userText: "user 1",
+      events: chunkEvents(1),
+      ledger: ledgerAt(1),
+    });
+    await store.saveTurn({
+      conversationId,
+      turn: 2,
+      userText: "user 2",
+      events: chunkEvents(2),
+      ledger: ledgerAt(2),
+    });
+    await local.db
+      .update(v2LedgerTable)
+      .set({ ledgerJson: "{not json" })
+      .where(
+        and(
+          eq(v2LedgerTable.conversationId, conversationId),
+          eq(v2LedgerTable.turn, 2),
+        ),
+      );
+
+    const loaded = await store.load(conversationId);
+    expect(loaded.ledger).toEqual(ledgerAt(1));
+    expect(loaded.turn).toBe(3);
+  });
+
+  it("台帳が全滅しても初期台帳で会話を止めん", async () => {
+    const conversationId = newConversationId();
+    await store.saveTurn({
+      conversationId,
+      turn: 1,
+      userText: "user 1",
+      events: chunkEvents(1),
+      ledger: ledgerAt(1),
+    });
+    await local.db
+      .update(v2LedgerTable)
+      .set({ ledgerJson: "garbage" })
+      .where(eq(v2LedgerTable.conversationId, conversationId));
+
+    const loaded = await store.load(conversationId);
+    expect(loaded.ledger.lastEvents).toEqual([]);
+    expect(loaded.turn).toBe(2);
+  });
+
   it("saveTurn は既存会話の pinned character version を上書きしない", async () => {
     const conversationId = newConversationId();
     await ensureConversationVersion(local.db, {
