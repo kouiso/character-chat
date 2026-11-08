@@ -3,15 +3,21 @@ import { eq, inArray } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { characterTable } from "../../../src/schema/character";
+import { userTable } from "../../../src/schema/user";
 
+import { characterContentSchema } from "./character-version";
+import { createCharacterWithVersion } from "./character-version-store";
 import {
   completeMemoryExtraction,
   listPendingMemoryJobs,
+  loadMemoryExtractionPolicy,
   loadMemoryExtractionSource,
 } from "./memory-extraction-store";
 import { openLocalD1, type LocalD1 } from "./test/local-d1";
 import { createD1TurnStore } from "./turn-store";
 import {
+  characterRevisionTable,
+  characterVersionTable,
   v2ConversationTable,
   v2ChunkTable,
   v2GenerationTable,
@@ -192,6 +198,74 @@ describe("memory extraction store", () => {
       await local.db.select().from(v2MemoryTable).where(eq(v2MemoryTable.conversationId, id)),
     ).toEqual([]);
     expect(await listPendingMemoryJobs(local.db, scope(id))).toHaveLength(1);
+  });
+
+  it("会話が固定した版の記憶方針を読み、版未固定の会話は最新版に倒す", async () => {
+    const [user] = await local.db.select({ id: userTable.id }).from(userTable).limit(1);
+    const content = characterContentSchema.parse({
+      name: "方針役",
+      personality: "案内役",
+      speechStyle: "丁寧",
+      greeting: "こんにちは。",
+      memoryInstruction: "好みだけを記憶せよ",
+      memoryKinds: ["preference"],
+    });
+    const created = await createCharacterWithVersion(local.db, user.id, content);
+    try {
+      const conversation = (pinned: boolean) => {
+        const id = crypto.randomUUID();
+        ids.push(id);
+        return local.db.insert(v2ConversationTable).values({
+          id,
+          userId: owner,
+          characterId: created.id,
+          threadId: id,
+          promptVersion: "test",
+          characterVersionId: pinned ? created.versionId : null,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        });
+      };
+      await conversation(true);
+      await conversation(false);
+      expect(await loadMemoryExtractionPolicy(local.db, ids[ids.length - 2]!)).toEqual({
+        memoryInstruction: "好みだけを記憶せよ",
+        memoryKinds: ["preference"],
+      });
+      expect(await loadMemoryExtractionPolicy(local.db, ids[ids.length - 1]!)).toEqual({
+        memoryInstruction: "好みだけを記憶せよ",
+        memoryKinds: ["preference"],
+      });
+    } finally {
+      await local.db
+        .delete(v2ConversationTable)
+        .where(eq(v2ConversationTable.characterId, created.id));
+      await local.db.batch([
+        local.db
+          .delete(characterRevisionTable)
+          .where(eq(characterRevisionTable.characterId, created.id)),
+        local.db
+          .delete(characterVersionTable)
+          .where(eq(characterVersionTable.characterId, created.id)),
+        local.db.delete(characterTable).where(eq(characterTable.id, created.id)),
+      ]);
+    }
+  });
+
+  it("内容の壊れた版は無方針として扱い、方針の無いキャラは既定を返さない", async () => {
+    const broken = crypto.randomUUID();
+    ids.push(broken);
+    await local.db.insert(v2ConversationTable).values({
+      id: broken,
+      userId: owner,
+      characterId,
+      threadId: broken,
+      promptVersion: "test",
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+    // 種からのキャラは版を持たんので方針自体が無い。
+    expect(await loadMemoryExtractionPolicy(local.db, broken)).toBeNull();
   });
 
   it("抽出予約に失敗すると会話の保存もロールバックする", async () => {

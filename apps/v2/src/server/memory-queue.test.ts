@@ -4,7 +4,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import {
+  characterContentSchema,
   characterTable,
+  createCharacterWithVersion,
   loadMemoryExtractionSource,
   userTable,
   v2ConversationTable,
@@ -170,5 +172,110 @@ describe("memory queue publisher", () => {
       .bind(jobId)
       .first<{ state: string }>();
     expect(completed?.state).toBe("completed");
+  });
+
+  it("キャラの方針が許さん種類の記憶は保存せず、方針は会話が固定した版から読む", async () => {
+    const content = characterContentSchema.parse({
+      name: "方針役",
+      personality: "案内役",
+      speechStyle: "丁寧",
+      greeting: "こんにちは。",
+      memoryInstruction: "好みだけを記憶せよ",
+      memoryKinds: ["preference"],
+    });
+    const created = await createCharacterWithVersion(local.db, userId, content);
+    const policyConversationId = crypto.randomUUID();
+    const policyJobId = crypto.randomUUID();
+    try {
+      await local.db.batch([
+        local.db.insert(v2ConversationTable).values({
+          id: policyConversationId,
+          userId,
+          characterId: created.id,
+          threadId: policyConversationId,
+          promptVersion: "test",
+          characterVersionId: created.versionId,
+          createdAt: now,
+          updatedAt: now,
+        }),
+        local.db.insert(v2MessageTable).values({
+          id: policyJobId,
+          conversationId: policyConversationId,
+          turn: 1,
+          role: "user",
+          content: "私は紅茶が好きです。",
+          createdAt: now,
+        }),
+        local.db.insert(v2MemoryJobTable).values({
+          id: policyJobId,
+          sourceMessageId: policyJobId,
+          sourceTurn: 1,
+          conversationId: policyConversationId,
+          userId,
+          characterId: created.id,
+          createdAt: now,
+          updatedAt: now,
+        }),
+      ]);
+      const ack = vi.fn();
+      const batch: MessageBatch<unknown> = {
+        queue: "local-memory",
+        ackAll: vi.fn(),
+        retryAll: vi.fn(),
+        metadata: { metrics: { backlogCount: 0, backlogBytes: 0 } },
+        messages: [
+          {
+            id: "policy-delivery",
+            timestamp: new Date(),
+            body: { jobId: policyJobId },
+            attempts: 1,
+            ack,
+            retry: vi.fn(),
+          },
+        ],
+      };
+      // 偽モデルは fact を返すが、方針は preference のみ許すので記憶は増えん。
+      await consumeMemoryJobs(batch, {
+        DB: local.d1,
+        APP_ENV: "test",
+        V2_FAKE_MODEL: "1",
+        V2_MODEL: "unused",
+        OPENROUTER_API_KEY: "",
+        V2_RAG_ENABLED: "0",
+      });
+      expect(ack).toHaveBeenCalledOnce();
+      const memories = await local.d1
+        .prepare("SELECT id FROM v2_memory WHERE conversation_id = ?")
+        .bind(policyConversationId)
+        .all();
+      expect(memories.results).toEqual([]);
+      const job = await local.d1
+        .prepare("SELECT state FROM v2_memory_job WHERE id = ?")
+        .bind(policyJobId)
+        .first<{ state: string }>();
+      expect(job?.state).toBe("completed");
+    } finally {
+      await local.d1
+        .prepare("DELETE FROM v2_memory_job WHERE conversation_id = ?")
+        .bind(policyConversationId)
+        .run();
+      await local.d1
+        .prepare("DELETE FROM v2_message WHERE conversation_id = ?")
+        .bind(policyConversationId)
+        .run();
+      await local.d1
+        .prepare("DELETE FROM v2_conversation WHERE id = ?")
+        .bind(policyConversationId)
+        .run();
+      await local.d1
+        .prepare("DELETE FROM character_revision WHERE character_id = ?")
+        .bind(created.id)
+        .run();
+      await local.d1
+        .prepare("DELETE FROM character_version WHERE character_id = ?")
+        .bind(created.id)
+        .run();
+      await local.d1.prepare("DELETE FROM character WHERE id = ?").bind(created.id).run();
+    }
   });
 });

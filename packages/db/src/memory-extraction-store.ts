@@ -1,5 +1,6 @@
-import { and, asc, eq, inArray, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, or, sql } from "drizzle-orm";
 
+import { storedCharacterContentSchema } from "./character-version";
 import {
   MEMORY_PUBLISH_ATTEMPTS,
   validateExtractedMemories,
@@ -7,6 +8,8 @@ import {
   type ExtractionScope,
 } from "./memory-extraction-contract";
 import {
+  characterRevisionTable,
+  characterVersionTable,
   v2ConversationTable,
   v2MemoryJobTable,
   v2MemorySourceTable,
@@ -108,6 +111,54 @@ export const loadMemoryExtractionSource = async (db: V2Db, id: string) => {
 export type MemoryExtractionSource = NonNullable<
   Awaited<ReturnType<typeof loadMemoryExtractionSource>>
 >;
+
+export type MemoryExtractionPolicy = {
+  memoryInstruction: string;
+  memoryKinds: ("fact" | "preference")[];
+};
+
+const policyFromContent = (contentJson: string): MemoryExtractionPolicy | null => {
+  try {
+    const parsed = storedCharacterContentSchema.safeParse(JSON.parse(contentJson));
+    if (!parsed.success) return null;
+    return {
+      memoryInstruction: parsed.data.memoryInstruction,
+      memoryKinds: parsed.data.memoryKinds,
+    };
+  } catch {
+    return null;
+  }
+};
+
+// 会話が固定したキャラ版の記憶方針を読む。版未固定の旧会話は最新版に倒す。
+// 版の中身が壊れていても抽出自体は止めん（無方針として扱う）。
+export const loadMemoryExtractionPolicy = async (
+  db: V2Db,
+  conversationId: string,
+): Promise<MemoryExtractionPolicy | null> => {
+  const [pinned] = await db
+    .select({ contentJson: characterVersionTable.contentJson })
+    .from(v2ConversationTable)
+    .innerJoin(
+      characterVersionTable,
+      eq(characterVersionTable.id, v2ConversationTable.characterVersionId),
+    )
+    .where(eq(v2ConversationTable.id, conversationId))
+    .limit(1);
+  if (pinned) return policyFromContent(pinned.contentJson);
+  const [latest] = await db
+    .select({ contentJson: characterVersionTable.contentJson })
+    .from(v2ConversationTable)
+    .innerJoin(
+      characterRevisionTable,
+      eq(characterRevisionTable.characterId, v2ConversationTable.characterId),
+    )
+    .innerJoin(characterVersionTable, eq(characterVersionTable.id, characterRevisionTable.versionId))
+    .where(eq(v2ConversationTable.id, conversationId))
+    .orderBy(desc(characterRevisionTable.revision))
+    .limit(1);
+  return latest ? policyFromContent(latest.contentJson) : null;
+};
 
 export const hashMemorySource = async (content: string): Promise<string> => {
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(content));

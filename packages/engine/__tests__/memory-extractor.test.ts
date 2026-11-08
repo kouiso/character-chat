@@ -32,4 +32,18 @@ describe("extractMemories", () => {
       extractMemories(new FakeListChatModel({ responses: ["not JSON"] }), "紅茶が好き"),
     ).rejects.toThrow("応答形式");
   });
+
+  it("キャラ固有の指示を system メッセージへ足し、未指定では足さない", async () => {
+    const withInstruction = modelFor([memory]);
+    const spy = jest.spyOn(withInstruction, "invoke");
+    await extractMemories(withInstruction, "私は紅茶が好きです。", "好みだけを記憶せよ");
+    const system = spy.mock.calls[0]?.[0]?.[0];
+    expect(String(system?.content)).toContain("好みだけを記憶せよ");
+
+    const plain = modelFor([memory]);
+    const plainSpy = jest.spyOn(plain, "invoke");
+    await extractMemories(plain, "私は紅茶が好きです。");
+    const plainSystem = String(plainSpy.mock.calls[0]?.[0]?.[0]?.content);
+    expect(plainSystem).not.toContain("Character-specific instruction");
+  });
 });
