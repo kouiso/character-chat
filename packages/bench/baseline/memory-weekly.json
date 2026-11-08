@@ -1,0 +1,12 @@
+{
+  "recordedAt": "2026-11-09",
+  "recall": {
+    "retrieval": 0.5,
+    "cheat": 1,
+    "none": 0
+  },
+  "adversarial": {
+    "checks": "4/4",
+    "sabotageCaught": "4/4"
+  }
+}

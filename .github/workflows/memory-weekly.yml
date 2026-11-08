@@ -1,0 +1,43 @@
+name: Memory Weekly
+
+# RIT-98: 週 1 回、記憶試験（RIT-99 想起率 + RIT-101 いじわる件数）を回し、
+# packages/bench/baseline/memory-weekly.json の初回値を下回ったら失敗で終える。
+# 失敗は slack-error-notify.yml が拾って Slack へ届く（監視リスト登録済み）。
+# 週次の結果は Actions の実行履歴に日付つきで並び、各実行の step summary に値が残る。
+
+on:
+  schedule:
+    - cron: "0 0 * * 1" # 月曜 09:00 UTC = 18:00 JST
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: memory-weekly
+  cancel-in-progress: false
+
+jobs:
+  bench:
+    name: memory bench + baseline compare
+    runs-on: ${{ vars.RUNNER_LINUX || 'ubuntu-latest' }}
+    timeout-minutes: 20
+    env:
+      NODE_OPTIONS: --experimental-sqlite
+      WRANGLER_SEND_METRICS: "false"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: "24"
+          cache: "pnpm"
+      - run: pnpm install --frozen-lockfile
+      - name: memory recall bench (RIT-99)
+        run: pnpm --filter @v2/bench memory-recall > /tmp/recall.txt && tail -30 /tmp/recall.txt
+      - name: memory adversarial bench (RIT-101)
+        run: pnpm --filter @v2/bench memory-adversarial > /tmp/adversarial.txt && tail -50 /tmp/adversarial.txt
+      - name: compare with baseline
+        run: pnpm --filter @v2/bench compare-baseline --recall /tmp/recall.txt --adversarial /tmp/adversarial.txt

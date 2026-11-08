@@ -58,6 +58,7 @@ export default defineConfig([
       "src/conversation-quality-check.ts",
       "src/memory-recall-check.ts",
       "src/memory-adversarial-check.ts",
+      "src/compare-baseline.ts",
     ],
     rules: {
       "no-console": "off",

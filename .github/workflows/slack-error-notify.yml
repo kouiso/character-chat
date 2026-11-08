@@ -9,6 +9,8 @@ on:
       - Migration Label
       - Migrate D1
       - Quarterly D1 Backup
+      # RIT-98: 週次記憶試験が基準値を下回った週は失敗終了し、ここから Slack へ届く
+      - Memory Weekly
     types:
       - completed
 
