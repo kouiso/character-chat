@@ -56,6 +56,7 @@ test("fast preserves lint/typecheck and enforces cloud coverage", () => {
   const r = trace("fast");
   assert.equal(r.status, 0, r.stderr);
   assert.deepEqual(r.commands, [
+    ["node", "scripts/adult-terms-guard.mjs"],
     ["pnpm", "run", "lint"],
     ["pnpm", "run", "typecheck"],
     ["pnpm", "run", "test:coverage"],
@@ -65,6 +66,7 @@ test("full retains every cloud check and builds once before browser boot", () =>
   const r = trace("full");
   assert.equal(r.status, 0, r.stderr);
   assert.deepEqual(r.commands, [
+    ["node", "scripts/adult-terms-guard.mjs"],
     ["pnpm", "run", "lint"],
     ["pnpm", "run", "typecheck"],
     ["pnpm", "run", "test:coverage"],
@@ -91,6 +93,7 @@ test("first failure propagates without later checks/build", () => {
 });
 test("single cloud phases use exactly the shared commands", () => {
   for (const [profile, cmd] of Object.entries({
+    "adult-terms": ["node", "scripts/adult-terms-guard.mjs"],
     lint: ["pnpm", "run", "lint"],
     test: ["pnpm", "run", "test:coverage"],
     build: ["pnpm", "run", "build"],

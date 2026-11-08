@@ -228,6 +228,11 @@ tasks:
     cmds:
       - pnpm lint --fix
 
+  check:adult-terms:
+    desc: "公開 repo への成人向け語の新規混入を止める（RIT-93）"
+    cmds:
+      - node scripts/adult-terms-guard.mjs
+
   ci:
     desc: "CI と同じ全検査（ローカル D1 とブラウザ検査を含む）"
     cmds:

@@ -28,6 +28,7 @@
     "build": "node script/copy-admin-data.mjs && tsc -b && vite build && node scripts/verify-pwa-sw.mjs",
     "deploy": "wrangler pages deploy dist",
     "deploy:verify-url": "bash script/verify-deploy-url.sh",
+    "check:adult-terms": "node scripts/adult-terms-guard.mjs",
     "lint": "eslint .",
     "typecheck": "tsc -b",
     "type-check": "tsc -b",
