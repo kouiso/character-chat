@@ -95,6 +95,10 @@ jobs:
         if: matrix.check-type == 'lint'
         run: node --test .github/ci/check.test.mjs
 
+      - name: Adult terms guard
+        if: matrix.check-type == 'lint'
+        run: node .github/ci/run.mjs adult-terms
+
       - name: Lint
         if: matrix.check-type == 'lint'
         run: node .github/ci/run.mjs lint

@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 const checks = {
+  "adult-terms": ["node", "scripts/adult-terms-guard.mjs"],
   lint: ["pnpm", "run", "lint"],
   typecheck: ["pnpm", "run", "typecheck"],
   test: ["pnpm", "run", "test:coverage"],
@@ -16,9 +17,10 @@ const checks = {
   "runner-guard": ["bash", "./.github/script/check-runner-hardcode.sh"],
 };
 const profiles = {
-  fast: ["lint", "typecheck", "test"],
+  fast: ["adult-terms", "lint", "typecheck", "test"],
   // なぜ: ローカルの全検査も同じビルドを再利用して起動を確認する。
   full: [
+    "adult-terms",
     "lint",
     "typecheck",
     "test",
