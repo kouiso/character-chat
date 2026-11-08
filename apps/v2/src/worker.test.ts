@@ -55,6 +55,8 @@ const UNAUTHENTICATED_PROBES = [
   ["GET", "/api/characters/example/versions"],
   ["GET", "/api/characters/example/versions/1"],
   ["GET", "/api/proactive/characters/example/settings"],
+  ["GET", "/api/push/vapid-key"],
+  ["POST", "/api/push/subscriptions"],
 ] as const;
 
 // routes/ のファイル名と URL を区切りごとに突き合わせる（$id は任意の 1 区切り、末尾 _ は入れ子を外す印、index は親）。

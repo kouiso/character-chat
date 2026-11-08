@@ -1,13 +1,23 @@
 import { useEffect, useState } from "react";
 
+import { subscribeToPush, unsubscribeFromPush, type PushSubscribeResult } from "../lib/push";
+
 // キャラからの話しかけの入切。保存先は /api/proactive/characters/:id/settings（DO が正本）。
 const endpoint = (characterId: string) =>
   `/api/proactive/characters/${encodeURIComponent(characterId)}/settings`;
+
+const PUSH_NOTE: Partial<Record<PushSubscribeResult, string>> = {
+  // 通知を拒否していてもアプリ内には届く。画面の中だけで分かるよう理由を出す。
+  denied: "（通知は拒否されています。アプリを開いている間だけ届きます）",
+  unsupported: "（この端末・ブラウザでは通知に対応していません）",
+  unavailable: "（この環境では通知は未設定です）",
+};
 
 export const ProactiveToggle = ({ characterId }: { characterId: string }) => {
   const [enabled, setEnabled] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [failed, setFailed] = useState(false);
+  const [pushNote, setPushNote] = useState<string | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -33,6 +43,7 @@ export const ProactiveToggle = ({ characterId }: { characterId: string }) => {
     const next = !enabled;
     setEnabled(next);
     setFailed(false);
+    setPushNote(null);
     const res = await fetch(endpoint(characterId), {
       method: "PUT",
       headers: { "content-type": "application/json" },
@@ -41,6 +52,15 @@ export const ProactiveToggle = ({ characterId }: { characterId: string }) => {
     if (!res?.ok) {
       setEnabled(!next);
       setFailed(true);
+      return;
+    }
+    // 話しかけの着信は Web Push。入にした時だけ購読を試し、結果の理由を欄内に出す。
+    if (next) {
+      const result = await subscribeToPush();
+      const note = PUSH_NOTE[result];
+      if (note) setPushNote(note);
+    } else {
+      await unsubscribeFromPush();
     }
   };
 
@@ -49,6 +69,7 @@ export const ProactiveToggle = ({ characterId }: { characterId: string }) => {
       <input type="checkbox" checked={enabled} disabled={!loaded} onChange={() => void toggle()} />
       キャラから話しかける
       {failed && <span role="alert">（保存に失敗しました）</span>}
+      {pushNote && <span role="status">{pushNote}</span>}
     </label>
   );
 };

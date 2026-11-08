@@ -236,3 +236,20 @@ export const v2MemorySourceTable = sqliteTable("v2_memory_source", {
   validFrom: text("valid_from"),
   validUntil: text("valid_until"),
 });
+
+// Web Push の購読。端末ごとに1行。話しかけの着信に使う。
+export const v2PushSubscriptionTable = sqliteTable(
+  "v2_push_subscription",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull(),
+    endpoint: text("endpoint").notNull(),
+    p256dh: text("p256dh").notNull(),
+    auth: text("auth").notNull(),
+    createdAt: integer("created_at").notNull(),
+  },
+  (table) => [
+    uniqueIndex("v2_push_subscription_endpoint_idx").on(table.endpoint),
+    index("v2_push_subscription_user_idx").on(table.userId),
+  ],
+);
