@@ -208,8 +208,15 @@
     {
       "idx": 65,
       "version": "6",
-      "when": 1793613134244,
-      "tag": "0081_v2_character_version",
+      "when": 1793619347686,
+      "tag": "20261102113547_v2_schema_baseline",
+      "breakpoints": true
+    },
+    {
+      "idx": 66,
+      "version": "6",
+      "when": 1794144109557,
+      "tag": "20261108132149_v2_character_version",
       "breakpoints": true
     }
   ]

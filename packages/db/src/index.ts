@@ -10,3 +10,6 @@ export * from "./character-version";
 export * from "./character-version-store";
 export * from "./legacy-migration";
 export * from "./local-user";
+export * from "./memory-extraction-contract";
+export * from "./memory-extraction-store";
+export * from "./memory-index-store";

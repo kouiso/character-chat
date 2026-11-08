@@ -1,13 +1,22 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import { ChevronLeft } from "lucide-react";
 
 import { Dialog, DialogContent, DialogTitle } from "@/component/ui/dialog";
 import {
+  clearCharacterDraft,
+  createEmptyCharacterDraft,
+  hasCharacterDraftContent,
+  readCharacterDraft,
+  writeCharacterDraft,
+  type AutoDraft,
+} from "@/lib/character-draft";
+import {
   generateCharacter,
   type CharacterSelections,
   type GeneratedCharacter,
 } from "@/lib/character-generator";
+import { createLogger } from "@/lib/logger";
 import { cn } from "@/lib/utils";
 import { useSettingsStore } from "@/store/settings-store";
 
@@ -32,11 +41,16 @@ type FlowStep =
   | "preview"
   | "error";
 
+// 保存できたら作ったキャラの id を返す。返した id は画面を閉じた後に onCreated へ渡す。
+type SaveHandler = (result: GeneratedCharacter) => void | string | Promise<void | string>;
+
 interface CreateFlowProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSaveDirectly: (result: GeneratedCharacter) => void;
-  onEditAndSave: (result: GeneratedCharacter) => void;
+  onSaveDirectly: SaveHandler;
+  onEditAndSave: SaveHandler;
+  // 閉じる操作は開く前の画面へ戻る移動を伴うので、会話への移動は必ず閉じた後に行う
+  onCreated?: (characterId: string) => void;
   // 素材管理から選んで来た画像。開いた時点でアップロード側に寄せる（#823）
   initialUploadedImage?: string | null;
 }
@@ -54,6 +68,8 @@ const initialSelections: CharacterSelections = {
   bodyTypes: [],
   freeText: "",
 };
+
+const logger = createLogger("create-flow");
 
 // 生成中の段階（design C-1 : SSEで項目ごとに届く の見立て）
 const genStages = ["なまえ", "性格・見た目", "シナリオ", "はじまりのひと言"] as const;
@@ -151,30 +167,79 @@ const ErrorView = ({
   </div>
 );
 
+const FlowNotices = ({
+  storageError,
+  saveError,
+  regenerateError,
+  isSaving,
+}: {
+  storageError: boolean;
+  saveError: boolean;
+  regenerateError: boolean;
+  isSaving: boolean;
+}) => (
+  <>
+    {storageError && (
+      <p role="alert" className="text-sm text-[var(--warn-text)]">
+        この端末に下書きを保存できません。画面を閉じる前に保存してください。
+      </p>
+    )}
+    {saveError && (
+      <p role="alert" className="text-sm text-[var(--warn-text)]">
+        保存できませんでした。内容は残っています。もう一度保存してください。
+      </p>
+    )}
+    {regenerateError && (
+      <p role="alert" className="text-sm text-[var(--warn-text)]">
+        作り直せませんでした。今の内容は残っています。
+      </p>
+    )}
+    {isSaving && (
+      <p role="status" className="text-sm text-[var(--dim)]">
+        保存しています…
+      </p>
+    )}
+  </>
+);
+
 export const CreateFlow = ({
   open,
   onOpenChange,
   onSaveDirectly,
   onEditAndSave,
+  onCreated,
   initialUploadedImage,
 }: CreateFlowProps) => {
   const model = useSettingsStore((s) => s.model);
-  const [step, setStep] = useState<FlowStep>("entry");
-  const [selections, setSelections] = useState<CharacterSelections>(initialSelections);
-  const [situation, setSituation] = useState("");
-  const [details, setDetails] = useState("");
-  const [imageMode, setImageMode] = useState<"ai" | "upload">("ai");
-  const [uploadedImageDataUrl, setUploadedImageDataUrl] = useState<string | null>(null);
-  const [result, setResult] = useState<GeneratedCharacter | null>(null);
-  const [lastRequest, setLastRequest] = useState<GenerateRequest | null>(null);
+  const [draft] = useState(() => readCharacterDraft() ?? createEmptyCharacterDraft());
+  const [step, setStep] = useState<FlowStep>(draft.step);
+  const [selections, setSelections] = useState<CharacterSelections>(draft.selections);
+  const [situation, setSituation] = useState(draft.situation);
+  const [details, setDetails] = useState(draft.details);
+  const [imageMode, setImageMode] = useState<"ai" | "upload">(draft.imageMode);
+  const [uploadedImageDataUrl, setUploadedImageDataUrl] = useState<string | null>(
+    draft.uploadedImageDataUrl,
+  );
+  const [result, setResult] = useState<GeneratedCharacter | null>(draft.result);
+  const [lastRequest, setLastRequest] = useState<GenerateRequest | null>(draft.lastRequest);
   const [stageIndex, setStageIndex] = useState(0);
   const [isRegenerating, setIsRegenerating] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState(false);
+  const [regenerateError, setRegenerateError] = useState(false);
+  const [storageError, setStorageError] = useState(false);
+  const [confirmDiscard, setConfirmDiscard] = useState(false);
+  const [autoDraft, setAutoDraft] = useState<AutoDraft>(draft.autoDraft);
+  const [scenarioText, setScenarioText] = useState(draft.scenarioText);
+  const generationId = useRef(0);
+  const saving = useRef(false);
   const [autoInput, setAutoInput] = useState<{ selections: CharacterSelections; details: string }>({
     selections: initialSelections,
     details: "",
   });
 
   const reset = () => {
+    generationId.current += 1;
     setStep("entry");
     setSelections(initialSelections);
     setSituation("");
@@ -186,16 +251,79 @@ export const CreateFlow = ({
     setStageIndex(0);
     setIsRegenerating(false);
     setAutoInput({ selections: initialSelections, details: "" });
+    setAutoDraft({ relation: null, answer: "", hint: "" });
+    setScenarioText("");
+    setSaveError(false);
+    setRegenerateError(false);
   };
+
+  useEffect(() => {
+    const snapshot = {
+      version: 1 as const,
+      step: step === "generating" || step === "error" ? ("entry" as const) : step,
+      selections,
+      situation,
+      details,
+      imageMode,
+      uploadedImageDataUrl,
+      result,
+      lastRequest,
+      autoDraft,
+      scenarioText,
+    };
+    // 何も入力していない時は失うものが無いので、消せなくても警告せん
+    const hasContent = hasCharacterDraftContent(snapshot);
+    const stored = hasContent ? writeCharacterDraft(snapshot) : clearCharacterDraft();
+    setStorageError(hasContent && !stored);
+  }, [
+    step,
+    selections,
+    situation,
+    details,
+    imageMode,
+    uploadedImageDataUrl,
+    result,
+    lastRequest,
+    autoDraft,
+    scenarioText,
+  ]);
+
+  useEffect(
+    () => () => {
+      generationId.current += 1;
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (!open) {
+      generationId.current += 1;
+      setStep((previous) => (previous === "generating" ? "entry" : previous));
+      setIsRegenerating(false);
+    }
+  }, [open]);
 
   // 素材管理から画像を持って開かれたら、アップロード側に寄せた状態で始める（#823）。
   // CreateFlow は常時マウントされ open で開閉するので、useState の初期値では
   // 2回目以降の「この素材でつくる」に反映されん。
+  // 下書きが別の顔のプレビューのままやと、選んだ画像が表に出ず黙って下書きへ混ざるので、作り始めの画面へ戻す。
+  // 同じ素材で作ったプレビューなら（履歴で戻って開き直した等）そのまま出す。
+  const resultRef = useRef(result);
+  useEffect(() => {
+    resultRef.current = result;
+  }, [result]);
   useEffect(() => {
     if (!open || !initialUploadedImage) return;
     setImageMode("upload");
     setUploadedImageDataUrl(initialUploadedImage);
+    if (resultRef.current?.avatar !== initialUploadedImage) {
+      setStep((previous) => (previous === "preview" ? "entry" : previous));
+    }
   }, [open, initialUploadedImage]);
+
+  useEffect(() => {
+    setConfirmDiscard(false);
+  }, [step]);
 
   useEffect(() => {
     if (step !== "generating") return undefined;
@@ -207,53 +335,107 @@ export const CreateFlow = ({
     return () => window.clearInterval(id);
   }, [step]);
 
+  // プレビューの通知と作り直し中の状態はその時のプレビューにしか当てはまらん。
+  // 離れた後や別の生成を始めた後に残すと、新しいプレビューで嘘の通知を出したり、
+  // 終わらん作り直しが保存を塞いだりする。
+  const clearPreviewState = () => {
+    setIsRegenerating(false);
+    setRegenerateError(false);
+    setSaveError(false);
+  };
+
+  const leavePreview = () => {
+    generationId.current += 1;
+    clearPreviewState();
+    setStep("entry");
+  };
+
   const runGenerate = async (request: GenerateRequest) => {
+    const requestId = ++generationId.current;
+    clearPreviewState();
     setLastRequest(request);
     setStep("generating");
     try {
       const generated = await generateCharacter({ ...request, model });
+      if (requestId !== generationId.current) return;
       if (imageMode === "upload" && uploadedImageDataUrl) generated.avatar = uploadedImageDataUrl;
       setResult(generated);
       setStep("preview");
     } catch {
+      if (requestId !== generationId.current) return;
       // design原則: 「モデル/API/429」等の技術語はユーザーに見せない
       setStep("error");
     }
   };
 
-  const regenerateFull = async (feedback: string) => {
+  // 作り直しは 2 種あるが、「今の依頼か」の確かめと通知の扱いは 1 か所に置く。
+  // 書き漏らすと、離れた後に届いた結果が新しいプレビューを汚す。
+  const regenerate = async (
+    feedback: string,
+    apply: (generated: GeneratedCharacter, current: GeneratedCharacter) => GeneratedCharacter,
+  ) => {
     if (!result || !lastRequest) return;
+    const current = result;
+    const requestId = ++generationId.current;
+    const isCurrent = () => requestId === generationId.current;
     setIsRegenerating(true);
-    try {
-      setResult(
-        await generateCharacter({ ...lastRequest, model, previousResult: result, feedback }),
-      );
-    } finally {
-      setIsRegenerating(false);
-    }
-  };
-
-  const regenerateFace = async () => {
-    if (!result || !lastRequest) return;
-    setIsRegenerating(true);
+    setRegenerateError(false);
     try {
       const generated = await generateCharacter({
         ...lastRequest,
         model,
-        previousResult: result,
-        feedback: "顔立ち・見た目の印象だけ作り直して。名前・性格・シナリオは変えないで",
+        previousResult: current,
+        feedback,
       });
-      setResult({ ...result, avatar: generated.avatar });
+      if (isCurrent()) setResult(apply(generated, current));
+    } catch {
+      // エラー画面へ送るとプレビューへ戻る道が無く、生成済みの内容を失う
+      if (isCurrent()) setRegenerateError(true);
     } finally {
-      setIsRegenerating(false);
+      if (isCurrent()) setIsRegenerating(false);
     }
   };
 
-  const savePreview = (handler: (r: GeneratedCharacter) => void) => {
-    if (!result) return;
-    handler(result);
+  const regenerateFull = (feedback: string) => regenerate(feedback, (generated) => generated);
+
+  const regenerateFace = () =>
+    regenerate(
+      "顔立ち・見た目の印象だけ作り直して。名前・性格・シナリオは変えないで",
+      (generated, current) => ({ ...current, avatar: generated.avatar }),
+    );
+
+  const savePreview = async (handler: SaveHandler) => {
+    if (!result || saving.current || isRegenerating) return;
+    saving.current = true;
+    setIsSaving(true);
+    setSaveError(false);
+    let createdId: string | void;
+    try {
+      createdId = await handler(result);
+    } catch {
+      setSaveError(true);
+      return;
+    } finally {
+      saving.current = false;
+      setIsSaving(false);
+    }
+    // ここから先は保存済み。失敗扱いにすると内容が残り、再試行で二重に作られる。
     reset();
-    onOpenChange(false);
+    setStorageError(!clearCharacterDraft());
+    try {
+      onOpenChange(false);
+      if (typeof createdId === "string") onCreated?.(createdId);
+    } catch (error) {
+      logger.error("failed to leave the create flow after saving", error);
+    }
+  };
+
+  const discardDraft = () => {
+    if (!confirmDiscard) {
+      setConfirmDiscard(true);
+      return;
+    }
+    reset();
   };
 
   // ヘッダーの戻る先（無い画面は閉じる）
@@ -263,7 +445,7 @@ export const CreateFlow = ({
     scenario: () => setStep("entry"),
     "wizard-step1": () => setStep("entry"),
     "wizard-step2": () => setStep("wizard-step1"),
-    preview: () => setStep("entry"),
+    preview: leavePreview,
     error: () => setStep("entry"),
   };
   const onBack = backTarget[step];
@@ -281,7 +463,10 @@ export const CreateFlow = ({
     generating: (
       <button
         type="button"
-        onClick={() => setStep("entry")}
+        onClick={() => {
+          generationId.current += 1;
+          setStep("entry");
+        }}
         className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md px-3 font-sans-ui text-[13px] text-[var(--dim)] hover:text-[var(--lamp)]"
       >
         中断
@@ -291,7 +476,8 @@ export const CreateFlow = ({
     preview: result ? (
       <button
         type="button"
-        onClick={() => savePreview(onEditAndSave)}
+        disabled={isSaving || isRegenerating}
+        onClick={() => void savePreview(onEditAndSave)}
         className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md px-3 font-sans-ui text-[13px] text-[var(--dim)] hover:text-[var(--lamp)]"
       >
         細かく編集
@@ -313,6 +499,8 @@ export const CreateFlow = ({
         return (
           <OuCreateAuto
             onInputChange={setAutoInput}
+            initialDraft={autoDraft}
+            onDraftChange={setAutoDraft}
             onGenerate={({ selections: s, details: d }) =>
               void runGenerate({ selections: s, details: d, situation: "おまかせ" })
             }
@@ -321,6 +509,8 @@ export const CreateFlow = ({
       case "scenario":
         return (
           <OuCreateScenario
+            initialText={scenarioText}
+            onTextChange={setScenarioText}
             onGenerate={(input) => void runGenerate({ selections: initialSelections, ...input })}
           />
         );
@@ -369,8 +559,8 @@ export const CreateFlow = ({
             onManualAvatarOverride={(avatar) =>
               setResult((prev) => (prev ? { ...prev, avatar } : prev))
             }
-            onSaveDirectly={() => savePreview(onSaveDirectly)}
-            onBack={() => setStep("entry")}
+            onSaveDirectly={() => void savePreview(onSaveDirectly)}
+            onBack={leavePreview}
             isRegenerating={isRegenerating}
           />
         ) : null;
@@ -383,13 +573,17 @@ export const CreateFlow = ({
     <Dialog
       open={open}
       onOpenChange={(isOpen) => {
+        if (saving.current) return;
+        if (!isOpen) {
+          generationId.current += 1;
+          if (step === "generating") setStep("entry");
+        }
         onOpenChange(isOpen);
-        if (!isOpen) reset();
       }}
     >
       <DialogContent
         showCloseButton={false}
-        className="dark create-flow-panel max-h-[90vh] overflow-visible border-[var(--hairline)] p-5 sm:max-w-lg"
+        className="dark create-flow-panel flex max-h-[90vh] flex-col overflow-visible border-[var(--hairline)] p-5 sm:max-w-lg"
       >
         {/* design 1a/1b/1c 共通の「燈」演出。ヘッダー裏で明滅する暖色グロー */}
         <span
@@ -397,11 +591,12 @@ export const CreateFlow = ({
           className="create-flow-lamp-glow pointer-events-none absolute -top-24 left-1/2 -z-10 h-[220px] w-[300px] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,_var(--lamp-22),_transparent_72%)]"
         />
         {/* 画面ごとのヘッダー（戻る・タイトル・右アクション） */}
-        <div className="grid grid-cols-[2.5rem_1fr_auto] items-center gap-1">
+        <div className="grid shrink-0 grid-cols-[2.5rem_1fr_auto] items-center gap-1">
           {onBack ? (
             <button
               type="button"
               onClick={onBack}
+              disabled={isSaving}
               aria-label="もどる"
               className="grid h-11 w-11 min-h-[44px] min-w-[44px] place-items-center rounded-full text-[var(--dim)] hover:bg-[var(--lamp-7)] hover:text-[var(--lamp)]"
             >
@@ -418,7 +613,32 @@ export const CreateFlow = ({
 
         {/* スクロールはこのコンテナだけに適用し、DialogContent 自体は overflow-visible のまま
             グロー演出（-top-24 の絶対配置）をクリップしない */}
-        <div className="mt-1 max-h-[calc(90vh-6rem)] overflow-y-auto">{renderStep()}</div>
+        <FlowNotices
+          storageError={storageError}
+          saveError={saveError}
+          regenerateError={regenerateError && step === "preview"}
+          isSaving={isSaving}
+        />
+        <div className="mt-1 min-h-0 min-w-0 flex-1 overflow-y-auto">
+          <fieldset disabled={isSaving} className="min-w-0">
+            {renderStep()}
+          </fieldset>
+        </div>
+        <div className="flex shrink-0 items-center justify-between gap-3 border-t border-[var(--hairline)] pt-3 font-sans-ui text-xs text-[var(--dim)]">
+          <span>
+            {storageError
+              ? "下書きは画面内に保持されています"
+              : "下書きはこの端末に自動保存されます"}
+          </span>
+          <button
+            type="button"
+            disabled={isSaving}
+            onClick={discardDraft}
+            className="min-h-11 shrink-0 text-[var(--lamp)] disabled:opacity-50"
+          >
+            {confirmDiscard ? "本当に破棄する" : "下書きを破棄"}
+          </button>
+        </div>
       </DialogContent>
     </Dialog>
   );

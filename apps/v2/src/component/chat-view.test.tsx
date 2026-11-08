@@ -188,14 +188,19 @@ describe("ChatView", () => {
         return Response.json({ turn: 1, history: [] });
       }),
     );
-    const originalRemoveItem = Storage.prototype.removeItem;
+    // removeItem を持つ側に刺す。Node 25 の差し替え（setup.ts）は自前のプロパティで持ち、
+    // jsdom の Storage は prototype で持つ。
+    const owner: Storage = Object.hasOwn(localStorage, "removeItem")
+      ? localStorage
+      : Storage.prototype;
+    const originalRemoveItem = localStorage.removeItem.bind(localStorage);
     let failPendingClear = true;
-    vi.spyOn(Storage.prototype, "removeItem").mockImplementation((key) => {
+    vi.spyOn(owner, "removeItem").mockImplementation((key) => {
       if (failPendingClear && key === "v2-chat-pending:a:conversation-a") {
         failPendingClear = false;
         throw new Error("storage failure");
       }
-      originalRemoveItem.call(localStorage, key);
+      originalRemoveItem(key);
     });
 
     render(<ChatView characterId="a" characterName="案内役" />);

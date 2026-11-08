@@ -59,12 +59,9 @@ export const OuCreateFlowEntry = ({
 }: OuCreateFlowEntryProps) => {
   const { createCharacterEntry } = useCharacterQuery();
 
-  const handleSave = (generated: GeneratedCharacter) => {
-    void (async () => {
-      const created = await createCharacterEntry(generatedToInput(generated));
-      onOpenChange(false);
-      onCreated?.(created.id);
-    })();
+  const handleSave = async (generated: GeneratedCharacter): Promise<string> => {
+    const created = await createCharacterEntry(generatedToInput(generated));
+    return created.id;
   };
 
   return (
@@ -73,6 +70,7 @@ export const OuCreateFlowEntry = ({
       onOpenChange={onOpenChange}
       onSaveDirectly={handleSave}
       onEditAndSave={handleSave}
+      onCreated={onCreated}
       initialUploadedImage={initialUploadedImage}
     />
   );

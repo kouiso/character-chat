@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "899cc06b-0c23-4e88-9cec-f7791a59cb18",
+  "id": "56a87ad6-61b4-4787-b902-dbaf05f83937",
   "prevId": "2d94ec13-8152-4fa7-a5a3-541a79fa5dca",
   "tables": {
     "character_default_outfit_tag": {
@@ -392,21 +392,6 @@
           "notNull": false,
           "autoincrement": false
         },
-        "revision": {
-          "name": "revision",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": 0
-        },
-        "current_version_id": {
-          "name": "current_version_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
         "created_at": {
           "name": "created_at",
           "type": "integer",
@@ -416,13 +401,6 @@
         }
       },
       "indexes": {
-        "character_slug_unique": {
-          "name": "character_slug_unique",
-          "columns": [
-            "slug"
-          ],
-          "isUnique": true
-        },
         "character_user_id_idx": {
           "name": "character_user_id_idx",
           "columns": [
@@ -443,7 +421,7 @@
           "columns": [
             "slug"
           ],
-          "isUnique": false
+          "isUnique": true
         }
       },
       "foreignKeys": {
@@ -1111,7 +1089,12 @@
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
-      "checkConstraints": {}
+      "checkConstraints": {
+        "group_message_role_check": {
+          "name": "group_message_role_check",
+          "value": "\"group_message\".\"role\" in ('user','assistant')"
+        }
+      }
     },
     "chat_group": {
       "name": "chat_group",
@@ -2926,199 +2909,6 @@
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
-    "character_revision": {
-      "name": "character_revision",
-      "columns": {
-        "character_id": {
-          "name": "character_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "revision": {
-          "name": "revision",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "version_id": {
-          "name": "version_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "action": {
-          "name": "action",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        }
-      },
-      "indexes": {
-        "character_revision_character_idx": {
-          "name": "character_revision_character_idx",
-          "columns": [
-            "character_id"
-          ],
-          "isUnique": false
-        }
-      },
-      "foreignKeys": {
-        "character_revision_character_id_character_id_fk": {
-          "name": "character_revision_character_id_character_id_fk",
-          "tableFrom": "character_revision",
-          "tableTo": "character",
-          "columnsFrom": [
-            "character_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "character_revision_version_id_character_version_id_fk": {
-          "name": "character_revision_version_id_character_version_id_fk",
-          "tableFrom": "character_revision",
-          "tableTo": "character_version",
-          "columnsFrom": [
-            "version_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {
-        "character_revision_character_id_revision_pk": {
-          "columns": [
-            "character_id",
-            "revision"
-          ],
-          "name": "character_revision_character_id_revision_pk"
-        }
-      },
-      "uniqueConstraints": {},
-      "checkConstraints": {}
-    },
-    "character_version": {
-      "name": "character_version",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "character_id": {
-          "name": "character_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "owner_user_id": {
-          "name": "owner_user_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "version": {
-          "name": "version",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "schema_version": {
-          "name": "schema_version",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": 1
-        },
-        "content_json": {
-          "name": "content_json",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "content_hash": {
-          "name": "content_hash",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        }
-      },
-      "indexes": {
-        "character_version_character_hash_unique": {
-          "name": "character_version_character_hash_unique",
-          "columns": [
-            "character_id",
-            "content_hash"
-          ],
-          "isUnique": true
-        },
-        "character_version_character_version_unique": {
-          "name": "character_version_character_version_unique",
-          "columns": [
-            "character_id",
-            "version"
-          ],
-          "isUnique": true
-        },
-        "character_version_character_idx": {
-          "name": "character_version_character_idx",
-          "columns": [
-            "character_id"
-          ],
-          "isUnique": false
-        }
-      },
-      "foreignKeys": {
-        "character_version_character_id_character_id_fk": {
-          "name": "character_version_character_id_character_id_fk",
-          "tableFrom": "character_version",
-          "tableTo": "character",
-          "columnsFrom": [
-            "character_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "checkConstraints": {}
-    },
     "v2_chunk": {
       "name": "v2_chunk",
       "columns": {
@@ -3173,7 +2963,16 @@
           "autoincrement": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "v2_chunk_message_seq_idx": {
+          "name": "v2_chunk_message_seq_idx",
+          "columns": [
+            "message_id",
+            "seq"
+          ],
+          "isUnique": true
+        }
+      },
       "foreignKeys": {
         "v2_chunk_message_id_v2_message_id_fk": {
           "name": "v2_chunk_message_id_v2_message_id_fk",
@@ -3246,13 +3045,6 @@
           "notNull": true,
           "autoincrement": false
         },
-        "character_version_id": {
-          "name": "character_version_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
         "created_at": {
           "name": "created_at",
           "type": "integer",
@@ -3268,7 +3060,16 @@
           "autoincrement": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "v2_conversation_user_updated_idx": {
+          "name": "v2_conversation_user_updated_idx",
+          "columns": [
+            "user_id",
+            "updated_at"
+          ],
+          "isUnique": false
+        }
+      },
       "foreignKeys": {
         "v2_conversation_character_id_character_id_fk": {
           "name": "v2_conversation_character_id_character_id_fk",
@@ -3383,7 +3184,16 @@
           "autoincrement": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "v2_generation_conv_turn_idx": {
+          "name": "v2_generation_conv_turn_idx",
+          "columns": [
+            "conversation_id",
+            "turn"
+          ],
+          "isUnique": false
+        }
+      },
       "foreignKeys": {
         "v2_generation_conversation_id_v2_conversation_id_fk": {
           "name": "v2_generation_conversation_id_v2_conversation_id_fk",
@@ -3401,7 +3211,12 @@
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
-      "checkConstraints": {}
+      "checkConstraints": {
+        "v2_generation_status_check": {
+          "name": "v2_generation_status_check",
+          "value": "\"v2_generation\".\"status\" in ('ok','error','aborted')"
+        }
+      }
     },
     "v2_ledger": {
       "name": "v2_ledger",
@@ -3463,6 +3278,210 @@
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
+    "v2_memory_job": {
+      "name": "v2_memory_job",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "conversation_id": {
+          "name": "conversation_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "character_id": {
+          "name": "character_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "source_message_id": {
+          "name": "source_message_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "source_turn": {
+          "name": "source_turn",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "state": {
+          "name": "state",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'pending'"
+        },
+        "publish_attempts": {
+          "name": "publish_attempts",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "error_code": {
+          "name": "error_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "v2_memory_job_pending": {
+          "name": "v2_memory_job_pending",
+          "columns": [
+            "conversation_id",
+            "state"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "v2_memory_job_conversation_id_v2_conversation_id_fk": {
+          "name": "v2_memory_job_conversation_id_v2_conversation_id_fk",
+          "tableFrom": "v2_memory_job",
+          "tableTo": "v2_conversation",
+          "columnsFrom": [
+            "conversation_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "v2_memory_job_source_message_id_v2_message_id_fk": {
+          "name": "v2_memory_job_source_message_id_v2_message_id_fk",
+          "tableFrom": "v2_memory_job",
+          "tableTo": "v2_message",
+          "columnsFrom": [
+            "source_message_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "v2_memory_source": {
+      "name": "v2_memory_source",
+      "columns": {
+        "memory_id": {
+          "name": "memory_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "source_message_id": {
+          "name": "source_message_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "source_content_hash": {
+          "name": "source_content_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "importance": {
+          "name": "importance",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "valid_from": {
+          "name": "valid_from",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "valid_until": {
+          "name": "valid_until",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "v2_memory_source_memory_id_v2_memory_id_fk": {
+          "name": "v2_memory_source_memory_id_v2_memory_id_fk",
+          "tableFrom": "v2_memory_source",
+          "tableTo": "v2_memory",
+          "columnsFrom": [
+            "memory_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "v2_memory_source_source_message_id_v2_message_id_fk": {
+          "name": "v2_memory_source_source_message_id_v2_message_id_fk",
+          "tableFrom": "v2_memory_source",
+          "tableTo": "v2_message",
+          "columnsFrom": [
+            "source_message_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
     "v2_memory": {
       "name": "v2_memory",
       "columns": {
@@ -3516,7 +3535,16 @@
           "autoincrement": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "v2_memory_conv_kind_idx": {
+          "name": "v2_memory_conv_kind_idx",
+          "columns": [
+            "conversation_id",
+            "kind"
+          ],
+          "isUnique": false
+        }
+      },
       "foreignKeys": {
         "v2_memory_conversation_id_v2_conversation_id_fk": {
           "name": "v2_memory_conversation_id_v2_conversation_id_fk",
@@ -3534,7 +3562,12 @@
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
-      "checkConstraints": {}
+      "checkConstraints": {
+        "v2_memory_kind_check": {
+          "name": "v2_memory_kind_check",
+          "value": "\"v2_memory\".\"kind\" in ('fact','summary','preference')"
+        }
+      }
     },
     "v2_message": {
       "name": "v2_message",
@@ -3610,7 +3643,17 @@
           "autoincrement": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "v2_message_conv_turn_role_idx": {
+          "name": "v2_message_conv_turn_role_idx",
+          "columns": [
+            "conversation_id",
+            "turn",
+            "role"
+          ],
+          "isUnique": true
+        }
+      },
       "foreignKeys": {
         "v2_message_conversation_id_v2_conversation_id_fk": {
           "name": "v2_message_conversation_id_v2_conversation_id_fk",
@@ -3628,7 +3671,12 @@
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
-      "checkConstraints": {}
+      "checkConstraints": {
+        "v2_message_role_check": {
+          "name": "v2_message_role_check",
+          "value": "\"v2_message\".\"role\" in ('user','assistant')"
+        }
+      }
     }
   },
   "views": {},

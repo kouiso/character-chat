@@ -2,11 +2,13 @@
 // （Drizzle 行 → zod で行ごとに検証）に通し、{ n, zodPassed, failures } を出す。
 import { createDb, loadCharacters } from "@v2/db";
 
+import { assertLocalOnly } from "./assert-local";
 import { applyLocalMigrations } from "./migrate";
 
 import { createPlatform } from "./index";
 
 const main = async (): Promise<void> => {
+  assertLocalOnly(process.argv.slice(2));
   applyLocalMigrations();
   const { env, dispose } = await createPlatform();
   try {
