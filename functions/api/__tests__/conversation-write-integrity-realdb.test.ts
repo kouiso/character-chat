@@ -58,9 +58,12 @@ const makeRealD1 = (greeting: string) => {
     CREATE TABLE memory_note (
       id TEXT PRIMARY KEY, user_id TEXT NOT NULL, character_id TEXT NOT NULL,
       content TEXT NOT NULL, source_message_id TEXT, created_at INTEGER NOT NULL,
-      edited_at INTEGER, last_used_at INTEGER, usage_count INTEGER NOT NULL DEFAULT 0
+      edited_at INTEGER, last_used_at INTEGER, usage_count INTEGER NOT NULL DEFAULT 0,
+      FOREIGN KEY (source_message_id) REFERENCES message(id) ON UPDATE no action ON DELETE cascade
     );
   `);
+  // D1 は FK を既定で enforced するので、ローカル検証も同じ条件に揃える。
+  db.exec("PRAGMA foreign_keys = ON");
   db.prepare("INSERT INTO user (id, email) VALUES (?, ?)").run(USER_ID, USER_EMAIL);
   db.prepare(
     "INSERT INTO character (id, user_id, name, greeting, system_prompt) VALUES (?, ?, ?, ?, ?)",
@@ -145,6 +148,26 @@ describe.skipIf(!DatabaseSyncCtor)(
       expect(await response.json()).toEqual({ error: "message not found" });
       expect(countMessages(db, "conv-victim")).toBe(3);
       expect(countMessages(db, "conv-other")).toBe(1);
+    });
+
+    it("消したメッセージ由来の memory_note は cascade で残らん（RIT-82）", async () => {
+      const { db, d1 } = makeRealD1("こんにちは");
+      insertConversation(db, "conv-1");
+      insertMessage(db, "msg-1", "conv-1", 1000);
+      db.prepare(
+        "INSERT INTO memory_note (id, user_id, character_id, content, source_message_id, created_at) VALUES ('note-1', ?, ?, 'fact', 'msg-1', 0)",
+      ).run(USER_ID, CHARACTER_ID);
+
+      const response = await app.request(
+        "/api/conversations/conv-1/messages/msg-1",
+        { method: "DELETE", headers: { Authorization: `Bearer ${AUTH_TOKEN}` } },
+        { AUTH_TOKEN, DB: d1 },
+      );
+
+      expect(response.status).toBe(200);
+      expect(
+        db.prepare("SELECT COUNT(*) AS n FROM memory_note WHERE source_message_id = 'msg-1'").get(),
+      ).toEqual({ n: 0 });
     });
 
     it("同じ会話の messageId なら、それ以降のメッセージを消す", async () => {
