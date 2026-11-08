@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   ApiResponseError,
   classifyApiError,
+  createCharacter,
   createConversationShare,
   extractMemoryNotes,
   listConversationMessages,
@@ -265,6 +266,41 @@ describe("shouldShowCharacterListError (#559 初回タイムアウトの誤バ�
     const serverError = new ApiResponseError("list characters failed", 500);
     expect(shouldShowCharacterListError(serverError, true)).toBe(false);
     expect(shouldShowCharacterListError(serverError, false)).toBe(true);
+  });
+});
+
+describe("createCharacter の拒否理由", (): void => {
+  beforeEach((): void => {
+    vi.restoreAllMocks();
+    localStorage.clear();
+  });
+
+  // サーバが未成年コンテンツを 400 {error, reason} で弾く時、画面は
+  // 汎用「保存に失敗」ではなくサーバの理由文を出せなあかん。
+  it("400 の reason が ApiResponseError.reason に載る", async (): Promise<void> => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          error: "minor_content",
+          reason: "未成年を思わせる表現「高校生」が含まれているため保存できません",
+        }),
+        { status: 400, headers: { "content-type": "application/json" } },
+      ),
+    );
+
+    const rejection: unknown = await createCharacter({
+      name: "テスト",
+      systemPrompt: "あんたは高校生や。",
+      greeting: "よお。",
+      tags: [],
+    }).then(
+      () => null,
+      (error: unknown) => error,
+    );
+
+    expect(rejection).toBeInstanceOf(ApiResponseError);
+    expect((rejection as ApiResponseError).status).toBe(400);
+    expect((rejection as ApiResponseError).reason).toContain("高校生");
   });
 });
 

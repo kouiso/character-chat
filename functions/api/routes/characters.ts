@@ -13,6 +13,7 @@ import {
   type VisualMeta,
 } from "../../../src/schema";
 import { generateCharacterImageSeed } from "../lib/image-identity-context";
+import { findMinorViolation, minorViolationReason } from "../lib/minor-guard";
 import {
   assembleVisualMetaMap,
   buildCharacterUpdatesWithSlug,
@@ -189,6 +190,20 @@ export const characterRoutes = new Hono<{ Bindings: Bindings }>()
       return c.json({ error: "invalid_avatar" }, 400);
     }
 
+    // RIT-91: 未成年を思わせるキャラは保存させない（名前・設定・挨拶・タグ・外見を走査）。
+    const minorViolation = findMinorViolation([
+      payload.name,
+      payload.systemPrompt,
+      payload.greeting,
+      payload.visualPrompt,
+      ...(payload.tags ?? []),
+      payload.userPersona?.name,
+      payload.userPersona?.personality,
+    ]);
+    if (minorViolation) {
+      return c.json({ error: "minor_content", reason: minorViolationReason(minorViolation) }, 400);
+    }
+
     const database = drizzle(c.env.DB);
     const userId = await ensureUser(database, userEmail);
     const characterId = crypto.randomUUID();
@@ -271,6 +286,21 @@ export const characterRoutes = new Hono<{ Bindings: Bindings }>()
       !isUserAvatarKey(payload.avatar, userEmail)
     ) {
       return c.json({ error: "invalid_avatar" }, 400);
+    }
+
+    // RIT-91: 更新でも未成年を思わせる内容は残させない（指定された節だけを走査）。
+    const minorViolation = findMinorViolation([
+      payload.name,
+      payload.systemPrompt,
+      payload.greeting,
+      payload.visualPrompt,
+      ...(payload.tags ?? []),
+      payload.userPersona?.name,
+      payload.userPersona?.personality,
+      payload.loraTriggerPrompt,
+    ]);
+    if (minorViolation) {
+      return c.json({ error: "minor_content", reason: minorViolationReason(minorViolation) }, 400);
     }
 
     const updates = await buildCharacterUpdatesWithSlug(database, payload, existing[0].slug);

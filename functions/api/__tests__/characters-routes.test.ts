@@ -773,6 +773,34 @@ describe.skipIf(!DatabaseSyncCtor)("POST /api/characters (実SQLite)", () => {
     expect(response.status).toBe(400);
     expect(countCharacters(harness.db)).toBe(0);
   });
+
+  it("systemPrompt に未成年を思わせる表現があれば 400 minor_content で、行を作らない", async () => {
+    const harness = makeRealD1();
+
+    const response = await authedJson(harness, "/api/characters", "POST", {
+      ...validCreateBody,
+      systemPrompt: "あんたは近所の高校生や。",
+    });
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({
+      error: "minor_content",
+      reason: expect.stringContaining("高校生"),
+    });
+    expect(countCharacters(harness.db)).toBe(0);
+  });
+
+  it("tags や userPersona に混ざっとっても 400 で弾かれる", async () => {
+    const harness = makeRealD1();
+
+    const response = await authedJson(harness, "/api/characters", "POST", {
+      ...validCreateBody,
+      tags: ["幼馴染", "JK"],
+    });
+
+    expect(response.status).toBe(400);
+    expect(countCharacters(harness.db)).toBe(0);
+  });
 });
 
 describe.skipIf(!DatabaseSyncCtor)("PUT /api/characters/:characterId (実SQLite)", () => {
@@ -932,6 +960,20 @@ describe.skipIf(!DatabaseSyncCtor)("PUT /api/characters/:characterId (実SQLite)
 
     expect(readCharacter(harness.db, OWNED_ID)?.name).toBe("更新後");
     expect(readCharacter(harness.db, INTRUDER_CHARACTER_ID)?.name).toBe("他人");
+  });
+
+  it("更新内容に未成年を思わせる表現を混ぜると 400 で、行は変わらん", async () => {
+    const harness = makeRealD1();
+    seedCharacter(harness.db, { id: OWNED_ID, name: "元の名前" });
+
+    const response = await authedJson(harness, `/api/characters/${OWNED_ID}`, "PUT", {
+      name: "元の名前",
+      loraTriggerPrompt: "JK uniform, petite",
+    });
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({ error: "minor_content" });
+    expect(readCharacter(harness.db, OWNED_ID)?.lora_trigger_prompt).toBeNull();
   });
 });
 

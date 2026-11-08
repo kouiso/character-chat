@@ -275,8 +275,13 @@ const EditScreenBranch = ({
     try {
       await updateCharacterEntry(found.id, input);
       setScreen("my");
-    } catch {
-      toast.error("うまく残せませんでした。もう一度お願いします");
+    } catch (error) {
+      // サーバが理由を返した拒否（未成年判定など）はそのまま知らせる。
+      toast.error(
+        error instanceof ApiResponseError && error.reason
+          ? error.reason
+          : "うまく残せませんでした。もう一度お願いします",
+      );
     }
   };
   const handleDelete = async () => {
