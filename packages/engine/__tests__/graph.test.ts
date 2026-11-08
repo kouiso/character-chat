@@ -1,10 +1,13 @@
-import { BaseMessage } from "@langchain/core/messages";
+import { AIMessageChunk, BaseMessage } from "@langchain/core/messages";
 import { FakeListChatModel } from "@langchain/core/utils/testing";
+import { createMemorySummaryStore } from "@v2/db";
 
-import { createTurnGraph, runTurn } from "../src/graph";
+import { createTurnGraph, runTurn, visibleSummaries } from "../src/graph";
 import { createMemoryTurnStore, type MemoryTurnStore } from "../src/memory-store";
 
 import type { CharacterSheet, TurnEvent } from "../src/types";
+import type { BaseLanguageModelInput } from "@langchain/core/language_models/base";
+import type { BaseChatModelCallOptions } from "@langchain/core/language_models/chat_models";
 
 // 出力契約（@v2/prompt v0001）どおり <response> で包んだ形。splitChunks が包みを剥がして
 // action/dialogue/inner の 3 チャンクに切ることまで含めて通す。
@@ -61,8 +64,8 @@ const expectFirstTurnSaved = (store: MemoryTurnStore, streamed: TurnEvent[]): vo
   expect(done).toMatchObject({ generationId: generation?.generationId });
 };
 
-const generationAt = (store: MemoryTurnStore, index: number) => {
-  const turns = store.turns.get("conv-memory");
+const generationAt = (store: MemoryTurnStore, index: number, convId = "conv-memory") => {
+  const turns = store.turns.get(convId);
   if (!turns) throw new Error("Missing memory test turns");
   const turn = turns[index];
   if (!turn) throw new Error("Missing memory test turn");
@@ -468,5 +471,136 @@ describe("createTurnGraph", () => {
       runTurn(graph, { conversationId: "conv-i", userText: "ただいま", character }, "conv-i"),
     );
     expect(invokeSpy).not.toHaveBeenCalled();
+  });
+
+  describe("巻き取り要約（RIT-72）", () => {
+    // 要約呼び出しだけ「出来事」を含む行を抜き出すモデル。返事（stream 側）には影響せん。
+    // 作り話は機構上起き得ず、要約へ紛れ込んだ事実漏洩を検査できる。
+    class MarkerModel extends FakeListChatModel {
+      // FakeListChatModel は _generate 直実装なので _call では捕まらん。invoke を差し替える。
+      override async invoke(
+        input: BaseLanguageModelInput,
+        options?: BaseChatModelCallOptions,
+      ): Promise<AIMessageChunk> {
+        const list = Array.isArray(input) ? (input as BaseMessage[]) : [];
+        const last = list.at(-1);
+        const text = typeof last?.content === "string" ? last.content : "";
+        if (text.includes("要約")) {
+          return new AIMessageChunk(
+            text
+              .split("\n")
+              .filter((line) => line.includes("出来事"))
+              .join("\n"),
+          );
+        }
+        return super.invoke(input, options);
+      }
+    }
+
+    test("200ターン走ると level 2 要約ができ、最初の10ターンの出来事が要約に残る（作り話無し）", async () => {
+      const store = createMemoryTurnStore();
+      const summaryStore = createMemorySummaryStore();
+      const model = new MarkerModel({ responses: [VALID_XML] });
+      const graph = createTurnGraph({
+        model,
+        store,
+        summaryStore,
+        extendBelowRatio: 0,
+        // 10ターンだけ窓に残る・未要約が20件溜まると level 1・level 1 が4本で level 2。
+        contextBudget: { historyMessages: 20 },
+        summary: { thresholdMessages: 20, maxLevel1: 4 },
+      });
+      for (let turn = 1; turn <= 200; turn += 1) {
+        await drain(
+          runTurn(
+            graph,
+            { conversationId: "conv-s", userText: `出来事${turn}を相手が話した`, character },
+            "conv-s",
+          ),
+        );
+      }
+      const rows = summaryStore.rows.get("conv-s") ?? [];
+      expect(rows.filter((row) => row.level === 1).length).toBeGreaterThanOrEqual(4);
+      const level2 = rows.filter((row) => row.level === 2);
+      expect(level2.length).toBeGreaterThanOrEqual(1);
+      const latest2 = level2.at(-1);
+      expect(latest2).toBeDefined();
+      // 最初の10ターンの出来事は最終的に level 2 が抱えとる。
+      for (let n = 1; n <= 10; n += 1) {
+        expect(latest2?.text).toContain(`出来事${n}`);
+      }
+      // 要約の行は全部「出来事」を含む（作り話・推測行が混ざっとらん）。
+      for (const row of rows) {
+        for (const line of row.text.split("\n")) {
+          expect(line).toContain("出来事");
+        }
+      }
+      // 直近ターンのプロンプトにあらすじが差し込まれ、冒頭ターンには差し込まれとらん。
+      const last = generationAt(store, 199, "conv-s");
+      expect(last.request.some((m) => m.content.includes("これまでのあらすじ"))).toBe(true);
+      const early = generationAt(store, 5, "conv-s");
+      expect(early.request.some((m) => m.content.includes("これまでのあらすじ"))).toBe(false);
+    }, 120000);
+
+    test("窓から押し出された分だけ要約を作る（押し出しが無いターンでは呼ばれん）", async () => {
+      const store = createMemoryTurnStore();
+      const summaryStore = createMemorySummaryStore();
+      const model = new MarkerModel({ responses: [VALID_XML] });
+      const graph = createTurnGraph({
+        model,
+        store,
+        summaryStore,
+        extendBelowRatio: 0,
+        contextBudget: { historyMessages: 6 },
+        summary: { thresholdMessages: 4, maxLevel1: 3 },
+      });
+      // 3ターン = 6件で窓いっぱい・押し出し無し。
+      for (let turn = 1; turn <= 3; turn += 1) {
+        await drain(
+          runTurn(
+            graph,
+            { conversationId: "conv-t", userText: `出来事${turn}`, character },
+            "conv-t",
+          ),
+        );
+      }
+      expect(summaryStore.rows.get("conv-t") ?? []).toHaveLength(0);
+      // 4ターン目で2件押し出し（閾値4未満）→ まだ要約なし。
+      await drain(
+        runTurn(graph, { conversationId: "conv-t", userText: "出来事4", character }, "conv-t"),
+      );
+      expect(summaryStore.rows.get("conv-t") ?? []).toHaveLength(0);
+      // さらに2ターンで押し出し計6件（閾値4超過）→ level 1 が1本。
+      for (let turn = 5; turn <= 6; turn += 1) {
+        await drain(
+          runTurn(
+            graph,
+            { conversationId: "conv-t", userText: `出来事${turn}`, character },
+            "conv-t",
+          ),
+        );
+      }
+      const rows = summaryStore.rows.get("conv-t") ?? [];
+      expect(rows.filter((row) => row.level === 1)).toHaveLength(1);
+    });
+
+    test("visibleSummaries は最新の level 2 とその後ろの level 1 を時系列で返す", () => {
+      const row = (level: 1 | 2, coveredTo: number, text: string) => ({
+        id: `s-${level}-${coveredTo}`,
+        level,
+        coveredTo,
+        text,
+      });
+      expect(
+        visibleSummaries([row(1, 10, "a"), row(1, 20, "b"), row(2, 20, "ab"), row(1, 30, "c")]).map(
+          (entry) => entry.text,
+        ),
+      ).toEqual(["ab", "c"]);
+      expect(visibleSummaries([row(1, 10, "a"), row(1, 20, "b")]).map((e) => e.text)).toEqual([
+        "a",
+        "b",
+      ]);
+      expect(visibleSummaries([])).toEqual([]);
+    });
   });
 });

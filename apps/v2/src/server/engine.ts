@@ -2,6 +2,7 @@
 import { FakeListChatModel } from "@langchain/core/utils/testing";
 import {
   composeSystemPrompt,
+  createD1SummaryStore,
   createD1TurnStore,
   createDb,
   ensureConversationVersion,
@@ -184,6 +185,7 @@ export const startTurn = async (
       versionId ?? undefined,
       Boolean(env.MEMORY_QUEUE),
     ),
+    summaryStore: createD1SummaryStore(db),
   });
   const events = runTurn(
     graph,

@@ -9,6 +9,7 @@ export * from "./v2-schema";
 export * from "./character-version";
 export * from "./character-version-store";
 export * from "./chunk-schedule";
+export * from "./summary-store";
 export * from "./legacy-migration";
 export * from "./local-user";
 export * from "./memory-extraction-contract";

@@ -42,6 +42,7 @@ import type {
   BaseChatModelCallOptions,
 } from "@langchain/core/language_models/chat_models";
 import type { AIMessageChunk } from "@langchain/core/messages";
+import type { StoredSummary, SummaryStore } from "@v2/db";
 import type { ScenePhase } from "@v2/prompt";
 
 // chunk あたりの最大試行回数（初回1回 + 再生成1回）。
@@ -216,6 +217,11 @@ export type TurnGraphDeps = {
   dropMinChars?: boolean;
   // 相手の動作を書かない反応専用契約（bench 検証用）
   soloReaction?: boolean;
+  // 巻き取り要約（RIT-72）。未注入では要約も注入も走らん。
+  summaryStore?: SummaryStore;
+  // thresholdMessages: 窓から押し出された未要約メッセージがこの件数で level 1 を起こす。
+  // maxLevel1: 未集約の level 1 がこの件数で level 2 にまとめ直す。
+  summary?: { thresholdMessages?: number; maxLevel1?: number };
   checkpointer?: BaseCheckpointSaver;
   now?: () => number;
   id?: () => string;
@@ -283,6 +289,71 @@ const collectCappedStream = async (
   return { raw, usage, truncated, error };
 };
 
+const SUMMARY_DEFAULTS = { thresholdMessages: 20, maxLevel1: 4 } as const;
+
+// 作り話防止が本質の指示（壊しにいく確かめ: 要約に無い作り話が混ざらんか）。
+const SUMMARIZE_LEVEL1_INSTRUCTION =
+  "これはキャラクターチャットの会話の一部。後のターンで参照するため、起きた出来事・約束・感情の変化・大事な設定を失わんよう簡潔に要約せよ。書かれとらん事実や推測は足すな。";
+const SUMMARIZE_LEVEL2_INSTRUCTION =
+  "これは会話の部分要約の集まり。全体の流れが分かる一段上の要約にまとめ直せ。書かれとらん事実や推測は足すな。";
+
+// 画面側へ戻す要約の選び方: 最新の level 2 と、それが届いとらん範囲の level 1 を時系列で。
+export const visibleSummaries = (list: StoredSummary[]): StoredSummary[] => {
+  const level2Covered = Math.max(0, ...list.filter((s) => s.level === 2).map((s) => s.coveredTo));
+  const latest2 = list.filter((s) => s.level === 2 && s.coveredTo === level2Covered).at(-1);
+  const tail = list.filter((s) => s.level === 1 && s.coveredTo > level2Covered);
+  return [...(latest2 ? [latest2] : []), ...tail];
+};
+
+const invokeForSummary = async (
+  model: TurnModel,
+  instruction: string,
+  body: string,
+  state: { timeoutMs?: number | null },
+): Promise<string> => {
+  const controller = new AbortController();
+  const deadline = setTimeout(
+    () =>
+      controller.abort(
+        new Error(`要約の締切 ${state.timeoutMs ?? DEFAULT_TURN_TIMEOUT_MS}ms を超えた`),
+      ),
+    state.timeoutMs ?? DEFAULT_TURN_TIMEOUT_MS,
+  );
+  try {
+    const result = await model.invoke([new HumanMessage(`${instruction}\n\n${body}`)], {
+      signal: controller.signal,
+    });
+    return contentToText(result.content).trim();
+  } finally {
+    clearTimeout(deadline);
+  }
+};
+
+// 未集約の level 1 が閾値に届いたら「前の level 2 + 新しい level 1」でまとめ直す。
+// 新しい分だけを畳むと古い出来事が最新の level 2 から落ちて、巻き取りの意味が無くなる。
+const rollUpLevel2 = async (
+  deps: Pick<TurnGraphDeps, "model">,
+  summaries: StoredSummary[],
+  maxLevel1: number,
+  state: { timeoutMs?: number | null },
+): Promise<string> => {
+  const level2Covered = Math.max(
+    0,
+    ...summaries.filter((entry) => entry.level === 2).map((entry) => entry.coveredTo),
+  );
+  const uncovered = summaries.filter(
+    (entry) => entry.level === 1 && entry.coveredTo > level2Covered,
+  );
+  if (uncovered.length < maxLevel1) return "";
+  const previous2 = summaries.filter((entry) => entry.level === 2).at(-1);
+  return invokeForSummary(
+    deps.model,
+    SUMMARIZE_LEVEL2_INSTRUCTION,
+    [...(previous2 ? [previous2.text] : []), ...uncovered.map((entry) => entry.text)].join("\n"),
+    state,
+  );
+};
+
 const regenerateWithDeadline = async (
   model: TurnModel,
   lcMessages: BaseMessage[],
@@ -335,7 +406,7 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
           (await deps.retrieveMemories?.(state.conversationId, state.userText)) ?? [],
         ),
       }))
-      .addNode("compose", (state) => {
+      .addNode("compose", async (state) => {
         const voice = extractVoice(state.character.systemPrompt);
         const system = composeSystemPrompt({
           sheet: state.character.systemPrompt,
@@ -360,10 +431,22 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
           state.userText,
           deps.contextBudget,
         );
+        // 窓の外に出た分は要約が代わりに乗る（RIT-72）。
+        const summaries = deps.summaryStore
+          ? visibleSummaries(await deps.summaryStore.list(state.conversationId))
+          : [];
         const prompt: ComposedPrompt = {
           version: "v0001",
           system,
           messages: [
+            ...(summaries.length > 0
+              ? [
+                  {
+                    role: "user" as const,
+                    content: `これまでのあらすじ:\n${summaries.map((entry) => entry.text).join("\n")}`,
+                  },
+                ]
+              : []),
             ...(deps.retrieveMemories
               ? [
                   {
@@ -631,6 +714,57 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
         } satisfies TurnEvent);
         return {};
       })
+      .addNode("summarize", async (state) => {
+        // 窓から押し出された未要約分がたまったら level 1、level 1 がたまったら level 2 へ
+        // まとめ直す（RIT-72）。保存の後に走るので、失敗・再実行で二度呼ばれても
+        // coveredTo が進んでおれば追加入らず（冪等）。
+        if (!deps.summaryStore) return {};
+        const threshold = deps.summary?.thresholdMessages ?? SUMMARY_DEFAULTS.thresholdMessages;
+        const maxLevel1 = deps.summary?.maxLevel1 ?? SUMMARY_DEFAULTS.maxLevel1;
+        const omittedCount = state.omittedHistoryMessages;
+        const existing = await deps.summaryStore.list(state.conversationId);
+        const covered = Math.max(0, ...existing.map((entry) => entry.coveredTo));
+        const baseline = Math.min(covered, omittedCount);
+        if (omittedCount - baseline < threshold) return {};
+        const slice = state.history.slice(baseline, omittedCount);
+        if (slice.length === 0) return {};
+        const body = slice
+          .map(
+            (message) =>
+              `${message.role === "user" ? "相手" : state.character.name}: ${message.content}`,
+          )
+          .join("\n");
+        const level1 = await invokeForSummary(
+          deps.model,
+          SUMMARIZE_LEVEL1_INSTRUCTION,
+          body,
+          state,
+        );
+        if (level1.length === 0) return {};
+        await deps.summaryStore.save({
+          conversationId: state.conversationId,
+          level: 1,
+          coveredTo: omittedCount,
+          text: level1,
+        });
+        const after = await deps.summaryStore.list(state.conversationId);
+        const level2Text = await rollUpLevel2(deps, after, maxLevel1, state);
+        if (level2Text.length === 0) return {};
+        const level2Covered = Math.max(
+          0,
+          ...after.filter((entry) => entry.level === 2).map((entry) => entry.coveredTo),
+        );
+        const uncovered = after.filter(
+          (entry) => entry.level === 1 && entry.coveredTo > level2Covered,
+        );
+        await deps.summaryStore.save({
+          conversationId: state.conversationId,
+          level: 2,
+          coveredTo: uncovered[uncovered.length - 1].coveredTo,
+          text: level2Text,
+        });
+        return {};
+      })
       .addEdge(START, "intake")
       .addEdge("intake", "ledger_update")
       .addEdge("ledger_update", "retrieve")
@@ -663,7 +797,8 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
       .addConditionalEdges("emit", (state) =>
         state.cursor < state.pendingChunks.length ? "judge_chunk" : "persist",
       )
-      .addEdge("persist", END)
+      .addEdge("persist", "summarize")
+      .addEdge("summarize", END)
       .compile({ checkpointer: deps.checkpointer ?? new MemorySaver() })
   );
 };

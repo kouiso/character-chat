@@ -121,6 +121,27 @@ export const v2ChunkTable = sqliteTable(
   (table) => [uniqueIndex("v2_chunk_message_seq_idx").on(table.messageId, table.seq)],
 );
 
+// 窓から押し出された履歴の巻き取り要約（RIT-72）。level 1 = 押し出し分の要約、
+// level 2 = レベル 1 がたまった分のまとめ直し。covered_to は履歴先頭から何件を
+// この要約（列）が吸収したか。行は追記のみで、画面には最新の level 2 と
+// それ以降の level 1 を時系列で見せる。
+export const v2SummaryTable = sqliteTable(
+  "v2_summary",
+  {
+    id: text("id").primaryKey(),
+    conversationId: text("conversation_id")
+      .notNull()
+      .references(() => v2ConversationTable.id),
+    level: integer("level").notNull(),
+    coveredTo: integer("covered_to").notNull(),
+    text: text("text").notNull(),
+    createdAt: integer("created_at").notNull(),
+  },
+  (table) => [
+    index("v2_summary_conversation_idx").on(table.conversationId, table.level, table.coveredTo),
+  ],
+);
+
 export const v2LedgerTable = sqliteTable(
   "v2_ledger",
   {
