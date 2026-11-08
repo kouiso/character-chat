@@ -4,6 +4,7 @@ import { z } from "zod";
 
 import { MAX_MESSAGE_LENGTH } from "../lib/chat-limits";
 
+import { recordProactiveActivity } from "./api-proactive";
 import {
   CharacterInvalidError,
   CharacterNotFoundError,
@@ -97,6 +98,8 @@ export const handleChatRequest = async (id: string, request: Request): Promise<R
             : "同じ受付番号に異なる送信内容は指定できません。",
       });
     }
+    // 話しかけの空き時間は最後の発言から数える。返信を待たせんよう裏で記録する。
+    void recordProactiveActivity(id).catch(() => {});
     return new Response(toSseStream(storedEvents(room, receipt.requestId, after)), {
       status: 200,
       headers: SSE_HEADERS,

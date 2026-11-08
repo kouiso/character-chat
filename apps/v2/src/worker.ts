@@ -4,6 +4,7 @@ import { preventSharedCaching, requireBasicAuth, type BasicAuthConfig } from "./
 import { consumeMemoryJobs } from "./server/memory-queue";
 
 export { ChatRoom } from "./server/chat-room";
+export { ProactiveScheduler } from "./server/proactive-scheduler";
 
 // 入口が触る束縛だけを型にしておくと、テストが Env 全体を偽装せずに済む。
 export type WorkerEntryEnv = BasicAuthConfig & { ASSETS: Pick<Fetcher, "fetch"> };

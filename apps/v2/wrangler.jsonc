@@ -55,7 +55,7 @@
         }
       ],
       "r2_buckets": [{ "binding": "BUCKET", "bucket_name": "adult-ai-images" }],
-      "durable_objects": { "bindings": [{ "name": "CHAT_ROOMS", "class_name": "ChatRoom" }] },
+      "durable_objects": { "bindings": [{ "name": "CHAT_ROOMS", "class_name": "ChatRoom" }, { "name": "PROACTIVE_SCHEDULERS", "class_name": "ProactiveScheduler" }] },
       "queues": {
         "producers": [{ "binding": "MEMORY_QUEUE", "queue": "adult-ai-v2-memory" }],
         "consumers": [
@@ -103,7 +103,7 @@
         }
       ],
       "r2_buckets": [{ "binding": "BUCKET", "bucket_name": "character-chat-v2-staging" }],
-      "durable_objects": { "bindings": [{ "name": "CHAT_ROOMS", "class_name": "ChatRoom" }] },
+      "durable_objects": { "bindings": [{ "name": "CHAT_ROOMS", "class_name": "ChatRoom" }, { "name": "PROACTIVE_SCHEDULERS", "class_name": "ProactiveScheduler" }] },
       "queues": {
         "producers": [{ "binding": "MEMORY_QUEUE", "queue": "adult-ai-v2-memory-staging" }],
         "consumers": [
@@ -157,6 +157,10 @@
       {
         "name": "CHAT_ROOMS",
         "class_name": "ChatRoom"
+      },
+      {
+        "name": "PROACTIVE_SCHEDULERS",
+        "class_name": "ProactiveScheduler"
       }
     ]
   },
@@ -165,6 +169,12 @@
       "tag": "v1-chat-room",
       "new_sqlite_classes": [
         "ChatRoom"
+      ]
+    },
+    {
+      "tag": "v2-proactive-scheduler",
+      "new_sqlite_classes": [
+        "ProactiveScheduler"
       ]
     }
   ]

@@ -11,6 +11,7 @@ const startFetch = vi.hoisted(() => vi.fn<(request: Request) => Promise<Response
 
 vi.mock("@tanstack/react-start/server-entry", () => ({ default: { fetch: startFetch } }));
 vi.mock("./server/chat-room", () => ({ ChatRoom: class {} }));
+vi.mock("./server/proactive-scheduler", () => ({ ProactiveScheduler: class {} }));
 
 const { default: worker } = await import("./worker");
 const { unstable_readConfig: readWranglerConfig } = await import("wrangler");
@@ -53,6 +54,7 @@ const UNAUTHENTICATED_PROBES = [
   ["POST", "/api/characters/example/restore"],
   ["GET", "/api/characters/example/versions"],
   ["GET", "/api/characters/example/versions/1"],
+  ["GET", "/api/proactive/characters/example/settings"],
 ] as const;
 
 // routes/ のファイル名と URL を区切りごとに突き合わせる（$id は任意の 1 区切り、末尾 _ は入れ子を外す印、index は親）。
