@@ -9,6 +9,7 @@ const state = vi.hoisted(() => ({
   >(),
   characters: new Map<string, { user_id: string }>(),
   fetchCalls: [] as string[],
+  synthBodies: [] as Record<string, unknown>[],
   fetchResult: "ok" as "ok" | "query_fail" | "synth_fail" | "throw",
 }));
 
@@ -37,9 +38,11 @@ vi.mock("./platform", () => ({
 
 vi.stubGlobal(
   "fetch",
-  vi.fn(async (url: string | URL) => {
+  vi.fn(async (url: string | URL, init?: RequestInit) => {
     const u = String(url);
     state.fetchCalls.push(u);
+    if (u.includes("/synthesis") && typeof init?.body === "string")
+      state.synthBodies.push(JSON.parse(init.body) as Record<string, unknown>);
     if (state.fetchResult === "throw") throw new Error("ECONNREFUSED");
     if (u.includes("/audio_query")) {
       if (state.fetchResult === "query_fail") return new Response("x", { status: 500 });
@@ -69,6 +72,7 @@ beforeEach(() => {
   state.voices.clear();
   state.characters.clear();
   state.fetchCalls.length = 0;
+  state.synthBodies.length = 0;
   state.fetchResult = "ok";
   state.characters.set("c1", { user_id: "local" });
   state.characters.set("c2", { user_id: "other" });
@@ -96,6 +100,30 @@ describe("api-tts", () => {
     expect(res.status).toBe(200);
     expect(state.fetchCalls[0]).toContain("speaker=888753760");
     expect(state.fetchCalls[0]).toContain("localhost:10101");
+  });
+
+  it("RIT-212: layer 指定で声色パラメータが変わる・未指定は既定値", async () => {
+    state.voices.set("c1", {
+      engine: "voicevox",
+      speaker_id: "1",
+      speed: 1.0,
+      pitch: 0.0,
+      intonation: 1.0,
+    });
+    const res = await handleTtsRequest(
+      post({ characterId: "c1", text: "内緒だよ", layer: "inner" }),
+    );
+    expect(res.status).toBe(200);
+    // inner は囁き寄り：遅め・低め・抑揚弱め
+    expect(state.synthBodies[0].speedScale).toBeCloseTo(0.9);
+    expect(state.synthBodies[0].pitchScale).toBeCloseTo(-0.04);
+    expect(state.synthBodies[0].intonationScale).toBeCloseTo(0.85);
+
+    state.synthBodies.length = 0;
+    await handleTtsRequest(post({ characterId: "c1", text: "普通の文" }));
+    expect(state.synthBodies[0].speedScale).toBe(1.0);
+    expect(state.synthBodies[0].pitchScale).toBe(0.0);
+    expect(state.synthBodies[0].intonationScale).toBe(1.0);
   });
 
   it("他人のキャラは404・エンジン未起動は503", async () => {

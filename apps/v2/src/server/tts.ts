@@ -11,6 +11,34 @@ export interface VoiceSettings {
   intonation: number;
 }
 
+// RIT-212: 応答レイヤ種別→声色パラメータの対応表（乗算・加算の差分）。
+// inner=囁き寄り（遅め・低め・抑揚弱め）、action=抑揚強め、scene/narration=落ち着き寄り。
+// dialogue/不明は差分無し＝既定パラメータ。
+export const TTS_LAYERS = ["scene", "action", "dialogue", "inner", "narration"] as const;
+export type TtsLayer = (typeof TTS_LAYERS)[number];
+
+const LAYER_VOICE_DELTA: Record<TtsLayer, { speed: number; pitch: number; intonation: number }> =
+  {
+    inner: { speed: 0.9, pitch: -0.04, intonation: 0.85 },
+    action: { speed: 0.95, pitch: 0, intonation: 1.05 },
+    scene: { speed: 1.0, pitch: 0, intonation: 0.95 },
+    narration: { speed: 0.95, pitch: 0, intonation: 0.95 },
+    dialogue: { speed: 1, pitch: 0, intonation: 1 },
+  };
+
+const clamp = (v: number, lo: number, hi: number): number => Math.min(hi, Math.max(lo, v));
+
+const layeredSettings = (settings: VoiceSettings, layer?: TtsLayer): VoiceSettings => {
+  if (!layer) return settings;
+  const d = LAYER_VOICE_DELTA[layer];
+  return {
+    ...settings,
+    speed: clamp(settings.speed * d.speed, 0.5, 2.0),
+    pitch: clamp(settings.pitch + d.pitch, -0.15, 0.15),
+    intonation: clamp(settings.intonation * d.intonation, 0.0, 2.0),
+  };
+};
+
 // 未設定時の既定ボイス（VOICEVOX デフォルトスケール）
 export const defaultVoiceSettings = (): VoiceSettings => ({
   engine: "voicevox",
@@ -38,17 +66,19 @@ export const synthesizeSpeech = async (
   baseUrl: string,
   settings: VoiceSettings,
   text: string,
+  layer?: TtsLayer,
 ): Promise<Response> => {
-  const speaker = encodeURIComponent(settings.speakerId);
+  const v = layeredSettings(settings, layer);
+  const speaker = encodeURIComponent(v.speakerId);
   const queryRes = await fetch(
     `${baseUrl}/audio_query?text=${encodeURIComponent(text)}&speaker=${speaker}`,
     { method: "POST" },
   );
   if (!queryRes.ok) throw new Error(`audio_query ${queryRes.status}`);
   const query = (await queryRes.json()) as Record<string, unknown>;
-  query.speedScale = settings.speed;
-  query.pitchScale = settings.pitch;
-  query.intonationScale = settings.intonation;
+  query.speedScale = v.speed;
+  query.pitchScale = v.pitch;
+  query.intonationScale = v.intonation;
   const synthRes = await fetch(`${baseUrl}/synthesis?speaker=${speaker}`, {
     method: "POST",
     headers: { "content-type": "application/json" },
