@@ -13,23 +13,24 @@ const postBodySchema = z.object({
 
 const PAGE_SIZE = 30;
 
-// GET /api/board?before=<created_at> — 新しい順のカーソルページング。
-// nextCursor は最終行の created_at。同時刻は id でタイブレークする。
-export const handleBoardList = async (request: Request): Promise<Response> => {
-  const url = new URL(request.url);
-  const before = Number(url.searchParams.get("before"));
-  const hasBefore = Number.isFinite(before) && url.searchParams.has("before");
-  const { env } = await getPlatform();
-  const { results } = await env.DB.prepare(
-    `SELECT id, user_id, body, created_at FROM v2_board_post
-     ${hasBefore ? "WHERE created_at < ?" : ""}
-     ORDER BY created_at DESC, id DESC LIMIT ?`,
-  )
-    .bind(...(hasBefore ? [before, PAGE_SIZE + 1] : [PAGE_SIZE + 1]))
+export type BoardPageData = {
+  items: { id: string; userId: string; body: string; createdAt: number; mine: boolean }[];
+  nextCursor: string | null;
+};
+
+// /board ページの server fn からも同じクエリを引くため共有する
+export const loadBoardPage = async (db: D1Database, before?: number): Promise<BoardPageData> => {
+  const { results } = await db
+    .prepare(
+      `SELECT id, user_id, body, created_at FROM v2_board_post
+       ${before !== undefined ? "WHERE created_at < ?" : ""}
+       ORDER BY created_at DESC, id DESC LIMIT ?`,
+    )
+    .bind(...(before !== undefined ? [before, PAGE_SIZE + 1] : [PAGE_SIZE + 1]))
     .all<{ id: string; user_id: string; body: string; created_at: number }>();
   const rows = results ?? [];
   const page = rows.slice(0, PAGE_SIZE);
-  return json(200, {
+  return {
     items: page.map((row) => ({
       id: row.id,
       userId: row.user_id,
@@ -38,7 +39,17 @@ export const handleBoardList = async (request: Request): Promise<Response> => {
       mine: row.user_id === LOCAL_USER_ID,
     })),
     nextCursor: rows.length > PAGE_SIZE ? String(page[page.length - 1].created_at) : null,
-  });
+  };
+};
+
+// GET /api/board?before=<created_at> — 新しい順のカーソルページング。
+// nextCursor は最終行の created_at。同時刻は id でタイブレークする。
+export const handleBoardList = async (request: Request): Promise<Response> => {
+  const url = new URL(request.url);
+  const raw = url.searchParams.get("before");
+  const before = raw === null ? undefined : Number(raw);
+  const { env } = await getPlatform();
+  return json(200, await loadBoardPage(env.DB, Number.isFinite(before) ? before : undefined));
 };
 
 // POST /api/board {body} — 投稿

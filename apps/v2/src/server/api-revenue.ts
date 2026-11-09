@@ -37,13 +37,26 @@ export const handleRevenueAggregate = async (): Promise<Response> => {
   return json(200, { aggregated: rows.length });
 };
 
-// GET /api/revenue — 自分の収益一覧と合計（支払い申請の元データ）。
-export const handleRevenueList = async (): Promise<Response> => {
-  const { env } = await getPlatform();
-  const { results } = await env.DB.prepare(
-    "SELECT id, source_type, ref_id, gross_amount, share_amount, created_at " +
-      "FROM v2_creator_revenue WHERE user_id = ? ORDER BY created_at DESC",
-  )
+export type RevenueReportData = {
+  items: {
+    id: string;
+    sourceType: string;
+    refId: string | null;
+    grossAmount: number;
+    shareAmount: number;
+    createdAt: number;
+  }[];
+  totalGross: number;
+  totalShare: number;
+};
+
+// /revenue ページの server fn からも同じクエリを引くため共有する
+export const loadRevenueReport = async (db: D1Database): Promise<RevenueReportData> => {
+  const { results } = await db
+    .prepare(
+      "SELECT id, source_type, ref_id, gross_amount, share_amount, created_at " +
+        "FROM v2_creator_revenue WHERE user_id = ? ORDER BY created_at DESC",
+    )
     .bind(LOCAL_USER_ID)
     .all<{
       id: string;
@@ -61,9 +74,15 @@ export const handleRevenueList = async (): Promise<Response> => {
     shareAmount: row.share_amount,
     createdAt: row.created_at,
   }));
-  return json(200, {
+  return {
     items,
     totalGross: items.reduce((sum, row) => sum + row.grossAmount, 0),
     totalShare: items.reduce((sum, row) => sum + row.shareAmount, 0),
-  });
+  };
+};
+
+// GET /api/revenue — 自分の収益一覧と合計（支払い申請の元データ）。
+export const handleRevenueList = async (): Promise<Response> => {
+  const { env } = await getPlatform();
+  return json(200, await loadRevenueReport(env.DB));
 };

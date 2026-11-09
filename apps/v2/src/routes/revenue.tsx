@@ -4,6 +4,7 @@ import { useState } from "react";
 import { createFileRoute, getRouteApi, Link } from "@tanstack/react-router";
 
 import { aggregateRevenue, loadRevenue, type RevenueReport } from "../lib/revenue";
+import { getRevenueReport } from "../server/revenue";
 
 const routeApi = getRouteApi("/revenue");
 
@@ -51,6 +52,6 @@ const RevenuePage = () => {
 };
 
 export const Route = createFileRoute("/revenue")({
-  loader: ({ abortController }) => loadRevenue(abortController.signal),
+  loader: () => getRevenueReport(),
   component: RevenuePage,
 });
