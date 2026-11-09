@@ -65,7 +65,7 @@ describe("generateConversationImage", () => {
   const generationRows = async () =>
     local.d1
       .prepare(
-        "SELECT status, failure_reason, task_id, seed, image_key, message_id FROM v2_image_generation WHERE conversation_id = ?",
+        "SELECT status, failure_reason, task_id, seed, image_key, message_id, width, height, steps, guidance_scale, strength, prompt, negative_prompt FROM v2_image_generation WHERE conversation_id = ?",
       )
       .bind("rit182-conv")
       .all<{
@@ -75,6 +75,13 @@ describe("generateConversationImage", () => {
         seed: number | null;
         image_key: string | null;
         message_id: string | null;
+        width: number | null;
+        height: number | null;
+        steps: number | null;
+        guidance_scale: number | null;
+        strength: number | null;
+        prompt: string;
+        negative_prompt: string | null;
       }>();
 
   beforeAll(async () => {
@@ -193,6 +200,101 @@ describe("generateConversationImage", () => {
     ).rejects.toThrow();
     await local.d1.prepare("DELETE FROM v2_conversation WHERE id = ?").bind("rit182-foreign").run();
   });
+
+  // RIT-183: 指定パラメータが Novita の request body と生成記録の両方へ届くこと。
+  it("指定パラメータが上流 body と記録へ残る", async () => {
+    const bucket = bucketOf();
+    const captured: { initBody?: { request: Record<string, unknown> } } = {};
+    const fetchImpl = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
+      if (url.endsWith("/txt2img")) {
+        captured.initBody = JSON.parse(String(init?.body));
+        return Response.json({ task_id: "rit183-task" });
+      }
+      if (url.includes("/task-result")) {
+        return Response.json({
+          task: { task_id: "rit183-task", status: "TASK_STATUS_SUCCEED" },
+          images: [{ image_url: "https://example.com/rit183.png", seed: 777 }],
+        });
+      }
+      if (url === "https://example.com/rit183.png") {
+        return new Response(PNG_HEAD, { headers: { "content-type": "image/png" } });
+      }
+      return new Response("unexpected", { status: 500 });
+    }) as unknown as typeof fetch;
+
+    const result = await generateConversationImage({
+      env: env(bucket),
+      characterId: charId,
+      conversationId: "rit182-conv",
+      params: {
+        cfg: 9,
+        seed: 42,
+        negativePrompt: "lowres, monochrome",
+        width: 1024,
+        height: 768,
+        strength: 0.4,
+      },
+      fetchImpl,
+    });
+    expect(result.ok).toBe(true);
+    if (!captured.initBody) throw new Error("init body not captured");
+    const request = captured.initBody.request;
+    expect(request.width).toBe(1024);
+    expect(request.height).toBe(768);
+    expect(request.guidance_scale).toBe(9);
+    expect(request.seed).toBe(42);
+    // txt2img では strength を上流へ送らん（img2img 専用。記録には残る）。
+    expect(request.strength).toBeUndefined();
+    // ユーザー negative が先頭、品質基線は重複なしで残る。
+    expect(String(request.negative_prompt)).toMatch(/^lowres, monochrome/);
+    expect(String(request.negative_prompt)).toContain("extra limbs");
+    expect(String(request.negative_prompt).split("lowres")).toHaveLength(2);
+
+    const rows = (await generationRows()).results;
+    const last = rows.at(-1);
+    expect(last?.width).toBe(1024);
+    expect(last?.height).toBe(768);
+    expect(last?.steps).toBe(30);
+    expect(last?.guidance_scale).toBe(9);
+    expect(last?.strength).toBe(0.4);
+    // 上流が返した実績 seed を残す。
+    expect(last?.seed).toBe(777);
+  });
+
+  it("未指定はレシピ既定値へ倒れ、既定値も記録へ残る", async () => {
+    const result = await generateConversationImage({
+      env: env(bucketOf()),
+      characterId: charId,
+      conversationId: "rit182-conv",
+      fetchImpl: novitaFetch("TASK_STATUS_SUCCEED"),
+    });
+    expect(result.ok).toBe(true);
+    const last = (await generationRows()).results.at(-1);
+    expect(last?.width).toBe(832);
+    expect(last?.height).toBe(1216);
+    expect(last?.steps).toBe(30);
+    expect(last?.guidance_scale).toBe(5);
+    expect(last?.strength).toBeNull();
+    expect(last?.seed).toBe(12345);
+  });
+
+  it("失敗行にも確定パラメータと指定 seed が残る", async () => {
+    const result = await generateConversationImage({
+      env: env(bucketOf()),
+      characterId: charId,
+      conversationId: "rit182-conv",
+      params: { cfg: 12, seed: 99, width: 640, height: 896 },
+      fetchImpl: novitaFetch("TASK_STATUS_FAILED"),
+    });
+    expect(result.ok).toBe(false);
+    const last = (await generationRows()).results.at(-1);
+    expect(last?.status).toBe("failed");
+    expect(last?.width).toBe(640);
+    expect(last?.height).toBe(896);
+    expect(last?.guidance_scale).toBe(12);
+    expect(last?.seed).toBe(99);
+  });
 });
 
 describe("buildImagePrompt", () => {
@@ -216,5 +318,21 @@ describe("buildImagePrompt", () => {
     expect(prompt).toContain("浜辺で微笑む");
     expect(negativePrompt).toContain("extra limbs");
     expect(negativePrompt).toContain("lowres");
+  });
+
+  it("ユーザー negative を先頭へ置き、品質基線は重複を間引いて残す", () => {
+    const { negativePrompt } = buildImagePrompt(
+      {
+        visualPrompt: null,
+        imageMeta: { appearance: "x", artStyle: "y", negativePrompt: "bad anatomy" },
+      },
+      [],
+      "monochrome, lowres",
+    );
+    expect(negativePrompt).toMatch(/^monochrome, lowres/);
+    // キャラ設定の bad anatomy と基線の品質語は残り、lowres は重複しない。
+    expect(negativePrompt).toContain("bad anatomy");
+    expect(negativePrompt).toContain("watermark");
+    expect(negativePrompt.split("lowres")).toHaveLength(2);
   });
 });

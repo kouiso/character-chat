@@ -15,6 +15,7 @@ import {
   requestChatImage,
   writeChatSession,
   type ChatBubble,
+  type ChatImageParams,
   type PendingTurn,
 } from "../lib/chat-session";
 import { revealChunk, scheduleReveal } from "../lib/chunk-reveal";
@@ -60,6 +61,54 @@ const withoutPending = (history: ChatBubble[], pending: PendingTurn): ChatBubble
 const failureMessage = (cause: unknown): string =>
   cause instanceof Error ? cause.message : "返信を確認できませんでした。";
 
+// 画像設定欄の生入力（空欄 = レシピ既定値へ倒す。RIT-183）。
+type ImageParamFields = {
+  cfg: string;
+  seed: string;
+  negativePrompt: string;
+  width: string;
+  height: string;
+  strength: string;
+};
+
+const EMPTY_IMAGE_PARAMS: ImageParamFields = {
+  cfg: "",
+  seed: "",
+  negativePrompt: "",
+  width: "",
+  height: "",
+  strength: "",
+};
+
+// 空欄は未指定として削り、数値欄は整数/実数へ変換する。壊れた入力は
+// 黙って捨てず false を返して画面へ理由を出す（サーバの 400 より先に説明できる）。
+const parseImageParams = (
+  fields: ImageParamFields,
+): { ok: true; params: ChatImageParams } | { ok: false } => {
+  // 空欄は null、変換できる値は number、壊れた入力は undefined を返す。
+  const numberField = (raw: string, int: boolean): number | null | undefined => {
+    const trimmed = raw.trim();
+    if (!trimmed) return null;
+    const value = Number(trimmed);
+    return Number.isFinite(value) && (!int || Number.isInteger(value)) ? value : undefined;
+  };
+  const parsed = {
+    cfg: numberField(fields.cfg, false),
+    seed: numberField(fields.seed, true),
+    width: numberField(fields.width, true),
+    height: numberField(fields.height, true),
+    strength: numberField(fields.strength, false),
+  };
+  if (Object.values(parsed).some((value) => value === undefined)) return { ok: false };
+  const params: ChatImageParams = {};
+  for (const [key, value] of Object.entries(parsed)) {
+    if (typeof value === "number") (params as Record<string, number>)[key] = value;
+  }
+  const negative = fields.negativePrompt.trim();
+  if (negative) params.negativePrompt = negative;
+  return { ok: true, params };
+};
+
 // 画像生成ボタンの中身。会話がまだサーバへ作られとらん時は先にメッセージ送信を促す。
 const runImageRequest = async (deps: {
   characterId: string;
@@ -68,6 +117,7 @@ const runImageRequest = async (deps: {
   busy: boolean;
   imageBusy: boolean;
   pending: PendingTurn | null;
+  imageParamFields: ImageParamFields;
   setError: Dispatch<SetStateAction<string | null>>;
   setImageBusy: Dispatch<SetStateAction<boolean>>;
   setBubbles: Dispatch<SetStateAction<ChatBubble[]>>;
@@ -78,11 +128,16 @@ const runImageRequest = async (deps: {
     return;
   }
   if (deps.busy || deps.imageBusy || deps.pending) return;
+  const parsed = parseImageParams(deps.imageParamFields);
+  if (!parsed.ok) {
+    deps.setError("画像設定の数値を確認してください。");
+    return;
+  }
   const abort = new AbortController();
   deps.setImageBusy(true);
   deps.setError(null);
   try {
-    await requestChatImage(deps.characterId, targetConversationId, abort.signal);
+    await requestChatImage(deps.characterId, targetConversationId, parsed.params, abort.signal);
     // 画像がターンを1つ消費するので、番号は履歴を読み直してサーバの値に揃える。
     const history = await loadChatHistory(deps.characterId, targetConversationId, abort.signal);
     deps.nextTurn.current = history.nextTurn;
@@ -184,6 +239,7 @@ export const ChatView = ({
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [imageBusy, setImageBusy] = useState(false);
+  const [imageParamFields, setImageParamFields] = useState<ImageParamFields>(EMPTY_IMAGE_PARAMS);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState<PendingTurn | null>(null);
   const [terminalFailure, setTerminalFailure] = useState(false);
@@ -377,10 +433,35 @@ export const ChatView = ({
       busy,
       imageBusy,
       pending,
+      imageParamFields,
       setError,
       setImageBusy,
       setBubbles,
     });
+
+  // 設定欄の1項目。label と入力だけの最小構造に留め、既定値は placeholder で示す。
+  // 数値欄は type=number（spinbutton）にして会話入力の textbox とロールを分ける。
+  const paramField = (
+    key: keyof ImageParamFields,
+    label: string,
+    placeholder: string,
+    type: "number" | "text" = "number",
+    step = "1",
+  ) => (
+    <label className="v2-image-param">
+      <span>{label}</span>
+      <input
+        type={type}
+        step={step}
+        value={imageParamFields[key]}
+        placeholder={placeholder}
+        aria-label={label}
+        onChange={(event) =>
+          setImageParamFields((previous) => ({ ...previous, [key]: event.target.value }))
+        }
+      />
+    </label>
+  );
 
   const retry = () => {
     if (!pending || busy) return;
@@ -426,6 +507,17 @@ export const ChatView = ({
           <a href="/">会話一覧へ戻る</a>
         </div>
       )}
+      <details className="v2-image-params">
+        <summary>画像設定</summary>
+        <div className="v2-image-params-grid">
+          {paramField("cfg", "CFG", "5", "number", "0.5")}
+          {paramField("seed", "seed", "ランダム")}
+          {paramField("width", "幅", "832", "number", "8")}
+          {paramField("height", "高さ", "1216", "number", "8")}
+          {paramField("strength", "i2i強度", "0.45", "number", "0.05")}
+          {paramField("negativePrompt", "ネガティブプロンプト", "既定", "text")}
+        </div>
+      </details>
       <form
         className="v2-chat-form"
         onSubmit={(event) => {
