@@ -3,12 +3,16 @@
 // 一覧の正はサーバ側なので、パネルを開くたびに読み直す。
 // 4コマ漫画（RIT-189）: 同じ groupId のコマは1ブロックでグリッド表示し、
 // 「4コマにする」で直近シーンから一括生成する。
+// 動画（RIT-190）: mp4 エントリは <video> で再生し、画像には「動画にする」で
+// first-frame 変換を起こせる。生成は非同期なので状態をポーリングして完了したら読み直す。
 import { useState } from "react";
 
 import {
   deleteChatImage,
+  fetchChatVideoStatus,
   listChatImages,
   requestChatComic,
+  requestChatVideo,
   type ChatImageEntry,
 } from "../lib/chat-session";
 
@@ -27,6 +31,23 @@ type GalleryPanelProps = {
 type GalleryBlock =
   | { kind: "comic"; groupId: string; panels: ChatImageEntry[] }
   | { kind: "single"; entry: ChatImageEntry };
+
+// 動画の完了待ち。生成中は5秒間隔で確認（上流は2-3分想定。最大6分で見切る）。
+const waitForVideo = async (characterId: string, generationId: string): Promise<void> => {
+  for (let i = 0; i < 72; i += 1) {
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+    const polled = await fetchChatVideoStatus(
+      characterId,
+      generationId,
+      new AbortController().signal,
+    );
+    if (polled.status === "ok") return;
+    if (polled.status === "failed") {
+      throw new Error(polled.failureReason ?? "動画を生成できませんでした。");
+    }
+  }
+  throw new Error("動画の生成に時間が掛かっています。しばらく後で確認してください。");
+};
 
 const toBlocks = (images: ChatImageEntry[]): GalleryBlock[] => {
   const blocks: GalleryBlock[] = [];
@@ -57,18 +78,37 @@ type ItemHandlers = {
   confirming: string | null;
   deleting: boolean;
   comicBusy: boolean;
+  videoBusyId: string | null;
   onJumpToMessage: (imageUrl: string) => void;
   onConfirm: (messageId: string) => void;
   onRemove: (entry: ChatImageEntry) => void;
   onRetryPanel: (retry: { groupId: string; panelIndex: number }) => void;
+  onMakeVideo: (entry: ChatImageEntry) => void;
   onOpen: (entry: ChatImageEntry) => void;
 };
+
+const GalleryMedia = ({ entry }: { entry: ChatImageEntry }) =>
+  entry.mediaKind === "video" ? (
+    <video className="v2-gallery-video" src={entry.imageUrl} controls preload="metadata" />
+  ) : (
+    <ChatImage src={entry.imageUrl} />
+  );
 
 const ItemActions = ({ entry, handlers }: { entry: ChatImageEntry; handlers: ItemHandlers }) => (
   <div className="v2-gallery-actions">
     <button type="button" onClick={() => handlers.onJumpToMessage(entry.imageUrl)}>
       会話へ
     </button>
+    {/* 動画化は画像だけに出す。動画から動画は生成経路として意味を持たん。 */}
+    {entry.mediaKind === "image" && (
+      <button
+        type="button"
+        onClick={() => handlers.onMakeVideo(entry)}
+        disabled={handlers.videoBusyId !== null}
+      >
+        {handlers.videoBusyId === entry.messageId ? "動画生成中…" : "動画にする"}
+      </button>
+    )}
     {handlers.confirming === entry.messageId ? (
       <button type="button" onClick={() => handlers.onRemove(entry)} disabled={handlers.deleting}>
         {handlers.deleting ? "削除中…" : "本当に消す"}
@@ -96,7 +136,7 @@ const GalleryBlockItem = ({ block, handlers }: { block: GalleryBlock; handlers: 
               aria-label={`4コマ ${slot + 1}枚目を開く`}
               onClick={() => handlers.onOpen(entry)}
             >
-              <ChatImage src={entry.imageUrl} />
+              <GalleryMedia entry={entry} />
             </button>
           ) : (
             <button
@@ -119,10 +159,10 @@ const GalleryBlockItem = ({ block, handlers }: { block: GalleryBlock; handlers: 
       <button
         type="button"
         className="v2-gallery-thumb"
-        aria-label={`ターン${block.entry.turn}の画像を開く`}
+        aria-label={`ターン${block.entry.turn}の${block.entry.mediaKind === "video" ? "動画" : "画像"}を開く`}
         onClick={() => handlers.onOpen(block.entry)}
       >
-        <ChatImage src={block.entry.imageUrl} />
+        <GalleryMedia entry={block.entry} />
       </button>
       <ItemActions entry={block.entry} handlers={handlers} />
     </li>
@@ -173,6 +213,7 @@ export const GalleryPanel = ({
   const [confirming, setConfirming] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [comicBusy, setComicBusy] = useState(false);
+  const [videoBusyId, setVideoBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const reload = async (conversationId: string) => {
@@ -245,14 +286,40 @@ export const GalleryPanel = ({
     }
   };
 
+  // 動画は数分掛かるので、登録後に状態エンドポイントを短い間隔で見る。
+  // パネルを閉じてもサーバ側の生成は進むので、再表示すれば途中から状態が追える。
+  const makeVideo = async (entry: ChatImageEntry) => {
+    const conversationId = getConversationId();
+    if (!conversationId || videoBusyId) return;
+    setVideoBusyId(entry.messageId);
+    setError(null);
+    try {
+      const started = await requestChatVideo(
+        characterId,
+        conversationId,
+        entry.messageId,
+        new AbortController().signal,
+      );
+      await waitForVideo(characterId, started.generationId);
+      await reload(conversationId);
+      onChanged();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "動画を生成できませんでした。");
+    } finally {
+      setVideoBusyId(null);
+    }
+  };
+
   const handlers: ItemHandlers = {
     confirming,
     deleting,
     comicBusy,
+    videoBusyId,
     onJumpToMessage,
     onConfirm: setConfirming,
     onRemove: (entry) => void remove(entry),
     onRetryPanel: (retry) => void createComic(retry),
+    onMakeVideo: (entry) => void makeVideo(entry),
     onOpen: setViewer,
   };
 
@@ -284,7 +351,11 @@ export const GalleryPanel = ({
           >
             ×
           </button>
-          <ChatImage src={viewer.imageUrl} />
+          {viewer.mediaKind === "video" ? (
+            <video className="v2-gallery-viewer-video" src={viewer.imageUrl} controls autoPlay />
+          ) : (
+            <ChatImage src={viewer.imageUrl} />
+          )}
         </div>
       )}
     </div>

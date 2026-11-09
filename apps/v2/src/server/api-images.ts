@@ -176,6 +176,8 @@ export const handleImageListRequest = async (
         generationId: row.generationId,
         groupId: row.groupId,
         panelIndex: row.panelIndex,
+        // mp4 キーは動画メッセージ（RIT-190）。ギャラリーはこれで <video> 描画へ分ける。
+        mediaKind: row.imageKey.endsWith(".mp4") ? ("video" as const) : ("image" as const),
         turn: row.turn,
         createdAt: row.createdAt,
       })),

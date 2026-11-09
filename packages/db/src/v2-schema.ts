@@ -384,6 +384,46 @@ export const v2ImageGenerationTable = sqliteTable(
   ],
 );
 
+// 画像→動画変換の生成記録（RIT-190）。v2_image_generation と同じ「記録は監査・実体は v2_message
+// の image_key→R2」構成。動画は非同期なので queued/processing を経て ok/failed へ落ちる。
+export const v2VideoGenerationTable = sqliteTable(
+  "v2_video_generation",
+  {
+    id: text("id").primaryKey(),
+    conversationId: text("conversation_id")
+      .notNull()
+      .references(() => v2ConversationTable.id, { onDelete: "cascade" }),
+    characterId: text("character_id")
+      .notNull()
+      .references(() => characterTable.id),
+    // 成功時に書いた v2_message（image_key に videos/*.mp4 を持つ）。未完了・失敗行は NULL。
+    messageId: text("message_id"),
+    // first-frame にした元画像の v2_message。どの画像から動かしたか辿るためのもの。
+    sourceMessageId: text("source_message_id"),
+    // Runware の非同期タスク id。起動失敗（init が 4xx/5xx）は NULL。
+    taskId: text("task_id"),
+    model: text("model").notNull(),
+    prompt: text("prompt").notNull(),
+    durationSeconds: integer("duration_seconds").notNull(),
+    resolution: text("resolution").notNull(),
+    // queued=依頼受付 / processing=上流で生成中。ポーリング経路で ok/failed へ終端化する。
+    status: text("status", { enum: ["queued", "processing", "ok", "failed"] }).notNull(),
+    failureReason: text("failure_reason"),
+    videoKey: text("video_key"),
+    // 上流が返した実績コスト（RIT-135 の課金台帳・RIT-188 の失敗返却と突き合わせる基）。
+    costUsd: real("cost_usd"),
+    createdAt: integer("created_at").notNull(),
+    finishedAt: integer("finished_at"),
+  },
+  (table) => [
+    index("v2_video_generation_conv_idx").on(table.conversationId, table.createdAt),
+    check(
+      "v2_video_generation_status_check",
+      sql`${table.status} in ('queued','processing','ok','failed')`,
+    ),
+  ],
+);
+
 // 手で消した記憶の内容ハッシュ。抽出の再実行で同じ内容が蘇らんようにする（RIT-94）。
 // 会話ごとの帳簿なので、別会話で同じ内容を覚えるのは妨げない。
 export const v2MemoryTombstoneTable = sqliteTable(
