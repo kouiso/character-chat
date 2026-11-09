@@ -17,6 +17,7 @@ import {
   type PendingTurn,
 } from "../lib/chat-session";
 import { revealChunk, scheduleReveal } from "../lib/chunk-reveal";
+import { requestImageGeneration, waitImageGeneration } from "../lib/image-request";
 
 import { ChatImage } from "./chat-image";
 import { ChatMessage, ChatMessageText } from "./chat-message";
@@ -58,6 +59,64 @@ const withoutPending = (history: ChatBubble[], pending: PendingTurn): ChatBubble
 
 const failureMessage = (cause: unknown): string =>
   cause instanceof Error ? cause.message : "返信を確認できませんでした。";
+
+// 起動から完了確認まで。失敗なら理由文字列、成功・中断なら null。
+const runImageGeneration = async (
+  characterId: string,
+  conversationId: string,
+  signal: AbortSignal,
+): Promise<string | null> => {
+  const generationId = await requestImageGeneration({ characterId, conversationId });
+  const result = await waitImageGeneration(generationId, signal);
+  if (signal.aborted || result.status === "succeeded") return null;
+  return result.reason ?? "画像を生成できませんでした。";
+};
+
+type ChatComposerProps = {
+  input: string;
+  onInput: (value: string) => void;
+  onSend: (event: React.FormEvent) => void | Promise<void>;
+  onGenerateImage: () => void;
+  sending: boolean;
+  imageBusy: boolean;
+  canGenerateImage: boolean;
+};
+
+const ChatComposer = ({
+  input,
+  onInput,
+  onSend,
+  onGenerateImage,
+  sending,
+  imageBusy,
+  canGenerateImage,
+}: ChatComposerProps) => (
+  <form
+    className="v2-chat-form"
+    onSubmit={(event) => {
+      void onSend(event);
+    }}
+  >
+    <button
+      type="button"
+      onClick={onGenerateImage}
+      disabled={sending || imageBusy || !canGenerateImage}
+      title={canGenerateImage ? undefined : "会話を始めると画像を生成できます"}
+    >
+      画像生成
+    </button>
+    <input
+      value={input}
+      onChange={(event) => onInput(event.target.value)}
+      placeholder="メッセージを入力"
+      aria-label="メッセージ"
+      disabled={sending}
+    />
+    <button type="submit" disabled={sending || input.trim().length === 0}>
+      送信
+    </button>
+  </form>
+);
 
 const resolveInitialConversation = (
   characterId: string,
@@ -148,6 +207,7 @@ export const ChatView = ({
   const [bubbles, setBubbles] = useState<ChatBubble[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
+  const [imageBusy, setImageBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState<PendingTurn | null>(null);
   const [terminalFailure, setTerminalFailure] = useState(false);
@@ -341,6 +401,37 @@ export const ChatView = ({
     void consume(pending, abort.signal, true);
   };
 
+  // 会話起点の画像生成（RIT-182）。会話が無い間は起動できん（会話の場面から描くため）。
+  const generateImage = async () => {
+    const conversation = conversationId.current;
+    if (!conversation || busy || imageBusy) return;
+    setImageBusy(true);
+    setError(null);
+    controller.current?.abort();
+    const abort = new AbortController();
+    controller.current = abort;
+    const finish = (message: string | null) => {
+      if (abort.signal.aborted) return;
+      if (message) setError(message);
+      setImageBusy(false);
+    };
+    try {
+      const failure = await runImageGeneration(characterId, conversation, abort.signal);
+      if (failure) {
+        finish(`画像を生成できませんでした: ${failure}`);
+        return;
+      }
+      // 画像は新しいメッセージとして履歴へ入る。読み直しで表示に載せる。
+      const history = await loadChatHistory(characterId, conversation, abort.signal);
+      if (abort.signal.aborted) return;
+      nextTurn.current = history.nextTurn;
+      setBubbles(history.bubbles);
+      finish(null);
+    } catch (cause) {
+      finish(cause instanceof Error ? cause.message : "画像を生成できませんでした。");
+    }
+  };
+
   return (
     <div className="v2-chat">
       <div className="v2-chat-header">
@@ -377,23 +468,22 @@ export const ChatView = ({
           <a href="/">会話一覧へ戻る</a>
         </div>
       )}
-      <form
-        className="v2-chat-form"
-        onSubmit={(event) => {
-          void send(event);
+      {imageBusy && (
+        <div className="v2-image-status" role="status">
+          画像を生成しています…
+        </div>
+      )}
+      <ChatComposer
+        input={input}
+        onInput={setInput}
+        onSend={send}
+        onGenerateImage={() => {
+          void generateImage();
         }}
-      >
-        <input
-          value={input}
-          onChange={(event) => setInput(event.target.value)}
-          placeholder="メッセージを入力"
-          aria-label="メッセージ"
-          disabled={busy || pending !== null}
-        />
-        <button type="submit" disabled={busy || pending !== null || input.trim().length === 0}>
-          送信
-        </button>
-      </form>
+        sending={busy || pending !== null}
+        imageBusy={imageBusy}
+        canGenerateImage={conversationId.current !== null}
+      />
     </div>
   );
 };

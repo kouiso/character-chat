@@ -231,10 +231,14 @@ export const readD1StoredTurn = async (
 
 export const readOwnedImageKey = async (db: V2Db, userId: string, messageId: string) => {
   const [row] = await db
-    .select({ key: messageTable.imageKey })
+    // v2 生成は v2_message.image_key、移行済みの旧画像は message.image_key にある。
+    // v2 側を優先し、無ければ旧行へ倒す。
+    .select({
+      key: sql<string | null>`coalesce(${v2MessageTable.imageKey}, ${messageTable.imageKey})`,
+    })
     .from(v2MessageTable)
     .innerJoin(v2ConversationTable, eq(v2ConversationTable.id, v2MessageTable.conversationId))
-    .innerJoin(messageTable, eq(messageTable.id, v2MessageTable.id))
+    .leftJoin(messageTable, eq(messageTable.id, v2MessageTable.id))
     .where(and(eq(v2MessageTable.id, messageId), eq(v2ConversationTable.userId, userId)));
   return row?.key ?? null;
 };
@@ -367,7 +371,7 @@ export const readDisplayHistory = async (
       turn: v2MessageTable.turn,
       role: v2MessageTable.role,
       content: v2MessageTable.content,
-      imageKey: messageTable.imageKey,
+      imageKey: sql<string | null>`coalesce(${v2MessageTable.imageKey}, ${messageTable.imageKey})`,
     })
     .from(v2MessageTable)
     .leftJoin(messageTable, eq(messageTable.id, v2MessageTable.id))

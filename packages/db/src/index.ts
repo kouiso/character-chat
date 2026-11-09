@@ -19,4 +19,5 @@ export * from "./memory-index-store";
 export * from "./proactive-store";
 export * from "./push-subscription-store";
 export * from "./group-store";
+export * from "./image-store";
 export * from "./usage-store";

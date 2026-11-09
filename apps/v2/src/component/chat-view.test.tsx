@@ -675,4 +675,82 @@ describe("ChatView", () => {
     expect(screen.queryByRole("button", { name: "入力に戻す" })).not.toBeInTheDocument();
     expect(readChatSession("a").pending?.requestId).toBe("request-old");
   });
+
+  it("会話が無いうちは画像生成を起動できない", async () => {
+    render(<ChatView characterId="a" characterName="案内役" />);
+    expect(screen.getByRole("button", { name: "画像生成" })).toBeDisabled();
+  });
+
+  it("画像生成ボタンで起票 → poll 完了 → 履歴の画像が画面へ出る", async () => {
+    writeChatSession("a", {
+      version: 1,
+      conversationId: "conversation-a",
+      pending: null,
+    });
+    const deferred: { resolve?: (response: Response) => void } = {};
+    let imageMessageIncluded = false;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = String(input);
+        if (url.includes("/api/chat/a/images") && init?.method === "POST") {
+          return Response.json({ generationId: "gen-1", status: "running" });
+        }
+        if (url.includes("/api/image-generations/")) {
+          return new Promise<Response>((resolve) => {
+            deferred.resolve = resolve;
+          });
+        }
+        imageMessageIncluded = true;
+        return Response.json({
+          turn: 3,
+          history: [
+            {
+              role: "assistant",
+              content: "（このシーンの画像を生成しました）",
+              imageUrl: "/api/media/msg-1",
+            },
+          ],
+        });
+      }),
+    );
+    render(<ChatView characterId="a" characterName="案内役" />);
+    const button = await screen.findByRole("button", { name: "画像生成" });
+    await waitFor(() => expect(button).toBeEnabled());
+    fireEvent.click(button);
+    // 生成中の表示が出て、poll が終わるまで保持される。
+    await screen.findByRole("status");
+    deferred.resolve?.(Response.json({ status: "succeeded", messageId: "msg-1" }));
+    const image = await screen.findByAltText("会話に保存された画像");
+    expect(image).toHaveAttribute("src", "/api/media/msg-1");
+    expect(imageMessageIncluded).toBe(true);
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  });
+
+  it("生成失敗は理由つきで画面へ出る", async () => {
+    writeChatSession("a", {
+      version: 1,
+      conversationId: "conversation-a",
+      pending: null,
+    });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = String(input);
+        if (url.includes("/api/chat/a/images") && init?.method === "POST") {
+          return Response.json({ generationId: "gen-1", status: "running" });
+        }
+        if (url.includes("/api/image-generations/")) {
+          return Response.json({ status: "failed", reason: "画像生成に失敗しました。" });
+        }
+        return Response.json({ turn: 1, history: [] });
+      }),
+    );
+    render(<ChatView characterId="a" characterName="案内役" />);
+    const button = await screen.findByRole("button", { name: "画像生成" });
+    await waitFor(() => expect(button).toBeEnabled());
+    fireEvent.click(button);
+    await screen.findByText(/画像を生成できませんでした: 画像生成に失敗しました。/);
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  });
 });

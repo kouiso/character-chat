@@ -19,6 +19,9 @@ interface __BaseEnv_Env {
 	VAPID_SUBJECT: string;
 	BASIC_AUTH_USERNAME: string;
 	BASIC_AUTH_PASSWORD: string;
+	NOVITA_API_KEY: string;
+	// 外部APIモック・ローカル検証で origin を差し替える任意 var。本番は未設定で api.novita.ai。
+	NOVITA_API_BASE?: string;
 	OPENROUTER_API_KEY: string;
 	VAPID_PRIVATE_KEY: string;
 	CHAT_ROOMS: DurableObjectNamespace<import("./worker").ChatRoom>;
@@ -49,6 +52,8 @@ declare namespace Cloudflare {
 		VAPID_SUBJECT: string;
 		BASIC_AUTH_USERNAME: string;
 		BASIC_AUTH_PASSWORD: string;
+		NOVITA_API_KEY: string;
+		NOVITA_API_BASE?: string;
 		OPENROUTER_API_KEY: string;
 		VAPID_PRIVATE_KEY: string;
 		CHAT_ROOMS: DurableObjectNamespace<import("./worker").ChatRoom>;
@@ -74,6 +79,8 @@ declare namespace Cloudflare {
 		VAPID_SUBJECT: string;
 		BASIC_AUTH_USERNAME: string;
 		BASIC_AUTH_PASSWORD: string;
+		NOVITA_API_KEY: string;
+		NOVITA_API_BASE?: string;
 		OPENROUTER_API_KEY: string;
 		VAPID_PRIVATE_KEY: string;
 		CHAT_ROOMS: DurableObjectNamespace<import("./worker").ChatRoom>;
@@ -86,7 +93,7 @@ type StringifyValues<EnvType extends Record<string, unknown>> = {
 	[Binding in keyof EnvType]: EnvType[Binding] extends string ? EnvType[Binding] : string;
 };
 declare namespace NodeJS {
-	interface ProcessEnv extends StringifyValues<Pick<Cloudflare.Env, "APP_ENV" | "V2_FAKE_MODEL" | "V2_RAG_ENABLED" | "V2_MODEL" | "V2_TEST_FAULT" | "V2_HISTORY_CHARACTERS" | "V2_HISTORY_MESSAGES" | "V2_DAILY_TURN_LIMIT" | "V2_OPENROUTER_BASE_URL" | "VAPID_PUBLIC_KEY" | "VAPID_SUBJECT" | "BASIC_AUTH_USERNAME" | "BASIC_AUTH_PASSWORD" | "OPENROUTER_API_KEY" | "VAPID_PRIVATE_KEY">> {}
+	interface ProcessEnv extends StringifyValues<Pick<Cloudflare.Env, "APP_ENV" | "V2_FAKE_MODEL" | "V2_RAG_ENABLED" | "V2_MODEL" | "V2_TEST_FAULT" | "V2_HISTORY_CHARACTERS" | "V2_HISTORY_MESSAGES" | "V2_DAILY_TURN_LIMIT" | "V2_OPENROUTER_BASE_URL" | "VAPID_PUBLIC_KEY" | "VAPID_SUBJECT" | "BASIC_AUTH_USERNAME" | "BASIC_AUTH_PASSWORD" | "NOVITA_API_KEY" | "NOVITA_API_BASE" | "OPENROUTER_API_KEY" | "VAPID_PRIVATE_KEY">> {}
 }
 declare module "*.txt" {
 	const value: string;

@@ -7,6 +7,7 @@ import {
   index,
   integer,
   primaryKey,
+  real,
   sqliteTable,
   text,
   uniqueIndex,
@@ -97,6 +98,9 @@ export const v2MessageTable = sqliteTable(
     // 単発返事でも返事を作った実行先が残る（RIT-100）。
     provider: text("provider"),
     upstreamId: text("upstream_id"),
+    // 会話で生成した画像の R2 キー。旧アプリ互換の message.image_key とは別に v2 側でも持つ
+    // （旧行への leftJoin では v2 生成分を載せられんため）。配信は readOwnedImageKey の所有権確認経由のみ。
+    imageKey: text("image_key"),
     createdAt: integer("created_at").notNull(),
   },
   (table) => [
@@ -184,6 +188,45 @@ export const v2GenerationTable = sqliteTable(
   (table) => [
     index("v2_generation_conv_turn_idx").on(table.conversationId, table.turn),
     check("v2_generation_status_check", sql`${table.status} in ('ok','error','aborted')`),
+  ],
+);
+
+// 会話起点の画像生成（RIT-182）。Novita の非同期タスクと 1:1 で、完了したら
+// v2_message.image_key を持つメッセージへ繋ぐ。失敗理由は返却連動（RIT-188）の根拠にする。
+export const v2ImageGenerationTable = sqliteTable(
+  "v2_image_generation",
+  {
+    id: text("id").primaryKey(),
+    conversationId: text("conversation_id")
+      .notNull()
+      .references(() => v2ConversationTable.id),
+    // 成功時に画像を載せたメッセージ。失敗時は NULL のまま。
+    messageId: text("message_id").references(() => v2MessageTable.id),
+    status: text("status", { enum: ["running", "succeeded", "failed"] }).notNull(),
+    // 上流（Novita）のタスク id。poll はこれで状態を問い合わせる。
+    taskId: text("task_id"),
+    model: text("model").notNull(),
+    prompt: text("prompt").notNull(),
+    negativePrompt: text("negative_prompt").notNull(),
+    seed: integer("seed"),
+    width: integer("width").notNull(),
+    height: integer("height").notNull(),
+    steps: integer("steps").notNull(),
+    guidanceScale: real("guidance_scale").notNull(),
+    sampler: text("sampler").notNull(),
+    r2Key: text("r2_key"),
+    // 失敗の一次証拠。上流 status・理由を構造化して残す（返却・調査の根拠）。
+    failureJson: text("failure_json"),
+    costEstimateUsd: real("cost_estimate_usd"),
+    createdAt: integer("created_at").notNull(),
+    completedAt: integer("completed_at"),
+  },
+  (table) => [
+    index("v2_image_generation_conv_idx").on(table.conversationId, table.createdAt),
+    check(
+      "v2_image_generation_status_check",
+      sql`${table.status} in ('running','succeeded','failed')`,
+    ),
   ],
 );
 

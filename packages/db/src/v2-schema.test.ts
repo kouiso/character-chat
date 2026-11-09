@@ -17,6 +17,7 @@ import {
   v2ChunkTable,
   v2ConversationTable,
   v2GenerationTable,
+  v2ImageGenerationTable,
   v2LedgerTable,
   v2MemoryTable,
   v2MemoryJobTable,
@@ -50,6 +51,7 @@ describe("v2_ tables: SQL DDL と drizzle 宣言の一致", () => {
     characterRevisionTable,
     v2MemoryJobTable,
     v2MemorySourceTable,
+    v2ImageGenerationTable,
   ];
 
   it("SQL 側にすべての v2_ テーブルが存在する", async () => {
@@ -65,6 +67,7 @@ describe("v2_ tables: SQL DDL と drizzle 宣言の一致", () => {
         "v2_group_member",
         "v2_group_memory",
         "v2_group_message",
+        "v2_image_generation",
         "v2_ledger",
         "v2_memory",
         "v2_memory_job",

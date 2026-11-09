@@ -72,7 +72,12 @@ export default defineConfig([
 
   {
     // Durable Object・API 受付・Worker 入口の障害診断は Workers の標準ログへ構造化して出力する。
-    files: ["src/server/chat-room.ts", "src/server/api-chat.ts", "src/worker.ts"],
+    files: [
+      "src/server/chat-room.ts",
+      "src/server/api-chat.ts",
+      "src/server/api-images.ts",
+      "src/worker.ts",
+    ],
     rules: {
       "no-console": "off",
     },

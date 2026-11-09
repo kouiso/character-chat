@@ -16,15 +16,17 @@ import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as CharactersIdRouteImport } from './routes/characters/$id'
 import { Route as CharactersNewRouteImport } from './routes/characters/new'
 import { Route as ChatIdRouteImport } from './routes/chat/$id'
-import { Route as ApiCharactersIdRouteImport } from './routes/api/characters/$id'
 import { Route as ApiAdminLegacyMigrationRouteImport } from './routes/api/admin/legacy-migration'
+import { Route as ApiCharactersIdRouteImport } from './routes/api/characters/$id'
 import { Route as ApiChatIdRouteImport } from './routes/api/chat/$id'
+import { Route as ApiImageGenerationsIdRouteImport } from './routes/api/image-generations/$id'
 import { Route as ApiMediaIdRouteImport } from './routes/api/media/$id'
 import { Route as ApiPushSubscriptionsRouteImport } from './routes/api/push/subscriptions'
 import { Route as ApiPushVapidKeyRouteImport } from './routes/api/push/vapid-key'
 import { Route as ApiCharactersIdRestoreRouteImport } from './routes/api/characters/$id_/restore'
 import { Route as ApiCharactersIdVersionsRouteImport } from './routes/api/characters/$id_/versions'
 import { Route as ApiChatIdHistoryRouteImport } from './routes/api/chat/$id_/history'
+import { Route as ApiChatIdImagesRouteImport } from './routes/api/chat/$id_/images'
 import { Route as ApiGroupsIdMessagesRouteImport } from './routes/api/groups/$id_/messages'
 import { Route as ApiCharactersIdVersionsVersionRouteImport } from './routes/api/characters/$id_/versions/$version'
 import { Route as ApiProactiveCharactersIdSettingsRouteImport } from './routes/api/proactive/characters/$id_/settings'
@@ -64,20 +66,24 @@ const ChatIdRoute = ChatIdRouteImport.update({
   path: '/chat/$id',
   getParentRoute: () => rootRouteImport,
 })
+const ApiAdminLegacyMigrationRoute = ApiAdminLegacyMigrationRouteImport.update({
+  id: '/api/admin/legacy-migration',
+  path: '/api/admin/legacy-migration',
+  getParentRoute: () => rootRouteImport,
+})
 const ApiCharactersIdRoute = ApiCharactersIdRouteImport.update({
   id: '/$id',
   path: '/$id',
   getParentRoute: () => ApiCharactersRoute,
 })
-const ApiAdminLegacyMigrationRoute = ApiAdminLegacyMigrationRouteImport.update({
-  id: '/api/admin/legacy-migration',
-  path: '/api/admin/legacy-migration',
-  getParentRoute: () => rootRouteImport,
-} as any)
-
 const ApiChatIdRoute = ApiChatIdRouteImport.update({
   id: '/api/chat/$id',
   path: '/api/chat/$id',
+  getParentRoute: () => rootRouteImport,
+})
+const ApiImageGenerationsIdRoute = ApiImageGenerationsIdRouteImport.update({
+  id: '/api/image-generations/$id',
+  path: '/api/image-generations/$id',
   getParentRoute: () => rootRouteImport,
 })
 const ApiMediaIdRoute = ApiMediaIdRouteImport.update({
@@ -110,6 +116,11 @@ const ApiChatIdHistoryRoute = ApiChatIdHistoryRouteImport.update({
   path: '/api/chat/$id/history',
   getParentRoute: () => rootRouteImport,
 })
+const ApiChatIdImagesRoute = ApiChatIdImagesRouteImport.update({
+  id: '/api/chat/$id_/images',
+  path: '/api/chat/$id/images',
+  getParentRoute: () => rootRouteImport,
+})
 const ApiGroupsIdMessagesRoute = ApiGroupsIdMessagesRouteImport.update({
   id: '/$id_/messages',
   path: '/$id/messages',
@@ -136,15 +147,17 @@ export interface FileRoutesByFullPath {
   '/characters/$id': typeof CharactersIdRoute
   '/characters/new': typeof CharactersNewRoute
   '/chat/$id': typeof ChatIdRoute
-  '/api/characters/$id': typeof ApiCharactersIdRoute
   '/api/admin/legacy-migration': typeof ApiAdminLegacyMigrationRoute
+  '/api/characters/$id': typeof ApiCharactersIdRoute
   '/api/chat/$id': typeof ApiChatIdRoute
+  '/api/image-generations/$id': typeof ApiImageGenerationsIdRoute
   '/api/media/$id': typeof ApiMediaIdRoute
   '/api/push/subscriptions': typeof ApiPushSubscriptionsRoute
   '/api/push/vapid-key': typeof ApiPushVapidKeyRoute
   '/api/characters/$id/restore': typeof ApiCharactersIdRestoreRoute
   '/api/characters/$id/versions': typeof ApiCharactersIdVersionsRouteWithChildren
   '/api/chat/$id/history': typeof ApiChatIdHistoryRoute
+  '/api/chat/$id/images': typeof ApiChatIdImagesRoute
   '/api/groups/$id/messages': typeof ApiGroupsIdMessagesRoute
   '/api/characters/$id/versions/$version': typeof ApiCharactersIdVersionsVersionRoute
   '/api/proactive/characters/$id/settings': typeof ApiProactiveCharactersIdSettingsRoute
@@ -157,15 +170,17 @@ export interface FileRoutesByTo {
   '/characters/$id': typeof CharactersIdRoute
   '/characters/new': typeof CharactersNewRoute
   '/chat/$id': typeof ChatIdRoute
-  '/api/characters/$id': typeof ApiCharactersIdRoute
   '/api/admin/legacy-migration': typeof ApiAdminLegacyMigrationRoute
+  '/api/characters/$id': typeof ApiCharactersIdRoute
   '/api/chat/$id': typeof ApiChatIdRoute
+  '/api/image-generations/$id': typeof ApiImageGenerationsIdRoute
   '/api/media/$id': typeof ApiMediaIdRoute
   '/api/push/subscriptions': typeof ApiPushSubscriptionsRoute
   '/api/push/vapid-key': typeof ApiPushVapidKeyRoute
   '/api/characters/$id/restore': typeof ApiCharactersIdRestoreRoute
   '/api/characters/$id/versions': typeof ApiCharactersIdVersionsRouteWithChildren
   '/api/chat/$id/history': typeof ApiChatIdHistoryRoute
+  '/api/chat/$id/images': typeof ApiChatIdImagesRoute
   '/api/groups/$id/messages': typeof ApiGroupsIdMessagesRoute
   '/api/characters/$id/versions/$version': typeof ApiCharactersIdVersionsVersionRoute
   '/api/proactive/characters/$id/settings': typeof ApiProactiveCharactersIdSettingsRoute
@@ -179,15 +194,17 @@ export interface FileRoutesById {
   '/characters/$id': typeof CharactersIdRoute
   '/characters/new': typeof CharactersNewRoute
   '/chat/$id': typeof ChatIdRoute
-  '/api/characters/$id': typeof ApiCharactersIdRoute
   '/api/admin/legacy-migration': typeof ApiAdminLegacyMigrationRoute
+  '/api/characters/$id': typeof ApiCharactersIdRoute
   '/api/chat/$id': typeof ApiChatIdRoute
+  '/api/image-generations/$id': typeof ApiImageGenerationsIdRoute
   '/api/media/$id': typeof ApiMediaIdRoute
   '/api/push/subscriptions': typeof ApiPushSubscriptionsRoute
   '/api/push/vapid-key': typeof ApiPushVapidKeyRoute
   '/api/characters/$id_/restore': typeof ApiCharactersIdRestoreRoute
   '/api/characters/$id_/versions': typeof ApiCharactersIdVersionsRouteWithChildren
   '/api/chat/$id_/history': typeof ApiChatIdHistoryRoute
+  '/api/chat/$id_/images': typeof ApiChatIdImagesRoute
   '/api/groups/$id_/messages': typeof ApiGroupsIdMessagesRoute
   '/api/characters/$id_/versions/$version': typeof ApiCharactersIdVersionsVersionRoute
   '/api/proactive/characters/$id_/settings': typeof ApiProactiveCharactersIdSettingsRoute
@@ -202,15 +219,17 @@ export interface FileRouteTypes {
     | '/characters/$id'
     | '/characters/new'
     | '/chat/$id'
-    | '/api/characters/$id'
     | '/api/admin/legacy-migration'
+    | '/api/characters/$id'
     | '/api/chat/$id'
+    | '/api/image-generations/$id'
     | '/api/media/$id'
     | '/api/push/subscriptions'
     | '/api/push/vapid-key'
     | '/api/characters/$id/restore'
     | '/api/characters/$id/versions'
     | '/api/chat/$id/history'
+    | '/api/chat/$id/images'
     | '/api/groups/$id/messages'
     | '/api/characters/$id/versions/$version'
     | '/api/proactive/characters/$id/settings'
@@ -223,15 +242,17 @@ export interface FileRouteTypes {
     | '/characters/$id'
     | '/characters/new'
     | '/chat/$id'
-    | '/api/characters/$id'
     | '/api/admin/legacy-migration'
+    | '/api/characters/$id'
     | '/api/chat/$id'
+    | '/api/image-generations/$id'
     | '/api/media/$id'
     | '/api/push/subscriptions'
     | '/api/push/vapid-key'
     | '/api/characters/$id/restore'
     | '/api/characters/$id/versions'
     | '/api/chat/$id/history'
+    | '/api/chat/$id/images'
     | '/api/groups/$id/messages'
     | '/api/characters/$id/versions/$version'
     | '/api/proactive/characters/$id/settings'
@@ -244,15 +265,17 @@ export interface FileRouteTypes {
     | '/characters/$id'
     | '/characters/new'
     | '/chat/$id'
-    | '/api/characters/$id'
     | '/api/admin/legacy-migration'
+    | '/api/characters/$id'
     | '/api/chat/$id'
+    | '/api/image-generations/$id'
     | '/api/media/$id'
     | '/api/push/subscriptions'
     | '/api/push/vapid-key'
     | '/api/characters/$id_/restore'
     | '/api/characters/$id_/versions'
     | '/api/chat/$id_/history'
+    | '/api/chat/$id_/images'
     | '/api/groups/$id_/messages'
     | '/api/characters/$id_/versions/$version'
     | '/api/proactive/characters/$id_/settings'
@@ -266,11 +289,14 @@ export interface RootRouteChildren {
   CharactersIdRoute: typeof CharactersIdRoute
   CharactersNewRoute: typeof CharactersNewRoute
   ChatIdRoute: typeof ChatIdRoute
+  ApiAdminLegacyMigrationRoute: typeof ApiAdminLegacyMigrationRoute
   ApiChatIdRoute: typeof ApiChatIdRoute
+  ApiImageGenerationsIdRoute: typeof ApiImageGenerationsIdRoute
   ApiMediaIdRoute: typeof ApiMediaIdRoute
   ApiPushSubscriptionsRoute: typeof ApiPushSubscriptionsRoute
   ApiPushVapidKeyRoute: typeof ApiPushVapidKeyRoute
   ApiChatIdHistoryRoute: typeof ApiChatIdHistoryRoute
+  ApiChatIdImagesRoute: typeof ApiChatIdImagesRoute
   ApiProactiveCharactersIdSettingsRoute: typeof ApiProactiveCharactersIdSettingsRoute
 }
 
@@ -325,13 +351,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ChatIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/characters/$id': {
-      id: '/api/characters/$id'
-      path: '/$id'
-      fullPath: '/api/characters/$id'
-      preLoaderRoute: typeof ApiCharactersIdRouteImport
-      parentRoute: typeof ApiCharactersRoute
-    }
     '/api/admin/legacy-migration': {
       id: '/api/admin/legacy-migration'
       path: '/api/admin/legacy-migration'
@@ -339,11 +358,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminLegacyMigrationRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/characters/$id': {
+      id: '/api/characters/$id'
+      path: '/$id'
+      fullPath: '/api/characters/$id'
+      preLoaderRoute: typeof ApiCharactersIdRouteImport
+      parentRoute: typeof ApiCharactersRoute
+    }
     '/api/chat/$id': {
       id: '/api/chat/$id'
       path: '/api/chat/$id'
       fullPath: '/api/chat/$id'
       preLoaderRoute: typeof ApiChatIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/image-generations/$id': {
+      id: '/api/image-generations/$id'
+      path: '/api/image-generations/$id'
+      fullPath: '/api/image-generations/$id'
+      preLoaderRoute: typeof ApiImageGenerationsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/media/$id': {
@@ -386,6 +419,13 @@ declare module '@tanstack/react-router' {
       path: '/api/chat/$id/history'
       fullPath: '/api/chat/$id/history'
       preLoaderRoute: typeof ApiChatIdHistoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/chat/$id_/images': {
+      id: '/api/chat/$id_/images'
+      path: '/api/chat/$id/images'
+      fullPath: '/api/chat/$id/images'
+      preLoaderRoute: typeof ApiChatIdImagesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/groups/$id_/messages': {
@@ -462,11 +502,14 @@ const rootRouteChildren: RootRouteChildren = {
   CharactersIdRoute: CharactersIdRoute,
   CharactersNewRoute: CharactersNewRoute,
   ChatIdRoute: ChatIdRoute,
+  ApiAdminLegacyMigrationRoute: ApiAdminLegacyMigrationRoute,
   ApiChatIdRoute: ApiChatIdRoute,
+  ApiImageGenerationsIdRoute: ApiImageGenerationsIdRoute,
   ApiMediaIdRoute: ApiMediaIdRoute,
   ApiPushSubscriptionsRoute: ApiPushSubscriptionsRoute,
   ApiPushVapidKeyRoute: ApiPushVapidKeyRoute,
   ApiChatIdHistoryRoute: ApiChatIdHistoryRoute,
+  ApiChatIdImagesRoute: ApiChatIdImagesRoute,
   ApiProactiveCharactersIdSettingsRoute: ApiProactiveCharactersIdSettingsRoute,
 }
 export const routeTree = rootRouteImport
