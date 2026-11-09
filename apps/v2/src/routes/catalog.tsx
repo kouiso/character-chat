@@ -5,7 +5,10 @@ import { createFileRoute, getRouteApi, Link, useNavigate } from "@tanstack/react
 
 import { ReactionPanel } from "../component/reaction-panel";
 import { TipPanel } from "../component/tip-panel";
-import { forkCatalogItem, loadCatalog, type CatalogItem } from "../lib/catalog";
+import { forkCatalogItem } from "../lib/catalog";
+import { listCatalogItems } from "../server/catalog";
+
+import type { CatalogItem } from "../server/api-publish";
 
 const routeApi = getRouteApi("/catalog");
 
@@ -60,8 +63,6 @@ const CatalogPage = () => {
 };
 
 export const Route = createFileRoute("/catalog")({
-  loader: async ({ abortController }) => ({
-    items: await loadCatalog(abortController.signal),
-  }),
+  loader: async () => ({ items: await listCatalogItems() }),
   component: CatalogPage,
 });

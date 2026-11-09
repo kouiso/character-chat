@@ -40,7 +40,7 @@ const publishedRow = async (db: D1Database, characterId: string) =>
       published_at: number;
     }>();
 
-type CatalogItem = {
+export type CatalogItem = {
   characterId: string;
   name: string;
   avatar: string | null;
@@ -108,23 +108,30 @@ export const handlePublishUnset = async (characterId: string): Promise<Response>
   return json(200, { published: false });
 };
 
+// /catalog ページの server fn からも同じ一覧を引くためクエリを共有する
+export const loadCatalogItems = async (db: D1Database): Promise<CatalogItem[]> => {
+  const { results } = await db
+    .prepare(
+      "SELECT p.character_id, p.user_id, p.summary, p.published_at, c.name, c.avatar, c.greeting " +
+        "FROM v2_character_publish p JOIN character c ON c.id = p.character_id " +
+        "ORDER BY p.published_at DESC LIMIT 100",
+    )
+    .all<{
+      character_id: string;
+      user_id: string;
+      summary: string | null;
+      published_at: number;
+      name: string;
+      avatar: string | null;
+      greeting: string;
+    }>();
+  return (results ?? []).map(toCatalogItem);
+};
+
 // GET /api/catalog — 公開キャラ一覧（新しい順）
 export const handleCatalogList = async (): Promise<Response> => {
   const { env } = await getPlatform();
-  const { results } = await env.DB.prepare(
-    "SELECT p.character_id, p.user_id, p.summary, p.published_at, c.name, c.avatar, c.greeting " +
-      "FROM v2_character_publish p JOIN character c ON c.id = p.character_id " +
-      "ORDER BY p.published_at DESC LIMIT 100",
-  ).all<{
-    character_id: string;
-    user_id: string;
-    summary: string | null;
-    published_at: number;
-    name: string;
-    avatar: string | null;
-    greeting: string;
-  }>();
-  return json(200, { items: (results ?? []).map(toCatalogItem) });
+  return json(200, { items: await loadCatalogItems(env.DB) });
 };
 
 // GET /api/catalog/:id — 公開キャラ詳細（公開中のみ。プロンプト等は返さない）

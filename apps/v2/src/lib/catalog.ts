@@ -40,12 +40,6 @@ export const unsetPublished = async (characterId: string): Promise<void> => {
   if (!res.ok) throw new Error(`非公開にできませんでした（${res.status}）`);
 };
 
-export const loadCatalog = async (signal?: AbortSignal): Promise<CatalogItem[]> => {
-  const res = await fetch("/api/catalog", { signal: signal ?? null });
-  if (!res.ok) throw new Error(`公開一覧の取得に失敗しました（${res.status}）`);
-  return z.object({ items: z.array(catalogItemSchema) }).parse(await res.json()).items;
-};
-
 export const forkCatalogItem = async (characterId: string): Promise<{ id: string }> => {
   const res = await fetch(`/api/catalog/${encodeURIComponent(characterId)}/fork`, {
     method: "POST",
