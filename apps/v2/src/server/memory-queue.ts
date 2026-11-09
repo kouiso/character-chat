@@ -5,6 +5,7 @@ import {
   failMemoryExtraction,
   failMemoryIndex,
   listPendingMemoryJobs,
+  loadMemoryExtractionPolicy,
   loadMemoryExtractionSource,
   markMemoryJobsQueued,
   markMemoryPublishFailure,
@@ -96,10 +97,16 @@ export const consumeMemoryJobs = async (
     try {
       const source = await loadMemoryExtractionSource(db, jobId);
       if (source) {
-        const memories = await extractMemories(
+        const policy = await loadMemoryExtractionPolicy(db, source.conversationId);
+        const extracted = await extractMemories(
           createMemoryExtractionModel(env, source.content),
           source.content,
+          policy?.memoryInstruction,
         );
+        // 指示どおりの種類だけ残す契約。方針を読めん会話は全種類を通す。
+        const memories = policy
+          ? extracted.filter((memory) => policy.memoryKinds.includes(memory.kind))
+          : extracted;
         await completeMemoryExtraction(db, source, memories);
       }
       if (memoryVectorReady(env)) {

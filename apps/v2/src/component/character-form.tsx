@@ -17,13 +17,18 @@ const EMPTY: CharacterFormValue = {
   prologue: "",
   greeting: "",
   privateNotes: "",
+  memoryInstruction: "",
+  memoryKinds: ["fact", "preference"],
   tags: [],
   voiceRef: null,
   avatarRef: null,
   visibility: "private",
 };
 
-type TextKey = Exclude<keyof CharacterFormValue, "tags" | "visibility" | "legacyReconstructed">;
+type TextKey = Exclude<
+  keyof CharacterFormValue,
+  "tags" | "visibility" | "legacyReconstructed" | "memoryKinds"
+>;
 type Field = { key: TextKey; label: string; max: number; required?: boolean; multiline?: boolean };
 const FIELDS: Field[] = [
   { key: "name", label: "名前", max: 80, required: true },
@@ -39,6 +44,12 @@ const FIELDS: Field[] = [
     key: "privateNotes",
     label: "隠し設定（モデルには送信・共有画面には非表示）",
     max: 4000,
+    multiline: true,
+  },
+  {
+    key: "memoryInstruction",
+    label: "記憶の指示（このキャラが何を覚えるか）",
+    max: 2000,
     multiline: true,
   },
   { key: "voiceRef", label: "音声の参照ID", max: 200 },
@@ -176,6 +187,31 @@ export const CharacterForm = ({
             )}
           </label>
         ))}
+        <fieldset className="v2-memory-kinds">
+          <legend>覚える種類（両方外すと何も記憶しません）</legend>
+          {(
+            [
+              ["fact", "事実"],
+              ["preference", "好み"],
+            ] as const
+          ).map(([kind, label]) => (
+            <label key={kind}>
+              <input
+                type="checkbox"
+                aria-label={`記憶する種類: ${label}`}
+                checked={draft.content.memoryKinds.includes(kind)}
+                onChange={(event) =>
+                  change({
+                    memoryKinds: event.target.checked
+                      ? [...draft.content.memoryKinds, kind]
+                      : draft.content.memoryKinds.filter((item) => item !== kind),
+                  })
+                }
+              />
+              {label}
+            </label>
+          ))}
+        </fieldset>
         <label>
           タグ（読点かカンマ区切り・5件まで、各30文字まで）
           <input

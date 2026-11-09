@@ -13,10 +13,15 @@ validFrom and validUntil are YYYY-MM-DD dates only when explicitly stated in the
 export const extractMemories = async (
   model: BaseChatModel,
   source: string,
+  instruction?: string,
 ): Promise<ExtractedMemory[]> => {
+  // キャラ固有の指示はユーザー発言ではなく運営が書いたものなので system 側に足す。
+  const system = instruction?.trim()
+    ? `${EXTRACTION_INSTRUCTION}\nCharacter-specific instruction (follow it strictly, in addition to the rules above): ${instruction.trim()}`
+    : EXTRACTION_INSTRUCTION;
   const result = await model.invoke(
     [
-      new SystemMessage(EXTRACTION_INSTRUCTION),
+      new SystemMessage(system),
       new HumanMessage(JSON.stringify({ userMessage: source })),
     ],
     { signal: AbortSignal.timeout(20_000) },

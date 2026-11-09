@@ -18,6 +18,10 @@ export const characterContentSchema = z.object({
   prologue: z.string().trim().max(4000).default(""),
   greeting: z.string().trim().min(1).max(2000),
   privateNotes: z.string().trim().max(4000).default(""),
+  // このキャラがユーザーの発言から何を記憶するかの指示。空は指示なし。
+  memoryInstruction: z.string().trim().max(2000).default(""),
+  // 記憶として残す種類。空配列は何も覚えん指示になる。
+  memoryKinds: z.array(z.enum(["fact", "preference"])).default(["fact", "preference"]),
   tags: z.array(z.string().trim().min(1).max(30)).max(5).default([]),
   voiceRef: z.string().trim().max(200).nullable().default(null),
   avatarRef: z.string().trim().max(500).nullable().default(null),
@@ -57,6 +61,8 @@ export const legacyCharacterContent = (row: {
   prologue: "",
   greeting: row.greeting,
   privateNotes: "",
+  memoryInstruction: "",
+  memoryKinds: ["fact", "preference"],
   tags: row.tags,
   voiceRef: null,
   avatarRef: row.avatar,

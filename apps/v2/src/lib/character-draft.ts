@@ -12,6 +12,9 @@ const draftContentSchema = z.object({
   prologue: z.string(),
   greeting: z.string(),
   privateNotes: z.string(),
+  // 追加前の下書きを捨てんよう、無い場合は初期値で復元する。
+  memoryInstruction: z.string().default(""),
+  memoryKinds: z.array(z.enum(["fact", "preference"])).default(["fact", "preference"]),
   tags: z.array(z.string()),
   voiceRef: z.string().nullable(),
   avatarRef: z.string().nullable(),
