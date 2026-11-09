@@ -75,9 +75,10 @@ describe("使いすぎ止め", () => {
     const response = await post();
     expect(response.status).toBe(429);
     expect(submit).not.toHaveBeenCalled();
-    const body = await response.json();
-    expect(body.code).toBe("daily_limit");
-    expect(body.message).toContain("300");
+    expect(await response.json()).toMatchObject({
+      code: "daily_limit",
+      message: expect.stringContaining("300"),
+    });
   });
 
   it("上限未満なら受け付ける", async () => {

@@ -1,6 +1,6 @@
-// D1Database は @cloudflare/workers-types のグローバル型。db を import する側（engine 等）の tsconfig に
-// workers-types が無うても型が解けるよう、ここで参照を持つ。
-/// <reference types="@cloudflare/workers-types" />
+// D1Database は @cloudflare/workers-types のグローバル型。消費側は各 tsconfig の types で解決する。
+// （`/// <reference types>` はパッケージ index.ts を別バージョンの型コピーとして引き込み、
+// 生成済み worker-configuration.d.ts との重複宣言で env 型を潰すため置けない）
 // D1Database から drizzle クライアントを作る。ファイル単位で必要な既存スキーマだけ束ねる
 // （src/schema/index.ts を経由すると rag-chunk.ts → src/lib/scene-phase.ts まで型解決が伸びる）。
 import { drizzle } from "drizzle-orm/d1";

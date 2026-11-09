@@ -61,6 +61,7 @@ export const saveGroupMessage = async (
     content: string;
     voiceMismatch?: number;
     generationId?: string;
+    provider?: string | null;
     now: number;
   },
 ): Promise<{ turn: number }> => {
@@ -78,6 +79,7 @@ export const saveGroupMessage = async (
     content: input.content,
     voiceMismatch: input.voiceMismatch ?? null,
     generationId: input.generationId ?? null,
+    provider: input.provider ?? null,
     createdAt: input.now,
   });
   return { turn };

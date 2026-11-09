@@ -29,6 +29,7 @@ import { readCharacter } from "./character-data.server";
 import { LOCAL_USER_ID } from "./identity";
 import { retrieveMemories } from "./memory-rag";
 import { memoryVectorReady } from "./memory-vector";
+import { createProviderLookup } from "./openrouter-lookup";
 import { getPlatform } from "./platform";
 
 import type { BaseChatModel } from "@langchain/core/language_models/chat_models";
@@ -65,6 +66,7 @@ const createModel = async (): Promise<BaseChatModel> => {
   return createOpenRouterModel({
     OPENROUTER_API_KEY: env.OPENROUTER_API_KEY,
     V2_MODEL: env.V2_MODEL,
+    V2_OPENROUTER_BASE_URL: env.V2_OPENROUTER_BASE_URL,
   });
 };
 
@@ -186,6 +188,7 @@ export const startTurn = async (
       Boolean(env.MEMORY_QUEUE),
     ),
     summaryStore: createD1SummaryStore(db),
+    providerLookup: createProviderLookup(env),
   });
   const events = runTurn(
     graph,

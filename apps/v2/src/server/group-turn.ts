@@ -7,6 +7,8 @@ import {
 } from "@v2/db";
 import { extractVoice, voiceCheck } from "@v2/judge";
 
+import { resolveProvider } from "./openrouter-lookup";
+
 import type { BaseChatModel } from "@langchain/core/language_models/chat_models";
 import type { GroupMessage } from "@v2/db";
 import type { V2Db } from "@v2/db";
@@ -38,6 +40,8 @@ export type GroupTurnDeps = {
   db: V2Db;
   model: BaseChatModel;
   loadCharacter: (characterId: string) => Promise<GroupCharacter | null>;
+  // 実行先の記録用（RIT-100）。invoke の応答 id（gen-…）から provider を引く。
+  providerLookup?: (upstreamId: string) => Promise<string | null>;
   now?: () => number;
 };
 
@@ -126,13 +130,18 @@ export const runGroupTurn = async (
   // 混ざり記録は一人称・呼称・三人称の違反に語尾の不一致も数える（RIT-112 の検査対象）。
   const voiceMismatch = result.ok && !result.endingsMismatch ? 0 : 1;
 
+  const { provider, upstreamId } = await resolveProvider(response.id, deps.providerLookup);
+
   const now = deps.now?.() ?? Date.now();
   await saveGroupMessage(deps.db, {
     groupId: input.groupId,
     speakerCharacterId: speakerId,
     content: text,
     voiceMismatch,
-    generationId: input.generationId,
+    generationId: [input.generationId, upstreamId].find(
+      (v): v is string => v !== null && v !== undefined,
+    ),
+    provider,
     now,
   });
   // 決まり: その場にいる全員がその場の出来事を覚える。不参加者には何も書かれん。

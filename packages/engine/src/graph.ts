@@ -222,6 +222,10 @@ export type TurnGraphDeps = {
   // thresholdMessages: 窓から押し出された未要約メッセージがこの件数で level 1 を起こす。
   // maxLevel1: 未集約の level 1 がこの件数で level 2 にまとめ直す。
   summary?: { thresholdMessages?: number; maxLevel1?: number };
+  // 返事を実際に返した実行先（OpenRouter の provider）を生成 id から引く。
+  // 実行先の記録は完了条件（RIT-100）なので本番では必ず注入する。失敗してもターンは潰さん
+  // （その場合 provider は NULL で残り、照合クエリが未記録として拾える）。
+  providerLookup?: (upstreamId: string) => Promise<string | null>;
   checkpointer?: BaseCheckpointSaver;
   now?: () => number;
   id?: () => string;
@@ -232,7 +236,12 @@ type CappedStreamResult = {
   usage: GenerationRecord["usage"];
   truncated?: TruncatedBy;
   error?: string;
+  // OpenRouter 側の生成 id（gen-…）。実行先の照合に使う（RIT-100）。
+  upstreamId?: string;
 };
+
+const upstreamIdOf = (piece: { id?: unknown }): string | undefined =>
+  typeof piece.id === "string" && piece.id.startsWith("gen-") ? piece.id : undefined;
 
 // 締切と字数上限は同じ controller で request を止める（実モデルでは fetch が閉じる）。
 // どちらで止めたかは abort の前に truncated へ書いてから abort する。generate ノードから
@@ -252,6 +261,7 @@ const collectCappedStream = async (
   let usage: GenerationRecord["usage"] = null;
   let truncated: TruncatedBy | undefined;
   let error: string | undefined;
+  let upstreamId: string | undefined;
   const controller = new AbortController();
   const deadline = setTimeout(() => {
     truncated = "deadline";
@@ -266,6 +276,8 @@ const collectCappedStream = async (
     });
     for await (const piece of stream) {
       usage = usageOf(piece) ?? usage;
+      // OpenRouter の chunk.id は生成 id（gen-…）。後で実行先を引く鍵になる。
+      upstreamId = upstreamIdOf(piece) ?? upstreamId;
       const text = contentToText(piece.content);
       if (text.length === 0) continue;
       raw += text;
@@ -286,7 +298,7 @@ const collectCappedStream = async (
   } finally {
     clearTimeout(deadline);
   }
-  return { raw, usage, truncated, error };
+  return { raw, usage, truncated, error, upstreamId };
 };
 
 const SUMMARY_DEFAULTS = { thresholdMessages: 20, maxLevel1: 4 } as const;
@@ -471,16 +483,26 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
         const charCap = streamedCharCap(targetChars);
         const timeoutMs = state.timeoutMs ?? DEFAULT_TURN_TIMEOUT_MS;
         const startedAt = now();
-        const { raw, usage, truncated, error } = await collectCappedStream(deps.model, lcMessages, {
-          maxTokens,
-          charCap,
-          timeoutMs,
-          sampling: samplingForPhase(mechanics(state)),
-          writer: (event) => runtime.writer(event),
-        });
+        const { raw, usage, truncated, error, upstreamId } = await collectCappedStream(
+          deps.model,
+          lcMessages,
+          {
+            maxTokens,
+            charCap,
+            timeoutMs,
+            sampling: samplingForPhase(mechanics(state)),
+            writer: (event) => runtime.writer(event),
+          },
+        );
+        // 実行先の引き取りに失敗しても返事は残す。"unknown" で残った行は照合クエリで洗える。
+        const provider = upstreamId
+          ? ((await deps.providerLookup?.(upstreamId).catch(() => null)) ?? "unknown")
+          : null;
         const generation: GenerationRecord = {
           generationId,
           model: modelName,
+          provider,
+          upstreamId: upstreamId ?? null,
           promptVersion: state.prompt.version,
           systemPrompt: state.prompt.system,
           request: state.prompt.messages,
