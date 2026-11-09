@@ -138,11 +138,14 @@ export const needsExtension = (
   },
   belowRatio: number = EXTEND_BELOW_RATIO,
   mechanicsPhase: ScenePhase = state.ledger.phase,
+  // RIT-205: チャットモードの長さ倍率。needsExtension だけは createTurnGraph の外からも
+  // 呼べるよう、deps 経由ではなく引数で受ける。
+  charScale: number = 1,
 ): boolean =>
   state.raw.length > 0 &&
   !state.generation?.truncated &&
   state.extended < MAX_EXTENSIONS_PER_TURN &&
-  visibleCharsOf(state.raw) < targetCharsForPhase(mechanicsPhase) * belowRatio;
+  visibleCharsOf(state.raw) < targetCharsForPhase(mechanicsPhase) * charScale * belowRatio;
 
 export const samplingForPhase = (phase: ScenePhase): SamplingOptions => ({
   temperature: 0.7,
@@ -276,6 +279,9 @@ export type TurnGraphDeps = {
   dropMinChars?: boolean;
   // 相手の動作を書かない反応専用契約（bench 検証用）
   soloReaction?: boolean;
+  // RIT-205: チャットモードの長さ倍率。目安字数・extend 発火・max_tokens・受信キャップに
+  // 同じ倍率を掛ける。1 が既定（quality=1.5 / light=0.6 など）。
+  charScale?: number;
   // 巻き取り要約（RIT-72）。未注入では要約も注入も走らん。
   summaryStore?: SummaryStore;
   // thresholdMessages: 窓から押し出された未要約メッセージがこの件数で level 1 を起こす。
@@ -617,6 +623,9 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
   const id = deps.id ?? (() => crypto.randomUUID());
   const now = deps.now ?? (() => Date.now());
   const modelName = modelNameOf(deps.model);
+  // RIT-205: 目安字数へモード倍率を掛ける。下限 200 字（それ未満はXML枠の下書きにすら足りん）。
+  const scaledTargetChars = (phase: ScenePhase): number =>
+    Math.max(200, Math.round(targetCharsForPhase(phase) * (deps.charScale ?? 1)));
   const mechanics = (state: { ledger: { phase: ScenePhase } }): ScenePhase =>
     deps.mechanicsPhase ?? state.ledger.phase;
 
@@ -647,7 +656,7 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
           name: state.character.name,
           ledger: state.ledger,
           phase: state.ledger.phase,
-          targetChars: targetCharsForPhase(mechanics(state)),
+          targetChars: scaledTargetChars(mechanics(state)),
           exemplar: exemplarForPhase(state.ledger.phase),
           // 直前 6 ターンで使った言い回しを名指しして、語の使い回しを生成の前に止める。
           usedPhrases: collectUsedPhrases(
@@ -709,7 +718,7 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
         if (!state.prompt) throw new Error("prompt が未生成のまま generate に到達した");
         const generationId = id();
         const lcMessages = toLangchainMessages(state.prompt);
-        const targetChars = targetCharsForPhase(mechanics(state));
+        const targetChars = scaledTargetChars(mechanics(state));
         const maxTokens = maxTokensForTarget(targetChars);
         const charCap = streamedCharCap(targetChars);
         const timeoutMs = state.timeoutMs ?? DEFAULT_TURN_TIMEOUT_MS;
@@ -750,7 +759,7 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
       })
       .addNode("extend", async (state) => {
         if (!state.prompt) throw new Error("prompt が未生成のまま extend に到達した");
-        const targetChars = targetCharsForPhase(mechanics(state));
+        const targetChars = scaledTargetChars(mechanics(state));
         const instruction = [
           "ここまでの本文:",
           state.raw,
@@ -857,7 +866,7 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
         // 網が無い。2026-09-04 v2 arm run 2 の Sakura t9 は締切 120 s のターンが 149 s かかった＝書き直しが
         // 締切の外で待っとった）。締切で切れた書き直しは空文として judge に渡し、empty で落として配らん。
         const text = await regenerateWithDeadline(modelForTurn(deps, state), lcMessages, {
-          maxTokens: maxTokensForTarget(targetCharsForPhase(mechanics(state))),
+          maxTokens: maxTokensForTarget(scaledTargetChars(mechanics(state))),
           timeoutMs: state.timeoutMs ?? DEFAULT_TURN_TIMEOUT_MS,
           sampling: samplingForPhase(mechanics(state)),
         });
@@ -1016,7 +1025,9 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
       .addEdge("retrieve", "compose")
       .addEdge("compose", "generate")
       .addConditionalEdges("generate", (state) =>
-        needsExtension(state, deps.extendBelowRatio, mechanics(state)) ? "extend" : "chunk",
+        needsExtension(state, deps.extendBelowRatio, mechanics(state), deps.charScale ?? 1)
+          ? "extend"
+          : "chunk",
       )
       .addEdge("extend", "chunk")
       // 締切までに 1 字も来んかった時は chunk が無い。judge_chunk へ行くと undefined を判定して落ちるので

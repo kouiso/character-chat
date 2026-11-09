@@ -35,7 +35,7 @@ import { memoryVectorReady } from "./memory-vector";
 import { createProviderLookup, retryProviderLookup } from "./openrouter-lookup";
 import { readPlan } from "./plan";
 import { getPlatform } from "./platform";
-import { readSafeMode } from "./user-settings";
+import { readChatMode, readSafeMode, type ChatMode } from "./user-settings";
 
 export { LOCAL_USER_ID } from "./identity";
 
@@ -62,7 +62,7 @@ const FAKE_RESPONSE =
 
 // RIT-102/104: 拒否・時間切れ・障害で順に落ちる逃げ道チェーン。
 // 単モデル指定（V2_MODEL・V2_FAKE_MODEL）の時は 1 本だけの列になる。
-const createModels = async (safeMode: boolean): Promise<ModelCandidate[]> => {
+const createModels = async (safeMode: boolean, chatMode: ChatMode): Promise<ModelCandidate[]> => {
   // 実行中のWorkerに束縛された設定だけを使い、別プロセスの設定を混ぜない。
   const { env } = await getPlatform();
   if (env.APP_ENV === "test" && env.V2_FAKE_MODEL === "1") {
@@ -77,12 +77,22 @@ const createModels = async (safeMode: boolean): Promise<ModelCandidate[]> => {
       V2_OPENROUTER_BASE_URL: env.V2_OPENROUTER_BASE_URL,
       V2_MODEL_CHAIN: env.V2_MODEL_CHAIN,
       V2_SAFE_MODEL_CHAIN: env.V2_SAFE_MODEL_CHAIN,
+      V2_QUALITY_MODEL_CHAIN: env.V2_QUALITY_MODEL_CHAIN,
+      V2_LIGHT_MODEL_CHAIN: env.V2_LIGHT_MODEL_CHAIN,
     },
-    { safeMode },
+    { safeMode, chatMode },
   );
 };
 
-const getModels = (safeMode: boolean): Promise<ModelCandidate[]> => createModels(safeMode);
+const getModels = (safeMode: boolean, chatMode: ChatMode): Promise<ModelCandidate[]> =>
+  createModels(safeMode, chatMode);
+
+// RIT-205: モードごとの目安字数倍率。standard=1 が従来どおり。
+const CHAT_MODE_CHAR_SCALE: Record<ChatMode, number> = {
+  quality: 1.5,
+  standard: 1,
+  light: 0.6,
+};
 
 // V2_TURN_TIMEOUT_MS が数字なら採用、それ以外（未設定・壊れ）は既定のまま。
 const turnTimeoutFromEnv = (env: { V2_TURN_TIMEOUT_MS?: string }): number | undefined => {
@@ -182,7 +192,8 @@ export const startTurn = async (
   // セーフモードはターン開始時の設定で決める（切替は次ターンから効く・RIT-199）。
   const { env: modelEnv } = await getPlatform();
   const safeMode = modelEnv.DB ? await readSafeMode(modelEnv.DB, LOCAL_USER_ID) : false;
-  const models = await getModels(safeMode);
+  const chatMode = modelEnv.DB ? await readChatMode(modelEnv.DB, LOCAL_USER_ID) : "standard";
+  const models = await getModels(safeMode, chatMode);
   const db = await getDb();
   const conversationId = input.conversationId ?? crypto.randomUUID();
   const { character, versionId } = await resolveConversationCharacter(db, {
@@ -195,6 +206,7 @@ export const startTurn = async (
   const graph = createTurnGraph({
     model: models[0].model,
     models,
+    charScale: CHAT_MODE_CHAR_SCALE[chatMode],
     contextBudget: contextBudgetFromEnv(env),
     retrieveMemories: memoryVectorReady(env)
       ? async (targetConversationId, query) =>

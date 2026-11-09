@@ -1,30 +1,46 @@
-// ユーザー設定 API（RIT-199）。GET=現在値、PUT=更新（冪等）。
+// ユーザー設定 API（RIT-199）。GET=現在値、PUT=更新（冪等・渡した項目だけ置き換え）。
 import { z } from "zod";
 
 import { LOCAL_USER_ID } from "./identity";
 import { getPlatform } from "./platform";
-import { readSafeMode, setSafeMode } from "./user-settings";
+import { CHAT_MODES, readChatMode, readSafeMode, setChatMode, setSafeMode } from "./user-settings";
 
 const json = (status: number, body: Record<string, unknown>): Response =>
   Response.json(body, { status });
 
-// GET /api/settings — ユーザー設定を返す。行が無くても既定値を返す。
-export const handleSettingsReadRequest = async (): Promise<Response> => {
+const readSettings = async () => {
   const { env } = await getPlatform();
-  return json(200, { safeMode: await readSafeMode(env.DB, LOCAL_USER_ID) });
+  return {
+    safeMode: await readSafeMode(env.DB, LOCAL_USER_ID),
+    chatMode: await readChatMode(env.DB, LOCAL_USER_ID),
+  };
 };
 
-const settingsSchema = z.object({
-  safeMode: z.boolean(),
-});
+// GET /api/settings — ユーザー設定を返す。行が無くても既定値を返す。
+export const handleSettingsReadRequest = async (): Promise<Response> =>
+  json(200, await readSettings());
 
-// PUT /api/settings — 設定を丸ごと置き換える（セーフ切替は次ターンから効く）。
+const settingsSchema = z
+  .object({
+    safeMode: z.boolean().optional(),
+    // RIT-205: チャットモード（モデルチェーン・長さ上限の切替）。
+    chatMode: z.enum(CHAT_MODES).optional(),
+  })
+  .refine((body) => body.safeMode !== undefined || body.chatMode !== undefined, {
+    message: "更新する項目を1つ以上指定してください。",
+  });
+
+// PUT /api/settings — 渡した項目だけ更新する（切替は次ターンから効く）。
 export const handleSettingsWriteRequest = async (request: Request): Promise<Response> => {
   const parsed = settingsSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) {
-    return json(400, { message: "safeMode に true か false を指定してください。" });
+    return json(400, { message: "safeMode・chatMode のどちらかを正しい値で指定してください。" });
   }
   const { env } = await getPlatform();
-  await setSafeMode(env.DB, LOCAL_USER_ID, parsed.data.safeMode, Date.now());
-  return json(200, { safeMode: parsed.data.safeMode });
+  const now = Date.now();
+  if (parsed.data.safeMode !== undefined)
+    await setSafeMode(env.DB, LOCAL_USER_ID, parsed.data.safeMode, now);
+  if (parsed.data.chatMode !== undefined)
+    await setChatMode(env.DB, LOCAL_USER_ID, parsed.data.chatMode, now);
+  return json(200, await readSettings());
 };
