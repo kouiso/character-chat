@@ -5,12 +5,30 @@ import {
   createDb,
   listLegacySourceUserIds,
   loadCharacter,
+  loadLatestLedger,
   readDisplayHistory,
   v2ImageGenerationTable,
   v2MessageTable,
 } from "@v2/db";
 import { PROMPT_VERSION } from "@v2/prompt";
 
+import {
+  buildVisualAnchorPrompt,
+  dedupePromptTags,
+  detectExplicitContent,
+  forbiddenExpressionForPhase,
+  hasUsableIdentityAnchor,
+  KNOWN_FAILURE_NEGATIVE,
+  LORA_PINNED_RECIPE,
+  NOVITA_HAIR_COLOR_NEGATIVE_TAGS,
+  PHASE_GUARDRAILS,
+  phaseExpressionForPhase,
+  resolveVisualAnchorWeight,
+  sanitizeImageTagsForPhase,
+  stripFloatingCumTags,
+  subjectTagsForPhase,
+  type ImagePhase,
+} from "./image-phase";
 import { createNovitaClient, NOVITA_TXT2IMG_MODEL } from "./image-novita";
 
 export const IMAGE_MODEL = NOVITA_TXT2IMG_MODEL;
@@ -91,6 +109,9 @@ type CharacterVisual = {
     outfit?: string;
     negativePrompt?: string;
   } | null;
+  loraModel: string | null;
+  loraWeight: number | null;
+  loraTriggerPrompt: string | null;
 };
 
 // アプリ側の drizzle と @v2/db 側は別インスタンス解決になるので、この読込は生 SQL で済ませる
@@ -100,14 +121,26 @@ const readCharacterVisual = async (
   characterId: string,
 ): Promise<CharacterVisual> => {
   const row = await db
-    .prepare("SELECT visual_prompt, image_meta FROM character WHERE id = ?")
+    .prepare(
+      "SELECT visual_prompt, image_meta, lora_model, lora_weight, lora_trigger_prompt " +
+        "FROM character WHERE id = ?",
+    )
     .bind(characterId)
-    .first<{ visual_prompt: string | null; image_meta: string | null }>();
+    .first<{
+      visual_prompt: string | null;
+      image_meta: string | null;
+      lora_model: string | null;
+      lora_weight: number | null;
+      lora_trigger_prompt: string | null;
+    }>();
   return {
     visualPrompt: row?.visual_prompt ?? null,
     imageMeta: row?.image_meta
       ? (JSON.parse(row.image_meta) as CharacterVisual["imageMeta"])
       : null,
+    loraModel: row?.lora_model ?? null,
+    loraWeight: row?.lora_weight ?? null,
+    loraTriggerPrompt: row?.lora_trigger_prompt ?? null,
   };
 };
 
@@ -120,58 +153,139 @@ const sceneHint = (history: { role: string; content: string }[]): string | null 
   return text ? text : null;
 };
 
-// negative の重複タグを間引く。ユーザー指定・キャラ設定・品質基線を重ねると
-// 同じ語が重なりやすく、重複は単にプロンプトを食う（v1 の dedupePromptTags と同意図）。
-const dedupeTags = (joined: string): string => {
-  const seen = new Set<string>();
-  return joined
-    .split(",")
-    .map((tag) => tag.trim())
-    .filter((tag) => {
-      if (!tag) return false;
-      const key = tag.toLowerCase();
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    })
-    .join(", ");
+// 品質語尾はフェーズを問わず固定（v1 組み立て末尾の正典）。
+const QUALITY_TAIL = "masterpiece, best quality, anatomically_correct_hands, five_fingers";
+
+// negative 語尾も v1 正典。構図崩壊・実写化・人数崩れを常時弾く。
+// solo フェーズは男タグを追加で殺し、カップル構図は 3 人以上だけ殺す。
+const NEGATIVE_TAIL_BASE =
+  "monochrome, grayscale, greyscale, multiple girls, 2girls, group, crowd, realistic, photorealistic, 3d, western, text, watermark, bad anatomy, bad hands, extra hands, three hands, disembodied hand, duplicate arms, extra fingers, fewer fingers, missing fingers, extra_fingers, fused_hands, malformed_hands, mutated hands, poorly drawn hands, malformed_feet, three_legs, missing_limbs, worst quality, low quality, normal quality, cropped";
+const NEGATIVE_TAIL_SOLO = ", male, man, boy, 2boys, multiple boys";
+const NEGATIVE_TAIL_COUPLE = ", 3boys, 3girls";
+
+// LoRA ゲート: lora_model 登録済みかつ weight > 0 で発火（weight 0 以下は無効扱い。
+// 発火すると anchor も参照も外れたまま身元の担い手が消える）。身元は trigger prompt が
+// anchor ブロックを丸ごと置換し、negative・パラメータはピン留めレシピで全置換する。
+const resolveLoraGate = (
+  visual: CharacterVisual,
+): { model: string; weight: number; triggerPrompt: string } | null => {
+  if (!visual.loraModel) return null;
+  const weight = visual.loraWeight ?? 0.85;
+  if (weight <= 0) return null;
+  if (!visual.loraTriggerPrompt) {
+    // trigger 無しでも LoRA は効くが身元タグが薄くなる。運用ミス検知用に一次証拠を残す。
+    console.warn("lora gate active without trigger prompt", {
+      loraModel: visual.loraModel,
+    });
+  }
+  return {
+    model: visual.loraModel,
+    weight,
+    triggerPrompt: visual.loraTriggerPrompt ?? "",
+  };
 };
 
+// v1 `[[route]].ts` の組み立てを v2 の台帳フェーズから動かす移植版（RIT-186）。
+// 順序: [身元anchor(or LoRA trigger), 被写体, フェーズ positiveHint, 画風/服装,
+//        明示タグ, シーン文, 表情, 品質語尾] → dedupe → climax/afterglow だけ浮遊cum除去。
 export const buildImagePrompt = (
   visual: CharacterVisual,
   history: { role: string; content: string }[],
+  phase: ImagePhase,
+  turn: number,
   extraNegative?: string,
-): { prompt: string; negativePrompt: string } => {
+): { prompt: string; negativePrompt: string; loraActive: boolean } => {
   const meta = visual.imageMeta;
-  const parts = [
-    meta?.artStyle,
-    meta?.appearance,
-    meta?.outfit,
-    visual.visualPrompt,
-    sceneHint(history),
-  ].filter((part): part is string => typeof part === "string" && part.trim().length > 0);
-  // 品質基線（低解像度・崩壊 anatomy 等の品質ガード）はユーザー指定でも落とさん。
-  // ユーザー指定は先頭へ置いて最優先にし、重複は重ねず間引く（RIT-183）。
-  const negatives = dedupeTags(
-    [extraNegative, meta?.negativePrompt, BASE_NEGATIVE]
+  const lora = resolveLoraGate(visual);
+  const guardrail = PHASE_GUARDRAILS[phase];
+  const scene = sceneHint(history);
+  const explicit = detectExplicitContent(scene ?? "");
+
+  // 身元ブロックは appearance + visual_prompt。artStyle/outfit はシーン側の内容として畳む。
+  const anchorSource = [meta?.appearance, visual.visualPrompt]
+    .filter((part): part is string => typeof part === "string" && part.trim().length > 0)
+    .join(", ");
+  // 身元タグが 1 つも無いまま生成すると「プロフと別人の匿名女性」が返る。
+  // 止めるのは身元の出所が 1 つも無い時だけ（LoRA trigger も出所の 1 つ）。
+  // prompt を空にして返すと呼び出し側の既存 422 ゲートへ自然に乗る。
+  if (!lora && !hasUsableIdentityAnchor(anchorSource)) {
+    return { prompt: "", negativePrompt: "", loraActive: false };
+  }
+  const anchor = lora
+    ? lora.triggerPrompt
+    : buildVisualAnchorPrompt(anchorSource, resolveVisualAnchorWeight(phase));
+
+  const explicitTags = explicit.detected ? explicit.tags.join(", ") : "";
+  const sceneTags = sanitizeImageTagsForPhase(
+    phase,
+    [explicitTags, scene].filter(Boolean).join(", "),
+  );
+
+  const assembled = dedupePromptTags(
+    [
+      anchor,
+      subjectTagsForPhase(phase),
+      guardrail.positiveHint,
+      meta?.artStyle,
+      meta?.outfit,
+      sceneTags,
+      phaseExpressionForPhase(phase, turn),
+      QUALITY_TAIL,
+    ]
       .filter((part): part is string => typeof part === "string" && part.trim().length > 0)
       .join(", "),
   );
-  return {
-    prompt: parts.join(", "),
-    negativePrompt: negatives,
-  };
+  const prompt =
+    phase === "climax" || phase === "afterglow"
+      ? stripFloatingCumTags(assembled)
+      : assembled;
+
+  // LoRA 経路はピン留め短文 negative で全置換（長 negative は身元固定と喧嘩する）。
+  const negativePrompt = lora
+    ? LORA_PINNED_RECIPE.negativePrompt
+    : dedupePromptTags(
+        [
+          extraNegative,
+          meta?.negativePrompt,
+          BASE_NEGATIVE,
+          guardrail.negativeExtra,
+          forbiddenExpressionForPhase(phase),
+          NOVITA_HAIR_COLOR_NEGATIVE_TAGS,
+          KNOWN_FAILURE_NEGATIVE,
+          NEGATIVE_TAIL_BASE +
+            (phase === "conversation" ? NEGATIVE_TAIL_SOLO : NEGATIVE_TAIL_COUPLE),
+        ]
+          .filter((part): part is string => typeof part === "string" && part.trim().length > 0)
+          .join(", "),
+      );
+
+  return { prompt, negativePrompt, loraActive: lora !== null };
 };
 
 // プロンプトと確定パラメータをまとめて解決する。generate 本体の分岐を増やさんための切り出し。
 const prepareImageJob = (
   visual: CharacterVisual,
   history: { role: string; content: string }[],
+  phase: ImagePhase,
+  turn: number,
   overrides: ImageParamOverrides | undefined,
-): { params: ResolvedImageParams; prompt: string; negativePrompt: string } => ({
-  params: resolveImageParams(overrides),
-  ...buildImagePrompt(visual, history, overrides?.negativePrompt),
-});
+): { params: ResolvedImageParams; prompt: string; negativePrompt: string } => {
+  const built = buildImagePrompt(visual, history, phase, turn, overrides?.negativePrompt);
+  const params = resolveImageParams(overrides);
+  return {
+    params: built.loraActive
+      ? {
+          ...params,
+          width: LORA_PINNED_RECIPE.width,
+          height: LORA_PINNED_RECIPE.height,
+          steps: LORA_PINNED_RECIPE.steps,
+          guidanceScale: LORA_PINNED_RECIPE.guidanceScale,
+        }
+      : params,
+    prompt: built.prompt,
+    negativePrompt: built.negativePrompt,
+  };
+};
 
 // i2i 参照元の解決。参照は同一会話（＝本人所有）の画像付きメッセージだけに限る。
 // message_id 経由で生成行へ結び、派生元の generation id も拾う（RIT-184 の派生関係）。
@@ -448,7 +562,20 @@ export const generateConversationImage = async (input: {
     input.conversationId,
   );
   const visual = await readCharacterVisual(env.DB, input.characterId);
-  const { params, prompt, negativePrompt } = prepareImageJob(visual, display.history, input.params);
+  // フェーズは台帳の最新値が正。まだ台帳が無い会話（生成だけ先に走るケース）は conversation。
+  const ledger = await loadLatestLedger(
+    db,
+    { userId: "local", characterId: input.characterId, promptVersion: PROMPT_VERSION },
+    input.conversationId,
+  );
+  const phase: ImagePhase = ledger?.phase ?? "conversation";
+  const { params, prompt, negativePrompt } = prepareImageJob(
+    visual,
+    display.history,
+    phase,
+    display.turn,
+    input.params,
+  );
   if (!prompt) {
     throw new ImageGenerationError("キャラクターの外見設定がないため画像を生成できません。", 422);
   }
