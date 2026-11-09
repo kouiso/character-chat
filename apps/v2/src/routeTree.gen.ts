@@ -10,6 +10,8 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CatalogRouteImport } from './routes/catalog'
+import { Route as ApiCatalogRouteImport } from './routes/api/catalog'
 import { Route as ApiCharactersRouteImport } from './routes/api/characters'
 import { Route as ApiCurrencyRouteImport } from './routes/api/currency'
 import { Route as ApiGroupsRouteImport } from './routes/api/groups'
@@ -20,6 +22,7 @@ import { Route as CharactersIdRouteImport } from './routes/characters/$id'
 import { Route as CharactersNewRouteImport } from './routes/characters/new'
 import { Route as ChatIdRouteImport } from './routes/chat/$id'
 import { Route as ApiAdminLegacyMigrationRouteImport } from './routes/api/admin/legacy-migration'
+import { Route as ApiCatalogIdRouteImport } from './routes/api/catalog/$id'
 import { Route as ApiCharactersIdRouteImport } from './routes/api/characters/$id'
 import { Route as ApiChatIdRouteImport } from './routes/api/chat/$id'
 import { Route as ApiCurrencyAdRewardRouteImport } from './routes/api/currency/ad-reward'
@@ -29,8 +32,10 @@ import { Route as ApiMediaIdRouteImport } from './routes/api/media/$id'
 import { Route as ApiPlanCancelRouteImport } from './routes/api/plan/cancel'
 import { Route as ApiPushSubscriptionsRouteImport } from './routes/api/push/subscriptions'
 import { Route as ApiPushVapidKeyRouteImport } from './routes/api/push/vapid-key'
+import { Route as ApiCatalogIdForkRouteImport } from './routes/api/catalog/$id_/fork'
 import { Route as ApiCharactersIdDocumentsRouteImport } from './routes/api/characters/$id_/documents'
 import { Route as ApiCharactersIdMemoriesRouteImport } from './routes/api/characters/$id_/memories'
+import { Route as ApiCharactersIdPublishRouteImport } from './routes/api/characters/$id_/publish'
 import { Route as ApiCharactersIdRestoreRouteImport } from './routes/api/characters/$id_/restore'
 import { Route as ApiCharactersIdVersionsRouteImport } from './routes/api/characters/$id_/versions'
 import { Route as ApiChatIdBranchRouteImport } from './routes/api/chat/$id_/branch'
@@ -50,6 +55,16 @@ import { Route as ApiProactiveCharactersIdSettingsRouteImport } from './routes/a
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+})
+const CatalogRoute = CatalogRouteImport.update({
+  id: '/catalog',
+  path: '/catalog',
+  getParentRoute: () => rootRouteImport,
+})
+const ApiCatalogRoute = ApiCatalogRouteImport.update({
+  id: '/api/catalog',
+  path: '/api/catalog',
   getParentRoute: () => rootRouteImport,
 })
 const ApiCharactersRoute = ApiCharactersRouteImport.update({
@@ -102,6 +117,11 @@ const ApiAdminLegacyMigrationRoute = ApiAdminLegacyMigrationRouteImport.update({
   path: '/api/admin/legacy-migration',
   getParentRoute: () => rootRouteImport,
 })
+const ApiCatalogIdRoute = ApiCatalogIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiCatalogRoute,
+})
 const ApiCharactersIdRoute = ApiCharactersIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -147,6 +167,11 @@ const ApiPushVapidKeyRoute = ApiPushVapidKeyRouteImport.update({
   path: '/api/push/vapid-key',
   getParentRoute: () => rootRouteImport,
 })
+const ApiCatalogIdForkRoute = ApiCatalogIdForkRouteImport.update({
+  id: '/$id_/fork',
+  path: '/$id/fork',
+  getParentRoute: () => ApiCatalogRoute,
+})
 const ApiCharactersIdDocumentsRoute =
   ApiCharactersIdDocumentsRouteImport.update({
     id: '/$id_/documents',
@@ -156,6 +181,11 @@ const ApiCharactersIdDocumentsRoute =
 const ApiCharactersIdMemoriesRoute = ApiCharactersIdMemoriesRouteImport.update({
   id: '/$id_/memories',
   path: '/$id/memories',
+  getParentRoute: () => ApiCharactersRoute,
+})
+const ApiCharactersIdPublishRoute = ApiCharactersIdPublishRouteImport.update({
+  id: '/$id_/publish',
+  path: '/$id/publish',
   getParentRoute: () => ApiCharactersRoute,
 })
 const ApiCharactersIdRestoreRoute = ApiCharactersIdRestoreRouteImport.update({
@@ -239,6 +269,8 @@ const ApiProactiveCharactersIdSettingsRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/catalog': typeof CatalogRoute
+  '/api/catalog': typeof ApiCatalogRouteWithChildren
   '/api/characters': typeof ApiCharactersRouteWithChildren
   '/api/currency': typeof ApiCurrencyRouteWithChildren
   '/api/groups': typeof ApiGroupsRouteWithChildren
@@ -249,6 +281,7 @@ export interface FileRoutesByFullPath {
   '/characters/new': typeof CharactersNewRoute
   '/chat/$id': typeof ChatIdRoute
   '/api/admin/legacy-migration': typeof ApiAdminLegacyMigrationRoute
+  '/api/catalog/$id': typeof ApiCatalogIdRoute
   '/api/characters/$id': typeof ApiCharactersIdRoute
   '/api/chat/$id': typeof ApiChatIdRoute
   '/api/currency/ad-reward': typeof ApiCurrencyAdRewardRoute
@@ -258,8 +291,10 @@ export interface FileRoutesByFullPath {
   '/api/plan/cancel': typeof ApiPlanCancelRoute
   '/api/push/subscriptions': typeof ApiPushSubscriptionsRoute
   '/api/push/vapid-key': typeof ApiPushVapidKeyRoute
+  '/api/catalog/$id/fork': typeof ApiCatalogIdForkRoute
   '/api/characters/$id/documents': typeof ApiCharactersIdDocumentsRouteWithChildren
   '/api/characters/$id/memories': typeof ApiCharactersIdMemoriesRoute
+  '/api/characters/$id/publish': typeof ApiCharactersIdPublishRoute
   '/api/characters/$id/restore': typeof ApiCharactersIdRestoreRoute
   '/api/characters/$id/versions': typeof ApiCharactersIdVersionsRouteWithChildren
   '/api/chat/$id/branch': typeof ApiChatIdBranchRoute
@@ -278,6 +313,8 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/catalog': typeof CatalogRoute
+  '/api/catalog': typeof ApiCatalogRouteWithChildren
   '/api/characters': typeof ApiCharactersRouteWithChildren
   '/api/currency': typeof ApiCurrencyRouteWithChildren
   '/api/groups': typeof ApiGroupsRouteWithChildren
@@ -288,6 +325,7 @@ export interface FileRoutesByTo {
   '/characters/new': typeof CharactersNewRoute
   '/chat/$id': typeof ChatIdRoute
   '/api/admin/legacy-migration': typeof ApiAdminLegacyMigrationRoute
+  '/api/catalog/$id': typeof ApiCatalogIdRoute
   '/api/characters/$id': typeof ApiCharactersIdRoute
   '/api/chat/$id': typeof ApiChatIdRoute
   '/api/currency/ad-reward': typeof ApiCurrencyAdRewardRoute
@@ -297,8 +335,10 @@ export interface FileRoutesByTo {
   '/api/plan/cancel': typeof ApiPlanCancelRoute
   '/api/push/subscriptions': typeof ApiPushSubscriptionsRoute
   '/api/push/vapid-key': typeof ApiPushVapidKeyRoute
+  '/api/catalog/$id/fork': typeof ApiCatalogIdForkRoute
   '/api/characters/$id/documents': typeof ApiCharactersIdDocumentsRouteWithChildren
   '/api/characters/$id/memories': typeof ApiCharactersIdMemoriesRoute
+  '/api/characters/$id/publish': typeof ApiCharactersIdPublishRoute
   '/api/characters/$id/restore': typeof ApiCharactersIdRestoreRoute
   '/api/characters/$id/versions': typeof ApiCharactersIdVersionsRouteWithChildren
   '/api/chat/$id/branch': typeof ApiChatIdBranchRoute
@@ -318,6 +358,8 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/catalog': typeof CatalogRoute
+  '/api/catalog': typeof ApiCatalogRouteWithChildren
   '/api/characters': typeof ApiCharactersRouteWithChildren
   '/api/currency': typeof ApiCurrencyRouteWithChildren
   '/api/groups': typeof ApiGroupsRouteWithChildren
@@ -328,6 +370,7 @@ export interface FileRoutesById {
   '/characters/new': typeof CharactersNewRoute
   '/chat/$id': typeof ChatIdRoute
   '/api/admin/legacy-migration': typeof ApiAdminLegacyMigrationRoute
+  '/api/catalog/$id': typeof ApiCatalogIdRoute
   '/api/characters/$id': typeof ApiCharactersIdRoute
   '/api/chat/$id': typeof ApiChatIdRoute
   '/api/currency/ad-reward': typeof ApiCurrencyAdRewardRoute
@@ -337,8 +380,10 @@ export interface FileRoutesById {
   '/api/plan/cancel': typeof ApiPlanCancelRoute
   '/api/push/subscriptions': typeof ApiPushSubscriptionsRoute
   '/api/push/vapid-key': typeof ApiPushVapidKeyRoute
+  '/api/catalog/$id_/fork': typeof ApiCatalogIdForkRoute
   '/api/characters/$id_/documents': typeof ApiCharactersIdDocumentsRouteWithChildren
   '/api/characters/$id_/memories': typeof ApiCharactersIdMemoriesRoute
+  '/api/characters/$id_/publish': typeof ApiCharactersIdPublishRoute
   '/api/characters/$id_/restore': typeof ApiCharactersIdRestoreRoute
   '/api/characters/$id_/versions': typeof ApiCharactersIdVersionsRouteWithChildren
   '/api/chat/$id_/branch': typeof ApiChatIdBranchRoute
@@ -359,6 +404,8 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/catalog'
+    | '/api/catalog'
     | '/api/characters'
     | '/api/currency'
     | '/api/groups'
@@ -369,6 +416,7 @@ export interface FileRouteTypes {
     | '/characters/new'
     | '/chat/$id'
     | '/api/admin/legacy-migration'
+    | '/api/catalog/$id'
     | '/api/characters/$id'
     | '/api/chat/$id'
     | '/api/currency/ad-reward'
@@ -378,8 +426,10 @@ export interface FileRouteTypes {
     | '/api/plan/cancel'
     | '/api/push/subscriptions'
     | '/api/push/vapid-key'
+    | '/api/catalog/$id/fork'
     | '/api/characters/$id/documents'
     | '/api/characters/$id/memories'
+    | '/api/characters/$id/publish'
     | '/api/characters/$id/restore'
     | '/api/characters/$id/versions'
     | '/api/chat/$id/branch'
@@ -398,6 +448,8 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/catalog'
+    | '/api/catalog'
     | '/api/characters'
     | '/api/currency'
     | '/api/groups'
@@ -408,6 +460,7 @@ export interface FileRouteTypes {
     | '/characters/new'
     | '/chat/$id'
     | '/api/admin/legacy-migration'
+    | '/api/catalog/$id'
     | '/api/characters/$id'
     | '/api/chat/$id'
     | '/api/currency/ad-reward'
@@ -417,8 +470,10 @@ export interface FileRouteTypes {
     | '/api/plan/cancel'
     | '/api/push/subscriptions'
     | '/api/push/vapid-key'
+    | '/api/catalog/$id/fork'
     | '/api/characters/$id/documents'
     | '/api/characters/$id/memories'
+    | '/api/characters/$id/publish'
     | '/api/characters/$id/restore'
     | '/api/characters/$id/versions'
     | '/api/chat/$id/branch'
@@ -437,6 +492,8 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/catalog'
+    | '/api/catalog'
     | '/api/characters'
     | '/api/currency'
     | '/api/groups'
@@ -447,6 +504,7 @@ export interface FileRouteTypes {
     | '/characters/new'
     | '/chat/$id'
     | '/api/admin/legacy-migration'
+    | '/api/catalog/$id'
     | '/api/characters/$id'
     | '/api/chat/$id'
     | '/api/currency/ad-reward'
@@ -456,8 +514,10 @@ export interface FileRouteTypes {
     | '/api/plan/cancel'
     | '/api/push/subscriptions'
     | '/api/push/vapid-key'
+    | '/api/catalog/$id_/fork'
     | '/api/characters/$id_/documents'
     | '/api/characters/$id_/memories'
+    | '/api/characters/$id_/publish'
     | '/api/characters/$id_/restore'
     | '/api/characters/$id_/versions'
     | '/api/chat/$id_/branch'
@@ -477,6 +537,8 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CatalogRoute: typeof CatalogRoute
+  ApiCatalogRoute: typeof ApiCatalogRouteWithChildren
   ApiCharactersRoute: typeof ApiCharactersRouteWithChildren
   ApiCurrencyRoute: typeof ApiCurrencyRouteWithChildren
   ApiGroupsRoute: typeof ApiGroupsRouteWithChildren
@@ -510,6 +572,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/catalog': {
+      id: '/catalog'
+      path: '/catalog'
+      fullPath: '/catalog'
+      preLoaderRoute: typeof CatalogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/catalog': {
+      id: '/api/catalog'
+      path: '/api/catalog'
+      fullPath: '/api/catalog'
+      preLoaderRoute: typeof ApiCatalogRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/characters': {
@@ -582,6 +658,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminLegacyMigrationRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/catalog/$id': {
+      id: '/api/catalog/$id'
+      path: '/$id'
+      fullPath: '/api/catalog/$id'
+      preLoaderRoute: typeof ApiCatalogIdRouteImport
+      parentRoute: typeof ApiCatalogRoute
+    }
     '/api/characters/$id': {
       id: '/api/characters/$id'
       path: '/$id'
@@ -645,6 +728,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPushVapidKeyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/catalog/$id_/fork': {
+      id: '/api/catalog/$id_/fork'
+      path: '/$id/fork'
+      fullPath: '/api/catalog/$id/fork'
+      preLoaderRoute: typeof ApiCatalogIdForkRouteImport
+      parentRoute: typeof ApiCatalogRoute
+    }
     '/api/characters/$id_/documents': {
       id: '/api/characters/$id_/documents'
       path: '/$id/documents'
@@ -657,6 +747,13 @@ declare module '@tanstack/react-router' {
       path: '/$id/memories'
       fullPath: '/api/characters/$id/memories'
       preLoaderRoute: typeof ApiCharactersIdMemoriesRouteImport
+      parentRoute: typeof ApiCharactersRoute
+    }
+    '/api/characters/$id_/publish': {
+      id: '/api/characters/$id_/publish'
+      path: '/$id/publish'
+      fullPath: '/api/characters/$id/publish'
+      preLoaderRoute: typeof ApiCharactersIdPublishRouteImport
       parentRoute: typeof ApiCharactersRoute
     }
     '/api/characters/$id_/restore': {
@@ -714,7 +811,7 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/chat/$id/marks'
       preLoaderRoute: typeof ApiChatIdMarksRouteImport
       parentRoute: typeof rootRouteImport
-    },
+    }
     '/api/chat/$id_/memory': {
       id: '/api/chat/$id_/memory'
       path: '/api/chat/$id/memory'
@@ -767,6 +864,20 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface ApiCatalogRouteChildren {
+  ApiCatalogIdRoute: typeof ApiCatalogIdRoute
+  ApiCatalogIdForkRoute: typeof ApiCatalogIdForkRoute
+}
+
+const ApiCatalogRouteChildren: ApiCatalogRouteChildren = {
+  ApiCatalogIdRoute: ApiCatalogIdRoute,
+  ApiCatalogIdForkRoute: ApiCatalogIdForkRoute,
+}
+
+const ApiCatalogRouteWithChildren = ApiCatalogRoute._addFileChildren(
+  ApiCatalogRouteChildren,
+)
+
 interface ApiCharactersIdDocumentsRouteChildren {
   ApiCharactersIdDocumentsDocRoute: typeof ApiCharactersIdDocumentsDocRoute
 }
@@ -799,6 +910,7 @@ interface ApiCharactersRouteChildren {
   ApiCharactersIdRoute: typeof ApiCharactersIdRoute
   ApiCharactersIdDocumentsRoute: typeof ApiCharactersIdDocumentsRouteWithChildren
   ApiCharactersIdMemoriesRoute: typeof ApiCharactersIdMemoriesRoute
+  ApiCharactersIdPublishRoute: typeof ApiCharactersIdPublishRoute
   ApiCharactersIdRestoreRoute: typeof ApiCharactersIdRestoreRoute
   ApiCharactersIdVersionsRoute: typeof ApiCharactersIdVersionsRouteWithChildren
 }
@@ -807,6 +919,7 @@ const ApiCharactersRouteChildren: ApiCharactersRouteChildren = {
   ApiCharactersIdRoute: ApiCharactersIdRoute,
   ApiCharactersIdDocumentsRoute: ApiCharactersIdDocumentsRouteWithChildren,
   ApiCharactersIdMemoriesRoute: ApiCharactersIdMemoriesRoute,
+  ApiCharactersIdPublishRoute: ApiCharactersIdPublishRoute,
   ApiCharactersIdRestoreRoute: ApiCharactersIdRestoreRoute,
   ApiCharactersIdVersionsRoute: ApiCharactersIdVersionsRouteWithChildren,
 }
@@ -856,6 +969,8 @@ const ApiPlanRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CatalogRoute: CatalogRoute,
+  ApiCatalogRoute: ApiCatalogRouteWithChildren,
   ApiCharactersRoute: ApiCharactersRouteWithChildren,
   ApiCurrencyRoute: ApiCurrencyRouteWithChildren,
   ApiGroupsRoute: ApiGroupsRouteWithChildren,

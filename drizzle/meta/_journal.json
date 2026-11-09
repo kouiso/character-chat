@@ -393,6 +393,13 @@
       "when": 1762940400000,
       "tag": "20261110030000_rit204_message_mark",
       "breakpoints": true
+    },
+    {
+      "idx": 91,
+      "version": "7",
+      "when": 1762941300000,
+      "tag": "20261110031500_rit206_character_publish",
+      "breakpoints": true
     }
   ]
 }
