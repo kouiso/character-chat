@@ -17,6 +17,7 @@ import { Route as CharactersIdRouteImport } from './routes/characters/$id'
 import { Route as CharactersNewRouteImport } from './routes/characters/new'
 import { Route as ChatIdRouteImport } from './routes/chat/$id'
 import { Route as ApiCharactersIdRouteImport } from './routes/api/characters/$id'
+import { Route as ApiAdminLegacyMigrationRouteImport } from './routes/api/admin/legacy-migration'
 import { Route as ApiChatIdRouteImport } from './routes/api/chat/$id'
 import { Route as ApiMediaIdRouteImport } from './routes/api/media/$id'
 import { Route as ApiPushSubscriptionsRouteImport } from './routes/api/push/subscriptions'
@@ -68,6 +69,12 @@ const ApiCharactersIdRoute = ApiCharactersIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ApiCharactersRoute,
 })
+const ApiAdminLegacyMigrationRoute = ApiAdminLegacyMigrationRouteImport.update({
+  id: '/api/admin/legacy-migration',
+  path: '/api/admin/legacy-migration',
+  getParentRoute: () => rootRouteImport,
+} as any)
+
 const ApiChatIdRoute = ApiChatIdRouteImport.update({
   id: '/api/chat/$id',
   path: '/api/chat/$id',
@@ -130,6 +137,7 @@ export interface FileRoutesByFullPath {
   '/characters/new': typeof CharactersNewRoute
   '/chat/$id': typeof ChatIdRoute
   '/api/characters/$id': typeof ApiCharactersIdRoute
+  '/api/admin/legacy-migration': typeof ApiAdminLegacyMigrationRoute
   '/api/chat/$id': typeof ApiChatIdRoute
   '/api/media/$id': typeof ApiMediaIdRoute
   '/api/push/subscriptions': typeof ApiPushSubscriptionsRoute
@@ -150,6 +158,7 @@ export interface FileRoutesByTo {
   '/characters/new': typeof CharactersNewRoute
   '/chat/$id': typeof ChatIdRoute
   '/api/characters/$id': typeof ApiCharactersIdRoute
+  '/api/admin/legacy-migration': typeof ApiAdminLegacyMigrationRoute
   '/api/chat/$id': typeof ApiChatIdRoute
   '/api/media/$id': typeof ApiMediaIdRoute
   '/api/push/subscriptions': typeof ApiPushSubscriptionsRoute
@@ -171,6 +180,7 @@ export interface FileRoutesById {
   '/characters/new': typeof CharactersNewRoute
   '/chat/$id': typeof ChatIdRoute
   '/api/characters/$id': typeof ApiCharactersIdRoute
+  '/api/admin/legacy-migration': typeof ApiAdminLegacyMigrationRoute
   '/api/chat/$id': typeof ApiChatIdRoute
   '/api/media/$id': typeof ApiMediaIdRoute
   '/api/push/subscriptions': typeof ApiPushSubscriptionsRoute
@@ -193,6 +203,7 @@ export interface FileRouteTypes {
     | '/characters/new'
     | '/chat/$id'
     | '/api/characters/$id'
+    | '/api/admin/legacy-migration'
     | '/api/chat/$id'
     | '/api/media/$id'
     | '/api/push/subscriptions'
@@ -213,6 +224,7 @@ export interface FileRouteTypes {
     | '/characters/new'
     | '/chat/$id'
     | '/api/characters/$id'
+    | '/api/admin/legacy-migration'
     | '/api/chat/$id'
     | '/api/media/$id'
     | '/api/push/subscriptions'
@@ -233,6 +245,7 @@ export interface FileRouteTypes {
     | '/characters/new'
     | '/chat/$id'
     | '/api/characters/$id'
+    | '/api/admin/legacy-migration'
     | '/api/chat/$id'
     | '/api/media/$id'
     | '/api/push/subscriptions'
@@ -318,6 +331,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/characters/$id'
       preLoaderRoute: typeof ApiCharactersIdRouteImport
       parentRoute: typeof ApiCharactersRoute
+    }
+    '/api/admin/legacy-migration': {
+      id: '/api/admin/legacy-migration'
+      path: '/api/admin/legacy-migration'
+      fullPath: '/api/admin/legacy-migration'
+      preLoaderRoute: typeof ApiAdminLegacyMigrationRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/chat/$id': {
       id: '/api/chat/$id'
