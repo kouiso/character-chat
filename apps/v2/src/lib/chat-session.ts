@@ -307,6 +307,9 @@ const imageGallerySchema = z.object({
       messageId: z.string(),
       imageUrl: z.string(),
       generationId: z.string().nullable(),
+      // 4コマ漫画の束（RIT-189）。同じ起動のコマは同じ groupId、並びは panelIndex。
+      groupId: z.string().nullable(),
+      panelIndex: z.number().int().nullable(),
       turn: z.number().int(),
       createdAt: z.number(),
     }),
@@ -325,6 +328,46 @@ export const listChatImages = async (
   );
   if (!response.ok) throw new Error("画像履歴を読み込めませんでした。");
   return imageGallerySchema.parse(await response.json()).images;
+};
+
+// 4コマ漫画の生成（RIT-189）。コマごとの成否をそのまま返し、
+// 全部落ちた時（502）は失敗メッセージを投げる。
+const comicResultSchema = z.object({
+  groupId: z.string(),
+  panelCount: z.number().int(),
+  panels: z.array(
+    z.object({
+      panelIndex: z.number().int(),
+      ok: z.boolean(),
+      messageId: z.string().optional(),
+      imageUrl: z.string().optional(),
+      generationId: z.string().optional(),
+      message: z.string().optional(),
+    }),
+  ),
+});
+export type ChatComicResult = z.infer<typeof comicResultSchema>;
+
+export const requestChatComic = async (
+  characterId: string,
+  conversationId: string,
+  signal: AbortSignal,
+  // 失敗コマだけの再生成（RIT-189）。束とコマ番号はセットで渡す。
+  retry?: { groupId: string; panelIndex: number },
+): Promise<ChatComicResult> => {
+  const response = await throughNetwork(() =>
+    fetch(`/api/chat/${encodeURIComponent(characterId)}/comic`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      signal,
+      body: JSON.stringify({ conversationId, ...retry }),
+    }),
+  );
+  if (!response.ok) {
+    const body = (await response.json().catch(() => null)) as { message?: string } | null;
+    throw new Error(body?.message ?? "4コマを生成できませんでした。再試行してください。");
+  }
+  return comicResultSchema.parse(await response.json());
 };
 
 // 消した画像は一覧・タイムラインの両方から消える（サーバがメッセージ行と R2 実体を消す）。

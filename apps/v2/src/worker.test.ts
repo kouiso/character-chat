@@ -48,6 +48,7 @@ const UNAUTHENTICATED_PROBES = [
   ["PATCH", "/api/chat/example/ledger"],
   ["POST", "/api/chat/example"],
   ["POST", "/api/chat/example/images"],
+  ["POST", "/api/chat/example/comic"],
   ["OPTIONS", "/api/chat/example"],
   ["GET", "/api/media/message-1"],
   ["GET", "/api/characters"],

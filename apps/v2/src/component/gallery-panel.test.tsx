@@ -8,6 +8,8 @@ const IMAGES = [
     messageId: "m2",
     imageUrl: "/api/media/m2",
     generationId: "g2",
+    groupId: null,
+    panelIndex: null,
     turn: 4,
     createdAt: 200,
   },
@@ -15,17 +17,27 @@ const IMAGES = [
     messageId: "m1",
     imageUrl: "/api/media/m1",
     generationId: "g1",
+    groupId: null,
+    panelIndex: null,
     turn: 2,
     createdAt: 100,
   },
 ];
 
+// RIT-189 の4コマ束。panelIndex 0-3 で1コマ（2）だけ欠けてる状態。
+const COMIC_IMAGES = [3, 1, 0].map((panelIndex) => ({
+  messageId: `c${panelIndex}`,
+  imageUrl: `/api/media/c${panelIndex}`,
+  generationId: `gen-c${panelIndex}`,
+  groupId: "grp-1",
+  panelIndex,
+  turn: 10 + panelIndex,
+  createdAt: 300 + panelIndex,
+}));
+
 const galleryResponse = () => Response.json({ images: IMAGES }, { status: 200 });
 
-const renderPanel = (props?: {
-  onJumpToMessage?: (url: string) => void;
-  onChanged?: () => void;
-}) =>
+const renderPanel = (props?: { onJumpToMessage?: (url: string) => void; onChanged?: () => void }) =>
   render(
     <GalleryPanel
       characterId="char"
@@ -57,7 +69,10 @@ describe("画像履歴ギャラリー", () => {
   });
 
   it("画像が無ければ案内を出す", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () => Response.json({ images: [] })));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => Response.json({ images: [] })),
+    );
     renderPanel();
 
     fireEvent.click(screen.getByRole("button", { name: "画像履歴" }));
@@ -66,7 +81,10 @@ describe("画像履歴ギャラリー", () => {
   });
 
   it("サムネイルを押すと画像を開き、閉じられる", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () => galleryResponse()));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => galleryResponse()),
+    );
     renderPanel();
 
     fireEvent.click(screen.getByRole("button", { name: "画像履歴" }));
@@ -78,7 +96,10 @@ describe("画像履歴ギャラリー", () => {
   });
 
   it("「会話へ」で該当メッセージへ戻る指示が親へ届く", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () => galleryResponse()));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => galleryResponse()),
+    );
     const onJumpToMessage = vi.fn();
     renderPanel({ onJumpToMessage });
 
@@ -117,5 +138,95 @@ describe("画像履歴ギャラリー", () => {
       expect(screen.queryByRole("button", { name: "ターン2の画像を開く" })).not.toBeInTheDocument();
     });
     expect(onChanged).toHaveBeenCalled();
+  });
+
+  it("「4コマにする」で POST comic が飛び、生成後に一覧を読み直す", async () => {
+    const fetchMock = vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(_input);
+      if (url.endsWith("/comic") && init?.method === "POST") {
+        return Response.json(
+          {
+            groupId: "grp-1",
+            panelCount: 4,
+            panels: [0, 1, 2, 3].map((panelIndex) => ({
+              panelIndex,
+              ok: true,
+              messageId: `c${panelIndex}`,
+              imageUrl: `/api/media/c${panelIndex}`,
+              generationId: `gen-c${panelIndex}`,
+            })),
+          },
+          { status: 200 },
+        );
+      }
+      return Response.json({ images: [] }, { status: 200 });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const onChanged = vi.fn();
+    renderPanel({ onChanged });
+
+    fireEvent.click(screen.getByRole("button", { name: "画像履歴" }));
+    fireEvent.click(await screen.findByRole("button", { name: "4コマにする" }));
+
+    await waitFor(() => {
+      const call = fetchMock.mock.calls.find(
+        ([input, init]) => String(input).endsWith("/comic") && init?.method === "POST",
+      );
+      expect(call).toBeTruthy();
+      expect(JSON.parse(String(call?.[1]?.body))).toEqual({ conversationId: "conv" });
+    });
+    expect(onChanged).toHaveBeenCalled();
+  });
+
+  it("同じ groupId のコマは束ねて出し、欠けたコマは生成ボタンになる", async () => {
+    const fetchMock = vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(_input);
+      if (url.endsWith("/comic") && init?.method === "POST") {
+        return Response.json(
+          {
+            groupId: "grp-1",
+            panelCount: 1,
+            panels: [
+              {
+                panelIndex: 2,
+                ok: true,
+                messageId: "c2",
+                imageUrl: "/api/media/c2",
+                generationId: "gen-c2",
+              },
+            ],
+          },
+          { status: 200 },
+        );
+      }
+      return Response.json({ images: COMIC_IMAGES }, { status: 200 });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    renderPanel();
+
+    fireEvent.click(screen.getByRole("button", { name: "画像履歴" }));
+
+    // panelIndex 順に並ぶ（欠けた2番だけプレースホルダ）。
+    expect(await screen.findByRole("button", { name: "4コマ 1枚目を開く" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "4コマ 2枚目を開く" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "4コマ 4枚目を開く" })).toBeInTheDocument();
+    const missing = screen.getByRole("button", { name: "3枚目を生成し直す" });
+    // 欠けたコマの枠は本来の位置（3枚目）を占める。末尾へ寄せると起承転結が崩れる。
+    expect(
+      missing.compareDocumentPosition(screen.getByRole("button", { name: "4コマ 4枚目を開く" })) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    fireEvent.click(missing);
+
+    await waitFor(() => {
+      const call = fetchMock.mock.calls.find(
+        ([input, init]) => String(input).endsWith("/comic") && init?.method === "POST",
+      );
+      expect(JSON.parse(String(call?.[1]?.body))).toEqual({
+        conversationId: "conv",
+        groupId: "grp-1",
+        panelIndex: 2,
+      });
+    });
   });
 });

@@ -12,6 +12,7 @@ import {
 } from "@v2/db";
 import { PROMPT_VERSION } from "@v2/prompt";
 
+import { createNovitaClient, NOVITA_TXT2IMG_MODEL } from "./image-novita";
 import {
   buildVisualAnchorPrompt,
   dedupePromptTags,
@@ -29,7 +30,6 @@ import {
   subjectTagsForPhase,
   type ImagePhase,
 } from "./image-phase";
-import { createNovitaClient, NOVITA_TXT2IMG_MODEL } from "./image-novita";
 
 export const IMAGE_MODEL = NOVITA_TXT2IMG_MODEL;
 
@@ -114,6 +114,34 @@ type CharacterVisual = {
   loraTriggerPrompt: string | null;
 };
 
+type CharacterVisualRow = {
+  visual_prompt: string | null;
+  image_meta: string | null;
+  lora_model: string | null;
+  lora_weight: number | null;
+  lora_trigger_prompt: string | null;
+};
+
+const parseImageMeta = (raw: string | null): CharacterVisual["imageMeta"] =>
+  raw ? (JSON.parse(raw) as CharacterVisual["imageMeta"]) : null;
+
+const toCharacterVisual = (row: CharacterVisualRow | null): CharacterVisual => {
+  const {
+    visual_prompt = null,
+    image_meta = null,
+    lora_model = null,
+    lora_weight = null,
+    lora_trigger_prompt = null,
+  } = row ?? {};
+  return {
+    visualPrompt: visual_prompt,
+    imageMeta: parseImageMeta(image_meta),
+    loraModel: lora_model,
+    loraWeight: lora_weight,
+    loraTriggerPrompt: lora_trigger_prompt,
+  };
+};
+
 // アプリ側の drizzle と @v2/db 側は別インスタンス解決になるので、この読込は生 SQL で済ませる
 // （packages/db 内に寄せると apps 側の型衝突が残る。既知の二重バージョン問題）。
 const readCharacterVisual = async (
@@ -126,22 +154,8 @@ const readCharacterVisual = async (
         "FROM character WHERE id = ?",
     )
     .bind(characterId)
-    .first<{
-      visual_prompt: string | null;
-      image_meta: string | null;
-      lora_model: string | null;
-      lora_weight: number | null;
-      lora_trigger_prompt: string | null;
-    }>();
-  return {
-    visualPrompt: row?.visual_prompt ?? null,
-    imageMeta: row?.image_meta
-      ? (JSON.parse(row.image_meta) as CharacterVisual["imageMeta"])
-      : null,
-    loraModel: row?.lora_model ?? null,
-    loraWeight: row?.lora_weight ?? null,
-    loraTriggerPrompt: row?.lora_trigger_prompt ?? null,
-  };
+    .first<CharacterVisualRow>();
+  return toCharacterVisual(row);
 };
 
 // 直近シーンの手がかりはキャラの最後の発言から短く取る。長い地の文を全部積むと
@@ -174,7 +188,7 @@ const resolveLoraGate = (
   if (weight <= 0) return null;
   if (!visual.loraTriggerPrompt) {
     // trigger 無しでも LoRA は効くが身元タグが薄くなる。運用ミス検知用に一次証拠を残す。
-    console.warn("lora gate active without trigger prompt", {
+    globalThis.console.warn("lora gate active without trigger prompt", {
       loraModel: visual.loraModel,
     });
   }
@@ -183,6 +197,54 @@ const resolveLoraGate = (
     weight,
     triggerPrompt: visual.loraTriggerPrompt ?? "",
   };
+};
+
+// 身元ブロック（anchor or LoRA trigger）の解決。身元タグが 1 つも無いまま生成すると
+// 「プロフと別人の匿名女性」が返るので、出所が全経路空なら null を返して呼び出し側の
+// 422 ゲートへ乗せる（LoRA trigger も出所の 1 つ）。
+const resolvePromptAnchor = (
+  visual: CharacterVisual,
+  phase: ImagePhase,
+): { anchor: string; lora: ReturnType<typeof resolveLoraGate> } | null => {
+  const meta = visual.imageMeta;
+  const lora = resolveLoraGate(visual);
+  const anchorSource = [meta?.appearance, visual.visualPrompt]
+    .filter((part): part is string => typeof part === "string" && part.trim().length > 0)
+    .join(", ");
+  if (!lora && !hasUsableIdentityAnchor(anchorSource)) return null;
+  return {
+    lora,
+    anchor: lora
+      ? lora.triggerPrompt
+      : buildVisualAnchorPrompt(anchorSource, resolveVisualAnchorWeight(phase)),
+  };
+};
+
+// negative 側の組み立て。LoRA 経路はピン留め短文 negative で全置換（長 negative は
+// 身元固定と喧嘩する）。
+const buildNegativePrompt = (
+  visual: CharacterVisual,
+  phase: ImagePhase,
+  lora: ReturnType<typeof resolveLoraGate>,
+  extraNegative?: string,
+): string => {
+  if (lora) return LORA_PINNED_RECIPE.negativePrompt;
+  const meta = visual.imageMeta;
+  const guardrail = PHASE_GUARDRAILS[phase];
+  return dedupePromptTags(
+    [
+      extraNegative,
+      meta?.negativePrompt,
+      BASE_NEGATIVE,
+      guardrail.negativeExtra,
+      forbiddenExpressionForPhase(phase),
+      NOVITA_HAIR_COLOR_NEGATIVE_TAGS,
+      KNOWN_FAILURE_NEGATIVE,
+      NEGATIVE_TAIL_BASE + (phase === "conversation" ? NEGATIVE_TAIL_SOLO : NEGATIVE_TAIL_COUPLE),
+    ]
+      .filter((part): part is string => typeof part === "string" && part.trim().length > 0)
+      .join(", "),
+  );
 };
 
 // v1 `[[route]].ts` の組み立てを v2 の台帳フェーズから動かす移植版（RIT-186）。
@@ -196,24 +258,15 @@ export const buildImagePrompt = (
   extraNegative?: string,
 ): { prompt: string; negativePrompt: string; loraActive: boolean } => {
   const meta = visual.imageMeta;
-  const lora = resolveLoraGate(visual);
   const guardrail = PHASE_GUARDRAILS[phase];
   const scene = sceneHint(history);
   const explicit = detectExplicitContent(scene ?? "");
 
-  // 身元ブロックは appearance + visual_prompt。artStyle/outfit はシーン側の内容として畳む。
-  const anchorSource = [meta?.appearance, visual.visualPrompt]
-    .filter((part): part is string => typeof part === "string" && part.trim().length > 0)
-    .join(", ");
-  // 身元タグが 1 つも無いまま生成すると「プロフと別人の匿名女性」が返る。
-  // 止めるのは身元の出所が 1 つも無い時だけ（LoRA trigger も出所の 1 つ）。
-  // prompt を空にして返すと呼び出し側の既存 422 ゲートへ自然に乗る。
-  if (!lora && !hasUsableIdentityAnchor(anchorSource)) {
+  const resolved = resolvePromptAnchor(visual, phase);
+  if (!resolved) {
     return { prompt: "", negativePrompt: "", loraActive: false };
   }
-  const anchor = lora
-    ? lora.triggerPrompt
-    : buildVisualAnchorPrompt(anchorSource, resolveVisualAnchorWeight(phase));
+  const { anchor, lora } = resolved;
 
   const explicitTags = explicit.detected ? explicit.tags.join(", ") : "";
   const sceneTags = sanitizeImageTagsForPhase(
@@ -236,30 +289,13 @@ export const buildImagePrompt = (
       .join(", "),
   );
   const prompt =
-    phase === "climax" || phase === "afterglow"
-      ? stripFloatingCumTags(assembled)
-      : assembled;
+    phase === "climax" || phase === "afterglow" ? stripFloatingCumTags(assembled) : assembled;
 
-  // LoRA 経路はピン留め短文 negative で全置換（長 negative は身元固定と喧嘩する）。
-  const negativePrompt = lora
-    ? LORA_PINNED_RECIPE.negativePrompt
-    : dedupePromptTags(
-        [
-          extraNegative,
-          meta?.negativePrompt,
-          BASE_NEGATIVE,
-          guardrail.negativeExtra,
-          forbiddenExpressionForPhase(phase),
-          NOVITA_HAIR_COLOR_NEGATIVE_TAGS,
-          KNOWN_FAILURE_NEGATIVE,
-          NEGATIVE_TAIL_BASE +
-            (phase === "conversation" ? NEGATIVE_TAIL_SOLO : NEGATIVE_TAIL_COUPLE),
-        ]
-          .filter((part): part is string => typeof part === "string" && part.trim().length > 0)
-          .join(", "),
-      );
-
-  return { prompt, negativePrompt, loraActive: lora !== null };
+  return {
+    prompt,
+    negativePrompt: buildNegativePrompt(visual, phase, lora, extraNegative),
+    loraActive: lora !== null,
+  };
 };
 
 // プロンプトと確定パラメータをまとめて解決する。generate 本体の分岐を増やさんための切り出し。
@@ -370,6 +406,10 @@ type GenerationBase = ResolvedImageParams & {
   prompt: string;
   negativePrompt: string;
   sourceGenerationId?: string | null;
+  // 4コマ漫画（RIT-189）では同一起動の行が同じ groupId を持ち、コマ順は panelIndex。
+  // 単発生成はどちらも指定されず NULL のまま。
+  groupId?: string | null;
+  panelIndex?: number | null;
 };
 
 type FailureRecorder = (reason: string, taskId?: string) => Promise<ConversationImageResult>;
@@ -437,6 +477,7 @@ const persistSuccess = async (input: {
   taskId: string;
   turn: number;
   image: { imageUrl: string; seed: number | null };
+  content?: string;
 }): Promise<ConversationImageResult> => {
   const bytes = await fetchImageBytes(input.fetchImpl, input.image.imageUrl);
   const imageKey = `images/${crypto.randomUUID()}.png`;
@@ -448,7 +489,7 @@ const persistSuccess = async (input: {
       conversationId: input.base.conversationId,
       turn: input.turn,
       role: "assistant",
-      content: "（画像を生成した）",
+      content: input.content ?? "（画像を生成した）",
       imageKey,
       createdAt: Date.now(),
     }),
@@ -480,6 +521,7 @@ const runGeneration = async (deps: {
   base: GenerationBase;
   i2i: Awaited<ReturnType<typeof prepareI2i>> | null;
   turn: number;
+  content?: string;
   fetchImpl?: typeof fetch;
 }): Promise<ConversationImageResult> => {
   const { env, db, base, i2i } = deps;
@@ -524,6 +566,7 @@ const runGeneration = async (deps: {
       taskId,
       turn: deps.turn,
       image: result,
+      content: deps.content,
     });
   } catch (error) {
     const reason = error instanceof Error ? error.message : String(error);
@@ -614,3 +657,165 @@ export const generateConversationImage = async (input: {
 
 export const isCharacterMismatchError = (error: unknown): boolean =>
   error instanceof ImageGenerationError && error.status === 404;
+
+// 4コマ漫画（RIT-189）。直近シーンを4つのコマへ分け、同じ group_id と panel_index で
+// 束ねた生成行を残す。身元 anchor はコマ間で同じなので、コマごとに変えるのは構図と
+// シーンの抜き出しだけ。画像メッセージは1コマ1行でタイムラインへ出す。
+export const COMIC_PANEL_COUNT = 4;
+
+// コマごとのカメラ距離。起承転結に合わせて「引き→寄り→動き→寄り」にする。
+const COMIC_PANEL_FRAMING = [
+  "wide shot",
+  "close-up",
+  "medium shot",
+  "close-up, emotional expression",
+];
+
+// 画像メッセージのマーカー文はシーンとして積むとゴミが混ざるので、コマ分けの元から外す。
+const isImageMarker = (content: string): boolean => /^（(?:画像を生成した|4コマ)/.test(content);
+
+// 直近の本文を文単位で4等分する。文が足りんコマは構図指示だけになる（フェーズ表情が効く）。
+const splitSceneBeats = (text: string | null): string[] => {
+  if (!text) return [];
+  const sentences = text
+    .split(/(?<=[\n!.?。！？])/)
+    .map((sentence) => sentence.trim())
+    .filter((sentence) => sentence.length > 0);
+  if (sentences.length === 0) return [];
+  const size = Math.ceil(sentences.length / COMIC_PANEL_COUNT);
+  const beats: string[] = [];
+  for (let index = 0; index < sentences.length; index += size) {
+    beats.push(sentences.slice(index, index + size).join(""));
+  }
+  return beats.slice(0, COMIC_PANEL_COUNT);
+};
+
+export type ComicPanelResult = ConversationImageResult & { panelIndex: number };
+
+export type ConversationComicResult = {
+  ok: boolean;
+  groupId: string;
+  panels: ComicPanelResult[];
+};
+
+// コマ再生成は既存の束へ足すだけ。他の会話や存在しない束へ混ざらんよう、
+// この会話にその束があることと、対象コマがまだ画像を持たんことを確かめる。
+const assertComicGroupRetryable = async (
+  db: D1Database,
+  conversationId: string,
+  groupId: string,
+  panelIndex: number | undefined,
+): Promise<void> => {
+  const groupRows = await db
+    .prepare("SELECT id FROM v2_image_generation WHERE group_id = ? AND conversation_id = ?")
+    .bind(groupId, conversationId)
+    .all<{ id: string }>();
+  if (groupRows.results.length === 0) {
+    throw new ImageGenerationError("対象の4コマが見つかりません。", 404);
+  }
+  const occupiedRows = await db
+    .prepare(
+      // message_id は消した画像へも残るので「生きたメッセージがある」かで判定する。
+      // （消したコマの再生成を 409 で永久に塞がんため）
+      "SELECT g.id FROM v2_image_generation g " +
+        "JOIN v2_message m ON m.id = g.message_id " +
+        "WHERE g.group_id = ? AND g.conversation_id = ? AND g.panel_index = ?",
+    )
+    .bind(groupId, conversationId, panelIndex ?? -1)
+    .all<{ id: string }>();
+  const occupied = occupiedRows.results.length > 0;
+  if (occupied) {
+    throw new ImageGenerationError("そのコマはもう生成されています。", 409);
+  }
+};
+
+export const generateConversationComic = async (input: {
+  env: ImageEnv;
+  characterId: string;
+  conversationId: string;
+  // 失敗コマだけの再生成（RIT-189）。指定時はそのコマだけを同じ束へ足す。
+  groupId?: string;
+  panelIndex?: number;
+  fetchImpl?: typeof fetch;
+}): Promise<ConversationComicResult> => {
+  const { env } = input;
+  const db = createDb(env.DB);
+  const owners = ["local", ...(await listLegacySourceUserIds(db))];
+  const loaded = await loadCharacter(db, input.characterId, owners);
+  if (!loaded.ok) {
+    throw new ImageGenerationError("会話またはキャラクターが見つかりません。", 404);
+  }
+  const opts = { userId: "local", characterId: input.characterId, promptVersion: PROMPT_VERSION };
+  const display = await readDisplayHistory(db, opts, input.conversationId);
+  const visual = await readCharacterVisual(env.DB, input.characterId);
+  const ledger = await loadLatestLedger(db, opts, input.conversationId);
+  const phase: ImagePhase = ledger?.phase ?? "conversation";
+
+  const lastScene = [...display.history]
+    .reverse()
+    .find((row) => row.role === "assistant" && !isImageMarker(row.content));
+  const beats = splitSceneBeats(lastScene?.content ?? null);
+
+  // コマごとのシーンは「構図指示 + 分けた本文」。履歴末尾へ積むと sceneHint が拾う。
+  const indices =
+    input.panelIndex !== undefined ? [input.panelIndex] : [...new Array(COMIC_PANEL_COUNT).keys()];
+  const jobs = indices.map((panelIndex) => {
+    const scene = [COMIC_PANEL_FRAMING[panelIndex], beats[panelIndex]]
+      .filter((part): part is string => typeof part === "string" && part.length > 0)
+      .join(", ");
+    const panelHistory = [
+      ...display.history,
+      { id: "", turn: display.turn, role: "assistant" as const, content: scene, imageKey: null },
+    ];
+    return { panelIndex, ...prepareImageJob(visual, panelHistory, phase, display.turn, undefined) };
+  });
+  if (jobs.some((job) => !job.prompt)) {
+    throw new ImageGenerationError("キャラクターの外見設定がないため画像を生成できません。", 422);
+  }
+
+  const groupId = input.groupId ?? crypto.randomUUID();
+  if (input.groupId !== undefined) {
+    await assertComicGroupRetryable(env.DB, input.conversationId, input.groupId, input.panelIndex);
+  }
+  // 4コマは同一起動なので並列で投げる。各コマの成否はそれぞれの生成行が持ち、
+  // 1コマの失敗で他コマは落ちない。
+  const panels = await Promise.all(
+    jobs.map(async (job) => {
+      const base: GenerationBase = {
+        id: crypto.randomUUID(),
+        conversationId: input.conversationId,
+        characterId: input.characterId,
+        prompt: job.prompt,
+        negativePrompt: job.negativePrompt,
+        groupId,
+        panelIndex: job.panelIndex,
+        ...job.params,
+      };
+      try {
+        // 画像メッセージのユニーク制約（会話×ターン×役割）に当たらんよう、一括生成はコマごとに
+        // ターンをずらす。コマ単位の再生成は1行だけなので次の空きターンそのものを使う
+        // （display.turn + panelIndex だと、後続の4コマが使う枠へ潜り込んで衝突し得る）。
+        const result = await runGeneration({
+          env,
+          db,
+          base,
+          i2i: null,
+          turn: input.panelIndex !== undefined ? display.turn : display.turn + job.panelIndex,
+          content: `（4コマ ${job.panelIndex + 1}/${COMIC_PANEL_COUNT}）`,
+          fetchImpl: input.fetchImpl,
+        });
+        return { ...result, panelIndex: job.panelIndex };
+      } catch {
+        // 失敗行は runGeneration 内で既に記録済み。ここでは結果へ畳むだけ。
+        return {
+          ok: false as const,
+          generationId: base.id,
+          status: 502,
+          message: "画像を生成できませんでした。",
+          panelIndex: job.panelIndex,
+        };
+      }
+    }),
+  );
+  return { ok: panels.some((panel) => panel.ok), groupId, panels };
+};

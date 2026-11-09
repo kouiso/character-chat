@@ -474,6 +474,9 @@ export type ConversationImageRow = {
   turn: number;
   imageKey: string;
   generationId: string | null;
+  // 4コマ漫画の束（RIT-189）。同じ起動のコマは同じ値、並びは panelIndex。
+  groupId: string | null;
+  panelIndex: number | null;
   createdAt: number;
 };
 
@@ -493,6 +496,8 @@ export const listConversationImages = async (
       imageKey: v2MessageTable.imageKey,
       legacyImageKey: messageTable.imageKey,
       generationId: v2ImageGenerationTable.id,
+      groupId: v2ImageGenerationTable.groupId,
+      panelIndex: v2ImageGenerationTable.panelIndex,
       createdAt: v2MessageTable.createdAt,
     })
     .from(v2MessageTable)
@@ -512,6 +517,8 @@ export const listConversationImages = async (
       turn: row.turn,
       imageKey: (row.imageKey ?? row.legacyImageKey) as string,
       generationId: row.generationId ?? null,
+      groupId: row.groupId ?? null,
+      panelIndex: row.panelIndex ?? null,
       createdAt: row.createdAt,
     }));
 };

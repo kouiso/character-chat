@@ -2,13 +2,18 @@
 // 成功時に画像が R2 へ入り image_key 付きメッセージと生成記録が残ること、
 // 失敗時に理由つき記録だけが残ることを見る。
 // @vitest-environment node
-import { v2ConversationTable, v2MessageTable } from "@v2/db";
+import { createDb, deleteConversationImage, v2ConversationTable, v2MessageTable } from "@v2/db";
+import { PROMPT_VERSION } from "@v2/prompt";
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { openLocalD1, type LocalD1 } from "../../../../packages/db/src/test/local-d1";
 import { characterTable } from "../../../../src/schema/character";
 
-import { buildImagePrompt, generateConversationImage } from "./image-generation";
+import {
+  buildImagePrompt,
+  generateConversationComic,
+  generateConversationImage,
+} from "./image-generation";
 
 const NOW = 1794290000000;
 const PNG_HEAD = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 1, 2, 3]);
@@ -132,7 +137,7 @@ describe("generateConversationImage", () => {
       content: "海辺を歩きながら微笑んだ。潮風が髪を揺らす。",
       createdAt: NOW,
     });
-  });
+  }, 60_000);
 
   // 共有ローカル D1 は前回 run の行が残る。対象会話の生成・画像行を毎回掃除して
   // 「最後の行」を今回のテスト生成に確定させる。
@@ -433,6 +438,267 @@ describe("generateConversationImage", () => {
   });
 });
 
+describe("generateConversationComic", () => {
+  // RIT-189: 4コマ漫画。同じ会話シードを使い、group_id・panel_index・
+  // コマごとの構図違い・部分失敗・コマ単位の再生成を見る。
+  let local: LocalD1;
+  let charId: string;
+
+  const env = (bucket: Pick<R2Bucket, "put">) => ({
+    DB: local.d1,
+    BUCKET: bucket as R2Bucket,
+    NOVITA_API_KEY: "test-key",
+  });
+
+  const imageMessages = async () =>
+    local.d1
+      .prepare(
+        "SELECT id, turn, content FROM v2_message WHERE conversation_id = ? AND image_key IS NOT NULL ORDER BY turn",
+      )
+      .bind("rit189-conv")
+      .all<{ id: string; turn: number; content: string }>();
+
+  const generationRows = async () =>
+    local.d1
+      .prepare(
+        "SELECT status, failure_reason, group_id, panel_index, prompt FROM v2_image_generation WHERE conversation_id = ? ORDER BY panel_index, created_at",
+      )
+      .bind("rit189-conv")
+      .all<{
+        status: string;
+        failure_reason: string | null;
+        group_id: string | null;
+        panel_index: number | null;
+        prompt: string;
+      }>();
+
+  // コマ番号で成否を分ける模擬 fetch。init の N 回目だけ失敗させる。
+  const novitaFetchFailPanel = (failInitCall: number): typeof fetch => {
+    let initCount = 0;
+    const impl = vi.fn(async (input: RequestInfo | URL) => {
+      const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
+      if (url.endsWith("/txt2img") || url.endsWith("/img2img")) {
+        initCount += 1;
+        return Response.json({ task_id: `rit189-task-${initCount}` });
+      }
+      if (url.includes("/task-result")) {
+        const taskId = new URL(url).searchParams.get("task_id") ?? "";
+        const failed = taskId === `rit189-task-${failInitCall}`;
+        return Response.json({
+          task: {
+            task_id: taskId,
+            status: failed ? "TASK_STATUS_FAILED" : "TASK_STATUS_SUCCEED",
+            progress_percent: 100,
+          },
+          ...(failed ? {} : { images: [{ image_url: "https://example.com/rit189.png", seed: 7 }] }),
+        });
+      }
+      if (url === "https://example.com/rit189.png") {
+        return new Response(PNG_HEAD, { headers: { "content-type": "image/png" } });
+      }
+      return new Response("unexpected", { status: 500 });
+    });
+    return impl as unknown as typeof fetch;
+  };
+
+  beforeAll(async () => {
+    local = await openLocalD1();
+    const chars = await local.db
+      .select({ id: characterTable.id, imageMeta: characterTable.imageMeta })
+      .from(characterTable)
+      .limit(1);
+    charId = chars[0].id;
+    if (!chars[0].imageMeta) {
+      await local.d1
+        .prepare("UPDATE character SET image_meta = ? WHERE id = ?")
+        .bind(
+          JSON.stringify({
+            appearance: "long silver hair, blue eyes",
+            artStyle: "anime style",
+            outfit: "white dress",
+          }),
+          charId,
+        )
+        .run();
+    }
+    await local.db.insert(v2ConversationTable).values({
+      id: "rit189-conv",
+      userId: "local",
+      characterId: charId,
+      title: "",
+      threadId: "rit189-conv",
+      promptVersion: "test",
+      createdAt: NOW,
+      updatedAt: NOW,
+    });
+    // 4文あるシーン。コマ分けが文単位で効くかを見るため複文にする。
+    await local.db.insert(v2MessageTable).values({
+      id: "rit189-msg-1",
+      conversationId: "rit189-conv",
+      turn: 1,
+      role: "assistant",
+      content: "浜辺を歩く。貝を拾った。波が寄せる。夕日が沈む。",
+      createdAt: NOW,
+    });
+  }, 60_000);
+
+  beforeEach(async () => {
+    await local.d1
+      .prepare("DELETE FROM v2_image_generation WHERE conversation_id = ?")
+      .bind("rit189-conv")
+      .run();
+    await local.d1
+      .prepare("DELETE FROM v2_message WHERE conversation_id = ? AND image_key IS NOT NULL")
+      .bind("rit189-conv")
+      .run();
+  });
+
+  afterAll(async () => {
+    await local.d1.batch([
+      local.d1
+        .prepare("DELETE FROM v2_image_generation WHERE conversation_id = ?")
+        .bind("rit189-conv"),
+      local.d1.prepare("DELETE FROM v2_message WHERE conversation_id = ?").bind("rit189-conv"),
+      local.d1.prepare("DELETE FROM v2_conversation WHERE id = ?").bind("rit189-conv"),
+    ]);
+    await local.dispose();
+  });
+
+  it("成功: 4コマが同じ group_id・panel_index 0-3・別構図で記録され、メッセージも4行", async () => {
+    const bucket = bucketOf();
+    const result = await generateConversationComic({
+      env: env(bucket),
+      characterId: charId,
+      conversationId: "rit189-conv",
+      fetchImpl: novitaFetch("TASK_STATUS_SUCCEED"),
+    });
+    expect(result.ok).toBe(true);
+    expect(result.panels).toHaveLength(4);
+    expect(result.panels.every((panel) => panel.ok)).toBe(true);
+
+    const rows = (await generationRows()).results;
+    expect(rows).toHaveLength(4);
+    expect(new Set(rows.map((row) => row.group_id))).toEqual(new Set([result.groupId]));
+    expect(rows.map((row) => row.panel_index)).toEqual([0, 1, 2, 3]);
+    expect(rows[0].prompt).toContain("wide shot");
+    expect(rows[1].prompt).toContain("close-up");
+    expect(rows[2].prompt).toContain("medium shot");
+    expect(rows[3].prompt).toContain("emotional expression");
+    // 身元 anchor はコマ間で同じ（身元一致が漫画の前提）。
+    expect(rows.every((row) => row.prompt.includes("silver hair"))).toBe(true);
+
+    const messages = (await imageMessages()).results;
+    expect(messages).toHaveLength(4);
+    expect(messages[0].content).toBe("（4コマ 1/4）");
+    // コマごとにターンをずらすので画像メッセージのユニーク制約に当たらん。
+    expect(new Set(messages.map((row) => row.turn)).size).toBe(4);
+  });
+
+  it("部分失敗: 落ちたコマだけ failed 行になり、他コマは残る", async () => {
+    const result = await generateConversationComic({
+      env: env(bucketOf()),
+      characterId: charId,
+      conversationId: "rit189-conv",
+      fetchImpl: novitaFetchFailPanel(2),
+    });
+    expect(result.ok).toBe(true);
+    expect(result.panels.filter((panel) => panel.ok)).toHaveLength(3);
+    const rows = (await generationRows()).results;
+    expect(rows).toHaveLength(4);
+    const failed = rows.filter((row) => row.status === "failed");
+    expect(failed).toHaveLength(1);
+    expect(failed[0].panel_index).toBe(1);
+    expect(failed[0].failure_reason).toBeTruthy();
+    // 失敗コマにメッセージは出さん（成功 3 行だけ）。
+    expect((await imageMessages()).results).toHaveLength(3);
+  });
+
+  it("コマ単位の再生成: 同じ groupId・panelIndex で1コマだけ足せる", async () => {
+    const first = await generateConversationComic({
+      env: env(bucketOf()),
+      characterId: charId,
+      conversationId: "rit189-conv",
+      fetchImpl: novitaFetchFailPanel(2),
+    });
+    const retry = await generateConversationComic({
+      env: env(bucketOf()),
+      characterId: charId,
+      conversationId: "rit189-conv",
+      groupId: first.groupId,
+      panelIndex: 1,
+      fetchImpl: novitaFetch("TASK_STATUS_SUCCEED"),
+    });
+    expect(retry.ok).toBe(true);
+    expect(retry.panels).toHaveLength(1);
+    const rows = (await generationRows()).results;
+    expect(rows).toHaveLength(5);
+    const retried = rows.filter((row) => row.panel_index === 1);
+    expect(retried.map((row) => row.status)).toEqual(["failed", "ok"]);
+    expect(retried.every((row) => row.group_id === first.groupId)).toBe(true);
+    expect((await imageMessages()).results).toHaveLength(4);
+  });
+
+  it("再生成の束は会話内に限る: 無い groupId は 404", async () => {
+    await expect(
+      generateConversationComic({
+        env: env(bucketOf()),
+        characterId: charId,
+        conversationId: "rit189-conv",
+        groupId: "not-exists",
+        panelIndex: 0,
+        fetchImpl: novitaFetch("TASK_STATUS_SUCCEED"),
+      }),
+    ).rejects.toMatchObject({ status: 404 });
+  });
+
+  it("生成済みのコマへは再生成しない: 画像ある panelIndex は 409", async () => {
+    const first = await generateConversationComic({
+      env: env(bucketOf()),
+      characterId: charId,
+      conversationId: "rit189-conv",
+      fetchImpl: novitaFetch("TASK_STATUS_SUCCEED"),
+    });
+    await expect(
+      generateConversationComic({
+        env: env(bucketOf()),
+        characterId: charId,
+        conversationId: "rit189-conv",
+        groupId: first.groupId,
+        panelIndex: 0,
+        fetchImpl: novitaFetch("TASK_STATUS_SUCCEED"),
+      }),
+    ).rejects.toMatchObject({ status: 409 });
+    // 409 で何も足されん（4行のまま）。
+    expect((await generationRows()).results).toHaveLength(4);
+  });
+
+  it("消したコマは再生成できる: 消された行の message_id に引っ張られん", async () => {
+    const first = await generateConversationComic({
+      env: env(bucketOf()),
+      characterId: charId,
+      conversationId: "rit189-conv",
+      fetchImpl: novitaFetch("TASK_STATUS_SUCCEED"),
+    });
+    const deletedMessageId = first.panels[0].ok ? first.panels[0].messageId : "";
+    await deleteConversationImage(
+      createDb(env(bucketOf()).DB),
+      { userId: "local", characterId: charId, promptVersion: PROMPT_VERSION },
+      "rit189-conv",
+      deletedMessageId,
+    );
+    const retry = await generateConversationComic({
+      env: env(bucketOf()),
+      characterId: charId,
+      conversationId: "rit189-conv",
+      groupId: first.groupId,
+      panelIndex: 0,
+      fetchImpl: novitaFetch("TASK_STATUS_SUCCEED"),
+    });
+    expect(retry.ok).toBe(true);
+    expect(retry.panels[0].ok).toBe(true);
+  });
+});
+
 describe("buildImagePrompt", () => {
   it("外見 anchor・衣装・シーンを1本の prompt に組み、negative を合わせる", () => {
     const { prompt, negativePrompt } = buildImagePrompt(
@@ -548,12 +814,7 @@ describe("buildImagePrompt", () => {
       loraWeight: 0.85,
       loraTriggerPrompt: "testlora, 1girl",
     };
-    const { prompt, negativePrompt, loraActive } = buildImagePrompt(
-      loraVisual,
-      [],
-      "climax",
-      1,
-    );
+    const { prompt, negativePrompt, loraActive } = buildImagePrompt(loraVisual, [], "climax", 1);
     expect(loraActive).toBe(true);
     expect(prompt).toMatch(/^testlora, 1girl/);
     expect(prompt).not.toContain("silver hair:1.6");
