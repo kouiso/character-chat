@@ -444,8 +444,13 @@ describe("buildImagePrompt", () => {
           outfit: "white dress",
           negativePrompt: "extra limbs",
         },
+        loraModel: null,
+        loraWeight: null,
+        loraTriggerPrompt: null,
       },
       [{ role: "assistant", content: "浜辺で微笑む" }],
+      "conversation",
+      1,
     );
     expect(prompt).toContain("anime");
     expect(prompt).toContain("silver hair");
@@ -461,8 +466,13 @@ describe("buildImagePrompt", () => {
       {
         visualPrompt: null,
         imageMeta: { appearance: "x", artStyle: "y", negativePrompt: "bad anatomy" },
+        loraModel: null,
+        loraWeight: null,
+        loraTriggerPrompt: null,
       },
       [],
+      "conversation",
+      1,
       "monochrome, lowres",
     );
     expect(negativePrompt).toMatch(/^monochrome, lowres/);
@@ -470,5 +480,111 @@ describe("buildImagePrompt", () => {
     expect(negativePrompt).toContain("bad anatomy");
     expect(negativePrompt).toContain("watermark");
     expect(negativePrompt.split("lowres")).toHaveLength(2);
+  });
+
+  // RIT-186: 台帳フェーズでガードが切り替わる（v1 組み立ての移植）。
+  const visual = {
+    visualPrompt: "long hair",
+    imageMeta: { appearance: "silver hair, blue eyes", artStyle: "anime" },
+    loraModel: null,
+    loraWeight: null,
+    loraTriggerPrompt: null,
+  };
+
+  it("conversation フェーズは着衣ヒントと性的 negative で締める", () => {
+    const { prompt, negativePrompt } = buildImagePrompt(visual, [], "conversation", 1);
+    expect(prompt).toContain("fully clothed");
+    expect(prompt).toContain("1girl, solo");
+    expect(prompt).toContain("(silver hair:1.5)"); // conversation は anchor 弱め
+    expect(negativePrompt).toContain("nsfw");
+    expect(negativePrompt).toContain("nipples");
+    expect(negativePrompt).toContain("male, man"); // solo フェーズは男タグを殺す
+  });
+
+  it("erotic/climax フェーズは裸体肯定とクライマックス系ガードへ切り替わる", () => {
+    const erotic = buildImagePrompt(visual, [], "erotic", 2);
+    expect(erotic.prompt).toContain("completely_nude");
+    expect(erotic.prompt).toContain("1girl, 1boy, hetero, couple");
+    expect(erotic.prompt).toContain("(silver hair:1.6)");
+    expect(erotic.negativePrompt).toContain("cumshot");
+    expect(erotic.negativePrompt).not.toContain("male, man");
+
+    const climax = buildImagePrompt(visual, [], "climax", 1);
+    expect(climax.prompt).toContain("creampie");
+    // 顔・髪まみれホラー対策: 浮遊cumはpositiveから剥がれ、negative側で殺す。
+    expect(climax.prompt).not.toMatch(/(?:^|, )cum(?:,|$)/);
+    expect(climax.negativePrompt).toContain("cum_on_face");
+    expect(climax.negativePrompt).toContain("bukkake");
+  });
+
+  it("シーン文の明示キーワードを対応タグへ翻し、conversation では露出系タグを剥がす", () => {
+    const history = [{ role: "assistant", content: "中出しをねだる声が震えた" }];
+    const erotic = buildImagePrompt(visual, history, "erotic", 1);
+    expect(erotic.prompt).toContain("creampie");
+    // conversation でも明示検知タグは残る（フェーズ誤判定への保護）が、
+    // 露出系の語（nude/pussy 等）は剥がれる。
+    const conversation = buildImagePrompt(
+      visual,
+      [{ role: "assistant", content: "中出しをねだって nude になった" }],
+      "conversation",
+      1,
+    );
+    expect(conversation.prompt).toContain("creampie");
+    expect(conversation.prompt).not.toContain("cum_in_pussy");
+    expect(conversation.prompt).not.toContain("nude");
+  });
+
+  it("既知の失敗タグは常に negative 側へ入る", () => {
+    const { negativePrompt } = buildImagePrompt(visual, [], "erotic", 1);
+    expect(negativePrompt).toContain("impregnation");
+    expect(negativePrompt).toContain("mosaic_censoring");
+    expect(negativePrompt).toContain("camera");
+  });
+
+  it("LoRA 持ちキャラは trigger が anchor を置換し、negative はピン留め短文になる", () => {
+    const loraVisual = {
+      ...visual,
+      loraModel: "aiadultapp:testlora@1",
+      loraWeight: 0.85,
+      loraTriggerPrompt: "testlora, 1girl",
+    };
+    const { prompt, negativePrompt, loraActive } = buildImagePrompt(
+      loraVisual,
+      [],
+      "climax",
+      1,
+    );
+    expect(loraActive).toBe(true);
+    expect(prompt).toMatch(/^testlora, 1girl/);
+    expect(prompt).not.toContain("silver hair:1.6");
+    expect(negativePrompt).toContain("huge breasts");
+    expect(negativePrompt).not.toContain("cum_on_face");
+  });
+
+  it("loraWeight 0 は無効扱いで通常経路へ倒す", () => {
+    const disabled = buildImagePrompt(
+      { ...visual, loraModel: "x@1", loraWeight: 0, loraTriggerPrompt: "t" },
+      [],
+      "erotic",
+      1,
+    );
+    expect(disabled.loraActive).toBe(false);
+    expect(disabled.prompt).toContain("(silver hair:1.6)");
+  });
+
+  it("身元ソースが全経路空なら prompt 空で 422 ゲートへ渡す", () => {
+    const { prompt } = buildImagePrompt(
+      {
+        visualPrompt: null,
+        imageMeta: null,
+        loraModel: null,
+        loraWeight: null,
+        loraTriggerPrompt: null,
+      },
+      [],
+      "conversation",
+      1,
+    );
+    expect(prompt).toBe("");
   });
 });
