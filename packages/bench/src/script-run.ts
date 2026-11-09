@@ -6,7 +6,7 @@
 //
 // モデルは createOpenRouterModel(process.env) の実モデル。V2_FAKE_MODEL=1 のときだけ
 // persist-check と同じ FakeListChatModel（形式確認用。トランスクリプトはコミットせん）。
-import { mkdirSync, writeFileSync } from "node:fs";
+import { appendFileSync, mkdirSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { FakeListChatModel } from "@langchain/core/utils/testing";
@@ -786,6 +786,14 @@ const runCharacter = async (
     // 失敗したターンは D1 に残っとらん（persist は最後のノード）ので、次のターンを続けても
     // 履歴が抜けた別の会話になる。金を使う前にこのキャラを打ち切る。
     if (record.error) break;
+
+    // 台帳スナップショットを run へ残す（RIT-120 食い違い検査の入力）。
+    // persist 済みの最新値を読むので、失敗ターン判定より後に置く。
+    const { ledger } = await store.load(conversationId);
+    appendFileSync(
+      resolve(ctx.outDir, "ledger.jsonl"),
+      JSON.stringify({ character: entry.label, turn, ...ledger }) + "\n",
+    );
 
     const stopReason = stopReasonAfter(records.map((item) => item.ending));
     if (stopReason) {
