@@ -6,6 +6,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { characterTable } from "../../../src/schema/character";
 
+import { truncateFromTurn } from "./branch-store";
 import { CHUNK_MS_PER_CHAR } from "./chunk-schedule";
 import { openLocalD1, type LocalD1 } from "./test/local-d1";
 import {
@@ -401,12 +402,7 @@ describe("createD1TurnStore", () => {
     await local.db
       .update(v2LedgerTable)
       .set({ ledgerJson: "{not json" })
-      .where(
-        and(
-          eq(v2LedgerTable.conversationId, conversationId),
-          eq(v2LedgerTable.turn, 2),
-        ),
-      );
+      .where(and(eq(v2LedgerTable.conversationId, conversationId), eq(v2LedgerTable.turn, 2)));
 
     const loaded = await store.load(conversationId);
     expect(loaded.ledger).toEqual(ledgerAt(1));
@@ -615,7 +611,8 @@ describe("createD1TurnStore", () => {
       .select({ id: v2GenerationTable.id })
       .from(v2GenerationTable)
       .where(eq(v2GenerationTable.conversationId, conversationId));
-    expect(generationRows).toHaveLength(1);
+    // 生成記録は実コールの出処として消さん（RIT-202）。置き換え前の分も残るので 2 行。
+    expect(generationRows).toHaveLength(2);
 
     // upsert: created_at は初回のまま、updated_at だけ進む。
     const [after] = await local.db
@@ -627,6 +624,105 @@ describe("createD1TurnStore", () => {
       .where(eq(v2ConversationTable.id, conversationId));
     expect(after?.createdAt).toBe(before?.createdAt);
     expect(after?.updatedAt).toBeGreaterThanOrEqual(after?.createdAt ?? Infinity);
+  });
+
+  // RIT-202: 「ここから戻る」は行を眠らせるだけ。戻った先へ新しく送ったら、
+  // 眠った旧列を消さんまま新しい枝として積む（戻る/進むで旧列へ帰れる）。
+  it("戻った先への再送は旧枝を消さず、新しい枝番号で積む", async () => {
+    const conversationId = newConversationId();
+    for (const turn of [1, 2]) {
+      await store.saveTurn({
+        conversationId,
+        turn,
+        userText: `user ${turn}`,
+        events: chunkEvents(turn),
+        ledger: ledgerAt(turn),
+      });
+    }
+    await truncateFromTurn(local.db, conversationId, 2);
+    const rewound = await store.load(conversationId);
+    expect(rewound.turn).toBe(2);
+
+    await store.saveTurn({
+      conversationId,
+      turn: 2,
+      userText: "別の分岐の質問",
+      events: chunkEvents(2),
+      ledger: { ...ledgerAt(2), location: "別の部屋" },
+    });
+
+    const loaded = await store.load(conversationId);
+    expect(loaded.history.map((message) => message.content)).toEqual([
+      "user 1",
+      "<action>動作 1</action>\n\n<dialogue>台詞 1</dialogue>",
+      "別の分岐の質問",
+      "<action>動作 2</action>\n\n<dialogue>台詞 2</dialogue>",
+    ]);
+    // 眠った turn 2 の旧行は残っとる（2行）＋新しい枝（2行）＋ turn 1 の2行。
+    const messages = await local.db
+      .select()
+      .from(v2MessageTable)
+      .where(eq(v2MessageTable.conversationId, conversationId));
+    expect(messages).toHaveLength(6);
+    const turn2 = messages.filter((row) => row.turn === 2);
+    expect(turn2.filter((row) => row.active === 1)).toHaveLength(2);
+    expect(turn2.filter((row) => row.active === 0)).toHaveLength(2);
+    expect(turn2.find((row) => row.role === "user" && row.active === 1)?.branchNo).toBe(1);
+    expect(turn2.find((row) => row.role === "assistant" && row.active === 1)?.branchNo).toBe(1);
+    // 旧枝の chunk も残る（記憶出処・生成記録と同じく消さん設計）。
+    const sleepingAssistant = turn2.find((row) => row.role === "assistant" && row.active === 0);
+    const sleepingChunks = await local.db
+      .select({ id: v2ChunkTable.id })
+      .from(v2ChunkTable)
+      .where(eq(v2ChunkTable.messageId, sleepingAssistant!.id));
+    expect(sleepingChunks).toHaveLength(2);
+  });
+
+  it("branch=true の saveTurn は assistant だけ新しい枝へ積み、user 行は触らん", async () => {
+    const conversationId = newConversationId();
+    await store.saveTurn({
+      conversationId,
+      turn: 1,
+      userText: "user 1",
+      events: chunkEvents(1),
+      ledger: ledgerAt(1),
+    });
+    const branchStore = createD1TurnStore(local.db, {
+      userId: "vitest",
+      characterId,
+      promptVersion: "v0001",
+      branch: true,
+    });
+    await branchStore.saveTurn({
+      conversationId,
+      turn: 1,
+      userText: "user 1",
+      events: [
+        chunkEvents(1)[0],
+        {
+          type: "chunk",
+          seq: 0,
+          text: "別の返答",
+          judge: OK_JUDGE,
+          attempt: 1,
+          preExtend: true,
+        },
+      ],
+      ledger: { ...ledgerAt(1), location: "枝の部屋" },
+    });
+
+    const loaded = await store.load(conversationId);
+    expect(loaded.history.map((message) => message.content)).toEqual(["user 1", "別の返答"]);
+    const messages = await local.db
+      .select()
+      .from(v2MessageTable)
+      .where(eq(v2MessageTable.conversationId, conversationId));
+    expect(messages).toHaveLength(3);
+    const assistants = messages.filter((row) => row.role === "assistant");
+    expect(assistants).toHaveLength(2);
+    expect(assistants.filter((row) => row.active === 1)).toHaveLength(1);
+    // 台帳は最新生成で入れ直すので、枝の台帳が load で見える。
+    expect(loaded.ledger.location).toBe("枝の部屋");
   });
 
   it("存在せん character_id なら batch 全体が拒否され、どのテーブルにも行が残らん", async () => {

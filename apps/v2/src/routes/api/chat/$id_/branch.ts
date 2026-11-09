@@ -7,7 +7,7 @@ export const Route = createFileRoute("/api/chat/$id_/branch")({
   server: {
     handlers: {
       GET: ({ request }) => handleBranchList(request),
-      POST: ({ request }) => handleBranchAction(request),
+      POST: ({ request, params }) => handleBranchAction(params.id, request),
     },
   },
 });

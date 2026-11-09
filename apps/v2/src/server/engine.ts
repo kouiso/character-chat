@@ -102,6 +102,7 @@ const createStore = (
   beforeTurn?: number,
   characterVersionId?: string,
   extractMemory = false,
+  branch = false,
 ): TurnStore =>
   createD1TurnStore(db, {
     userId: LOCAL_USER_ID,
@@ -110,6 +111,7 @@ const createStore = (
     beforeTurn,
     characterVersionId,
     extractMemory,
+    branch,
   });
 
 export type StartTurnInput = {
@@ -120,6 +122,9 @@ export type StartTurnInput = {
   // 実行先の遅延解決用（RIT-100）。呼び出し側の ExecutionContext.waitUntil を渡すと、
   // /generation の索引待ちをターン完了の後ろへ回せる。未指定なら未解決のまま残る。
   waitUntil?: (promise: Promise<unknown>) => void;
+  // RIT-202 再生成: true の時 assistant 行を同じターンの新しい枝として保存する。
+  // expectedTurn は必須（再生成するターン）。
+  branch?: boolean;
 };
 
 const loadValidCharacter = async (characterId: string) => {
@@ -227,6 +232,7 @@ export const startTurn = async (
       input.expectedTurn,
       versionId ?? undefined,
       Boolean(env.MEMORY_QUEUE),
+      input.branch === true,
     ),
     summaryStore: createD1SummaryStore(db),
     providerLookup: createProviderLookup(env),
@@ -259,7 +265,12 @@ export type ConversationHistory = {
   conversationId: string;
   // 次に保存されるターン番号（= 保存済みターン数 + 1）。
   turn: number;
-  history: (HistoryMessage & { imageUrl?: string; mediaKind?: "image" | "video" })[];
+  history: (HistoryMessage & {
+    id: string;
+    turn: number;
+    imageUrl?: string;
+    mediaKind?: "image" | "video";
+  })[];
 };
 
 // GET /api/chat/:id/history と ChatRoom の job.turn の両方がここを読む。履歴と次の番号は
@@ -283,6 +294,8 @@ export const loadHistory = async (input: {
     conversationId: input.conversationId,
     turn: display.turn,
     history: display.history.map((row) => ({
+      id: row.id,
+      turn: row.turn,
       role: row.role,
       content: row.content,
       ...(row.imageKey
