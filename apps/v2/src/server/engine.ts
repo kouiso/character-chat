@@ -248,7 +248,7 @@ export type ConversationHistory = {
   conversationId: string;
   // 次に保存されるターン番号（= 保存済みターン数 + 1）。
   turn: number;
-  history: (HistoryMessage & { imageUrl?: string })[];
+  history: (HistoryMessage & { imageUrl?: string; mediaKind?: "image" | "video" })[];
 };
 
 // GET /api/chat/:id/history と ChatRoom の job.turn の両方がここを読む。履歴と次の番号は
@@ -274,7 +274,13 @@ export const loadHistory = async (input: {
     history: display.history.map((row) => ({
       role: row.role,
       content: row.content,
-      ...(row.imageKey ? { imageUrl: `/api/media/${encodeURIComponent(row.id)}` } : {}),
+      ...(row.imageKey
+        ? {
+            imageUrl: `/api/media/${encodeURIComponent(row.id)}`,
+            // 動画メッセージ（RIT-190）は mp4 キーを持つ。バブル側で video 要素に分ける。
+            mediaKind: row.imageKey.endsWith(".mp4") ? ("video" as const) : ("image" as const),
+          }
+        : {}),
     })),
   };
 };

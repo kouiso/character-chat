@@ -10,6 +10,7 @@ const IMAGES = [
     generationId: "g2",
     groupId: null,
     panelIndex: null,
+    mediaKind: "image" as const,
     turn: 4,
     createdAt: 200,
   },
@@ -19,6 +20,7 @@ const IMAGES = [
     generationId: "g1",
     groupId: null,
     panelIndex: null,
+    mediaKind: "image" as const,
     turn: 2,
     createdAt: 100,
   },
@@ -31,9 +33,22 @@ const COMIC_IMAGES = [3, 1, 0].map((panelIndex) => ({
   generationId: `gen-c${panelIndex}`,
   groupId: "grp-1",
   panelIndex,
+  mediaKind: "image" as const,
   turn: 10 + panelIndex,
   createdAt: 300 + panelIndex,
 }));
+
+// RIT-190 の動画エントリ。
+const VIDEO_IMAGE = {
+  messageId: "v1",
+  imageUrl: "/api/media/v1",
+  generationId: "gen-v1",
+  groupId: null,
+  panelIndex: null,
+  mediaKind: "video" as const,
+  turn: 20,
+  createdAt: 400,
+};
 
 const galleryResponse = () => Response.json({ images: IMAGES }, { status: 200 });
 
@@ -229,4 +244,69 @@ describe("画像履歴ギャラリー", () => {
       });
     });
   });
+
+  it("動画エントリは <video> で出し「動画にする」を出さん", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => Response.json({ images: [VIDEO_IMAGE] })),
+    );
+    renderPanel();
+
+    fireEvent.click(screen.getByRole("button", { name: "画像履歴" }));
+
+    expect(await screen.findByRole("button", { name: "ターン20の動画を開く" })).toBeInTheDocument();
+    expect(document.querySelector("video.v2-gallery-video")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "動画にする" })).not.toBeInTheDocument();
+  });
+
+  it("画像の「動画にする」は POST→ポーリング→一覧読み直しの順で動く", async () => {
+    let polled = 0;
+    const calls: { url: string; method?: string; body?: string }[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = String(input);
+        calls.push({ url, method: init?.method, body: String(init?.body ?? "") });
+        if (url.endsWith("/video") && init?.method === "POST") {
+          return Response.json({ generationId: "gen-9", status: "processing" });
+        }
+        if (url.includes("/video?")) {
+          polled += 1;
+          return Response.json(
+            polled < 2
+              ? { generationId: "gen-9", status: "processing" }
+              : {
+                  generationId: "gen-9",
+                  status: "ok",
+                  messageId: "mv-1",
+                  videoUrl: "/api/media/mv-1",
+                },
+          );
+        }
+        return Response.json({ images: [...IMAGES, VIDEO_IMAGE] });
+      }),
+    );
+    renderPanel();
+
+    fireEvent.click(screen.getByRole("button", { name: "画像履歴" }));
+    const button = (await screen.findAllByRole("button", { name: "動画にする" }))[0];
+    fireEvent.click(button);
+
+    // ポーリングは5秒間隔。2回目が来るまで待つので長めの猶予を取る。
+    await waitFor(
+      () => {
+        const post = calls.find((call) => call.url.endsWith("/video") && call.method === "POST");
+        expect(JSON.parse(post?.body ?? "")).toEqual({ conversationId: "conv", messageId: "m2" });
+        expect(polled).toBeGreaterThanOrEqual(2);
+      },
+      { timeout: 15_000 },
+    );
+    // 完了後にギャラリーが読み直され、動画タイルが出る。
+    await waitFor(
+      () => {
+        expect(document.querySelector("video.v2-gallery-video")).toBeInTheDocument();
+      },
+      { timeout: 10_000 },
+    );
+  }, 30_000);
 });

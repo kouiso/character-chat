@@ -49,6 +49,8 @@ const UNAUTHENTICATED_PROBES = [
   ["POST", "/api/chat/example"],
   ["POST", "/api/chat/example/images"],
   ["POST", "/api/chat/example/comic"],
+  ["POST", "/api/chat/example/video"],
+  ["GET", "/api/chat/example/video?generationId=x"],
   ["OPTIONS", "/api/chat/example"],
   ["GET", "/api/media/message-1"],
   ["GET", "/api/characters"],

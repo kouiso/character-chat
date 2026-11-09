@@ -330,6 +330,13 @@
       "when": 1794366300000,
       "tag": "20261109124500_rit189_comic_group",
       "breakpoints": true
+    },
+    {
+      "idx": 82,
+      "version": "7",
+      "when": 1762850400000,
+      "tag": "20261109144500_rit190_video_generation",
+      "breakpoints": true
     }
   ]
 }

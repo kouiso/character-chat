@@ -27,6 +27,8 @@ const historySchema = z.object({
       role: z.enum(["user", "assistant"]),
       content: z.string(),
       imageUrl: z.string().optional(),
+      // 動画メッセージ（RIT-190）。imageUrl の実体が mp4 なら "video"。
+      mediaKind: z.enum(["image", "video"]).optional(),
     }),
   ),
   turn: z.number().int(),
@@ -40,6 +42,7 @@ export type ChatBubble = {
   text: string;
   pending?: boolean;
   imageUrl?: string;
+  mediaKind?: "image" | "video";
 };
 export type StoredTurn = z.infer<typeof storedTurnSchema>;
 
@@ -224,6 +227,7 @@ export const loadChatHistory = async (
       role: item.role,
       text: item.content,
       imageUrl: item.imageUrl,
+      mediaKind: item.mediaKind,
     })),
     nextTurn: history.turn,
     storedTurn: history.storedTurn,
@@ -310,6 +314,8 @@ const imageGallerySchema = z.object({
       // 4コマ漫画の束（RIT-189）。同じ起動のコマは同じ groupId、並びは panelIndex。
       groupId: z.string().nullable(),
       panelIndex: z.number().int().nullable(),
+      // 動画メディア（RIT-190）。mp4 キーを持つメッセージは "video"。
+      mediaKind: z.enum(["image", "video"]),
       turn: z.number().int(),
       createdAt: z.number(),
     }),
@@ -368,6 +374,57 @@ export const requestChatComic = async (
     throw new Error(body?.message ?? "4コマを生成できませんでした。再試行してください。");
   }
   return comicResultSchema.parse(await response.json());
+};
+
+// 画像→動画変換（RIT-190）。POST は登録だけ済ませ、完了は GET で逐次ポーリングする。
+const videoStartSchema = z.object({
+  generationId: z.string(),
+  status: z.string(),
+});
+const videoStatusSchema = z.object({
+  generationId: z.string(),
+  status: z.string(),
+  messageId: z.string().optional(),
+  videoUrl: z.string().optional(),
+  failureReason: z.string().optional(),
+});
+export type ChatVideoStatus = z.infer<typeof videoStatusSchema>;
+
+export const requestChatVideo = async (
+  characterId: string,
+  conversationId: string,
+  messageId: string,
+  signal: AbortSignal,
+): Promise<{ generationId: string; status: string }> => {
+  const response = await throughNetwork(() =>
+    fetch(`/api/chat/${encodeURIComponent(characterId)}/video`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      signal,
+      body: JSON.stringify({ conversationId, messageId }),
+    }),
+  );
+  if (!response.ok) {
+    const body = (await response.json().catch(() => null)) as { message?: string } | null;
+    throw new Error(body?.message ?? "動画の生成を始められませんでした。再試行してください。");
+  }
+  return videoStartSchema.parse(await response.json());
+};
+
+export const fetchChatVideoStatus = async (
+  characterId: string,
+  generationId: string,
+  signal: AbortSignal,
+): Promise<ChatVideoStatus> => {
+  const query = new URLSearchParams({ generationId });
+  const response = await throughNetwork(() =>
+    fetch(`/api/chat/${encodeURIComponent(characterId)}/video?${query}`, { signal }),
+  );
+  if (!response.ok) {
+    const body = (await response.json().catch(() => null)) as { message?: string } | null;
+    throw new Error(body?.message ?? "動画の状態を読めませんでした。");
+  }
+  return videoStatusSchema.parse(await response.json());
 };
 
 // 消した画像は一覧・タイムラインの両方から消える（サーバがメッセージ行と R2 実体を消す）。

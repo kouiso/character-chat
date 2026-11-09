@@ -672,7 +672,8 @@ const COMIC_PANEL_FRAMING = [
 ];
 
 // 画像メッセージのマーカー文はシーンとして積むとゴミが混ざるので、コマ分けの元から外す。
-const isImageMarker = (content: string): boolean => /^（(?:画像を生成した|4コマ)/.test(content);
+const isImageMarker = (content: string): boolean =>
+  /^（(?:画像を生成した|4コマ|動画を生成した)/.test(content);
 
 // 直近の本文を文単位で4等分する。文が足りんコマは構図指示だけになる（フェーズ表情が効く）。
 const splitSceneBeats = (text: string | null): string[] => {
