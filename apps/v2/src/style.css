@@ -24,6 +24,28 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
 }
 
+.v2-group-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 12px 0;
+}
+.v2-bubble-speaker {
+  display: block;
+  font-size: 0.75rem;
+  opacity: 0.7;
+  margin-bottom: 2px;
+}
+.v2-group-input {
+  display: flex;
+  gap: 8px;
+}
+.v2-group-input input {
+  flex: 1;
+}
+.v2-group-member-option {
+  display: block;
+}
 .v2-list {
   max-width: 480px;
   margin: 0 auto;

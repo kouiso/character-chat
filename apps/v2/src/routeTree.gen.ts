@@ -28,6 +28,8 @@ import { Route as ApiTtsRouteImport } from './routes/api/tts'
 import { Route as CharactersIdRouteImport } from './routes/characters/$id'
 import { Route as CharactersNewRouteImport } from './routes/characters/new'
 import { Route as ChatIdRouteImport } from './routes/chat/$id'
+import { Route as GroupsIndexRouteImport } from './routes/groups/index'
+import { Route as GroupsIdRouteImport } from './routes/groups/$id'
 import { Route as StoriesIndexRouteImport } from './routes/stories/index'
 import { Route as StoriesIdRouteImport } from './routes/stories/$id'
 import { Route as ApiAdminLegacyMigrationRouteImport } from './routes/api/admin/legacy-migration'
@@ -174,6 +176,16 @@ const CharactersNewRoute = CharactersNewRouteImport.update({
 const ChatIdRoute = ChatIdRouteImport.update({
   id: '/chat/$id',
   path: '/chat/$id',
+  getParentRoute: () => rootRouteImport,
+})
+const GroupsIndexRoute = GroupsIndexRouteImport.update({
+  id: '/groups/',
+  path: '/groups/',
+  getParentRoute: () => rootRouteImport,
+})
+const GroupsIdRoute = GroupsIdRouteImport.update({
+  id: '/groups/$id',
+  path: '/groups/$id',
   getParentRoute: () => rootRouteImport,
 })
 const StoriesIndexRoute = StoriesIndexRouteImport.update({
@@ -465,7 +477,9 @@ export interface FileRoutesByFullPath {
   '/characters/$id': typeof CharactersIdRoute
   '/characters/new': typeof CharactersNewRoute
   '/chat/$id': typeof ChatIdRoute
+  '/groups/$id': typeof GroupsIdRoute
   '/stories/$id': typeof StoriesIdRouteWithChildren
+  '/groups/': typeof GroupsIndexRoute
   '/stories/': typeof StoriesIndexRoute
   '/api/admin/legacy-migration': typeof ApiAdminLegacyMigrationRoute
   '/api/board/$id': typeof ApiBoardIdRoute
@@ -538,7 +552,9 @@ export interface FileRoutesByTo {
   '/characters/$id': typeof CharactersIdRoute
   '/characters/new': typeof CharactersNewRoute
   '/chat/$id': typeof ChatIdRoute
+  '/groups/$id': typeof GroupsIdRoute
   '/stories/$id': typeof StoriesIdRouteWithChildren
+  '/groups': typeof GroupsIndexRoute
   '/stories': typeof StoriesIndexRoute
   '/api/admin/legacy-migration': typeof ApiAdminLegacyMigrationRoute
   '/api/board/$id': typeof ApiBoardIdRoute
@@ -612,7 +628,9 @@ export interface FileRoutesById {
   '/characters/$id': typeof CharactersIdRoute
   '/characters/new': typeof CharactersNewRoute
   '/chat/$id': typeof ChatIdRoute
+  '/groups/$id': typeof GroupsIdRoute
   '/stories/$id': typeof StoriesIdRouteWithChildren
+  '/groups/': typeof GroupsIndexRoute
   '/stories/': typeof StoriesIndexRoute
   '/api/admin/legacy-migration': typeof ApiAdminLegacyMigrationRoute
   '/api/board/$id': typeof ApiBoardIdRoute
@@ -687,7 +705,9 @@ export interface FileRouteTypes {
     | '/characters/$id'
     | '/characters/new'
     | '/chat/$id'
+    | '/groups/$id'
     | '/stories/$id'
+    | '/groups/'
     | '/stories/'
     | '/api/admin/legacy-migration'
     | '/api/board/$id'
@@ -760,7 +780,9 @@ export interface FileRouteTypes {
     | '/characters/$id'
     | '/characters/new'
     | '/chat/$id'
+    | '/groups/$id'
     | '/stories/$id'
+    | '/groups'
     | '/stories'
     | '/api/admin/legacy-migration'
     | '/api/board/$id'
@@ -833,7 +855,9 @@ export interface FileRouteTypes {
     | '/characters/$id'
     | '/characters/new'
     | '/chat/$id'
+    | '/groups/$id'
     | '/stories/$id'
+    | '/groups/'
     | '/stories/'
     | '/api/admin/legacy-migration'
     | '/api/board/$id'
@@ -907,7 +931,9 @@ export interface RootRouteChildren {
   CharactersIdRoute: typeof CharactersIdRoute
   CharactersNewRoute: typeof CharactersNewRoute
   ChatIdRoute: typeof ChatIdRoute
+  GroupsIdRoute: typeof GroupsIdRoute
   StoriesIdRoute: typeof StoriesIdRouteWithChildren
+  GroupsIndexRoute: typeof GroupsIndexRoute
   StoriesIndexRoute: typeof StoriesIndexRoute
   ApiAdminLegacyMigrationRoute: typeof ApiAdminLegacyMigrationRoute
   ApiChapterMediaIdRoute: typeof ApiChapterMediaIdRoute
@@ -1063,6 +1089,20 @@ declare module '@tanstack/react-router' {
       path: '/chat/$id'
       fullPath: '/chat/$id'
       preLoaderRoute: typeof ChatIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/groups/': {
+      id: '/groups/'
+      path: '/groups'
+      fullPath: '/groups/'
+      preLoaderRoute: typeof GroupsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/groups/$id': {
+      id: '/groups/$id'
+      path: '/groups/$id'
+      fullPath: '/groups/$id'
+      preLoaderRoute: typeof GroupsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/stories/': {
@@ -1636,7 +1676,9 @@ const rootRouteChildren: RootRouteChildren = {
   CharactersIdRoute: CharactersIdRoute,
   CharactersNewRoute: CharactersNewRoute,
   ChatIdRoute: ChatIdRoute,
+  GroupsIdRoute: GroupsIdRoute,
   StoriesIdRoute: StoriesIdRouteWithChildren,
+  GroupsIndexRoute: GroupsIndexRoute,
   StoriesIndexRoute: StoriesIndexRoute,
   ApiAdminLegacyMigrationRoute: ApiAdminLegacyMigrationRoute,
   ApiChapterMediaIdRoute: ApiChapterMediaIdRoute,
