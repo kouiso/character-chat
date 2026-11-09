@@ -15,6 +15,7 @@
     "test": "vitest run",
     "lint": "eslint --config ../../eslint.v2.config.js .",
     "bench": "tsx src/run.ts --fake",
+    "memory-recall": "tsx src/memory-recall-check.ts",
     "persist-check": "tsx src/persist-check.ts",
     "script-run": "tsx src/script-run.ts",
     "repetition-rate": "tsx src/repetition-rate.ts",

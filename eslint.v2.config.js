@@ -56,6 +56,7 @@ export default defineConfig([
       "src/refusal-check.ts",
       "src/fantasy-core-check.ts",
       "src/conversation-quality-check.ts",
+      "src/memory-recall-check.ts",
     ],
     rules: {
       "no-console": "off",
