@@ -4,7 +4,9 @@ import {
   createGroup,
   listGroupHistory,
   listGroupMembers,
+  listGroups,
   updateGroupMessageProvider,
+  type GroupMessage,
 } from "@v2/db";
 import { createOpenRouterModel } from "@v2/engine";
 import { PROMPT_VERSION } from "@v2/prompt";
@@ -80,6 +82,50 @@ const deferProviderResolution = (
   }
 };
 
+export type GroupViewMessage = GroupMessage & { speakerName: string | null };
+export type GroupView = {
+  members: { characterId: string; name: string }[];
+  messages: GroupViewMessage[];
+};
+
+// 場の表示データ。名前解決だけ注入して API と server fn で共有する。
+export const loadGroupView = async (
+  db: V2Db,
+  groupId: string,
+  loadName: (characterId: string) => Promise<string | null>,
+): Promise<GroupView | null> => {
+  const members = await listGroupMembers(db, groupId);
+  if (members.length === 0) return null;
+  const names = new Map<string, string>();
+  for (const member of members) {
+    names.set(member.characterId, (await loadName(member.characterId)) ?? member.characterId);
+  }
+  const history = await listGroupHistory(db, groupId);
+  return {
+    members: members.map((m) => ({
+      characterId: m.characterId,
+      name: names.get(m.characterId) ?? m.characterId,
+    })),
+    messages: history.map((row) => ({
+      ...row,
+      speakerName: row.speakerCharacterId ? (names.get(row.speakerCharacterId) ?? null) : null,
+    })),
+  };
+};
+
+const loadCharacterName = async (characterId: string): Promise<string | null> => {
+  const { ok } = await readCharacter(characterId);
+  return ok?.name ?? null;
+};
+
+// GET /api/groups — 自分の場一覧。memberIds はフロント側で名前へ解決する。
+export const handleListGroups = async (): Promise<Response> => {
+  const { env } = await getPlatform();
+  const db = createDb(env.DB);
+  const groups = await listGroups(db, LOCAL_USER_ID);
+  return Response.json({ groups });
+};
+
 export const handleGroupMessages = async (request: Request, groupId: string): Promise<Response> => {
   const { env } = await getPlatform();
   const db = createDb(env.DB);
@@ -89,19 +135,8 @@ export const handleGroupMessages = async (request: Request, groupId: string): Pr
   }
 
   if (request.method === "GET") {
-    const names = new Map<string, string>();
-    for (const member of members) {
-      const { ok } = await readCharacter(member.characterId);
-      names.set(member.characterId, ok?.name ?? member.characterId);
-    }
-    const history = await listGroupHistory(db, groupId);
-    return Response.json({
-      members: members.map((m) => ({ characterId: m.characterId, name: names.get(m.characterId) })),
-      messages: history.map((row) => ({
-        ...row,
-        speakerName: row.speakerCharacterId ? (names.get(row.speakerCharacterId) ?? null) : null,
-      })),
-    });
+    const view = await loadGroupView(db, groupId, loadCharacterName);
+    return Response.json(view ?? { members: [], messages: [] });
   }
 
   const parsed = PostMessageBody.safeParse(await request.json().catch(() => null));

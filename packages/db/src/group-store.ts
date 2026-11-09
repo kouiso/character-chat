@@ -1,4 +1,4 @@
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, inArray } from "drizzle-orm";
 
 import {
   v2GroupMemberTable,
@@ -45,6 +45,28 @@ export const addGroupMember = async (
     position: input.position,
     createdAt: input.now,
   });
+};
+
+export type GroupRow = { id: string; title: string; createdAt: number; memberIds: string[] };
+
+// ユーザーの場一覧（新しい順）。メンバーIDをまとめて返し、名前解決は呼び出し側で行う。
+export const listGroups = async (db: V2Db, userId: string): Promise<GroupRow[]> => {
+  const groups = await db
+    .select({ id: v2GroupTable.id, title: v2GroupTable.title, createdAt: v2GroupTable.createdAt })
+    .from(v2GroupTable)
+    .where(eq(v2GroupTable.userId, userId))
+    .orderBy(desc(v2GroupTable.createdAt));
+  if (groups.length === 0) return [];
+  const members = await db
+    .select({ groupId: v2GroupMemberTable.groupId, characterId: v2GroupMemberTable.characterId })
+    .from(v2GroupMemberTable)
+    .where(inArray(v2GroupMemberTable.groupId, groups.map((g) => g.id)))
+    .orderBy(asc(v2GroupMemberTable.position));
+  const byGroup = new Map<string, string[]>();
+  for (const m of members) {
+    byGroup.set(m.groupId, [...(byGroup.get(m.groupId) ?? []), m.characterId]);
+  }
+  return groups.map((g) => ({ ...g, memberIds: byGroup.get(g.id) ?? [] }));
 };
 
 export const listGroupMembers = async (db: V2Db, groupId: string): Promise<GroupMember[]> =>
