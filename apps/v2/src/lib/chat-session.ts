@@ -265,6 +265,7 @@ export const readChatEvents = async function* (
 };
 
 // 画像生成の上書きパラメータ（RIT-183）。未指定キーはサーバ側でレシピ既定値へ倒れる。
+// sourceMessageId+instruction は i2i 表情変更用（RIT-184）。参照は同一会話の画像のみ。
 export type ChatImageParams = {
   cfg?: number;
   seed?: number;
@@ -272,6 +273,8 @@ export type ChatImageParams = {
   width?: number;
   height?: number;
   strength?: number;
+  sourceMessageId?: string;
+  instruction?: string;
 };
 
 // 画像生成ボタン。失敗理由はサーバの message をそのまま画面へ出す（RIT-182 の失敗可視）。

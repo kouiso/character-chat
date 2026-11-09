@@ -34,6 +34,9 @@ export type ImageParamOverrides = {
   strength?: number;
 };
 
+// i2i の元画像保持度。v1 のキャラ一致パスと同じ 0.45（局長採点90点の確定値）。
+const I2I_DEFAULT_STRENGTH = 0.45;
+
 // 記録へ残す最終的に使ったパラメータ。指定値と既定値を合成した結果なので
 // この行だけで同じ条件の再生成ができる。
 type ResolvedImageParams = {
@@ -170,6 +173,71 @@ const prepareImageJob = (
   ...buildImagePrompt(visual, history, overrides?.negativePrompt),
 });
 
+// i2i 参照元の解決。参照は同一会話（＝本人所有）の画像付きメッセージだけに限る。
+// message_id 経由で生成行へ結び、派生元の generation id も拾う（RIT-184 の派生関係）。
+const readImageSource = async (
+  db: D1Database,
+  conversationId: string,
+  messageId: string,
+): Promise<{ imageKey: string; sourceGenerationId: string | null } | null> => {
+  const row = await db
+    .prepare(
+      "SELECT m.image_key AS imageKey, g.id AS generationId FROM v2_message m " +
+        "LEFT JOIN v2_image_generation g ON g.message_id = m.id " +
+        "WHERE m.id = ? AND m.conversation_id = ?",
+    )
+    .bind(messageId, conversationId)
+    .first<{ imageKey: string | null; generationId: string | null }>();
+  return row?.imageKey
+    ? { imageKey: row.imageKey, sourceGenerationId: row.generationId ?? null }
+    : null;
+};
+
+// R2 オブジェクトを base64 へ。Workers の btoa は8bit文字列前提なので塊に分けて積む。
+const objectToBase64 = async (bucket: R2Bucket, key: string): Promise<string | null> => {
+  const object = await bucket.get(key);
+  if (!object) return null;
+  const bytes = new Uint8Array(await object.arrayBuffer());
+  let binary = "";
+  const chunk = 0x8000;
+  for (let offset = 0; offset < bytes.length; offset += chunk) {
+    binary += String.fromCharCode(...bytes.subarray(offset, offset + chunk));
+  }
+  return btoa(binary);
+};
+
+// i2i 入力の確定。参照元メッセージを同一会話内に限って解決し R2 から元絵を引く。
+// 依頼文はプロンプト先頭へ（構図の保持は strength が担う）、strength は実値を記録へ残す。
+const prepareI2i = async (
+  env: ImageEnv,
+  conversationId: string,
+  prompt: string,
+  params: ResolvedImageParams,
+  sourceMessageId: string | undefined,
+  instruction: string | undefined,
+): Promise<{
+  base64: string;
+  sourceGenerationId: string | null;
+  prompt: string;
+  strength: number;
+}> => {
+  const source = await readImageSource(env.DB, conversationId, sourceMessageId ?? "");
+  if (!source) {
+    throw new ImageGenerationError("参照元の画像が見つかりません。", 404);
+  }
+  const base64 = await objectToBase64(env.BUCKET, source.imageKey);
+  if (!base64) {
+    throw new ImageGenerationError("参照元の画像データを読めませんでした。", 502);
+  }
+  const finalPrompt = instruction?.trim() ? `${instruction.trim()}, ${prompt}` : prompt;
+  return {
+    base64,
+    sourceGenerationId: source.sourceGenerationId,
+    prompt: finalPrompt,
+    strength: params.strength ?? I2I_DEFAULT_STRENGTH,
+  };
+};
+
 const seedOf = (raw: string | number | undefined): number | null => {
   const value = Number(raw);
   return Number.isFinite(value) ? value : null;
@@ -187,6 +255,7 @@ type GenerationBase = ResolvedImageParams & {
   characterId: string;
   prompt: string;
   negativePrompt: string;
+  sourceGenerationId?: string | null;
 };
 
 type FailureRecorder = (reason: string, taskId?: string) => Promise<ConversationImageResult>;
@@ -289,11 +358,80 @@ const persistSuccess = async (input: {
   };
 };
 
+// Novita への init → poll → R2・メッセージ永続化までの実行部。
+// i2i 入力があれば img2img へ、無ければ txt2img へ振る。
+const runGeneration = async (deps: {
+  env: ImageEnv;
+  db: ReturnType<typeof createDb>;
+  base: GenerationBase;
+  i2i: Awaited<ReturnType<typeof prepareI2i>> | null;
+  turn: number;
+  fetchImpl?: typeof fetch;
+}): Promise<ConversationImageResult> => {
+  const { env, db, base, i2i } = deps;
+  const fail = recordFailure(db, base);
+  const client = createNovitaClient({
+    apiKey: env.NOVITA_API_KEY,
+    apiBase: env.MOCK_API_BASE,
+    fetchImpl: deps.fetchImpl,
+  });
+
+  const initInput = {
+    prompt: base.prompt,
+    negativePrompt: base.negativePrompt,
+    width: base.width,
+    height: base.height,
+    steps: base.steps,
+    guidanceScale: base.guidanceScale,
+    seed: base.seed,
+  };
+
+  let taskId: string;
+  try {
+    taskId = i2i
+      ? await client.initImg2Img({
+          ...initInput,
+          imageBase64: i2i.base64,
+          strength: i2i.strength,
+        })
+      : await client.initTxt2Img(initInput);
+  } catch (error) {
+    return fail(error instanceof Error ? error.message : String(error));
+  }
+
+  try {
+    const result = await pollForImage(client, taskId);
+    if ("failedReason" in result) return fail(result.failedReason, taskId);
+    return await persistSuccess({
+      db,
+      env,
+      fetchImpl: deps.fetchImpl ?? fetch,
+      base,
+      taskId,
+      turn: deps.turn,
+      image: result,
+    });
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error);
+    await fail(reason, taskId);
+    if (error instanceof ImageGenerationError) throw error;
+    return {
+      ok: false,
+      generationId: base.id,
+      status: 502,
+      message: "画像を生成できませんでした。",
+    };
+  }
+};
+
 export const generateConversationImage = async (input: {
   env: ImageEnv;
   characterId: string;
   conversationId: string;
   params?: ImageParamOverrides;
+  // i2i: 参照元メッセージ（同一会話の画像付き行のみ受ける）と表情変更等の依頼文。
+  sourceMessageId?: string;
+  instruction?: string;
   fetchImpl?: typeof fetch;
 }): Promise<ConversationImageResult> => {
   const { env } = input;
@@ -315,59 +453,36 @@ export const generateConversationImage = async (input: {
     throw new ImageGenerationError("キャラクターの外見設定がないため画像を生成できません。", 422);
   }
 
+  // i2i: 指定時だけ参照元を解決。確定したプロンプトと実効 strength は記録へ残す。
+  const i2i = input.sourceMessageId
+    ? await prepareI2i(
+        env,
+        input.conversationId,
+        prompt,
+        params,
+        input.sourceMessageId,
+        input.instruction,
+      )
+    : null;
+  const resolved: ResolvedImageParams = i2i ? { ...params, strength: i2i.strength } : params;
+
   const base: GenerationBase = {
     id: crypto.randomUUID(),
     conversationId: input.conversationId,
     characterId: input.characterId,
-    prompt,
+    prompt: i2i ? i2i.prompt : prompt,
     negativePrompt,
-    ...params,
+    sourceGenerationId: i2i?.sourceGenerationId ?? null,
+    ...resolved,
   };
-  const fail = recordFailure(db, base);
-  const client = createNovitaClient({
-    apiKey: env.NOVITA_API_KEY,
-    apiBase: env.MOCK_API_BASE,
+  return runGeneration({
+    env,
+    db,
+    base,
+    i2i,
+    turn: display.turn,
     fetchImpl: input.fetchImpl,
   });
-
-  let taskId: string;
-  try {
-    taskId = await client.initTxt2Img({
-      prompt,
-      negativePrompt,
-      width: params.width,
-      height: params.height,
-      steps: params.steps,
-      guidanceScale: params.guidanceScale,
-      seed: params.seed,
-    });
-  } catch (error) {
-    return fail(error instanceof Error ? error.message : String(error));
-  }
-
-  try {
-    const result = await pollForImage(client, taskId);
-    if ("failedReason" in result) return fail(result.failedReason, taskId);
-    return await persistSuccess({
-      db,
-      env,
-      fetchImpl: input.fetchImpl ?? fetch,
-      base,
-      taskId,
-      turn: display.turn,
-      image: result,
-    });
-  } catch (error) {
-    const reason = error instanceof Error ? error.message : String(error);
-    await fail(reason, taskId);
-    if (error instanceof ImageGenerationError) throw error;
-    return {
-      ok: false,
-      generationId: base.id,
-      status: 502,
-      message: "画像を生成できませんでした。",
-    };
-  }
 };
 
 export const isCharacterMismatchError = (error: unknown): boolean =>

@@ -16,6 +16,9 @@ const BodySchema = z.object({
   width: z.number().int().min(512).max(2048).multipleOf(8).optional(),
   height: z.number().int().min(512).max(2048).multipleOf(8).optional(),
   strength: z.number().min(0).max(1).optional(),
+  // i2i（RIT-184）: 参照元は同一会話の画像メッセージ id。依頼文は表情変更等の自由文。
+  sourceMessageId: z.string().min(1).max(120).optional(),
+  instruction: z.string().max(500).optional(),
 });
 
 const json = (status: number, body: Record<string, unknown>): Response =>
@@ -38,12 +41,14 @@ export const handleImageRequest = async (
   if (!parsed.success) return json(400, { message: "送信内容を確認してください。" });
   try {
     const { env } = await getPlatform();
-    const { conversationId, ...params } = parsed.data;
+    const { conversationId, sourceMessageId, instruction, ...params } = parsed.data;
     const result = await generateConversationImage({
       env,
       characterId,
       conversationId,
       params,
+      sourceMessageId,
+      instruction,
     });
     if (!result.ok) return json(result.status, { message: result.message });
     return json(200, {

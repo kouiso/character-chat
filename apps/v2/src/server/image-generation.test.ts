@@ -3,7 +3,7 @@
 // 失敗時に理由つき記録だけが残ることを見る。
 // @vitest-environment node
 import { v2ConversationTable, v2MessageTable } from "@v2/db";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { openLocalD1, type LocalD1 } from "../../../../packages/db/src/test/local-d1";
 import { characterTable } from "../../../../src/schema/character";
@@ -16,7 +16,7 @@ const PNG_HEAD = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
 const novitaFetch = (taskStatus: string, includeImages = true): typeof fetch => {
   const impl = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
-    if (url.endsWith("/txt2img")) {
+    if (url.endsWith("/txt2img") || url.endsWith("/img2img")) {
       expect(init?.method).toBe("POST");
       return Response.json({ task_id: "rit182-task" });
     }
@@ -36,15 +36,23 @@ const novitaFetch = (taskStatus: string, includeImages = true): typeof fetch => 
   return impl as unknown as typeof fetch;
 };
 
-const bucketOf = () => {
+const bucketOf = (objects?: Map<string, Uint8Array>) => {
   const stored = new Map<string, Uint8Array>();
+  const source = objects ?? new Map<string, Uint8Array>();
   return {
     stored,
     put: (async (key: string, value: ArrayBuffer | Uint8Array) => {
       stored.set(key, value instanceof Uint8Array ? value : new Uint8Array(value));
       return { key };
     }) as unknown as R2Bucket["put"],
-  } as { stored: Map<string, Uint8Array>; put: R2Bucket["put"] } & Pick<R2Bucket, "put">;
+    get: (async (key: string) => {
+      const value = source.get(key);
+      return value ? { arrayBuffer: async () => value.buffer } : null;
+    }) as unknown as R2Bucket["get"],
+  } as { stored: Map<string, Uint8Array>; put: R2Bucket["put"]; get: R2Bucket["get"] } & Pick<
+    R2Bucket,
+    "put" | "get"
+  >;
 };
 
 describe("generateConversationImage", () => {
@@ -126,6 +134,19 @@ describe("generateConversationImage", () => {
     });
   });
 
+  // 共有ローカル D1 は前回 run の行が残る。対象会話の生成・画像行を毎回掃除して
+  // 「最後の行」を今回のテスト生成に確定させる。
+  beforeEach(async () => {
+    await local.d1
+      .prepare("DELETE FROM v2_image_generation WHERE conversation_id = ?")
+      .bind("rit182-conv")
+      .run();
+    await local.d1
+      .prepare("DELETE FROM v2_message WHERE conversation_id = ? AND image_key IS NOT NULL")
+      .bind("rit182-conv")
+      .run();
+  });
+
   afterAll(async () => {
     await local.d1.batch([
       local.d1
@@ -170,7 +191,7 @@ describe("generateConversationImage", () => {
     });
     expect(result.ok).toBe(false);
     const messages = (await imageMessages()).results;
-    expect(messages).toHaveLength(1); // 前の成功分のみ
+    expect(messages).toHaveLength(0); // 失敗時は画像メッセージを増やさん
     const rows = (await generationRows()).results;
     const failed = rows.filter((row) => row.status === "failed");
     expect(failed).toHaveLength(1);
@@ -294,6 +315,121 @@ describe("generateConversationImage", () => {
     expect(last?.height).toBe(896);
     expect(last?.guidance_scale).toBe(12);
     expect(last?.seed).toBe(99);
+  });
+
+  // RIT-184: 履歴画像を参照元に img2img で表情変更。base64・strength・依頼文・派生関係を見る。
+  it("i2i: 参照元メッセージの R2 画像を base64 で渡し、strength と派生元を記録する", async () => {
+    // 先に txt2img で参照元画像を1枚作る。
+    const bucket = bucketOf();
+    const first = await generateConversationImage({
+      env: env(bucket),
+      characterId: charId,
+      conversationId: "rit182-conv",
+      fetchImpl: novitaFetch("TASK_STATUS_SUCCEED"),
+    });
+    expect(first.ok).toBe(true);
+    const sourceMessage = (await imageMessages()).results.at(-1);
+    if (!sourceMessage || first.ok !== true) throw new Error("source image missing");
+    const sourceGeneration = (await generationRows()).results.at(-1);
+
+    // 参照元画像の R2 内容を既知のバイトで埋め、img2img init body を捕まえる。
+    const r2 = new Map([[sourceMessage.image_key, PNG_HEAD]]);
+    const bucket2 = bucketOf(r2);
+    const captured: { body?: { request: Record<string, unknown> } } = {};
+    const fetchImpl = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
+      if (url.endsWith("/img2img")) {
+        captured.body = JSON.parse(String(init?.body));
+        return Response.json({ task_id: "rit184-task" });
+      }
+      if (url.includes("/task-result")) {
+        return Response.json({
+          task: { task_id: "rit184-task", status: "TASK_STATUS_SUCCEED" },
+          images: [{ image_url: "https://example.com/rit184.png", seed: 55 }],
+        });
+      }
+      if (url === "https://example.com/rit184.png") {
+        return new Response(PNG_HEAD, { headers: { "content-type": "image/png" } });
+      }
+      return new Response("unexpected", { status: 500 });
+    }) as unknown as typeof fetch;
+
+    const result = await generateConversationImage({
+      env: env(bucket2),
+      characterId: charId,
+      conversationId: "rit182-conv",
+      params: { strength: 0.3 },
+      sourceMessageId: sourceMessage.id,
+      instruction: "怒った顔",
+      fetchImpl,
+    });
+    expect(result.ok).toBe(true);
+    if (!captured.body) throw new Error("img2img init body not captured");
+    const request = captured.body.request;
+    expect(request.strength).toBe(0.3);
+    expect(request.image_base64).toBe(btoa(String.fromCharCode(...PNG_HEAD)));
+    expect(String(request.prompt)).toMatch(/^怒った顔,/);
+
+    const last = (await generationRows()).results.at(-1);
+    expect(last?.status).toBe("ok");
+    expect(last?.strength).toBe(0.3);
+    expect(sourceGeneration).toBeTruthy();
+    // generation id 列は select 句に入ってないので直接読む。
+    const lineage = await local.d1
+      .prepare("SELECT source_generation_id FROM v2_image_generation WHERE id = ?")
+      .bind((result as { generationId: string }).generationId)
+      .first<{ source_generation_id: string | null }>();
+    const sourceGen = await local.d1
+      .prepare("SELECT id FROM v2_image_generation WHERE message_id = ?")
+      .bind(sourceMessage.id)
+      .first<{ id: string }>();
+    expect(lineage?.source_generation_id).toBe(sourceGen?.id);
+  });
+
+  it("i2i: strength 未指定は v1 既定 0.45 へ倒す", async () => {
+    const bucket = bucketOf();
+    await generateConversationImage({
+      env: env(bucket),
+      characterId: charId,
+      conversationId: "rit182-conv",
+      fetchImpl: novitaFetch("TASK_STATUS_SUCCEED"),
+    });
+    const sourceMessage = (await imageMessages()).results.at(-1);
+    if (!sourceMessage) throw new Error("source image missing");
+    const r2 = new Map([[sourceMessage.image_key, PNG_HEAD]]);
+    const bucket2 = bucketOf(r2);
+    const fetchImpl = novitaFetch("TASK_STATUS_SUCCEED");
+    const result = await generateConversationImage({
+      env: env(bucket2),
+      characterId: charId,
+      conversationId: "rit182-conv",
+      sourceMessageId: sourceMessage.id,
+      fetchImpl,
+    });
+    expect(result.ok).toBe(true);
+    const last = (await generationRows()).results.at(-1);
+    expect(last?.strength).toBe(0.45);
+  });
+
+  it("i2i: 参照元が無い・画像でないメッセージは 404", async () => {
+    await expect(
+      generateConversationImage({
+        env: env(bucketOf()),
+        characterId: charId,
+        conversationId: "rit182-conv",
+        sourceMessageId: "rit182-msg-1", // テキストのみのメッセージ
+        fetchImpl: novitaFetch("TASK_STATUS_SUCCEED"),
+      }),
+    ).rejects.toThrow("参照元の画像が見つかりません");
+    await expect(
+      generateConversationImage({
+        env: env(bucketOf()),
+        characterId: charId,
+        conversationId: "rit182-conv",
+        sourceMessageId: "no-such-message",
+        fetchImpl: novitaFetch("TASK_STATUS_SUCCEED"),
+      }),
+    ).rejects.toThrow("参照元の画像が見つかりません");
   });
 });
 
