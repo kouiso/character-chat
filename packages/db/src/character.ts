@@ -1,6 +1,6 @@
 // 既存 character テーブルを Drizzle で読み、zod で行ごとに検証する。
 // 壊れた行（tags の JSON 不正、greeting 空など）は投げずに failures へ寄せ、他の行は返す。
-import { and, asc, eq, or, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, or, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import { characterTable } from "../../../src/schema/character";
@@ -28,20 +28,36 @@ export type CharacterSummary = Pick<CharacterSheet, "id" | "name" | "avatar"> & 
   canEdit: boolean;
 };
 
+// 旧版から移した会話のキャラは旧ユーザー名義のまま。同一人物の名義の集合を
+// ownerIds で受け、どの名義のキャラも読める（編集可と見なす）ようにする。
+const ownerList = (ownerIds: string | readonly string[]) =>
+  Array.isArray(ownerIds) ? ownerIds : [ownerIds];
+
 export const listCharacterSummaries = async (
   db: V2Db,
-  userId = "local",
-): Promise<CharacterSummary[]> =>
-  db
+  ownerIds: string | readonly string[] = "local",
+): Promise<CharacterSummary[]> => {
+  const owners = ownerList(ownerIds);
+  return db
     .select({
       id: characterTable.id,
       name: characterTable.name,
       avatar: characterTable.avatar,
-      canEdit: sql<boolean>`${characterTable.userId} = ${userId}`.mapWith(Boolean),
+      // 編集・削除は primary（先頭）名義のキャラだけに絞る。旧名義は閲覧・会話の対象。
+      canEdit: sql<boolean>`${characterTable.userId} = ${owners[0]}`.mapWith(Boolean),
     })
     .from(characterTable)
-    .where(or(eq(characterTable.userId, userId), eq(characterTable.isOfficial, true)))
+    .where(or(inArray(characterTable.userId, owners), eq(characterTable.isOfficial, true)))
     .orderBy(asc(characterTable.displayOrder), asc(characterTable.createdAt));
+};
+
+// 移行済み会話の旧名義（v2_conversation.legacy_source_user_id の distinct）。
+export const listLegacySourceUserIds = async (db: V2Db): Promise<string[]> => {
+  const rows = await db.all<{ source: string }>(
+    sql`SELECT DISTINCT legacy_source_user_id AS source FROM v2_conversation WHERE legacy_source_user_id IS NOT NULL`,
+  );
+  return rows.map((row) => row.source);
+};
 
 // tags は DB 上 JSON 文字列。Drizzle の json モードで読むと不正な 1 行で select 全体が
 // SyntaxError で落ちるので、生の文字列で受けてここで行ごとに解く。
@@ -104,17 +120,20 @@ export const loadCharacters = async (db: V2Db): Promise<CharacterLoadResult> => 
 export const loadCharacter = async (
   db: V2Db,
   id: string,
-  userId?: string,
+  ownerIds?: string | readonly string[],
 ): Promise<{ ok: CharacterSheet | null; failures: CharacterLoadFailure[] }> => {
   const rows = await db
     .select(selectColumns)
     .from(characterTable)
     .where(
-      userId === undefined
+      ownerIds === undefined
         ? eq(characterTable.id, id)
         : and(
             eq(characterTable.id, id),
-            or(eq(characterTable.userId, userId), eq(characterTable.isOfficial, true)),
+            or(
+              inArray(characterTable.userId, ownerList(ownerIds)),
+              eq(characterTable.isOfficial, true),
+            ),
           ),
     );
   const parsed = parseRows(rows);

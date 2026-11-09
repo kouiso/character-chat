@@ -110,6 +110,44 @@ describe("loadCharacters / loadCharacter", () => {
     }
   });
 
+  it("複数 owner を渡すと旧名義のキャラも読め、canEdit は primary だけ", async () => {
+    const id = crypto.randomUUID();
+    const legacyOwner = `legacy-${crypto.randomUUID()}`;
+    await local.db.insert(userTable).values({
+      id: legacyOwner,
+      email: `${legacyOwner}@example.invalid`,
+      createdAt: Date.now(),
+    });
+    try {
+      await local.db.insert(characterTable).values({
+        id,
+        userId: legacyOwner,
+        name: "旧名義キャラクター",
+        systemPrompt: "内部設定。",
+        greeting: "こんにちは。",
+        tags: [],
+        createdAt: Date.now(),
+      });
+      const owners = ["local", legacyOwner];
+      await expect(loadCharacter(local.db, id, owners)).resolves.toMatchObject({
+        ok: { id },
+        failures: [],
+      });
+      const summary = (await listCharacterSummaries(local.db, owners)).find(
+        (row) => row.id === id,
+      );
+      expect(summary).toMatchObject({ id, canEdit: false });
+      // 他者名義は混ざらん。
+      await expect(loadCharacter(local.db, id, ["local", "someone-else"])).resolves.toEqual({
+        ok: null,
+        failures: [],
+      });
+    } finally {
+      await local.db.delete(characterTable).where(eq(characterTable.id, id));
+      await local.db.delete(userTable).where(eq(userTable.id, legacyOwner));
+    }
+  });
+
   it("壊れた行は投げずに failures へ寄せる", () => {
     const parsed = characterSheetSchema.safeParse({
       id: "x",
