@@ -12,7 +12,7 @@ export class CurrencyError extends Error {
   }
 }
 
-export const CURRENCY_KINDS = ["grant", "purchase", "spend", "refund", "bonus"] as const;
+export const CURRENCY_KINDS = ["grant", "purchase", "spend", "refund", "bonus", "tip"] as const;
 export type CurrencyKind = (typeof CURRENCY_KINDS)[number];
 
 export interface CurrencyLedgerRow {
@@ -167,6 +167,107 @@ export const bonusCurrency = (
   db: D1Database,
   input: Omit<LedgerEntryInput, "kind">,
 ): Promise<LedgerApplyResult> => applyLedgerEntry(db, { ...input, kind: "bonus" });
+
+// RIT-208: クリエイターへの贈与。送り手=spend・作者=tip の2行を1バッチで書き、
+// 台帳と残高の移転を原子化する。kind='tip' が RIT-195 の収益集計入力になる。
+export interface TipResult {
+  senderEntry: CurrencyLedgerRow;
+  authorEntry: CurrencyLedgerRow;
+  senderBalance: number;
+  replayed: boolean;
+}
+
+export const tipCurrency = async (
+  db: D1Database,
+  input: {
+    senderId: string;
+    authorId: string;
+    characterId: string;
+    amount: number;
+    idempotencyKey: string;
+  },
+): Promise<TipResult> => {
+  if (!Number.isInteger(input.amount) || input.amount <= 0) {
+    throw new CurrencyError("amount は正の整数で指定してください。", 400);
+  }
+  if (input.senderId === input.authorId) {
+    throw new CurrencyError("自分自身へは贈与できません。", 422);
+  }
+  const senderKey = `tip:${input.idempotencyKey}:out`;
+  const existing = await findByIdempotencyKey(db, senderKey);
+  if (existing) {
+    const authorRow = await findByIdempotencyKey(db, `tip:${input.idempotencyKey}:in`);
+    return {
+      senderEntry: existing,
+      // 既存再送では作者側も必ず存在する（同一バッチで書くため）。
+      authorEntry: authorRow ?? existing,
+      senderBalance: existing.balance_after,
+      replayed: true,
+    };
+  }
+  const senderBalance = await readBalance(db, input.senderId);
+  if (senderBalance < input.amount) {
+    throw new CurrencyError("残高が不足しています。", 409);
+  }
+  const authorBalance = await readBalance(db, input.authorId);
+  const now = Date.now();
+  const senderEntry: CurrencyLedgerRow = {
+    id: crypto.randomUUID(),
+    user_id: input.senderId,
+    kind: "spend",
+    amount: input.amount,
+    balance_after: senderBalance - input.amount,
+    reason: "クリエイターへの贈与",
+    ref_type: "tip",
+    ref_id: input.characterId,
+    idempotency_key: senderKey,
+    created_at: now,
+  };
+  const authorEntry: CurrencyLedgerRow = {
+    ...senderEntry,
+    id: crypto.randomUUID(),
+    user_id: input.authorId,
+    kind: "tip",
+    balance_after: authorBalance + input.amount,
+    reason: "贈与の受取",
+    idempotency_key: `tip:${input.idempotencyKey}:in`,
+  };
+  const insertLedger = (entry: CurrencyLedgerRow) =>
+    db
+      .prepare(
+        "INSERT INTO v2_currency_ledger (id, user_id, kind, amount, balance_after, reason, ref_type, ref_id, idempotency_key, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      )
+      .bind(
+        entry.id,
+        entry.user_id,
+        entry.kind,
+        entry.amount,
+        entry.balance_after,
+        entry.reason,
+        entry.ref_type,
+        entry.ref_id,
+        entry.idempotency_key,
+        entry.created_at,
+      );
+  const upsertBalance = (userId: string, balance: number) =>
+    db
+      .prepare(
+        "INSERT INTO v2_currency_balance (user_id, balance, updated_at) VALUES (?, ?, ?) ON CONFLICT(user_id) DO UPDATE SET balance = excluded.balance, updated_at = excluded.updated_at",
+      )
+      .bind(userId, balance, now);
+  await db.batch([
+    insertLedger(senderEntry),
+    upsertBalance(senderEntry.user_id, senderEntry.balance_after),
+    insertLedger(authorEntry),
+    upsertBalance(authorEntry.user_id, authorEntry.balance_after),
+  ]);
+  return {
+    senderEntry,
+    authorEntry,
+    senderBalance: senderEntry.balance_after,
+    replayed: false,
+  };
+};
 
 export interface CurrencyStatus {
   balance: number;

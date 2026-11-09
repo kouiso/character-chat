@@ -38,6 +38,7 @@ import { Route as ApiCatalogIdFollowRouteImport } from './routes/api/catalog/$id
 import { Route as ApiCatalogIdForkRouteImport } from './routes/api/catalog/$id_/fork'
 import { Route as ApiCatalogIdLikeRouteImport } from './routes/api/catalog/$id_/like'
 import { Route as ApiCatalogIdReactionsRouteImport } from './routes/api/catalog/$id_/reactions'
+import { Route as ApiCatalogIdTipRouteImport } from './routes/api/catalog/$id_/tip'
 import { Route as ApiCharactersIdDocumentsRouteImport } from './routes/api/characters/$id_/documents'
 import { Route as ApiCharactersIdMemoriesRouteImport } from './routes/api/characters/$id_/memories'
 import { Route as ApiCharactersIdPublishRouteImport } from './routes/api/characters/$id_/publish'
@@ -203,6 +204,11 @@ const ApiCatalogIdReactionsRoute = ApiCatalogIdReactionsRouteImport.update({
   path: '/$id/reactions',
   getParentRoute: () => ApiCatalogRoute,
 })
+const ApiCatalogIdTipRoute = ApiCatalogIdTipRouteImport.update({
+  id: '/$id_/tip',
+  path: '/$id/tip',
+  getParentRoute: () => ApiCatalogRoute,
+})
 const ApiCharactersIdDocumentsRoute =
   ApiCharactersIdDocumentsRouteImport.update({
     id: '/$id_/documents',
@@ -333,6 +339,7 @@ export interface FileRoutesByFullPath {
   '/api/catalog/$id/fork': typeof ApiCatalogIdForkRoute
   '/api/catalog/$id/like': typeof ApiCatalogIdLikeRoute
   '/api/catalog/$id/reactions': typeof ApiCatalogIdReactionsRoute
+  '/api/catalog/$id/tip': typeof ApiCatalogIdTipRoute
   '/api/characters/$id/documents': typeof ApiCharactersIdDocumentsRouteWithChildren
   '/api/characters/$id/memories': typeof ApiCharactersIdMemoriesRoute
   '/api/characters/$id/publish': typeof ApiCharactersIdPublishRoute
@@ -383,6 +390,7 @@ export interface FileRoutesByTo {
   '/api/catalog/$id/fork': typeof ApiCatalogIdForkRoute
   '/api/catalog/$id/like': typeof ApiCatalogIdLikeRoute
   '/api/catalog/$id/reactions': typeof ApiCatalogIdReactionsRoute
+  '/api/catalog/$id/tip': typeof ApiCatalogIdTipRoute
   '/api/characters/$id/documents': typeof ApiCharactersIdDocumentsRouteWithChildren
   '/api/characters/$id/memories': typeof ApiCharactersIdMemoriesRoute
   '/api/characters/$id/publish': typeof ApiCharactersIdPublishRoute
@@ -434,6 +442,7 @@ export interface FileRoutesById {
   '/api/catalog/$id_/fork': typeof ApiCatalogIdForkRoute
   '/api/catalog/$id_/like': typeof ApiCatalogIdLikeRoute
   '/api/catalog/$id_/reactions': typeof ApiCatalogIdReactionsRoute
+  '/api/catalog/$id_/tip': typeof ApiCatalogIdTipRoute
   '/api/characters/$id_/documents': typeof ApiCharactersIdDocumentsRouteWithChildren
   '/api/characters/$id_/memories': typeof ApiCharactersIdMemoriesRoute
   '/api/characters/$id_/publish': typeof ApiCharactersIdPublishRoute
@@ -486,6 +495,7 @@ export interface FileRouteTypes {
     | '/api/catalog/$id/fork'
     | '/api/catalog/$id/like'
     | '/api/catalog/$id/reactions'
+    | '/api/catalog/$id/tip'
     | '/api/characters/$id/documents'
     | '/api/characters/$id/memories'
     | '/api/characters/$id/publish'
@@ -536,6 +546,7 @@ export interface FileRouteTypes {
     | '/api/catalog/$id/fork'
     | '/api/catalog/$id/like'
     | '/api/catalog/$id/reactions'
+    | '/api/catalog/$id/tip'
     | '/api/characters/$id/documents'
     | '/api/characters/$id/memories'
     | '/api/characters/$id/publish'
@@ -586,6 +597,7 @@ export interface FileRouteTypes {
     | '/api/catalog/$id_/fork'
     | '/api/catalog/$id_/like'
     | '/api/catalog/$id_/reactions'
+    | '/api/catalog/$id_/tip'
     | '/api/characters/$id_/documents'
     | '/api/characters/$id_/memories'
     | '/api/characters/$id_/publish'
@@ -843,6 +855,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCatalogIdReactionsRouteImport
       parentRoute: typeof ApiCatalogRoute
     }
+    '/api/catalog/$id_/tip': {
+      id: '/api/catalog/$id_/tip'
+      path: '/$id/tip'
+      fullPath: '/api/catalog/$id/tip'
+      preLoaderRoute: typeof ApiCatalogIdTipRouteImport
+      parentRoute: typeof ApiCatalogRoute
+    }
     '/api/characters/$id_/documents': {
       id: '/api/characters/$id_/documents'
       path: '/$id/documents'
@@ -997,6 +1016,7 @@ interface ApiCatalogRouteChildren {
   ApiCatalogIdForkRoute: typeof ApiCatalogIdForkRoute
   ApiCatalogIdLikeRoute: typeof ApiCatalogIdLikeRoute
   ApiCatalogIdReactionsRoute: typeof ApiCatalogIdReactionsRoute
+  ApiCatalogIdTipRoute: typeof ApiCatalogIdTipRoute
 }
 
 const ApiCatalogRouteChildren: ApiCatalogRouteChildren = {
@@ -1006,6 +1026,7 @@ const ApiCatalogRouteChildren: ApiCatalogRouteChildren = {
   ApiCatalogIdForkRoute: ApiCatalogIdForkRoute,
   ApiCatalogIdLikeRoute: ApiCatalogIdLikeRoute,
   ApiCatalogIdReactionsRoute: ApiCatalogIdReactionsRoute,
+  ApiCatalogIdTipRoute: ApiCatalogIdTipRoute,
 }
 
 const ApiCatalogRouteWithChildren = ApiCatalogRoute._addFileChildren(

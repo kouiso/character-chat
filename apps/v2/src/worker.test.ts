@@ -97,6 +97,7 @@ const UNAUTHENTICATED_PROBES = [
   ["GET", "/api/catalog/example/comments"],
   ["POST", "/api/catalog/example/comments"],
   ["DELETE", "/api/catalog/example/comments/c1"],
+  ["POST", "/api/catalog/example/tip"],
   ["GET", "/api/characters/example/memories"],
   ["POST", "/api/characters/example/memories"],
   ["PATCH", "/api/characters/example/memories"],
