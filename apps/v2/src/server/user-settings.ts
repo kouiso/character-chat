@@ -51,3 +51,32 @@ export const setChatMode = async (
     .bind(userId, mode, now)
     .run();
 };
+
+// RIT-203: 文体スタイル。地の文と台詞の配分を変える。モード（長さ・モデル）とは別軸。
+export const CHAT_STYLES = ["balanced", "prose", "dialogue"] as const;
+export type ChatStyle = (typeof CHAT_STYLES)[number];
+const isChatStyle = (v: unknown): v is ChatStyle =>
+  typeof v === "string" && (CHAT_STYLES as readonly string[]).includes(v);
+
+export const readChatStyle = async (db: D1Database, userId: string): Promise<ChatStyle> => {
+  const row = await db
+    .prepare("SELECT style FROM v2_user_settings WHERE user_id = ?")
+    .bind(userId)
+    .first<{ style: string }>();
+  return isChatStyle(row?.style) ? row.style : "balanced";
+};
+
+export const setChatStyle = async (
+  db: D1Database,
+  userId: string,
+  style: ChatStyle,
+  now: number,
+): Promise<void> => {
+  await db
+    .prepare(
+      "INSERT INTO v2_user_settings (user_id, style, updated_at) VALUES (?, ?, ?) " +
+        "ON CONFLICT(user_id) DO UPDATE SET style = excluded.style, updated_at = excluded.updated_at",
+    )
+    .bind(userId, style, now)
+    .run();
+};

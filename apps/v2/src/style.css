@@ -436,9 +436,34 @@ body {
 
 .v2-chat-form {
   display: flex;
+  flex-wrap: wrap;
   flex-shrink: 0;
   gap: 8px;
   padding: 12px;
+}
+
+.v2-suggestions {
+  display: flex;
+  flex-basis: 100%;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.v2-suggestion-chip {
+  flex: 1 1 30%;
+  min-width: 0;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid #2a2a34;
+  background: var(--panel);
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.v2-suggestion-close {
+  padding: 8px 10px;
 }
 
 .v2-chat-form input {

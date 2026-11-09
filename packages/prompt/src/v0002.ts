@@ -98,12 +98,21 @@ const formatUsedPhrasesBlock = (usedPhrases: string[]): string[] => {
   ];
 };
 
+// RIT-203: 文体スタイル。品質指示（配分の指定）なので出力形式へ入れてよい
+// （no-injected-ai-filter の「足してよいもの」側。枠ではない）。
+const buildStyleLine = (style?: "prose" | "dialogue"): string[] => {
+  if (style === "prose") return ["地の文（<action>）を台詞より厚めに書き、台詞は控えめにする。"];
+  if (style === "dialogue") return ["台詞を中心に書き、地の文（<action>）は短めにする。"];
+  return [];
+};
+
 const buildOutputContract = (
   name: string,
   targetChars: number,
   voice?: VoiceTags,
   dropMinChars?: boolean,
   soloReaction?: boolean,
+  style?: "prose" | "dialogue",
 ): string =>
   [
     "【出力形式】",
@@ -121,6 +130,7 @@ const buildOutputContract = (
       : soloReaction
         ? `<action> と <dialogue> を合わせて ${targetChars} 字以上、${targetChars * 2} 字まで。同じ表現・同じ言い回しを繰り返さん。場面が進まん時は ${name} の応答（拒否・回避・屈服）だけで返し、相手の次の行動を待て。`
         : `<action> と <dialogue> を合わせて ${targetChars} 字以上、${targetChars * 2} 字まで。<action> は 1 塊 60 字以上で、1 応答に 2 塊以上置く。同じ表現・同じ言い回しを繰り返さん。場面を止めず、次の展開へ進める。`,
+    ...buildStyleLine(style),
     ...buildVoiceLine(voice),
     "登場人物は 18 歳未満を出さん。",
   ].join("\n");
@@ -142,6 +152,8 @@ export const composeSystemPrompt = (input: {
   dropMinChars?: boolean;
   // 相手の動作を書かない「反応だけ返す」契約（bench 検証アーム用。本番では未指定）。
   soloReaction?: boolean;
+  // RIT-203: 文体スタイル（ユーザー設定）。balanced は未指定扱い。
+  style?: "prose" | "dialogue";
 }): string => {
   const ledger: SceneLedger = { ...input.ledger, phase: input.phase };
   const sections = [
@@ -153,6 +165,7 @@ export const composeSystemPrompt = (input: {
       input.voice,
       input.dropMinChars,
       input.soloReaction,
+      input.style,
     ),
     ...formatUsedPhrasesBlock(input.usedPhrases ?? []),
     formatExemplar(input.exemplar),

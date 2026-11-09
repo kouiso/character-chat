@@ -9,7 +9,8 @@ const platform = vi.hoisted(() => ({ env: {} as Record<string, unknown> }));
 vi.mock("./platform", () => ({ getPlatform: async () => platform }));
 
 const { handleSettingsReadRequest, handleSettingsWriteRequest } = await import("./api-settings");
-const { readChatMode, readSafeMode, setChatMode, setSafeMode } = await import("./user-settings");
+const { readChatMode, readChatStyle, readSafeMode, setChatMode, setChatStyle, setSafeMode } =
+  await import("./user-settings");
 
 let local: LocalD1;
 const T0 = Date.UTC(2026, 10, 10, 0, 0, 0);
@@ -68,12 +69,32 @@ describe("readChatMode / setChatMode", () => {
   });
 });
 
+// RIT-203: 文体スタイル設定。
+describe("readChatStyle / setChatStyle", () => {
+  it("行が無いユーザーは既定で balanced", async () => {
+    expect(await readChatStyle(local.d1, `u-${crypto.randomUUID()}`)).toBe("balanced");
+  });
+
+  it("style を往復でき、safe_mode・chat_mode を上書きせん", async () => {
+    const userId = `u-${crypto.randomUUID()}`;
+    await setSafeMode(local.d1, userId, true, T0);
+    await setChatMode(local.d1, userId, "light", T0 + 1);
+    await setChatStyle(local.d1, userId, "prose", T0 + 2);
+    expect(await readChatStyle(local.d1, userId)).toBe("prose");
+    expect(await readSafeMode(local.d1, userId)).toBe(true);
+    expect(await readChatMode(local.d1, userId)).toBe("light");
+    await setChatStyle(local.d1, userId, "dialogue", T0 + 3);
+    expect(await readChatStyle(local.d1, userId)).toBe("dialogue");
+  });
+});
+
 describe("settings API", () => {
   it("GET は現在値、PUT で更新して次回 GET に反映される", async () => {
     const before = await (await handleSettingsReadRequest()).json();
     expect(before).toEqual({
       safeMode: await readSafeMode(local.d1, "local"),
       chatMode: await readChatMode(local.d1, "local"),
+      style: await readChatStyle(local.d1, "local"),
     });
 
     const put = await handleSettingsWriteRequest(
@@ -98,16 +119,37 @@ describe("settings API", () => {
       }),
     );
     expect(put.status).toBe(200);
-    const body: { safeMode: boolean; chatMode: string } = await put.json();
-    expect(body).toEqual({ safeMode: true, chatMode: "quality" });
+    const body: { safeMode: boolean; chatMode: string; style: string } = await put.json();
+    expect(body).toEqual({ safeMode: true, chatMode: "quality", style: "balanced" });
     expect(await (await handleSettingsReadRequest()).json()).toEqual({
       safeMode: true,
       chatMode: "quality",
+      style: "balanced",
     });
   });
 
+  it("PUT は style だけでも更新できる", async () => {
+    const put = await handleSettingsWriteRequest(
+      new Request("https://x/api/settings", {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ style: "prose" }),
+      }),
+    );
+    expect(put.status).toBe(200);
+    expect(await readChatStyle(local.d1, "local")).toBe("prose");
+    expect(await readSafeMode(local.d1, "local")).toBe(true);
+    expect(await readChatMode(local.d1, "local")).toBe("quality");
+  });
+
   it("PUT は型の違う safeMode・未対応の chatMode・空の更新を 400 で弾く", async () => {
-    for (const body of [{ safeMode: "yes" }, { chatMode: "extreme" }, {}, { other: 1 }]) {
+    for (const body of [
+      { safeMode: "yes" },
+      { chatMode: "extreme" },
+      { style: "poetic" },
+      {},
+      { other: 1 },
+    ]) {
       const res = await handleSettingsWriteRequest(
         new Request("https://x/api/settings", {
           method: "PUT",

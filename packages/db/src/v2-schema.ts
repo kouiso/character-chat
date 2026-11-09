@@ -577,5 +577,7 @@ export const v2UserSettingsTable = sqliteTable("v2_user_settings", {
   safeMode: integer("safe_mode").notNull().default(0),
   // RIT-205: チャットモード。quality/standard/light。モデルチェーンと長さ上限の切替軸。
   chatMode: text("chat_mode").notNull().default("standard"),
+  // RIT-203: 文体スタイル。balanced/prose/dialogue。出力形式の配分だけ変える。
+  style: text("style").notNull().default("balanced"),
   updatedAt: integer("updated_at").notNull(),
 });

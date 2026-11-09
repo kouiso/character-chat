@@ -88,6 +88,29 @@ describe("composeSystemPrompt v0002", () => {
     expect(system.indexOf("【出力形式】")).toBeLessThan(system.indexOf("【例示】"));
   });
 
+  it("文体スタイルは出力形式へ1行だけ入り、balanced/未指定では入らん（RIT-203）", () => {
+    const base = {
+      sheet: "一人称: わたし",
+      name: "桜庭 さくら",
+      ledger: emptyLedger(),
+      phase: "conversation" as const,
+      targetChars: 200,
+      exemplar: EXEMPLAR,
+    };
+    const prose = composeSystemPrompt({ ...base, style: "prose" });
+    expect(prose).toContain("地の文（<action>）を台詞より厚めに書き");
+    const dialogue = composeSystemPrompt({ ...base, style: "dialogue" });
+    expect(dialogue).toContain("台詞を中心に書き");
+    const plain = composeSystemPrompt(base);
+    expect(plain).not.toContain("地の文（<action>）を台詞より厚めに書き");
+    expect(plain).not.toContain("台詞を中心に書き");
+    // スタイル行は合意系の枠を含まん（出力配分の品質指示だけ）。
+    for (const banned of ["合意", "同意", "境界"]) {
+      expect(prose).not.toContain(banned);
+      expect(dialogue).not.toContain(banned);
+    }
+  });
+
   it("上限（MAX_SYSTEM_CHARS）を超える場合は throw する", () => {
     const hugeSheet = "あ".repeat(3500);
     expect(() =>
