@@ -9,6 +9,7 @@ import {
 } from "../component/list-route-state";
 import { SafeModeToggle } from "../component/safe-mode-toggle";
 import { StyleSelect } from "../component/style-select";
+import { VoiceAutoplayToggle } from "../component/voice-autoplay-toggle";
 import { listCharacters, listSavedConversations } from "../server/characters";
 
 const routeApi = getRouteApi("/");
@@ -23,6 +24,7 @@ const CharacterListPage = () => {
       <SafeModeToggle />
       <ChatModeSelect />
       <StyleSelect />
+      <VoiceAutoplayToggle />
       <Link to="/characters/new">キャラクターを作る</Link>
       <Link to="/catalog">公開カタログ</Link>
       <Link to="/board">雑談広場</Link>

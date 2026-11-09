@@ -581,6 +581,8 @@ export const v2UserSettingsTable = sqliteTable("v2_user_settings", {
   chatMode: text("chat_mode").notNull().default("standard"),
   // RIT-203: 文体スタイル。balanced/prose/dialogue。出力形式の配分だけ変える。
   style: text("style").notNull().default("balanced"),
+  // RIT-211: 応答音声の自動再生。ON でもブラウザの自動再生制限は別途かかる。
+  voiceAutoplay: integer("voice_autoplay").notNull().default(0),
   updatedAt: integer("updated_at").notNull(),
 });
 

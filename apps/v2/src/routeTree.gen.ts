@@ -23,6 +23,7 @@ import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ApiPlanRouteImport } from './routes/api/plan'
 import { Route as ApiRevenueRouteImport } from './routes/api/revenue'
 import { Route as ApiSettingsRouteImport } from './routes/api/settings'
+import { Route as ApiTtsRouteImport } from './routes/api/tts'
 import { Route as CharactersIdRouteImport } from './routes/characters/$id'
 import { Route as CharactersNewRouteImport } from './routes/characters/new'
 import { Route as ChatIdRouteImport } from './routes/chat/$id'
@@ -134,6 +135,11 @@ const ApiRevenueRoute = ApiRevenueRouteImport.update({
 const ApiSettingsRoute = ApiSettingsRouteImport.update({
   id: '/api/settings',
   path: '/api/settings',
+  getParentRoute: () => rootRouteImport,
+})
+const ApiTtsRoute = ApiTtsRouteImport.update({
+  id: '/api/tts',
+  path: '/api/tts',
   getParentRoute: () => rootRouteImport,
 })
 const CharactersIdRoute = CharactersIdRouteImport.update({
@@ -366,6 +372,7 @@ export interface FileRoutesByFullPath {
   '/api/plan': typeof ApiPlanRouteWithChildren
   '/api/revenue': typeof ApiRevenueRoute
   '/api/settings': typeof ApiSettingsRoute
+  '/api/tts': typeof ApiTtsRoute
   '/characters/$id': typeof CharactersIdRoute
   '/characters/new': typeof CharactersNewRoute
   '/chat/$id': typeof ChatIdRoute
@@ -424,6 +431,7 @@ export interface FileRoutesByTo {
   '/api/plan': typeof ApiPlanRouteWithChildren
   '/api/revenue': typeof ApiRevenueRoute
   '/api/settings': typeof ApiSettingsRoute
+  '/api/tts': typeof ApiTtsRoute
   '/characters/$id': typeof CharactersIdRoute
   '/characters/new': typeof CharactersNewRoute
   '/chat/$id': typeof ChatIdRoute
@@ -483,6 +491,7 @@ export interface FileRoutesById {
   '/api/plan': typeof ApiPlanRouteWithChildren
   '/api/revenue': typeof ApiRevenueRoute
   '/api/settings': typeof ApiSettingsRoute
+  '/api/tts': typeof ApiTtsRoute
   '/characters/$id': typeof CharactersIdRoute
   '/characters/new': typeof CharactersNewRoute
   '/chat/$id': typeof ChatIdRoute
@@ -543,6 +552,7 @@ export interface FileRouteTypes {
     | '/api/plan'
     | '/api/revenue'
     | '/api/settings'
+    | '/api/tts'
     | '/characters/$id'
     | '/characters/new'
     | '/chat/$id'
@@ -601,6 +611,7 @@ export interface FileRouteTypes {
     | '/api/plan'
     | '/api/revenue'
     | '/api/settings'
+    | '/api/tts'
     | '/characters/$id'
     | '/characters/new'
     | '/chat/$id'
@@ -659,6 +670,7 @@ export interface FileRouteTypes {
     | '/api/plan'
     | '/api/revenue'
     | '/api/settings'
+    | '/api/tts'
     | '/characters/$id'
     | '/characters/new'
     | '/chat/$id'
@@ -718,6 +730,7 @@ export interface RootRouteChildren {
   ApiPlanRoute: typeof ApiPlanRouteWithChildren
   ApiRevenueRoute: typeof ApiRevenueRoute
   ApiSettingsRoute: typeof ApiSettingsRoute
+  ApiTtsRoute: typeof ApiTtsRoute
   CharactersIdRoute: typeof CharactersIdRoute
   CharactersNewRoute: typeof CharactersNewRoute
   ChatIdRoute: typeof ChatIdRoute
@@ -837,6 +850,13 @@ declare module '@tanstack/react-router' {
       path: '/api/settings'
       fullPath: '/api/settings'
       preLoaderRoute: typeof ApiSettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/tts': {
+      id: '/api/tts'
+      path: '/api/tts'
+      fullPath: '/api/tts'
+      preLoaderRoute: typeof ApiTtsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/characters/$id': {
@@ -1289,6 +1309,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPlanRoute: ApiPlanRouteWithChildren,
   ApiRevenueRoute: ApiRevenueRoute,
   ApiSettingsRoute: ApiSettingsRoute,
+  ApiTtsRoute: ApiTtsRoute,
   CharactersIdRoute: CharactersIdRoute,
   CharactersNewRoute: CharactersNewRoute,
   ChatIdRoute: ChatIdRoute,
