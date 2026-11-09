@@ -582,6 +582,19 @@ export const v2UserSettingsTable = sqliteTable("v2_user_settings", {
   updatedAt: integer("updated_at").notNull(),
 });
 
+// RIT-206: キャラの公開状態。character は v1 共有表なので公開は別テーブルに持つ。
+export const v2CharacterPublishTable = sqliteTable(
+  "v2_character_publish",
+  {
+    characterId: text("character_id").primaryKey(),
+    userId: text("user_id").notNull(),
+    summary: text("summary"),
+    publishedAt: integer("published_at").notNull(),
+    createdAt: integer("created_at").notNull(),
+  },
+  (table) => [index("idx_v2_character_publish_published").on(table.publishedAt)],
+);
+
 // RIT-204: メッセージへの印。kind=bookmark は有無だけ、kind=feedback は value=1/-1。
 // 行は消さず「押した時に付け・同じ値で再押しで外す」冪等トグルにする。
 export const v2MessageMarkTable = sqliteTable(

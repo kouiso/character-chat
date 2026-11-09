@@ -2,6 +2,7 @@ import { createFileRoute, getRouteApi, Link, useNavigate } from "@tanstack/react
 
 import { CharacterEditor } from "../../component/character-editor";
 import { MemoryPanel } from "../../component/memory-panel";
+import { PublishToggle } from "../../component/publish-toggle";
 import { readCharacterEditorIdentity } from "../../server/character-editor-identity";
 
 const routeApi = getRouteApi("/characters/$id");
@@ -26,6 +27,7 @@ const EditCharacterPage = () => {
         }}
       />
       <MemoryPanel characterId={id} />
+      <PublishToggle characterId={id} />
     </main>
   );
 };

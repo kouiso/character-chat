@@ -24,6 +24,7 @@ const CharacterListPage = () => {
       <ChatModeSelect />
       <StyleSelect />
       <Link to="/characters/new">キャラクターを作る</Link>
+      <Link to="/catalog">公開カタログ</Link>
       {conversations.length > 0 && (
         <section>
           <h2>保存した会話</h2>
