@@ -351,6 +351,13 @@
       "when": 1762854000000,
       "tag": "20261109160000_rit194_retention",
       "breakpoints": true
+    },
+    {
+      "idx": 85,
+      "version": "7",
+      "when": 1762855200000,
+      "tag": "20261109170000_rit193_subscription",
+      "breakpoints": true
     }
   ]
 }

@@ -542,3 +542,16 @@ export const v2FeaturePassTable = sqliteTable(
   },
   (table) => [index("v2_feature_pass_user_idx").on(table.userId, table.expiresAt)],
 );
+
+// RIT-193: 月額プランの保有状態。plan は free/standard/premium、有効期間は
+// expires_at > now。cancelled_at は自動更新しない意思表示（期限で落ちる）。
+// 通貨で購入した場合は spend 行を ledger_id で紐づける。
+export const v2SubscriptionTable = sqliteTable("v2_subscription", {
+  userId: text("user_id").primaryKey(),
+  plan: text("plan", { enum: ["free", "standard", "premium"] }).notNull(),
+  startedAt: integer("started_at").notNull(),
+  expiresAt: integer("expires_at"),
+  ledgerId: text("ledger_id"),
+  cancelledAt: integer("cancelled_at"),
+  updatedAt: integer("updated_at").notNull(),
+});

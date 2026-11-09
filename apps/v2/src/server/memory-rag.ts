@@ -90,10 +90,12 @@ const rankMemoryCandidates = async (
 export const retrieveMemories = async (
   db: V2Db,
   env: MemoryVectorBindings,
-  scope: ExtractionScope & { beforeTurn?: number },
+  scope: ExtractionScope & { beforeTurn?: number; topK?: number },
   query: string,
   now = Date.now(),
 ): Promise<MemoryContextEntry[]> => {
+  // 記憶の深さはプランの機能差（RIT-193）。未指定は従来どおり20。
+  const topK = scope.topK ?? 20;
   // 固定済みは類似度を必要とせんので vector 非依存で必ず先に返す（手で足した記憶の既定経路）。
   const pinned = await loadPinnedMemories(db, scope).catch(() => {
     globalThis.console.error(JSON.stringify({ event: "memory_pinned_load_failed" }));
@@ -105,12 +107,12 @@ export const retrieveMemories = async (
     const values = await embedMemoryText(env.AI, query);
     const result = await env.MEMORY_INDEX.query(values, {
       namespace: await memoryNamespace(scope),
-      topK: 20,
+      topK,
       returnMetadata: "all",
       returnValues: false,
       filter: { conversation_id: scope.conversationId, kind: { $in: ["fact", "preference"] } },
     });
-    const matches = result.matches.slice(0, 20).flatMap((match) => {
+    const matches = result.matches.slice(0, topK).flatMap((match) => {
       const id = match.metadata?.memory_id;
       const hash = match.metadata?.content_hash;
       return typeof id === "string" &&

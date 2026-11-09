@@ -14,6 +14,7 @@ import { Route as ApiCharactersRouteImport } from './routes/api/characters'
 import { Route as ApiCurrencyRouteImport } from './routes/api/currency'
 import { Route as ApiGroupsRouteImport } from './routes/api/groups'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
+import { Route as ApiPlanRouteImport } from './routes/api/plan'
 import { Route as CharactersIdRouteImport } from './routes/characters/$id'
 import { Route as CharactersNewRouteImport } from './routes/characters/new'
 import { Route as ChatIdRouteImport } from './routes/chat/$id'
@@ -24,6 +25,7 @@ import { Route as ApiCurrencyAdRewardRouteImport } from './routes/api/currency/a
 import { Route as ApiCurrencyDailyPassRouteImport } from './routes/api/currency/daily-pass'
 import { Route as ApiCurrencyLoginBonusRouteImport } from './routes/api/currency/login-bonus'
 import { Route as ApiMediaIdRouteImport } from './routes/api/media/$id'
+import { Route as ApiPlanCancelRouteImport } from './routes/api/plan/cancel'
 import { Route as ApiPushSubscriptionsRouteImport } from './routes/api/push/subscriptions'
 import { Route as ApiPushVapidKeyRouteImport } from './routes/api/push/vapid-key'
 import { Route as ApiCharactersIdDocumentsRouteImport } from './routes/api/characters/$id_/documents'
@@ -63,6 +65,11 @@ const ApiGroupsRoute = ApiGroupsRouteImport.update({
 const ApiHealthRoute = ApiHealthRouteImport.update({
   id: '/api/health',
   path: '/api/health',
+  getParentRoute: () => rootRouteImport,
+})
+const ApiPlanRoute = ApiPlanRouteImport.update({
+  id: '/api/plan',
+  path: '/api/plan',
   getParentRoute: () => rootRouteImport,
 })
 const CharactersIdRoute = CharactersIdRouteImport.update({
@@ -114,6 +121,11 @@ const ApiMediaIdRoute = ApiMediaIdRouteImport.update({
   id: '/api/media/$id',
   path: '/api/media/$id',
   getParentRoute: () => rootRouteImport,
+})
+const ApiPlanCancelRoute = ApiPlanCancelRouteImport.update({
+  id: '/cancel',
+  path: '/cancel',
+  getParentRoute: () => ApiPlanRoute,
 })
 const ApiPushSubscriptionsRoute = ApiPushSubscriptionsRouteImport.update({
   id: '/api/push/subscriptions',
@@ -201,6 +213,7 @@ export interface FileRoutesByFullPath {
   '/api/currency': typeof ApiCurrencyRouteWithChildren
   '/api/groups': typeof ApiGroupsRouteWithChildren
   '/api/health': typeof ApiHealthRoute
+  '/api/plan': typeof ApiPlanRouteWithChildren
   '/characters/$id': typeof CharactersIdRoute
   '/characters/new': typeof CharactersNewRoute
   '/chat/$id': typeof ChatIdRoute
@@ -211,6 +224,7 @@ export interface FileRoutesByFullPath {
   '/api/currency/daily-pass': typeof ApiCurrencyDailyPassRoute
   '/api/currency/login-bonus': typeof ApiCurrencyLoginBonusRoute
   '/api/media/$id': typeof ApiMediaIdRoute
+  '/api/plan/cancel': typeof ApiPlanCancelRoute
   '/api/push/subscriptions': typeof ApiPushSubscriptionsRoute
   '/api/push/vapid-key': typeof ApiPushVapidKeyRoute
   '/api/characters/$id/documents': typeof ApiCharactersIdDocumentsRouteWithChildren
@@ -233,6 +247,7 @@ export interface FileRoutesByTo {
   '/api/currency': typeof ApiCurrencyRouteWithChildren
   '/api/groups': typeof ApiGroupsRouteWithChildren
   '/api/health': typeof ApiHealthRoute
+  '/api/plan': typeof ApiPlanRouteWithChildren
   '/characters/$id': typeof CharactersIdRoute
   '/characters/new': typeof CharactersNewRoute
   '/chat/$id': typeof ChatIdRoute
@@ -243,6 +258,7 @@ export interface FileRoutesByTo {
   '/api/currency/daily-pass': typeof ApiCurrencyDailyPassRoute
   '/api/currency/login-bonus': typeof ApiCurrencyLoginBonusRoute
   '/api/media/$id': typeof ApiMediaIdRoute
+  '/api/plan/cancel': typeof ApiPlanCancelRoute
   '/api/push/subscriptions': typeof ApiPushSubscriptionsRoute
   '/api/push/vapid-key': typeof ApiPushVapidKeyRoute
   '/api/characters/$id/documents': typeof ApiCharactersIdDocumentsRouteWithChildren
@@ -266,6 +282,7 @@ export interface FileRoutesById {
   '/api/currency': typeof ApiCurrencyRouteWithChildren
   '/api/groups': typeof ApiGroupsRouteWithChildren
   '/api/health': typeof ApiHealthRoute
+  '/api/plan': typeof ApiPlanRouteWithChildren
   '/characters/$id': typeof CharactersIdRoute
   '/characters/new': typeof CharactersNewRoute
   '/chat/$id': typeof ChatIdRoute
@@ -276,6 +293,7 @@ export interface FileRoutesById {
   '/api/currency/daily-pass': typeof ApiCurrencyDailyPassRoute
   '/api/currency/login-bonus': typeof ApiCurrencyLoginBonusRoute
   '/api/media/$id': typeof ApiMediaIdRoute
+  '/api/plan/cancel': typeof ApiPlanCancelRoute
   '/api/push/subscriptions': typeof ApiPushSubscriptionsRoute
   '/api/push/vapid-key': typeof ApiPushVapidKeyRoute
   '/api/characters/$id_/documents': typeof ApiCharactersIdDocumentsRouteWithChildren
@@ -300,6 +318,7 @@ export interface FileRouteTypes {
     | '/api/currency'
     | '/api/groups'
     | '/api/health'
+    | '/api/plan'
     | '/characters/$id'
     | '/characters/new'
     | '/chat/$id'
@@ -310,6 +329,7 @@ export interface FileRouteTypes {
     | '/api/currency/daily-pass'
     | '/api/currency/login-bonus'
     | '/api/media/$id'
+    | '/api/plan/cancel'
     | '/api/push/subscriptions'
     | '/api/push/vapid-key'
     | '/api/characters/$id/documents'
@@ -332,6 +352,7 @@ export interface FileRouteTypes {
     | '/api/currency'
     | '/api/groups'
     | '/api/health'
+    | '/api/plan'
     | '/characters/$id'
     | '/characters/new'
     | '/chat/$id'
@@ -342,6 +363,7 @@ export interface FileRouteTypes {
     | '/api/currency/daily-pass'
     | '/api/currency/login-bonus'
     | '/api/media/$id'
+    | '/api/plan/cancel'
     | '/api/push/subscriptions'
     | '/api/push/vapid-key'
     | '/api/characters/$id/documents'
@@ -364,6 +386,7 @@ export interface FileRouteTypes {
     | '/api/currency'
     | '/api/groups'
     | '/api/health'
+    | '/api/plan'
     | '/characters/$id'
     | '/characters/new'
     | '/chat/$id'
@@ -374,6 +397,7 @@ export interface FileRouteTypes {
     | '/api/currency/daily-pass'
     | '/api/currency/login-bonus'
     | '/api/media/$id'
+    | '/api/plan/cancel'
     | '/api/push/subscriptions'
     | '/api/push/vapid-key'
     | '/api/characters/$id_/documents'
@@ -397,6 +421,7 @@ export interface RootRouteChildren {
   ApiCurrencyRoute: typeof ApiCurrencyRouteWithChildren
   ApiGroupsRoute: typeof ApiGroupsRouteWithChildren
   ApiHealthRoute: typeof ApiHealthRoute
+  ApiPlanRoute: typeof ApiPlanRouteWithChildren
   CharactersIdRoute: typeof CharactersIdRoute
   CharactersNewRoute: typeof CharactersNewRoute
   ChatIdRoute: typeof ChatIdRoute
@@ -448,6 +473,13 @@ declare module '@tanstack/react-router' {
       path: '/api/health'
       fullPath: '/api/health'
       preLoaderRoute: typeof ApiHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/plan': {
+      id: '/api/plan'
+      path: '/api/plan'
+      fullPath: '/api/plan'
+      preLoaderRoute: typeof ApiPlanRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/characters/$id': {
@@ -519,6 +551,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/media/$id'
       preLoaderRoute: typeof ApiMediaIdRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/api/plan/cancel': {
+      id: '/api/plan/cancel'
+      path: '/cancel'
+      fullPath: '/api/plan/cancel'
+      preLoaderRoute: typeof ApiPlanCancelRouteImport
+      parentRoute: typeof ApiPlanRoute
     }
     '/api/push/subscriptions': {
       id: '/api/push/subscriptions'
@@ -704,12 +743,24 @@ const ApiGroupsRouteWithChildren = ApiGroupsRoute._addFileChildren(
   ApiGroupsRouteChildren,
 )
 
+interface ApiPlanRouteChildren {
+  ApiPlanCancelRoute: typeof ApiPlanCancelRoute
+}
+
+const ApiPlanRouteChildren: ApiPlanRouteChildren = {
+  ApiPlanCancelRoute: ApiPlanCancelRoute,
+}
+
+const ApiPlanRouteWithChildren =
+  ApiPlanRoute._addFileChildren(ApiPlanRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ApiCharactersRoute: ApiCharactersRouteWithChildren,
   ApiCurrencyRoute: ApiCurrencyRouteWithChildren,
   ApiGroupsRoute: ApiGroupsRouteWithChildren,
   ApiHealthRoute: ApiHealthRoute,
+  ApiPlanRoute: ApiPlanRouteWithChildren,
   CharactersIdRoute: CharactersIdRoute,
   CharactersNewRoute: CharactersNewRoute,
   ChatIdRoute: ChatIdRoute,
