@@ -101,10 +101,24 @@ export const v2MessageTable = sqliteTable(
     // v2 で生成した画像メッセージの R2 キー。旧 message 表の image_key ではなく、
     // v2 メッセージへ直接持たせる（旧表は移行済み行だけが join で拾われる）。
     imageKey: text("image_key"),
+    // RIT-202: 枝分かれ。同じ (conversation, turn, role) の代替系列は branch_no で
+    // 区別し、表示対象は active=1 の1本だけ。戻る/進むは active の張り替えでやる
+    // （消すと記憶の出処 cascade が消えるので行は残す）。
+    branchNo: integer("branch_no").notNull().default(0),
+    active: integer("active").notNull().default(1),
     createdAt: integer("created_at").notNull(),
   },
   (table) => [
-    uniqueIndex("v2_message_conv_turn_role_idx").on(table.conversationId, table.turn, table.role),
+    // 表示対象は (会話,ターン,役割) につき1本。代替系列は active=0 で眠らせる。
+    uniqueIndex("v2_message_active_idx")
+      .on(table.conversationId, table.turn, table.role)
+      .where(sql`${table.active} = 1`),
+    uniqueIndex("v2_message_branch_idx").on(
+      table.conversationId,
+      table.turn,
+      table.role,
+      table.branchNo,
+    ),
     check("v2_message_role_check", sql`${table.role} in ('user','assistant')`),
   ],
 );

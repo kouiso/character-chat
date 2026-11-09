@@ -24,6 +24,8 @@ const storedTurnSchema = z.object({
 const historySchema = z.object({
   history: z.array(
     z.object({
+      id: z.string(),
+      turn: z.number().int(),
       role: z.enum(["user", "assistant"]),
       content: z.string(),
       imageUrl: z.string().optional(),
@@ -43,6 +45,9 @@ export type ChatBubble = {
   pending?: boolean;
   imageUrl?: string;
   mediaKind?: "image" | "video";
+  // RIT-202: 枝操作に必要な永続行の id とターン番号（ストリーム中の仮バブルは無し）。
+  id?: string;
+  turn?: number;
 };
 export type StoredTurn = z.infer<typeof storedTurnSchema>;
 
@@ -228,6 +233,8 @@ export const loadChatHistory = async (
       text: item.content,
       imageUrl: item.imageUrl,
       mediaKind: item.mediaKind,
+      id: item.id,
+      turn: item.turn,
     })),
     nextTurn: history.turn,
     storedTurn: history.storedTurn,

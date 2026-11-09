@@ -17,6 +17,7 @@ export * from "./memory-extraction-contract";
 export * from "./memory-extraction-store";
 export * from "./memory-index-store";
 export * from "./memory-crud-store";
+export * from "./branch-store";
 export * from "./proactive-store";
 export * from "./push-subscription-store";
 export * from "./group-store";

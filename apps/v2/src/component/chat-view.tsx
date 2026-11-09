@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Dispatch, RefObject, SetStateAction } from "react";
 
+import { runBranchAction } from "../lib/branch";
 import { MAX_MESSAGE_LENGTH } from "../lib/chat-limits";
 import {
   ChatConnectionError,
@@ -20,6 +21,7 @@ import {
 } from "../lib/chat-session";
 import { revealChunk, scheduleReveal } from "../lib/chunk-reveal";
 
+import { BranchControls } from "./branch-controls";
 import { ChatImage } from "./chat-image";
 import { ChatMessage, ChatMessageText } from "./chat-message";
 import { ChatMessageLog } from "./chat-message-log";
@@ -276,6 +278,8 @@ export const ChatView = ({
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState<PendingTurn | null>(null);
   const [terminalFailure, setTerminalFailure] = useState(false);
+  // RIT-202: 「ここから戻る」で眠らせた末尾を「進む」で起こせるよう、戻したターンを覚える。
+  const [rewoundFrom, setRewoundFrom] = useState<number | null>(null);
   const conversationId = useRef<string | null>(null);
   const nextTurn = useRef(1);
   const controller = useRef<AbortController | null>(null);
@@ -313,6 +317,59 @@ export const ChatView = ({
       if (!signal.aborted) setBusy(false);
     }
   }, []);
+
+  // RIT-202: 枝操作（張替・再生成・書き直し・戻る/進む）の後は履歴を1本読み直すだけ。
+  const reloadHistory = useCallback(async () => {
+    const targetConversationId = conversationId.current;
+    if (!targetConversationId) return;
+    const history = await loadChatHistory(
+      characterId,
+      targetConversationId,
+      new AbortController().signal,
+    );
+    nextTurn.current = history.nextTurn;
+    setBubbles(history.bubbles);
+  }, [characterId]);
+
+  // RIT-202: 枝操作は永続行（id/turn あり・送信完了済み）にだけ出す。
+  const bubbleControls = (bubble: ChatBubble) => {
+    const targetConversationId = conversationId.current;
+    if (
+      bubble.id === undefined ||
+      bubble.turn === undefined ||
+      bubble.pending ||
+      !targetConversationId
+    )
+      return null;
+    return (
+      <BranchControls
+        characterId={characterId}
+        conversationId={targetConversationId}
+        role={bubble.role}
+        turn={bubble.turn}
+        busy={busy || pending !== null}
+        onChanged={reloadHistory}
+        onRewound={setRewoundFrom}
+      />
+    );
+  };
+
+  const restoreRewound = async () => {
+    if (rewoundFrom === null || !conversationId.current) return;
+    setBusy(true);
+    try {
+      await runBranchAction(characterId, conversationId.current, {
+        action: "restore",
+        fromTurn: rewoundFrom,
+      });
+      setRewoundFrom(null);
+      await reloadHistory();
+    } catch (cause) {
+      setError((cause as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const restoreLocally = (turn: PendingTurn) => {
     clearPendingTurn(turn.characterId, turn);
@@ -610,9 +667,17 @@ export const ChatView = ({
               characterName={characterName}
               streaming={bubble.pending}
             />
+            {bubbleControls(bubble)}
           </div>
         ))}
       </ChatMessageLog>
+      {rewoundFrom !== null && (
+        <div className="v2-branch-restore">
+          <button type="button" onClick={() => void restoreRewound()} disabled={busy}>
+            戻した会話を進む（復元）
+          </button>
+        </div>
+      )}
       {error && (
         <div className="v2-error" role="alert">
           {error}
