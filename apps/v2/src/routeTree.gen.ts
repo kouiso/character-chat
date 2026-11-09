@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiCharactersRouteImport } from './routes/api/characters'
+import { Route as ApiCurrencyRouteImport } from './routes/api/currency'
 import { Route as ApiGroupsRouteImport } from './routes/api/groups'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as CharactersIdRouteImport } from './routes/characters/$id'
@@ -44,6 +45,11 @@ const IndexRoute = IndexRouteImport.update({
 const ApiCharactersRoute = ApiCharactersRouteImport.update({
   id: '/api/characters',
   path: '/api/characters',
+  getParentRoute: () => rootRouteImport,
+})
+const ApiCurrencyRoute = ApiCurrencyRouteImport.update({
+  id: '/api/currency',
+  path: '/api/currency',
   getParentRoute: () => rootRouteImport,
 })
 const ApiGroupsRoute = ApiGroupsRouteImport.update({
@@ -174,6 +180,7 @@ const ApiProactiveCharactersIdSettingsRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/api/characters': typeof ApiCharactersRouteWithChildren
+  '/api/currency': typeof ApiCurrencyRoute
   '/api/groups': typeof ApiGroupsRouteWithChildren
   '/api/health': typeof ApiHealthRoute
   '/characters/$id': typeof CharactersIdRoute
@@ -202,6 +209,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/api/characters': typeof ApiCharactersRouteWithChildren
+  '/api/currency': typeof ApiCurrencyRoute
   '/api/groups': typeof ApiGroupsRouteWithChildren
   '/api/health': typeof ApiHealthRoute
   '/characters/$id': typeof CharactersIdRoute
@@ -231,6 +239,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/api/characters': typeof ApiCharactersRouteWithChildren
+  '/api/currency': typeof ApiCurrencyRoute
   '/api/groups': typeof ApiGroupsRouteWithChildren
   '/api/health': typeof ApiHealthRoute
   '/characters/$id': typeof CharactersIdRoute
@@ -261,6 +270,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/api/characters'
+    | '/api/currency'
     | '/api/groups'
     | '/api/health'
     | '/characters/$id'
@@ -289,6 +299,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/api/characters'
+    | '/api/currency'
     | '/api/groups'
     | '/api/health'
     | '/characters/$id'
@@ -317,6 +328,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/api/characters'
+    | '/api/currency'
     | '/api/groups'
     | '/api/health'
     | '/characters/$id'
@@ -346,6 +358,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ApiCharactersRoute: typeof ApiCharactersRouteWithChildren
+  ApiCurrencyRoute: typeof ApiCurrencyRoute
   ApiGroupsRoute: typeof ApiGroupsRouteWithChildren
   ApiHealthRoute: typeof ApiHealthRoute
   CharactersIdRoute: typeof CharactersIdRoute
@@ -378,6 +391,13 @@ declare module '@tanstack/react-router' {
       path: '/api/characters'
       fullPath: '/api/characters'
       preLoaderRoute: typeof ApiCharactersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/currency': {
+      id: '/api/currency'
+      path: '/api/currency'
+      fullPath: '/api/currency'
+      preLoaderRoute: typeof ApiCurrencyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/groups': {
@@ -614,6 +634,7 @@ const ApiGroupsRouteWithChildren = ApiGroupsRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ApiCharactersRoute: ApiCharactersRouteWithChildren,
+  ApiCurrencyRoute: ApiCurrencyRoute,
   ApiGroupsRoute: ApiGroupsRouteWithChildren,
   ApiHealthRoute: ApiHealthRoute,
   CharactersIdRoute: CharactersIdRoute,

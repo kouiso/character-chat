@@ -471,3 +471,42 @@ export const v2CharacterDocumentChunkTable = sqliteTable(
   },
   (table) => [index("v2_character_document_chunk_doc_idx").on(table.documentId, table.seq)],
 );
+
+// RIT-191: 通貨の取引台帳と残高。全ての増減は台帳へ1行で記録し、残高は台帳挿入と同一
+// バッチで更新する。idempotency_key は再送・リトライの二重計上を防ぐ（一意）。
+// kind: grant=付与 / purchase=購入 / spend=消費 / refund=返却 / bonus=特典。
+// amount は常に正の最小単位、増減方向は kind で決まる（負数を持たない）。
+export const v2CurrencyLedgerTable = sqliteTable(
+  "v2_currency_ledger",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull(),
+    kind: text("kind", { enum: ["grant", "purchase", "spend", "refund", "bonus"] }).notNull(),
+    amount: integer("amount").notNull(),
+    balanceAfter: integer("balance_after").notNull(),
+    reason: text("reason").notNull(),
+    refType: text("ref_type"),
+    refId: text("ref_id"),
+    idempotencyKey: text("idempotency_key").notNull(),
+    createdAt: integer("created_at").notNull(),
+  },
+  (table) => [
+    index("v2_currency_ledger_user_idx").on(table.userId, table.createdAt),
+    uniqueIndex("v2_currency_ledger_idempotency_unique").on(table.idempotencyKey),
+    check(
+      "v2_currency_ledger_kind_check",
+      sql`${table.kind} in ('grant','purchase','spend','refund','bonus')`,
+    ),
+  ],
+);
+
+export const v2CurrencyBalanceTable = sqliteTable(
+  "v2_currency_balance",
+  {
+    userId: text("user_id").primaryKey(),
+    balance: integer("balance").notNull(),
+    updatedAt: integer("updated_at").notNull(),
+  },
+  // 残高が負にならないことは DB が保証する（同時 spend 競合の最後の砦）。
+  (table) => [check("v2_currency_balance_nonnegative", sql`${table.balance} >= 0`)],
+);
