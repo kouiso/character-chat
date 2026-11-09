@@ -3,6 +3,7 @@ import { useState } from "react";
 
 import { createFileRoute, getRouteApi, Link, useNavigate } from "@tanstack/react-router";
 
+import { ReactionPanel } from "../component/reaction-panel";
 import { forkCatalogItem, loadCatalog, type CatalogItem } from "../lib/catalog";
 
 const routeApi = getRouteApi("/catalog");
@@ -31,6 +32,7 @@ const CatalogCard = ({ item }: { item: CatalogItem }) => {
       <button type="button" disabled={busy} onClick={fork}>
         {busy ? "フォーク中…" : "自分のライブラリへコピー"}
       </button>
+      <ReactionPanel characterId={item.characterId} />
       {error && <p role="alert">{error}</p>}
     </li>
   );

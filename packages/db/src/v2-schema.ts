@@ -611,3 +611,41 @@ export const v2MessageMarkTable = sqliteTable(
     index("idx_v2_message_mark_conversation").on(table.conversationId),
   ],
 );
+
+// RIT-207: 公開キャラへのリアクション。user_id 列を持たせて多ユーザー移行を阻まない。
+// kind=character はキャラ、kind=creator は作者（target_id=user_id）へのフォロー。
+export const v2CatalogLikeTable = sqliteTable(
+  "v2_catalog_like",
+  {
+    characterId: text("character_id").notNull(),
+    userId: text("user_id").notNull(),
+    createdAt: integer("created_at").notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.characterId, table.userId] })],
+);
+
+export const v2CatalogCommentTable = sqliteTable(
+  "v2_catalog_comment",
+  {
+    id: text("id").primaryKey(),
+    characterId: text("character_id").notNull(),
+    userId: text("user_id").notNull(),
+    body: text("body").notNull(),
+    createdAt: integer("created_at").notNull(),
+  },
+  (table) => [index("idx_v2_catalog_comment_character").on(table.characterId)],
+);
+
+export const v2FollowTable = sqliteTable(
+  "v2_follow",
+  {
+    userId: text("user_id").notNull(),
+    kind: text("kind").notNull(),
+    targetId: text("target_id").notNull(),
+    createdAt: integer("created_at").notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.userId, table.kind, table.targetId] }),
+    index("idx_v2_follow_target").on(table.kind, table.targetId),
+  ],
+);

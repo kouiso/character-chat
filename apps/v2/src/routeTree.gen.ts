@@ -14,6 +14,7 @@ import { Route as CatalogRouteImport } from './routes/catalog'
 import { Route as ApiCatalogRouteImport } from './routes/api/catalog'
 import { Route as ApiCharactersRouteImport } from './routes/api/characters'
 import { Route as ApiCurrencyRouteImport } from './routes/api/currency'
+import { Route as ApiFollowsRouteImport } from './routes/api/follows'
 import { Route as ApiGroupsRouteImport } from './routes/api/groups'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ApiPlanRouteImport } from './routes/api/plan'
@@ -32,7 +33,11 @@ import { Route as ApiMediaIdRouteImport } from './routes/api/media/$id'
 import { Route as ApiPlanCancelRouteImport } from './routes/api/plan/cancel'
 import { Route as ApiPushSubscriptionsRouteImport } from './routes/api/push/subscriptions'
 import { Route as ApiPushVapidKeyRouteImport } from './routes/api/push/vapid-key'
+import { Route as ApiCatalogIdCommentsRouteImport } from './routes/api/catalog/$id_/comments'
+import { Route as ApiCatalogIdFollowRouteImport } from './routes/api/catalog/$id_/follow'
 import { Route as ApiCatalogIdForkRouteImport } from './routes/api/catalog/$id_/fork'
+import { Route as ApiCatalogIdLikeRouteImport } from './routes/api/catalog/$id_/like'
+import { Route as ApiCatalogIdReactionsRouteImport } from './routes/api/catalog/$id_/reactions'
 import { Route as ApiCharactersIdDocumentsRouteImport } from './routes/api/characters/$id_/documents'
 import { Route as ApiCharactersIdMemoriesRouteImport } from './routes/api/characters/$id_/memories'
 import { Route as ApiCharactersIdPublishRouteImport } from './routes/api/characters/$id_/publish'
@@ -48,6 +53,7 @@ import { Route as ApiChatIdMemoryRouteImport } from './routes/api/chat/$id_/memo
 import { Route as ApiChatIdSuggestRouteImport } from './routes/api/chat/$id_/suggest'
 import { Route as ApiChatIdVideoRouteImport } from './routes/api/chat/$id_/video'
 import { Route as ApiGroupsIdMessagesRouteImport } from './routes/api/groups/$id_/messages'
+import { Route as ApiCatalogIdCommentsCidRouteImport } from './routes/api/catalog/$id_/comments/$cid'
 import { Route as ApiCharactersIdDocumentsDocRouteImport } from './routes/api/characters/$id_/documents/$doc'
 import { Route as ApiCharactersIdVersionsVersionRouteImport } from './routes/api/characters/$id_/versions/$version'
 import { Route as ApiProactiveCharactersIdSettingsRouteImport } from './routes/api/proactive/characters/$id_/settings'
@@ -75,6 +81,11 @@ const ApiCharactersRoute = ApiCharactersRouteImport.update({
 const ApiCurrencyRoute = ApiCurrencyRouteImport.update({
   id: '/api/currency',
   path: '/api/currency',
+  getParentRoute: () => rootRouteImport,
+})
+const ApiFollowsRoute = ApiFollowsRouteImport.update({
+  id: '/api/follows',
+  path: '/api/follows',
   getParentRoute: () => rootRouteImport,
 })
 const ApiGroupsRoute = ApiGroupsRouteImport.update({
@@ -167,9 +178,29 @@ const ApiPushVapidKeyRoute = ApiPushVapidKeyRouteImport.update({
   path: '/api/push/vapid-key',
   getParentRoute: () => rootRouteImport,
 })
+const ApiCatalogIdCommentsRoute = ApiCatalogIdCommentsRouteImport.update({
+  id: '/$id_/comments',
+  path: '/$id/comments',
+  getParentRoute: () => ApiCatalogRoute,
+})
+const ApiCatalogIdFollowRoute = ApiCatalogIdFollowRouteImport.update({
+  id: '/$id_/follow',
+  path: '/$id/follow',
+  getParentRoute: () => ApiCatalogRoute,
+})
 const ApiCatalogIdForkRoute = ApiCatalogIdForkRouteImport.update({
   id: '/$id_/fork',
   path: '/$id/fork',
+  getParentRoute: () => ApiCatalogRoute,
+})
+const ApiCatalogIdLikeRoute = ApiCatalogIdLikeRouteImport.update({
+  id: '/$id_/like',
+  path: '/$id/like',
+  getParentRoute: () => ApiCatalogRoute,
+})
+const ApiCatalogIdReactionsRoute = ApiCatalogIdReactionsRouteImport.update({
+  id: '/$id_/reactions',
+  path: '/$id/reactions',
   getParentRoute: () => ApiCatalogRoute,
 })
 const ApiCharactersIdDocumentsRoute =
@@ -248,6 +279,11 @@ const ApiGroupsIdMessagesRoute = ApiGroupsIdMessagesRouteImport.update({
   path: '/$id/messages',
   getParentRoute: () => ApiGroupsRoute,
 })
+const ApiCatalogIdCommentsCidRoute = ApiCatalogIdCommentsCidRouteImport.update({
+  id: '/$cid',
+  path: '/$cid',
+  getParentRoute: () => ApiCatalogIdCommentsRoute,
+})
 const ApiCharactersIdDocumentsDocRoute =
   ApiCharactersIdDocumentsDocRouteImport.update({
     id: '/$doc',
@@ -273,6 +309,7 @@ export interface FileRoutesByFullPath {
   '/api/catalog': typeof ApiCatalogRouteWithChildren
   '/api/characters': typeof ApiCharactersRouteWithChildren
   '/api/currency': typeof ApiCurrencyRouteWithChildren
+  '/api/follows': typeof ApiFollowsRoute
   '/api/groups': typeof ApiGroupsRouteWithChildren
   '/api/health': typeof ApiHealthRoute
   '/api/plan': typeof ApiPlanRouteWithChildren
@@ -291,7 +328,11 @@ export interface FileRoutesByFullPath {
   '/api/plan/cancel': typeof ApiPlanCancelRoute
   '/api/push/subscriptions': typeof ApiPushSubscriptionsRoute
   '/api/push/vapid-key': typeof ApiPushVapidKeyRoute
+  '/api/catalog/$id/comments': typeof ApiCatalogIdCommentsRouteWithChildren
+  '/api/catalog/$id/follow': typeof ApiCatalogIdFollowRoute
   '/api/catalog/$id/fork': typeof ApiCatalogIdForkRoute
+  '/api/catalog/$id/like': typeof ApiCatalogIdLikeRoute
+  '/api/catalog/$id/reactions': typeof ApiCatalogIdReactionsRoute
   '/api/characters/$id/documents': typeof ApiCharactersIdDocumentsRouteWithChildren
   '/api/characters/$id/memories': typeof ApiCharactersIdMemoriesRoute
   '/api/characters/$id/publish': typeof ApiCharactersIdPublishRoute
@@ -307,6 +348,7 @@ export interface FileRoutesByFullPath {
   '/api/chat/$id/suggest': typeof ApiChatIdSuggestRoute
   '/api/chat/$id/video': typeof ApiChatIdVideoRoute
   '/api/groups/$id/messages': typeof ApiGroupsIdMessagesRoute
+  '/api/catalog/$id/comments/$cid': typeof ApiCatalogIdCommentsCidRoute
   '/api/characters/$id/documents/$doc': typeof ApiCharactersIdDocumentsDocRoute
   '/api/characters/$id/versions/$version': typeof ApiCharactersIdVersionsVersionRoute
   '/api/proactive/characters/$id/settings': typeof ApiProactiveCharactersIdSettingsRoute
@@ -317,6 +359,7 @@ export interface FileRoutesByTo {
   '/api/catalog': typeof ApiCatalogRouteWithChildren
   '/api/characters': typeof ApiCharactersRouteWithChildren
   '/api/currency': typeof ApiCurrencyRouteWithChildren
+  '/api/follows': typeof ApiFollowsRoute
   '/api/groups': typeof ApiGroupsRouteWithChildren
   '/api/health': typeof ApiHealthRoute
   '/api/plan': typeof ApiPlanRouteWithChildren
@@ -335,7 +378,11 @@ export interface FileRoutesByTo {
   '/api/plan/cancel': typeof ApiPlanCancelRoute
   '/api/push/subscriptions': typeof ApiPushSubscriptionsRoute
   '/api/push/vapid-key': typeof ApiPushVapidKeyRoute
+  '/api/catalog/$id/comments': typeof ApiCatalogIdCommentsRouteWithChildren
+  '/api/catalog/$id/follow': typeof ApiCatalogIdFollowRoute
   '/api/catalog/$id/fork': typeof ApiCatalogIdForkRoute
+  '/api/catalog/$id/like': typeof ApiCatalogIdLikeRoute
+  '/api/catalog/$id/reactions': typeof ApiCatalogIdReactionsRoute
   '/api/characters/$id/documents': typeof ApiCharactersIdDocumentsRouteWithChildren
   '/api/characters/$id/memories': typeof ApiCharactersIdMemoriesRoute
   '/api/characters/$id/publish': typeof ApiCharactersIdPublishRoute
@@ -351,6 +398,7 @@ export interface FileRoutesByTo {
   '/api/chat/$id/suggest': typeof ApiChatIdSuggestRoute
   '/api/chat/$id/video': typeof ApiChatIdVideoRoute
   '/api/groups/$id/messages': typeof ApiGroupsIdMessagesRoute
+  '/api/catalog/$id/comments/$cid': typeof ApiCatalogIdCommentsCidRoute
   '/api/characters/$id/documents/$doc': typeof ApiCharactersIdDocumentsDocRoute
   '/api/characters/$id/versions/$version': typeof ApiCharactersIdVersionsVersionRoute
   '/api/proactive/characters/$id/settings': typeof ApiProactiveCharactersIdSettingsRoute
@@ -362,6 +410,7 @@ export interface FileRoutesById {
   '/api/catalog': typeof ApiCatalogRouteWithChildren
   '/api/characters': typeof ApiCharactersRouteWithChildren
   '/api/currency': typeof ApiCurrencyRouteWithChildren
+  '/api/follows': typeof ApiFollowsRoute
   '/api/groups': typeof ApiGroupsRouteWithChildren
   '/api/health': typeof ApiHealthRoute
   '/api/plan': typeof ApiPlanRouteWithChildren
@@ -380,7 +429,11 @@ export interface FileRoutesById {
   '/api/plan/cancel': typeof ApiPlanCancelRoute
   '/api/push/subscriptions': typeof ApiPushSubscriptionsRoute
   '/api/push/vapid-key': typeof ApiPushVapidKeyRoute
+  '/api/catalog/$id_/comments': typeof ApiCatalogIdCommentsRouteWithChildren
+  '/api/catalog/$id_/follow': typeof ApiCatalogIdFollowRoute
   '/api/catalog/$id_/fork': typeof ApiCatalogIdForkRoute
+  '/api/catalog/$id_/like': typeof ApiCatalogIdLikeRoute
+  '/api/catalog/$id_/reactions': typeof ApiCatalogIdReactionsRoute
   '/api/characters/$id_/documents': typeof ApiCharactersIdDocumentsRouteWithChildren
   '/api/characters/$id_/memories': typeof ApiCharactersIdMemoriesRoute
   '/api/characters/$id_/publish': typeof ApiCharactersIdPublishRoute
@@ -396,6 +449,7 @@ export interface FileRoutesById {
   '/api/chat/$id_/suggest': typeof ApiChatIdSuggestRoute
   '/api/chat/$id_/video': typeof ApiChatIdVideoRoute
   '/api/groups/$id_/messages': typeof ApiGroupsIdMessagesRoute
+  '/api/catalog/$id_/comments/$cid': typeof ApiCatalogIdCommentsCidRoute
   '/api/characters/$id_/documents/$doc': typeof ApiCharactersIdDocumentsDocRoute
   '/api/characters/$id_/versions/$version': typeof ApiCharactersIdVersionsVersionRoute
   '/api/proactive/characters/$id_/settings': typeof ApiProactiveCharactersIdSettingsRoute
@@ -408,6 +462,7 @@ export interface FileRouteTypes {
     | '/api/catalog'
     | '/api/characters'
     | '/api/currency'
+    | '/api/follows'
     | '/api/groups'
     | '/api/health'
     | '/api/plan'
@@ -426,7 +481,11 @@ export interface FileRouteTypes {
     | '/api/plan/cancel'
     | '/api/push/subscriptions'
     | '/api/push/vapid-key'
+    | '/api/catalog/$id/comments'
+    | '/api/catalog/$id/follow'
     | '/api/catalog/$id/fork'
+    | '/api/catalog/$id/like'
+    | '/api/catalog/$id/reactions'
     | '/api/characters/$id/documents'
     | '/api/characters/$id/memories'
     | '/api/characters/$id/publish'
@@ -442,6 +501,7 @@ export interface FileRouteTypes {
     | '/api/chat/$id/suggest'
     | '/api/chat/$id/video'
     | '/api/groups/$id/messages'
+    | '/api/catalog/$id/comments/$cid'
     | '/api/characters/$id/documents/$doc'
     | '/api/characters/$id/versions/$version'
     | '/api/proactive/characters/$id/settings'
@@ -452,6 +512,7 @@ export interface FileRouteTypes {
     | '/api/catalog'
     | '/api/characters'
     | '/api/currency'
+    | '/api/follows'
     | '/api/groups'
     | '/api/health'
     | '/api/plan'
@@ -470,7 +531,11 @@ export interface FileRouteTypes {
     | '/api/plan/cancel'
     | '/api/push/subscriptions'
     | '/api/push/vapid-key'
+    | '/api/catalog/$id/comments'
+    | '/api/catalog/$id/follow'
     | '/api/catalog/$id/fork'
+    | '/api/catalog/$id/like'
+    | '/api/catalog/$id/reactions'
     | '/api/characters/$id/documents'
     | '/api/characters/$id/memories'
     | '/api/characters/$id/publish'
@@ -486,6 +551,7 @@ export interface FileRouteTypes {
     | '/api/chat/$id/suggest'
     | '/api/chat/$id/video'
     | '/api/groups/$id/messages'
+    | '/api/catalog/$id/comments/$cid'
     | '/api/characters/$id/documents/$doc'
     | '/api/characters/$id/versions/$version'
     | '/api/proactive/characters/$id/settings'
@@ -496,6 +562,7 @@ export interface FileRouteTypes {
     | '/api/catalog'
     | '/api/characters'
     | '/api/currency'
+    | '/api/follows'
     | '/api/groups'
     | '/api/health'
     | '/api/plan'
@@ -514,7 +581,11 @@ export interface FileRouteTypes {
     | '/api/plan/cancel'
     | '/api/push/subscriptions'
     | '/api/push/vapid-key'
+    | '/api/catalog/$id_/comments'
+    | '/api/catalog/$id_/follow'
     | '/api/catalog/$id_/fork'
+    | '/api/catalog/$id_/like'
+    | '/api/catalog/$id_/reactions'
     | '/api/characters/$id_/documents'
     | '/api/characters/$id_/memories'
     | '/api/characters/$id_/publish'
@@ -530,6 +601,7 @@ export interface FileRouteTypes {
     | '/api/chat/$id_/suggest'
     | '/api/chat/$id_/video'
     | '/api/groups/$id_/messages'
+    | '/api/catalog/$id_/comments/$cid'
     | '/api/characters/$id_/documents/$doc'
     | '/api/characters/$id_/versions/$version'
     | '/api/proactive/characters/$id_/settings'
@@ -541,6 +613,7 @@ export interface RootRouteChildren {
   ApiCatalogRoute: typeof ApiCatalogRouteWithChildren
   ApiCharactersRoute: typeof ApiCharactersRouteWithChildren
   ApiCurrencyRoute: typeof ApiCurrencyRouteWithChildren
+  ApiFollowsRoute: typeof ApiFollowsRoute
   ApiGroupsRoute: typeof ApiGroupsRouteWithChildren
   ApiHealthRoute: typeof ApiHealthRoute
   ApiPlanRoute: typeof ApiPlanRouteWithChildren
@@ -600,6 +673,13 @@ declare module '@tanstack/react-router' {
       path: '/api/currency'
       fullPath: '/api/currency'
       preLoaderRoute: typeof ApiCurrencyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/follows': {
+      id: '/api/follows'
+      path: '/api/follows'
+      fullPath: '/api/follows'
+      preLoaderRoute: typeof ApiFollowsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/groups': {
@@ -728,11 +808,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPushVapidKeyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/catalog/$id_/comments': {
+      id: '/api/catalog/$id_/comments'
+      path: '/$id/comments'
+      fullPath: '/api/catalog/$id/comments'
+      preLoaderRoute: typeof ApiCatalogIdCommentsRouteImport
+      parentRoute: typeof ApiCatalogRoute
+    }
+    '/api/catalog/$id_/follow': {
+      id: '/api/catalog/$id_/follow'
+      path: '/$id/follow'
+      fullPath: '/api/catalog/$id/follow'
+      preLoaderRoute: typeof ApiCatalogIdFollowRouteImport
+      parentRoute: typeof ApiCatalogRoute
+    }
     '/api/catalog/$id_/fork': {
       id: '/api/catalog/$id_/fork'
       path: '/$id/fork'
       fullPath: '/api/catalog/$id/fork'
       preLoaderRoute: typeof ApiCatalogIdForkRouteImport
+      parentRoute: typeof ApiCatalogRoute
+    }
+    '/api/catalog/$id_/like': {
+      id: '/api/catalog/$id_/like'
+      path: '/$id/like'
+      fullPath: '/api/catalog/$id/like'
+      preLoaderRoute: typeof ApiCatalogIdLikeRouteImport
+      parentRoute: typeof ApiCatalogRoute
+    }
+    '/api/catalog/$id_/reactions': {
+      id: '/api/catalog/$id_/reactions'
+      path: '/$id/reactions'
+      fullPath: '/api/catalog/$id/reactions'
+      preLoaderRoute: typeof ApiCatalogIdReactionsRouteImport
       parentRoute: typeof ApiCatalogRoute
     }
     '/api/characters/$id_/documents': {
@@ -840,6 +948,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiGroupsIdMessagesRouteImport
       parentRoute: typeof ApiGroupsRoute
     }
+    '/api/catalog/$id_/comments/$cid': {
+      id: '/api/catalog/$id_/comments/$cid'
+      path: '/$cid'
+      fullPath: '/api/catalog/$id/comments/$cid'
+      preLoaderRoute: typeof ApiCatalogIdCommentsCidRouteImport
+      parentRoute: typeof ApiCatalogIdCommentsRoute
+    }
     '/api/characters/$id_/documents/$doc': {
       id: '/api/characters/$id_/documents/$doc'
       path: '/$doc'
@@ -864,14 +979,33 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface ApiCatalogIdCommentsRouteChildren {
+  ApiCatalogIdCommentsCidRoute: typeof ApiCatalogIdCommentsCidRoute
+}
+
+const ApiCatalogIdCommentsRouteChildren: ApiCatalogIdCommentsRouteChildren = {
+  ApiCatalogIdCommentsCidRoute: ApiCatalogIdCommentsCidRoute,
+}
+
+const ApiCatalogIdCommentsRouteWithChildren =
+  ApiCatalogIdCommentsRoute._addFileChildren(ApiCatalogIdCommentsRouteChildren)
+
 interface ApiCatalogRouteChildren {
   ApiCatalogIdRoute: typeof ApiCatalogIdRoute
+  ApiCatalogIdCommentsRoute: typeof ApiCatalogIdCommentsRouteWithChildren
+  ApiCatalogIdFollowRoute: typeof ApiCatalogIdFollowRoute
   ApiCatalogIdForkRoute: typeof ApiCatalogIdForkRoute
+  ApiCatalogIdLikeRoute: typeof ApiCatalogIdLikeRoute
+  ApiCatalogIdReactionsRoute: typeof ApiCatalogIdReactionsRoute
 }
 
 const ApiCatalogRouteChildren: ApiCatalogRouteChildren = {
   ApiCatalogIdRoute: ApiCatalogIdRoute,
+  ApiCatalogIdCommentsRoute: ApiCatalogIdCommentsRouteWithChildren,
+  ApiCatalogIdFollowRoute: ApiCatalogIdFollowRoute,
   ApiCatalogIdForkRoute: ApiCatalogIdForkRoute,
+  ApiCatalogIdLikeRoute: ApiCatalogIdLikeRoute,
+  ApiCatalogIdReactionsRoute: ApiCatalogIdReactionsRoute,
 }
 
 const ApiCatalogRouteWithChildren = ApiCatalogRoute._addFileChildren(
@@ -973,6 +1107,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiCatalogRoute: ApiCatalogRouteWithChildren,
   ApiCharactersRoute: ApiCharactersRouteWithChildren,
   ApiCurrencyRoute: ApiCurrencyRouteWithChildren,
+  ApiFollowsRoute: ApiFollowsRoute,
   ApiGroupsRoute: ApiGroupsRouteWithChildren,
   ApiHealthRoute: ApiHealthRoute,
   ApiPlanRoute: ApiPlanRouteWithChildren,
