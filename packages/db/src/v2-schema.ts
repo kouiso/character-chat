@@ -687,6 +687,39 @@ export const v2CreatorRevenueTable = sqliteTable(
   ],
 );
 
+// RIT-214: 章構成ストーリー。story はキャラ＋世界観設定を持つ入れ物、
+// chapter は順序・本文・ナレーションを持つ1章。ord は story 内の連番。
+export const v2StoryTable = sqliteTable(
+  "v2_story",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull(),
+    characterId: text("character_id").notNull(),
+    title: text("title").notNull(),
+    worldview: text("worldview").notNull().default(""),
+    createdAt: integer("created_at").notNull(),
+    updatedAt: integer("updated_at").notNull(),
+  },
+  (table) => [index("idx_v2_story_user").on(table.userId)],
+);
+
+export const v2ChapterTable = sqliteTable(
+  "v2_chapter",
+  {
+    id: text("id").primaryKey(),
+    storyId: text("story_id")
+      .notNull()
+      .references(() => v2StoryTable.id, { onDelete: "cascade" }),
+    ord: integer("ord").notNull(),
+    title: text("title").notNull().default(""),
+    body: text("body").notNull().default(""),
+    narration: text("narration").notNull().default(""),
+    createdAt: integer("created_at").notNull(),
+    updatedAt: integer("updated_at").notNull(),
+  },
+  (table) => [index("idx_v2_chapter_story").on(table.storyId, table.ord)],
+);
+
 // RIT-213: 音声通話の日次無料枠（秒）。日次区切りは usage-limit と同じ JST 0 時。
 export const v2VoiceCallUsageTable = sqliteTable(
   "v2_voice_call_usage",

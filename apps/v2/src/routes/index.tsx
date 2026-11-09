@@ -28,6 +28,7 @@ const CharacterListPage = () => {
       <Link to="/characters/new">キャラクターを作る</Link>
       <Link to="/catalog">公開カタログ</Link>
       <Link to="/board">雑談広場</Link>
+      <Link to="/stories">ストーリー</Link>
       <Link to="/revenue">収益</Link>
       {conversations.length > 0 && (
         <section>
