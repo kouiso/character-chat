@@ -651,3 +651,16 @@ export const v2FollowTable = sqliteTable(
     index("idx_v2_follow_target").on(table.kind, table.targetId),
   ],
 );
+
+// RIT-209: 雑談広場の投稿。公開ボードなので会話・キャラとは独立した表。
+// created_at 降順のカーソルページングを索引で支える。
+export const v2BoardPostTable = sqliteTable(
+  "v2_board_post",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull(),
+    body: text("body").notNull(),
+    createdAt: integer("created_at").notNull(),
+  },
+  (table) => [index("idx_v2_board_post_created").on(table.createdAt)],
+);

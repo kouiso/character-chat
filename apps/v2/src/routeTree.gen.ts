@@ -10,7 +10,9 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as BoardRouteImport } from './routes/board'
 import { Route as CatalogRouteImport } from './routes/catalog'
+import { Route as ApiBoardRouteImport } from './routes/api/board'
 import { Route as ApiCatalogRouteImport } from './routes/api/catalog'
 import { Route as ApiCharactersRouteImport } from './routes/api/characters'
 import { Route as ApiCurrencyRouteImport } from './routes/api/currency'
@@ -23,6 +25,7 @@ import { Route as CharactersIdRouteImport } from './routes/characters/$id'
 import { Route as CharactersNewRouteImport } from './routes/characters/new'
 import { Route as ChatIdRouteImport } from './routes/chat/$id'
 import { Route as ApiAdminLegacyMigrationRouteImport } from './routes/api/admin/legacy-migration'
+import { Route as ApiBoardIdRouteImport } from './routes/api/board/$id'
 import { Route as ApiCatalogIdRouteImport } from './routes/api/catalog/$id'
 import { Route as ApiCharactersIdRouteImport } from './routes/api/characters/$id'
 import { Route as ApiChatIdRouteImport } from './routes/api/chat/$id'
@@ -64,9 +67,19 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 })
+const BoardRoute = BoardRouteImport.update({
+  id: '/board',
+  path: '/board',
+  getParentRoute: () => rootRouteImport,
+})
 const CatalogRoute = CatalogRouteImport.update({
   id: '/catalog',
   path: '/catalog',
+  getParentRoute: () => rootRouteImport,
+})
+const ApiBoardRoute = ApiBoardRouteImport.update({
+  id: '/api/board',
+  path: '/api/board',
   getParentRoute: () => rootRouteImport,
 })
 const ApiCatalogRoute = ApiCatalogRouteImport.update({
@@ -128,6 +141,11 @@ const ApiAdminLegacyMigrationRoute = ApiAdminLegacyMigrationRouteImport.update({
   id: '/api/admin/legacy-migration',
   path: '/api/admin/legacy-migration',
   getParentRoute: () => rootRouteImport,
+})
+const ApiBoardIdRoute = ApiBoardIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiBoardRoute,
 })
 const ApiCatalogIdRoute = ApiCatalogIdRouteImport.update({
   id: '/$id',
@@ -311,7 +329,9 @@ const ApiProactiveCharactersIdSettingsRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/board': typeof BoardRoute
   '/catalog': typeof CatalogRoute
+  '/api/board': typeof ApiBoardRouteWithChildren
   '/api/catalog': typeof ApiCatalogRouteWithChildren
   '/api/characters': typeof ApiCharactersRouteWithChildren
   '/api/currency': typeof ApiCurrencyRouteWithChildren
@@ -324,6 +344,7 @@ export interface FileRoutesByFullPath {
   '/characters/new': typeof CharactersNewRoute
   '/chat/$id': typeof ChatIdRoute
   '/api/admin/legacy-migration': typeof ApiAdminLegacyMigrationRoute
+  '/api/board/$id': typeof ApiBoardIdRoute
   '/api/catalog/$id': typeof ApiCatalogIdRoute
   '/api/characters/$id': typeof ApiCharactersIdRoute
   '/api/chat/$id': typeof ApiChatIdRoute
@@ -362,7 +383,9 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/board': typeof BoardRoute
   '/catalog': typeof CatalogRoute
+  '/api/board': typeof ApiBoardRouteWithChildren
   '/api/catalog': typeof ApiCatalogRouteWithChildren
   '/api/characters': typeof ApiCharactersRouteWithChildren
   '/api/currency': typeof ApiCurrencyRouteWithChildren
@@ -375,6 +398,7 @@ export interface FileRoutesByTo {
   '/characters/new': typeof CharactersNewRoute
   '/chat/$id': typeof ChatIdRoute
   '/api/admin/legacy-migration': typeof ApiAdminLegacyMigrationRoute
+  '/api/board/$id': typeof ApiBoardIdRoute
   '/api/catalog/$id': typeof ApiCatalogIdRoute
   '/api/characters/$id': typeof ApiCharactersIdRoute
   '/api/chat/$id': typeof ApiChatIdRoute
@@ -414,7 +438,9 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/board': typeof BoardRoute
   '/catalog': typeof CatalogRoute
+  '/api/board': typeof ApiBoardRouteWithChildren
   '/api/catalog': typeof ApiCatalogRouteWithChildren
   '/api/characters': typeof ApiCharactersRouteWithChildren
   '/api/currency': typeof ApiCurrencyRouteWithChildren
@@ -427,6 +453,7 @@ export interface FileRoutesById {
   '/characters/new': typeof CharactersNewRoute
   '/chat/$id': typeof ChatIdRoute
   '/api/admin/legacy-migration': typeof ApiAdminLegacyMigrationRoute
+  '/api/board/$id': typeof ApiBoardIdRoute
   '/api/catalog/$id': typeof ApiCatalogIdRoute
   '/api/characters/$id': typeof ApiCharactersIdRoute
   '/api/chat/$id': typeof ApiChatIdRoute
@@ -467,7 +494,9 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/board'
     | '/catalog'
+    | '/api/board'
     | '/api/catalog'
     | '/api/characters'
     | '/api/currency'
@@ -480,6 +509,7 @@ export interface FileRouteTypes {
     | '/characters/new'
     | '/chat/$id'
     | '/api/admin/legacy-migration'
+    | '/api/board/$id'
     | '/api/catalog/$id'
     | '/api/characters/$id'
     | '/api/chat/$id'
@@ -518,7 +548,9 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/board'
     | '/catalog'
+    | '/api/board'
     | '/api/catalog'
     | '/api/characters'
     | '/api/currency'
@@ -531,6 +563,7 @@ export interface FileRouteTypes {
     | '/characters/new'
     | '/chat/$id'
     | '/api/admin/legacy-migration'
+    | '/api/board/$id'
     | '/api/catalog/$id'
     | '/api/characters/$id'
     | '/api/chat/$id'
@@ -569,7 +602,9 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/board'
     | '/catalog'
+    | '/api/board'
     | '/api/catalog'
     | '/api/characters'
     | '/api/currency'
@@ -582,6 +617,7 @@ export interface FileRouteTypes {
     | '/characters/new'
     | '/chat/$id'
     | '/api/admin/legacy-migration'
+    | '/api/board/$id'
     | '/api/catalog/$id'
     | '/api/characters/$id'
     | '/api/chat/$id'
@@ -621,7 +657,9 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BoardRoute: typeof BoardRoute
   CatalogRoute: typeof CatalogRoute
+  ApiBoardRoute: typeof ApiBoardRouteWithChildren
   ApiCatalogRoute: typeof ApiCatalogRouteWithChildren
   ApiCharactersRoute: typeof ApiCharactersRouteWithChildren
   ApiCurrencyRoute: typeof ApiCurrencyRouteWithChildren
@@ -659,11 +697,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/board': {
+      id: '/board'
+      path: '/board'
+      fullPath: '/board'
+      preLoaderRoute: typeof BoardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/catalog': {
       id: '/catalog'
       path: '/catalog'
       fullPath: '/catalog'
       preLoaderRoute: typeof CatalogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/board': {
+      id: '/api/board'
+      path: '/api/board'
+      fullPath: '/api/board'
+      preLoaderRoute: typeof ApiBoardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/catalog': {
@@ -749,6 +801,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/admin/legacy-migration'
       preLoaderRoute: typeof ApiAdminLegacyMigrationRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/api/board/$id': {
+      id: '/api/board/$id'
+      path: '/$id'
+      fullPath: '/api/board/$id'
+      preLoaderRoute: typeof ApiBoardIdRouteImport
+      parentRoute: typeof ApiBoardRoute
     }
     '/api/catalog/$id': {
       id: '/api/catalog/$id'
@@ -998,6 +1057,18 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface ApiBoardRouteChildren {
+  ApiBoardIdRoute: typeof ApiBoardIdRoute
+}
+
+const ApiBoardRouteChildren: ApiBoardRouteChildren = {
+  ApiBoardIdRoute: ApiBoardIdRoute,
+}
+
+const ApiBoardRouteWithChildren = ApiBoardRoute._addFileChildren(
+  ApiBoardRouteChildren,
+)
+
 interface ApiCatalogIdCommentsRouteChildren {
   ApiCatalogIdCommentsCidRoute: typeof ApiCatalogIdCommentsCidRoute
 }
@@ -1124,7 +1195,9 @@ const ApiPlanRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BoardRoute: BoardRoute,
   CatalogRoute: CatalogRoute,
+  ApiBoardRoute: ApiBoardRouteWithChildren,
   ApiCatalogRoute: ApiCatalogRouteWithChildren,
   ApiCharactersRoute: ApiCharactersRouteWithChildren,
   ApiCurrencyRoute: ApiCurrencyRouteWithChildren,
