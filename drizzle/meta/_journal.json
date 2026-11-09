@@ -358,6 +358,13 @@
       "when": 1762855200000,
       "tag": "20261109170000_rit193_subscription",
       "breakpoints": true
+    },
+    {
+      "idx": 86,
+      "version": "7",
+      "when": 1762933800000,
+      "tag": "20261110013000_rit199_user_settings",
+      "breakpoints": true
     }
   ]
 }

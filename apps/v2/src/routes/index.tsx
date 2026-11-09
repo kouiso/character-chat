@@ -6,6 +6,7 @@ import {
   ListErrorState,
   ListLoadingState,
 } from "../component/list-route-state";
+import { SafeModeToggle } from "../component/safe-mode-toggle";
 import { listCharacters, listSavedConversations } from "../server/characters";
 
 const routeApi = getRouteApi("/");
@@ -17,6 +18,7 @@ const CharacterListPage = () => {
     <div className="v2-list">
       {characters.length > 0 && <ListConnectionState />}
       <h1>キャラクター</h1>
+      <SafeModeToggle />
       <Link to="/characters/new">キャラクターを作る</Link>
       {conversations.length > 0 && (
         <section>
