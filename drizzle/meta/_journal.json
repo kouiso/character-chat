@@ -344,6 +344,13 @@
       "when": 1762853100000,
       "tag": "20261109154500_rit191_currency_ledger",
       "breakpoints": true
+    },
+    {
+      "idx": 84,
+      "version": "7",
+      "when": 1762854000000,
+      "tag": "20261109160000_rit194_retention",
+      "breakpoints": true
     }
   ]
 }

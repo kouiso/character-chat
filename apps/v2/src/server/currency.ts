@@ -162,6 +162,12 @@ export const refundCurrency = (
   input: Omit<LedgerEntryInput, "kind">,
 ): Promise<LedgerApplyResult> => applyLedgerEntry(db, { ...input, kind: "refund" });
 
+// 特典・報酬系の付与は grant と分けて bonus で記録する（RIT-194: 広告・ログイン特典）。
+export const bonusCurrency = (
+  db: D1Database,
+  input: Omit<LedgerEntryInput, "kind">,
+): Promise<LedgerApplyResult> => applyLedgerEntry(db, { ...input, kind: "bonus" });
+
 export interface CurrencyStatus {
   balance: number;
   entries: CurrencyLedgerRow[];

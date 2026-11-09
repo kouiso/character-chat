@@ -510,3 +510,35 @@ export const v2CurrencyBalanceTable = sqliteTable(
   // 残高が負にならないことは DB が保証する（同時 spend 競合の最後の砦）。
   (table) => [check("v2_currency_balance_nonnegative", sql`${table.balance} >= 0`)],
 );
+
+// RIT-194: ログイン特典の受取記録。user_id×day の一意で1日1回の冪等を担保し、
+// streak（連続日数）で付与量を増やす。day は UTC の YYYY-MM-DD。
+export const v2LoginBonusTable = sqliteTable(
+  "v2_login_bonus",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull(),
+    day: text("day").notNull(),
+    streak: integer("streak").notNull(),
+    amount: integer("amount").notNull(),
+    ledgerId: text("ledger_id").notNull(),
+    createdAt: integer("created_at").notNull(),
+  },
+  (table) => [uniqueIndex("v2_login_bonus_user_day_unique").on(table.userId, table.day)],
+);
+
+// RIT-194: 1日券など時間限定の機能解放券。有効判定は expires_at > now。
+// spend した台帳行を ledger_id で紐づける（購入→解放の追跡）。
+export const v2FeaturePassTable = sqliteTable(
+  "v2_feature_pass",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull(),
+    kind: text("kind", { enum: ["daily"] }).notNull(),
+    ledgerId: text("ledger_id").notNull(),
+    startedAt: integer("started_at").notNull(),
+    expiresAt: integer("expires_at").notNull(),
+    createdAt: integer("created_at").notNull(),
+  },
+  (table) => [index("v2_feature_pass_user_idx").on(table.userId, table.expiresAt)],
+);
