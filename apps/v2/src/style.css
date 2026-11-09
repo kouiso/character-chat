@@ -631,3 +631,40 @@ body {
   color: var(--muted, #888);
   font-size: 0.85em;
 }
+
+.v2-message-actions {
+  display: flex;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+}
+.v2-message-actions button.active {
+  font-weight: bold;
+}
+
+.v2-bookmarks {
+  position: relative;
+}
+.v2-bookmark-list {
+  position: absolute;
+  z-index: 10;
+  background: var(--bg, #fff);
+  border: 1px solid var(--line, #ccc);
+  padding: 0.5rem;
+  max-height: 16rem;
+  overflow-y: auto;
+  min-width: 14rem;
+}
+.v2-bookmark-list ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.v2-bookmark-list button {
+  width: 100%;
+  text-align: left;
+}
+
+.v2-chat[data-hide-inner="true"] .v2-message-layer--inner {
+  display: none;
+}
