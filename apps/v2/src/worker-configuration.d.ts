@@ -21,6 +21,7 @@ interface __BaseEnv_Env {
 	V2_DAILY_TURN_LIMIT: string;
 	V2_TTS_VOICEVOX_URL?: string;
 	V2_TTS_AIVIS_URL?: string;
+	V2_VOICE_CALL_FREE_SECONDS?: string;
 	V2_OPENROUTER_BASE_URL: string;
 	VAPID_PUBLIC_KEY: string;
 	VAPID_SUBJECT: string;
@@ -59,6 +60,7 @@ declare namespace Cloudflare {
 		V2_DAILY_TURN_LIMIT: string;
 	V2_TTS_VOICEVOX_URL?: string;
 	V2_TTS_AIVIS_URL?: string;
+	V2_VOICE_CALL_FREE_SECONDS?: string;
 		V2_OPENROUTER_BASE_URL: string;
 		VAPID_PUBLIC_KEY: string;
 		VAPID_SUBJECT: string;
@@ -92,6 +94,7 @@ declare namespace Cloudflare {
 		V2_DAILY_TURN_LIMIT: string;
 	V2_TTS_VOICEVOX_URL?: string;
 	V2_TTS_AIVIS_URL?: string;
+	V2_VOICE_CALL_FREE_SECONDS?: string;
 		V2_OPENROUTER_BASE_URL: string;
 		VAPID_PUBLIC_KEY: string;
 		VAPID_SUBJECT: string;
@@ -110,7 +113,7 @@ type StringifyValues<EnvType extends Record<string, unknown>> = {
 	[Binding in keyof EnvType]: EnvType[Binding] extends string ? EnvType[Binding] : string;
 };
 declare namespace NodeJS {
-	interface ProcessEnv extends StringifyValues<Pick<Cloudflare.Env, "APP_ENV" | "V2_FAKE_MODEL" | "V2_RAG_ENABLED" | "V2_MODEL" | "V2_MODEL_CHAIN" | "V2_SAFE_MODEL_CHAIN" | "V2_QUALITY_MODEL_CHAIN" | "V2_LIGHT_MODEL_CHAIN" | "V2_TURN_TIMEOUT_MS" | "V2_TEST_FAULT" | "V2_HISTORY_CHARACTERS" | "V2_HISTORY_MESSAGES" | "V2_DAILY_TURN_LIMIT" | "V2_TTS_VOICEVOX_URL" | "V2_TTS_AIVIS_URL" | "V2_OPENROUTER_BASE_URL" | "VAPID_PUBLIC_KEY" | "VAPID_SUBJECT" | "BASIC_AUTH_USERNAME" | "BASIC_AUTH_PASSWORD" | "OPENROUTER_API_KEY" | "VAPID_PRIVATE_KEY" | "NOVITA_API_KEY">> {}
+	interface ProcessEnv extends StringifyValues<Pick<Cloudflare.Env, "APP_ENV" | "V2_FAKE_MODEL" | "V2_RAG_ENABLED" | "V2_MODEL" | "V2_MODEL_CHAIN" | "V2_SAFE_MODEL_CHAIN" | "V2_QUALITY_MODEL_CHAIN" | "V2_LIGHT_MODEL_CHAIN" | "V2_TURN_TIMEOUT_MS" | "V2_TEST_FAULT" | "V2_HISTORY_CHARACTERS" | "V2_HISTORY_MESSAGES" | "V2_DAILY_TURN_LIMIT" | "V2_TTS_VOICEVOX_URL" | "V2_TTS_AIVIS_URL" | "V2_VOICE_CALL_FREE_SECONDS" | "V2_OPENROUTER_BASE_URL" | "VAPID_PUBLIC_KEY" | "VAPID_SUBJECT" | "BASIC_AUTH_USERNAME" | "BASIC_AUTH_PASSWORD" | "OPENROUTER_API_KEY" | "VAPID_PRIVATE_KEY" | "NOVITA_API_KEY">> {}
 }
 declare module "*.txt" {
 	const value: string;

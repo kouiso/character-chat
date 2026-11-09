@@ -668,3 +668,17 @@ body {
 .v2-chat[data-hide-inner="true"] .v2-message-layer--inner {
   display: none;
 }
+
+/* RIT-213: 音声通話モード */
+.v2-voice-call {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.v2-voice-call-toggle[aria-pressed="true"] {
+  border-color: #e07070;
+}
+.v2-voice-call-remaining {
+  font-size: 0.75rem;
+  opacity: 0.75;
+}
