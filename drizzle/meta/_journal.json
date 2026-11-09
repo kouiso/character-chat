@@ -456,6 +456,13 @@
       "when": 1762964400000,
       "tag": "20261110090000_rit214_story_chapter",
       "breakpoints": true
+    },
+    {
+      "idx": 100,
+      "version": "7",
+      "when": 1762740000000,
+      "tag": "20261110100000_rit215_chapter_image",
+      "breakpoints": true
     }
   ]
 }

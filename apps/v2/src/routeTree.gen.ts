@@ -33,6 +33,7 @@ import { Route as StoriesIdRouteImport } from './routes/stories/$id'
 import { Route as ApiAdminLegacyMigrationRouteImport } from './routes/api/admin/legacy-migration'
 import { Route as ApiBoardIdRouteImport } from './routes/api/board/$id'
 import { Route as ApiCatalogIdRouteImport } from './routes/api/catalog/$id'
+import { Route as ApiChapterMediaIdRouteImport } from './routes/api/chapter-media/$id'
 import { Route as ApiCharactersIdRouteImport } from './routes/api/characters/$id'
 import { Route as ApiChatIdRouteImport } from './routes/api/chat/$id'
 import { Route as ApiCurrencyAdRewardRouteImport } from './routes/api/currency/ad-reward'
@@ -45,6 +46,7 @@ import { Route as ApiPushVapidKeyRouteImport } from './routes/api/push/vapid-key
 import { Route as ApiRevenueAggregateRouteImport } from './routes/api/revenue_/aggregate'
 import { Route as ApiStoriesIdRouteImport } from './routes/api/stories/$id'
 import { Route as ApiVoiceCallQuotaRouteImport } from './routes/api/voice-call/quota'
+import { Route as StoriesIdReadRouteImport } from './routes/stories/$id/read'
 import { Route as ApiCatalogIdCommentsRouteImport } from './routes/api/catalog/$id_/comments'
 import { Route as ApiCatalogIdFollowRouteImport } from './routes/api/catalog/$id_/follow'
 import { Route as ApiCatalogIdForkRouteImport } from './routes/api/catalog/$id_/fork'
@@ -74,6 +76,7 @@ import { Route as ApiCharactersIdVersionsVersionRouteImport } from './routes/api
 import { Route as ApiProactiveCharactersIdSettingsRouteImport } from './routes/api/proactive/characters/$id_/settings'
 import { Route as ApiStoriesIdChaptersCidRouteImport } from './routes/api/stories/$id_/chapters/$cid'
 import { Route as ApiStoriesIdChaptersReorderRouteImport } from './routes/api/stories/$id_/chapters/reorder'
+import { Route as ApiStoriesIdChaptersCidIllustrationRouteImport } from './routes/api/stories/$id_/chapters/$cid_/illustration'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -195,6 +198,11 @@ const ApiCatalogIdRoute = ApiCatalogIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ApiCatalogRoute,
 })
+const ApiChapterMediaIdRoute = ApiChapterMediaIdRouteImport.update({
+  id: '/api/chapter-media/$id',
+  path: '/api/chapter-media/$id',
+  getParentRoute: () => rootRouteImport,
+})
 const ApiCharactersIdRoute = ApiCharactersIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -254,6 +262,11 @@ const ApiVoiceCallQuotaRoute = ApiVoiceCallQuotaRouteImport.update({
   id: '/api/voice-call/quota',
   path: '/api/voice-call/quota',
   getParentRoute: () => rootRouteImport,
+})
+const StoriesIdReadRoute = StoriesIdReadRouteImport.update({
+  id: '/read',
+  path: '/read',
+  getParentRoute: () => StoriesIdRoute,
 })
 const ApiCatalogIdCommentsRoute = ApiCatalogIdCommentsRouteImport.update({
   id: '/$id_/comments',
@@ -405,6 +418,12 @@ const ApiStoriesIdChaptersReorderRoute =
     path: '/reorder',
     getParentRoute: () => ApiStoriesIdChaptersRoute,
   })
+const ApiStoriesIdChaptersCidIllustrationRoute =
+  ApiStoriesIdChaptersCidIllustrationRouteImport.update({
+    id: '/$cid_/illustration',
+    path: '/$cid/illustration',
+    getParentRoute: () => ApiStoriesIdChaptersRoute,
+  })
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -426,11 +445,12 @@ export interface FileRoutesByFullPath {
   '/characters/$id': typeof CharactersIdRoute
   '/characters/new': typeof CharactersNewRoute
   '/chat/$id': typeof ChatIdRoute
-  '/stories/$id': typeof StoriesIdRoute
+  '/stories/$id': typeof StoriesIdRouteWithChildren
   '/stories/': typeof StoriesIndexRoute
   '/api/admin/legacy-migration': typeof ApiAdminLegacyMigrationRoute
   '/api/board/$id': typeof ApiBoardIdRoute
   '/api/catalog/$id': typeof ApiCatalogIdRoute
+  '/api/chapter-media/$id': typeof ApiChapterMediaIdRoute
   '/api/characters/$id': typeof ApiCharactersIdRoute
   '/api/chat/$id': typeof ApiChatIdRoute
   '/api/currency/ad-reward': typeof ApiCurrencyAdRewardRoute
@@ -443,6 +463,7 @@ export interface FileRoutesByFullPath {
   '/api/revenue/aggregate': typeof ApiRevenueAggregateRoute
   '/api/stories/$id': typeof ApiStoriesIdRoute
   '/api/voice-call/quota': typeof ApiVoiceCallQuotaRoute
+  '/stories/$id/read': typeof StoriesIdReadRoute
   '/api/catalog/$id/comments': typeof ApiCatalogIdCommentsRouteWithChildren
   '/api/catalog/$id/follow': typeof ApiCatalogIdFollowRoute
   '/api/catalog/$id/fork': typeof ApiCatalogIdForkRoute
@@ -472,6 +493,7 @@ export interface FileRoutesByFullPath {
   '/api/proactive/characters/$id/settings': typeof ApiProactiveCharactersIdSettingsRoute
   '/api/stories/$id/chapters/$cid': typeof ApiStoriesIdChaptersCidRoute
   '/api/stories/$id/chapters/reorder': typeof ApiStoriesIdChaptersReorderRoute
+  '/api/stories/$id/chapters/$cid/illustration': typeof ApiStoriesIdChaptersCidIllustrationRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -493,11 +515,12 @@ export interface FileRoutesByTo {
   '/characters/$id': typeof CharactersIdRoute
   '/characters/new': typeof CharactersNewRoute
   '/chat/$id': typeof ChatIdRoute
-  '/stories/$id': typeof StoriesIdRoute
+  '/stories/$id': typeof StoriesIdRouteWithChildren
   '/stories': typeof StoriesIndexRoute
   '/api/admin/legacy-migration': typeof ApiAdminLegacyMigrationRoute
   '/api/board/$id': typeof ApiBoardIdRoute
   '/api/catalog/$id': typeof ApiCatalogIdRoute
+  '/api/chapter-media/$id': typeof ApiChapterMediaIdRoute
   '/api/characters/$id': typeof ApiCharactersIdRoute
   '/api/chat/$id': typeof ApiChatIdRoute
   '/api/currency/ad-reward': typeof ApiCurrencyAdRewardRoute
@@ -510,6 +533,7 @@ export interface FileRoutesByTo {
   '/api/revenue/aggregate': typeof ApiRevenueAggregateRoute
   '/api/stories/$id': typeof ApiStoriesIdRoute
   '/api/voice-call/quota': typeof ApiVoiceCallQuotaRoute
+  '/stories/$id/read': typeof StoriesIdReadRoute
   '/api/catalog/$id/comments': typeof ApiCatalogIdCommentsRouteWithChildren
   '/api/catalog/$id/follow': typeof ApiCatalogIdFollowRoute
   '/api/catalog/$id/fork': typeof ApiCatalogIdForkRoute
@@ -539,6 +563,7 @@ export interface FileRoutesByTo {
   '/api/proactive/characters/$id/settings': typeof ApiProactiveCharactersIdSettingsRoute
   '/api/stories/$id/chapters/$cid': typeof ApiStoriesIdChaptersCidRoute
   '/api/stories/$id/chapters/reorder': typeof ApiStoriesIdChaptersReorderRoute
+  '/api/stories/$id/chapters/$cid/illustration': typeof ApiStoriesIdChaptersCidIllustrationRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -561,11 +586,12 @@ export interface FileRoutesById {
   '/characters/$id': typeof CharactersIdRoute
   '/characters/new': typeof CharactersNewRoute
   '/chat/$id': typeof ChatIdRoute
-  '/stories/$id': typeof StoriesIdRoute
+  '/stories/$id': typeof StoriesIdRouteWithChildren
   '/stories/': typeof StoriesIndexRoute
   '/api/admin/legacy-migration': typeof ApiAdminLegacyMigrationRoute
   '/api/board/$id': typeof ApiBoardIdRoute
   '/api/catalog/$id': typeof ApiCatalogIdRoute
+  '/api/chapter-media/$id': typeof ApiChapterMediaIdRoute
   '/api/characters/$id': typeof ApiCharactersIdRoute
   '/api/chat/$id': typeof ApiChatIdRoute
   '/api/currency/ad-reward': typeof ApiCurrencyAdRewardRoute
@@ -578,6 +604,7 @@ export interface FileRoutesById {
   '/api/revenue_/aggregate': typeof ApiRevenueAggregateRoute
   '/api/stories/$id': typeof ApiStoriesIdRoute
   '/api/voice-call/quota': typeof ApiVoiceCallQuotaRoute
+  '/stories/$id/read': typeof StoriesIdReadRoute
   '/api/catalog/$id_/comments': typeof ApiCatalogIdCommentsRouteWithChildren
   '/api/catalog/$id_/follow': typeof ApiCatalogIdFollowRoute
   '/api/catalog/$id_/fork': typeof ApiCatalogIdForkRoute
@@ -607,6 +634,7 @@ export interface FileRoutesById {
   '/api/proactive/characters/$id_/settings': typeof ApiProactiveCharactersIdSettingsRoute
   '/api/stories/$id_/chapters/$cid': typeof ApiStoriesIdChaptersCidRoute
   '/api/stories/$id_/chapters/reorder': typeof ApiStoriesIdChaptersReorderRoute
+  '/api/stories/$id_/chapters/$cid_/illustration': typeof ApiStoriesIdChaptersCidIllustrationRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -635,6 +663,7 @@ export interface FileRouteTypes {
     | '/api/admin/legacy-migration'
     | '/api/board/$id'
     | '/api/catalog/$id'
+    | '/api/chapter-media/$id'
     | '/api/characters/$id'
     | '/api/chat/$id'
     | '/api/currency/ad-reward'
@@ -647,6 +676,7 @@ export interface FileRouteTypes {
     | '/api/revenue/aggregate'
     | '/api/stories/$id'
     | '/api/voice-call/quota'
+    | '/stories/$id/read'
     | '/api/catalog/$id/comments'
     | '/api/catalog/$id/follow'
     | '/api/catalog/$id/fork'
@@ -676,6 +706,7 @@ export interface FileRouteTypes {
     | '/api/proactive/characters/$id/settings'
     | '/api/stories/$id/chapters/$cid'
     | '/api/stories/$id/chapters/reorder'
+    | '/api/stories/$id/chapters/$cid/illustration'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -702,6 +733,7 @@ export interface FileRouteTypes {
     | '/api/admin/legacy-migration'
     | '/api/board/$id'
     | '/api/catalog/$id'
+    | '/api/chapter-media/$id'
     | '/api/characters/$id'
     | '/api/chat/$id'
     | '/api/currency/ad-reward'
@@ -714,6 +746,7 @@ export interface FileRouteTypes {
     | '/api/revenue/aggregate'
     | '/api/stories/$id'
     | '/api/voice-call/quota'
+    | '/stories/$id/read'
     | '/api/catalog/$id/comments'
     | '/api/catalog/$id/follow'
     | '/api/catalog/$id/fork'
@@ -743,6 +776,7 @@ export interface FileRouteTypes {
     | '/api/proactive/characters/$id/settings'
     | '/api/stories/$id/chapters/$cid'
     | '/api/stories/$id/chapters/reorder'
+    | '/api/stories/$id/chapters/$cid/illustration'
   id:
     | '__root__'
     | '/'
@@ -769,6 +803,7 @@ export interface FileRouteTypes {
     | '/api/admin/legacy-migration'
     | '/api/board/$id'
     | '/api/catalog/$id'
+    | '/api/chapter-media/$id'
     | '/api/characters/$id'
     | '/api/chat/$id'
     | '/api/currency/ad-reward'
@@ -781,6 +816,7 @@ export interface FileRouteTypes {
     | '/api/revenue_/aggregate'
     | '/api/stories/$id'
     | '/api/voice-call/quota'
+    | '/stories/$id/read'
     | '/api/catalog/$id_/comments'
     | '/api/catalog/$id_/follow'
     | '/api/catalog/$id_/fork'
@@ -810,6 +846,7 @@ export interface FileRouteTypes {
     | '/api/proactive/characters/$id_/settings'
     | '/api/stories/$id_/chapters/$cid'
     | '/api/stories/$id_/chapters/reorder'
+    | '/api/stories/$id_/chapters/$cid_/illustration'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -832,9 +869,10 @@ export interface RootRouteChildren {
   CharactersIdRoute: typeof CharactersIdRoute
   CharactersNewRoute: typeof CharactersNewRoute
   ChatIdRoute: typeof ChatIdRoute
-  StoriesIdRoute: typeof StoriesIdRoute
+  StoriesIdRoute: typeof StoriesIdRouteWithChildren
   StoriesIndexRoute: typeof StoriesIndexRoute
   ApiAdminLegacyMigrationRoute: typeof ApiAdminLegacyMigrationRoute
+  ApiChapterMediaIdRoute: typeof ApiChapterMediaIdRoute
   ApiChatIdRoute: typeof ApiChatIdRoute
   ApiMediaIdRoute: typeof ApiMediaIdRoute
   ApiPushSubscriptionsRoute: typeof ApiPushSubscriptionsRoute
@@ -1023,6 +1061,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCatalogIdRouteImport
       parentRoute: typeof ApiCatalogRoute
     }
+    '/api/chapter-media/$id': {
+      id: '/api/chapter-media/$id'
+      path: '/api/chapter-media/$id'
+      fullPath: '/api/chapter-media/$id'
+      preLoaderRoute: typeof ApiChapterMediaIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/characters/$id': {
       id: '/api/characters/$id'
       path: '/$id'
@@ -1106,6 +1151,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/voice-call/quota'
       preLoaderRoute: typeof ApiVoiceCallQuotaRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/stories/$id/read': {
+      id: '/stories/$id/read'
+      path: '/read'
+      fullPath: '/stories/$id/read'
+      preLoaderRoute: typeof StoriesIdReadRouteImport
+      parentRoute: typeof StoriesIdRoute
     }
     '/api/catalog/$id_/comments': {
       id: '/api/catalog/$id_/comments'
@@ -1310,6 +1362,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiStoriesIdChaptersReorderRouteImport
       parentRoute: typeof ApiStoriesIdChaptersRoute
     }
+    '/api/stories/$id_/chapters/$cid_/illustration': {
+      id: '/api/stories/$id_/chapters/$cid_/illustration'
+      path: '/$cid/illustration'
+      fullPath: '/api/stories/$id/chapters/$cid/illustration'
+      preLoaderRoute: typeof ApiStoriesIdChaptersCidIllustrationRouteImport
+      parentRoute: typeof ApiStoriesIdChaptersRoute
+    }
   }
 }
 
@@ -1454,11 +1513,14 @@ const ApiPlanRouteWithChildren =
 interface ApiStoriesIdChaptersRouteChildren {
   ApiStoriesIdChaptersCidRoute: typeof ApiStoriesIdChaptersCidRoute
   ApiStoriesIdChaptersReorderRoute: typeof ApiStoriesIdChaptersReorderRoute
+  ApiStoriesIdChaptersCidIllustrationRoute: typeof ApiStoriesIdChaptersCidIllustrationRoute
 }
 
 const ApiStoriesIdChaptersRouteChildren: ApiStoriesIdChaptersRouteChildren = {
   ApiStoriesIdChaptersCidRoute: ApiStoriesIdChaptersCidRoute,
   ApiStoriesIdChaptersReorderRoute: ApiStoriesIdChaptersReorderRoute,
+  ApiStoriesIdChaptersCidIllustrationRoute:
+    ApiStoriesIdChaptersCidIllustrationRoute,
 }
 
 const ApiStoriesIdChaptersRouteWithChildren =
@@ -1476,6 +1538,18 @@ const ApiStoriesRouteChildren: ApiStoriesRouteChildren = {
 
 const ApiStoriesRouteWithChildren = ApiStoriesRoute._addFileChildren(
   ApiStoriesRouteChildren,
+)
+
+interface StoriesIdRouteChildren {
+  StoriesIdReadRoute: typeof StoriesIdReadRoute
+}
+
+const StoriesIdRouteChildren: StoriesIdRouteChildren = {
+  StoriesIdReadRoute: StoriesIdReadRoute,
+}
+
+const StoriesIdRouteWithChildren = StoriesIdRoute._addFileChildren(
+  StoriesIdRouteChildren,
 )
 
 const rootRouteChildren: RootRouteChildren = {
@@ -1498,9 +1572,10 @@ const rootRouteChildren: RootRouteChildren = {
   CharactersIdRoute: CharactersIdRoute,
   CharactersNewRoute: CharactersNewRoute,
   ChatIdRoute: ChatIdRoute,
-  StoriesIdRoute: StoriesIdRoute,
+  StoriesIdRoute: StoriesIdRouteWithChildren,
   StoriesIndexRoute: StoriesIndexRoute,
   ApiAdminLegacyMigrationRoute: ApiAdminLegacyMigrationRoute,
+  ApiChapterMediaIdRoute: ApiChapterMediaIdRoute,
   ApiChatIdRoute: ApiChatIdRoute,
   ApiMediaIdRoute: ApiMediaIdRoute,
   ApiPushSubscriptionsRoute: ApiPushSubscriptionsRoute,

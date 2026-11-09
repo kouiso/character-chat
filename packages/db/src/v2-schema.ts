@@ -714,6 +714,8 @@ export const v2ChapterTable = sqliteTable(
     title: text("title").notNull().default(""),
     body: text("body").notNull().default(""),
     narration: text("narration").notNull().default(""),
+    // RIT-215: 章挿絵の R2 キー（images/*.png）。未生成は NULL。
+    imageKey: text("image_key"),
     createdAt: integer("created_at").notNull(),
     updatedAt: integer("updated_at").notNull(),
   },
