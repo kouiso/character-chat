@@ -1,4 +1,4 @@
-import { ConversationAccessError } from "@v2/db";
+import { ConversationAccessError, createDb } from "@v2/db";
 import { ContextBudgetConfigError, contextBudgetFromEnv } from "@v2/engine";
 import { z } from "zod";
 
@@ -14,6 +14,7 @@ import {
 } from "./engine";
 import { getPlatform } from "./platform";
 import { SSE_HEADERS, toSseStream, type SequencedSseEvent } from "./sse";
+import { checkDailyTurnLimit } from "./usage-limit";
 
 import type { ChatRoom } from "./chat-room";
 
@@ -87,6 +88,15 @@ export const handleChatRequest = async (id: string, request: Request): Promise<R
     const { env } = await getPlatform();
     // 設定ミスを ChatRoom の3回リトライまで持ち込まず、受付前に1回で落とす。
     contextBudgetFromEnv(env);
+    // 使いすぎ止め（RIT-103）。n 回目までは通し、n+1 回目は理由を添えて止める。
+    const usage = await checkDailyTurnLimit(createDb(env.DB), env, Date.now());
+    if (!usage.allowed) {
+      return json(429, {
+        code: "daily_limit",
+        limit: usage.limit,
+        message: `今日の会話回数の上限（${usage.limit}回）に達しました。送信文は入力欄に戻します。`,
+      });
+    }
     const room = chatRoomFor(env, parsed.data.conversationId);
     const receipt = await room.submit({ ...parsed.data, characterId: id });
     if (receipt.status !== "accepted") {

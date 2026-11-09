@@ -32,6 +32,7 @@
         "V2_TEST_FAULT": "none",
         "V2_HISTORY_CHARACTERS": 12000,
         "V2_HISTORY_MESSAGES": 40,
+        "V2_DAILY_TURN_LIMIT": "300",
         "VAPID_PUBLIC_KEY": "BHlCOMkST-7w3VDvwjNMWEcxFXWcf_6plP4H--WcgCLuGt8LgNjbbCAL3tdCKfD-t_SB-WjFqP513fLnD0I2MM8",
         "VAPID_SUBJECT": "mailto:kouiso@ritmo.co.jp"
       },
@@ -84,6 +85,7 @@
         "V2_TEST_FAULT": "none",
         "V2_HISTORY_CHARACTERS": 12000,
         "V2_HISTORY_MESSAGES": 40,
+        "V2_DAILY_TURN_LIMIT": "300",
         "VAPID_PUBLIC_KEY": "BHlCOMkST-7w3VDvwjNMWEcxFXWcf_6plP4H--WcgCLuGt8LgNjbbCAL3tdCKfD-t_SB-WjFqP513fLnD0I2MM8",
         "VAPID_SUBJECT": "mailto:kouiso@ritmo.co.jp"
       },
@@ -146,6 +148,7 @@
     "V2_TEST_FAULT": "none",
     "V2_HISTORY_CHARACTERS": 12000,
     "V2_HISTORY_MESSAGES": 40,
+    "V2_DAILY_TURN_LIMIT": "300",
     "VAPID_PUBLIC_KEY": "BHlCOMkST-7w3VDvwjNMWEcxFXWcf_6plP4H--WcgCLuGt8LgNjbbCAL3tdCKfD-t_SB-WjFqP513fLnD0I2MM8",
     "VAPID_SUBJECT": "mailto:kouiso@ritmo.co.jp"
   },
