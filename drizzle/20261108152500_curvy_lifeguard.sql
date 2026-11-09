@@ -1,0 +1,1 @@
+ALTER TABLE `v2_memory` ADD `pinned` integer DEFAULT 0 NOT NULL;

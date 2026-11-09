@@ -1,6 +1,7 @@
 import { createFileRoute, getRouteApi, Link, useNavigate } from "@tanstack/react-router";
 
 import { CharacterEditor } from "../../component/character-editor";
+import { MemoryPanel } from "../../component/memory-panel";
 import { readCharacterEditorIdentity } from "../../server/character-editor-identity";
 
 const routeApi = getRouteApi("/characters/$id");
@@ -24,6 +25,7 @@ const EditCharacterPage = () => {
           });
         }}
       />
+      <MemoryPanel characterId={id} />
     </main>
   );
 };

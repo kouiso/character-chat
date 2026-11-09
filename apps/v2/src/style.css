@@ -333,3 +333,17 @@ body {
   overflow-wrap: anywhere;
   margin: 4px 0 16px;
 }
+
+.v2-memory textarea {
+  width: 100%;
+  min-height: 4.5rem;
+}
+.v2-memory-pinned {
+  border-left: 3px solid currentColor;
+  padding-left: 0.5rem;
+}
+.v2-memory-meta {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}

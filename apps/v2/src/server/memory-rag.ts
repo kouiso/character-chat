@@ -2,6 +2,7 @@ import {
   failMemoryIndex,
   hashMemorySource,
   loadMemoryCandidates,
+  loadPinnedMemories,
   loadUnindexedMemoryJob,
   saveMemoryEmbedding,
   type ExtractionScope,
@@ -93,7 +94,13 @@ export const retrieveMemories = async (
   query: string,
   now = Date.now(),
 ): Promise<MemoryContextEntry[]> => {
-  if (!memoryVectorReady(env) || !query.trim()) return [];
+  // 固定済みは類似度を必要とせんので vector 非依存で必ず先に返す（手で足した記憶の既定経路）。
+  const pinned = await loadPinnedMemories(db, scope).catch(() => {
+    globalThis.console.error(JSON.stringify({ event: "memory_pinned_load_failed" }));
+    return [];
+  });
+  const pinnedEntries = pinned.map(({ id, content }) => ({ id, content }));
+  if (!memoryVectorReady(env) || !query.trim()) return pinnedEntries;
   try {
     const values = await embedMemoryText(env.AI, query);
     const result = await env.MEMORY_INDEX.query(values, {
@@ -118,9 +125,11 @@ export const retrieveMemories = async (
       scope,
       matches.map((match) => match.id),
     );
-    return await rankMemoryCandidates(rows, matches, now);
+    const ranked = await rankMemoryCandidates(rows, matches, now);
+    const pinnedIds = new Set(pinnedEntries.map((entry) => entry.id));
+    return [...pinnedEntries, ...ranked.filter((entry) => !pinnedIds.has(entry.id))];
   } catch {
     globalThis.console.error(JSON.stringify({ event: "memory_retrieval_failed" }));
-    return [];
+    return pinnedEntries;
   }
 };
