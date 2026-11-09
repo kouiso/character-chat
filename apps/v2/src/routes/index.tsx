@@ -1,5 +1,6 @@
 import { createFileRoute, getRouteApi, Link } from "@tanstack/react-router";
 
+import { ChatModeSelect } from "../component/chat-mode-select";
 import {
   ListConnectionState,
   ListEmptyState,
@@ -19,6 +20,7 @@ const CharacterListPage = () => {
       {characters.length > 0 && <ListConnectionState />}
       <h1>キャラクター</h1>
       <SafeModeToggle />
+      <ChatModeSelect />
       <Link to="/characters/new">キャラクターを作る</Link>
       {conversations.length > 0 && (
         <section>

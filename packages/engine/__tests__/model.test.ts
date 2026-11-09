@@ -139,3 +139,64 @@ describe("createModelChain セーフモード（RIT-199）", () => {
     expect(chain.map((c) => c.name)).toEqual(["pinned/model"]);
   });
 });
+
+describe("createModelChain チャットモード（RIT-205）", () => {
+  test("quality は重い筆頭モデル＋逃げ道、light は軽い単モデルになる", () => {
+    const quality = createModelChain({ OPENROUTER_API_KEY: "test-key" }, { chatMode: "quality" });
+    expect(quality.map((c) => c.name)).toEqual([
+      "sao10k/l3.3-euryale-70b",
+      "deepseek/deepseek-v4.1-flash",
+      "cognitivecomputations/dolphin-mistral-24b-venice-edition",
+    ]);
+    const light = createModelChain({ OPENROUTER_API_KEY: "test-key" }, { chatMode: "light" });
+    expect(light.map((c) => c.name)).toEqual([
+      "cognitivecomputations/dolphin-mistral-24b-venice-edition",
+    ]);
+  });
+
+  test("standard・未指定は従来チェーンのまま", () => {
+    for (const options of [{}, { chatMode: "standard" as const }]) {
+      const chain = createModelChain({ OPENROUTER_API_KEY: "test-key" }, options);
+      expect(chain.map((c) => c.name)).toEqual([
+        "deepseek/deepseek-v4.1-flash-1017",
+        "deepseek/deepseek-v4.1-flash",
+        "cognitivecomputations/dolphin-mistral-24b-venice-edition",
+      ]);
+    }
+  });
+
+  test("セーフはモードより先に効く（quality でもセーフチェーン）", () => {
+    const chain = createModelChain(
+      { OPENROUTER_API_KEY: "test-key" },
+      { safeMode: true, chatMode: "quality" },
+    );
+    expect(chain.map((c) => c.name)).toEqual(["openai/gpt-4.1-mini", "google/gemini-2.5-flash"]);
+  });
+
+  test("V2_QUALITY_MODEL_CHAIN / V2_LIGHT_MODEL_CHAIN で上書きできる", () => {
+    const quality = createModelChain(
+      {
+        OPENROUTER_API_KEY: "test-key",
+        V2_QUALITY_MODEL_CHAIN: JSON.stringify([{ model: "heavy/one" }]),
+      },
+      { chatMode: "quality" },
+    );
+    expect(quality.map((c) => c.name)).toEqual(["heavy/one"]);
+    const light = createModelChain(
+      {
+        OPENROUTER_API_KEY: "test-key",
+        V2_LIGHT_MODEL_CHAIN: JSON.stringify([{ model: "tiny/one" }]),
+      },
+      { chatMode: "light" },
+    );
+    expect(light.map((c) => c.name)).toEqual(["tiny/one"]);
+  });
+
+  test("V2_MODEL ピン留めはモード切替でも上書きせん", () => {
+    const chain = createModelChain(
+      { OPENROUTER_API_KEY: "test-key", V2_MODEL: "pinned/model" },
+      { chatMode: "light" },
+    );
+    expect(chain.map((c) => c.name)).toEqual(["pinned/model"]);
+  });
+});

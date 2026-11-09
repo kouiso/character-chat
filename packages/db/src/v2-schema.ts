@@ -575,5 +575,7 @@ export const v2SubscriptionTable = sqliteTable("v2_subscription", {
 export const v2UserSettingsTable = sqliteTable("v2_user_settings", {
   userId: text("user_id").primaryKey(),
   safeMode: integer("safe_mode").notNull().default(0),
+  // RIT-205: チャットモード。quality/standard/light。モデルチェーンと長さ上限の切替軸。
+  chatMode: text("chat_mode").notNull().default("standard"),
   updatedAt: integer("updated_at").notNull(),
 });
