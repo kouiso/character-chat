@@ -8,6 +8,7 @@ import {
   ListLoadingState,
 } from "../component/list-route-state";
 import { SafeModeToggle } from "../component/safe-mode-toggle";
+import { StyleSelect } from "../component/style-select";
 import { listCharacters, listSavedConversations } from "../server/characters";
 
 const routeApi = getRouteApi("/");
@@ -21,6 +22,7 @@ const CharacterListPage = () => {
       <h1>キャラクター</h1>
       <SafeModeToggle />
       <ChatModeSelect />
+      <StyleSelect />
       <Link to="/characters/new">キャラクターを作る</Link>
       {conversations.length > 0 && (
         <section>

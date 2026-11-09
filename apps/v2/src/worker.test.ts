@@ -80,6 +80,7 @@ const UNAUTHENTICATED_PROBES = [
   ["PUT", "/api/settings"],
   ["GET", "/api/chat/example/branch?conversationId=c1"],
   ["POST", "/api/chat/example/branch"],
+  ["POST", "/api/chat/example/suggest"],
   ["GET", "/api/characters/example/memories"],
   ["POST", "/api/characters/example/memories"],
   ["PATCH", "/api/characters/example/memories"],

@@ -379,6 +379,13 @@
       "when": 1762936800000,
       "tag": "20261110020000_rit205_chat_mode",
       "breakpoints": true
+    },
+    {
+      "idx": 89,
+      "version": "7",
+      "when": 1762938600000,
+      "tag": "20261110023000_rit203_style",
+      "breakpoints": true
     }
   ]
 }

@@ -282,6 +282,8 @@ export type TurnGraphDeps = {
   // RIT-205: チャットモードの長さ倍率。目安字数・extend 発火・max_tokens・受信キャップに
   // 同じ倍率を掛ける。1 が既定（quality=1.5 / light=0.6 など）。
   charScale?: number;
+  // RIT-203: 文体スタイル（balanced は未指定）。出力形式の地の文/台詞の配分だけ変える。
+  style?: "prose" | "dialogue";
   // 巻き取り要約（RIT-72）。未注入では要約も注入も走らん。
   summaryStore?: SummaryStore;
   // thresholdMessages: 窓から押し出された未要約メッセージがこの件数で level 1 を起こす。
@@ -667,6 +669,7 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
           ),
           voice: { endings: voice.endings, tics: voice.tics },
           dropMinChars: deps.dropMinChars,
+          style: deps.style,
           soloReaction: deps.soloReaction,
         });
         const { messages, omittedMessages } = buildConversationContext(

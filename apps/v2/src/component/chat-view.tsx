@@ -27,6 +27,7 @@ import { ChatMessage, ChatMessageText } from "./chat-message";
 import { ChatMessageLog } from "./chat-message-log";
 import { GalleryPanel } from "./gallery-panel";
 import { LedgerPanel } from "./ledger-panel";
+import { SuggestionChips } from "./suggestion-chips";
 
 import type { ChatSseEvent } from "../lib/sse-events";
 
@@ -475,9 +476,8 @@ export const ChatView = ({
     };
   }, [characterId, consume, initialConversationId, newConversationKey]);
 
-  const send = async (event: React.FormEvent) => {
-    event.preventDefault();
-    const text = input.trim();
+  // RIT-203: 候補チップからも同じ送信経路を使えるよう本文だけ受ける形に分ける。
+  const sendText = async (text: string) => {
     if (!text || busy || pending) return;
     if (text.length > MAX_MESSAGE_LENGTH) {
       setError(`${MAX_MESSAGE_LENGTH}字以内で送信してください。入力は保持されています。`);
@@ -514,6 +514,11 @@ export const ChatView = ({
     const abort = new AbortController();
     controller.current = abort;
     await consume(turn, abort.signal);
+  };
+
+  const send = async (event: React.FormEvent) => {
+    event.preventDefault();
+    await sendText(input.trim());
   };
 
   const requestImage = () =>
@@ -716,6 +721,13 @@ export const ChatView = ({
           placeholder="メッセージを入力"
           aria-label="メッセージ"
           disabled={busy || pending !== null}
+        />
+        <SuggestionChips
+          characterId={characterId}
+          getConversationId={() => conversationId.current}
+          disabled={busy || pending !== null}
+          onPick={(text) => void sendText(text)}
+          onError={setError}
         />
         <button
           type="button"

@@ -39,6 +39,7 @@ import { Route as ApiChatIdHistoryRouteImport } from './routes/api/chat/$id_/his
 import { Route as ApiChatIdImagesRouteImport } from './routes/api/chat/$id_/images'
 import { Route as ApiChatIdLedgerRouteImport } from './routes/api/chat/$id_/ledger'
 import { Route as ApiChatIdMemoryRouteImport } from './routes/api/chat/$id_/memory'
+import { Route as ApiChatIdSuggestRouteImport } from './routes/api/chat/$id_/suggest'
 import { Route as ApiChatIdVideoRouteImport } from './routes/api/chat/$id_/video'
 import { Route as ApiGroupsIdMessagesRouteImport } from './routes/api/groups/$id_/messages'
 import { Route as ApiCharactersIdDocumentsDocRouteImport } from './routes/api/characters/$id_/documents/$doc'
@@ -196,6 +197,11 @@ const ApiChatIdMemoryRoute = ApiChatIdMemoryRouteImport.update({
   path: '/api/chat/$id/memory',
   getParentRoute: () => rootRouteImport,
 })
+const ApiChatIdSuggestRoute = ApiChatIdSuggestRouteImport.update({
+  id: '/api/chat/$id_/suggest',
+  path: '/api/chat/$id/suggest',
+  getParentRoute: () => rootRouteImport,
+})
 const ApiChatIdVideoRoute = ApiChatIdVideoRouteImport.update({
   id: '/api/chat/$id_/video',
   path: '/api/chat/$id/video',
@@ -256,6 +262,7 @@ export interface FileRoutesByFullPath {
   '/api/chat/$id/images': typeof ApiChatIdImagesRoute
   '/api/chat/$id/ledger': typeof ApiChatIdLedgerRoute
   '/api/chat/$id/memory': typeof ApiChatIdMemoryRoute
+  '/api/chat/$id/suggest': typeof ApiChatIdSuggestRoute
   '/api/chat/$id/video': typeof ApiChatIdVideoRoute
   '/api/groups/$id/messages': typeof ApiGroupsIdMessagesRoute
   '/api/characters/$id/documents/$doc': typeof ApiCharactersIdDocumentsDocRoute
@@ -293,6 +300,7 @@ export interface FileRoutesByTo {
   '/api/chat/$id/images': typeof ApiChatIdImagesRoute
   '/api/chat/$id/ledger': typeof ApiChatIdLedgerRoute
   '/api/chat/$id/memory': typeof ApiChatIdMemoryRoute
+  '/api/chat/$id/suggest': typeof ApiChatIdSuggestRoute
   '/api/chat/$id/video': typeof ApiChatIdVideoRoute
   '/api/groups/$id/messages': typeof ApiGroupsIdMessagesRoute
   '/api/characters/$id/documents/$doc': typeof ApiCharactersIdDocumentsDocRoute
@@ -331,6 +339,7 @@ export interface FileRoutesById {
   '/api/chat/$id_/images': typeof ApiChatIdImagesRoute
   '/api/chat/$id_/ledger': typeof ApiChatIdLedgerRoute
   '/api/chat/$id_/memory': typeof ApiChatIdMemoryRoute
+  '/api/chat/$id_/suggest': typeof ApiChatIdSuggestRoute
   '/api/chat/$id_/video': typeof ApiChatIdVideoRoute
   '/api/groups/$id_/messages': typeof ApiGroupsIdMessagesRoute
   '/api/characters/$id_/documents/$doc': typeof ApiCharactersIdDocumentsDocRoute
@@ -370,6 +379,7 @@ export interface FileRouteTypes {
     | '/api/chat/$id/images'
     | '/api/chat/$id/ledger'
     | '/api/chat/$id/memory'
+    | '/api/chat/$id/suggest'
     | '/api/chat/$id/video'
     | '/api/groups/$id/messages'
     | '/api/characters/$id/documents/$doc'
@@ -407,6 +417,7 @@ export interface FileRouteTypes {
     | '/api/chat/$id/images'
     | '/api/chat/$id/ledger'
     | '/api/chat/$id/memory'
+    | '/api/chat/$id/suggest'
     | '/api/chat/$id/video'
     | '/api/groups/$id/messages'
     | '/api/characters/$id/documents/$doc'
@@ -444,6 +455,7 @@ export interface FileRouteTypes {
     | '/api/chat/$id_/images'
     | '/api/chat/$id_/ledger'
     | '/api/chat/$id_/memory'
+    | '/api/chat/$id_/suggest'
     | '/api/chat/$id_/video'
     | '/api/groups/$id_/messages'
     | '/api/characters/$id_/documents/$doc'
@@ -473,6 +485,7 @@ export interface RootRouteChildren {
   ApiChatIdImagesRoute: typeof ApiChatIdImagesRoute
   ApiChatIdLedgerRoute: typeof ApiChatIdLedgerRoute
   ApiChatIdMemoryRoute: typeof ApiChatIdMemoryRoute
+  ApiChatIdSuggestRoute: typeof ApiChatIdSuggestRoute
   ApiChatIdVideoRoute: typeof ApiChatIdVideoRoute
   ApiProactiveCharactersIdSettingsRoute: typeof ApiProactiveCharactersIdSettingsRoute
 }
@@ -689,6 +702,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiChatIdMemoryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/chat/$id_/suggest': {
+      id: '/api/chat/$id_/suggest'
+      path: '/api/chat/$id/suggest'
+      fullPath: '/api/chat/$id/suggest'
+      preLoaderRoute: typeof ApiChatIdSuggestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/chat/$id_/video': {
       id: '/api/chat/$id_/video'
       path: '/api/chat/$id/video'
@@ -836,6 +856,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiChatIdImagesRoute: ApiChatIdImagesRoute,
   ApiChatIdLedgerRoute: ApiChatIdLedgerRoute,
   ApiChatIdMemoryRoute: ApiChatIdMemoryRoute,
+  ApiChatIdSuggestRoute: ApiChatIdSuggestRoute,
   ApiChatIdVideoRoute: ApiChatIdVideoRoute,
   ApiProactiveCharactersIdSettingsRoute: ApiProactiveCharactersIdSettingsRoute,
 }
