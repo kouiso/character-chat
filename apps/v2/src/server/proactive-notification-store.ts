@@ -7,6 +7,7 @@ import {
   proactiveNotificationDay,
   validateProactiveSettings,
 } from "./proactive-notification-policy";
+import { RECALL_INTERVAL_MS } from "./proactive-recall";
 
 import type {
   ProactiveCharacterSettings,
@@ -26,15 +27,20 @@ export type ProactiveNotificationStorage = {
   ): Promise<T>;
 };
 
-export type ProactiveAlarm = { alarmId: string; characterId: string };
+// 発火の種類。idle=従来の放置時間トリガ、recall=記憶由来の想起チェック（RIT-198）。
+export type ProactiveTrigger = "idle" | "recall";
+export type ProactiveAlarm = { alarmId: string; characterId: string; trigger?: ProactiveTrigger };
 export type ProactiveNotificationSink = {
   send(notification: ProactiveAlarm & { idempotencyKey: string }): Promise<void>;
+  // recall は記憶キューが無い時に送信自体を止める。予約（日次枠）を消費せんよう先に聞く。
+  preflight?(alarm: ProactiveAlarm): Promise<"send" | "skip">;
 };
 export type ProactiveSchedule = ProactiveAlarm & { dueAt: number | null };
 export type ProactiveAlarmOutcome =
   | Exclude<ProactiveNotificationDecision, "allowed">
   | "attempted"
-  | "send-failed";
+  | "send-failed"
+  | "no-recall-cue";
 type ScheduleState = { sequence: number; entries: ProactiveSchedule[] };
 type Reservation = { day: string; characterId: string };
 type ProactiveDispatchResult =
@@ -61,6 +67,35 @@ const validateId = (id: string): string => {
 const validTime = (time: number): number => {
   if (!Number.isFinite(new Date(time).getTime())) throw new RangeError("Invalid proactive time");
   return time;
+};
+
+// 発火結果から次回 dueAt を決める。recall は1日おき、idle は従来の間隔・上限ルール。
+const nextDueAt = (input: {
+  trigger: ProactiveTrigger;
+  settings: ProactiveCharacterSettings;
+  dispatchResult: ProactiveDispatchResult;
+  outcome: ProactiveAlarmOutcome;
+  lastActivityAt: number;
+  now: number;
+}): number => {
+  const { settings, dispatchResult, outcome, lastActivityAt, now } = input;
+  if (input.trigger === "recall") {
+    return nextProactiveAllowedTime(
+      outcome === "send-failed" ? now + settings.idleMinutes * MINUTE_MS : now + RECALL_INTERVAL_MS,
+      settings.quietHours,
+    );
+  }
+  const minimum =
+    dispatchResult.outcome === "daily-limit"
+      ? Math.max(
+          dispatchResult.dailyResetAt,
+          now,
+          lastActivityAt + settings.idleMinutes * MINUTE_MS,
+        )
+      : outcome === "quiet-hours" || outcome === "idle"
+        ? Math.max(now, lastActivityAt + settings.idleMinutes * MINUTE_MS)
+        : now + settings.idleMinutes * MINUTE_MS;
+  return nextProactiveAllowedTime(minimum, settings.quietHours);
 };
 
 export class ProactiveNotificationStore {
@@ -115,18 +150,45 @@ export class ProactiveNotificationStore {
     else await transaction.deleteAlarm();
   }
 
-  private replaceSchedule(state: ScheduleState, characterId: string, dueAt: number | null): void {
+  private replaceSchedule(
+    state: ScheduleState,
+    characterId: string,
+    trigger: ProactiveTrigger,
+    dueAt: number | null,
+  ): void {
     if (!Number.isSafeInteger(state.sequence + 1))
       throw new RangeError("Proactive schedule exhausted");
     state.sequence++;
     const entry = {
       characterId,
+      trigger,
       alarmId: `scheduled-${state.sequence}`,
       dueAt: dueAt === null ? null : validTime(dueAt),
     };
-    const index = state.entries.findIndex((candidate) => candidate.characterId === characterId);
+    const index = state.entries.findIndex(
+      (candidate) =>
+        candidate.characterId === characterId && (candidate.trigger ?? "idle") === trigger,
+    );
     if (index === -1) state.entries.push(entry);
     else state.entries[index] = entry;
+  }
+
+  // idle と recall の2本をキャラごとに持つ。trigger 未指定の旧エントリは idle 扱い。
+  private findEntry(
+    state: ScheduleState,
+    characterId: string,
+    trigger: ProactiveTrigger,
+  ): ProactiveSchedule | undefined {
+    return state.entries.find(
+      (candidate) =>
+        candidate.characterId === characterId && (candidate.trigger ?? "idle") === trigger,
+    );
+  }
+
+  private recallDueAt(settings: ProactiveCharacterSettings, baseAt: number): number | null {
+    return settings.enabled
+      ? nextProactiveAllowedTime(baseAt + RECALL_INTERVAL_MS, settings.quietHours)
+      : null;
   }
 
   configureCharacter(characterId: string, settings: ProactiveCharacterSettings): Promise<void> {
@@ -143,7 +205,13 @@ export class ProactiveNotificationStore {
               snapshot.quietHours,
             )
           : null;
-        this.replaceSchedule(state, characterId, dueAt);
+        this.replaceSchedule(state, characterId, "idle", dueAt);
+        this.replaceSchedule(
+          state,
+          characterId,
+          "recall",
+          this.recallDueAt(snapshot, Math.max(now, lastActivityAt)),
+        );
         await transaction.put(settingsKey, snapshot);
         await transaction.put(
           `${this.prefix}:enabled:${validateId(characterId)}`,
@@ -183,9 +251,16 @@ export class ProactiveNotificationStore {
         this.replaceSchedule(
           state,
           characterId,
+          "idle",
           enabled
             ? nextProactiveAllowedTime(now + settings.idleMinutes * MINUTE_MS, settings.quietHours)
             : null,
+        );
+        this.replaceSchedule(
+          state,
+          characterId,
+          "recall",
+          this.recallDueAt({ ...settings, enabled }, now),
         );
         await transaction.put(settingsKey, { ...settings, enabled });
         await this.writeSchedule(transaction, state);
@@ -223,24 +298,38 @@ export class ProactiveNotificationStore {
         this.replaceSchedule(
           state,
           characterId,
+          "idle",
           nextProactiveAllowedTime(
             lastActivityAt + settings.idleMinutes * MINUTE_MS,
             settings.quietHours,
           ),
+        );
+        this.replaceSchedule(
+          state,
+          characterId,
+          "recall",
+          this.recallDueAt(settings, lastActivityAt),
         );
         await this.writeSchedule(transaction, state);
       }),
     );
   }
 
-  private async dispatch(
+  // 送信してよいか判定し、許可ならその場で日次枠と冪等キーを確定させる。
+  private async reserve(
     alarm: ProactiveAlarm,
-    sink: ProactiveNotificationSink,
-  ): Promise<ProactiveDispatchResult> {
+    trigger: ProactiveTrigger,
+    reservationKey: string,
+  ): Promise<{
+    decision: ProactiveNotificationDecision;
+    day: string;
+    settings?: ProactiveCharacterSettings;
+    lastActivityAt?: number;
+    dailyResetAt: number;
+  }> {
     const characterId = validateId(alarm.characterId);
-    const reservationKey = `${this.prefix}:alarm:${validateId(alarm.alarmId)}`;
     const settingsKey = this.settingsKey(alarm.characterId);
-    const reservation = await this.storage.transaction(async (transaction) => {
+    return this.storage.transaction(async (transaction) => {
       const now = validTime(this.clock().getTime());
       const day = proactiveNotificationDay(new Date(now));
       const settings = await transaction.get<ProactiveCharacterSettings>(settingsKey);
@@ -251,8 +340,10 @@ export class ProactiveNotificationStore {
       const reservedToday = (await transaction.get<number>(counterKey)) ?? 0;
       const alreadyReserved = (await transaction.get<Reservation>(reservationKey)) !== undefined;
       const lastActivityAt = await transaction.get<number>(`${settingsKey}:activity`);
-      const schedule = (await this.readSchedule(transaction)).entries.find(
-        (entry) => entry.characterId === alarm.characterId,
+      const schedule = this.findEntry(
+        await this.readSchedule(transaction),
+        alarm.characterId,
+        trigger,
       );
       let decision = evaluateProactiveNotification({
         enabled,
@@ -261,7 +352,8 @@ export class ProactiveNotificationStore {
         alreadyReserved,
         now,
         settings,
-        lastActivityAt,
+        // recall は活動直後でも記念日・昨日の話なら送ってよいので idle 判定を外す。
+        lastActivityAt: trigger === "idle" ? lastActivityAt : undefined,
       });
       if (decision === "allowed" && schedule) {
         if (schedule.alarmId !== alarm.alarmId || schedule.dueAt === null) decision = "stale-alarm";
@@ -274,23 +366,44 @@ export class ProactiveNotificationStore {
       }
       return { decision, day, settings, lastActivityAt, dailyResetAt: nextJapanMidnight(now) };
     });
+  }
+
+  // 予約コミット待ちに日付・静穏時間・活動を跨いだ通知は、古い許可のまま送らん。
+  private recheck(
+    reservation: { day: string; settings?: ProactiveCharacterSettings; lastActivityAt?: number },
+    trigger: ProactiveTrigger,
+    now: number,
+  ): Exclude<ProactiveAlarmOutcome, "daily-limit"> | null {
+    if (proactiveNotificationDay(new Date(now)) !== reservation.day) return "expired-window";
+    if (!reservation.settings) return null;
+    if (isProactiveQuietTime(now, reservation.settings.quietHours)) return "quiet-hours";
+    if (
+      trigger === "idle" &&
+      reservation.lastActivityAt !== undefined &&
+      now < reservation.lastActivityAt + reservation.settings.idleMinutes * MINUTE_MS
+    )
+      return "idle";
+    return null;
+  }
+
+  private async dispatch(
+    alarm: ProactiveAlarm,
+    sink: ProactiveNotificationSink,
+  ): Promise<ProactiveDispatchResult> {
+    const trigger = alarm.trigger ?? "idle";
+    // recall は日次枠を予約する前に記憶キューを確かめる。無い日は送らず枠も使わん。
+    if (trigger === "recall") {
+      const verdict = (await sink.preflight?.(alarm)) ?? "send";
+      if (verdict === "skip") return { outcome: "no-recall-cue" };
+    }
+    const reservationKey = `${this.prefix}:alarm:${validateId(alarm.alarmId)}`;
+    const reservation = await this.reserve(alarm, trigger, reservationKey);
     if (reservation.decision === "daily-limit")
       return { outcome: "daily-limit", dailyResetAt: reservation.dailyResetAt };
     if (reservation.decision !== "allowed") return { outcome: reservation.decision };
 
-    const currentTime = validTime(this.clock().getTime());
-    // commit 待ちに日付や静穏時間を跨いだ通知は、古い許可のまま送らん。
-    if (proactiveNotificationDay(new Date(currentTime)) !== reservation.day)
-      return { outcome: "expired-window" };
-    if (reservation.settings) {
-      if (isProactiveQuietTime(currentTime, reservation.settings.quietHours))
-        return { outcome: "quiet-hours" };
-      if (
-        reservation.lastActivityAt !== undefined &&
-        currentTime < reservation.lastActivityAt + reservation.settings.idleMinutes * MINUTE_MS
-      )
-        return { outcome: "idle" };
-    }
+    const stale = this.recheck(reservation, trigger, validTime(this.clock().getTime()));
+    if (stale) return { outcome: stale };
     // 送信先の結果が不明でも予約を戻さず、重複防止と上限を優先する。
     try {
       await sink.send({ ...alarm, idempotencyKey: reservationKey });
@@ -308,6 +421,35 @@ export class ProactiveNotificationStore {
     validateId(occurrence.characterId);
     validateId(occurrence.alarmId);
     return this.serialize(async () => (await this.dispatch(occurrence, sink)).outcome);
+  }
+
+  // 発火済みエントリの次回時刻を結果別に決める。idle は従来の間隔・上限ルール、
+  // recall は1日おき（送信失敗のみ idle 間隔で粘り直す）。
+  private async rescheduleEntry(
+    transaction: ProactiveNotificationTransaction,
+    entry: ProactiveSchedule,
+    dispatchResult: ProactiveDispatchResult,
+    outcome: ProactiveAlarmOutcome,
+  ): Promise<void> {
+    const state = await this.readSchedule(transaction);
+    const trigger = entry.trigger ?? "idle";
+    const current = this.findEntry(state, entry.characterId, trigger);
+    if (current?.alarmId !== entry.alarmId) return;
+    const settingsKey = this.settingsKey(entry.characterId);
+    const settings = await transaction.get<ProactiveCharacterSettings>(settingsKey);
+    const lastActivityAt = (await transaction.get<number>(`${settingsKey}:activity`)) ?? 0;
+    const nextAt = settings?.enabled
+      ? nextDueAt({
+          trigger,
+          settings,
+          dispatchResult,
+          outcome,
+          lastActivityAt,
+          now: validTime(this.clock().getTime()),
+        })
+      : null;
+    this.replaceSchedule(state, entry.characterId, trigger, nextAt);
+    await this.writeSchedule(transaction, state);
   }
 
   runAlarm(
@@ -332,33 +474,9 @@ export class ProactiveNotificationStore {
         }
         const { outcome } = dispatchResult;
         results.push({ characterId: entry.characterId, outcome });
-        await this.storage.transaction(async (transaction) => {
-          const state = await this.readSchedule(transaction);
-          const current = state.entries.find(
-            (candidate) => candidate.characterId === entry.characterId,
-          );
-          if (current?.alarmId !== entry.alarmId) return;
-          const settingsKey = this.settingsKey(entry.characterId);
-          const settings = await transaction.get<ProactiveCharacterSettings>(settingsKey);
-          const lastActivityAt = (await transaction.get<number>(`${settingsKey}:activity`)) ?? 0;
-          const currentTime = validTime(this.clock().getTime());
-          let nextAt: number | null = null;
-          if (settings?.enabled) {
-            const minimum =
-              dispatchResult.outcome === "daily-limit"
-                ? Math.max(
-                    dispatchResult.dailyResetAt,
-                    currentTime,
-                    lastActivityAt + settings.idleMinutes * MINUTE_MS,
-                  )
-                : outcome === "quiet-hours" || outcome === "idle"
-                  ? Math.max(currentTime, lastActivityAt + settings.idleMinutes * MINUTE_MS)
-                  : currentTime + settings.idleMinutes * MINUTE_MS;
-            nextAt = nextProactiveAllowedTime(minimum, settings.quietHours);
-          }
-          this.replaceSchedule(state, entry.characterId, nextAt);
-          await this.writeSchedule(transaction, state);
-        });
+        await this.storage.transaction((transaction) =>
+          this.rescheduleEntry(transaction, entry, dispatchResult, outcome),
+        );
       }
       await this.storage.transaction(async (transaction) =>
         this.writeSchedule(transaction, await this.readSchedule(transaction)),

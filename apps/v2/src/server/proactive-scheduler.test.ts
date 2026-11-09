@@ -37,9 +37,9 @@ const putSettings = (scheduler: ProactiveScheduler, characterId: string, body = 
   });
 
 const readSchedule = async (scheduler: ProactiveScheduler) => {
-  const body: { schedule: { characterId: string; dueAt: number | null }[] } = await (
-    await call(scheduler, "/schedule")
-  ).json();
+  const body: {
+    schedule: { characterId: string; dueAt: number | null; trigger?: "idle" | "recall" }[];
+  } = await (await call(scheduler, "/schedule")).json();
   return body.schedule;
 };
 
@@ -75,8 +75,10 @@ describe("ProactiveScheduler DO", () => {
     const res = await call(scheduler, "/settings?characterId=char-1");
     expect(await res.json()).toEqual({ settings: settings() });
     const schedule = await readSchedule(scheduler);
-    expect(schedule).toHaveLength(1);
-    expect(schedule[0].dueAt).toBe(now.getTime() + 60 * 60_000);
+    // RIT-198: idle と recall の2本がキャラごとに立つ。
+    expect(schedule).toHaveLength(2);
+    const idle = schedule.find((entry) => (entry.trigger ?? "idle") === "idle");
+    expect(idle?.dueAt).toBe(now.getTime() + 60 * 60_000);
   });
 
   it("発言すると予定が後ろへずれる", async () => {
@@ -88,7 +90,8 @@ describe("ProactiveScheduler DO", () => {
       body: JSON.stringify({ characterId: "char-1" }),
     });
     const schedule = await readSchedule(scheduler);
-    expect(schedule[0].dueAt).toBe(now.getTime() + 60 * 60_000);
+    const idle = schedule.find((entry) => (entry.trigger ?? "idle") === "idle");
+    expect(idle?.dueAt).toBe(now.getTime() + 60 * 60_000);
   });
 
   it("OFF にしたら予定が消える", async () => {
@@ -99,7 +102,7 @@ describe("ProactiveScheduler DO", () => {
       body: JSON.stringify({ characterId: "char-1", enabled: false }),
     });
     const schedule = await readSchedule(scheduler);
-    expect(schedule[0].dueAt).toBeNull();
+    expect(schedule.every((entry) => entry.dueAt === null)).toBe(true);
   });
 
   it("期限を迎えたら一言を送り、同じ alarm では二度送らん", async () => {

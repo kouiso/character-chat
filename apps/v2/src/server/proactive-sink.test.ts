@@ -144,6 +144,63 @@ describe("話しかけの生成と保存", () => {
     });
   });
 
+  it("recall トリガは記念日キューを話題にして生成する（RIT-198）", async () => {
+    const db = createDb(local.d1);
+    const { ensureProactiveConversation } = await import("@v2/db");
+    const conversationId = await ensureProactiveConversation(db, {
+      userId: "local",
+      characterId,
+      promptVersion: "v2-proactive",
+      now: Date.now(),
+    });
+    await local.d1
+      .prepare(
+        "INSERT INTO v2_memory (id,conversation_id,kind,content,created_at) VALUES (?,?,?,?,?)",
+      )
+      .bind(
+        crypto.randomUUID(),
+        conversationId,
+        "fact",
+        "30日前に一緒に桜を見た",
+        Date.now() - 30 * 24 * 60 * 60 * 1000,
+      )
+      .run();
+    const sink = createProactiveSink({ model: model(), db, d1: local.d1 });
+    expect(await sink.preflight?.({ alarmId: "r-1", characterId, trigger: "recall" })).toBe("send");
+    const key = uniqueKey();
+    await sink.send({ alarmId: "r-1", characterId, idempotencyKey: key, trigger: "recall" });
+    const prompt = calls[0][0]?.content ?? "";
+    // 想起発話は必ず該当記憶を参照することが受入条件。
+    expect(prompt).toContain("30日前の記念日");
+    expect(prompt).toContain("30日前に一緒に桜を見た");
+    expect(await selectByKey(local.d1, key)).toHaveLength(1);
+  });
+
+  it("記憶キューが無いキャラの recall は skip し送信も行われん（RIT-198）", async () => {
+    const lonely = "proactive-sink-test-no-cue";
+    await local.d1
+      .prepare(
+        `INSERT OR IGNORE INTO character
+          (id, user_id, name, system_prompt, greeting, tags, created_at)
+         VALUES (?, 'local', '記憶なし役', 'テスト用', 'やあ', '["test"]', 9999999999999)`,
+      )
+      .bind(lonely)
+      .run();
+    const db = createDb(local.d1);
+    const sink = createProactiveSink({ model: model(), db, d1: local.d1 });
+    expect(await sink.preflight?.({ alarmId: "r-2", characterId: lonely, trigger: "recall" })).toBe(
+      "skip",
+    );
+    const key = uniqueKey();
+    await sink.send({
+      alarmId: "r-2",
+      characterId: lonely,
+      idempotencyKey: key,
+      trigger: "recall",
+    });
+    expect(await selectByKey(local.d1, key)).toHaveLength(0);
+  });
+
   it("キャラが読めん時は何も残さん", async () => {
     const db = createDb(local.d1);
     const sink = createProactiveSink({ model: model(), db });

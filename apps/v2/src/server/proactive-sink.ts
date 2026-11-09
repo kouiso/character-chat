@@ -12,6 +12,7 @@ import { PROMPT_VERSION } from "@v2/prompt";
 import { readCharacter } from "./character-data.server";
 import { LOCAL_USER_ID } from "./identity";
 import { createProviderLookup, resolveProvider, retryProviderLookup } from "./openrouter-lookup";
+import { findRecallCue, recallCueLead, type RecallCue } from "./proactive-recall";
 import { sendProactivePush } from "./push";
 
 import type { ProactiveNotificationSink } from "./proactive-notification-store";
@@ -26,6 +27,8 @@ const SUMMARY_LIMIT = 4;
 export type ProactiveSinkDeps = {
   model: BaseChatModel;
   db: V2Db;
+  // 記憶キュー判定（RIT-198）は生 D1 を使う。無い環境では recall は送らん。
+  d1?: D1Database;
   now?: () => number;
   // PWA 通知。無い環境では保存だけして終わる。
   push?: (input: {
@@ -45,11 +48,67 @@ const composeProactiveText = (raw: string): string =>
     .trim()
     .slice(0, 400);
 
+// recall は発火から保存までの間にキューが消えることもある。その場合は送らん
+// （想起発話は必ず該当記憶を参照することが受入条件）。
+const recallCueFor = async (
+  deps: ProactiveSinkDeps,
+  characterId: string,
+  trigger: "idle" | "recall" | undefined,
+  now: number,
+): Promise<RecallCue | null> =>
+  trigger === "recall" && deps.d1
+    ? findRecallCue(deps.d1, { userId: LOCAL_USER_ID, characterId, now })
+    : null;
+
+const buildPrompt = (input: {
+  systemPrompt: string;
+  cue: RecallCue | null;
+  summaries: { level: number; coveredTo: number; text: string }[];
+  memories: string[];
+  history: { role: string; content: string }[];
+}): string => {
+  const summaryText = [...input.summaries]
+    .sort((a, b) => b.level - a.level || b.coveredTo - a.coveredTo)
+    .slice(0, SUMMARY_LIMIT)
+    .map((s) => s.text)
+    .join("\n");
+  const historyText = input.history
+    .slice(-HISTORY_TAIL)
+    .map((row) => `${row.role === "user" ? "ユーザー" : "あなた"}: ${row.content}`)
+    .join("\n");
+  return [
+    input.systemPrompt,
+    "",
+    "【指示】ユーザーへ自分から話しかける一言を、キャラの口調で書いてください。",
+    "前回の話や記憶を自然に踏まえ、1〜3文の短い文にしてください。",
+    input.cue
+      ? `${recallCueLead(input.cue)}\n- ${input.cue.content}\nこの思い出に触れて話しかけてください。`
+      : "",
+    summaryText ? `これまでのあらすじ:\n${summaryText}` : "",
+    input.memories.length
+      ? `覚えていること:\n${input.memories.map((m) => `- ${m}`).join("\n")}`
+      : "",
+    historyText ? `最近のやり取り:\n${historyText}` : "",
+    "",
+    "話しかける一言だけを出力してください。",
+  ]
+    .filter((line) => line !== "")
+    .join("\n");
+};
+
 export const createProactiveSink = (deps: ProactiveSinkDeps): ProactiveNotificationSink => ({
-  send: async ({ characterId, idempotencyKey }) => {
+  // recall トリガは記憶キューがある時だけ送る（RIT-198）。idle は従来どおり。
+  preflight: async ({ characterId, trigger }) => {
+    if (trigger !== "recall") return "send";
+    const cue = await recallCueFor(deps, characterId, trigger, deps.now?.() ?? Date.now());
+    return cue ? "send" : "skip";
+  },
+  send: async ({ characterId, idempotencyKey, trigger }) => {
     const { ok } = await readCharacter(characterId);
     if (!ok) return;
     const now = deps.now?.() ?? Date.now();
+    const cue = await recallCueFor(deps, characterId, trigger, now);
+    if (trigger === "recall" && !cue) return;
     const conversationId = await ensureProactiveConversation(deps.db, {
       userId: LOCAL_USER_ID,
       characterId,
@@ -66,30 +125,13 @@ export const createProactiveSink = (deps: ProactiveSinkDeps): ProactiveNotificat
       loadRecentMemories(deps.db, conversationId, MEMORY_LIMIT),
       createD1SummaryStore(deps.db).list(conversationId),
     ]);
-
-    const summaryText = [...summaries]
-      .sort((a, b) => b.level - a.level || b.coveredTo - a.coveredTo)
-      .slice(0, SUMMARY_LIMIT)
-      .map((s) => s.text)
-      .join("\n");
-    const historyText = display.history
-      .slice(-HISTORY_TAIL)
-      .map((row) => `${row.role === "user" ? "ユーザー" : "あなた"}: ${row.content}`)
-      .join("\n");
-
-    const prompt = [
-      ok.systemPrompt,
-      "",
-      "【指示】ユーザーへ自分から話しかける一言を、キャラの口調で書いてください。",
-      "前回の話や記憶を自然に踏まえ、1〜3文の短い文にしてください。",
-      summaryText ? `これまでのあらすじ:\n${summaryText}` : "",
-      memories.length ? `覚えていること:\n${memories.map((m) => `- ${m}`).join("\n")}` : "",
-      historyText ? `最近のやり取り:\n${historyText}` : "",
-      "",
-      "話しかける一言だけを出力してください。",
-    ]
-      .filter((line) => line !== "")
-      .join("\n");
+    const prompt = buildPrompt({
+      systemPrompt: ok.systemPrompt,
+      cue,
+      summaries,
+      memories,
+      history: display.history,
+    });
 
     const response = await deps.model.invoke([{ role: "user", content: prompt }]);
     const text = composeProactiveText(typeof response.content === "string" ? response.content : "");
@@ -132,6 +174,7 @@ export const createEnvProactiveSink = async (env: {
   const lookup = createProviderLookup(env);
   return createProactiveSink({
     db,
+    d1: env.DB,
     model: createOpenRouterModel({
       OPENROUTER_API_KEY: env.OPENROUTER_API_KEY,
       V2_MODEL: env.V2_MODEL,
