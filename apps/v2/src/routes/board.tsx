@@ -4,6 +4,7 @@ import { useState } from "react";
 import { createFileRoute, getRouteApi, Link } from "@tanstack/react-router";
 
 import { deleteBoardPost, loadBoard, postToBoard, type BoardPost } from "../lib/board";
+import { listBoardPage } from "../server/board";
 
 const routeApi = getRouteApi("/board");
 
@@ -95,6 +96,6 @@ const BoardPage = () => {
 };
 
 export const Route = createFileRoute("/board")({
-  loader: () => loadBoard(),
+  loader: () => listBoardPage(),
   component: BoardPage,
 });
