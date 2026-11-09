@@ -91,3 +91,51 @@ describe("createModelChain（RIT-104）", () => {
     }
   });
 });
+
+// RIT-199: セーフモードはアダルト応答をモデル自身が拒否する側のチェーンへ切り替える。
+describe("createModelChain セーフモード（RIT-199）", () => {
+  test("safeMode=true はセーフ既定チェーン（主流モデル）になる", () => {
+    const chain = createModelChain({ OPENROUTER_API_KEY: "test-key" }, { safeMode: true });
+    expect(chain.map((c) => c.name)).toEqual(["openai/gpt-4.1-mini", "google/gemini-2.5-flash"]);
+  });
+
+  test("safeMode=false・未指定は従来チェーンのまま", () => {
+    for (const options of [{}, { safeMode: false }]) {
+      const chain = createModelChain({ OPENROUTER_API_KEY: "test-key" }, options);
+      expect(chain.map((c) => c.name)).toEqual([
+        "deepseek/deepseek-v4.1-flash-1017",
+        "deepseek/deepseek-v4.1-flash",
+        "cognitivecomputations/dolphin-mistral-24b-venice-edition",
+      ]);
+    }
+  });
+
+  test("V2_SAFE_MODEL_CHAIN の JSON でセーフ側チェーンを上書きできる", () => {
+    const chain = createModelChain(
+      {
+        OPENROUTER_API_KEY: "test-key",
+        V2_SAFE_MODEL_CHAIN: JSON.stringify([{ model: "safe/one" }]),
+      },
+      { safeMode: true },
+    );
+    expect(chain.map((c) => c.name)).toEqual(["safe/one"]);
+  });
+
+  test("セーフ側チェーンが壊れとる時はセーフ既定へ倒す", () => {
+    for (const broken of ["not json", "[]", "{}"]) {
+      const chain = createModelChain(
+        { OPENROUTER_API_KEY: "test-key", V2_SAFE_MODEL_CHAIN: broken },
+        { safeMode: true },
+      );
+      expect(chain.map((c) => c.name)).toEqual(["openai/gpt-4.1-mini", "google/gemini-2.5-flash"]);
+    }
+  });
+
+  test("V2_MODEL ピン留めはセーフ切替でも上書きせん", () => {
+    const chain = createModelChain(
+      { OPENROUTER_API_KEY: "test-key", V2_MODEL: "pinned/model" },
+      { safeMode: true },
+    );
+    expect(chain.map((c) => c.name)).toEqual(["pinned/model"]);
+  });
+});

@@ -35,6 +35,7 @@ import { memoryVectorReady } from "./memory-vector";
 import { createProviderLookup, retryProviderLookup } from "./openrouter-lookup";
 import { readPlan } from "./plan";
 import { getPlatform } from "./platform";
+import { readSafeMode } from "./user-settings";
 
 export { LOCAL_USER_ID } from "./identity";
 
@@ -61,7 +62,7 @@ const FAKE_RESPONSE =
 
 // RIT-102/104: 拒否・時間切れ・障害で順に落ちる逃げ道チェーン。
 // 単モデル指定（V2_MODEL・V2_FAKE_MODEL）の時は 1 本だけの列になる。
-const createModels = async (): Promise<ModelCandidate[]> => {
+const createModels = async (safeMode: boolean): Promise<ModelCandidate[]> => {
   // 実行中のWorkerに束縛された設定だけを使い、別プロセスの設定を混ぜない。
   const { env } = await getPlatform();
   if (env.APP_ENV === "test" && env.V2_FAKE_MODEL === "1") {
@@ -69,15 +70,19 @@ const createModels = async (): Promise<ModelCandidate[]> => {
       { name: "fake", model: new FakeListChatModel({ responses: [FAKE_RESPONSE], sleep: 5 }) },
     ];
   }
-  return createModelChain({
-    OPENROUTER_API_KEY: env.OPENROUTER_API_KEY,
-    V2_MODEL: env.V2_MODEL,
-    V2_OPENROUTER_BASE_URL: env.V2_OPENROUTER_BASE_URL,
-    V2_MODEL_CHAIN: env.V2_MODEL_CHAIN,
-  });
+  return createModelChain(
+    {
+      OPENROUTER_API_KEY: env.OPENROUTER_API_KEY,
+      V2_MODEL: env.V2_MODEL,
+      V2_OPENROUTER_BASE_URL: env.V2_OPENROUTER_BASE_URL,
+      V2_MODEL_CHAIN: env.V2_MODEL_CHAIN,
+      V2_SAFE_MODEL_CHAIN: env.V2_SAFE_MODEL_CHAIN,
+    },
+    { safeMode },
+  );
 };
 
-const getModels = (): Promise<ModelCandidate[]> => createModels();
+const getModels = (safeMode: boolean): Promise<ModelCandidate[]> => createModels(safeMode);
 
 // V2_TURN_TIMEOUT_MS が数字なら採用、それ以外（未設定・壊れ）は既定のまま。
 const turnTimeoutFromEnv = (env: { V2_TURN_TIMEOUT_MS?: string }): number | undefined => {
@@ -169,7 +174,10 @@ const resolveConversationCharacter = async (
 export const startTurn = async (
   input: StartTurnInput,
 ): Promise<{ conversationId: string; events: AsyncGenerator<TurnEvent> }> => {
-  const models = await getModels();
+  // セーフモードはターン開始時の設定で決める（切替は次ターンから効く・RIT-199）。
+  const { env: modelEnv } = await getPlatform();
+  const safeMode = modelEnv.DB ? await readSafeMode(modelEnv.DB, LOCAL_USER_ID) : false;
+  const models = await getModels(safeMode);
   const db = await getDb();
   const conversationId = input.conversationId ?? crypto.randomUUID();
   const { character, versionId } = await resolveConversationCharacter(db, {

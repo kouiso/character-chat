@@ -14,6 +14,9 @@ export type ModelEnv = {
   // RIT-102/104: 逃げ道チェーンを JSON で上書きする。
   // [{"model":"...","providerOnly":["Venice"]}] の形。未指定なら既定の 3 本。
   V2_MODEL_CHAIN?: string;
+  // RIT-199: セーフモード時のチェーンを JSON で上書きする。形は V2_MODEL_CHAIN と同じ。
+  // セーフは「モデル自身がアダルト応答を拒否する側」なので、検閲耐性の低い主流モデルを置く。
+  V2_SAFE_MODEL_CHAIN?: string;
 };
 
 // DeepSeek 本家は規約で成人向けを禁じとるので実行先から外す（局長裁定: OpenRouter 経由のみ・
@@ -41,6 +44,13 @@ const ESCAPE_MODELS: { model: string; providerOnly?: string[] }[] = [
   { model: "cognitivecomputations/dolphin-mistral-24b-venice-edition" },
 ];
 
+// RIT-199: セーフモードの既定チェーン。アダルト応答をモデル自身が拒否する側へ倒す
+// （プロンプトへ安全枠を注入せんのは no-injected-ai-filter の約束事）。
+const SAFE_DEFAULT_MODELS: ChainSpec[] = [
+  { model: "openai/gpt-4.1-mini" },
+  { model: "google/gemini-2.5-flash" },
+];
+
 // 呼び出し側（apps/v2 の API ルート）が 503 へ写すため、汎用 Error と区別できる型にしとく。
 export class OpenRouterKeyMissingError extends Error {
   constructor() {
@@ -57,24 +67,31 @@ type ChainSpec = { model: string; providerOnly?: string[] };
 
 const defaultChain = (): ChainSpec[] => [{ model: DEFAULT_MODEL }, ...ESCAPE_MODELS];
 
-// V2_MODEL_CHAIN の JSON を候補へ直す。壊れとる時は空にせず既定へ倒す（黙って止まるより
-// 既定で動く方が被害が小さい。壊れは deploy 時の型チェックでは見えんので運用で見直す）。
-const chainSpecFromEnv = (env: ModelEnv): ChainSpec[] => {
-  if (env.V2_MODEL) return [{ model: env.V2_MODEL }];
-  if (!env.V2_MODEL_CHAIN) return defaultChain();
+// V2_MODEL_CHAIN/V2_SAFE_MODEL_CHAIN の JSON を候補へ直す。壊れとる時は空にせず
+// 既定へ倒す（黙って止まるより既定で動く方が被害が小さい）。
+const parseChain = (json: string | undefined): ChainSpec[] | null => {
+  if (!json) return null;
   try {
-    const parsed: unknown = JSON.parse(env.V2_MODEL_CHAIN);
-    if (!Array.isArray(parsed)) return defaultChain();
+    const parsed: unknown = JSON.parse(json);
+    if (!Array.isArray(parsed)) return null;
     const specs = parsed.filter(
       (item): item is ChainSpec =>
         typeof item === "object" &&
         item !== null &&
         typeof (item as { model?: unknown }).model === "string",
     );
-    return specs.length > 0 ? specs : defaultChain();
+    return specs.length > 0 ? specs : null;
   } catch {
-    return defaultChain();
+    return null;
   }
+};
+
+const chainSpecFromEnv = (env: ModelEnv, safeMode: boolean): ChainSpec[] => {
+  // セーフ時も V2_MODEL の単モデル指定は尊重する（運用者がピン留めした経路を
+  // 切替が黙って上書きせん）。セーフ側チェーンだけ外せるのは V2_SAFE_MODEL_CHAIN。
+  if (env.V2_MODEL) return [{ model: env.V2_MODEL }];
+  if (safeMode) return parseChain(env.V2_SAFE_MODEL_CHAIN) ?? SAFE_DEFAULT_MODELS;
+  return parseChain(env.V2_MODEL_CHAIN) ?? defaultChain();
 };
 
 // 各候補へ共通の ChatOpenRouter 設定。モデル名と provider.only だけ候補ごとに変わる。
@@ -111,9 +128,13 @@ const requireKey = (env: ModelEnv): ModelEnv & { OPENROUTER_API_KEY: string } =>
 
 // RIT-102/104: 既定 → 逃げ道 1 → 逃げ道 2 の順に試す候補列を作る。
 // deps.models へ渡すと generate が拒否・時間切れ・障害で順に落ちる。
-export const createModelChain = (env: ModelEnv): ModelCandidate[] => {
+// safeMode=true の時はセーフ側チェーン（RIT-199）を組む。
+export const createModelChain = (
+  env: ModelEnv,
+  options: { safeMode?: boolean } = {},
+): ModelCandidate[] => {
   const ready = requireKey(env);
-  return chainSpecFromEnv(ready).map(toCandidate(ready));
+  return chainSpecFromEnv(ready, options.safeMode === true).map(toCandidate(ready));
 };
 
 // 単モデル経路（後方互換: deps.model だけ使う呼び出し側向け）。チェーンの先頭と同じモデル。
@@ -124,5 +145,5 @@ export const createOpenRouterModel = (env: ModelEnv): ChatOpenRouter => {
   // maxTokens もここでは固定せん。インスタンスはターンをまたいで共有されるので、段ごとの上限は
   // generate ノードが .stream(messages, { maxTokens, signal }) の呼び出しオプションで渡す
   // （ChatOpenRouterCallOptions.maxTokens → request の max_tokens。signal で締切・字数上限の abort）。
-  return buildModel(ready, chainSpecFromEnv(ready)[0]);
+  return buildModel(ready, chainSpecFromEnv(ready, false)[0]);
 };

@@ -555,3 +555,11 @@ export const v2SubscriptionTable = sqliteTable("v2_subscription", {
   cancelledAt: integer("cancelled_at"),
   updatedAt: integer("updated_at").notNull(),
 });
+
+// RIT-199: ユーザー単位のアプリ設定。safe_mode=1 はアダルト応答を返さん
+// モデルチェーンへ切り替えるセーフモード（zeta のセーフ/アンリミテッド相当）。
+export const v2UserSettingsTable = sqliteTable("v2_user_settings", {
+  userId: text("user_id").primaryKey(),
+  safeMode: integer("safe_mode").notNull().default(0),
+  updatedAt: integer("updated_at").notNull(),
+});

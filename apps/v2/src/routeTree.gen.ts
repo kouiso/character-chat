@@ -15,6 +15,7 @@ import { Route as ApiCurrencyRouteImport } from './routes/api/currency'
 import { Route as ApiGroupsRouteImport } from './routes/api/groups'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ApiPlanRouteImport } from './routes/api/plan'
+import { Route as ApiSettingsRouteImport } from './routes/api/settings'
 import { Route as CharactersIdRouteImport } from './routes/characters/$id'
 import { Route as CharactersNewRouteImport } from './routes/characters/new'
 import { Route as ChatIdRouteImport } from './routes/chat/$id'
@@ -71,6 +72,11 @@ const ApiHealthRoute = ApiHealthRouteImport.update({
 const ApiPlanRoute = ApiPlanRouteImport.update({
   id: '/api/plan',
   path: '/api/plan',
+  getParentRoute: () => rootRouteImport,
+})
+const ApiSettingsRoute = ApiSettingsRouteImport.update({
+  id: '/api/settings',
+  path: '/api/settings',
   getParentRoute: () => rootRouteImport,
 })
 const CharactersIdRoute = CharactersIdRouteImport.update({
@@ -220,6 +226,7 @@ export interface FileRoutesByFullPath {
   '/api/groups': typeof ApiGroupsRouteWithChildren
   '/api/health': typeof ApiHealthRoute
   '/api/plan': typeof ApiPlanRouteWithChildren
+  '/api/settings': typeof ApiSettingsRoute
   '/characters/$id': typeof CharactersIdRoute
   '/characters/new': typeof CharactersNewRoute
   '/chat/$id': typeof ChatIdRoute
@@ -255,6 +262,7 @@ export interface FileRoutesByTo {
   '/api/groups': typeof ApiGroupsRouteWithChildren
   '/api/health': typeof ApiHealthRoute
   '/api/plan': typeof ApiPlanRouteWithChildren
+  '/api/settings': typeof ApiSettingsRoute
   '/characters/$id': typeof CharactersIdRoute
   '/characters/new': typeof CharactersNewRoute
   '/chat/$id': typeof ChatIdRoute
@@ -291,6 +299,7 @@ export interface FileRoutesById {
   '/api/groups': typeof ApiGroupsRouteWithChildren
   '/api/health': typeof ApiHealthRoute
   '/api/plan': typeof ApiPlanRouteWithChildren
+  '/api/settings': typeof ApiSettingsRoute
   '/characters/$id': typeof CharactersIdRoute
   '/characters/new': typeof CharactersNewRoute
   '/chat/$id': typeof ChatIdRoute
@@ -328,6 +337,7 @@ export interface FileRouteTypes {
     | '/api/groups'
     | '/api/health'
     | '/api/plan'
+    | '/api/settings'
     | '/characters/$id'
     | '/characters/new'
     | '/chat/$id'
@@ -363,6 +373,7 @@ export interface FileRouteTypes {
     | '/api/groups'
     | '/api/health'
     | '/api/plan'
+    | '/api/settings'
     | '/characters/$id'
     | '/characters/new'
     | '/chat/$id'
@@ -398,6 +409,7 @@ export interface FileRouteTypes {
     | '/api/groups'
     | '/api/health'
     | '/api/plan'
+    | '/api/settings'
     | '/characters/$id'
     | '/characters/new'
     | '/chat/$id'
@@ -434,6 +446,7 @@ export interface RootRouteChildren {
   ApiGroupsRoute: typeof ApiGroupsRouteWithChildren
   ApiHealthRoute: typeof ApiHealthRoute
   ApiPlanRoute: typeof ApiPlanRouteWithChildren
+  ApiSettingsRoute: typeof ApiSettingsRoute
   CharactersIdRoute: typeof CharactersIdRoute
   CharactersNewRoute: typeof CharactersNewRoute
   ChatIdRoute: typeof ChatIdRoute
@@ -493,6 +506,13 @@ declare module '@tanstack/react-router' {
       path: '/api/plan'
       fullPath: '/api/plan'
       preLoaderRoute: typeof ApiPlanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/settings': {
+      id: '/api/settings'
+      path: '/api/settings'
+      fullPath: '/api/settings'
+      preLoaderRoute: typeof ApiSettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/characters/$id': {
@@ -781,6 +801,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiGroupsRoute: ApiGroupsRouteWithChildren,
   ApiHealthRoute: ApiHealthRoute,
   ApiPlanRoute: ApiPlanRouteWithChildren,
+  ApiSettingsRoute: ApiSettingsRoute,
   CharactersIdRoute: CharactersIdRoute,
   CharactersNewRoute: CharactersNewRoute,
   ChatIdRoute: ChatIdRoute,
