@@ -37,6 +37,8 @@
         "V2_HISTORY_CHARACTERS": 12000,
         "V2_HISTORY_MESSAGES": 40,
         "V2_DAILY_TURN_LIMIT": "300",
+        "V2_TTS_VOICEVOX_URL": "http://localhost:50021",
+        "V2_TTS_AIVIS_URL": "http://localhost:10101",
         // AI Gateway ができたら https://gateway.ai.cloudflare.com/v1/<acct>/<gw>/openrouter を置く。空は OpenRouter 直（RIT-100）。
         "V2_OPENROUTER_BASE_URL": "https://openrouter.ai/api/v1",
         "VAPID_PUBLIC_KEY": "BHlCOMkST-7w3VDvwjNMWEcxFXWcf_6plP4H--WcgCLuGt8LgNjbbCAL3tdCKfD-t_SB-WjFqP513fLnD0I2MM8",
@@ -97,6 +99,8 @@
         "V2_HISTORY_CHARACTERS": 12000,
         "V2_HISTORY_MESSAGES": 40,
         "V2_DAILY_TURN_LIMIT": "300",
+        "V2_TTS_VOICEVOX_URL": "http://localhost:50021",
+        "V2_TTS_AIVIS_URL": "http://localhost:10101",
         // AI Gateway ができたら https://gateway.ai.cloudflare.com/v1/<acct>/<gw>/openrouter を置く。空は OpenRouter 直（RIT-100）。
         "V2_OPENROUTER_BASE_URL": "https://openrouter.ai/api/v1",
         "VAPID_PUBLIC_KEY": "BHlCOMkST-7w3VDvwjNMWEcxFXWcf_6plP4H--WcgCLuGt8LgNjbbCAL3tdCKfD-t_SB-WjFqP513fLnD0I2MM8",
@@ -167,6 +171,8 @@
     "V2_HISTORY_CHARACTERS": 12000,
     "V2_HISTORY_MESSAGES": 40,
     "V2_DAILY_TURN_LIMIT": "300",
+        "V2_TTS_VOICEVOX_URL": "http://localhost:50021",
+        "V2_TTS_AIVIS_URL": "http://localhost:10101",
     "V2_OPENROUTER_BASE_URL": "https://openrouter.ai/api/v1",
     "VAPID_PUBLIC_KEY": "BHlCOMkST-7w3VDvwjNMWEcxFXWcf_6plP4H--WcgCLuGt8LgNjbbCAL3tdCKfD-t_SB-WjFqP513fLnD0I2MM8",
     "VAPID_SUBJECT": "mailto:kouiso@ritmo.co.jp"

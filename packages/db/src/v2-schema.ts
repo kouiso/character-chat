@@ -684,3 +684,15 @@ export const v2CreatorRevenueTable = sqliteTable(
     index("idx_v2_creator_revenue_user").on(table.userId),
   ],
 );
+
+// RIT-210: キャラ別ボイス設定。engine は TTS 実装の識別子（VOICEVOX 等）、
+// speaker_id はエンジン側の話者番号。未設定行は既定値へ倒す。
+export const v2CharacterVoiceTable = sqliteTable("v2_character_voice", {
+  characterId: text("character_id").primaryKey(),
+  engine: text("engine").notNull(),
+  speakerId: text("speaker_id").notNull(),
+  speed: real("speed").notNull(),
+  pitch: real("pitch").notNull(),
+  intonation: real("intonation").notNull(),
+  updatedAt: integer("updated_at").notNull(),
+});
