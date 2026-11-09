@@ -97,6 +97,15 @@ describe("generateConversationImage", () => {
         negative_prompt: string | null;
       }>();
 
+  // RIT-188: 生成ごとの課金・返却は generation id で台帳へ引ける。
+  const ledgerFor = async (generationId: string) =>
+    local.d1
+      .prepare(
+        "SELECT kind, amount FROM v2_currency_ledger WHERE ref_type = 'generation' AND ref_id = ? ORDER BY created_at, id",
+      )
+      .bind(generationId)
+      .all<{ kind: string; amount: number }>();
+
   beforeAll(async () => {
     local = await openLocalD1();
     const chars = await local.db
@@ -184,6 +193,10 @@ describe("generateConversationImage", () => {
     expect(rows[0].message_id).toBe(messages[0].id);
     // 画像はターンを1つ消費する（次の会話ターンが重ならんよう）。
     expect(messages[0].turn).toBe(2);
+    // RIT-188: 成功時は charge のみで返却なし。
+    expect((await ledgerFor(result.generationId)).results.map((row) => row.kind)).toEqual([
+      "spend",
+    ]);
   });
 
   it("失敗: 理由つき記録だけ残り、メッセージは出さん", async () => {
@@ -203,6 +216,11 @@ describe("generateConversationImage", () => {
     expect(failed[0].failure_reason).toContain("TASK_STATUS_FAILED");
     expect(failed[0].task_id).toBe("rit182-task");
     expect(bucket.stored.size).toBe(0);
+    // RIT-188: 失敗は charge と同額の refund が生成記録へ紐づいて残る。
+    expect((await ledgerFor(result.generationId)).results.map((row) => row.kind)).toEqual([
+      "spend",
+      "refund",
+    ]);
   });
 
   it("他人の会話は弾く", async () => {
