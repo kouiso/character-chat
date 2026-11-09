@@ -10,6 +10,7 @@ import {
   loadVersionedCharacter,
   readDisplayHistory,
   readD1StoredTurn,
+  updateGenerationProvider,
   type CharacterContent,
   type CharacterSheet,
   type V2Db,
@@ -29,7 +30,7 @@ import { readCharacter } from "./character-data.server";
 import { LOCAL_USER_ID } from "./identity";
 import { retrieveMemories } from "./memory-rag";
 import { memoryVectorReady } from "./memory-vector";
-import { createProviderLookup } from "./openrouter-lookup";
+import { createProviderLookup, retryProviderLookup } from "./openrouter-lookup";
 import { getPlatform } from "./platform";
 
 import type { BaseChatModel } from "@langchain/core/language_models/chat_models";
@@ -99,6 +100,9 @@ export type StartTurnInput = {
   conversationId: string | null;
   text: string;
   expectedTurn?: number;
+  // 実行先の遅延解決用（RIT-100）。呼び出し側の ExecutionContext.waitUntil を渡すと、
+  // /generation の索引待ちをターン完了の後ろへ回せる。未指定なら未解決のまま残る。
+  waitUntil?: (promise: Promise<unknown>) => void;
 };
 
 const loadValidCharacter = async (characterId: string) => {
@@ -189,6 +193,16 @@ export const startTurn = async (
     ),
     summaryStore: createD1SummaryStore(db),
     providerLookup: createProviderLookup(env),
+    // 索引待ちの引き直しはターン完了の後ろへ。引けたら generation 行を UPDATE する。
+    onProviderUnresolved: input.waitUntil
+      ? (generationId, upstreamId) =>
+          input.waitUntil?.(
+            (async () => {
+              const provider = await retryProviderLookup(createProviderLookup(env), upstreamId);
+              if (provider) await updateGenerationProvider(db, generationId, provider);
+            })(),
+          )
+      : undefined,
   });
   const events = runTurn(
     graph,

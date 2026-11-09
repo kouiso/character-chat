@@ -84,6 +84,42 @@ describe("実行先の記録（RIT-100）", () => {
     expect(generation).toMatchObject({ provider: "unknown", upstreamId: "gen-test-0001" });
   });
 
+  test("即時 lookup で引けん分は onProviderUnresolved へ generationId と上流 id が届く", async () => {
+    const store = createMemoryTurnStore();
+    const providerLookup = jest.fn().mockResolvedValue(null);
+    const onProviderUnresolved = jest.fn();
+    const graph = createTurnGraph({
+      model: new UpstreamIdModel({ responses: [VALID_XML] }),
+      store,
+      extendBelowRatio: 0,
+      providerLookup,
+      onProviderUnresolved,
+    });
+    await drain(
+      runTurn(graph, { conversationId: "conv-1", userText: "こんにちは", character }, "conv-1"),
+    );
+    const saved = store.turns.get("conv-1") ?? [];
+    const generation = saved[0]?.events.find(isGenerationEvent);
+    expect(generation).toMatchObject({ provider: "unknown", upstreamId: "gen-test-0001" });
+    expect(onProviderUnresolved).toHaveBeenCalledWith(generation?.generationId, "gen-test-0001");
+  });
+
+  test("即時 lookup で引けた時は onProviderUnresolved を呼ばん", async () => {
+    const store = createMemoryTurnStore();
+    const onProviderUnresolved = jest.fn();
+    const graph = createTurnGraph({
+      model: new UpstreamIdModel({ responses: [VALID_XML] }),
+      store,
+      extendBelowRatio: 0,
+      providerLookup: jest.fn().mockResolvedValue("test-provider"),
+      onProviderUnresolved,
+    });
+    await drain(
+      runTurn(graph, { conversationId: "conv-1", userText: "こんにちは", character }, "conv-1"),
+    );
+    expect(onProviderUnresolved).not.toHaveBeenCalled();
+  });
+
   test("上流 id が無い応答では lookup を呼ばず provider は null", async () => {
     const store = createMemoryTurnStore();
     const providerLookup = jest.fn();

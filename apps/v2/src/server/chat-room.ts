@@ -338,6 +338,7 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
       conversationId: job.conversation_id,
       text: job.text,
       expectedTurn: job.turn,
+      waitUntil: (promise) => this.ctx.waitUntil(promise),
     });
     const events: ChatSseEvent[] = [];
     let failed = false;

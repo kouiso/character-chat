@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { createProviderLookup } from "./openrouter-lookup";
+import { createProviderLookup, retryProviderLookup } from "./openrouter-lookup";
 
 const generationStats = (body: unknown, ok = true) =>
   new Response(JSON.stringify(body), {
@@ -49,5 +49,59 @@ describe("createProviderLookup", () => {
     expect(await lookup("gen-abc")).toBeNull();
     expect(await createProviderLookup({})("gen-abc")).toBeNull();
     expect(await lookup("")).toBeNull();
+  });
+});
+
+// stats の索引は生成から ~10s 遅れる（2026-11-09 実測 404→200 が 13s）。
+// 即時引けん分を諦めず、決められた回数だけ引き直す。
+describe("retryProviderLookup", () => {
+  const noSleep = () => Promise.resolve();
+
+  it("途中で引けたらその provider を返し、それ以上は叩かん", async () => {
+    const lookup = vi
+      .fn<(id: string) => Promise<string | null>>()
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce("DeepInfra")
+      .mockResolvedValueOnce("Wafer");
+    const provider = await retryProviderLookup(lookup, "gen-abc", {
+      attempts: 5,
+      sleep: noSleep,
+    });
+    expect(provider).toBe("DeepInfra");
+    expect(lookup).toHaveBeenCalledTimes(3);
+  });
+
+  it("全部失敗しても null で返す（呼び出し側の記録は NULL/unknown のまま）", async () => {
+    const lookup = vi.fn().mockResolvedValue(null);
+    const provider = await retryProviderLookup(lookup, "gen-abc", {
+      attempts: 3,
+      sleep: noSleep,
+    });
+    expect(provider).toBeNull();
+    expect(lookup).toHaveBeenCalledTimes(3);
+  });
+
+  it("lookup 自体の throw も失敗として数えて粘る", async () => {
+    const lookup = vi
+      .fn<(id: string) => Promise<string | null>>()
+      .mockRejectedValueOnce(new Error("net"))
+      .mockResolvedValueOnce("Decart");
+    expect(await retryProviderLookup(lookup, "gen-abc", { attempts: 3, sleep: noSleep })).toBe(
+      "Decart",
+    );
+  });
+
+  it("attempts の間は sleep を挟む", async () => {
+    const lookup = vi.fn().mockResolvedValue(null);
+    const sleeps: number[] = [];
+    await retryProviderLookup(lookup, "gen-abc", {
+      attempts: 3,
+      delayMs: 2500,
+      sleep: async (ms) => {
+        sleeps.push(ms);
+      },
+    });
+    expect(sleeps).toEqual([2500, 2500]);
   });
 });

@@ -8,6 +8,7 @@ import {
   listGroupMemories,
   rememberGroupEvent,
   saveGroupMessage,
+  updateGroupMessageProvider,
 } from "./group-store";
 import { openLocalD1, type LocalD1 } from "./test/local-d1";
 
@@ -68,6 +69,19 @@ describe("group-store", () => {
     expect(history.map((h) => h.turn)).toEqual([1, 2, 3]);
     expect(history[1].speakerCharacterId).toBe("char-a");
     expect(history[2].voiceMismatch).toBe(1);
+  });
+
+  it("保存した発言の provider は後から id で追記できる（RIT-100 の遅延解決）", async () => {
+    const { id } = await saveGroupMessage(local.db, {
+      groupId,
+      speakerCharacterId: "char-a",
+      content: "やあ",
+      provider: null,
+      now: NOW,
+    });
+    await updateGroupMessageProvider(local.db, id, "Wafer");
+    const history = await listGroupHistory(local.db, groupId);
+    expect(history[0]).toMatchObject({ provider: "Wafer" });
   });
 
   it("場の出来事はメンバー全員の記憶へ入り、場外のキャラには入らん", async () => {

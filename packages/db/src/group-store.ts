@@ -15,6 +15,7 @@ export type GroupMessage = {
   speakerCharacterId: string | null;
   content: string;
   voiceMismatch: number | null;
+  provider?: string | null;
 };
 
 export const createGroup = async (
@@ -64,15 +65,16 @@ export const saveGroupMessage = async (
     provider?: string | null;
     now: number;
   },
-): Promise<{ turn: number }> => {
+): Promise<{ turn: number; id: string }> => {
   const rows = await db
     .select({ turn: v2GroupMessageTable.turn })
     .from(v2GroupMessageTable)
     .where(eq(v2GroupMessageTable.groupId, input.groupId))
     .orderBy(asc(v2GroupMessageTable.turn));
   const turn = (rows[rows.length - 1]?.turn ?? 0) + 1;
+  const id = crypto.randomUUID();
   await db.insert(v2GroupMessageTable).values({
-    id: crypto.randomUUID(),
+    id,
     groupId: input.groupId,
     turn,
     speakerCharacterId: input.speakerCharacterId,
@@ -82,7 +84,16 @@ export const saveGroupMessage = async (
     provider: input.provider ?? null,
     createdAt: input.now,
   });
-  return { turn };
+  return { turn, id };
+};
+
+// 即時 lookup で引けんかった実行先を後から書き戻す（RIT-100 の遅延解決）。
+export const updateGroupMessageProvider = async (
+  db: V2Db,
+  id: string,
+  provider: string,
+): Promise<void> => {
+  await db.update(v2GroupMessageTable).set({ provider }).where(eq(v2GroupMessageTable.id, id));
 };
 
 export const listGroupHistory = async (
@@ -96,6 +107,7 @@ export const listGroupHistory = async (
       speakerCharacterId: v2GroupMessageTable.speakerCharacterId,
       content: v2GroupMessageTable.content,
       voiceMismatch: v2GroupMessageTable.voiceMismatch,
+      provider: v2GroupMessageTable.provider,
     })
     .from(v2GroupMessageTable)
     .where(eq(v2GroupMessageTable.groupId, groupId))

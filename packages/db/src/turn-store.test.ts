@@ -13,6 +13,7 @@ import {
   ensureConversationVersion,
   readD1StoredTurn,
   readDisplayHistory,
+  updateGenerationProvider,
   type TurnEvent,
   type TurnStore,
 } from "./turn-store";
@@ -135,6 +136,42 @@ describe("createD1TurnStore", () => {
       ]);
     }
     await local.dispose();
+  });
+
+  it("即時 lookup で引けんかった provider は後から generation 行へ追記できる（RIT-100）", async () => {
+    const conversationId = newConversationId();
+    const generationId = crypto.randomUUID();
+    await store.saveTurn({
+      conversationId,
+      turn: 1,
+      userText: "user 1",
+      events: [
+        {
+          type: "generation",
+          generationId,
+          model: "fake-list",
+          provider: "unknown",
+          upstreamId: "gen-x",
+          promptVersion: "v0001",
+          systemPrompt: "system",
+          request: [{ role: "user", content: "user 1" }],
+          rawOutput: "raw 1",
+          usage: { inputTokens: 1, outputTokens: 2, totalTokens: 3 },
+          latencyMs: 5,
+          status: "ok",
+        },
+        ...chunkEvents(1).slice(1),
+      ],
+      ledger: ledgerAt(1),
+    });
+
+    await updateGenerationProvider(local.db, generationId, "DeepInfra");
+
+    const row = await local.db
+      .select({ provider: v2GenerationTable.provider, upstreamId: v2GenerationTable.upstreamId })
+      .from(v2GenerationTable)
+      .where(eq(v2GenerationTable.id, generationId));
+    expect(row[0]).toEqual({ provider: "DeepInfra", upstreamId: "gen-x" });
   });
 
   it("2 ターン保存すると history 4 件が turn→user→assistant の順で戻り、次の turn は 3", async () => {

@@ -96,6 +96,18 @@ const buildGroupPrompt = (
     .join("\n");
 };
 
+// 生成行の外部参照キー。呼び出し側が渡した id を優先し、無ければ上流の gen- id を使う。
+const generationRef = (primary: string | undefined, fallback: string | null): string | undefined =>
+  primary ?? fallback ?? undefined;
+
+// 実行先が索引待ちで "unknown" のまま保存された時だけ、遅延解決用の鍵を返す。
+const pendingProviderKey = (
+  messageId: string,
+  upstreamId: string | null,
+  provider: string | null,
+): { messageId: string; upstreamId: string } | Record<string, never> =>
+  upstreamId !== null && provider === "unknown" ? { messageId, upstreamId } : {};
+
 // 1ターン回す: 話者選定→生成→声検査→保存→メンバー全員の記憶へ。
 export const runGroupTurn = async (
   deps: GroupTurnDeps,
@@ -104,6 +116,9 @@ export const runGroupTurn = async (
   speakerCharacterId: string;
   text: string;
   voiceMismatch: number;
+  // 実行先の遅延解決に必要な行と鍵（RIT-100）。引けなかった時だけ埋まる。
+  messageId?: string;
+  upstreamId?: string;
 } | null> => {
   const members = await listGroupMembers(deps.db, input.groupId);
   const memberIds = members.map((m) => m.characterId);
@@ -133,14 +148,12 @@ export const runGroupTurn = async (
   const { provider, upstreamId } = await resolveProvider(response.id, deps.providerLookup);
 
   const now = deps.now?.() ?? Date.now();
-  await saveGroupMessage(deps.db, {
+  const saved = await saveGroupMessage(deps.db, {
     groupId: input.groupId,
     speakerCharacterId: speakerId,
     content: text,
     voiceMismatch,
-    generationId: [input.generationId, upstreamId].find(
-      (v): v is string => v !== null && v !== undefined,
-    ),
+    generationId: generationRef(input.generationId, upstreamId),
     provider,
     now,
   });
@@ -151,7 +164,13 @@ export const runGroupTurn = async (
     content: `${speaker.name}: ${text}`,
     now,
   });
-  return { speakerCharacterId: speakerId, text, voiceMismatch };
+  // unknown のまま入った分は呼び出し側が /generation の索引待ちで引き直す。
+  return {
+    speakerCharacterId: speakerId,
+    text,
+    voiceMismatch,
+    ...pendingProviderKey(saved.id, upstreamId, provider),
+  };
 };
 
 // ユーザーの発言を場へ積む（話者 NULL）。保存だけして次ターンは runGroupTurn が回す。

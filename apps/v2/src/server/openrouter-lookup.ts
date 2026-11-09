@@ -36,3 +36,26 @@ export const resolveProvider = async (
   const provider = (await lookup?.(upstreamId).catch(() => null)) ?? "unknown";
   return { provider, upstreamId };
 };
+
+// /generation の索引は生成完了から ~10s 遅れる（2026-11-09 実測 404→200 が 13s）。
+// 即時の解決に失敗した分を waitUntil 系の裏仕事から引き直すための再試行。
+// 既定 6 回 x 3s = 先頭から ~15s まで粘り、最後まで引けんければ null（記録は unknown のまま残る）。
+export const retryProviderLookup = async (
+  lookup: (upstreamId: string) => Promise<string | null>,
+  upstreamId: string,
+  opts: {
+    attempts?: number;
+    delayMs?: number;
+    sleep?: (ms: number) => Promise<void>;
+  } = {},
+): Promise<string | null> => {
+  const attempts = opts.attempts ?? 6;
+  const delayMs = opts.delayMs ?? 3000;
+  const sleep = opts.sleep ?? ((ms: number) => new Promise((r) => setTimeout(r, ms)));
+  for (let i = 0; i < attempts; i++) {
+    const provider = await lookup(upstreamId).catch(() => null);
+    if (provider) return provider;
+    if (i + 1 < attempts) await sleep(delayMs);
+  }
+  return null;
+};

@@ -226,6 +226,9 @@ export type TurnGraphDeps = {
   // 実行先の記録は完了条件（RIT-100）なので本番では必ず注入する。失敗してもターンは潰さん
   // （その場合 provider は NULL で残り、照合クエリが未記録として拾える）。
   providerLookup?: (upstreamId: string) => Promise<string | null>;
+  // /generation の索引は ~10s 遅れるので即時 lookup が外れた時に呼ぶ。呼び出し側は
+  // waitUntil 等で数秒後に引き直し、行を UPDATE する。注入が無ければ未解決のまま残る。
+  onProviderUnresolved?: (generationId: string, upstreamId: string) => void;
   checkpointer?: BaseCheckpointSaver;
   now?: () => number;
   id?: () => string;
@@ -242,6 +245,19 @@ type CappedStreamResult = {
 
 const upstreamIdOf = (piece: { id?: unknown }): string | undefined =>
   typeof piece.id === "string" && piece.id.startsWith("gen-") ? piece.id : undefined;
+
+// 実行先の引き取りに失敗しても返事は残す。"unknown" で残った行は照合クエリで洗える。
+// 未解決の時だけ onProviderUnresolved へ渡して遅延の引き直しに繋ぐ。
+const resolveProviderInline = async (
+  deps: TurnGraphDeps,
+  generationId: string,
+  upstreamId: string | undefined,
+): Promise<string | null> => {
+  if (!upstreamId) return null;
+  const resolved = (await deps.providerLookup?.(upstreamId).catch(() => null)) ?? null;
+  if (!resolved) deps.onProviderUnresolved?.(generationId, upstreamId);
+  return resolved ?? "unknown";
+};
 
 // 締切と字数上限は同じ controller で request を止める（実モデルでは fetch が閉じる）。
 // どちらで止めたかは abort の前に truncated へ書いてから abort する。generate ノードから
@@ -494,10 +510,7 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
             writer: (event) => runtime.writer(event),
           },
         );
-        // 実行先の引き取りに失敗しても返事は残す。"unknown" で残った行は照合クエリで洗える。
-        const provider = upstreamId
-          ? ((await deps.providerLookup?.(upstreamId).catch(() => null)) ?? "unknown")
-          : null;
+        const provider = await resolveProviderInline(deps, generationId, upstreamId);
         const generation: GenerationRecord = {
           generationId,
           model: modelName,

@@ -239,6 +239,19 @@ export const readOwnedImageKey = async (db: V2Db, userId: string, messageId: str
   return row?.key ?? null;
 };
 
+// 即時 lookup で引けんかった実行先を後から書き戻す（RIT-100: /generation の索引は ~10s 遅れる）。
+// upstream_id は INSERT 時に入っとるので provider 欄だけを更新する。
+export const updateGenerationProvider = async (
+  db: V2Db,
+  generationId: string,
+  provider: string,
+): Promise<void> => {
+  await db
+    .update(v2GenerationTable)
+    .set({ provider })
+    .where(eq(v2GenerationTable.id, generationId));
+};
+
 type ChunkEvent = Extract<TurnEvent, { type: "chunk" }>;
 type GenerationEvent = Extract<TurnEvent, { type: "generation" }>;
 
