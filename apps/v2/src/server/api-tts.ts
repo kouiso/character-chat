@@ -8,6 +8,7 @@ import {
   defaultVoiceSettings,
   engineBaseUrl,
   synthesizeSpeech,
+  TTS_LAYERS,
   type VoiceSettings,
 } from "./tts";
 
@@ -17,6 +18,8 @@ const json = (status: number, body: Record<string, unknown>): Response =>
 const ttsBodySchema = z.object({
   characterId: z.string().min(1).max(64),
   text: z.string().min(1).max(500),
+  // RIT-212: レイヤ種別で声色を変える。未指定は既定パラメータ。
+  layer: z.enum(TTS_LAYERS).optional(),
 });
 
 const ownsCharacter = async (db: D1Database, characterId: string): Promise<boolean> => {
@@ -55,11 +58,11 @@ export const handleTtsRequest = async (request: Request): Promise<Response> => {
   const parsed = ttsBodySchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return json(400, { error: "invalid_body" });
   const { env } = await getPlatform();
-  const { characterId, text } = parsed.data;
+  const { characterId, text, layer } = parsed.data;
   if (!(await ownsCharacter(env.DB, characterId))) return json(404, { error: "not_found" });
   const settings = await readVoiceSettings(env.DB, characterId);
   try {
-    return await synthesizeSpeech(engineBaseUrl(env, settings.engine), settings, text);
+    return await synthesizeSpeech(engineBaseUrl(env, settings.engine), settings, text, layer);
   } catch {
     return json(503, { error: "tts_unavailable" });
   }

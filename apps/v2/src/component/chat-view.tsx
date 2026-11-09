@@ -21,7 +21,7 @@ import {
   type PendingTurn,
 } from "../lib/chat-session";
 import { revealChunk, scheduleReveal } from "../lib/chunk-reveal";
-import { readVoiceAutoplay, requestVoice } from "../lib/tts";
+import { playVoiceText, readVoiceAutoplay, type VoicePlayback } from "../lib/tts";
 
 import { BranchControls } from "./branch-controls";
 import { ChatHeaderControls } from "./chat-header-controls";
@@ -297,8 +297,8 @@ export const ChatView = ({
   const controller = useRef<AbortController | null>(null);
   const revealCancel = useRef<(() => void) | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
-  // RIT-211: 音声再生。1発話ずつ Audio を持ち、再生中キーでボタンを切替える。
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  // RIT-211/212: 音声再生。レイヤ連続再生のハンドルを持ち、再生中キーでボタンを切替える。
+  const playbackRef = useRef<VoicePlayback | null>(null);
   const [voiceKey, setVoiceKey] = useState<string | null>(null);
   const bubblesRef = useRef<ChatBubble[]>([]);
 
@@ -570,24 +570,18 @@ export const ChatView = ({
   };
 
   const stopVoice = useCallback(() => {
-    audioRef.current?.pause();
-    audioRef.current = null;
+    playbackRef.current?.stop();
+    playbackRef.current = null;
     setVoiceKey(null);
   }, []);
 
-  const playVoice = async (key: string, text: string) => {
-    audioRef.current?.pause();
+  const playVoice = (key: string, text: string) => {
+    playbackRef.current?.stop();
     setVoiceKey(key);
-    try {
-      const audio = await requestVoice(characterId, text, () => {
-        audioRef.current = null;
-        setVoiceKey(null);
-      });
-      audioRef.current = audio;
-      await audio.play();
-    } catch {
+    playbackRef.current = playVoiceText(characterId, text, () => {
+      playbackRef.current = null;
       setVoiceKey(null);
-    }
+    });
   };
 
   // RIT-211: 応答確定後の自動再生。設定 OFF・エンジン未起動は黙ってスルー。
@@ -597,7 +591,7 @@ export const ChatView = ({
       .reverse()
       .find((bubble) => bubble.role === "assistant" && !bubble.pending && bubble.text);
     if (!last) return;
-    await playVoice(last.id ?? `t${last.turn ?? 0}`, last.text).catch(() => undefined);
+    playVoice(last.id ?? `t${last.turn ?? 0}`, last.text);
   };
 
   const send = async (event: React.FormEvent) => {
