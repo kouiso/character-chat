@@ -23,10 +23,13 @@ import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ApiPlanRouteImport } from './routes/api/plan'
 import { Route as ApiRevenueRouteImport } from './routes/api/revenue'
 import { Route as ApiSettingsRouteImport } from './routes/api/settings'
+import { Route as ApiStoriesRouteImport } from './routes/api/stories'
 import { Route as ApiTtsRouteImport } from './routes/api/tts'
 import { Route as CharactersIdRouteImport } from './routes/characters/$id'
 import { Route as CharactersNewRouteImport } from './routes/characters/new'
 import { Route as ChatIdRouteImport } from './routes/chat/$id'
+import { Route as StoriesIndexRouteImport } from './routes/stories/index'
+import { Route as StoriesIdRouteImport } from './routes/stories/$id'
 import { Route as ApiAdminLegacyMigrationRouteImport } from './routes/api/admin/legacy-migration'
 import { Route as ApiBoardIdRouteImport } from './routes/api/board/$id'
 import { Route as ApiCatalogIdRouteImport } from './routes/api/catalog/$id'
@@ -40,6 +43,7 @@ import { Route as ApiPlanCancelRouteImport } from './routes/api/plan/cancel'
 import { Route as ApiPushSubscriptionsRouteImport } from './routes/api/push/subscriptions'
 import { Route as ApiPushVapidKeyRouteImport } from './routes/api/push/vapid-key'
 import { Route as ApiRevenueAggregateRouteImport } from './routes/api/revenue_/aggregate'
+import { Route as ApiStoriesIdRouteImport } from './routes/api/stories/$id'
 import { Route as ApiVoiceCallQuotaRouteImport } from './routes/api/voice-call/quota'
 import { Route as ApiCatalogIdCommentsRouteImport } from './routes/api/catalog/$id_/comments'
 import { Route as ApiCatalogIdFollowRouteImport } from './routes/api/catalog/$id_/follow'
@@ -63,10 +67,13 @@ import { Route as ApiChatIdMemoryRouteImport } from './routes/api/chat/$id_/memo
 import { Route as ApiChatIdSuggestRouteImport } from './routes/api/chat/$id_/suggest'
 import { Route as ApiChatIdVideoRouteImport } from './routes/api/chat/$id_/video'
 import { Route as ApiGroupsIdMessagesRouteImport } from './routes/api/groups/$id_/messages'
+import { Route as ApiStoriesIdChaptersRouteImport } from './routes/api/stories/$id_/chapters'
 import { Route as ApiCatalogIdCommentsCidRouteImport } from './routes/api/catalog/$id_/comments/$cid'
 import { Route as ApiCharactersIdDocumentsDocRouteImport } from './routes/api/characters/$id_/documents/$doc'
 import { Route as ApiCharactersIdVersionsVersionRouteImport } from './routes/api/characters/$id_/versions/$version'
 import { Route as ApiProactiveCharactersIdSettingsRouteImport } from './routes/api/proactive/characters/$id_/settings'
+import { Route as ApiStoriesIdChaptersCidRouteImport } from './routes/api/stories/$id_/chapters/$cid'
+import { Route as ApiStoriesIdChaptersReorderRouteImport } from './routes/api/stories/$id_/chapters/reorder'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -138,6 +145,11 @@ const ApiSettingsRoute = ApiSettingsRouteImport.update({
   path: '/api/settings',
   getParentRoute: () => rootRouteImport,
 })
+const ApiStoriesRoute = ApiStoriesRouteImport.update({
+  id: '/api/stories',
+  path: '/api/stories',
+  getParentRoute: () => rootRouteImport,
+})
 const ApiTtsRoute = ApiTtsRouteImport.update({
   id: '/api/tts',
   path: '/api/tts',
@@ -156,6 +168,16 @@ const CharactersNewRoute = CharactersNewRouteImport.update({
 const ChatIdRoute = ChatIdRouteImport.update({
   id: '/chat/$id',
   path: '/chat/$id',
+  getParentRoute: () => rootRouteImport,
+})
+const StoriesIndexRoute = StoriesIndexRouteImport.update({
+  id: '/stories/',
+  path: '/stories/',
+  getParentRoute: () => rootRouteImport,
+})
+const StoriesIdRoute = StoriesIdRouteImport.update({
+  id: '/stories/$id',
+  path: '/stories/$id',
   getParentRoute: () => rootRouteImport,
 })
 const ApiAdminLegacyMigrationRoute = ApiAdminLegacyMigrationRouteImport.update({
@@ -222,6 +244,11 @@ const ApiRevenueAggregateRoute = ApiRevenueAggregateRouteImport.update({
   id: '/api/revenue_/aggregate',
   path: '/api/revenue/aggregate',
   getParentRoute: () => rootRouteImport,
+})
+const ApiStoriesIdRoute = ApiStoriesIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiStoriesRoute,
 })
 const ApiVoiceCallQuotaRoute = ApiVoiceCallQuotaRouteImport.update({
   id: '/api/voice-call/quota',
@@ -339,6 +366,11 @@ const ApiGroupsIdMessagesRoute = ApiGroupsIdMessagesRouteImport.update({
   path: '/$id/messages',
   getParentRoute: () => ApiGroupsRoute,
 })
+const ApiStoriesIdChaptersRoute = ApiStoriesIdChaptersRouteImport.update({
+  id: '/$id_/chapters',
+  path: '/$id/chapters',
+  getParentRoute: () => ApiStoriesRoute,
+})
 const ApiCatalogIdCommentsCidRoute = ApiCatalogIdCommentsCidRouteImport.update({
   id: '/$cid',
   path: '/$cid',
@@ -362,6 +394,17 @@ const ApiProactiveCharactersIdSettingsRoute =
     path: '/api/proactive/characters/$id/settings',
     getParentRoute: () => rootRouteImport,
   })
+const ApiStoriesIdChaptersCidRoute = ApiStoriesIdChaptersCidRouteImport.update({
+  id: '/$cid',
+  path: '/$cid',
+  getParentRoute: () => ApiStoriesIdChaptersRoute,
+})
+const ApiStoriesIdChaptersReorderRoute =
+  ApiStoriesIdChaptersReorderRouteImport.update({
+    id: '/reorder',
+    path: '/reorder',
+    getParentRoute: () => ApiStoriesIdChaptersRoute,
+  })
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -378,10 +421,13 @@ export interface FileRoutesByFullPath {
   '/api/plan': typeof ApiPlanRouteWithChildren
   '/api/revenue': typeof ApiRevenueRoute
   '/api/settings': typeof ApiSettingsRoute
+  '/api/stories': typeof ApiStoriesRouteWithChildren
   '/api/tts': typeof ApiTtsRoute
   '/characters/$id': typeof CharactersIdRoute
   '/characters/new': typeof CharactersNewRoute
   '/chat/$id': typeof ChatIdRoute
+  '/stories/$id': typeof StoriesIdRoute
+  '/stories/': typeof StoriesIndexRoute
   '/api/admin/legacy-migration': typeof ApiAdminLegacyMigrationRoute
   '/api/board/$id': typeof ApiBoardIdRoute
   '/api/catalog/$id': typeof ApiCatalogIdRoute
@@ -395,6 +441,7 @@ export interface FileRoutesByFullPath {
   '/api/push/subscriptions': typeof ApiPushSubscriptionsRoute
   '/api/push/vapid-key': typeof ApiPushVapidKeyRoute
   '/api/revenue/aggregate': typeof ApiRevenueAggregateRoute
+  '/api/stories/$id': typeof ApiStoriesIdRoute
   '/api/voice-call/quota': typeof ApiVoiceCallQuotaRoute
   '/api/catalog/$id/comments': typeof ApiCatalogIdCommentsRouteWithChildren
   '/api/catalog/$id/follow': typeof ApiCatalogIdFollowRoute
@@ -418,10 +465,13 @@ export interface FileRoutesByFullPath {
   '/api/chat/$id/suggest': typeof ApiChatIdSuggestRoute
   '/api/chat/$id/video': typeof ApiChatIdVideoRoute
   '/api/groups/$id/messages': typeof ApiGroupsIdMessagesRoute
+  '/api/stories/$id/chapters': typeof ApiStoriesIdChaptersRouteWithChildren
   '/api/catalog/$id/comments/$cid': typeof ApiCatalogIdCommentsCidRoute
   '/api/characters/$id/documents/$doc': typeof ApiCharactersIdDocumentsDocRoute
   '/api/characters/$id/versions/$version': typeof ApiCharactersIdVersionsVersionRoute
   '/api/proactive/characters/$id/settings': typeof ApiProactiveCharactersIdSettingsRoute
+  '/api/stories/$id/chapters/$cid': typeof ApiStoriesIdChaptersCidRoute
+  '/api/stories/$id/chapters/reorder': typeof ApiStoriesIdChaptersReorderRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -438,10 +488,13 @@ export interface FileRoutesByTo {
   '/api/plan': typeof ApiPlanRouteWithChildren
   '/api/revenue': typeof ApiRevenueRoute
   '/api/settings': typeof ApiSettingsRoute
+  '/api/stories': typeof ApiStoriesRouteWithChildren
   '/api/tts': typeof ApiTtsRoute
   '/characters/$id': typeof CharactersIdRoute
   '/characters/new': typeof CharactersNewRoute
   '/chat/$id': typeof ChatIdRoute
+  '/stories/$id': typeof StoriesIdRoute
+  '/stories': typeof StoriesIndexRoute
   '/api/admin/legacy-migration': typeof ApiAdminLegacyMigrationRoute
   '/api/board/$id': typeof ApiBoardIdRoute
   '/api/catalog/$id': typeof ApiCatalogIdRoute
@@ -455,6 +508,7 @@ export interface FileRoutesByTo {
   '/api/push/subscriptions': typeof ApiPushSubscriptionsRoute
   '/api/push/vapid-key': typeof ApiPushVapidKeyRoute
   '/api/revenue/aggregate': typeof ApiRevenueAggregateRoute
+  '/api/stories/$id': typeof ApiStoriesIdRoute
   '/api/voice-call/quota': typeof ApiVoiceCallQuotaRoute
   '/api/catalog/$id/comments': typeof ApiCatalogIdCommentsRouteWithChildren
   '/api/catalog/$id/follow': typeof ApiCatalogIdFollowRoute
@@ -478,10 +532,13 @@ export interface FileRoutesByTo {
   '/api/chat/$id/suggest': typeof ApiChatIdSuggestRoute
   '/api/chat/$id/video': typeof ApiChatIdVideoRoute
   '/api/groups/$id/messages': typeof ApiGroupsIdMessagesRoute
+  '/api/stories/$id/chapters': typeof ApiStoriesIdChaptersRouteWithChildren
   '/api/catalog/$id/comments/$cid': typeof ApiCatalogIdCommentsCidRoute
   '/api/characters/$id/documents/$doc': typeof ApiCharactersIdDocumentsDocRoute
   '/api/characters/$id/versions/$version': typeof ApiCharactersIdVersionsVersionRoute
   '/api/proactive/characters/$id/settings': typeof ApiProactiveCharactersIdSettingsRoute
+  '/api/stories/$id/chapters/$cid': typeof ApiStoriesIdChaptersCidRoute
+  '/api/stories/$id/chapters/reorder': typeof ApiStoriesIdChaptersReorderRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -499,10 +556,13 @@ export interface FileRoutesById {
   '/api/plan': typeof ApiPlanRouteWithChildren
   '/api/revenue': typeof ApiRevenueRoute
   '/api/settings': typeof ApiSettingsRoute
+  '/api/stories': typeof ApiStoriesRouteWithChildren
   '/api/tts': typeof ApiTtsRoute
   '/characters/$id': typeof CharactersIdRoute
   '/characters/new': typeof CharactersNewRoute
   '/chat/$id': typeof ChatIdRoute
+  '/stories/$id': typeof StoriesIdRoute
+  '/stories/': typeof StoriesIndexRoute
   '/api/admin/legacy-migration': typeof ApiAdminLegacyMigrationRoute
   '/api/board/$id': typeof ApiBoardIdRoute
   '/api/catalog/$id': typeof ApiCatalogIdRoute
@@ -516,6 +576,7 @@ export interface FileRoutesById {
   '/api/push/subscriptions': typeof ApiPushSubscriptionsRoute
   '/api/push/vapid-key': typeof ApiPushVapidKeyRoute
   '/api/revenue_/aggregate': typeof ApiRevenueAggregateRoute
+  '/api/stories/$id': typeof ApiStoriesIdRoute
   '/api/voice-call/quota': typeof ApiVoiceCallQuotaRoute
   '/api/catalog/$id_/comments': typeof ApiCatalogIdCommentsRouteWithChildren
   '/api/catalog/$id_/follow': typeof ApiCatalogIdFollowRoute
@@ -539,10 +600,13 @@ export interface FileRoutesById {
   '/api/chat/$id_/suggest': typeof ApiChatIdSuggestRoute
   '/api/chat/$id_/video': typeof ApiChatIdVideoRoute
   '/api/groups/$id_/messages': typeof ApiGroupsIdMessagesRoute
+  '/api/stories/$id_/chapters': typeof ApiStoriesIdChaptersRouteWithChildren
   '/api/catalog/$id_/comments/$cid': typeof ApiCatalogIdCommentsCidRoute
   '/api/characters/$id_/documents/$doc': typeof ApiCharactersIdDocumentsDocRoute
   '/api/characters/$id_/versions/$version': typeof ApiCharactersIdVersionsVersionRoute
   '/api/proactive/characters/$id_/settings': typeof ApiProactiveCharactersIdSettingsRoute
+  '/api/stories/$id_/chapters/$cid': typeof ApiStoriesIdChaptersCidRoute
+  '/api/stories/$id_/chapters/reorder': typeof ApiStoriesIdChaptersReorderRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -561,10 +625,13 @@ export interface FileRouteTypes {
     | '/api/plan'
     | '/api/revenue'
     | '/api/settings'
+    | '/api/stories'
     | '/api/tts'
     | '/characters/$id'
     | '/characters/new'
     | '/chat/$id'
+    | '/stories/$id'
+    | '/stories/'
     | '/api/admin/legacy-migration'
     | '/api/board/$id'
     | '/api/catalog/$id'
@@ -578,6 +645,7 @@ export interface FileRouteTypes {
     | '/api/push/subscriptions'
     | '/api/push/vapid-key'
     | '/api/revenue/aggregate'
+    | '/api/stories/$id'
     | '/api/voice-call/quota'
     | '/api/catalog/$id/comments'
     | '/api/catalog/$id/follow'
@@ -601,10 +669,13 @@ export interface FileRouteTypes {
     | '/api/chat/$id/suggest'
     | '/api/chat/$id/video'
     | '/api/groups/$id/messages'
+    | '/api/stories/$id/chapters'
     | '/api/catalog/$id/comments/$cid'
     | '/api/characters/$id/documents/$doc'
     | '/api/characters/$id/versions/$version'
     | '/api/proactive/characters/$id/settings'
+    | '/api/stories/$id/chapters/$cid'
+    | '/api/stories/$id/chapters/reorder'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -621,10 +692,13 @@ export interface FileRouteTypes {
     | '/api/plan'
     | '/api/revenue'
     | '/api/settings'
+    | '/api/stories'
     | '/api/tts'
     | '/characters/$id'
     | '/characters/new'
     | '/chat/$id'
+    | '/stories/$id'
+    | '/stories'
     | '/api/admin/legacy-migration'
     | '/api/board/$id'
     | '/api/catalog/$id'
@@ -638,6 +712,7 @@ export interface FileRouteTypes {
     | '/api/push/subscriptions'
     | '/api/push/vapid-key'
     | '/api/revenue/aggregate'
+    | '/api/stories/$id'
     | '/api/voice-call/quota'
     | '/api/catalog/$id/comments'
     | '/api/catalog/$id/follow'
@@ -661,10 +736,13 @@ export interface FileRouteTypes {
     | '/api/chat/$id/suggest'
     | '/api/chat/$id/video'
     | '/api/groups/$id/messages'
+    | '/api/stories/$id/chapters'
     | '/api/catalog/$id/comments/$cid'
     | '/api/characters/$id/documents/$doc'
     | '/api/characters/$id/versions/$version'
     | '/api/proactive/characters/$id/settings'
+    | '/api/stories/$id/chapters/$cid'
+    | '/api/stories/$id/chapters/reorder'
   id:
     | '__root__'
     | '/'
@@ -681,10 +759,13 @@ export interface FileRouteTypes {
     | '/api/plan'
     | '/api/revenue'
     | '/api/settings'
+    | '/api/stories'
     | '/api/tts'
     | '/characters/$id'
     | '/characters/new'
     | '/chat/$id'
+    | '/stories/$id'
+    | '/stories/'
     | '/api/admin/legacy-migration'
     | '/api/board/$id'
     | '/api/catalog/$id'
@@ -698,6 +779,7 @@ export interface FileRouteTypes {
     | '/api/push/subscriptions'
     | '/api/push/vapid-key'
     | '/api/revenue_/aggregate'
+    | '/api/stories/$id'
     | '/api/voice-call/quota'
     | '/api/catalog/$id_/comments'
     | '/api/catalog/$id_/follow'
@@ -721,10 +803,13 @@ export interface FileRouteTypes {
     | '/api/chat/$id_/suggest'
     | '/api/chat/$id_/video'
     | '/api/groups/$id_/messages'
+    | '/api/stories/$id_/chapters'
     | '/api/catalog/$id_/comments/$cid'
     | '/api/characters/$id_/documents/$doc'
     | '/api/characters/$id_/versions/$version'
     | '/api/proactive/characters/$id_/settings'
+    | '/api/stories/$id_/chapters/$cid'
+    | '/api/stories/$id_/chapters/reorder'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -742,10 +827,13 @@ export interface RootRouteChildren {
   ApiPlanRoute: typeof ApiPlanRouteWithChildren
   ApiRevenueRoute: typeof ApiRevenueRoute
   ApiSettingsRoute: typeof ApiSettingsRoute
+  ApiStoriesRoute: typeof ApiStoriesRouteWithChildren
   ApiTtsRoute: typeof ApiTtsRoute
   CharactersIdRoute: typeof CharactersIdRoute
   CharactersNewRoute: typeof CharactersNewRoute
   ChatIdRoute: typeof ChatIdRoute
+  StoriesIdRoute: typeof StoriesIdRoute
+  StoriesIndexRoute: typeof StoriesIndexRoute
   ApiAdminLegacyMigrationRoute: typeof ApiAdminLegacyMigrationRoute
   ApiChatIdRoute: typeof ApiChatIdRoute
   ApiMediaIdRoute: typeof ApiMediaIdRoute
@@ -865,6 +953,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiSettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/stories': {
+      id: '/api/stories'
+      path: '/api/stories'
+      fullPath: '/api/stories'
+      preLoaderRoute: typeof ApiStoriesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/tts': {
       id: '/api/tts'
       path: '/api/tts'
@@ -891,6 +986,20 @@ declare module '@tanstack/react-router' {
       path: '/chat/$id'
       fullPath: '/chat/$id'
       preLoaderRoute: typeof ChatIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/stories/': {
+      id: '/stories/'
+      path: '/stories'
+      fullPath: '/stories/'
+      preLoaderRoute: typeof StoriesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/stories/$id': {
+      id: '/stories/$id'
+      path: '/stories/$id'
+      fullPath: '/stories/$id'
+      preLoaderRoute: typeof StoriesIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/admin/legacy-migration': {
@@ -983,6 +1092,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/revenue/aggregate'
       preLoaderRoute: typeof ApiRevenueAggregateRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/api/stories/$id': {
+      id: '/api/stories/$id'
+      path: '/$id'
+      fullPath: '/api/stories/$id'
+      preLoaderRoute: typeof ApiStoriesIdRouteImport
+      parentRoute: typeof ApiStoriesRoute
     }
     '/api/voice-call/quota': {
       id: '/api/voice-call/quota'
@@ -1145,6 +1261,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiGroupsIdMessagesRouteImport
       parentRoute: typeof ApiGroupsRoute
     }
+    '/api/stories/$id_/chapters': {
+      id: '/api/stories/$id_/chapters'
+      path: '/$id/chapters'
+      fullPath: '/api/stories/$id/chapters'
+      preLoaderRoute: typeof ApiStoriesIdChaptersRouteImport
+      parentRoute: typeof ApiStoriesRoute
+    }
     '/api/catalog/$id_/comments/$cid': {
       id: '/api/catalog/$id_/comments/$cid'
       path: '/$cid'
@@ -1172,6 +1295,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/proactive/characters/$id/settings'
       preLoaderRoute: typeof ApiProactiveCharactersIdSettingsRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/api/stories/$id_/chapters/$cid': {
+      id: '/api/stories/$id_/chapters/$cid'
+      path: '/$cid'
+      fullPath: '/api/stories/$id/chapters/$cid'
+      preLoaderRoute: typeof ApiStoriesIdChaptersCidRouteImport
+      parentRoute: typeof ApiStoriesIdChaptersRoute
+    }
+    '/api/stories/$id_/chapters/reorder': {
+      id: '/api/stories/$id_/chapters/reorder'
+      path: '/reorder'
+      fullPath: '/api/stories/$id/chapters/reorder'
+      preLoaderRoute: typeof ApiStoriesIdChaptersReorderRouteImport
+      parentRoute: typeof ApiStoriesIdChaptersRoute
     }
   }
 }
@@ -1314,6 +1451,33 @@ const ApiPlanRouteChildren: ApiPlanRouteChildren = {
 const ApiPlanRouteWithChildren =
   ApiPlanRoute._addFileChildren(ApiPlanRouteChildren)
 
+interface ApiStoriesIdChaptersRouteChildren {
+  ApiStoriesIdChaptersCidRoute: typeof ApiStoriesIdChaptersCidRoute
+  ApiStoriesIdChaptersReorderRoute: typeof ApiStoriesIdChaptersReorderRoute
+}
+
+const ApiStoriesIdChaptersRouteChildren: ApiStoriesIdChaptersRouteChildren = {
+  ApiStoriesIdChaptersCidRoute: ApiStoriesIdChaptersCidRoute,
+  ApiStoriesIdChaptersReorderRoute: ApiStoriesIdChaptersReorderRoute,
+}
+
+const ApiStoriesIdChaptersRouteWithChildren =
+  ApiStoriesIdChaptersRoute._addFileChildren(ApiStoriesIdChaptersRouteChildren)
+
+interface ApiStoriesRouteChildren {
+  ApiStoriesIdRoute: typeof ApiStoriesIdRoute
+  ApiStoriesIdChaptersRoute: typeof ApiStoriesIdChaptersRouteWithChildren
+}
+
+const ApiStoriesRouteChildren: ApiStoriesRouteChildren = {
+  ApiStoriesIdRoute: ApiStoriesIdRoute,
+  ApiStoriesIdChaptersRoute: ApiStoriesIdChaptersRouteWithChildren,
+}
+
+const ApiStoriesRouteWithChildren = ApiStoriesRoute._addFileChildren(
+  ApiStoriesRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BoardRoute: BoardRoute,
@@ -1329,10 +1493,13 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPlanRoute: ApiPlanRouteWithChildren,
   ApiRevenueRoute: ApiRevenueRoute,
   ApiSettingsRoute: ApiSettingsRoute,
+  ApiStoriesRoute: ApiStoriesRouteWithChildren,
   ApiTtsRoute: ApiTtsRoute,
   CharactersIdRoute: CharactersIdRoute,
   CharactersNewRoute: CharactersNewRoute,
   ChatIdRoute: ChatIdRoute,
+  StoriesIdRoute: StoriesIdRoute,
+  StoriesIndexRoute: StoriesIndexRoute,
   ApiAdminLegacyMigrationRoute: ApiAdminLegacyMigrationRoute,
   ApiChatIdRoute: ApiChatIdRoute,
   ApiMediaIdRoute: ApiMediaIdRoute,

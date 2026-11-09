@@ -682,3 +682,41 @@ body {
   font-size: 0.75rem;
   opacity: 0.75;
 }
+
+/* RIT-214: ストーリー */
+.v2-story-create {
+  display: flex;
+  gap: 0.4rem;
+  margin: 0.6rem 0;
+}
+.v2-story-create input {
+  flex: 1;
+}
+.v2-story-meta {
+  font-size: 0.78rem;
+  opacity: 0.7;
+  margin-left: 0.5rem;
+}
+.v2-story-editor label,
+.v2-chapter-editor label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  margin: 0.4rem 0;
+  font-size: 0.85rem;
+}
+.v2-chapters ol {
+  padding-left: 1.2rem;
+}
+.v2-chapters li {
+  display: flex;
+  gap: 0.3rem;
+  margin: 0.25rem 0;
+}
+.v2-chapter-current {
+  font-weight: 700;
+}
+.v2-danger {
+  margin-left: 0.5rem;
+  color: #c0392b;
+}
