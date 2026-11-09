@@ -90,6 +90,92 @@ body {
   padding: 12px 16px;
   border-bottom: 1px solid #2a2a34;
   font-weight: 600;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.v2-ledger {
+  position: relative;
+  font-weight: 400;
+  font-size: 0.85rem;
+}
+
+.v2-ledger-panel {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  z-index: 10;
+  width: min(340px, 90vw);
+  max-height: 70vh;
+  overflow-y: auto;
+  background: var(--panel);
+  border: 1px solid #2a2a34;
+  border-radius: 10px;
+  padding: 12px;
+  font-weight: 400;
+}
+
+.v2-ledger-list {
+  margin: 0 0 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.v2-ledger-row {
+  display: flex;
+  gap: 8px;
+}
+
+.v2-ledger-row dt {
+  flex-shrink: 0;
+  width: 5.5em;
+  opacity: 0.7;
+}
+
+.v2-ledger-row dd {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.v2-ledger-notice {
+  color: #9fd89f;
+  font-size: 0.8rem;
+  margin-bottom: 8px;
+}
+
+.v2-ledger-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.v2-ledger-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.8rem;
+  opacity: 0.9;
+}
+
+.v2-ledger-form input,
+.v2-ledger-form select,
+.v2-ledger-form textarea {
+  background: #1a1a20;
+  border: 1px solid #2a2a34;
+  border-radius: 6px;
+  color: inherit;
+  padding: 4px 8px;
+  font: inherit;
+}
+
+.v2-ledger-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
 }
 
 .v2-chat-log {

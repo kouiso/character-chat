@@ -11,9 +11,11 @@ import { openLocalD1, type LocalD1 } from "./test/local-d1";
 import {
   createD1TurnStore,
   ensureConversationVersion,
+  loadLatestLedger,
   readD1StoredTurn,
   readDisplayHistory,
   updateGenerationProvider,
+  updateLatestLedger,
   type TurnEvent,
   type TurnStore,
 } from "./turn-store";
@@ -49,6 +51,7 @@ const ledgerAt = (turn: number): SceneLedger => ({
   clothing: {},
   position: null,
   lastEvents: [`turn ${turn}`],
+  items: {},
 });
 
 const chunkEvents = (turn: number): TurnEvent[] => [
@@ -89,6 +92,11 @@ describe("createD1TurnStore", () => {
   let local: LocalD1;
   let characterId: string;
   let store: TurnStore;
+  const storeOpts = (): { userId: string; characterId: string; promptVersion: string } => ({
+    userId: "vitest",
+    characterId,
+    promptVersion: "v0001",
+  });
   const createdConversationIds: string[] = [];
 
   const newConversationId = (): string => {
@@ -374,6 +382,138 @@ describe("createD1TurnStore", () => {
     });
   });
 
+  it("最新の台帳が壊れとっても一個前の台帳へ遡って会話は止まらん（RIT-118）", async () => {
+    const conversationId = newConversationId();
+    await store.saveTurn({
+      conversationId,
+      turn: 1,
+      userText: "user 1",
+      events: chunkEvents(1),
+      ledger: ledgerAt(1),
+    });
+    await store.saveTurn({
+      conversationId,
+      turn: 2,
+      userText: "user 2",
+      events: chunkEvents(2),
+      ledger: ledgerAt(2),
+    });
+    await local.db
+      .update(v2LedgerTable)
+      .set({ ledgerJson: "{not json" })
+      .where(
+        and(
+          eq(v2LedgerTable.conversationId, conversationId),
+          eq(v2LedgerTable.turn, 2),
+        ),
+      );
+
+    const loaded = await store.load(conversationId);
+    expect(loaded.ledger).toEqual(ledgerAt(1));
+    expect(loaded.turn).toBe(3);
+  });
+
+  it("台帳が全滅しても初期台帳で会話を止めん", async () => {
+    const conversationId = newConversationId();
+    await store.saveTurn({
+      conversationId,
+      turn: 1,
+      userText: "user 1",
+      events: chunkEvents(1),
+      ledger: ledgerAt(1),
+    });
+    await local.db
+      .update(v2LedgerTable)
+      .set({ ledgerJson: "garbage" })
+      .where(eq(v2LedgerTable.conversationId, conversationId));
+
+    const loaded = await store.load(conversationId);
+    expect(loaded.ledger.lastEvents).toEqual([]);
+    expect(loaded.turn).toBe(2);
+  });
+
+  it("手で直した台帳が次の load に載る（RIT-118）", async () => {
+    const conversationId = newConversationId();
+    await store.saveTurn({
+      conversationId,
+      turn: 1,
+      userText: "user 1",
+      events: chunkEvents(1),
+      ledger: ledgerAt(1),
+    });
+    await store.saveTurn({
+      conversationId,
+      turn: 2,
+      userText: "user 2",
+      events: chunkEvents(2),
+      ledger: ledgerAt(2),
+    });
+
+    const fixed = { ...ledgerAt(2), location: "台所", position: "立ったまま" };
+    const updated = await updateLatestLedger(local.db, storeOpts(), conversationId, fixed);
+    expect(updated).toBe(2);
+
+    const loaded = await store.load(conversationId);
+    expect(loaded.ledger).toEqual(fixed);
+    expect(loaded.turn).toBe(3);
+  });
+
+  it("台帳行が無い会話の手直しは null（対話未開始）", async () => {
+    const conversationId = newConversationId();
+    await ensureConversationVersion(local.db, {
+      conversationId,
+      userId: "vitest",
+      characterId,
+      promptVersion: "v0001",
+      versionId: `ver-${conversationId}`,
+    });
+    const updated = await updateLatestLedger(local.db, storeOpts(), conversationId, ledgerAt(1));
+    expect(updated).toBeNull();
+  });
+
+  it("loadLatestLedger: 最新の有効台帳を返し、行が無ければ null（手直し画面用）", async () => {
+    const conversationId = newConversationId();
+    await store.saveTurn({
+      conversationId,
+      turn: 1,
+      userText: "user 1",
+      events: chunkEvents(1),
+      ledger: ledgerAt(1),
+    });
+    expect(await loadLatestLedger(local.db, storeOpts(), conversationId)).toEqual(ledgerAt(1));
+
+    const empty = newConversationId();
+    await ensureConversationVersion(local.db, {
+      conversationId: empty,
+      userId: "vitest",
+      characterId,
+      promptVersion: "v0001",
+      versionId: `ver-${empty}`,
+    });
+    expect(await loadLatestLedger(local.db, storeOpts(), empty)).toBeNull();
+  });
+
+  it("v0001 時代の items の無い台帳行も読める（後方互換）", async () => {
+    const conversationId = newConversationId();
+    await store.saveTurn({
+      conversationId,
+      turn: 1,
+      userText: "user 1",
+      events: chunkEvents(1),
+      ledger: ledgerAt(1),
+    });
+    // v0001 形式（items 無し）で上書き保存しても、読み側は items を空として返す。
+    const legacy = ledgerAt(1) as Partial<SceneLedger>;
+    delete legacy.items;
+    await local.db
+      .update(v2LedgerTable)
+      .set({ ledgerJson: JSON.stringify(legacy) })
+      .where(eq(v2LedgerTable.conversationId, conversationId));
+
+    const loaded = await loadLatestLedger(local.db, storeOpts(), conversationId);
+    expect(loaded).toEqual({ ...ledgerAt(1), items: {} });
+  });
+
   it("saveTurn は既存会話の pinned character version を上書きしない", async () => {
     const conversationId = newConversationId();
     await ensureConversationVersion(local.db, {
@@ -409,6 +549,7 @@ describe("createD1TurnStore", () => {
         clothing: {},
         position: null,
         lastEvents: [],
+        items: {},
       },
       turn: 1,
     });

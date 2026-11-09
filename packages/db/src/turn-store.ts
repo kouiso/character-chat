@@ -298,7 +298,7 @@ const extractTag = (content: string, tag: keyof typeof TAG_PATTERNS): string | n
   return parts.length > 0 ? parts.join("\n\n") : null;
 };
 
-const sceneLedgerSchema = z.object({
+export const sceneLedgerSchema = z.object({
   phase: z.enum(["conversation", "intimate", "erotic", "climax", "afterglow"]),
   location: z.string().nullable(),
   time: z.string().nullable(),
@@ -306,21 +306,91 @@ const sceneLedgerSchema = z.object({
   clothing: z.record(z.string(), z.string()),
   position: z.string().nullable(),
   lastEvents: z.array(z.string()),
+  // v0002 で持ち物を追加。旧台帳行には無いので、無ければ空として読む（後方互換）。
+  items: z.record(z.string(), z.string()).default({}),
 }) satisfies z.ZodType<SceneLedger>;
 
-// 壊れた ledger_json を黙って初期値に戻すと場面状態が消えたまま会話が続く。ここは投げる。
-const parseLedger = (conversationId: string, turn: number, ledgerJson: string): SceneLedger => {
-  const parsed = sceneLedgerSchema.safeParse(JSON.parse(ledgerJson));
-  if (!parsed.success) {
-    throw new Error(
-      `v2_ledger の ledger_json が SceneLedger として読めん: conversation=${conversationId} turn=${turn}: ${parsed.error.message}`,
-    );
+// 壊れた ledger_json は null を返し、呼び出し側が一個前の台帳へ遡る。
+// ここで投げると会話そのものが止まる（RIT-118 確かめ要件）。warn は呼び出し側が出す。
+const tryParseLedger = (ledgerJson: string): SceneLedger | null => {
+  try {
+    const parsed = sceneLedgerSchema.safeParse(JSON.parse(ledgerJson));
+    return parsed.success ? parsed.data : null;
+  } catch {
+    return null;
   }
-  return parsed.data;
 };
 
 // role の並びは 'assistant' < 'user' の辞書順やと逆になるので、明示的に user を先にする。
 const userFirst = sql`case ${v2MessageTable.role} when 'user' then 0 else 1 end`;
+
+/**
+ * 手直し用: 会話の最新台帳行をまるごと差し替える（RIT-118）。
+ * load は最新台帳を拾うので、直した値がそのまま次のターンの指示文に入る。
+ * 台帳行が無い会話（1 ターンも persist されてない）は null を返す。
+ */
+export const updateLatestLedger = async (
+  db: V2Db,
+  opts: D1TurnStoreOptions,
+  conversationId: string,
+  ledger: SceneLedger,
+): Promise<number | null> => {
+  await assertConversationOwner(db, opts, conversationId);
+  const [latest] = await db
+    .select({ turn: v2LedgerTable.turn })
+    .from(v2LedgerTable)
+    .where(eq(v2LedgerTable.conversationId, conversationId))
+    .orderBy(desc(v2LedgerTable.turn))
+    .limit(1);
+  if (!latest) return null;
+  await db
+    .update(v2LedgerTable)
+    .set({ ledgerJson: JSON.stringify(ledger) })
+    .where(
+      and(
+        eq(v2LedgerTable.conversationId, conversationId),
+        eq(v2LedgerTable.turn, latest.turn),
+      ),
+    );
+  return latest.turn;
+};
+
+/**
+ * 手直し画面用: 会話の最新台帳を返す（RIT-118）。
+ * load と同じく壊れた行は直近3件の中で遡り、全滅なら初期台帳。
+ * 台帳行そのものが無い会話は null（画面は「まだ台帳がない」を出す）。
+ */
+export const loadLatestLedger = async (
+  db: V2Db,
+  opts: D1TurnStoreOptions,
+  conversationId: string,
+): Promise<SceneLedger | null> => {
+  await assertConversationOwner(db, opts, conversationId);
+  const rows = await db
+    .select({ turn: v2LedgerTable.turn, ledgerJson: v2LedgerTable.ledgerJson })
+    .from(v2LedgerTable)
+    .where(eq(v2LedgerTable.conversationId, conversationId))
+    .orderBy(desc(v2LedgerTable.turn))
+    .limit(3);
+  if (rows.length === 0) return null;
+  const skippedTurns: number[] = [];
+  for (const row of rows) {
+    const ledger = tryParseLedger(row.ledgerJson);
+    if (ledger) {
+      if (skippedTurns.length > 0) {
+        console.warn(
+          JSON.stringify({ event: "ledger_fallback", conversationId, skippedTurns }),
+        );
+      }
+      return ledger;
+    }
+    skippedTurns.push(row.turn);
+  }
+  console.warn(
+    JSON.stringify({ event: "ledger_fallback", conversationId, skippedTurns }),
+  );
+  return emptyLedger();
+};
 
 // engine の persist は本文ゼロで終わった生成（締切で 1 字も来ん・全塊が判定で落ちた・空の返事）も
 // 監視用に保存し、同時に error を流してターンを失敗させる。つまり「応答が空」は失敗の印になっとる。
@@ -443,14 +513,15 @@ export const createD1TurnStore = (db: V2Db, opts: D1TurnStoreOptions): TurnStore
           ),
         )
         .orderBy(desc(v2LedgerTable.turn))
-        .limit(1),
+        // 先頭が壊れとった時に一個前へ遡れるよう直近3件まで取る（それでも駄目なら初期台帳）。
+        .limit(3),
     ]);
     if (conversationRows.length === 0) {
       return { history: [], ledger: emptyLedger(), turn: 1 };
     }
     const { live, lastLiveTurn, nextTurn } = splitDeadTurns(messageRows);
     const history = live.map((row): HistoryMessage => ({ role: row.role, content: row.content }));
-    const [latestLedger] =
+    const ledgerRowsResolved =
       ledgerRows[0] && ledgerRows[0].turn > lastLiveTurn
         ? await db
             .select({ turn: v2LedgerTable.turn, ledgerJson: v2LedgerTable.ledgerJson })
@@ -462,11 +533,22 @@ export const createD1TurnStore = (db: V2Db, opts: D1TurnStoreOptions): TurnStore
               ),
             )
             .orderBy(desc(v2LedgerTable.turn))
-            .limit(1)
+            .limit(3)
         : ledgerRows;
-    const ledger = latestLedger
-      ? parseLedger(conversationId, latestLedger.turn, latestLedger.ledgerJson)
-      : emptyLedger();
+    // 壊れた台帳は捨てて手前へ遡る。台帳が全滅しても会話は止めん（RIT-118）。
+    let ledger: SceneLedger | null = null;
+    const skippedTurns: number[] = [];
+    for (const row of ledgerRowsResolved) {
+      ledger = tryParseLedger(row.ledgerJson);
+      if (ledger) break;
+      skippedTurns.push(row.turn);
+    }
+    if (skippedTurns.length > 0) {
+      console.warn(
+        JSON.stringify({ event: "ledger_fallback", conversationId, skippedTurns }),
+      );
+    }
+    ledger ??= emptyLedger();
     // beforeTurn は呼び出し側（ChatRoom の job）が演じる番号を決めた後の読込。窓の中の末尾が
     // 失敗ターンでも番号を下げると、job と別の turn へ保存してしまう。
     return { history, ledger, turn: opts.beforeTurn ?? nextTurn };

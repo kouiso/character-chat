@@ -15,4 +15,8 @@ export type {
 import type { HistoryMessage } from "@v2/db";
 
 export type CharacterSheet = { id: string; name: string; systemPrompt: string; greeting: string };
-export type ComposedPrompt = { version: "v0001"; system: string; messages: HistoryMessage[] };
+export type ComposedPrompt = {
+  version: "v0001" | "v0002";
+  system: string;
+  messages: HistoryMessage[];
+};

@@ -28,6 +28,7 @@ import { Route as ApiCharactersIdVersionsRouteImport } from './routes/api/charac
 import { Route as ApiChatIdHistoryRouteImport } from './routes/api/chat/$id_/history'
 import { Route as ApiChatIdImagesRouteImport } from './routes/api/chat/$id_/images'
 import { Route as ApiGroupsIdMessagesRouteImport } from './routes/api/groups/$id_/messages'
+import { Route as ApiChatIdLedgerRouteImport } from './routes/api/chat/$id_/ledger'
 import { Route as ApiCharactersIdDocumentsRouteImport } from './routes/api/characters/$id_/documents'
 import { Route as ApiCharactersIdRestoreRouteImport } from './routes/api/characters/$id_/restore'
 import { Route as ApiCharactersIdVersionsRouteImport } from './routes/api/characters/$id_/versions'
@@ -142,6 +143,11 @@ const ApiCharactersIdDocumentsDocRoute =
     path: '/$doc',
     getParentRoute: () => ApiCharactersIdDocumentsRoute,
   })
+const ApiChatIdLedgerRoute = ApiChatIdLedgerRouteImport.update({
+  id: '/api/chat/$id_/ledger',
+  path: '/api/chat/$id/ledger',
+  getParentRoute: () => rootRouteImport,
+})
 const ApiCharactersIdVersionsVersionRoute =
   ApiCharactersIdVersionsVersionRouteImport.update({
     id: '/$version',
@@ -175,6 +181,7 @@ export interface FileRoutesByFullPath {
   '/api/chat/$id/history': typeof ApiChatIdHistoryRoute
   '/api/chat/$id/images': typeof ApiChatIdImagesRoute
   '/api/groups/$id/messages': typeof ApiGroupsIdMessagesRoute
+  '/api/chat/$id/ledger': typeof ApiChatIdLedgerRoute
   '/api/characters/$id/documents': typeof ApiCharactersIdDocumentsRouteWithChildren
   '/api/characters/$id/restore': typeof ApiCharactersIdRestoreRoute
   '/api/characters/$id/versions': typeof ApiCharactersIdVersionsRouteWithChildren
@@ -203,6 +210,7 @@ export interface FileRoutesByTo {
   '/api/chat/$id/history': typeof ApiChatIdHistoryRoute
   '/api/chat/$id/images': typeof ApiChatIdImagesRoute
   '/api/groups/$id/messages': typeof ApiGroupsIdMessagesRoute
+  '/api/chat/$id/ledger': typeof ApiChatIdLedgerRoute
   '/api/characters/$id/documents': typeof ApiCharactersIdDocumentsRouteWithChildren
   '/api/characters/$id/restore': typeof ApiCharactersIdRestoreRoute
   '/api/characters/$id/versions': typeof ApiCharactersIdVersionsRouteWithChildren
@@ -232,6 +240,7 @@ export interface FileRoutesById {
   '/api/chat/$id_/history': typeof ApiChatIdHistoryRoute
   '/api/chat/$id_/images': typeof ApiChatIdImagesRoute
   '/api/groups/$id_/messages': typeof ApiGroupsIdMessagesRoute
+  '/api/chat/$id_/ledger': typeof ApiChatIdLedgerRoute
   '/api/characters/$id_/documents': typeof ApiCharactersIdDocumentsRouteWithChildren
   '/api/characters/$id_/restore': typeof ApiCharactersIdRestoreRoute
   '/api/characters/$id_/versions': typeof ApiCharactersIdVersionsRouteWithChildren
@@ -262,6 +271,7 @@ export interface FileRouteTypes {
     | '/api/chat/$id/history'
     | '/api/chat/$id/images'
     | '/api/groups/$id/messages'
+    | '/api/chat/$id/ledger'
     | '/api/characters/$id/documents'
     | '/api/characters/$id/restore'
     | '/api/characters/$id/versions'
@@ -290,6 +300,7 @@ export interface FileRouteTypes {
     | '/api/chat/$id/history'
     | '/api/chat/$id/images'
     | '/api/groups/$id/messages'
+    | '/api/chat/$id/ledger'
     | '/api/characters/$id/documents'
     | '/api/characters/$id/restore'
     | '/api/characters/$id/versions'
@@ -318,6 +329,7 @@ export interface FileRouteTypes {
     | '/api/chat/$id_/history'
     | '/api/chat/$id_/images'
     | '/api/groups/$id_/messages'
+    | '/api/chat/$id_/ledger'
     | '/api/characters/$id_/documents'
     | '/api/characters/$id_/restore'
     | '/api/characters/$id_/versions'
@@ -343,6 +355,7 @@ export interface RootRouteChildren {
   ApiChatIdHistoryRoute: typeof ApiChatIdHistoryRoute
   ApiChatIdImagesRoute: typeof ApiChatIdImagesRoute
   ApiProactiveCharactersIdSettingsRoute: typeof ApiProactiveCharactersIdSettingsRoute
+  ApiChatIdLedgerRoute: typeof ApiChatIdLedgerRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -490,6 +503,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCharactersIdDocumentsDocRouteImport
       parentRoute: typeof ApiCharactersIdDocumentsRoute
     }
+    '/api/chat/$id_/ledger': {
+      id: '/api/chat/$id_/ledger'
+      path: '/api/chat/$id/ledger'
+      fullPath: '/api/chat/$id/ledger'
+      preLoaderRoute: typeof ApiChatIdLedgerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/characters/$id_/versions/$version': {
       id: '/api/characters/$id_/versions/$version'
       path: '/$version'
@@ -583,6 +603,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiChatIdHistoryRoute: ApiChatIdHistoryRoute,
   ApiChatIdImagesRoute: ApiChatIdImagesRoute,
   ApiProactiveCharactersIdSettingsRoute: ApiProactiveCharactersIdSettingsRoute,
+  ApiChatIdLedgerRoute: ApiChatIdLedgerRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

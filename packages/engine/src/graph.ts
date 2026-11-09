@@ -670,7 +670,7 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
           ? visibleSummaries(await deps.summaryStore.list(state.conversationId))
           : [];
         const prompt: ComposedPrompt = {
-          version: "v0001",
+          version: "v0002",
           system,
           messages: [
             ...(summaries.length > 0

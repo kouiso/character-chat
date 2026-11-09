@@ -523,6 +523,7 @@ describe("legacy migration の再実行で元から消えた発言", () => {
         clothing: {},
         position: null,
         lastEvents: [],
+        items: {},
       },
     });
     expect(await migrateLegacyConversations(local.db, options)).toEqual({
