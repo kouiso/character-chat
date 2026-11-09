@@ -8,7 +8,12 @@ import { PROMPT_VERSION } from "@v2/prompt";
 import { z } from "zod";
 
 import { LOCAL_USER_ID } from "./identity";
-import { generateConversationImage, ImageGenerationError } from "./image-generation";
+import {
+  COMIC_PANEL_COUNT,
+  generateConversationComic,
+  generateConversationImage,
+  ImageGenerationError,
+} from "./image-generation";
 import { getPlatform } from "./platform";
 
 // RIT-183: 生成パラメータの露出。未指定は確定レシピの既定値へ倒す。
@@ -33,6 +38,19 @@ const json = (status: number, body: Record<string, unknown>): Response =>
 
 const isNotFound = (error: unknown): boolean =>
   error instanceof ImageGenerationError && error.status === 404;
+
+const imageErrorResponse = (error: unknown): Response => {
+  if (error instanceof ConversationAccessError || isNotFound(error)) {
+    return json(404, { message: "会話またはキャラクターが見つかりません。" });
+  }
+  if (error instanceof ImageGenerationError) {
+    return json(error.status, { message: error.message });
+  }
+  globalThis.console.error(
+    JSON.stringify({ event: "image_generation_error", message: String(error) }),
+  );
+  return json(500, { message: "画像を生成できませんでした。" });
+};
 
 export const handleImageRequest = async (
   characterId: string,
@@ -64,16 +82,64 @@ export const handleImageRequest = async (
       generationId: result.generationId,
     });
   } catch (error) {
-    if (error instanceof ConversationAccessError || isNotFound(error)) {
-      return json(404, { message: "会話またはキャラクターが見つかりません。" });
-    }
-    if (error instanceof ImageGenerationError) {
-      return json(error.status, { message: error.message });
-    }
-    globalThis.console.error(
-      JSON.stringify({ event: "image_generation_error", message: String(error) }),
-    );
-    return json(500, { message: "画像を生成できませんでした。" });
+    return imageErrorResponse(error);
+  }
+};
+
+// POST /api/chat/:id/comic — 直近シーンを4コマへ分けて同時生成（RIT-189）。
+// コマごとの成否は panels へ個別に入る。全部落ちた時だけ 502 にする。
+export const handleComicRequest = async (
+  characterId: string,
+  request: Request,
+): Promise<Response> => {
+  let payload: unknown;
+  try {
+    payload = await request.json();
+  } catch {
+    return json(400, { message: "JSON形式で送信してください。" });
+  }
+  const parsed = z
+    .object({
+      conversationId: z.string().min(1).max(120),
+      // 失敗コマだけの再生成（RIT-189）。束とコマ番号はセットでのみ受ける。
+      groupId: z.string().min(1).max(120).optional(),
+      panelIndex: z
+        .number()
+        .int()
+        .min(0)
+        .max(COMIC_PANEL_COUNT - 1)
+        .optional(),
+    })
+    .safeParse(payload);
+  if (!parsed.success) return json(400, { message: "送信内容を確認してください。" });
+  const { conversationId, groupId, panelIndex } = parsed.data;
+  if ((groupId === undefined) !== (panelIndex === undefined)) {
+    return json(400, { message: "送信内容を確認してください。" });
+  }
+  try {
+    const { env } = await getPlatform();
+    const result = await generateConversationComic({
+      env,
+      characterId,
+      conversationId,
+      groupId,
+      panelIndex,
+    });
+    const panels = result.panels.map((panel) => ({
+      panelIndex: panel.panelIndex,
+      ok: panel.ok,
+      ...(panel.ok
+        ? {
+            messageId: panel.messageId,
+            imageUrl: panel.imageUrl,
+            generationId: panel.generationId,
+          }
+        : { generationId: panel.generationId, message: panel.message }),
+    }));
+    if (!result.ok) return json(502, { message: "画像を生成できませんでした。", panels });
+    return json(200, { groupId: result.groupId, panelCount: COMIC_PANEL_COUNT, panels });
+  } catch (error) {
+    return imageErrorResponse(error);
   }
 };
 
@@ -108,6 +174,8 @@ export const handleImageListRequest = async (
         messageId: row.id,
         imageUrl: `/api/media/${encodeURIComponent(row.id)}`,
         generationId: row.generationId,
+        groupId: row.groupId,
+        panelIndex: row.panelIndex,
         turn: row.turn,
         createdAt: row.createdAt,
       })),

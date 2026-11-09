@@ -369,6 +369,10 @@ export const v2ImageGenerationTable = sqliteTable(
     strength: real("strength"),
     // img2img の参照元となった生成行（RIT-184）。どの画像から派生したか辿るためのもの。
     sourceGenerationId: text("source_generation_id"),
+    // 4コマ漫画など1回の起動で複数枚を出す依頼の束（RIT-189）。同じ起動の行は同じ値を持ち、
+    // 単発生成は NULL。コマ内の並び順は panel_index（0始まり）。
+    groupId: text("group_id"),
+    panelIndex: integer("panel_index"),
     status: text("status", { enum: ["ok", "failed"] }).notNull(),
     failureReason: text("failure_reason"),
     imageKey: text("image_key"),

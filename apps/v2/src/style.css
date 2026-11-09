@@ -274,6 +274,53 @@ body {
   cursor: pointer;
 }
 
+.v2-gallery-comic-create {
+  display: block;
+  width: 100%;
+  margin-bottom: 10px;
+  border: 1px solid var(--muted);
+  border-radius: 6px;
+  padding: 6px;
+  background: var(--panel);
+  color: var(--text);
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.v2-gallery-comic-create:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+/* 4コマの束は1枠で2x2に畳む。サムネのグリッドとは別物なのでクラスを分ける。 */
+.v2-gallery-comic {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.v2-gallery-comic-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+}
+
+.v2-gallery-comic-missing {
+  border: 1px dashed var(--muted);
+  border-radius: 8px;
+  min-height: 72px;
+  background: none;
+  color: var(--muted);
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.v2-gallery-comic-missing:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
 .v2-chat-log {
   flex: 1;
   min-height: 0;
