@@ -20,7 +20,8 @@
     "script-run": "tsx src/script-run.ts",
     "repetition-rate": "tsx src/repetition-rate.ts",
     "refusal-check": "tsx src/refusal-check.ts",
-    "conversation-quality-check": "tsx src/conversation-quality-check.ts"
+    "conversation-quality-check": "tsx src/conversation-quality-check.ts",
+    "memory-adversarial": "tsx src/memory-adversarial-check.ts"
   },
   "dependencies": {
     "@langchain/core": "^1.2.9",

@@ -57,6 +57,7 @@ export default defineConfig([
       "src/fantasy-core-check.ts",
       "src/conversation-quality-check.ts",
       "src/memory-recall-check.ts",
+      "src/memory-adversarial-check.ts",
     ],
     rules: {
       "no-console": "off",
