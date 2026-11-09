@@ -4,7 +4,11 @@ import { createDb, listLegacyMemoryUserIds } from "@v2/db";
 import { z } from "zod";
 
 import { LOCAL_USER_ID } from "./identity";
-import { runLegacyMemoryMigration, type LegacyMigrationRunReport } from "./legacy-memory-migration";
+import {
+  indexCorpusChunks,
+  runLegacyMemoryMigration,
+  type LegacyMigrationRunReport,
+} from "./legacy-memory-migration";
 import { getPlatform } from "./platform";
 
 const BodySchema = z.object({
@@ -50,9 +54,13 @@ export const handleLegacyMigration = async (request: Request): Promise<Response>
         characterId: parsed.data.characterId,
         dryRun: parsed.data.dryRun,
         // corpus はユーザーごとではなく1回だけ回す。最初のソースでだけ実行する。
-        corpus: parsed.data.corpus && reports.length === 0,
       }),
     });
   }
-  return Response.json({ targetUserId, reports });
+  // corpus（rag_chunk 共有コーパス）はユーザー単位ではなく1回だけ。memory_note が
+  // 0 件の環境でも実行できるよう reports の外で回す。
+  const corpus = parsed.data.corpus
+    ? await indexCorpusChunks(db, env, parsed.data.dryRun)
+    : null;
+  return Response.json({ targetUserId, reports, corpus });
 };

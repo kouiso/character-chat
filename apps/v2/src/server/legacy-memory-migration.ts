@@ -74,7 +74,7 @@ const indexMigratedMemories = async (
   return indexed;
 };
 
-const indexCorpusChunks = async (
+export const indexCorpusChunks = async (
   db: V2Db,
   env: MemoryVectorBindings,
   dryRun: boolean | undefined,
