@@ -16,7 +16,21 @@ export type StoryChapter = {
   body: string;
   narration: string;
   imageKey: string | null;
+  comicKeys: string | null;
+  videoKey: string | null;
+  videoTaskId: string | null;
   updatedAt: number;
+};
+
+// comic_keys の JSON。壊れていても画面を落とさず空へ倒す。
+export const parseComicKeys = (raw: string | null): (string | null)[] => {
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    return Array.isArray(parsed) ? (parsed as (string | null)[]) : [];
+  } catch {
+    return [];
+  }
 };
 
 export type StoryDetail = Omit<StorySummary, "chapterCount" | "characterName"> & {
@@ -97,3 +111,26 @@ export const generateIllustration = (
     `/api/stories/${encodeURIComponent(storyId)}/chapters/${encodeURIComponent(chapterId)}/illustration`,
     { method: "POST" },
   ).then((res) => readJson<{ imageUrl: string }>(res));
+
+export const generateComic = (
+  storyId: string,
+  chapterId: string,
+): Promise<{ panels: (string | null)[]; comicUrls: (string | null)[] }> =>
+  fetch(
+    `/api/stories/${encodeURIComponent(storyId)}/chapters/${encodeURIComponent(chapterId)}/comic`,
+    { method: "POST" },
+  ).then((res) => readJson<{ panels: (string | null)[]; comicUrls: (string | null)[] }>(res));
+
+export const startVideo = (storyId: string, chapterId: string): Promise<{ status: string }> =>
+  fetch(
+    `/api/stories/${encodeURIComponent(storyId)}/chapters/${encodeURIComponent(chapterId)}/video`,
+    { method: "POST" },
+  ).then((res) => readJson<{ status: string }>(res));
+
+export const pollVideo = (
+  storyId: string,
+  chapterId: string,
+): Promise<{ status: string; videoUrl?: string }> =>
+  fetch(
+    `/api/stories/${encodeURIComponent(storyId)}/chapters/${encodeURIComponent(chapterId)}/video`,
+  ).then((res) => readJson<{ status: string; videoUrl?: string }>(res));

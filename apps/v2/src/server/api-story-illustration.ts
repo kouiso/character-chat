@@ -13,7 +13,7 @@ import {
 import { createNovitaClient } from "./image-novita";
 import { getPlatform } from "./platform";
 
-type ChapterOwnerRow = {
+export type ChapterOwnerRow = {
   id: string;
   storyId: string;
   characterId: string;
@@ -23,7 +23,7 @@ type ChapterOwnerRow = {
 };
 
 // 章＋ストーリー＋キャラを所有者確認つきで引く。他人の章は 404 側へ倒す。
-const loadOwnedChapter = async (
+export const loadOwnedChapter = async (
   env: ImageEnv,
   storyId: string,
   chapterId: string,

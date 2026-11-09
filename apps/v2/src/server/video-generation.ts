@@ -16,15 +16,15 @@ import { chargeGeneration, refundGenerationBestEffort } from "./generation-billi
 import { ImageGenerationError } from "./image-generation";
 
 // Wan 3.0: 720p $0.10/s。5秒で約 $0.50（上流実績 cost も行へ残す）。
-const VIDEO_MODEL = "alibaba:wan@3.0";
-const VIDEO_DURATION_SECONDS = 5;
-const VIDEO_RESOLUTION = "720p";
+export const VIDEO_MODEL = "alibaba:wan@3.0";
+export const VIDEO_DURATION_SECONDS = 5;
+export const VIDEO_RESOLUTION = "720p";
 const RUNWARE_REQUEST_TIMEOUT_MS = 15_000;
 // 動き指示は短く保つ（画像側 anchor の後ろへ付ける。長文は Wan のプロンプト上限を圧迫する）。
-const MOTION_HINT =
+export const MOTION_HINT =
   "gentle natural motion, subtle expression change, breathing, slight hair movement, cinematic";
 
-type VideoEnv = {
+export type VideoEnv = {
   DB: D1Database;
   BUCKET: R2Bucket;
   RUNWARE_API_KEY?: string;
@@ -58,7 +58,7 @@ const firstErrorMessage = (errors: unknown): string | undefined => {
 };
 
 // Runware REST は認証タスクを並べた配列を POST する形（v1 runware-provider と同じ）。
-const runwareCall = async (
+export const runwareCall = async (
   env: VideoEnv,
   fetchImpl: typeof fetch,
   task: Record<string, unknown>,
@@ -83,7 +83,7 @@ const runwareCall = async (
   return { data };
 };
 
-const findTaskItem = (
+export const findTaskItem = (
   data: Record<string, unknown>[],
   taskType: string,
   taskUUID: string,
@@ -91,7 +91,7 @@ const findTaskItem = (
   data.find((item) => item.taskType === taskType && item.taskUUID === taskUUID);
 
 // R2 の画像を Runware メディアストレージへ data URI で送り、frameImages 用の UUID を得る。
-const uploadFrameImage = async (
+export const uploadFrameImage = async (
   env: VideoEnv,
   fetchImpl: typeof fetch,
   imageKey: string,

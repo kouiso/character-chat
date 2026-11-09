@@ -52,6 +52,9 @@ export type ChapterRow = {
   body: string;
   narration: string;
   imageKey: string | null;
+  comicKeys: string | null;
+  videoKey: string | null;
+  videoTaskId: string | null;
   updatedAt: number;
 };
 
@@ -82,7 +85,7 @@ export const storyDetailRows = async (
   if (!story) return null;
   const { results: chapters } = await db
     .prepare(
-      "SELECT id, ord, title, body, narration, image_key AS imageKey, updated_at AS updatedAt FROM v2_chapter WHERE story_id = ? ORDER BY ord ASC",
+      "SELECT id, ord, title, body, narration, image_key AS imageKey, comic_keys AS comicKeys, video_key AS videoKey, video_task_id AS videoTaskId, updated_at AS updatedAt FROM v2_chapter WHERE story_id = ? ORDER BY ord ASC",
     )
     .bind(storyId)
     .all<ChapterRow>();

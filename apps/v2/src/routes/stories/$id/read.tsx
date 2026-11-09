@@ -3,6 +3,7 @@ import { useState } from "react";
 
 import { createFileRoute, getRouteApi, Link } from "@tanstack/react-router";
 
+import { parseComicKeys } from "../../../lib/stories";
 import { getStory } from "../../../server/stories";
 
 const routeApi = getRouteApi("/stories/$id/read");
@@ -40,6 +41,26 @@ const StoryReaderPage = () => {
           className="v2-reader-illustration"
           src={`/api/chapter-media/${encodeURIComponent(chapter.id)}`}
           alt={`第${chapter.ord + 1}章の挿絵`}
+        />
+      )}
+      {chapter.comicKeys && (
+        <div className="v2-comic-grid">
+          {parseComicKeys(chapter.comicKeys).map((key, i) =>
+            key ? (
+              <img
+                key={i}
+                src={`/api/chapter-media/${encodeURIComponent(chapter.id)}?panel=${i}`}
+                alt={`第${chapter.ord + 1}章 コマ${i + 1}`}
+              />
+            ) : null,
+          )}
+        </div>
+      )}
+      {chapter.videoKey && (
+        <video
+          className="v2-reader-video"
+          src={`/api/chapter-video/${encodeURIComponent(chapter.id)}`}
+          controls
         />
       )}
       {chapter.narration && <p className="v2-reader-narration">{chapter.narration}</p>}

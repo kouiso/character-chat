@@ -7,11 +7,15 @@ import {
   addChapter,
   deleteChapter,
   deleteStory,
+  generateComic,
   generateIllustration,
   loadStory,
+  parseComicKeys,
+  pollVideo,
   reorderChapters,
   saveChapter,
   saveStory,
+  startVideo,
   type StoryChapter,
   type StoryDetail,
 } from "../../lib/stories";
@@ -86,6 +90,95 @@ const ChapterList = ({
   </ol>
 );
 
+// 章の生成メディア（挿絵・4コマ・動画）。生成物は全て章へ紐付く。
+const ChapterMedia = ({
+  storyId,
+  chapter,
+  onDone,
+}: {
+  storyId: string;
+  chapter: StoryChapter;
+  onDone: () => Promise<void>;
+}) => {
+  const [busy, setBusy] = useState(false);
+  const [videoStatus, setVideoStatus] = useState<string | null>(null);
+  const run = (fn: () => Promise<unknown>) => {
+    setBusy(true);
+    void fn()
+      .then(onDone)
+      .finally(() => setBusy(false));
+  };
+  const comicPanels = parseComicKeys(chapter.comicKeys);
+  return (
+    <div className="v2-chapter-media">
+      {chapter.imageKey && (
+        <img
+          className="v2-chapter-illustration"
+          src={`/api/chapter-media/${encodeURIComponent(chapter.id)}`}
+          alt="章の挿絵"
+        />
+      )}
+      <div className="v2-media-buttons">
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => run(() => generateIllustration(storyId, chapter.id))}
+        >
+          {chapter.imageKey ? "挿絵を再生成" : "挿絵を生成"}
+        </button>
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => run(() => generateComic(storyId, chapter.id))}
+        >
+          4コマ生成
+        </button>
+        <button
+          type="button"
+          disabled={busy || !chapter.imageKey}
+          onClick={() =>
+            run(async () => {
+              await startVideo(storyId, chapter.id);
+              // 起動→完了まで数秒掛かるのでポーリングで追い、完了時に章へ video_key が入る。
+              for (let i = 0; i < 30; i += 1) {
+                await new Promise((resolve) => setTimeout(resolve, 2000));
+                const result = await pollVideo(storyId, chapter.id);
+                setVideoStatus(result.status);
+                if (result.status !== "processing") return;
+              }
+            })
+          }
+        >
+          動画生成
+        </button>
+        {videoStatus === "processing" && <span>動画生成中…</span>}
+      </div>
+      {comicPanels.length > 0 && (
+        <div className="v2-comic-grid">
+          {comicPanels.map((key, i) =>
+            key ? (
+              <img
+                key={i}
+                src={`/api/chapter-media/${encodeURIComponent(chapter.id)}?panel=${i}`}
+                alt={`コマ${i + 1}`}
+              />
+            ) : (
+              <span key={i}>生成失敗</span>
+            ),
+          )}
+        </div>
+      )}
+      {chapter.videoKey && (
+        <video
+          className="v2-chapter-video"
+          src={`/api/chapter-video/${encodeURIComponent(chapter.id)}`}
+          controls
+        />
+      )}
+    </div>
+  );
+};
+
 const ChapterEditor = ({
   storyId,
   chapter,
@@ -122,25 +215,7 @@ const ChapterEditor = ({
         ナレーション
         <textarea value={narration} onChange={(e) => setNarration(e.target.value)} rows={3} />
       </label>
-      {chapter.imageKey && (
-        <img
-          className="v2-chapter-illustration"
-          src={`/api/chapter-media/${encodeURIComponent(chapter.id)}`}
-          alt="章の挿絵"
-        />
-      )}
-      <button
-        type="button"
-        disabled={busy}
-        onClick={() => {
-          setBusy(true);
-          void generateIllustration(storyId, chapter.id)
-            .then(onSaved)
-            .finally(() => setBusy(false));
-        }}
-      >
-        {chapter.imageKey ? "挿絵を再生成" : "挿絵を生成"}
-      </button>
+      <ChapterMedia storyId={storyId} chapter={chapter} onDone={onSaved} />
       <button type="button" disabled={busy} onClick={save}>
         章を保存
       </button>

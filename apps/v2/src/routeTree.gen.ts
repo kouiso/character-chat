@@ -34,6 +34,7 @@ import { Route as ApiAdminLegacyMigrationRouteImport } from './routes/api/admin/
 import { Route as ApiBoardIdRouteImport } from './routes/api/board/$id'
 import { Route as ApiCatalogIdRouteImport } from './routes/api/catalog/$id'
 import { Route as ApiChapterMediaIdRouteImport } from './routes/api/chapter-media/$id'
+import { Route as ApiChapterVideoIdRouteImport } from './routes/api/chapter-video/$id'
 import { Route as ApiCharactersIdRouteImport } from './routes/api/characters/$id'
 import { Route as ApiChatIdRouteImport } from './routes/api/chat/$id'
 import { Route as ApiCurrencyAdRewardRouteImport } from './routes/api/currency/ad-reward'
@@ -76,7 +77,9 @@ import { Route as ApiCharactersIdVersionsVersionRouteImport } from './routes/api
 import { Route as ApiProactiveCharactersIdSettingsRouteImport } from './routes/api/proactive/characters/$id_/settings'
 import { Route as ApiStoriesIdChaptersCidRouteImport } from './routes/api/stories/$id_/chapters/$cid'
 import { Route as ApiStoriesIdChaptersReorderRouteImport } from './routes/api/stories/$id_/chapters/reorder'
+import { Route as ApiStoriesIdChaptersCidComicRouteImport } from './routes/api/stories/$id_/chapters/$cid_/comic'
 import { Route as ApiStoriesIdChaptersCidIllustrationRouteImport } from './routes/api/stories/$id_/chapters/$cid_/illustration'
+import { Route as ApiStoriesIdChaptersCidVideoRouteImport } from './routes/api/stories/$id_/chapters/$cid_/video'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -201,6 +204,11 @@ const ApiCatalogIdRoute = ApiCatalogIdRouteImport.update({
 const ApiChapterMediaIdRoute = ApiChapterMediaIdRouteImport.update({
   id: '/api/chapter-media/$id',
   path: '/api/chapter-media/$id',
+  getParentRoute: () => rootRouteImport,
+})
+const ApiChapterVideoIdRoute = ApiChapterVideoIdRouteImport.update({
+  id: '/api/chapter-video/$id',
+  path: '/api/chapter-video/$id',
   getParentRoute: () => rootRouteImport,
 })
 const ApiCharactersIdRoute = ApiCharactersIdRouteImport.update({
@@ -418,10 +426,22 @@ const ApiStoriesIdChaptersReorderRoute =
     path: '/reorder',
     getParentRoute: () => ApiStoriesIdChaptersRoute,
   })
+const ApiStoriesIdChaptersCidComicRoute =
+  ApiStoriesIdChaptersCidComicRouteImport.update({
+    id: '/$cid_/comic',
+    path: '/$cid/comic',
+    getParentRoute: () => ApiStoriesIdChaptersRoute,
+  })
 const ApiStoriesIdChaptersCidIllustrationRoute =
   ApiStoriesIdChaptersCidIllustrationRouteImport.update({
     id: '/$cid_/illustration',
     path: '/$cid/illustration',
+    getParentRoute: () => ApiStoriesIdChaptersRoute,
+  })
+const ApiStoriesIdChaptersCidVideoRoute =
+  ApiStoriesIdChaptersCidVideoRouteImport.update({
+    id: '/$cid_/video',
+    path: '/$cid/video',
     getParentRoute: () => ApiStoriesIdChaptersRoute,
   })
 
@@ -451,6 +471,7 @@ export interface FileRoutesByFullPath {
   '/api/board/$id': typeof ApiBoardIdRoute
   '/api/catalog/$id': typeof ApiCatalogIdRoute
   '/api/chapter-media/$id': typeof ApiChapterMediaIdRoute
+  '/api/chapter-video/$id': typeof ApiChapterVideoIdRoute
   '/api/characters/$id': typeof ApiCharactersIdRoute
   '/api/chat/$id': typeof ApiChatIdRoute
   '/api/currency/ad-reward': typeof ApiCurrencyAdRewardRoute
@@ -493,7 +514,9 @@ export interface FileRoutesByFullPath {
   '/api/proactive/characters/$id/settings': typeof ApiProactiveCharactersIdSettingsRoute
   '/api/stories/$id/chapters/$cid': typeof ApiStoriesIdChaptersCidRoute
   '/api/stories/$id/chapters/reorder': typeof ApiStoriesIdChaptersReorderRoute
+  '/api/stories/$id/chapters/$cid/comic': typeof ApiStoriesIdChaptersCidComicRoute
   '/api/stories/$id/chapters/$cid/illustration': typeof ApiStoriesIdChaptersCidIllustrationRoute
+  '/api/stories/$id/chapters/$cid/video': typeof ApiStoriesIdChaptersCidVideoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -521,6 +544,7 @@ export interface FileRoutesByTo {
   '/api/board/$id': typeof ApiBoardIdRoute
   '/api/catalog/$id': typeof ApiCatalogIdRoute
   '/api/chapter-media/$id': typeof ApiChapterMediaIdRoute
+  '/api/chapter-video/$id': typeof ApiChapterVideoIdRoute
   '/api/characters/$id': typeof ApiCharactersIdRoute
   '/api/chat/$id': typeof ApiChatIdRoute
   '/api/currency/ad-reward': typeof ApiCurrencyAdRewardRoute
@@ -563,7 +587,9 @@ export interface FileRoutesByTo {
   '/api/proactive/characters/$id/settings': typeof ApiProactiveCharactersIdSettingsRoute
   '/api/stories/$id/chapters/$cid': typeof ApiStoriesIdChaptersCidRoute
   '/api/stories/$id/chapters/reorder': typeof ApiStoriesIdChaptersReorderRoute
+  '/api/stories/$id/chapters/$cid/comic': typeof ApiStoriesIdChaptersCidComicRoute
   '/api/stories/$id/chapters/$cid/illustration': typeof ApiStoriesIdChaptersCidIllustrationRoute
+  '/api/stories/$id/chapters/$cid/video': typeof ApiStoriesIdChaptersCidVideoRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -592,6 +618,7 @@ export interface FileRoutesById {
   '/api/board/$id': typeof ApiBoardIdRoute
   '/api/catalog/$id': typeof ApiCatalogIdRoute
   '/api/chapter-media/$id': typeof ApiChapterMediaIdRoute
+  '/api/chapter-video/$id': typeof ApiChapterVideoIdRoute
   '/api/characters/$id': typeof ApiCharactersIdRoute
   '/api/chat/$id': typeof ApiChatIdRoute
   '/api/currency/ad-reward': typeof ApiCurrencyAdRewardRoute
@@ -634,7 +661,9 @@ export interface FileRoutesById {
   '/api/proactive/characters/$id_/settings': typeof ApiProactiveCharactersIdSettingsRoute
   '/api/stories/$id_/chapters/$cid': typeof ApiStoriesIdChaptersCidRoute
   '/api/stories/$id_/chapters/reorder': typeof ApiStoriesIdChaptersReorderRoute
+  '/api/stories/$id_/chapters/$cid_/comic': typeof ApiStoriesIdChaptersCidComicRoute
   '/api/stories/$id_/chapters/$cid_/illustration': typeof ApiStoriesIdChaptersCidIllustrationRoute
+  '/api/stories/$id_/chapters/$cid_/video': typeof ApiStoriesIdChaptersCidVideoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -664,6 +693,7 @@ export interface FileRouteTypes {
     | '/api/board/$id'
     | '/api/catalog/$id'
     | '/api/chapter-media/$id'
+    | '/api/chapter-video/$id'
     | '/api/characters/$id'
     | '/api/chat/$id'
     | '/api/currency/ad-reward'
@@ -706,7 +736,9 @@ export interface FileRouteTypes {
     | '/api/proactive/characters/$id/settings'
     | '/api/stories/$id/chapters/$cid'
     | '/api/stories/$id/chapters/reorder'
+    | '/api/stories/$id/chapters/$cid/comic'
     | '/api/stories/$id/chapters/$cid/illustration'
+    | '/api/stories/$id/chapters/$cid/video'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -734,6 +766,7 @@ export interface FileRouteTypes {
     | '/api/board/$id'
     | '/api/catalog/$id'
     | '/api/chapter-media/$id'
+    | '/api/chapter-video/$id'
     | '/api/characters/$id'
     | '/api/chat/$id'
     | '/api/currency/ad-reward'
@@ -776,7 +809,9 @@ export interface FileRouteTypes {
     | '/api/proactive/characters/$id/settings'
     | '/api/stories/$id/chapters/$cid'
     | '/api/stories/$id/chapters/reorder'
+    | '/api/stories/$id/chapters/$cid/comic'
     | '/api/stories/$id/chapters/$cid/illustration'
+    | '/api/stories/$id/chapters/$cid/video'
   id:
     | '__root__'
     | '/'
@@ -804,6 +839,7 @@ export interface FileRouteTypes {
     | '/api/board/$id'
     | '/api/catalog/$id'
     | '/api/chapter-media/$id'
+    | '/api/chapter-video/$id'
     | '/api/characters/$id'
     | '/api/chat/$id'
     | '/api/currency/ad-reward'
@@ -846,7 +882,9 @@ export interface FileRouteTypes {
     | '/api/proactive/characters/$id_/settings'
     | '/api/stories/$id_/chapters/$cid'
     | '/api/stories/$id_/chapters/reorder'
+    | '/api/stories/$id_/chapters/$cid_/comic'
     | '/api/stories/$id_/chapters/$cid_/illustration'
+    | '/api/stories/$id_/chapters/$cid_/video'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -873,6 +911,7 @@ export interface RootRouteChildren {
   StoriesIndexRoute: typeof StoriesIndexRoute
   ApiAdminLegacyMigrationRoute: typeof ApiAdminLegacyMigrationRoute
   ApiChapterMediaIdRoute: typeof ApiChapterMediaIdRoute
+  ApiChapterVideoIdRoute: typeof ApiChapterVideoIdRoute
   ApiChatIdRoute: typeof ApiChatIdRoute
   ApiMediaIdRoute: typeof ApiMediaIdRoute
   ApiPushSubscriptionsRoute: typeof ApiPushSubscriptionsRoute
@@ -1066,6 +1105,13 @@ declare module '@tanstack/react-router' {
       path: '/api/chapter-media/$id'
       fullPath: '/api/chapter-media/$id'
       preLoaderRoute: typeof ApiChapterMediaIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/chapter-video/$id': {
+      id: '/api/chapter-video/$id'
+      path: '/api/chapter-video/$id'
+      fullPath: '/api/chapter-video/$id'
+      preLoaderRoute: typeof ApiChapterVideoIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/characters/$id': {
@@ -1362,11 +1408,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiStoriesIdChaptersReorderRouteImport
       parentRoute: typeof ApiStoriesIdChaptersRoute
     }
+    '/api/stories/$id_/chapters/$cid_/comic': {
+      id: '/api/stories/$id_/chapters/$cid_/comic'
+      path: '/$cid/comic'
+      fullPath: '/api/stories/$id/chapters/$cid/comic'
+      preLoaderRoute: typeof ApiStoriesIdChaptersCidComicRouteImport
+      parentRoute: typeof ApiStoriesIdChaptersRoute
+    }
     '/api/stories/$id_/chapters/$cid_/illustration': {
       id: '/api/stories/$id_/chapters/$cid_/illustration'
       path: '/$cid/illustration'
       fullPath: '/api/stories/$id/chapters/$cid/illustration'
       preLoaderRoute: typeof ApiStoriesIdChaptersCidIllustrationRouteImport
+      parentRoute: typeof ApiStoriesIdChaptersRoute
+    }
+    '/api/stories/$id_/chapters/$cid_/video': {
+      id: '/api/stories/$id_/chapters/$cid_/video'
+      path: '/$cid/video'
+      fullPath: '/api/stories/$id/chapters/$cid/video'
+      preLoaderRoute: typeof ApiStoriesIdChaptersCidVideoRouteImport
       parentRoute: typeof ApiStoriesIdChaptersRoute
     }
   }
@@ -1513,14 +1573,18 @@ const ApiPlanRouteWithChildren =
 interface ApiStoriesIdChaptersRouteChildren {
   ApiStoriesIdChaptersCidRoute: typeof ApiStoriesIdChaptersCidRoute
   ApiStoriesIdChaptersReorderRoute: typeof ApiStoriesIdChaptersReorderRoute
+  ApiStoriesIdChaptersCidComicRoute: typeof ApiStoriesIdChaptersCidComicRoute
   ApiStoriesIdChaptersCidIllustrationRoute: typeof ApiStoriesIdChaptersCidIllustrationRoute
+  ApiStoriesIdChaptersCidVideoRoute: typeof ApiStoriesIdChaptersCidVideoRoute
 }
 
 const ApiStoriesIdChaptersRouteChildren: ApiStoriesIdChaptersRouteChildren = {
   ApiStoriesIdChaptersCidRoute: ApiStoriesIdChaptersCidRoute,
   ApiStoriesIdChaptersReorderRoute: ApiStoriesIdChaptersReorderRoute,
+  ApiStoriesIdChaptersCidComicRoute: ApiStoriesIdChaptersCidComicRoute,
   ApiStoriesIdChaptersCidIllustrationRoute:
     ApiStoriesIdChaptersCidIllustrationRoute,
+  ApiStoriesIdChaptersCidVideoRoute: ApiStoriesIdChaptersCidVideoRoute,
 }
 
 const ApiStoriesIdChaptersRouteWithChildren =
@@ -1576,6 +1640,7 @@ const rootRouteChildren: RootRouteChildren = {
   StoriesIndexRoute: StoriesIndexRoute,
   ApiAdminLegacyMigrationRoute: ApiAdminLegacyMigrationRoute,
   ApiChapterMediaIdRoute: ApiChapterMediaIdRoute,
+  ApiChapterVideoIdRoute: ApiChapterVideoIdRoute,
   ApiChatIdRoute: ApiChatIdRoute,
   ApiMediaIdRoute: ApiMediaIdRoute,
   ApiPushSubscriptionsRoute: ApiPushSubscriptionsRoute,

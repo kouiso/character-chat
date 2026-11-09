@@ -716,6 +716,10 @@ export const v2ChapterTable = sqliteTable(
     narration: text("narration").notNull().default(""),
     // RIT-215: 章挿絵の R2 キー（images/*.png）。未生成は NULL。
     imageKey: text("image_key"),
+    // RIT-217: 4コマの R2 キー配列（JSON）。動画は video_key + 処理中の task id。
+    comicKeys: text("comic_keys"),
+    videoKey: text("video_key"),
+    videoTaskId: text("video_task_id"),
     createdAt: integer("created_at").notNull(),
     updatedAt: integer("updated_at").notNull(),
   },
