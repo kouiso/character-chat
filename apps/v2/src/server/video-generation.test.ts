@@ -132,6 +132,15 @@ describe("画像→動画変換", () => {
       )
       .all<{ id: string; turn: number; image_key: string; content: string }>();
 
+  // RIT-188: 生成ごとの課金・返却は generation id で台帳へ引ける。
+  const ledgerFor = async (generationId: string) =>
+    local.d1
+      .prepare(
+        "SELECT kind, amount FROM v2_currency_ledger WHERE ref_type = 'generation' AND ref_id = ? ORDER BY created_at, id",
+      )
+      .bind(generationId)
+      .all<{ kind: string; amount: number }>();
+
   beforeAll(async () => {
     local = await openLocalD1();
     const chars = await local.db.select({ id: characterTable.id }).from(characterTable).limit(1);
@@ -235,6 +244,10 @@ describe("画像→動画変換", () => {
     expect(messages).toHaveLength(1);
     expect(messages[0].content).toBe("（動画を生成した）");
     expect(bucket.stored.has(rows[0].video_key as string)).toBe(true);
+    // RIT-188: 成功時は charge のみで返却なし。
+    expect((await ledgerFor(started.generationId)).results.map((row) => row.kind)).toEqual([
+      "spend",
+    ]);
   });
 
   it("生成中のポーリングは processing を返し、行もそのまま", async () => {
@@ -276,6 +289,11 @@ describe("画像→動画変換", () => {
     expect((await videoRows()).results[0].status).toBe("failed");
     // 失敗では動画メッセージを増やさん。
     expect((await videoMessages()).results).toHaveLength(0);
+    // RIT-188: 失敗は charge と同額の refund が生成記録へ紐づいて残る。
+    expect((await ledgerFor(started.generationId)).results.map((row) => row.kind)).toEqual([
+      "spend",
+      "refund",
+    ]);
   });
 
   it("videoInference の起動失敗も failed 行を残す", async () => {
@@ -292,6 +310,15 @@ describe("画像→動画変換", () => {
     expect(rows).toHaveLength(1);
     expect(rows[0].status).toBe("failed");
     expect(rows[0].failure_reason).toBe("model rejected");
+    // RIT-188: 起動失敗も charge→refund で帳尻が合う。
+    const started = (await local.d1
+      .prepare("SELECT id FROM v2_video_generation WHERE conversation_id = ?")
+      .bind("rit190-conv")
+      .first<{ id: string }>())!;
+    expect((await ledgerFor(started.id)).results.map((row) => row.kind)).toEqual([
+      "spend",
+      "refund",
+    ]);
   });
 
   it("元画像の無いメッセージ・画像なしメッセージは 404", async () => {

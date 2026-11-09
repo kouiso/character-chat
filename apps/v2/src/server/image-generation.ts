@@ -12,6 +12,8 @@ import {
 } from "@v2/db";
 import { PROMPT_VERSION } from "@v2/prompt";
 
+import { CurrencyError } from "./currency";
+import { chargeGeneration, refundGenerationBestEffort } from "./generation-billing";
 import { createNovitaClient, NOVITA_TXT2IMG_MODEL } from "./image-novita";
 import {
   buildVisualAnchorPrompt,
@@ -415,7 +417,7 @@ type GenerationBase = ResolvedImageParams & {
 type FailureRecorder = (reason: string, taskId?: string) => Promise<ConversationImageResult>;
 
 const recordFailure =
-  (db: ReturnType<typeof createDb>, base: GenerationBase): FailureRecorder =>
+  (db: ReturnType<typeof createDb>, base: GenerationBase, env: ImageEnv): FailureRecorder =>
   async (reason, taskId) => {
     await db.insert(v2ImageGenerationTable).values({
       ...base,
@@ -425,6 +427,13 @@ const recordFailure =
       status: "failed",
       failureReason: reason,
       createdAt: Date.now(),
+    });
+    // charge 済みの失敗なので同額を返却（RIT-188）。返金記録に失敗しても
+    // failed 行は残るので、台帳側は ref_id 突合で後から整合できる。
+    await refundGenerationBestEffort(env.DB, {
+      userId: "local",
+      generationId: base.id,
+      kind: "image",
     });
     return {
       ok: false,
@@ -513,6 +522,19 @@ const persistSuccess = async (input: {
   };
 };
 
+// 生成課金（RIT-188）。上流へ投げる前に spend し、失敗は recordFailure 側で同額を返す。
+// 残高不足は 409 で生成自体を始めない（課金も失敗行も残らない）。
+const chargeOrThrow = async (env: ImageEnv, generationId: string): Promise<void> => {
+  try {
+    await chargeGeneration(env.DB, { userId: "local", generationId, kind: "image" });
+  } catch (error) {
+    if (error instanceof CurrencyError) {
+      throw new ImageGenerationError(error.message, error.status);
+    }
+    throw error;
+  }
+};
+
 // Novita への init → poll → R2・メッセージ永続化までの実行部。
 // i2i 入力があれば img2img へ、無ければ txt2img へ振る。
 const runGeneration = async (deps: {
@@ -525,12 +547,15 @@ const runGeneration = async (deps: {
   fetchImpl?: typeof fetch;
 }): Promise<ConversationImageResult> => {
   const { env, db, base, i2i } = deps;
-  const fail = recordFailure(db, base);
+  const fail = recordFailure(db, base, env);
   const client = createNovitaClient({
     apiKey: env.NOVITA_API_KEY,
     apiBase: env.MOCK_API_BASE,
     fetchImpl: deps.fetchImpl,
   });
+
+  // 生成課金（RIT-188）。上流へ投げる前に spend し、失敗は fail() 側で同額を返す。
+  await chargeOrThrow(env, base.id);
 
   const initInput = {
     prompt: base.prompt,

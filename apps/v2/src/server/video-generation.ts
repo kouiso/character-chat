@@ -11,6 +11,8 @@ import {
 } from "@v2/db";
 import { PROMPT_VERSION } from "@v2/prompt";
 
+import { CurrencyError } from "./currency";
+import { chargeGeneration, refundGenerationBestEffort } from "./generation-billing";
 import { ImageGenerationError } from "./image-generation";
 
 // Wan 3.0: 720p $0.10/s。5秒で約 $0.50（上流実績 cost も行へ残す）。
@@ -141,6 +143,18 @@ type GenerationRow = {
   failureReason: string | null;
 };
 
+// 生成課金（RIT-188）。上流へ投げる前に spend。残高不足は 409 で登録自体をしない。
+const chargeOrThrow = async (env: VideoEnv, generationId: string): Promise<void> => {
+  try {
+    await chargeGeneration(env.DB, { userId: "local", generationId, kind: "video" });
+  } catch (error) {
+    if (error instanceof CurrencyError) {
+      throw new ImageGenerationError(error.message, error.status);
+    }
+    throw error;
+  }
+};
+
 const markFailed = async (db: D1Database, id: string, reason: string): Promise<void> => {
   await db
     .prepare(
@@ -149,6 +163,8 @@ const markFailed = async (db: D1Database, id: string, reason: string): Promise<v
     )
     .bind(reason, Date.now(), id)
     .run();
+  // 開始時に charge 済みの行だけここへ来る。失敗は同額を台帳へ返す（RIT-188）。
+  await refundGenerationBestEffort(db, { userId: "local", generationId: id, kind: "video" });
 };
 
 const baseRow = (input: {
@@ -213,8 +229,17 @@ export const startVideoGeneration = async (input: {
       createdAt: Date.now(),
       finishedAt: Date.now(),
     });
+    // charge 済みの失敗なので同額を返却（RIT-188）。
+    await refundGenerationBestEffort(env.DB, {
+      userId: "local",
+      generationId,
+      kind: "video",
+    });
     throw new ImageGenerationError("動画を生成できませんでした。", 502);
   };
+
+  // 生成課金（RIT-188）。上流へ投げる前に spend。残高不足は 409 で登録自体をしない。
+  await chargeOrThrow(env, generationId);
 
   const fetchImpl = input.fetchImpl ?? fetch;
   let mediaUUID: string;
