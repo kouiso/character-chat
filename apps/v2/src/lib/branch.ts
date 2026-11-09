@@ -47,3 +47,17 @@ export const runBranchAction = async (
   }
   return response;
 };
+
+// 再生成は完了時に更新後の系列を返す。◀ n/m ▶ の表示更新に使う。
+export const regenerateBranch = async (
+  characterId: string,
+  conversationId: string,
+  turn: number,
+): Promise<BranchSibling[]> => {
+  const response = await runBranchAction(characterId, conversationId, {
+    action: "regenerate",
+    turn,
+  });
+  const body = z.object({ siblings: z.array(siblingSchema) }).parse(await response.json());
+  return body.siblings;
+};

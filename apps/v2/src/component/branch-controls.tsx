@@ -1,6 +1,11 @@
 import { useState } from "react";
 
-import { listBranchSiblings, runBranchAction, type BranchSibling } from "../lib/branch";
+import {
+  listBranchSiblings,
+  regenerateBranch,
+  runBranchAction,
+  type BranchSibling,
+} from "../lib/branch";
 
 // RIT-202: バブル横の枝操作。「⋯」を開いた時だけ系列を読みに行くので、
 // 枝が無い会話では余計な往復が出ない。操作後は onChanged で履歴を読み直す。
@@ -23,8 +28,16 @@ const AssistantControls = ({
   siblings,
   onChanged,
   onError,
-}: BranchControlsProps & { siblings: BranchSibling[]; onError: (e: Error) => void }) => {
+  onSiblings,
+}: BranchControlsProps & {
+  siblings: BranchSibling[];
+  onError: (e: Error) => void;
+  onSiblings: (siblings: BranchSibling[]) => void;
+}) => {
   const activeIndex = siblings.findIndex((sibling) => sibling.active);
+  const refresh = async () => {
+    onSiblings(await listBranchSiblings(characterId, conversationId, turn, "assistant"));
+  };
   const activate = async (index: number) => {
     const target = siblings[index];
     if (!target || target.active) return;
@@ -33,14 +46,14 @@ const AssistantControls = ({
         action: "activate",
         messageId: target.id,
       });
-      await onChanged();
+      await Promise.all([refresh(), onChanged()]);
     } catch (error) {
       onError(error as Error);
     }
   };
   const regenerate = async () => {
     try {
-      await runBranchAction(characterId, conversationId, { action: "regenerate", turn });
+      onSiblings(await regenerateBranch(characterId, conversationId, turn));
       await onChanged();
     } catch (error) {
       onError(error as Error);
@@ -140,7 +153,12 @@ export const BranchControls = (props: BranchControlsProps) => {
   return (
     <div className="v2-branch-controls">
       {role === "assistant" && (
-        <AssistantControls {...props} siblings={siblings} onError={(e) => setError(e.message)} />
+        <AssistantControls
+          {...props}
+          siblings={siblings}
+          onError={(e) => setError(e.message)}
+          onSiblings={setSiblings}
+        />
       )}
       {role === "user" && (
         <>
