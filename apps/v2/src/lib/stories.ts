@@ -15,6 +15,7 @@ export type StoryChapter = {
   title: string;
   body: string;
   narration: string;
+  imageKey: string | null;
   updatedAt: number;
 };
 
@@ -87,3 +88,12 @@ export const reorderChapters = (storyId: string, ids: string[]): Promise<void> =
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ ids }),
   }).then(() => undefined);
+
+export const generateIllustration = (
+  storyId: string,
+  chapterId: string,
+): Promise<{ imageUrl: string }> =>
+  fetch(
+    `/api/stories/${encodeURIComponent(storyId)}/chapters/${encodeURIComponent(chapterId)}/illustration`,
+    { method: "POST" },
+  ).then((res) => readJson<{ imageUrl: string }>(res));

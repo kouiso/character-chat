@@ -96,7 +96,7 @@ export class ImageGenerationError extends Error {
   }
 }
 
-type ImageEnv = {
+export type ImageEnv = {
   DB: D1Database;
   BUCKET: R2Bucket;
   NOVITA_API_KEY?: string;
@@ -146,7 +146,7 @@ const toCharacterVisual = (row: CharacterVisualRow | null): CharacterVisual => {
 
 // アプリ側の drizzle と @v2/db 側は別インスタンス解決になるので、この読込は生 SQL で済ませる
 // （packages/db 内に寄せると apps 側の型衝突が残る。既知の二重バージョン問題）。
-const readCharacterVisual = async (
+export const readCharacterVisual = async (
   db: D1Database,
   characterId: string,
 ): Promise<CharacterVisual> => {
@@ -301,7 +301,7 @@ export const buildImagePrompt = (
 };
 
 // プロンプトと確定パラメータをまとめて解決する。generate 本体の分岐を増やさんための切り出し。
-const prepareImageJob = (
+export const prepareImageJob = (
   visual: CharacterVisual,
   history: { role: string; content: string }[],
   phase: ImagePhase,
@@ -444,7 +444,7 @@ const recordFailure =
   };
 
 // task-result が SUCCEED になるまで待つ。画像 URL を返すか、理由を添えて null。
-const pollForImage = async (
+export const pollForImage = async (
   client: ReturnType<typeof createNovitaClient>,
   taskId: string,
 ): Promise<{ imageUrl: string; seed: number | null } | { failedReason: string }> => {
@@ -468,7 +468,10 @@ const pollForImage = async (
   return { failedReason: "task poll timeout" };
 };
 
-const fetchImageBytes = async (fetchImpl: typeof fetch, url: string): Promise<Uint8Array> => {
+export const fetchImageBytes = async (
+  fetchImpl: typeof fetch,
+  url: string,
+): Promise<Uint8Array> => {
   const response = await fetchImpl(url);
   const contentType = response.headers.get("content-type") ?? "";
   if (!response.ok || !contentType.startsWith("image/")) {

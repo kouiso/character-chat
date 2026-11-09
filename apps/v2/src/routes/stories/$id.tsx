@@ -7,6 +7,7 @@ import {
   addChapter,
   deleteChapter,
   deleteStory,
+  generateIllustration,
   loadStory,
   reorderChapters,
   saveChapter,
@@ -121,6 +122,25 @@ const ChapterEditor = ({
         ナレーション
         <textarea value={narration} onChange={(e) => setNarration(e.target.value)} rows={3} />
       </label>
+      {chapter.imageKey && (
+        <img
+          className="v2-chapter-illustration"
+          src={`/api/chapter-media/${encodeURIComponent(chapter.id)}`}
+          alt="章の挿絵"
+        />
+      )}
+      <button
+        type="button"
+        disabled={busy}
+        onClick={() => {
+          setBusy(true);
+          void generateIllustration(storyId, chapter.id)
+            .then(onSaved)
+            .finally(() => setBusy(false));
+        }}
+      >
+        {chapter.imageKey ? "挿絵を再生成" : "挿絵を生成"}
+      </button>
       <button type="button" disabled={busy} onClick={save}>
         章を保存
       </button>
@@ -179,6 +199,9 @@ const StoryEditorPage = () => {
     <div className="v2-list v2-story-editor">
       <h1>ストーリー編集</h1>
       <Link to="/stories">一覧へ戻る</Link>
+      <Link to="/stories/$id/read" params={{ id }}>
+        読む
+      </Link>
       <label>
         タイトル
         <input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={120} />

@@ -720,3 +720,38 @@ body {
   margin-left: 0.5rem;
   color: #c0392b;
 }
+
+.v2-reader {
+  max-width: 42rem;
+  margin: 0 auto;
+  padding: 1rem;
+}
+.v2-reader-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin: 0.8rem 0;
+}
+.v2-reader-illustration {
+  display: block;
+  max-width: 100%;
+  border-radius: 8px;
+  margin: 0.8rem 0;
+}
+.v2-reader-narration {
+  border-left: 3px solid #7a6f5a;
+  padding-left: 0.8rem;
+  color: #8a8172;
+  font-style: italic;
+}
+.v2-reader-body p {
+  margin: 0.5rem 0;
+  line-height: 1.8;
+}
+.v2-chapter-illustration {
+  display: block;
+  max-width: 16rem;
+  border-radius: 8px;
+  margin: 0.5rem 0;
+}
