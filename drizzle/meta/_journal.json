@@ -281,6 +281,13 @@
       "when": 1794194511365,
       "tag": "20261109032151_cute_mariko_yashida",
       "breakpoints": true
+    },
+    {
+      "idx": 76,
+      "version": "6",
+      "when": 1794199866477,
+      "tag": "20261109045106_loose_tarot",
+      "breakpoints": true
     }
   ]
 }

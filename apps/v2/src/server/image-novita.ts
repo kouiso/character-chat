@@ -78,6 +78,13 @@ export type NovitaTxt2ImgInput = {
   seed?: number;
 };
 
+// img2img は txt2img と同じパラメータ群に参照絵と保持度を足す。
+// strength は元画像の保持度（低いほど元に忠実。v1 のキャラ一致パスと同じ既定 0.45 を使う）。
+export type NovitaImg2ImgInput = NovitaTxt2ImgInput & {
+  imageBase64: string;
+  strength: number;
+};
+
 const readDetail = async (response: Response): Promise<string | undefined> => {
   try {
     const text = await response.text();
@@ -89,6 +96,7 @@ const readDetail = async (response: Response): Promise<string | undefined> => {
 
 export type NovitaClient = {
   initTxt2Img: (input: NovitaTxt2ImgInput) => Promise<string>;
+  initImg2Img: (input: NovitaImg2ImgInput) => Promise<string>;
   taskResult: (taskId: string) => Promise<NovitaTaskResult>;
 };
 
@@ -174,6 +182,43 @@ export const createNovitaClient = (options: {
     return parsed.data.task_id;
   };
 
+  const initImg2Img = async (input: NovitaImg2ImgInput): Promise<string> => {
+    requireKey();
+    const body = JSON.stringify({
+      extra: { response_image_type: "png" },
+      request: {
+        model_name: NOVITA_TXT2IMG_MODEL,
+        prompt: clampToRunes(input.prompt, NOVITA_PROMPT_MAX_RUNES),
+        negative_prompt: clampToRunes(input.negativePrompt, NOVITA_PROMPT_MAX_RUNES),
+        image_base64: input.imageBase64,
+        strength: input.strength,
+        width: input.width,
+        height: input.height,
+        sampler_name: "DPM++ 2M Karras",
+        steps: input.steps,
+        guidance_scale: input.guidanceScale,
+        image_num: 1,
+        seed: input.seed ?? -1,
+      },
+    });
+    const response = await postInit(`${base}/img2img`, body);
+    if (!response.ok) {
+      const detail = await readDetail(response);
+      throw new NovitaError(`novita img2img init failed${detail ? `: ${detail}` : ""}`, {
+        status: response.status,
+        retryable: NOVITA_RETRY_STATUSES.has(response.status),
+      });
+    }
+    const parsed = initResponseSchema.safeParse(await response.json());
+    if (!parsed.success) {
+      throw new NovitaError("unexpected novita img2img init response", {
+        status: 502,
+        retryable: false,
+      });
+    }
+    return parsed.data.task_id;
+  };
+
   const taskResult = async (taskId: string): Promise<NovitaTaskResult> => {
     requireKey();
     const controller = new AbortController();
@@ -199,5 +244,5 @@ export const createNovitaClient = (options: {
     return parsed.data;
   };
 
-  return { initTxt2Img, taskResult };
+  return { initTxt2Img, initImg2Img, taskResult };
 };

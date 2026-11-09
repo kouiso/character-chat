@@ -1,0 +1,1 @@
+ALTER TABLE `v2_image_generation` ADD `source_generation_id` text;

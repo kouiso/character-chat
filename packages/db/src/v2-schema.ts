@@ -359,6 +359,8 @@ export const v2ImageGenerationTable = sqliteTable(
     guidanceScale: real("guidance_scale"),
     // img2img 専用（後続 SBI）。txt2img 経路では指定されても上流へ送らん。
     strength: real("strength"),
+    // img2img の参照元となった生成行（RIT-184）。どの画像から派生したか辿るためのもの。
+    sourceGenerationId: text("source_generation_id"),
     status: text("status", { enum: ["ok", "failed"] }).notNull(),
     failureReason: text("failure_reason"),
     imageKey: text("image_key"),

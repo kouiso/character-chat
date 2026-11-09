@@ -110,6 +110,13 @@ const parseImageParams = (
 };
 
 // 画像生成ボタンの中身。会話がまだサーバへ作られとらん時は先にメッセージ送信を促す。
+// imageUrl からメッセージ id を取る（/api/media/<id> 形。i2i 参照元の指定に使う）。
+const messageIdOfImage = (imageUrl: string | undefined): string | null => {
+  if (!imageUrl) return null;
+  const id = imageUrl.split("/").pop();
+  return id ? decodeURIComponent(id) : null;
+};
+
 const runImageRequest = async (deps: {
   characterId: string;
   conversationId: RefObject<string | null>;
@@ -118,6 +125,9 @@ const runImageRequest = async (deps: {
   imageBusy: boolean;
   pending: PendingTurn | null;
   imageParamFields: ImageParamFields;
+  // i2i 用: 参照元メッセージ id と表情変更等の依頼文（RIT-184）。
+  sourceMessageId?: string;
+  instruction?: string;
   setError: Dispatch<SetStateAction<string | null>>;
   setImageBusy: Dispatch<SetStateAction<boolean>>;
   setBubbles: Dispatch<SetStateAction<ChatBubble[]>>;
@@ -137,7 +147,16 @@ const runImageRequest = async (deps: {
   deps.setImageBusy(true);
   deps.setError(null);
   try {
-    await requestChatImage(deps.characterId, targetConversationId, parsed.params, abort.signal);
+    await requestChatImage(
+      deps.characterId,
+      targetConversationId,
+      {
+        ...parsed.params,
+        ...(deps.sourceMessageId ? { sourceMessageId: deps.sourceMessageId } : {}),
+        ...(deps.instruction ? { instruction: deps.instruction } : {}),
+      },
+      abort.signal,
+    );
     // 画像がターンを1つ消費するので、番号は履歴を読み直してサーバの値に揃える。
     const history = await loadChatHistory(deps.characterId, targetConversationId, abort.signal);
     deps.nextTurn.current = history.nextTurn;
@@ -240,6 +259,9 @@ export const ChatView = ({
   const [busy, setBusy] = useState(false);
   const [imageBusy, setImageBusy] = useState(false);
   const [imageParamFields, setImageParamFields] = useState<ImageParamFields>(EMPTY_IMAGE_PARAMS);
+  // i2i 表情変更（RIT-184）: 編集中の参照元メッセージ id と依頼文。
+  const [i2iTarget, setI2iTarget] = useState<string | null>(null);
+  const [i2iInstruction, setI2iInstruction] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState<PendingTurn | null>(null);
   const [terminalFailure, setTerminalFailure] = useState(false);
@@ -439,6 +461,26 @@ export const ChatView = ({
       setBubbles,
     });
 
+  const requestI2i = () => {
+    if (!i2iTarget || !i2iInstruction.trim()) return;
+    void runImageRequest({
+      characterId,
+      conversationId,
+      nextTurn,
+      busy,
+      imageBusy,
+      pending,
+      imageParamFields,
+      sourceMessageId: i2iTarget,
+      instruction: i2iInstruction.trim(),
+      setError,
+      setImageBusy,
+      setBubbles,
+    });
+    setI2iTarget(null);
+    setI2iInstruction("");
+  };
+
   // 設定欄の1項目。label と入力だけの最小構造に留め、既定値は placeholder で示す。
   // 数値欄は type=number（spinbutton）にして会話入力の textbox とロールを分ける。
   const paramField = (
@@ -483,6 +525,40 @@ export const ChatView = ({
             className={`v2-bubble v2-message-turn ${bubble.role} ${bubble.pending ? "pending" : ""}`}
           >
             {bubble.imageUrl && <ChatImage src={bubble.imageUrl} />}
+            {bubble.imageUrl && messageIdOfImage(bubble.imageUrl) && (
+              <div className="v2-i2i">
+                {i2iTarget === messageIdOfImage(bubble.imageUrl) ? (
+                  <>
+                    <input
+                      value={i2iInstruction}
+                      onChange={(event) => setI2iInstruction(event.target.value)}
+                      placeholder="例: 怒った顔"
+                      aria-label="表情変更の依頼"
+                    />
+                    <button
+                      type="button"
+                      onClick={requestI2i}
+                      disabled={[busy, imageBusy, pending !== null, !i2iInstruction.trim()].some(
+                        Boolean,
+                      )}
+                    >
+                      生成
+                    </button>
+                    <button type="button" onClick={() => setI2iTarget(null)}>
+                      やめる
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setI2iTarget(messageIdOfImage(bubble.imageUrl))}
+                    disabled={[busy, imageBusy, pending !== null].some(Boolean)}
+                  >
+                    表情変更
+                  </button>
+                )}
+              </div>
+            )}
             <ChatMessage
               role={bubble.role}
               text={bubble.text || (bubble.pending ? "…" : "")}
