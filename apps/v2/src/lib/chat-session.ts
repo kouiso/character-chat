@@ -264,10 +264,21 @@ export const readChatEvents = async function* (
   }
 };
 
+// 画像生成の上書きパラメータ（RIT-183）。未指定キーはサーバ側でレシピ既定値へ倒れる。
+export type ChatImageParams = {
+  cfg?: number;
+  seed?: number;
+  negativePrompt?: string;
+  width?: number;
+  height?: number;
+  strength?: number;
+};
+
 // 画像生成ボタン。失敗理由はサーバの message をそのまま画面へ出す（RIT-182 の失敗可視）。
 export const requestChatImage = async (
   characterId: string,
   conversationId: string,
+  params: ChatImageParams | undefined,
   signal: AbortSignal,
 ): Promise<{ messageId: string; imageUrl: string }> => {
   const response = await throughNetwork(() =>
@@ -275,7 +286,7 @@ export const requestChatImage = async (
       method: "POST",
       headers: { "content-type": "application/json" },
       signal,
-      body: JSON.stringify({ conversationId }),
+      body: JSON.stringify({ conversationId, ...params }),
     }),
   );
   if (!response.ok) {

@@ -7,6 +7,7 @@ import {
   index,
   integer,
   primaryKey,
+  real,
   sqliteTable,
   text,
   uniqueIndex,
@@ -350,6 +351,14 @@ export const v2ImageGenerationTable = sqliteTable(
     prompt: text("prompt").notNull(),
     negativePrompt: text("negative_prompt"),
     seed: integer("seed"),
+    // 生成時に確定したパラメータ（RIT-183: 同じ条件で再生成できるよう全て残す）。
+    // 既存行は NULL のまま。width/height/steps/guidance はレシピ既定値へ倒した最終値。
+    width: integer("width"),
+    height: integer("height"),
+    steps: integer("steps"),
+    guidanceScale: real("guidance_scale"),
+    // img2img 専用（後続 SBI）。txt2img 経路では指定されても上流へ送らん。
+    strength: real("strength"),
     status: text("status", { enum: ["ok", "failed"] }).notNull(),
     failureReason: text("failure_reason"),
     imageKey: text("image_key"),

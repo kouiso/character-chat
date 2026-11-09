@@ -31,7 +31,9 @@ describe("ChatView", () => {
       <ChatView characterId="a" characterName="案内役" newConversationKey="fresh" />,
     );
     expect(fetchMock).not.toHaveBeenCalled();
-    fireEvent.change(screen.getByRole("textbox"), { target: { value: "新しい会話" } });
+    fireEvent.change(screen.getByRole("textbox", { name: "メッセージ" }), {
+      target: { value: "新しい会話" },
+    });
     fireEvent.click(screen.getByRole("button", { name: "送信" }));
     await screen.findByRole("alert");
     const created = readChatSession("a");
@@ -69,7 +71,9 @@ describe("ChatView", () => {
     });
     vi.stubGlobal("fetch", fetchMock);
     const first = render(<ChatView characterId="a" characterName="案内役" />);
-    fireEvent.change(screen.getByRole("textbox"), { target: { value: "こんにちは" } });
+    fireEvent.change(screen.getByRole("textbox", { name: "メッセージ" }), {
+      target: { value: "こんにちは" },
+    });
     fireEvent.click(screen.getByRole("button", { name: "送信" }));
     await screen.findByRole("alert");
     const saved = readChatSession("a");
@@ -106,7 +110,9 @@ describe("ChatView", () => {
     );
     render(<ChatView characterId="a" characterName="案内役" initialConversationId="legacy" />);
     await screen.findByText("追加の応答");
-    fireEvent.change(screen.getByRole("textbox"), { target: { value: "新しい質問" } });
+    fireEvent.change(screen.getByRole("textbox", { name: "メッセージ" }), {
+      target: { value: "新しい質問" },
+    });
     fireEvent.click(screen.getByRole("button", { name: "送信" }));
     await screen.findByRole("alert");
     expect(readChatSession("a").pending?.baseTurn).toBe(8);
@@ -156,9 +162,11 @@ describe("ChatView", () => {
     await screen.findByRole("button", { name: "入力に戻す" });
     fireEvent.click(screen.getByRole("button", { name: "入力に戻す" }));
     await waitFor(() => expect(readChatSession("a").pending).toBeNull());
-    expect(screen.getByRole("textbox")).toHaveValue("保留中の質問");
+    expect(screen.getByRole("textbox", { name: "メッセージ" })).toHaveValue("保留中の質問");
 
-    fireEvent.change(screen.getByRole("textbox"), { target: { value: "新しい質問" } });
+    fireEvent.change(screen.getByRole("textbox", { name: "メッセージ" }), {
+      target: { value: "新しい質問" },
+    });
     fireEvent.click(screen.getByRole("button", { name: "送信" }));
     await screen.findByText("新しい応答");
     await waitFor(() => expect(readChatSession("a").pending).toBeNull());
@@ -242,8 +250,10 @@ describe("ChatView", () => {
     const viewB = render(
       <ChatView characterId="a" characterName="案内役" initialConversationId="conversation-b" />,
     );
-    await waitFor(() => expect(screen.getByRole("textbox")).toBeEnabled());
-    fireEvent.change(screen.getByRole("textbox"), { target: { value: "Bの質問" } });
+    await waitFor(() => expect(screen.getByRole("textbox", { name: "メッセージ" })).toBeEnabled());
+    fireEvent.change(screen.getByRole("textbox", { name: "メッセージ" }), {
+      target: { value: "Bの質問" },
+    });
     fireEvent.click(screen.getByRole("button", { name: "送信" }));
     await screen.findByRole("alert");
     expect(readChatSession("a", "conversation-a").pending).toEqual(pendingA);
@@ -315,8 +325,10 @@ describe("ChatView", () => {
     render(
       <ChatView characterId="a" characterName="案内役" initialConversationId="conversation-b" />,
     );
-    await waitFor(() => expect(screen.getByRole("textbox")).toBeEnabled());
-    fireEvent.change(screen.getByRole("textbox"), { target: { value: "Bの質問" } });
+    await waitFor(() => expect(screen.getByRole("textbox", { name: "メッセージ" })).toBeEnabled());
+    fireEvent.change(screen.getByRole("textbox", { name: "メッセージ" }), {
+      target: { value: "Bの質問" },
+    });
     fireEvent.click(screen.getByRole("button", { name: "送信" }));
     await screen.findByRole("alert");
     finishA.current?.();
@@ -358,7 +370,9 @@ describe("ChatView", () => {
   it("最終失敗の次ターン番号が送信時と同じなら入力へ戻し、失敗ターンを履歴に残さない", async () => {
     renderTerminalFailure(() => Response.json({ turn: 2, history: PRIOR }));
     fireEvent.click(await screen.findByRole("button", { name: "入力に戻す" }));
-    await waitFor(() => expect(screen.getByRole("textbox")).toHaveValue("失敗した質問"));
+    await waitFor(() =>
+      expect(screen.getByRole("textbox", { name: "メッセージ" })).toHaveValue("失敗した質問"),
+    );
     expect(readChatSession("a").pending).toBeNull();
     expect(screen.getByText("前の応答")).toBeInTheDocument();
     expect(screen.queryByText("失敗した質問")).not.toBeInTheDocument();
@@ -380,7 +394,7 @@ describe("ChatView", () => {
     fireEvent.click(await screen.findByRole("button", { name: "入力に戻す" }));
     await screen.findByText("届いていた応答");
     await waitFor(() => expect(readChatSession("a").pending).toBeNull());
-    expect(screen.getByRole("textbox")).toHaveValue("");
+    expect(screen.getByRole("textbox", { name: "メッセージ" })).toHaveValue("");
   });
 
   it("入力へ戻す途中で履歴を読めなければ保留を残し、再度押せば戻せる", async () => {
@@ -394,10 +408,12 @@ describe("ChatView", () => {
     fireEvent.click(await screen.findByRole("button", { name: "入力に戻す" }));
     await screen.findByText("入力を戻せませんでした。再試行してください。");
     expect(readChatSession("a").pending?.requestId).toBe("request-old");
-    expect(screen.getByRole("textbox")).toHaveValue("");
+    expect(screen.getByRole("textbox", { name: "メッセージ" })).toHaveValue("");
 
     fireEvent.click(screen.getByRole("button", { name: "入力に戻す" }));
-    await waitFor(() => expect(screen.getByRole("textbox")).toHaveValue("失敗した質問"));
+    await waitFor(() =>
+      expect(screen.getByRole("textbox", { name: "メッセージ" })).toHaveValue("失敗した質問"),
+    );
     expect(readChatSession("a").pending).toBeNull();
   });
 
@@ -416,7 +432,9 @@ describe("ChatView", () => {
     );
     const fetchMock = vi.mocked(fetch);
     fireEvent.click(await screen.findByRole("button", { name: "入力に戻す" }));
-    await waitFor(() => expect(screen.getByRole("textbox")).toHaveValue("失敗した質問"));
+    await waitFor(() =>
+      expect(screen.getByRole("textbox", { name: "メッセージ" })).toHaveValue("失敗した質問"),
+    );
     for (const [url] of fetchMock.mock.calls) urls.push(String(url));
     expect(urls.some((url) => url.includes("requestId=request-old"))).toBe(true);
     expect(screen.getByText("別のタブへの応答")).toBeInTheDocument();
@@ -428,12 +446,14 @@ describe("ChatView", () => {
     vi.stubGlobal("fetch", fetchMock);
     render(<ChatView characterId="a" characterName="案内役" />);
     const long = "あ".repeat(4001);
-    fireEvent.change(screen.getByRole("textbox"), { target: { value: long } });
+    fireEvent.change(screen.getByRole("textbox", { name: "メッセージ" }), {
+      target: { value: long },
+    });
     fireEvent.click(screen.getByRole("button", { name: "送信" }));
     await screen.findByText("4000字以内で送信してください。入力は保持されています。");
     expect(fetchMock).not.toHaveBeenCalled();
     expect(readChatSession("a").pending).toBeNull();
-    expect(screen.getByRole("textbox")).toHaveValue(long);
+    expect(screen.getByRole("textbox", { name: "メッセージ" })).toHaveValue(long);
   });
 
   it.each([
@@ -458,7 +478,9 @@ describe("ChatView", () => {
     );
     render(<ChatView characterId="a" characterName="案内役" />);
     fireEvent.click(await screen.findByRole("button", { name: "入力に戻す" }));
-    await waitFor(() => expect(screen.getByRole("textbox")).toHaveValue("通らない質問"));
+    await waitFor(() =>
+      expect(screen.getByRole("textbox", { name: "メッセージ" })).toHaveValue("通らない質問"),
+    );
     expect(readChatSession("a").pending).toBeNull();
   });
 
@@ -480,7 +502,11 @@ describe("ChatView", () => {
       );
       render(<ChatView characterId="a" characterName="案内役" />);
       fireEvent.click(await screen.findByRole("button", { name: "入力に戻す" }));
-      await waitFor(() => expect(screen.getByRole("textbox")).toHaveValue("読めない会話への質問"));
+      await waitFor(() =>
+        expect(screen.getByRole("textbox", { name: "メッセージ" })).toHaveValue(
+          "読めない会話への質問",
+        ),
+      );
       expect(readChatSession("a").pending).toBeNull();
       expect(
         screen.getByText("会話を読み込めませんでした。送信内容は入力欄に戻しました。"),
@@ -519,7 +545,9 @@ describe("ChatView", () => {
       }),
     );
     render(<ChatView characterId="a" characterName="案内役" />);
-    fireEvent.change(screen.getByRole("textbox"), { target: { value: "こちらの質問" } });
+    fireEvent.change(screen.getByRole("textbox", { name: "メッセージ" }), {
+      target: { value: "こちらの質問" },
+    });
     fireEvent.click(screen.getByRole("button", { name: "送信" }));
     await waitFor(() => expect(readChatSession("a").pending?.text).toBe("こちらの質問"));
     writeChatSession("a", { version: 1, conversationId: "conversation-b", pending: otherTab });
@@ -551,8 +579,10 @@ describe("ChatView", () => {
     );
     writeChatSession("a", { version: 1, conversationId: "conversation-a", pending: null });
     render(<ChatView characterId="a" characterName="案内役" />);
-    await waitFor(() => expect(screen.getByRole("textbox")).toBeEnabled());
-    fireEvent.change(screen.getByRole("textbox"), { target: { value: "こちらの質問" } });
+    await waitFor(() => expect(screen.getByRole("textbox", { name: "メッセージ" })).toBeEnabled());
+    fireEvent.change(screen.getByRole("textbox", { name: "メッセージ" }), {
+      target: { value: "こちらの質問" },
+    });
     fireEvent.click(screen.getByRole("button", { name: "送信" }));
     await waitFor(() => expect(readChatSession("a").pending?.text).toBe("こちらの質問"));
     const otherTab = {
@@ -564,7 +594,7 @@ describe("ChatView", () => {
     };
     writeChatSession("a", { version: 1, conversationId: "conversation-a", pending: otherTab });
     releasePost();
-    await waitFor(() => expect(screen.getByRole("textbox")).toBeEnabled());
+    await waitFor(() => expect(screen.getByRole("textbox", { name: "メッセージ" })).toBeEnabled());
     expect(readChatSession("a", "conversation-a").pending).toEqual(otherTab);
   });
 
@@ -580,12 +610,14 @@ describe("ChatView", () => {
       ),
     );
     render(<ChatView characterId="a" characterName="案内役" />);
-    fireEvent.change(screen.getByRole("textbox"), { target: { value: "届いた質問" } });
+    fireEvent.change(screen.getByRole("textbox", { name: "メッセージ" }), {
+      target: { value: "届いた質問" },
+    });
     fireEvent.click(screen.getByRole("button", { name: "送信" }));
     await screen.findByRole("alert");
     expect(readChatSession("a").pending).toBeNull();
     expect(screen.queryByRole("button", { name: "入力に戻す" })).not.toBeInTheDocument();
-    expect(screen.getByRole("textbox")).toHaveValue("");
+    expect(screen.getByRole("textbox", { name: "メッセージ" })).toHaveValue("");
     expect(screen.getByText("届いた質問")).toBeInTheDocument();
   });
 
@@ -631,7 +663,7 @@ describe("ChatView", () => {
     });
     fireEvent.click(await screen.findByRole("button", { name: "入力に戻す" }));
     await screen.findByText("返信をまだ作成中です。再接続してください。");
-    expect(screen.getByRole("textbox")).toHaveValue("");
+    expect(screen.getByRole("textbox", { name: "メッセージ" })).toHaveValue("");
     expect(readChatSession("a").pending?.requestId).toBe("request-old");
     expect(screen.getByRole("button", { name: "再接続・再試行" })).toBeInTheDocument();
   });
@@ -645,7 +677,9 @@ describe("ChatView", () => {
       }),
     );
     render(<ChatView characterId="a" characterName="案内役" />);
-    fireEvent.change(screen.getByRole("textbox"), { target: { value: "届くかな" } });
+    fireEvent.change(screen.getByRole("textbox", { name: "メッセージ" }), {
+      target: { value: "届くかな" },
+    });
     fireEvent.click(screen.getByRole("button", { name: "送信" }));
     await screen.findByText("通信が切れました。再接続してください。");
     expect(screen.queryByText(/Failed to fetch/)).not.toBeInTheDocument();
