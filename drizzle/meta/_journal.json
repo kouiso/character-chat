@@ -316,6 +316,13 @@
       "when": 1794159996884,
       "tag": "20261108174636_white_night_thrasher",
       "breakpoints": true
+    },
+    {
+      "idx": 80,
+      "version": "6",
+      "when": 1794145821355,
+      "tag": "20261108135021_confused_paibok",
+      "breakpoints": true
     }
   ]
 }

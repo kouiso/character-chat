@@ -393,3 +393,37 @@ export const v2MemoryTombstoneTable = sqliteTable(
   },
   (table) => [primaryKey({ columns: [table.conversationId, table.contentHash] })],
 );
+
+// RIT-115: キャラの設定資料。原本は R2、切り分けた断片は D1 に残して検索箱（Vectorize）
+// への載せ替え・無効化・削除を全部 D1 経由にする（R2 の一覧は走らん）。
+export const v2CharacterDocumentTable = sqliteTable(
+  "v2_character_document",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull(),
+    characterId: text("character_id").notNull(),
+    title: text("title").notNull(),
+    r2Key: text("r2_key").notNull(),
+    mime: text("mime").notNull(),
+    byteSize: integer("byte_size").notNull(),
+    status: text("status", { enum: ["active", "disabled"] })
+      .notNull()
+      .default("active"),
+    createdAt: integer("created_at").notNull(),
+  },
+  (table) => [index("v2_character_document_char_idx").on(table.characterId, table.status)],
+);
+
+export const v2CharacterDocumentChunkTable = sqliteTable(
+  "v2_character_document_chunk",
+  {
+    id: text("id").primaryKey(),
+    documentId: text("document_id")
+      .notNull()
+      .references(() => v2CharacterDocumentTable.id, { onDelete: "cascade" }),
+    seq: integer("seq").notNull(),
+    content: text("content").notNull(),
+    vectorId: text("vector_id").notNull(),
+  },
+  (table) => [index("v2_character_document_chunk_doc_idx").on(table.documentId, table.seq)],
+);

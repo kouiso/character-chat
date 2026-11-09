@@ -58,6 +58,8 @@ describe("v2_ tables: SQL DDL と drizzle 宣言の一致", () => {
       .all<{ name: string }>();
     expect(results.map((table) => table.name).sort()).toEqual(
       [
+        "v2_character_document",
+        "v2_character_document_chunk",
         "v2_chunk",
         "v2_conversation",
         "v2_generation",

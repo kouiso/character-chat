@@ -28,6 +28,7 @@ import {
 import { PROMPT_VERSION } from "@v2/prompt";
 
 import { readCharacter } from "./character-data.server";
+import { retrieveDocumentChunks } from "./document-rag";
 import { LOCAL_USER_ID } from "./identity";
 import { retrieveMemories } from "./memory-rag";
 import { memoryVectorReady } from "./memory-vector";
@@ -193,6 +194,20 @@ export const startTurn = async (
               beforeTurn: input.expectedTurn,
             },
             query,
+          )
+      : undefined,
+    retrieveDocuments: memoryVectorReady(env)
+      ? (query) =>
+          retrieveDocumentChunks(
+            db,
+            env,
+            { userId: LOCAL_USER_ID, characterId: input.characterId },
+            query,
+          ).then((entries) =>
+            entries.map((entry) => ({
+              id: entry.documentId,
+              content: `【${entry.title}】${entry.content}`,
+            })),
           )
       : undefined,
     store: createStore(
