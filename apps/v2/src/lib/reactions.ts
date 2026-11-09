@@ -73,3 +73,25 @@ export const deleteComment = async (characterId: string, commentId: string): Pro
   });
   if (!res.ok) throw new Error(`コメントを削除できませんでした（${res.status}）`);
 };
+
+// RIT-208: 贈与。idempotencyKey は送信ごとに新規発行し、リトライは同じキーを使い回す。
+export const sendTip = async (
+  characterId: string,
+  amount: number,
+  idempotencyKey: string,
+): Promise<{ senderBalance: number }> => {
+  const res = await fetch(catalogUrl(characterId, "tip"), {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ amount, idempotencyKey }),
+  });
+  if (!res.ok) {
+    const body: unknown = await res.json().catch(() => ({}));
+    const message =
+      typeof body === "object" && body !== null && "message" in body
+        ? String(body.message)
+        : `贈与できませんでした（${res.status}）`;
+    throw new Error(message);
+  }
+  return z.object({ senderBalance: z.number() }).parse(await res.json());
+};

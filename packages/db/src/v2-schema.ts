@@ -488,14 +488,16 @@ export const v2CharacterDocumentChunkTable = sqliteTable(
 
 // RIT-191: 通貨の取引台帳と残高。全ての増減は台帳へ1行で記録し、残高は台帳挿入と同一
 // バッチで更新する。idempotency_key は再送・リトライの二重計上を防ぐ（一意）。
-// kind: grant=付与 / purchase=購入 / spend=消費 / refund=返却 / bonus=特典。
+// kind: grant=付与 / purchase=購入 / spend=消費 / refund=返却 / bonus=特典 / tip=贈与受取。
 // amount は常に正の最小単位、増減方向は kind で決まる（負数を持たない）。
 export const v2CurrencyLedgerTable = sqliteTable(
   "v2_currency_ledger",
   {
     id: text("id").primaryKey(),
     userId: text("user_id").notNull(),
-    kind: text("kind", { enum: ["grant", "purchase", "spend", "refund", "bonus"] }).notNull(),
+    kind: text("kind", {
+      enum: ["grant", "purchase", "spend", "refund", "bonus", "tip"],
+    }).notNull(),
     amount: integer("amount").notNull(),
     balanceAfter: integer("balance_after").notNull(),
     reason: text("reason").notNull(),
@@ -509,7 +511,7 @@ export const v2CurrencyLedgerTable = sqliteTable(
     uniqueIndex("v2_currency_ledger_idempotency_unique").on(table.idempotencyKey),
     check(
       "v2_currency_ledger_kind_check",
-      sql`${table.kind} in ('grant','purchase','spend','refund','bonus')`,
+      sql`${table.kind} in ('grant','purchase','spend','refund','bonus','tip')`,
     ),
   ],
 );

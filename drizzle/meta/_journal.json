@@ -407,6 +407,13 @@
       "when": 1762944000000,
       "tag": "20261110040000_rit207_reactions",
       "breakpoints": true
+    },
+    {
+      "idx": 93,
+      "version": "7",
+      "when": 1762945800000,
+      "tag": "20261110043000_rit208_tip_kind",
+      "breakpoints": true
     }
   ]
 }
