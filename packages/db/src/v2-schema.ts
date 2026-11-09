@@ -581,3 +581,20 @@ export const v2UserSettingsTable = sqliteTable("v2_user_settings", {
   style: text("style").notNull().default("balanced"),
   updatedAt: integer("updated_at").notNull(),
 });
+
+// RIT-204: メッセージへの印。kind=bookmark は有無だけ、kind=feedback は value=1/-1。
+// 行は消さず「押した時に付け・同じ値で再押しで外す」冪等トグルにする。
+export const v2MessageMarkTable = sqliteTable(
+  "v2_message_mark",
+  {
+    messageId: text("message_id").notNull(),
+    conversationId: text("conversation_id").notNull(),
+    kind: text("kind").notNull(),
+    value: integer("value").notNull().default(1),
+    createdAt: integer("created_at").notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.messageId, table.kind] }),
+    index("idx_v2_message_mark_conversation").on(table.conversationId),
+  ],
+);

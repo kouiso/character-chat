@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Dispatch, RefObject, SetStateAction } from "react";
 
+import { useMessageMarks } from "../hook/use-message-marks";
 import { runBranchAction } from "../lib/branch";
 import { MAX_MESSAGE_LENGTH } from "../lib/chat-limits";
 import {
@@ -22,11 +23,13 @@ import {
 import { revealChunk, scheduleReveal } from "../lib/chunk-reveal";
 
 import { BranchControls } from "./branch-controls";
+import { ChatHeaderControls } from "./chat-header-controls";
 import { ChatImage } from "./chat-image";
 import { ChatMessage, ChatMessageText } from "./chat-message";
 import { ChatMessageLog } from "./chat-message-log";
 import { GalleryPanel } from "./gallery-panel";
 import { LedgerPanel } from "./ledger-panel";
+import { MessageActions } from "./message-actions";
 import { SuggestionChips } from "./suggestion-chips";
 
 import type { ChatSseEvent } from "../lib/sse-events";
@@ -50,6 +53,12 @@ const withPending = (
         { role: "user", text: pending.text },
         { role: "assistant", text: "", pending: true },
       ];
+
+// バブルに載せる data 属性。ブックマークジャンプと画像ジャンプの起点。
+const bubbleDataAttrs = (bubble: ChatBubble) => ({
+  ...(bubble.imageUrl ? { "data-image-src": bubble.imageUrl } : {}),
+  ...(bubble.id ? { "data-message-id": bubble.id } : {}),
+});
 
 // withPending で足した「送信文 + 作成中の返信」の 2 つを外す。
 const withoutPending = (history: ChatBubble[], pending: PendingTurn): ChatBubble[] => {
@@ -319,6 +328,13 @@ export const ChatView = ({
     }
   }, []);
 
+  // RIT-204: メッセージへの印（ブックマーク・いいね）。履歴読み込みのたび会話の印も追従する。
+  const {
+    marks,
+    reload: reloadMarks,
+    toggle: toggleMessageMark,
+  } = useMessageMarks(characterId, conversationId);
+
   // RIT-202: 枝操作（張替・再生成・書き直し・戻る/進む）の後は履歴を1本読み直すだけ。
   const reloadHistory = useCallback(async () => {
     const targetConversationId = conversationId.current;
@@ -330,7 +346,8 @@ export const ChatView = ({
     );
     nextTurn.current = history.nextTurn;
     setBubbles(history.bubbles);
-  }, [characterId]);
+    void reloadMarks();
+  }, [characterId, reloadMarks]);
 
   // RIT-202: 枝操作は永続行（id/turn あり・送信完了済み）にだけ出す。
   const bubbleControls = (bubble: ChatBubble) => {
@@ -343,15 +360,28 @@ export const ChatView = ({
     )
       return null;
     return (
-      <BranchControls
-        characterId={characterId}
-        conversationId={targetConversationId}
-        role={bubble.role}
-        turn={bubble.turn}
-        busy={busy || pending !== null}
-        onChanged={reloadHistory}
-        onRewound={setRewoundFrom}
-      />
+      <>
+        <BranchControls
+          characterId={characterId}
+          conversationId={targetConversationId}
+          role={bubble.role}
+          turn={bubble.turn}
+          busy={busy || pending !== null}
+          onChanged={reloadHistory}
+          onRewound={setRewoundFrom}
+        />
+        <MessageActions
+          messageId={bubble.id}
+          role={bubble.role}
+          text={bubble.text}
+          marks={marks}
+          onToggle={(kind, value) =>
+            toggleMessageMark({ messageId: bubble.id, kind, value }, (cause) =>
+              setError((cause as Error).message),
+            )
+          }
+        />
+      </>
     );
   };
 
@@ -458,6 +488,7 @@ export const ChatView = ({
         );
         if (saved.pending) await consume(saved.pending, abort.signal);
         else setBusy(false);
+        void reloadMarks();
       } catch (cause) {
         if (!abort.signal.aborted) {
           // 確定的な拒否なら再試行しても直らんので、保留は「入力に戻す」で抜けられるようにする。
@@ -474,7 +505,7 @@ export const ChatView = ({
       revealCancel.current?.();
       revealCancel.current = null;
     };
-  }, [characterId, consume, initialConversationId, newConversationKey]);
+  }, [characterId, consume, initialConversationId, newConversationKey, reloadMarks]);
 
   // RIT-203: 候補チップからも同じ送信経路を使えるよう本文だけ受ける形に分ける。
   const sendText = async (text: string) => {
@@ -610,10 +641,25 @@ export const ChatView = ({
     }
   };
 
+  const [showInner, setShowInner] = useState(true);
+  const jumpToMessageId = (messageId: string) => {
+    const target = rootRef.current?.querySelector<HTMLElement>(
+      `[data-message-id="${CSS.escape(messageId)}"]`,
+    );
+    target?.scrollIntoView({ block: "center" });
+  };
+
   return (
-    <div className="v2-chat" ref={rootRef}>
+    <div className="v2-chat" data-hide-inner={!showInner} ref={rootRef}>
       <div className="v2-chat-header">
         <ChatMessageText text={characterName} />
+        <ChatHeaderControls
+          characterId={characterId}
+          showInner={showInner}
+          getConversationId={() => conversationId.current}
+          onToggleInner={() => setShowInner((prev) => !prev)}
+          onJumpMessage={jumpToMessageId}
+        />
         <LedgerPanel characterId={characterId} getConversationId={() => conversationId.current} />
         <GalleryPanel
           characterId={characterId}
@@ -627,7 +673,7 @@ export const ChatView = ({
           <div
             key={index}
             className={`v2-bubble v2-message-turn ${bubble.role} ${bubble.pending ? "pending" : ""}`}
-            {...(bubble.imageUrl ? { "data-image-src": bubble.imageUrl } : {})}
+            {...bubbleDataAttrs(bubble)}
           >
             <BubbleMedia bubble={bubble} />
             {bubble.imageUrl &&

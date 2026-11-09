@@ -38,6 +38,7 @@ import { Route as ApiChatIdComicRouteImport } from './routes/api/chat/$id_/comic
 import { Route as ApiChatIdHistoryRouteImport } from './routes/api/chat/$id_/history'
 import { Route as ApiChatIdImagesRouteImport } from './routes/api/chat/$id_/images'
 import { Route as ApiChatIdLedgerRouteImport } from './routes/api/chat/$id_/ledger'
+import { Route as ApiChatIdMarksRouteImport } from './routes/api/chat/$id_/marks'
 import { Route as ApiChatIdMemoryRouteImport } from './routes/api/chat/$id_/memory'
 import { Route as ApiChatIdSuggestRouteImport } from './routes/api/chat/$id_/suggest'
 import { Route as ApiChatIdVideoRouteImport } from './routes/api/chat/$id_/video'
@@ -192,6 +193,11 @@ const ApiChatIdLedgerRoute = ApiChatIdLedgerRouteImport.update({
   path: '/api/chat/$id/ledger',
   getParentRoute: () => rootRouteImport,
 })
+const ApiChatIdMarksRoute = ApiChatIdMarksRouteImport.update({
+  id: '/api/chat/$id_/marks',
+  path: '/api/chat/$id/marks',
+  getParentRoute: () => rootRouteImport,
+})
 const ApiChatIdMemoryRoute = ApiChatIdMemoryRouteImport.update({
   id: '/api/chat/$id_/memory',
   path: '/api/chat/$id/memory',
@@ -261,6 +267,7 @@ export interface FileRoutesByFullPath {
   '/api/chat/$id/history': typeof ApiChatIdHistoryRoute
   '/api/chat/$id/images': typeof ApiChatIdImagesRoute
   '/api/chat/$id/ledger': typeof ApiChatIdLedgerRoute
+  '/api/chat/$id/marks': typeof ApiChatIdMarksRoute
   '/api/chat/$id/memory': typeof ApiChatIdMemoryRoute
   '/api/chat/$id/suggest': typeof ApiChatIdSuggestRoute
   '/api/chat/$id/video': typeof ApiChatIdVideoRoute
@@ -299,6 +306,7 @@ export interface FileRoutesByTo {
   '/api/chat/$id/history': typeof ApiChatIdHistoryRoute
   '/api/chat/$id/images': typeof ApiChatIdImagesRoute
   '/api/chat/$id/ledger': typeof ApiChatIdLedgerRoute
+  '/api/chat/$id/marks': typeof ApiChatIdMarksRoute
   '/api/chat/$id/memory': typeof ApiChatIdMemoryRoute
   '/api/chat/$id/suggest': typeof ApiChatIdSuggestRoute
   '/api/chat/$id/video': typeof ApiChatIdVideoRoute
@@ -338,6 +346,7 @@ export interface FileRoutesById {
   '/api/chat/$id_/history': typeof ApiChatIdHistoryRoute
   '/api/chat/$id_/images': typeof ApiChatIdImagesRoute
   '/api/chat/$id_/ledger': typeof ApiChatIdLedgerRoute
+  '/api/chat/$id_/marks': typeof ApiChatIdMarksRoute
   '/api/chat/$id_/memory': typeof ApiChatIdMemoryRoute
   '/api/chat/$id_/suggest': typeof ApiChatIdSuggestRoute
   '/api/chat/$id_/video': typeof ApiChatIdVideoRoute
@@ -378,6 +387,7 @@ export interface FileRouteTypes {
     | '/api/chat/$id/history'
     | '/api/chat/$id/images'
     | '/api/chat/$id/ledger'
+    | '/api/chat/$id/marks'
     | '/api/chat/$id/memory'
     | '/api/chat/$id/suggest'
     | '/api/chat/$id/video'
@@ -416,6 +426,7 @@ export interface FileRouteTypes {
     | '/api/chat/$id/history'
     | '/api/chat/$id/images'
     | '/api/chat/$id/ledger'
+    | '/api/chat/$id/marks'
     | '/api/chat/$id/memory'
     | '/api/chat/$id/suggest'
     | '/api/chat/$id/video'
@@ -454,6 +465,7 @@ export interface FileRouteTypes {
     | '/api/chat/$id_/history'
     | '/api/chat/$id_/images'
     | '/api/chat/$id_/ledger'
+    | '/api/chat/$id_/marks'
     | '/api/chat/$id_/memory'
     | '/api/chat/$id_/suggest'
     | '/api/chat/$id_/video'
@@ -484,6 +496,7 @@ export interface RootRouteChildren {
   ApiChatIdHistoryRoute: typeof ApiChatIdHistoryRoute
   ApiChatIdImagesRoute: typeof ApiChatIdImagesRoute
   ApiChatIdLedgerRoute: typeof ApiChatIdLedgerRoute
+  ApiChatIdMarksRoute: typeof ApiChatIdMarksRoute
   ApiChatIdMemoryRoute: typeof ApiChatIdMemoryRoute
   ApiChatIdSuggestRoute: typeof ApiChatIdSuggestRoute
   ApiChatIdVideoRoute: typeof ApiChatIdVideoRoute
@@ -695,6 +708,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiChatIdLedgerRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/chat/$id_/marks': {
+      id: '/api/chat/$id_/marks'
+      path: '/api/chat/$id/marks'
+      fullPath: '/api/chat/$id/marks'
+      preLoaderRoute: typeof ApiChatIdMarksRouteImport
+      parentRoute: typeof rootRouteImport
+    },
     '/api/chat/$id_/memory': {
       id: '/api/chat/$id_/memory'
       path: '/api/chat/$id/memory'
@@ -855,6 +875,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiChatIdHistoryRoute: ApiChatIdHistoryRoute,
   ApiChatIdImagesRoute: ApiChatIdImagesRoute,
   ApiChatIdLedgerRoute: ApiChatIdLedgerRoute,
+  ApiChatIdMarksRoute: ApiChatIdMarksRoute,
   ApiChatIdMemoryRoute: ApiChatIdMemoryRoute,
   ApiChatIdSuggestRoute: ApiChatIdSuggestRoute,
   ApiChatIdVideoRoute: ApiChatIdVideoRoute,
