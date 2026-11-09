@@ -347,3 +347,8 @@ body {
   gap: 0.5rem;
   align-items: center;
 }
+
+.v2-memory-superseded {
+  color: var(--muted, #888);
+  font-size: 0.85em;
+}

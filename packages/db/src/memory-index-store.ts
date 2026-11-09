@@ -77,6 +77,8 @@ export const loadMemoryCandidates = async (
         eq(v2ConversationTable.userId, scope.userId),
         eq(v2ConversationTable.characterId, scope.characterId),
         inArray(v2MemoryTable.id, ids.slice(0, 20)),
+        // 食い違いは新しい方が勝つ（RIT-86）— 置き換わった記憶は指示文へ出さん
+        isNull(v2MemoryTable.supersededBy),
         scope.beforeTurn === undefined ? undefined : lt(v2MemoryTable.sourceTurn, scope.beforeTurn),
       ),
     )

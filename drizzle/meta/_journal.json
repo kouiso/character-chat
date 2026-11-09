@@ -309,6 +309,13 @@
       "when": 1794158576486,
       "tag": "20261108172256_mixed_firebrand",
       "breakpoints": true
+    },
+    {
+      "idx": 71,
+      "version": "6",
+      "when": 1794159996884,
+      "tag": "20261108174636_white_night_thrasher",
+      "breakpoints": true
     }
   ]
 }

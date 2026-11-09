@@ -24,6 +24,8 @@ export type MemoryRow = {
   pinned: boolean;
   sourceTurn: number | null;
   createdAt: number;
+  subject: string;
+  supersededBy: string | null;
 };
 
 export class MemoryAccessError extends Error {
@@ -40,6 +42,8 @@ const toRow = (row: {
   pinned: number;
   sourceTurn: number | null;
   createdAt: number;
+  subject: string;
+  supersededBy: string | null;
 }): MemoryRow => ({ ...row, pinned: row.pinned === 1 });
 
 // キャラごとの記憶一覧（会話を跨ぐ。所有者一致の会話に限る）。
@@ -56,6 +60,8 @@ export const listCharacterMemories = async (
       pinned: v2MemoryTable.pinned,
       sourceTurn: v2MemoryTable.sourceTurn,
       createdAt: v2MemoryTable.createdAt,
+      subject: v2MemoryTable.subject,
+      supersededBy: v2MemoryTable.supersededBy,
     })
     .from(v2MemoryTable)
     .innerJoin(
@@ -88,6 +94,8 @@ export const loadOwnedMemory = async (
       pinned: v2MemoryTable.pinned,
       sourceTurn: v2MemoryTable.sourceTurn,
       createdAt: v2MemoryTable.createdAt,
+      subject: v2MemoryTable.subject,
+      supersededBy: v2MemoryTable.supersededBy,
       embedding: v2MemoryTable.embedding,
     })
     .from(v2MemoryTable)
@@ -307,6 +315,9 @@ export const insertManualMemory = async (
     pinned: input.pinned !== false,
     sourceTurn: source.turn,
     createdAt: now,
+    // 手で足した記憶に主題は付けん — 抽出の置き換え印の対象外にするため
+    subject: "",
+    supersededBy: null,
   };
 };
 
@@ -325,6 +336,8 @@ export const loadPinnedMemories = async (
       pinned: v2MemoryTable.pinned,
       sourceTurn: v2MemoryTable.sourceTurn,
       createdAt: v2MemoryTable.createdAt,
+      subject: v2MemoryTable.subject,
+      supersededBy: v2MemoryTable.supersededBy,
     })
     .from(v2MemoryTable)
     .innerJoin(

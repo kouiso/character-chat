@@ -209,6 +209,9 @@ export const v2MemoryTable = sqliteTable(
     // bge-m3 1024 次元 float32 の生バイト（script/rag/ingest.ts の rag_chunk と同形式）。M0 は NULL のまま。
     embedding: blob("embedding", { mode: "buffer" }),
     createdAt: integer("created_at").notNull(),
+    // 抽出が付ける主題ラベル。同じ主題の新しい記憶に置き換わった印が supersededBy（RIT-86）。
+    subject: text("subject").notNull().default(""),
+    supersededBy: text("superseded_by"),
   },
   (table) => [
     index("v2_memory_conv_kind_idx").on(table.conversationId, table.kind),
