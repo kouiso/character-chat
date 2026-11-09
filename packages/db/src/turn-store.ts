@@ -230,13 +230,14 @@ export const readD1StoredTurn = async (
 };
 
 export const readOwnedImageKey = async (db: V2Db, userId: string, messageId: string) => {
+  // v2 生成は v2_message.image_key、旧移行メッセージは legacy message 表側に画像キーが残る。
   const [row] = await db
-    .select({ key: messageTable.imageKey })
+    .select({ key: v2MessageTable.imageKey, legacyKey: messageTable.imageKey })
     .from(v2MessageTable)
     .innerJoin(v2ConversationTable, eq(v2ConversationTable.id, v2MessageTable.conversationId))
-    .innerJoin(messageTable, eq(messageTable.id, v2MessageTable.id))
+    .leftJoin(messageTable, eq(messageTable.id, v2MessageTable.id))
     .where(and(eq(v2MessageTable.id, messageId), eq(v2ConversationTable.userId, userId)));
-  return row?.key ?? null;
+  return row ? (row.key ?? row.legacyKey) : null;
 };
 
 // 即時 lookup で引けんかった実行先を後から書き戻す（RIT-100: /generation の索引は ~10s 遅れる）。
@@ -361,18 +362,26 @@ export const readDisplayHistory = async (
   conversationId: string,
 ): Promise<{ turn: number; history: DisplayHistoryRow[] }> => {
   await assertConversationOwner(db, opts, conversationId);
-  const rows = await db
+  const rawRows = await db
     .select({
       id: v2MessageTable.id,
       turn: v2MessageTable.turn,
       role: v2MessageTable.role,
       content: v2MessageTable.content,
-      imageKey: messageTable.imageKey,
+      imageKey: v2MessageTable.imageKey,
+      legacyImageKey: messageTable.imageKey,
     })
     .from(v2MessageTable)
     .leftJoin(messageTable, eq(messageTable.id, v2MessageTable.id))
     .where(eq(v2MessageTable.conversationId, conversationId))
     .orderBy(asc(v2MessageTable.turn), userFirst);
+  const rows: DisplayHistoryRow[] = rawRows.map((row) => ({
+    id: row.id,
+    turn: row.turn,
+    role: row.role,
+    content: row.content,
+    imageKey: row.imageKey ?? row.legacyImageKey,
+  }));
   const { live, nextTurn } = splitDeadTurns(rows);
   return { turn: nextTurn, history: live };
 };

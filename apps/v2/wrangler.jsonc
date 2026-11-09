@@ -43,7 +43,8 @@
           "BASIC_AUTH_USERNAME",
           "BASIC_AUTH_PASSWORD",
           "OPENROUTER_API_KEY",
-          "VAPID_PRIVATE_KEY"
+          "VAPID_PRIVATE_KEY",
+          "NOVITA_API_KEY"
         ]
       },
       "ai": { "binding": "AI", "remote": true },
@@ -98,7 +99,8 @@
           "BASIC_AUTH_USERNAME",
           "BASIC_AUTH_PASSWORD",
           "OPENROUTER_API_KEY",
-          "VAPID_PRIVATE_KEY"
+          "VAPID_PRIVATE_KEY",
+          "NOVITA_API_KEY"
         ]
       },
       "ai": { "binding": "AI", "remote": true },

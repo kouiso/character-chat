@@ -97,6 +97,9 @@ export const v2MessageTable = sqliteTable(
     // 単発返事でも返事を作った実行先が残る（RIT-100）。
     provider: text("provider"),
     upstreamId: text("upstream_id"),
+    // v2 で生成した画像メッセージの R2 キー。旧 message 表の image_key ではなく、
+    // v2 メッセージへ直接持たせる（旧表は移行済み行だけが join で拾われる）。
+    imageKey: text("image_key"),
     createdAt: integer("created_at").notNull(),
   },
   (table) => [
@@ -324,5 +327,36 @@ export const v2PushSubscriptionTable = sqliteTable(
   (table) => [
     uniqueIndex("v2_push_subscription_endpoint_idx").on(table.endpoint),
     index("v2_push_subscription_user_idx").on(table.userId),
+  ],
+);
+
+// 会話起点の画像生成記録（RIT-182）。成功・失敗ともに1回の起動で1行残し、
+// 失敗理由は画面へ見せる根拠と後続の返却連動 SBI の参照元にする。
+export const v2ImageGenerationTable = sqliteTable(
+  "v2_image_generation",
+  {
+    id: text("id").primaryKey(),
+    conversationId: text("conversation_id")
+      .notNull()
+      .references(() => v2ConversationTable.id, { onDelete: "cascade" }),
+    characterId: text("character_id")
+      .notNull()
+      .references(() => characterTable.id),
+    // 成功時に書いた v2_message。失敗行は NULL。
+    messageId: text("message_id"),
+    // Novita の非同期タスク id。起動失敗（init が 4xx/5xx）は NULL。
+    taskId: text("task_id"),
+    model: text("model").notNull(),
+    prompt: text("prompt").notNull(),
+    negativePrompt: text("negative_prompt"),
+    seed: integer("seed"),
+    status: text("status", { enum: ["ok", "failed"] }).notNull(),
+    failureReason: text("failure_reason"),
+    imageKey: text("image_key"),
+    createdAt: integer("created_at").notNull(),
+  },
+  (table) => [
+    index("v2_image_generation_conv_idx").on(table.conversationId, table.createdAt),
+    check("v2_image_generation_status_check", sql`${table.status} in ('ok','failed')`),
   ],
 );

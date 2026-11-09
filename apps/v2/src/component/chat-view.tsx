@@ -12,6 +12,7 @@ import {
   loadChatHistory,
   readChatEvents,
   readChatSession,
+  requestChatImage,
   writeChatSession,
   type ChatBubble,
   type PendingTurn,
@@ -58,6 +59,40 @@ const withoutPending = (history: ChatBubble[], pending: PendingTurn): ChatBubble
 
 const failureMessage = (cause: unknown): string =>
   cause instanceof Error ? cause.message : "返信を確認できませんでした。";
+
+// 画像生成ボタンの中身。会話がまだサーバへ作られとらん時は先にメッセージ送信を促す。
+const runImageRequest = async (deps: {
+  characterId: string;
+  conversationId: RefObject<string | null>;
+  nextTurn: RefObject<number>;
+  busy: boolean;
+  imageBusy: boolean;
+  pending: PendingTurn | null;
+  setError: Dispatch<SetStateAction<string | null>>;
+  setImageBusy: Dispatch<SetStateAction<boolean>>;
+  setBubbles: Dispatch<SetStateAction<ChatBubble[]>>;
+}): Promise<void> => {
+  const targetConversationId = deps.conversationId.current;
+  if (!targetConversationId) {
+    deps.setError("画像を作る前に、まずメッセージを送って会話を始めてください。");
+    return;
+  }
+  if (deps.busy || deps.imageBusy || deps.pending) return;
+  const abort = new AbortController();
+  deps.setImageBusy(true);
+  deps.setError(null);
+  try {
+    await requestChatImage(deps.characterId, targetConversationId, abort.signal);
+    // 画像がターンを1つ消費するので、番号は履歴を読み直してサーバの値に揃える。
+    const history = await loadChatHistory(deps.characterId, targetConversationId, abort.signal);
+    deps.nextTurn.current = history.nextTurn;
+    deps.setBubbles(history.bubbles);
+  } catch (cause) {
+    deps.setError(failureMessage(cause));
+  } finally {
+    deps.setImageBusy(false);
+  }
+};
 
 const resolveInitialConversation = (
   characterId: string,
@@ -148,6 +183,7 @@ export const ChatView = ({
   const [bubbles, setBubbles] = useState<ChatBubble[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
+  const [imageBusy, setImageBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState<PendingTurn | null>(null);
   const [terminalFailure, setTerminalFailure] = useState(false);
@@ -333,6 +369,19 @@ export const ChatView = ({
     await consume(turn, abort.signal);
   };
 
+  const requestImage = () =>
+    void runImageRequest({
+      characterId,
+      conversationId,
+      nextTurn,
+      busy,
+      imageBusy,
+      pending,
+      setError,
+      setImageBusy,
+      setBubbles,
+    });
+
   const retry = () => {
     if (!pending || busy) return;
     controller.current?.abort();
@@ -390,6 +439,13 @@ export const ChatView = ({
           aria-label="メッセージ"
           disabled={busy || pending !== null}
         />
+        <button
+          type="button"
+          onClick={() => void requestImage()}
+          disabled={[busy, imageBusy, pending !== null].some(Boolean)}
+        >
+          {imageBusy ? "生成中…" : "画像"}
+        </button>
         <button type="submit" disabled={busy || pending !== null || input.trim().length === 0}>
           送信
         </button>
