@@ -17,10 +17,11 @@ import {
 } from "@v2/db";
 import {
   contextBudgetFromEnv,
-  createOpenRouterModel,
+  createModelChain,
   createTurnGraph,
   runTurn,
   type HistoryMessage,
+  type ModelCandidate,
   type TurnEvent,
   type TurnStore,
 } from "@v2/engine";
@@ -32,8 +33,6 @@ import { retrieveMemories } from "./memory-rag";
 import { memoryVectorReady } from "./memory-vector";
 import { createProviderLookup, retryProviderLookup } from "./openrouter-lookup";
 import { getPlatform } from "./platform";
-
-import type { BaseChatModel } from "@langchain/core/language_models/chat_models";
 
 export { LOCAL_USER_ID } from "./identity";
 
@@ -58,20 +57,31 @@ export class CharacterInvalidError extends Error {
 const FAKE_RESPONSE =
   "<response><action>小さく笑って、こちらへ一歩近づく。</action><dialogue>ねえ、こっち向いて。</dialogue><inner>ちょっとドキドキしてる。</inner></response>";
 
-const createModel = async (): Promise<BaseChatModel> => {
+// RIT-102/104: 拒否・時間切れ・障害で順に落ちる逃げ道チェーン。
+// 単モデル指定（V2_MODEL・V2_FAKE_MODEL）の時は 1 本だけの列になる。
+const createModels = async (): Promise<ModelCandidate[]> => {
   // 実行中のWorkerに束縛された設定だけを使い、別プロセスの設定を混ぜない。
   const { env } = await getPlatform();
   if (env.APP_ENV === "test" && env.V2_FAKE_MODEL === "1") {
-    return new FakeListChatModel({ responses: [FAKE_RESPONSE], sleep: 5 });
+    return [
+      { name: "fake", model: new FakeListChatModel({ responses: [FAKE_RESPONSE], sleep: 5 }) },
+    ];
   }
-  return createOpenRouterModel({
+  return createModelChain({
     OPENROUTER_API_KEY: env.OPENROUTER_API_KEY,
     V2_MODEL: env.V2_MODEL,
     V2_OPENROUTER_BASE_URL: env.V2_OPENROUTER_BASE_URL,
+    V2_MODEL_CHAIN: env.V2_MODEL_CHAIN,
   });
 };
 
-const getModel = (): Promise<BaseChatModel> => createModel();
+const getModels = (): Promise<ModelCandidate[]> => createModels();
+
+// V2_TURN_TIMEOUT_MS が数字なら採用、それ以外（未設定・壊れ）は既定のまま。
+const turnTimeoutFromEnv = (env: { V2_TURN_TIMEOUT_MS?: string }): number | undefined => {
+  const parsed = Number(env.V2_TURN_TIMEOUT_MS);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
+};
 
 const getDb = async (): Promise<V2Db> => {
   const { env } = await getPlatform();
@@ -157,7 +167,7 @@ const resolveConversationCharacter = async (
 export const startTurn = async (
   input: StartTurnInput,
 ): Promise<{ conversationId: string; events: AsyncGenerator<TurnEvent> }> => {
-  const model = await getModel();
+  const models = await getModels();
   const db = await getDb();
   const conversationId = input.conversationId ?? crypto.randomUUID();
   const { character, versionId } = await resolveConversationCharacter(db, {
@@ -168,7 +178,8 @@ export const startTurn = async (
   // 残す必要が無く、character ごとの store を持つ graph をプロセスに溜め込まん方が単純。
   const { env } = await getPlatform();
   const graph = createTurnGraph({
-    model,
+    model: models[0].model,
+    models,
     contextBudget: contextBudgetFromEnv(env),
     retrieveMemories: memoryVectorReady(env)
       ? (targetConversationId, query) =>
@@ -206,7 +217,13 @@ export const startTurn = async (
   });
   const events = runTurn(
     graph,
-    { conversationId, userText: input.text, character },
+    {
+      conversationId,
+      userText: input.text,
+      character,
+      // RIT-102: 1 ターンの締切を設定へ持つ。値は v2_generation.timeout_ms へ記録される。
+      ...(turnTimeoutFromEnv(env) ? { timeoutMs: turnTimeoutFromEnv(env) } : {}),
+    },
     conversationId,
   );
   return { conversationId, events };

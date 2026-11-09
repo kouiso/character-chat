@@ -9,7 +9,9 @@ interface __BaseEnv_Env {
 	APP_ENV: string;
 	V2_FAKE_MODEL: string;
 	V2_RAG_ENABLED: string;
-	V2_MODEL: string;
+	V2_MODEL?: string;
+	V2_MODEL_CHAIN: string;
+	V2_TURN_TIMEOUT_MS: string;
 	V2_TEST_FAULT: string;
 	V2_HISTORY_CHARACTERS: number;
 	V2_HISTORY_MESSAGES: number;
@@ -39,7 +41,9 @@ declare namespace Cloudflare {
 		APP_ENV: string;
 		V2_FAKE_MODEL: string;
 		V2_RAG_ENABLED: string;
-		V2_MODEL: string;
+	V2_MODEL?: string;
+	V2_MODEL_CHAIN: string;
+	V2_TURN_TIMEOUT_MS: string;
 		V2_TEST_FAULT: string;
 		V2_HISTORY_CHARACTERS: number;
 		V2_HISTORY_MESSAGES: number;
@@ -64,7 +68,9 @@ declare namespace Cloudflare {
 		APP_ENV: string;
 		V2_FAKE_MODEL: string;
 		V2_RAG_ENABLED: string;
-		V2_MODEL: string;
+	V2_MODEL?: string;
+	V2_MODEL_CHAIN: string;
+	V2_TURN_TIMEOUT_MS: string;
 		V2_TEST_FAULT: string;
 		V2_HISTORY_CHARACTERS: number;
 		V2_HISTORY_MESSAGES: number;
@@ -86,7 +92,7 @@ type StringifyValues<EnvType extends Record<string, unknown>> = {
 	[Binding in keyof EnvType]: EnvType[Binding] extends string ? EnvType[Binding] : string;
 };
 declare namespace NodeJS {
-	interface ProcessEnv extends StringifyValues<Pick<Cloudflare.Env, "APP_ENV" | "V2_FAKE_MODEL" | "V2_RAG_ENABLED" | "V2_MODEL" | "V2_TEST_FAULT" | "V2_HISTORY_CHARACTERS" | "V2_HISTORY_MESSAGES" | "V2_DAILY_TURN_LIMIT" | "V2_OPENROUTER_BASE_URL" | "VAPID_PUBLIC_KEY" | "VAPID_SUBJECT" | "BASIC_AUTH_USERNAME" | "BASIC_AUTH_PASSWORD" | "OPENROUTER_API_KEY" | "VAPID_PRIVATE_KEY">> {}
+	interface ProcessEnv extends StringifyValues<Pick<Cloudflare.Env, "APP_ENV" | "V2_FAKE_MODEL" | "V2_RAG_ENABLED" | "V2_MODEL" | "V2_MODEL_CHAIN" | "V2_TURN_TIMEOUT_MS" | "V2_TEST_FAULT" | "V2_HISTORY_CHARACTERS" | "V2_HISTORY_MESSAGES" | "V2_DAILY_TURN_LIMIT" | "V2_OPENROUTER_BASE_URL" | "VAPID_PUBLIC_KEY" | "VAPID_SUBJECT" | "BASIC_AUTH_USERNAME" | "BASIC_AUTH_PASSWORD" | "OPENROUTER_API_KEY" | "VAPID_PRIVATE_KEY">> {}
 }
 declare module "*.txt" {
 	const value: string;

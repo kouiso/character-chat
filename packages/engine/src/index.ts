@@ -3,6 +3,7 @@ export type {
   ComposedPrompt,
   GenerationRecord,
   HistoryMessage,
+  ModelAttempt,
   TurnEvent,
   TurnStore,
 } from "./types";
@@ -16,10 +17,17 @@ export {
   type TurnGraph,
   type TurnGraphDeps,
   type TurnInput,
+  type ModelCandidate,
   type TurnModel,
   type TurnModelCallOptions,
 } from "./graph";
-export { createOpenRouterModel, OpenRouterKeyMissingError, type ModelEnv } from "./model";
+export {
+  createModelChain,
+  createOpenRouterModel,
+  OpenRouterKeyMissingError,
+  type ModelEnv,
+} from "./model";
+export { hardRefusalDetect } from "./refusal-detect";
 export { createMemoryTurnStore, type MemoryTurnStore } from "./memory-store";
 export { extractMemories } from "./memory-extractor";
 export {

@@ -60,6 +60,9 @@ export const TurnState = new StateSchema({
   // 各 chunk（cursor）の試行回数。1 が初回、2 で再生成済み（上限）。
   attempts: z.array(z.number()).default(() => []),
   generationId: z.string().nullable().default(null),
+  // RIT-102: 逃げ道チェーンで採用したモデルの deps.models 内 index。extend・書き直し・要約も
+  // 同じモデルへ投げて、ターンの中で声が変わらんようにする。
+  activeModelIndex: z.number().default(0),
   // generate ノードが 1 回の生成ごとに埋める（v2_generation 1 行分）。persist が events に載せる。
   generation: z.custom<GenerationRecord>().nullable().default(null),
 });
