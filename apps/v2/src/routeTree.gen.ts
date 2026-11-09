@@ -50,6 +50,7 @@ import { Route as ApiCharactersIdMemoriesRouteImport } from './routes/api/charac
 import { Route as ApiCharactersIdPublishRouteImport } from './routes/api/characters/$id_/publish'
 import { Route as ApiCharactersIdRestoreRouteImport } from './routes/api/characters/$id_/restore'
 import { Route as ApiCharactersIdVersionsRouteImport } from './routes/api/characters/$id_/versions'
+import { Route as ApiCharactersIdVoiceRouteImport } from './routes/api/characters/$id_/voice'
 import { Route as ApiChatIdBranchRouteImport } from './routes/api/chat/$id_/branch'
 import { Route as ApiChatIdComicRouteImport } from './routes/api/chat/$id_/comic'
 import { Route as ApiChatIdHistoryRouteImport } from './routes/api/chat/$id_/history'
@@ -271,6 +272,11 @@ const ApiCharactersIdVersionsRoute = ApiCharactersIdVersionsRouteImport.update({
   path: '/$id/versions',
   getParentRoute: () => ApiCharactersRoute,
 })
+const ApiCharactersIdVoiceRoute = ApiCharactersIdVoiceRouteImport.update({
+  id: '/$id_/voice',
+  path: '/$id/voice',
+  getParentRoute: () => ApiCharactersRoute,
+})
 const ApiChatIdBranchRoute = ApiChatIdBranchRouteImport.update({
   id: '/api/chat/$id_/branch',
   path: '/api/chat/$id/branch',
@@ -387,6 +393,7 @@ export interface FileRoutesByFullPath {
   '/api/characters/$id/publish': typeof ApiCharactersIdPublishRoute
   '/api/characters/$id/restore': typeof ApiCharactersIdRestoreRoute
   '/api/characters/$id/versions': typeof ApiCharactersIdVersionsRouteWithChildren
+  '/api/characters/$id/voice': typeof ApiCharactersIdVoiceRoute
   '/api/chat/$id/branch': typeof ApiChatIdBranchRoute
   '/api/chat/$id/comic': typeof ApiChatIdComicRoute
   '/api/chat/$id/history': typeof ApiChatIdHistoryRoute
@@ -444,6 +451,7 @@ export interface FileRoutesByTo {
   '/api/characters/$id/publish': typeof ApiCharactersIdPublishRoute
   '/api/characters/$id/restore': typeof ApiCharactersIdRestoreRoute
   '/api/characters/$id/versions': typeof ApiCharactersIdVersionsRouteWithChildren
+  '/api/characters/$id/voice': typeof ApiCharactersIdVoiceRoute
   '/api/chat/$id/branch': typeof ApiChatIdBranchRoute
   '/api/chat/$id/comic': typeof ApiChatIdComicRoute
   '/api/chat/$id/history': typeof ApiChatIdHistoryRoute
@@ -502,6 +510,7 @@ export interface FileRoutesById {
   '/api/characters/$id_/publish': typeof ApiCharactersIdPublishRoute
   '/api/characters/$id_/restore': typeof ApiCharactersIdRestoreRoute
   '/api/characters/$id_/versions': typeof ApiCharactersIdVersionsRouteWithChildren
+  '/api/characters/$id_/voice': typeof ApiCharactersIdVoiceRoute
   '/api/chat/$id_/branch': typeof ApiChatIdBranchRoute
   '/api/chat/$id_/comic': typeof ApiChatIdComicRoute
   '/api/chat/$id_/history': typeof ApiChatIdHistoryRoute
@@ -561,6 +570,7 @@ export interface FileRouteTypes {
     | '/api/characters/$id/publish'
     | '/api/characters/$id/restore'
     | '/api/characters/$id/versions'
+    | '/api/characters/$id/voice'
     | '/api/chat/$id/branch'
     | '/api/chat/$id/comic'
     | '/api/chat/$id/history'
@@ -618,6 +628,7 @@ export interface FileRouteTypes {
     | '/api/characters/$id/publish'
     | '/api/characters/$id/restore'
     | '/api/characters/$id/versions'
+    | '/api/characters/$id/voice'
     | '/api/chat/$id/branch'
     | '/api/chat/$id/comic'
     | '/api/chat/$id/history'
@@ -675,6 +686,7 @@ export interface FileRouteTypes {
     | '/api/characters/$id_/publish'
     | '/api/characters/$id_/restore'
     | '/api/characters/$id_/versions'
+    | '/api/characters/$id_/voice'
     | '/api/chat/$id_/branch'
     | '/api/chat/$id_/comic'
     | '/api/chat/$id_/history'
@@ -1016,6 +1028,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCharactersIdVersionsRouteImport
       parentRoute: typeof ApiCharactersRoute
     }
+    '/api/characters/$id_/voice': {
+      id: '/api/characters/$id_/voice'
+      path: '/$id/voice'
+      fullPath: '/api/characters/$id/voice'
+      preLoaderRoute: typeof ApiCharactersIdVoiceRouteImport
+      parentRoute: typeof ApiCharactersRoute
+    }
     '/api/chat/$id_/branch': {
       id: '/api/chat/$id_/branch'
       path: '/api/chat/$id/branch'
@@ -1199,6 +1218,7 @@ interface ApiCharactersRouteChildren {
   ApiCharactersIdPublishRoute: typeof ApiCharactersIdPublishRoute
   ApiCharactersIdRestoreRoute: typeof ApiCharactersIdRestoreRoute
   ApiCharactersIdVersionsRoute: typeof ApiCharactersIdVersionsRouteWithChildren
+  ApiCharactersIdVoiceRoute: typeof ApiCharactersIdVoiceRoute
 }
 
 const ApiCharactersRouteChildren: ApiCharactersRouteChildren = {
@@ -1208,6 +1228,7 @@ const ApiCharactersRouteChildren: ApiCharactersRouteChildren = {
   ApiCharactersIdPublishRoute: ApiCharactersIdPublishRoute,
   ApiCharactersIdRestoreRoute: ApiCharactersIdRestoreRoute,
   ApiCharactersIdVersionsRoute: ApiCharactersIdVersionsRouteWithChildren,
+  ApiCharactersIdVoiceRoute: ApiCharactersIdVoiceRoute,
 }
 
 const ApiCharactersRouteWithChildren = ApiCharactersRoute._addFileChildren(
