@@ -238,7 +238,13 @@ export const readD1StoredTurn = async (
   return db
     .select({ role: v2MessageTable.role, content: v2MessageTable.content })
     .from(v2MessageTable)
-    .where(and(eq(v2MessageTable.conversationId, conversationId), eq(v2MessageTable.turn, turn)))
+    .where(
+      and(
+        eq(v2MessageTable.conversationId, conversationId),
+        eq(v2MessageTable.turn, turn),
+        eq(v2MessageTable.active, 1),
+      ),
+    )
     .orderBy(asc(v2MessageTable.createdAt), asc(v2MessageTable.id));
 };
 
@@ -456,7 +462,9 @@ export const readDisplayHistory = async (
     })
     .from(v2MessageTable)
     .leftJoin(messageTable, eq(messageTable.id, v2MessageTable.id))
-    .where(eq(v2MessageTable.conversationId, conversationId))
+    .where(
+      and(eq(v2MessageTable.conversationId, conversationId), eq(v2MessageTable.active, 1)),
+    )
     .orderBy(asc(v2MessageTable.turn), userFirst);
   const rows: DisplayHistoryRow[] = rawRows.map((row) => ({
     id: row.id,
@@ -506,6 +514,7 @@ export const listConversationImages = async (
     .where(
       and(
         eq(v2MessageTable.conversationId, conversationId),
+        eq(v2MessageTable.active, 1),
         sql`coalesce(${v2MessageTable.imageKey}, ${messageTable.imageKey}) is not null`,
       ),
     )
@@ -582,6 +591,7 @@ export const createD1TurnStore = (db: V2Db, opts: D1TurnStoreOptions): TurnStore
         .where(
           and(
             eq(v2MessageTable.conversationId, conversationId),
+            eq(v2MessageTable.active, 1),
             opts.beforeTurn === undefined ? undefined : lt(v2MessageTable.turn, opts.beforeTurn),
           ),
         )
