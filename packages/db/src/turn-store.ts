@@ -12,6 +12,7 @@ import {
   v2ChunkTable,
   v2ConversationTable,
   v2GenerationTable,
+  v2ImageGenerationTable,
   v2LedgerTable,
   v2MemoryJobTable,
   v2MemorySourceTable,
@@ -466,6 +467,81 @@ export const readDisplayHistory = async (
   }));
   const { live, nextTurn } = splitDeadTurns(rows);
   return { turn: nextTurn, history: live };
+};
+
+export type ConversationImageRow = {
+  id: string;
+  turn: number;
+  imageKey: string;
+  generationId: string | null;
+  createdAt: number;
+};
+
+// 画像履歴の一覧（RIT-185）。生成記録ではなく画面のメッセージを正にする:
+// 削除はメッセージ行ごと消すので、ここは画像付き v2_message だけを見れば一覧から消える。
+// 生成記録は起動の監査として残すため、message が残っているものだけを拾う結合にする。
+export const listConversationImages = async (
+  db: V2Db,
+  opts: D1TurnStoreOptions,
+  conversationId: string,
+): Promise<ConversationImageRow[]> => {
+  await assertConversationOwner(db, opts, conversationId);
+  const rows = await db
+    .select({
+      id: v2MessageTable.id,
+      turn: v2MessageTable.turn,
+      imageKey: v2MessageTable.imageKey,
+      legacyImageKey: messageTable.imageKey,
+      generationId: v2ImageGenerationTable.id,
+      createdAt: v2MessageTable.createdAt,
+    })
+    .from(v2MessageTable)
+    .leftJoin(messageTable, eq(messageTable.id, v2MessageTable.id))
+    .leftJoin(v2ImageGenerationTable, eq(v2ImageGenerationTable.messageId, v2MessageTable.id))
+    .where(
+      and(
+        eq(v2MessageTable.conversationId, conversationId),
+        sql`coalesce(${v2MessageTable.imageKey}, ${messageTable.imageKey}) is not null`,
+      ),
+    )
+    .orderBy(desc(v2MessageTable.createdAt), desc(v2MessageTable.id));
+  return rows
+    .filter((row) => (row.imageKey ?? row.legacyImageKey) !== null)
+    .map((row) => ({
+      id: row.id,
+      turn: row.turn,
+      imageKey: (row.imageKey ?? row.legacyImageKey) as string,
+      generationId: row.generationId ?? null,
+      createdAt: row.createdAt,
+    }));
+};
+
+// 画像メッセージの削除（RIT-185）。行ごと消すので履歴・一覧・i2i 参照元から姿が消える。
+// 生成記録は「何を投げたか」の監査として残し、呼び出し側へ R2 キーを返して実体も消す。
+// 本人の会話の画像付き行以外は null（404 へ倒す）。
+export const deleteConversationImage = async (
+  db: V2Db,
+  opts: D1TurnStoreOptions,
+  conversationId: string,
+  messageId: string,
+): Promise<string | null> => {
+  await assertConversationOwner(db, opts, conversationId);
+  const [row] = await db
+    .select({
+      imageKey: v2MessageTable.imageKey,
+      legacyImageKey: messageTable.imageKey,
+    })
+    .from(v2MessageTable)
+    .leftJoin(messageTable, eq(messageTable.id, v2MessageTable.id))
+    .where(and(eq(v2MessageTable.id, messageId), eq(v2MessageTable.conversationId, conversationId)));
+  const imageKey = row ? (row.imageKey ?? row.legacyImageKey) : null;
+  if (!row || !imageKey) return null;
+  // chunk は画像行には普通無いが、FK で残ると行が消せんので先に掃除する。
+  await db.batch([
+    db.delete(v2ChunkTable).where(eq(v2ChunkTable.messageId, messageId)),
+    db.delete(v2MessageTable).where(eq(v2MessageTable.id, messageId)),
+  ]);
+  return imageKey;
 };
 
 /**

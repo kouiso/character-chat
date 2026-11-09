@@ -299,6 +299,52 @@ export const requestChatImage = async (
   return await response.json();
 };
 
+// 画像履歴ギャラリー（RIT-185）。一覧の正はサーバ側の v2_message なので、
+// ここは受け取った並び（新しい順）をそのまま返すだけに留める。
+const imageGallerySchema = z.object({
+  images: z.array(
+    z.object({
+      messageId: z.string(),
+      imageUrl: z.string(),
+      generationId: z.string().nullable(),
+      turn: z.number().int(),
+      createdAt: z.number(),
+    }),
+  ),
+});
+export type ChatImageEntry = z.infer<typeof imageGallerySchema>["images"][number];
+
+export const listChatImages = async (
+  characterId: string,
+  conversationId: string,
+  signal: AbortSignal,
+): Promise<ChatImageEntry[]> => {
+  const query = new URLSearchParams({ conversationId });
+  const response = await throughNetwork(() =>
+    fetch(`/api/chat/${encodeURIComponent(characterId)}/images?${query}`, { signal }),
+  );
+  if (!response.ok) throw new Error("画像履歴を読み込めませんでした。");
+  return imageGallerySchema.parse(await response.json()).images;
+};
+
+// 消した画像は一覧・タイムラインの両方から消える（サーバがメッセージ行と R2 実体を消す）。
+export const deleteChatImage = async (
+  characterId: string,
+  conversationId: string,
+  messageId: string,
+): Promise<void> => {
+  const query = new URLSearchParams({ conversationId, messageId });
+  const response = await throughNetwork(() =>
+    fetch(`/api/chat/${encodeURIComponent(characterId)}/images?${query}`, {
+      method: "DELETE",
+    }),
+  );
+  if (!response.ok) {
+    const body = (await response.json().catch(() => null)) as { message?: string } | null;
+    throw new Error(body?.message ?? "画像を消せませんでした。再試行してください。");
+  }
+};
+
 export const connectChatTurn = async (
   pending: PendingTurn,
   signal: AbortSignal,

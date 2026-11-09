@@ -1,6 +1,13 @@
-import { ConversationAccessError } from "@v2/db";
+import {
+  ConversationAccessError,
+  createDb,
+  deleteConversationImage,
+  listConversationImages,
+} from "@v2/db";
+import { PROMPT_VERSION } from "@v2/prompt";
 import { z } from "zod";
 
+import { LOCAL_USER_ID } from "./identity";
 import { generateConversationImage, ImageGenerationError } from "./image-generation";
 import { getPlatform } from "./platform";
 
@@ -67,5 +74,79 @@ export const handleImageRequest = async (
       JSON.stringify({ event: "image_generation_error", message: String(error) }),
     );
     return json(500, { message: "画像を生成できませんでした。" });
+  }
+};
+
+const storeOpts = (characterId: string) => ({
+  userId: LOCAL_USER_ID,
+  characterId,
+  promptVersion: PROMPT_VERSION,
+});
+
+const readQuery = (request: Request, key: string): string | null => {
+  const value = new URL(request.url).searchParams.get(key);
+  return value && value.length <= 120 ? value : null;
+};
+
+// GET /api/chat/:id/images?conversationId=… — この会話で残っとる画像を新しい順で返す（RIT-185）。
+// 一覧の正は v2_message なので、消えた画像はここにも出ん。
+export const handleImageListRequest = async (
+  characterId: string,
+  request: Request,
+): Promise<Response> => {
+  const conversationId = readQuery(request, "conversationId");
+  if (!conversationId) return json(400, { message: "conversationIdを指定してください。" });
+  try {
+    const { env } = await getPlatform();
+    const rows = await listConversationImages(
+      createDb(env.DB),
+      storeOpts(characterId),
+      conversationId,
+    );
+    return json(200, {
+      images: rows.map((row) => ({
+        messageId: row.id,
+        imageUrl: `/api/media/${encodeURIComponent(row.id)}`,
+        generationId: row.generationId,
+        turn: row.turn,
+        createdAt: row.createdAt,
+      })),
+    });
+  } catch (error) {
+    if (error instanceof ConversationAccessError) {
+      return json(404, { message: "会話またはキャラクターが見つかりません。" });
+    }
+    throw error;
+  }
+};
+
+// DELETE /api/chat/:id/images?conversationId=…&messageId=… — 画像メッセージと R2 の実体を消す。
+// 消した画像は一覧・タイムライン・i2i 参照元の全部から姿を消す（RIT-185）。
+export const handleImageDeleteRequest = async (
+  characterId: string,
+  request: Request,
+): Promise<Response> => {
+  const conversationId = readQuery(request, "conversationId");
+  const messageId = readQuery(request, "messageId");
+  if (!conversationId || !messageId) {
+    return json(400, { message: "conversationIdとmessageIdを指定してください。" });
+  }
+  try {
+    const { env } = await getPlatform();
+    const imageKey = await deleteConversationImage(
+      createDb(env.DB),
+      storeOpts(characterId),
+      conversationId,
+      messageId,
+    );
+    if (!imageKey) return json(404, { message: "画像が見つかりません。" });
+    // D1 の行だけ消すと R2 に実体が残り配信経路外のゴミになるので、実体も消す。
+    await env.BUCKET.delete(imageKey);
+    return json(200, { deleted: true });
+  } catch (error) {
+    if (error instanceof ConversationAccessError) {
+      return json(404, { message: "会話またはキャラクターが見つかりません。" });
+    }
+    throw error;
   }
 };
