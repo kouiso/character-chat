@@ -8,7 +8,7 @@ import {
 } from "@v2/db";
 import { createOpenRouterModel } from "@v2/engine";
 import { PROMPT_VERSION } from "@v2/prompt";
-import { ctx } from "cloudflare:workers";
+import { waitUntil } from "cloudflare:workers";
 import { z } from "zod";
 
 import { readCharacter } from "./character-data.server";
@@ -71,7 +71,7 @@ const deferProviderResolution = (
     if (!reply.messageId || !reply.upstreamId) continue;
     const messageId = reply.messageId;
     const upstreamId = reply.upstreamId;
-    ctx.waitUntil(
+    waitUntil(
       (async () => {
         const provider = await retryProviderLookup(lookup, upstreamId);
         if (provider) await updateGroupMessageProvider(db, messageId, provider);
