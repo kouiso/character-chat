@@ -9,8 +9,16 @@ const platform = vi.hoisted(() => ({ env: {} as Record<string, unknown> }));
 vi.mock("./platform", () => ({ getPlatform: async () => platform }));
 
 const { handleSettingsReadRequest, handleSettingsWriteRequest } = await import("./api-settings");
-const { readChatMode, readChatStyle, readSafeMode, setChatMode, setChatStyle, setSafeMode } =
-  await import("./user-settings");
+const {
+  readChatMode,
+  readChatStyle,
+  readSafeMode,
+  readVoiceAutoplay,
+  setChatMode,
+  setChatStyle,
+  setSafeMode,
+  setVoiceAutoplay,
+} = await import("./user-settings");
 
 let local: LocalD1;
 const T0 = Date.UTC(2026, 10, 10, 0, 0, 0);
@@ -69,6 +77,18 @@ describe("readChatMode / setChatMode", () => {
   });
 });
 
+// RIT-211: ボイス自動再生設定。
+describe("readVoiceAutoplay / setVoiceAutoplay", () => {
+  it("行が無いユーザーは既定で OFF、往復できる", async () => {
+    const userId = `u-${crypto.randomUUID()}`;
+    expect(await readVoiceAutoplay(local.d1, userId)).toBe(false);
+    await setVoiceAutoplay(local.d1, userId, true, T0);
+    expect(await readVoiceAutoplay(local.d1, userId)).toBe(true);
+    await setVoiceAutoplay(local.d1, userId, false, T0 + 1);
+    expect(await readVoiceAutoplay(local.d1, userId)).toBe(false);
+  });
+});
+
 // RIT-203: 文体スタイル設定。
 describe("readChatStyle / setChatStyle", () => {
   it("行が無いユーザーは既定で balanced", async () => {
@@ -95,6 +115,7 @@ describe("settings API", () => {
       safeMode: await readSafeMode(local.d1, "local"),
       chatMode: await readChatMode(local.d1, "local"),
       style: await readChatStyle(local.d1, "local"),
+      voiceAutoplay: await readVoiceAutoplay(local.d1, "local"),
     });
 
     const put = await handleSettingsWriteRequest(
@@ -119,13 +140,20 @@ describe("settings API", () => {
       }),
     );
     expect(put.status).toBe(200);
-    const body: { safeMode: boolean; chatMode: string; style: string } = await put.json();
-    expect(body).toEqual({ safeMode: true, chatMode: "quality", style: "balanced" });
-    expect(await (await handleSettingsReadRequest()).json()).toEqual({
+    const body: {
+      safeMode: boolean;
+      chatMode: string;
+      style: string;
+      voiceAutoplay: boolean;
+    } = await put.json();
+    const expected = {
       safeMode: true,
       chatMode: "quality",
-      style: "balanced",
-    });
+      style: await readChatStyle(local.d1, "local"),
+      voiceAutoplay: await readVoiceAutoplay(local.d1, "local"),
+    };
+    expect(body).toEqual(expected);
+    expect(await (await handleSettingsReadRequest()).json()).toEqual(expected);
   });
 
   it("PUT は style だけでも更新できる", async () => {
@@ -140,6 +168,21 @@ describe("settings API", () => {
     expect(await readChatStyle(local.d1, "local")).toBe("prose");
     expect(await readSafeMode(local.d1, "local")).toBe(true);
     expect(await readChatMode(local.d1, "local")).toBe("quality");
+  });
+
+  it("PUT は voiceAutoplay だけでも更新でき、他列を上書きせん", async () => {
+    const put = await handleSettingsWriteRequest(
+      new Request("https://x/api/settings", {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ voiceAutoplay: true }),
+      }),
+    );
+    expect(put.status).toBe(200);
+    expect(await readVoiceAutoplay(local.d1, "local")).toBe(true);
+    expect(await readSafeMode(local.d1, "local")).toBe(true);
+    expect(await readChatMode(local.d1, "local")).toBe("quality");
+    expect(await readChatStyle(local.d1, "local")).toBe("prose");
   });
 
   it("PUT は型の違う safeMode・未対応の chatMode・空の更新を 400 で弾く", async () => {

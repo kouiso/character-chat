@@ -435,6 +435,13 @@
       "when": 1762951200000,
       "tag": "20261110060000_rit210_character_voice",
       "breakpoints": true
+    },
+    {
+      "idx": 97,
+      "version": "7",
+      "when": 1762956000000,
+      "tag": "20261110070000_rit211_voice_autoplay",
+      "breakpoints": true
     }
   ]
 }

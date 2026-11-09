@@ -9,9 +9,11 @@ import {
   readChatMode,
   readChatStyle,
   readSafeMode,
+  readVoiceAutoplay,
   setChatMode,
   setChatStyle,
   setSafeMode,
+  setVoiceAutoplay,
 } from "./user-settings";
 
 const json = (status: number, body: Record<string, unknown>): Response =>
@@ -23,6 +25,7 @@ const readSettings = async () => {
     safeMode: await readSafeMode(env.DB, LOCAL_USER_ID),
     chatMode: await readChatMode(env.DB, LOCAL_USER_ID),
     style: await readChatStyle(env.DB, LOCAL_USER_ID),
+    voiceAutoplay: await readVoiceAutoplay(env.DB, LOCAL_USER_ID),
   };
 };
 
@@ -37,10 +40,15 @@ const settingsSchema = z
     chatMode: z.enum(CHAT_MODES).optional(),
     // RIT-203: 文体スタイル（地の文/会話の配分）。
     style: z.enum(CHAT_STYLES).optional(),
+    // RIT-211: 応答音声の自動再生。
+    voiceAutoplay: z.boolean().optional(),
   })
   .refine(
     (body) =>
-      body.safeMode !== undefined || body.chatMode !== undefined || body.style !== undefined,
+      body.safeMode !== undefined ||
+      body.chatMode !== undefined ||
+      body.style !== undefined ||
+      body.voiceAutoplay !== undefined,
     {
       message: "更新する項目を1つ以上指定してください。",
     },
@@ -62,5 +70,7 @@ export const handleSettingsWriteRequest = async (request: Request): Promise<Resp
     await setChatMode(env.DB, LOCAL_USER_ID, parsed.data.chatMode, now);
   if (parsed.data.style !== undefined)
     await setChatStyle(env.DB, LOCAL_USER_ID, parsed.data.style, now);
+  if (parsed.data.voiceAutoplay !== undefined)
+    await setVoiceAutoplay(env.DB, LOCAL_USER_ID, parsed.data.voiceAutoplay, now);
   return json(200, await readSettings());
 };

@@ -80,3 +80,27 @@ export const setChatStyle = async (
     .bind(userId, style, now)
     .run();
 };
+
+// RIT-211: 応答音声の自動再生 ON/OFF。手動再生はこの設定に関わらず残す。
+export const readVoiceAutoplay = async (db: D1Database, userId: string): Promise<boolean> => {
+  const row = await db
+    .prepare("SELECT voice_autoplay FROM v2_user_settings WHERE user_id = ?")
+    .bind(userId)
+    .first<{ voice_autoplay: number }>();
+  return row?.voice_autoplay === 1;
+};
+
+export const setVoiceAutoplay = async (
+  db: D1Database,
+  userId: string,
+  on: boolean,
+  now: number,
+): Promise<void> => {
+  await db
+    .prepare(
+      "INSERT INTO v2_user_settings (user_id, voice_autoplay, updated_at) VALUES (?, ?, ?) " +
+        "ON CONFLICT(user_id) DO UPDATE SET voice_autoplay = excluded.voice_autoplay, updated_at = excluded.updated_at",
+    )
+    .bind(userId, on ? 1 : 0, now)
+    .run();
+};

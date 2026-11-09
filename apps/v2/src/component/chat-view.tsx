@@ -21,6 +21,7 @@ import {
   type PendingTurn,
 } from "../lib/chat-session";
 import { revealChunk, scheduleReveal } from "../lib/chunk-reveal";
+import { readVoiceAutoplay, requestVoice } from "../lib/tts";
 
 import { BranchControls } from "./branch-controls";
 import { ChatHeaderControls } from "./chat-header-controls";
@@ -31,6 +32,7 @@ import { GalleryPanel } from "./gallery-panel";
 import { LedgerPanel } from "./ledger-panel";
 import { MessageActions } from "./message-actions";
 import { SuggestionChips } from "./suggestion-chips";
+import { VoiceButton } from "./voice-button";
 
 import type { ChatSseEvent } from "../lib/sse-events";
 
@@ -295,6 +297,10 @@ export const ChatView = ({
   const controller = useRef<AbortController | null>(null);
   const revealCancel = useRef<(() => void) | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
+  // RIT-211: 音声再生。1発話ずつ Audio を持ち、再生中キーでボタンを切替える。
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [voiceKey, setVoiceKey] = useState<string | null>(null);
+  const bubblesRef = useRef<ChatBubble[]>([]);
 
   const consume = useCallback(async (turn: PendingTurn, signal: AbortSignal, retry = false) => {
     if (signal.aborted) return;
@@ -319,6 +325,7 @@ export const ChatView = ({
       const history = await loadChatHistory(turn.characterId, turn.conversationId, signal);
       if (signal.aborted) return;
       nextTurn.current = history.nextTurn;
+      bubblesRef.current = history.bubbles;
       if (reveal) startScheduledReveal(revealCancel, setBubbles, result.texts, result.sendAt);
       else setBubbles(history.bubbles);
     } catch (cause) {
@@ -382,6 +389,20 @@ export const ChatView = ({
           }
         />
       </>
+    );
+  };
+
+  // RIT-211: キャラ応答は自動再生設定に関わらず手動再生できる。
+  const voiceButtonOf = (bubble: ChatBubble) => {
+    if (bubble.role !== "assistant" || !bubble.text || bubble.pending) return null;
+    const key = bubble.id ?? `t${bubble.turn ?? 0}`;
+    return (
+      <VoiceButton
+        playing={voiceKey === key}
+        busy={false}
+        onPlay={() => void playVoice(key, bubble.text)}
+        onStop={stopVoice}
+      />
     );
   };
 
@@ -545,6 +566,38 @@ export const ChatView = ({
     const abort = new AbortController();
     controller.current = abort;
     await consume(turn, abort.signal);
+    void maybeAutoplay();
+  };
+
+  const stopVoice = useCallback(() => {
+    audioRef.current?.pause();
+    audioRef.current = null;
+    setVoiceKey(null);
+  }, []);
+
+  const playVoice = async (key: string, text: string) => {
+    audioRef.current?.pause();
+    setVoiceKey(key);
+    try {
+      const audio = await requestVoice(characterId, text, () => {
+        audioRef.current = null;
+        setVoiceKey(null);
+      });
+      audioRef.current = audio;
+      await audio.play();
+    } catch {
+      setVoiceKey(null);
+    }
+  };
+
+  // RIT-211: 応答確定後の自動再生。設定 OFF・エンジン未起動は黙ってスルー。
+  const maybeAutoplay = async () => {
+    if (!(await readVoiceAutoplay())) return;
+    const last = [...bubblesRef.current]
+      .reverse()
+      .find((bubble) => bubble.role === "assistant" && !bubble.pending && bubble.text);
+    if (!last) return;
+    await playVoice(last.id ?? `t${last.turn ?? 0}`, last.text).catch(() => undefined);
   };
 
   const send = async (event: React.FormEvent) => {
@@ -719,6 +772,7 @@ export const ChatView = ({
               streaming={bubble.pending}
             />
             {bubbleControls(bubble)}
+            {voiceButtonOf(bubble)}
           </div>
         ))}
       </ChatMessageLog>

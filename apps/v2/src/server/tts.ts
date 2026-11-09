@@ -31,3 +31,32 @@ export const engineBaseUrl = (env: TtsEnv, engine: VoiceEngine): string => {
     return env.V2_TTS_AIVIS_URL ?? "http://localhost:10101";
   return env.V2_TTS_VOICEVOX_URL ?? "http://localhost:50021";
 };
+
+// RIT-211: VOICEVOX 系2段合成（audio_query→synthesis）。AivisSpeech は
+// VOICEVOX 互換 API なので同じ経路を使う。音声はリクエスト毎に生成（キャッシュ無し）。
+export const synthesizeSpeech = async (
+  baseUrl: string,
+  settings: VoiceSettings,
+  text: string,
+): Promise<Response> => {
+  const speaker = encodeURIComponent(settings.speakerId);
+  const queryRes = await fetch(
+    `${baseUrl}/audio_query?text=${encodeURIComponent(text)}&speaker=${speaker}`,
+    { method: "POST" },
+  );
+  if (!queryRes.ok) throw new Error(`audio_query ${queryRes.status}`);
+  const query = (await queryRes.json()) as Record<string, unknown>;
+  query.speedScale = settings.speed;
+  query.pitchScale = settings.pitch;
+  query.intonationScale = settings.intonation;
+  const synthRes = await fetch(`${baseUrl}/synthesis?speaker=${speaker}`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(query),
+  });
+  if (!synthRes.ok || synthRes.body === null) throw new Error(`synthesis ${synthRes.status}`);
+  return new Response(synthRes.body, {
+    status: 200,
+    headers: { "content-type": "audio/wav", "cache-control": "no-store" },
+  });
+};
