@@ -264,6 +264,27 @@ export const readChatEvents = async function* (
   }
 };
 
+// 画像生成ボタン。失敗理由はサーバの message をそのまま画面へ出す（RIT-182 の失敗可視）。
+export const requestChatImage = async (
+  characterId: string,
+  conversationId: string,
+  signal: AbortSignal,
+): Promise<{ messageId: string; imageUrl: string }> => {
+  const response = await throughNetwork(() =>
+    fetch(`/api/chat/${encodeURIComponent(characterId)}/images`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      signal,
+      body: JSON.stringify({ conversationId }),
+    }),
+  );
+  if (!response.ok) {
+    const body = (await response.json().catch(() => null)) as { message?: string } | null;
+    throw new Error(body?.message ?? "画像を生成できませんでした。再試行してください。");
+  }
+  return await response.json();
+};
+
 export const connectChatTurn = async (
   pending: PendingTurn,
   signal: AbortSignal,

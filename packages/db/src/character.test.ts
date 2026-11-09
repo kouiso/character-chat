@@ -133,9 +133,7 @@ describe("loadCharacters / loadCharacter", () => {
         ok: { id },
         failures: [],
       });
-      const summary = (await listCharacterSummaries(local.db, owners)).find(
-        (row) => row.id === id,
-      );
+      const summary = (await listCharacterSummaries(local.db, owners)).find((row) => row.id === id);
       expect(summary).toMatchObject({ id, canEdit: false });
       // 他者名義は混ざらん。
       await expect(loadCharacter(local.db, id, ["local", "someone-else"])).resolves.toEqual({
