@@ -20,7 +20,10 @@ afterEach(() => {
 });
 
 const stubFetch = (impl: (init?: RequestInit) => unknown) =>
-  vi.stubGlobal("fetch", vi.fn(async (_url: string, init?: RequestInit) => impl(init)));
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (_url: string, init?: RequestInit) => impl(init)),
+  );
 
 describe("MemoryPanel", () => {
   it("開くと記憶を読み、閉じると消える", async () => {
@@ -121,6 +124,30 @@ describe("MemoryPanel", () => {
         .body as string,
     );
     expect(body).toEqual({ content: "新しい記憶", kind: "fact" });
+  });
+
+  it("リセットは二段階確認のあと DELETE /api/chat/:id/memory が飛ぶ（RIT-196）", async () => {
+    stubFetch((init) => {
+      if (init?.method === "DELETE") return Response.json({ conversations: 1 });
+      return Response.json({ memories: [memory] });
+    });
+    render(<MemoryPanel characterId="c1" />);
+    fireEvent.click(screen.getByRole("button", { name: "記憶を見る" }));
+    await screen.findByDisplayValue("紅茶が好き");
+    // 1クリック目では送らず確認文へ切り替わる。
+    fireEvent.click(screen.getByRole("button", { name: "記憶をすべてリセット" }));
+    expect(screen.getByText("このキャラの記憶をすべて消します。元に戻せません。")).toBeTruthy();
+    expect(fetch).not.toHaveBeenCalledWith(
+      "/api/chat/c1/memory",
+      expect.objectContaining({ method: "DELETE" }),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "本当にすべて消す" }));
+    await waitFor(() =>
+      expect(fetch).toHaveBeenCalledWith(
+        "/api/chat/c1/memory",
+        expect.objectContaining({ method: "DELETE" }),
+      ),
+    );
   });
 
   it("読み込み失敗ではエラーを出す", async () => {

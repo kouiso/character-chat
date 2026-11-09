@@ -77,3 +77,22 @@ export const removeMemory = async (characterId: string, memoryId: string): Promi
     body: JSON.stringify({ memoryId }),
   });
 };
+
+const resetResultSchema = z.object({
+  conversations: z.number(),
+  memories: z.number(),
+  jobs: z.number(),
+  summaries: z.number(),
+  vectorsDeleted: z.number(),
+});
+export type MemoryResetResult = z.infer<typeof resetResultSchema>;
+
+// 記憶リセット（RIT-196）。キャラの全会話の記憶3層を消す。メッセージ本文は残る。
+export const resetAllMemories = async (characterId: string): Promise<MemoryResetResult> => {
+  const response = await fetch(`/api/chat/${encodeURIComponent(characterId)}/memory`, {
+    method: "DELETE",
+    cache: "no-store",
+  });
+  if (!response.ok) throw new MemoryRequestError(response.status);
+  return resetResultSchema.parse(await response.json());
+};

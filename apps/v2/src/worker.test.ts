@@ -51,6 +51,7 @@ const UNAUTHENTICATED_PROBES = [
   ["GET", "/api/plan"],
   ["POST", "/api/plan"],
   ["POST", "/api/plan/cancel"],
+  ["DELETE", "/api/chat/example/memory"],
   ["GET", "/api/chat/example/history?conversationId=c1"],
   ["GET", "/api/chat/example/ledger?conversationId=c1"],
   ["PATCH", "/api/chat/example/ledger"],
