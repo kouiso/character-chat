@@ -25,6 +25,7 @@ const CharacterListPage = () => {
       <StyleSelect />
       <Link to="/characters/new">キャラクターを作る</Link>
       <Link to="/catalog">公開カタログ</Link>
+      <Link to="/board">雑談広場</Link>
       {conversations.length > 0 && (
         <section>
           <h2>保存した会話</h2>

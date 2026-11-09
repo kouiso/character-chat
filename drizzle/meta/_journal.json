@@ -414,6 +414,13 @@
       "when": 1762945800000,
       "tag": "20261110043000_rit208_tip_kind",
       "breakpoints": true
+    },
+    {
+      "idx": 94,
+      "version": "7",
+      "when": 1762947600000,
+      "tag": "20261110050000_rit209_board",
+      "breakpoints": true
     }
   ]
 }
