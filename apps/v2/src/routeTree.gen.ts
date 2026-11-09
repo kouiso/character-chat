@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BoardRouteImport } from './routes/board'
 import { Route as CatalogRouteImport } from './routes/catalog'
+import { Route as RevenueRouteImport } from './routes/revenue'
 import { Route as ApiBoardRouteImport } from './routes/api/board'
 import { Route as ApiCatalogRouteImport } from './routes/api/catalog'
 import { Route as ApiCharactersRouteImport } from './routes/api/characters'
@@ -20,6 +21,7 @@ import { Route as ApiFollowsRouteImport } from './routes/api/follows'
 import { Route as ApiGroupsRouteImport } from './routes/api/groups'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ApiPlanRouteImport } from './routes/api/plan'
+import { Route as ApiRevenueRouteImport } from './routes/api/revenue'
 import { Route as ApiSettingsRouteImport } from './routes/api/settings'
 import { Route as CharactersIdRouteImport } from './routes/characters/$id'
 import { Route as CharactersNewRouteImport } from './routes/characters/new'
@@ -36,6 +38,7 @@ import { Route as ApiMediaIdRouteImport } from './routes/api/media/$id'
 import { Route as ApiPlanCancelRouteImport } from './routes/api/plan/cancel'
 import { Route as ApiPushSubscriptionsRouteImport } from './routes/api/push/subscriptions'
 import { Route as ApiPushVapidKeyRouteImport } from './routes/api/push/vapid-key'
+import { Route as ApiRevenueAggregateRouteImport } from './routes/api/revenue_/aggregate'
 import { Route as ApiCatalogIdCommentsRouteImport } from './routes/api/catalog/$id_/comments'
 import { Route as ApiCatalogIdFollowRouteImport } from './routes/api/catalog/$id_/follow'
 import { Route as ApiCatalogIdForkRouteImport } from './routes/api/catalog/$id_/fork'
@@ -77,6 +80,11 @@ const CatalogRoute = CatalogRouteImport.update({
   path: '/catalog',
   getParentRoute: () => rootRouteImport,
 })
+const RevenueRoute = RevenueRouteImport.update({
+  id: '/revenue',
+  path: '/revenue',
+  getParentRoute: () => rootRouteImport,
+})
 const ApiBoardRoute = ApiBoardRouteImport.update({
   id: '/api/board',
   path: '/api/board',
@@ -115,6 +123,11 @@ const ApiHealthRoute = ApiHealthRouteImport.update({
 const ApiPlanRoute = ApiPlanRouteImport.update({
   id: '/api/plan',
   path: '/api/plan',
+  getParentRoute: () => rootRouteImport,
+})
+const ApiRevenueRoute = ApiRevenueRouteImport.update({
+  id: '/api/revenue',
+  path: '/api/revenue',
   getParentRoute: () => rootRouteImport,
 })
 const ApiSettingsRoute = ApiSettingsRouteImport.update({
@@ -195,6 +208,11 @@ const ApiPushSubscriptionsRoute = ApiPushSubscriptionsRouteImport.update({
 const ApiPushVapidKeyRoute = ApiPushVapidKeyRouteImport.update({
   id: '/api/push/vapid-key',
   path: '/api/push/vapid-key',
+  getParentRoute: () => rootRouteImport,
+})
+const ApiRevenueAggregateRoute = ApiRevenueAggregateRouteImport.update({
+  id: '/api/revenue_/aggregate',
+  path: '/api/revenue/aggregate',
   getParentRoute: () => rootRouteImport,
 })
 const ApiCatalogIdCommentsRoute = ApiCatalogIdCommentsRouteImport.update({
@@ -331,6 +349,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/board': typeof BoardRoute
   '/catalog': typeof CatalogRoute
+  '/revenue': typeof RevenueRoute
   '/api/board': typeof ApiBoardRouteWithChildren
   '/api/catalog': typeof ApiCatalogRouteWithChildren
   '/api/characters': typeof ApiCharactersRouteWithChildren
@@ -339,6 +358,7 @@ export interface FileRoutesByFullPath {
   '/api/groups': typeof ApiGroupsRouteWithChildren
   '/api/health': typeof ApiHealthRoute
   '/api/plan': typeof ApiPlanRouteWithChildren
+  '/api/revenue': typeof ApiRevenueRoute
   '/api/settings': typeof ApiSettingsRoute
   '/characters/$id': typeof CharactersIdRoute
   '/characters/new': typeof CharactersNewRoute
@@ -355,6 +375,7 @@ export interface FileRoutesByFullPath {
   '/api/plan/cancel': typeof ApiPlanCancelRoute
   '/api/push/subscriptions': typeof ApiPushSubscriptionsRoute
   '/api/push/vapid-key': typeof ApiPushVapidKeyRoute
+  '/api/revenue/aggregate': typeof ApiRevenueAggregateRoute
   '/api/catalog/$id/comments': typeof ApiCatalogIdCommentsRouteWithChildren
   '/api/catalog/$id/follow': typeof ApiCatalogIdFollowRoute
   '/api/catalog/$id/fork': typeof ApiCatalogIdForkRoute
@@ -385,6 +406,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/board': typeof BoardRoute
   '/catalog': typeof CatalogRoute
+  '/revenue': typeof RevenueRoute
   '/api/board': typeof ApiBoardRouteWithChildren
   '/api/catalog': typeof ApiCatalogRouteWithChildren
   '/api/characters': typeof ApiCharactersRouteWithChildren
@@ -393,6 +415,7 @@ export interface FileRoutesByTo {
   '/api/groups': typeof ApiGroupsRouteWithChildren
   '/api/health': typeof ApiHealthRoute
   '/api/plan': typeof ApiPlanRouteWithChildren
+  '/api/revenue': typeof ApiRevenueRoute
   '/api/settings': typeof ApiSettingsRoute
   '/characters/$id': typeof CharactersIdRoute
   '/characters/new': typeof CharactersNewRoute
@@ -409,6 +432,7 @@ export interface FileRoutesByTo {
   '/api/plan/cancel': typeof ApiPlanCancelRoute
   '/api/push/subscriptions': typeof ApiPushSubscriptionsRoute
   '/api/push/vapid-key': typeof ApiPushVapidKeyRoute
+  '/api/revenue/aggregate': typeof ApiRevenueAggregateRoute
   '/api/catalog/$id/comments': typeof ApiCatalogIdCommentsRouteWithChildren
   '/api/catalog/$id/follow': typeof ApiCatalogIdFollowRoute
   '/api/catalog/$id/fork': typeof ApiCatalogIdForkRoute
@@ -440,6 +464,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/board': typeof BoardRoute
   '/catalog': typeof CatalogRoute
+  '/revenue': typeof RevenueRoute
   '/api/board': typeof ApiBoardRouteWithChildren
   '/api/catalog': typeof ApiCatalogRouteWithChildren
   '/api/characters': typeof ApiCharactersRouteWithChildren
@@ -448,6 +473,7 @@ export interface FileRoutesById {
   '/api/groups': typeof ApiGroupsRouteWithChildren
   '/api/health': typeof ApiHealthRoute
   '/api/plan': typeof ApiPlanRouteWithChildren
+  '/api/revenue': typeof ApiRevenueRoute
   '/api/settings': typeof ApiSettingsRoute
   '/characters/$id': typeof CharactersIdRoute
   '/characters/new': typeof CharactersNewRoute
@@ -464,6 +490,7 @@ export interface FileRoutesById {
   '/api/plan/cancel': typeof ApiPlanCancelRoute
   '/api/push/subscriptions': typeof ApiPushSubscriptionsRoute
   '/api/push/vapid-key': typeof ApiPushVapidKeyRoute
+  '/api/revenue_/aggregate': typeof ApiRevenueAggregateRoute
   '/api/catalog/$id_/comments': typeof ApiCatalogIdCommentsRouteWithChildren
   '/api/catalog/$id_/follow': typeof ApiCatalogIdFollowRoute
   '/api/catalog/$id_/fork': typeof ApiCatalogIdForkRoute
@@ -496,6 +523,7 @@ export interface FileRouteTypes {
     | '/'
     | '/board'
     | '/catalog'
+    | '/revenue'
     | '/api/board'
     | '/api/catalog'
     | '/api/characters'
@@ -504,6 +532,7 @@ export interface FileRouteTypes {
     | '/api/groups'
     | '/api/health'
     | '/api/plan'
+    | '/api/revenue'
     | '/api/settings'
     | '/characters/$id'
     | '/characters/new'
@@ -520,6 +549,7 @@ export interface FileRouteTypes {
     | '/api/plan/cancel'
     | '/api/push/subscriptions'
     | '/api/push/vapid-key'
+    | '/api/revenue/aggregate'
     | '/api/catalog/$id/comments'
     | '/api/catalog/$id/follow'
     | '/api/catalog/$id/fork'
@@ -550,6 +580,7 @@ export interface FileRouteTypes {
     | '/'
     | '/board'
     | '/catalog'
+    | '/revenue'
     | '/api/board'
     | '/api/catalog'
     | '/api/characters'
@@ -558,6 +589,7 @@ export interface FileRouteTypes {
     | '/api/groups'
     | '/api/health'
     | '/api/plan'
+    | '/api/revenue'
     | '/api/settings'
     | '/characters/$id'
     | '/characters/new'
@@ -574,6 +606,7 @@ export interface FileRouteTypes {
     | '/api/plan/cancel'
     | '/api/push/subscriptions'
     | '/api/push/vapid-key'
+    | '/api/revenue/aggregate'
     | '/api/catalog/$id/comments'
     | '/api/catalog/$id/follow'
     | '/api/catalog/$id/fork'
@@ -604,6 +637,7 @@ export interface FileRouteTypes {
     | '/'
     | '/board'
     | '/catalog'
+    | '/revenue'
     | '/api/board'
     | '/api/catalog'
     | '/api/characters'
@@ -612,6 +646,7 @@ export interface FileRouteTypes {
     | '/api/groups'
     | '/api/health'
     | '/api/plan'
+    | '/api/revenue'
     | '/api/settings'
     | '/characters/$id'
     | '/characters/new'
@@ -628,6 +663,7 @@ export interface FileRouteTypes {
     | '/api/plan/cancel'
     | '/api/push/subscriptions'
     | '/api/push/vapid-key'
+    | '/api/revenue_/aggregate'
     | '/api/catalog/$id_/comments'
     | '/api/catalog/$id_/follow'
     | '/api/catalog/$id_/fork'
@@ -659,6 +695,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BoardRoute: typeof BoardRoute
   CatalogRoute: typeof CatalogRoute
+  RevenueRoute: typeof RevenueRoute
   ApiBoardRoute: typeof ApiBoardRouteWithChildren
   ApiCatalogRoute: typeof ApiCatalogRouteWithChildren
   ApiCharactersRoute: typeof ApiCharactersRouteWithChildren
@@ -667,6 +704,7 @@ export interface RootRouteChildren {
   ApiGroupsRoute: typeof ApiGroupsRouteWithChildren
   ApiHealthRoute: typeof ApiHealthRoute
   ApiPlanRoute: typeof ApiPlanRouteWithChildren
+  ApiRevenueRoute: typeof ApiRevenueRoute
   ApiSettingsRoute: typeof ApiSettingsRoute
   CharactersIdRoute: typeof CharactersIdRoute
   CharactersNewRoute: typeof CharactersNewRoute
@@ -676,6 +714,7 @@ export interface RootRouteChildren {
   ApiMediaIdRoute: typeof ApiMediaIdRoute
   ApiPushSubscriptionsRoute: typeof ApiPushSubscriptionsRoute
   ApiPushVapidKeyRoute: typeof ApiPushVapidKeyRoute
+  ApiRevenueAggregateRoute: typeof ApiRevenueAggregateRoute
   ApiChatIdBranchRoute: typeof ApiChatIdBranchRoute
   ApiChatIdComicRoute: typeof ApiChatIdComicRoute
   ApiChatIdHistoryRoute: typeof ApiChatIdHistoryRoute
@@ -709,6 +748,13 @@ declare module '@tanstack/react-router' {
       path: '/catalog'
       fullPath: '/catalog'
       preLoaderRoute: typeof CatalogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/revenue': {
+      id: '/revenue'
+      path: '/revenue'
+      fullPath: '/revenue'
+      preLoaderRoute: typeof RevenueRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/board': {
@@ -765,6 +811,13 @@ declare module '@tanstack/react-router' {
       path: '/api/plan'
       fullPath: '/api/plan'
       preLoaderRoute: typeof ApiPlanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/revenue': {
+      id: '/api/revenue'
+      path: '/api/revenue'
+      fullPath: '/api/revenue'
+      preLoaderRoute: typeof ApiRevenueRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/settings': {
@@ -877,6 +930,13 @@ declare module '@tanstack/react-router' {
       path: '/api/push/vapid-key'
       fullPath: '/api/push/vapid-key'
       preLoaderRoute: typeof ApiPushVapidKeyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/revenue_/aggregate': {
+      id: '/api/revenue_/aggregate'
+      path: '/api/revenue/aggregate'
+      fullPath: '/api/revenue/aggregate'
+      preLoaderRoute: typeof ApiRevenueAggregateRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/catalog/$id_/comments': {
@@ -1197,6 +1257,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BoardRoute: BoardRoute,
   CatalogRoute: CatalogRoute,
+  RevenueRoute: RevenueRoute,
   ApiBoardRoute: ApiBoardRouteWithChildren,
   ApiCatalogRoute: ApiCatalogRouteWithChildren,
   ApiCharactersRoute: ApiCharactersRouteWithChildren,
@@ -1205,6 +1266,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiGroupsRoute: ApiGroupsRouteWithChildren,
   ApiHealthRoute: ApiHealthRoute,
   ApiPlanRoute: ApiPlanRouteWithChildren,
+  ApiRevenueRoute: ApiRevenueRoute,
   ApiSettingsRoute: ApiSettingsRoute,
   CharactersIdRoute: CharactersIdRoute,
   CharactersNewRoute: CharactersNewRoute,
@@ -1214,6 +1276,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiMediaIdRoute: ApiMediaIdRoute,
   ApiPushSubscriptionsRoute: ApiPushSubscriptionsRoute,
   ApiPushVapidKeyRoute: ApiPushVapidKeyRoute,
+  ApiRevenueAggregateRoute: ApiRevenueAggregateRoute,
   ApiChatIdBranchRoute: ApiChatIdBranchRoute,
   ApiChatIdComicRoute: ApiChatIdComicRoute,
   ApiChatIdHistoryRoute: ApiChatIdHistoryRoute,

@@ -664,3 +664,23 @@ export const v2BoardPostTable = sqliteTable(
   },
   (table) => [index("idx_v2_board_post_created").on(table.createdAt)],
 );
+
+// RIT-195: クリエイター収益行。課金イベント（台帳の tip 行など）から50%還元分を
+// 集計して積む。source_ledger_id 一意で冪等（同じイベントは二度積まない）。
+export const v2CreatorRevenueTable = sqliteTable(
+  "v2_creator_revenue",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull(),
+    sourceLedgerId: text("source_ledger_id").notNull(),
+    sourceType: text("source_type").notNull(),
+    refId: text("ref_id"),
+    grossAmount: integer("gross_amount").notNull(),
+    shareAmount: integer("share_amount").notNull(),
+    createdAt: integer("created_at").notNull(),
+  },
+  (table) => [
+    uniqueIndex("v2_creator_revenue_source_unique").on(table.sourceLedgerId),
+    index("idx_v2_creator_revenue_user").on(table.userId),
+  ],
+);
