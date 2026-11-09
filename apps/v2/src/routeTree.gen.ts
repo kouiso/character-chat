@@ -20,6 +20,9 @@ import { Route as ChatIdRouteImport } from './routes/chat/$id'
 import { Route as ApiAdminLegacyMigrationRouteImport } from './routes/api/admin/legacy-migration'
 import { Route as ApiCharactersIdRouteImport } from './routes/api/characters/$id'
 import { Route as ApiChatIdRouteImport } from './routes/api/chat/$id'
+import { Route as ApiCurrencyAdRewardRouteImport } from './routes/api/currency/ad-reward'
+import { Route as ApiCurrencyDailyPassRouteImport } from './routes/api/currency/daily-pass'
+import { Route as ApiCurrencyLoginBonusRouteImport } from './routes/api/currency/login-bonus'
 import { Route as ApiMediaIdRouteImport } from './routes/api/media/$id'
 import { Route as ApiPushSubscriptionsRouteImport } from './routes/api/push/subscriptions'
 import { Route as ApiPushVapidKeyRouteImport } from './routes/api/push/vapid-key'
@@ -91,6 +94,21 @@ const ApiChatIdRoute = ApiChatIdRouteImport.update({
   id: '/api/chat/$id',
   path: '/api/chat/$id',
   getParentRoute: () => rootRouteImport,
+})
+const ApiCurrencyAdRewardRoute = ApiCurrencyAdRewardRouteImport.update({
+  id: '/ad-reward',
+  path: '/ad-reward',
+  getParentRoute: () => ApiCurrencyRoute,
+})
+const ApiCurrencyDailyPassRoute = ApiCurrencyDailyPassRouteImport.update({
+  id: '/daily-pass',
+  path: '/daily-pass',
+  getParentRoute: () => ApiCurrencyRoute,
+})
+const ApiCurrencyLoginBonusRoute = ApiCurrencyLoginBonusRouteImport.update({
+  id: '/login-bonus',
+  path: '/login-bonus',
+  getParentRoute: () => ApiCurrencyRoute,
 })
 const ApiMediaIdRoute = ApiMediaIdRouteImport.update({
   id: '/api/media/$id',
@@ -180,7 +198,7 @@ const ApiProactiveCharactersIdSettingsRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/api/characters': typeof ApiCharactersRouteWithChildren
-  '/api/currency': typeof ApiCurrencyRoute
+  '/api/currency': typeof ApiCurrencyRouteWithChildren
   '/api/groups': typeof ApiGroupsRouteWithChildren
   '/api/health': typeof ApiHealthRoute
   '/characters/$id': typeof CharactersIdRoute
@@ -189,6 +207,9 @@ export interface FileRoutesByFullPath {
   '/api/admin/legacy-migration': typeof ApiAdminLegacyMigrationRoute
   '/api/characters/$id': typeof ApiCharactersIdRoute
   '/api/chat/$id': typeof ApiChatIdRoute
+  '/api/currency/ad-reward': typeof ApiCurrencyAdRewardRoute
+  '/api/currency/daily-pass': typeof ApiCurrencyDailyPassRoute
+  '/api/currency/login-bonus': typeof ApiCurrencyLoginBonusRoute
   '/api/media/$id': typeof ApiMediaIdRoute
   '/api/push/subscriptions': typeof ApiPushSubscriptionsRoute
   '/api/push/vapid-key': typeof ApiPushVapidKeyRoute
@@ -209,7 +230,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/api/characters': typeof ApiCharactersRouteWithChildren
-  '/api/currency': typeof ApiCurrencyRoute
+  '/api/currency': typeof ApiCurrencyRouteWithChildren
   '/api/groups': typeof ApiGroupsRouteWithChildren
   '/api/health': typeof ApiHealthRoute
   '/characters/$id': typeof CharactersIdRoute
@@ -218,6 +239,9 @@ export interface FileRoutesByTo {
   '/api/admin/legacy-migration': typeof ApiAdminLegacyMigrationRoute
   '/api/characters/$id': typeof ApiCharactersIdRoute
   '/api/chat/$id': typeof ApiChatIdRoute
+  '/api/currency/ad-reward': typeof ApiCurrencyAdRewardRoute
+  '/api/currency/daily-pass': typeof ApiCurrencyDailyPassRoute
+  '/api/currency/login-bonus': typeof ApiCurrencyLoginBonusRoute
   '/api/media/$id': typeof ApiMediaIdRoute
   '/api/push/subscriptions': typeof ApiPushSubscriptionsRoute
   '/api/push/vapid-key': typeof ApiPushVapidKeyRoute
@@ -239,7 +263,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/api/characters': typeof ApiCharactersRouteWithChildren
-  '/api/currency': typeof ApiCurrencyRoute
+  '/api/currency': typeof ApiCurrencyRouteWithChildren
   '/api/groups': typeof ApiGroupsRouteWithChildren
   '/api/health': typeof ApiHealthRoute
   '/characters/$id': typeof CharactersIdRoute
@@ -248,6 +272,9 @@ export interface FileRoutesById {
   '/api/admin/legacy-migration': typeof ApiAdminLegacyMigrationRoute
   '/api/characters/$id': typeof ApiCharactersIdRoute
   '/api/chat/$id': typeof ApiChatIdRoute
+  '/api/currency/ad-reward': typeof ApiCurrencyAdRewardRoute
+  '/api/currency/daily-pass': typeof ApiCurrencyDailyPassRoute
+  '/api/currency/login-bonus': typeof ApiCurrencyLoginBonusRoute
   '/api/media/$id': typeof ApiMediaIdRoute
   '/api/push/subscriptions': typeof ApiPushSubscriptionsRoute
   '/api/push/vapid-key': typeof ApiPushVapidKeyRoute
@@ -279,6 +306,9 @@ export interface FileRouteTypes {
     | '/api/admin/legacy-migration'
     | '/api/characters/$id'
     | '/api/chat/$id'
+    | '/api/currency/ad-reward'
+    | '/api/currency/daily-pass'
+    | '/api/currency/login-bonus'
     | '/api/media/$id'
     | '/api/push/subscriptions'
     | '/api/push/vapid-key'
@@ -308,6 +338,9 @@ export interface FileRouteTypes {
     | '/api/admin/legacy-migration'
     | '/api/characters/$id'
     | '/api/chat/$id'
+    | '/api/currency/ad-reward'
+    | '/api/currency/daily-pass'
+    | '/api/currency/login-bonus'
     | '/api/media/$id'
     | '/api/push/subscriptions'
     | '/api/push/vapid-key'
@@ -337,6 +370,9 @@ export interface FileRouteTypes {
     | '/api/admin/legacy-migration'
     | '/api/characters/$id'
     | '/api/chat/$id'
+    | '/api/currency/ad-reward'
+    | '/api/currency/daily-pass'
+    | '/api/currency/login-bonus'
     | '/api/media/$id'
     | '/api/push/subscriptions'
     | '/api/push/vapid-key'
@@ -358,7 +394,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ApiCharactersRoute: typeof ApiCharactersRouteWithChildren
-  ApiCurrencyRoute: typeof ApiCurrencyRoute
+  ApiCurrencyRoute: typeof ApiCurrencyRouteWithChildren
   ApiGroupsRoute: typeof ApiGroupsRouteWithChildren
   ApiHealthRoute: typeof ApiHealthRoute
   CharactersIdRoute: typeof CharactersIdRoute
@@ -455,6 +491,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/chat/$id'
       preLoaderRoute: typeof ApiChatIdRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/api/currency/ad-reward': {
+      id: '/api/currency/ad-reward'
+      path: '/ad-reward'
+      fullPath: '/api/currency/ad-reward'
+      preLoaderRoute: typeof ApiCurrencyAdRewardRouteImport
+      parentRoute: typeof ApiCurrencyRoute
+    }
+    '/api/currency/daily-pass': {
+      id: '/api/currency/daily-pass'
+      path: '/daily-pass'
+      fullPath: '/api/currency/daily-pass'
+      preLoaderRoute: typeof ApiCurrencyDailyPassRouteImport
+      parentRoute: typeof ApiCurrencyRoute
+    }
+    '/api/currency/login-bonus': {
+      id: '/api/currency/login-bonus'
+      path: '/login-bonus'
+      fullPath: '/api/currency/login-bonus'
+      preLoaderRoute: typeof ApiCurrencyLoginBonusRouteImport
+      parentRoute: typeof ApiCurrencyRoute
     }
     '/api/media/$id': {
       id: '/api/media/$id'
@@ -619,6 +676,22 @@ const ApiCharactersRouteWithChildren = ApiCharactersRoute._addFileChildren(
   ApiCharactersRouteChildren,
 )
 
+interface ApiCurrencyRouteChildren {
+  ApiCurrencyAdRewardRoute: typeof ApiCurrencyAdRewardRoute
+  ApiCurrencyDailyPassRoute: typeof ApiCurrencyDailyPassRoute
+  ApiCurrencyLoginBonusRoute: typeof ApiCurrencyLoginBonusRoute
+}
+
+const ApiCurrencyRouteChildren: ApiCurrencyRouteChildren = {
+  ApiCurrencyAdRewardRoute: ApiCurrencyAdRewardRoute,
+  ApiCurrencyDailyPassRoute: ApiCurrencyDailyPassRoute,
+  ApiCurrencyLoginBonusRoute: ApiCurrencyLoginBonusRoute,
+}
+
+const ApiCurrencyRouteWithChildren = ApiCurrencyRoute._addFileChildren(
+  ApiCurrencyRouteChildren,
+)
+
 interface ApiGroupsRouteChildren {
   ApiGroupsIdMessagesRoute: typeof ApiGroupsIdMessagesRoute
 }
@@ -634,7 +707,7 @@ const ApiGroupsRouteWithChildren = ApiGroupsRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ApiCharactersRoute: ApiCharactersRouteWithChildren,
-  ApiCurrencyRoute: ApiCurrencyRoute,
+  ApiCurrencyRoute: ApiCurrencyRouteWithChildren,
   ApiGroupsRoute: ApiGroupsRouteWithChildren,
   ApiHealthRoute: ApiHealthRoute,
   CharactersIdRoute: CharactersIdRoute,
