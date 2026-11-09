@@ -1,6 +1,12 @@
 // POST /api/admin/legacy-migration — 旧 memory_note/rag_chunk を v2 の記憶・検索箱へ移す（RIT-78）。
 // Basic 認証の内側なので追加の認可は持たん。dryRun: true で件数だけ返す。
-import { createDb, listLegacyMemoryUserIds } from "@v2/db";
+import {
+  createDb,
+  LegacyMigrationError,
+  listLegacyConversationUserIds,
+  listLegacyMemoryUserIds,
+  migrateLegacyConversations,
+} from "@v2/db";
 import { z } from "zod";
 
 import { LOCAL_USER_ID } from "./identity";
@@ -17,7 +23,37 @@ const BodySchema = z.object({
   characterId: z.string().min(1).optional(),
   dryRun: z.boolean().optional(),
   corpus: z.boolean().optional(),
+  conversations: z.boolean().optional(),
 });
+
+type ConversationMigrationInput = { sourceUserId?: string; dryRun?: boolean };
+
+const runConversationMigration = async (
+  db: ReturnType<typeof createDb>,
+  input: ConversationMigrationInput,
+  targetUserId: string,
+) => {
+  const sourceUserIds = input.sourceUserId
+    ? [input.sourceUserId]
+    : await listLegacyConversationUserIds(db);
+  const outcomes = [];
+  for (const sourceUserId of sourceUserIds) {
+    const outcome = await migrateLegacyConversations(db, {
+      sourceUserId,
+      targetUserId,
+      dryRun: input.dryRun,
+    }).catch((error: unknown) => {
+      if (error instanceof LegacyMigrationError) return error;
+      throw error;
+    });
+    outcomes.push(
+      outcome instanceof LegacyMigrationError
+        ? { sourceUserId, ...outcome.result, failures: outcome.failures }
+        : { sourceUserId, ...outcome },
+    );
+  }
+  return outcomes;
+};
 
 export const handleLegacyMigration = async (request: Request): Promise<Response> => {
   if (request.method !== "POST") {
@@ -53,14 +89,15 @@ export const handleLegacyMigration = async (request: Request): Promise<Response>
         targetUserId,
         characterId: parsed.data.characterId,
         dryRun: parsed.data.dryRun,
-        // corpus はユーザーごとではなく1回だけ回す。最初のソースでだけ実行する。
       }),
     });
   }
   // corpus（rag_chunk 共有コーパス）はユーザー単位ではなく1回だけ。memory_note が
   // 0 件の環境でも実行できるよう reports の外で回す。
-  const corpus = parsed.data.corpus
-    ? await indexCorpusChunks(db, env, parsed.data.dryRun)
+  const corpus = parsed.data.corpus ? await indexCorpusChunks(db, env, parsed.data.dryRun) : null;
+  // 会話移行（RIT-45）。memory_note の利用者とは別の集合を使う。
+  const conversations = parsed.data.conversations
+    ? await runConversationMigration(db, parsed.data, targetUserId)
     : null;
-  return Response.json({ targetUserId, reports, corpus });
+  return Response.json({ targetUserId, reports, corpus, conversations });
 };

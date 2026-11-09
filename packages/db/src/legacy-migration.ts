@@ -355,3 +355,11 @@ export const listConversations = async (db: V2Db, userId: string) =>
       ),
     )
     .orderBy(desc(v2ConversationTable.updatedAt));
+
+// 旧会話の所有者一覧（sourceUserId 未指定時の発見用）。
+export const listLegacyConversationUserIds = async (db: V2Db): Promise<string[]> => {
+  const rows = await db
+    .selectDistinct({ userId: conversationTable.userId })
+    .from(conversationTable);
+  return rows.map((row) => row.userId);
+};
