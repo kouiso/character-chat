@@ -52,8 +52,11 @@ export const playVoiceText = (
     }
     try {
       const layer = layers[index];
-      const audio = await requestVoiceClip(characterId, layer.text, layer.kind, () =>
-        void playNext(index + 1),
+      const audio = await requestVoiceClip(
+        characterId,
+        layer.text,
+        layer.kind,
+        () => void playNext(index + 1),
       );
       if (stopped) {
         URL.revokeObjectURL(audio.src);
@@ -75,8 +78,15 @@ export const playVoiceText = (
   };
 };
 
+// 通話モード中は通常の自動再生を抑止する（通話ループが再生を握るため二重発話を防ぐ）。
+let autoplaySuppressed = false;
+export const setVoiceAutoplaySuppressed = (on: boolean): void => {
+  autoplaySuppressed = on;
+};
+
 // 自動再生の設定値。失敗時は OFF 扱い（鳴らない方向へ倒す）。
 export const readVoiceAutoplay = async (): Promise<boolean> => {
+  if (autoplaySuppressed) return false;
   try {
     const res = await fetch("/api/settings");
     if (!res.ok) return false;

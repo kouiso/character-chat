@@ -89,6 +89,8 @@ const UNAUTHENTICATED_PROBES = [
   ["GET", "/api/characters/example/voice"],
   ["PUT", "/api/characters/example/voice"],
   ["POST", "/api/tts"],
+  ["GET", "/api/voice-call/quota"],
+  ["POST", "/api/voice-call/quota"],
   ["GET", "/api/catalog"],
   ["GET", "/catalog"],
   ["GET", "/api/catalog/example"],

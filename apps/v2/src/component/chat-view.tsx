@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { Dispatch, RefObject, SetStateAction } from "react";
 
 import { useMessageMarks } from "../hook/use-message-marks";
+import { useVoiceCall } from "../hook/use-voice-call";
 import { runBranchAction } from "../lib/branch";
 import { MAX_MESSAGE_LENGTH } from "../lib/chat-limits";
 import {
@@ -33,8 +34,13 @@ import { LedgerPanel } from "./ledger-panel";
 import { MessageActions } from "./message-actions";
 import { SuggestionChips } from "./suggestion-chips";
 import { VoiceButton } from "./voice-button";
+import { VoiceCallButton } from "./voice-call-button";
 
 import type { ChatSseEvent } from "../lib/sse-events";
+
+// 直近の確定アシスタント発話（自動再生・通話ループの発話対象）。
+const isPlayableAssistant = (bubble: ChatBubble): boolean =>
+  bubble.role === "assistant" && !bubble.pending && Boolean(bubble.text);
 
 export type ChatViewProps = {
   characterId: string;
@@ -299,8 +305,35 @@ export const ChatView = ({
   const rootRef = useRef<HTMLDivElement>(null);
   // RIT-211/212: 音声再生。レイヤ連続再生のハンドルを持ち、再生中キーでボタンを切替える。
   const playbackRef = useRef<VoicePlayback | null>(null);
+  const callEndRef = useRef<() => void>(() => {});
   const [voiceKey, setVoiceKey] = useState<string | null>(null);
   const bubblesRef = useRef<ChatBubble[]>([]);
+
+  const stopVoice = useCallback(() => {
+    playbackRef.current?.stop();
+    playbackRef.current = null;
+    setVoiceKey(null);
+  }, []);
+
+  const playVoice = (key: string, text: string) => {
+    playbackRef.current?.stop();
+    setVoiceKey(key);
+    playbackRef.current = playVoiceText(characterId, text, () => {
+      playbackRef.current = null;
+      setVoiceKey(null);
+      callEndRef.current();
+    });
+  };
+
+  const latestAssistant = () => [...bubblesRef.current].reverse().find(isPlayableAssistant);
+
+  // RIT-211: 応答確定後の自動再生。設定 OFF・エンジン未起動は黙ってスルー。
+  const maybeAutoplay = async () => {
+    if (!(await readVoiceAutoplay())) return;
+    const last = latestAssistant();
+    if (!last) return;
+    playVoice(last.id ?? `t${last.turn ?? 0}`, last.text);
+  };
 
   const consume = useCallback(async (turn: PendingTurn, signal: AbortSignal, retry = false) => {
     if (signal.aborted) return;
@@ -569,30 +602,11 @@ export const ChatView = ({
     void maybeAutoplay();
   };
 
-  const stopVoice = useCallback(() => {
-    playbackRef.current?.stop();
-    playbackRef.current = null;
-    setVoiceKey(null);
-  }, []);
-
-  const playVoice = (key: string, text: string) => {
-    playbackRef.current?.stop();
-    setVoiceKey(key);
-    playbackRef.current = playVoiceText(characterId, text, () => {
-      playbackRef.current = null;
-      setVoiceKey(null);
-    });
-  };
-
-  // RIT-211: 応答確定後の自動再生。設定 OFF・エンジン未起動は黙ってスルー。
-  const maybeAutoplay = async () => {
-    if (!(await readVoiceAutoplay())) return;
-    const last = [...bubblesRef.current]
-      .reverse()
-      .find((bubble) => bubble.role === "assistant" && !bubble.pending && bubble.text);
-    if (!last) return;
-    playVoice(last.id ?? `t${last.turn ?? 0}`, last.text);
-  };
+  // RIT-213: STT→送信→TTS の通話ループ。再生終了は callEndRef 経由で listen へ戻る。
+  const voiceCall = useVoiceCall({ sendText, latestAssistant, playVoice });
+  useEffect(() => {
+    callEndRef.current = voiceCall.onPlaybackEnded;
+  });
 
   const send = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -708,6 +722,12 @@ export const ChatView = ({
           onJumpMessage={jumpToMessageId}
         />
         <LedgerPanel characterId={characterId} getConversationId={() => conversationId.current} />
+        <VoiceCallButton
+          state={voiceCall.state}
+          remaining={voiceCall.remaining}
+          onStart={() => void voiceCall.start()}
+          onStop={voiceCall.stop}
+        />
         <GalleryPanel
           characterId={characterId}
           getConversationId={() => conversationId.current}

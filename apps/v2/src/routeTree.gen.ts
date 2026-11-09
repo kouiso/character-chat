@@ -40,6 +40,7 @@ import { Route as ApiPlanCancelRouteImport } from './routes/api/plan/cancel'
 import { Route as ApiPushSubscriptionsRouteImport } from './routes/api/push/subscriptions'
 import { Route as ApiPushVapidKeyRouteImport } from './routes/api/push/vapid-key'
 import { Route as ApiRevenueAggregateRouteImport } from './routes/api/revenue_/aggregate'
+import { Route as ApiVoiceCallQuotaRouteImport } from './routes/api/voice-call/quota'
 import { Route as ApiCatalogIdCommentsRouteImport } from './routes/api/catalog/$id_/comments'
 import { Route as ApiCatalogIdFollowRouteImport } from './routes/api/catalog/$id_/follow'
 import { Route as ApiCatalogIdForkRouteImport } from './routes/api/catalog/$id_/fork'
@@ -222,6 +223,11 @@ const ApiRevenueAggregateRoute = ApiRevenueAggregateRouteImport.update({
   path: '/api/revenue/aggregate',
   getParentRoute: () => rootRouteImport,
 })
+const ApiVoiceCallQuotaRoute = ApiVoiceCallQuotaRouteImport.update({
+  id: '/api/voice-call/quota',
+  path: '/api/voice-call/quota',
+  getParentRoute: () => rootRouteImport,
+})
 const ApiCatalogIdCommentsRoute = ApiCatalogIdCommentsRouteImport.update({
   id: '/$id_/comments',
   path: '/$id/comments',
@@ -389,6 +395,7 @@ export interface FileRoutesByFullPath {
   '/api/push/subscriptions': typeof ApiPushSubscriptionsRoute
   '/api/push/vapid-key': typeof ApiPushVapidKeyRoute
   '/api/revenue/aggregate': typeof ApiRevenueAggregateRoute
+  '/api/voice-call/quota': typeof ApiVoiceCallQuotaRoute
   '/api/catalog/$id/comments': typeof ApiCatalogIdCommentsRouteWithChildren
   '/api/catalog/$id/follow': typeof ApiCatalogIdFollowRoute
   '/api/catalog/$id/fork': typeof ApiCatalogIdForkRoute
@@ -448,6 +455,7 @@ export interface FileRoutesByTo {
   '/api/push/subscriptions': typeof ApiPushSubscriptionsRoute
   '/api/push/vapid-key': typeof ApiPushVapidKeyRoute
   '/api/revenue/aggregate': typeof ApiRevenueAggregateRoute
+  '/api/voice-call/quota': typeof ApiVoiceCallQuotaRoute
   '/api/catalog/$id/comments': typeof ApiCatalogIdCommentsRouteWithChildren
   '/api/catalog/$id/follow': typeof ApiCatalogIdFollowRoute
   '/api/catalog/$id/fork': typeof ApiCatalogIdForkRoute
@@ -508,6 +516,7 @@ export interface FileRoutesById {
   '/api/push/subscriptions': typeof ApiPushSubscriptionsRoute
   '/api/push/vapid-key': typeof ApiPushVapidKeyRoute
   '/api/revenue_/aggregate': typeof ApiRevenueAggregateRoute
+  '/api/voice-call/quota': typeof ApiVoiceCallQuotaRoute
   '/api/catalog/$id_/comments': typeof ApiCatalogIdCommentsRouteWithChildren
   '/api/catalog/$id_/follow': typeof ApiCatalogIdFollowRoute
   '/api/catalog/$id_/fork': typeof ApiCatalogIdForkRoute
@@ -569,6 +578,7 @@ export interface FileRouteTypes {
     | '/api/push/subscriptions'
     | '/api/push/vapid-key'
     | '/api/revenue/aggregate'
+    | '/api/voice-call/quota'
     | '/api/catalog/$id/comments'
     | '/api/catalog/$id/follow'
     | '/api/catalog/$id/fork'
@@ -628,6 +638,7 @@ export interface FileRouteTypes {
     | '/api/push/subscriptions'
     | '/api/push/vapid-key'
     | '/api/revenue/aggregate'
+    | '/api/voice-call/quota'
     | '/api/catalog/$id/comments'
     | '/api/catalog/$id/follow'
     | '/api/catalog/$id/fork'
@@ -687,6 +698,7 @@ export interface FileRouteTypes {
     | '/api/push/subscriptions'
     | '/api/push/vapid-key'
     | '/api/revenue_/aggregate'
+    | '/api/voice-call/quota'
     | '/api/catalog/$id_/comments'
     | '/api/catalog/$id_/follow'
     | '/api/catalog/$id_/fork'
@@ -740,6 +752,7 @@ export interface RootRouteChildren {
   ApiPushSubscriptionsRoute: typeof ApiPushSubscriptionsRoute
   ApiPushVapidKeyRoute: typeof ApiPushVapidKeyRoute
   ApiRevenueAggregateRoute: typeof ApiRevenueAggregateRoute
+  ApiVoiceCallQuotaRoute: typeof ApiVoiceCallQuotaRoute
   ApiChatIdBranchRoute: typeof ApiChatIdBranchRoute
   ApiChatIdComicRoute: typeof ApiChatIdComicRoute
   ApiChatIdHistoryRoute: typeof ApiChatIdHistoryRoute
@@ -969,6 +982,13 @@ declare module '@tanstack/react-router' {
       path: '/api/revenue/aggregate'
       fullPath: '/api/revenue/aggregate'
       preLoaderRoute: typeof ApiRevenueAggregateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/voice-call/quota': {
+      id: '/api/voice-call/quota'
+      path: '/api/voice-call/quota'
+      fullPath: '/api/voice-call/quota'
+      preLoaderRoute: typeof ApiVoiceCallQuotaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/catalog/$id_/comments': {
@@ -1319,6 +1339,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPushSubscriptionsRoute: ApiPushSubscriptionsRoute,
   ApiPushVapidKeyRoute: ApiPushVapidKeyRoute,
   ApiRevenueAggregateRoute: ApiRevenueAggregateRoute,
+  ApiVoiceCallQuotaRoute: ApiVoiceCallQuotaRoute,
   ApiChatIdBranchRoute: ApiChatIdBranchRoute,
   ApiChatIdComicRoute: ApiChatIdComicRoute,
   ApiChatIdHistoryRoute: ApiChatIdHistoryRoute,

@@ -687,6 +687,17 @@ export const v2CreatorRevenueTable = sqliteTable(
   ],
 );
 
+// RIT-213: 音声通話の日次無料枠（秒）。日次区切りは usage-limit と同じ JST 0 時。
+export const v2VoiceCallUsageTable = sqliteTable(
+  "v2_voice_call_usage",
+  {
+    userId: text("user_id").notNull(),
+    dayStart: integer("day_start").notNull(),
+    seconds: integer("seconds").notNull().default(0),
+  },
+  (table) => [primaryKey({ columns: [table.userId, table.dayStart] })],
+);
+
 // RIT-210: キャラ別ボイス設定。engine は TTS 実装の識別子（VOICEVOX 等）、
 // speaker_id はエンジン側の話者番号。未設定行は既定値へ倒す。
 export const v2CharacterVoiceTable = sqliteTable("v2_character_voice", {
