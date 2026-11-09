@@ -2,6 +2,7 @@
 // 付与は全部冪等（1日1回・attemptId 単位・同日1購入）で、残高の正は v2_currency_ledger。
 import { bonusCurrency, spendCurrency } from "./currency";
 import { ensureSeedBalance } from "./generation-billing";
+import { readPlan } from "./plan";
 
 // ログイン特典: 基本10 + 連続日数×5（上限50）。MiraiMind 型の連続ログイン増量。
 const LOGIN_BONUS_BASE = 10;
@@ -105,7 +106,9 @@ export const claimLoginBonus = async (
   if (existing) return existingClaim(db, userId, day, existing);
   const last = await lastLoginBonus(db, userId);
   const streak = last && last.day === dayOf(now - DAY_MS) ? last.streak + 1 : 1;
-  const amount = loginBonusAmount(streak);
+  // プランの通貨ボーナスレートを特典額へ掛ける（RIT-193 の機能差適用点）。
+  const rate = (await readPlan(db, userId, now)).features.currencyBonusRate;
+  const amount = Math.round(loginBonusAmount(streak) * rate);
   const granted = await bonusCurrency(db, {
     userId,
     amount,
@@ -142,15 +145,17 @@ export const recordAdReward = async (
   db: D1Database,
   input: { userId: string; attemptId: string },
 ): Promise<AdRewardResult> => {
+  const rate = (await readPlan(db, input.userId)).features.currencyBonusRate;
+  const amount = Math.round(AD_REWARD_AMOUNT * rate);
   const result = await bonusCurrency(db, {
     userId: input.userId,
-    amount: AD_REWARD_AMOUNT,
+    amount,
     reason: "広告視聴報酬",
     refType: "ad",
     refId: input.attemptId,
     idempotencyKey: `ad:${input.userId}:${input.attemptId}`,
   });
-  return { rewarded: !result.replayed, amount: AD_REWARD_AMOUNT, balance: result.balance };
+  return { rewarded: !result.replayed, amount, balance: result.balance };
 };
 
 export interface DailyPassResult {

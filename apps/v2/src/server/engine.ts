@@ -33,6 +33,7 @@ import { LOCAL_USER_ID } from "./identity";
 import { retrieveMemories } from "./memory-rag";
 import { memoryVectorReady } from "./memory-vector";
 import { createProviderLookup, retryProviderLookup } from "./openrouter-lookup";
+import { readPlan } from "./plan";
 import { getPlatform } from "./platform";
 
 export { LOCAL_USER_ID } from "./identity";
@@ -183,7 +184,7 @@ export const startTurn = async (
     models,
     contextBudget: contextBudgetFromEnv(env),
     retrieveMemories: memoryVectorReady(env)
-      ? (targetConversationId, query) =>
+      ? async (targetConversationId, query) =>
           retrieveMemories(
             db,
             env,
@@ -192,6 +193,8 @@ export const startTurn = async (
               characterId: input.characterId,
               conversationId: targetConversationId,
               beforeTurn: input.expectedTurn,
+              // 記憶検索の深さは保有プランの機能差（RIT-193）。検索時点の段階を見る。
+              topK: (await readPlan(env.DB, LOCAL_USER_ID)).features.memoryTopK,
             },
             query,
           )
