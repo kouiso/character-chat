@@ -13,7 +13,6 @@ import { z } from "zod";
 import { openLocalD1, type LocalD1 } from "../../../../packages/db/src/test/local-d1";
 
 import type { ChatSseEvent } from "../lib/sse-events";
-import type { BaseChatModel } from "@langchain/core/language_models/chat_models";
 import type * as EngineModule from "@v2/engine";
 
 const VALID_REPLY =
@@ -44,10 +43,11 @@ vi.mock("@v2/engine", async (importOriginal) => {
   return {
     ...original,
     // startTurn 1 回ごとに 1 つ作られる。続きの書き足し（invoke）も同じ並びから取る。
-    createOpenRouterModel: (): BaseChatModel => {
+    // RIT-102 でモデル取得はチェーン経由になったのでチェーンごと差し替える。
+    createModelChain: (): EngineModule.ModelCandidate[] => {
       replies.calls += 1;
       const responses = replies.queue.shift() ?? [""];
-      return new FakeListChatModel({ responses });
+      return [{ name: "fake", model: new FakeListChatModel({ responses }) }];
     },
   };
 });

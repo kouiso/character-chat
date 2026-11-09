@@ -183,6 +183,9 @@ export const v2GenerationTable = sqliteTable(
     latencyMs: integer("latency_ms"),
     status: text("status", { enum: ["ok", "error", "aborted"] }).notNull(),
     error: text("error"),
+    // RIT-102: 逃げ道チェーンの試行履歴（JSON 配列）と、掛けた締切 ms。
+    attemptsJson: text("attempts_json"),
+    timeoutMs: integer("timeout_ms"),
     createdAt: integer("created_at").notNull(),
   },
   (table) => [

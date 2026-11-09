@@ -27,6 +27,7 @@ import {
   MEMORY_CONTEXT_HEADER,
   type MemoryContextEntry,
 } from "./memory-context";
+import { hardRefusalDetect } from "./refusal-detect";
 import { TurnState, type JudgedChunk } from "./state";
 
 import type {
@@ -34,6 +35,7 @@ import type {
   ComposedPrompt,
   GenerationRecord,
   HistoryMessage,
+  ModelAttempt,
   TurnEvent,
   TurnStore,
 } from "./types";
@@ -192,6 +194,57 @@ const modelNameOf = (model: TurnModel): string => {
   return typeof name === "string" && name.length > 0 ? name : model._llmType();
 };
 
+// RIT-102: 逃げ道チェーンの 1 候補。name は記録用（deps.models 未指定の単モデル経路は
+// modelNameOf で埋める）。
+export type ModelCandidate = { name: string; model: TurnModel };
+
+// 拒否・AI 宣言などの断り文は冒頭に出るので、この字数まで溜めてから配信を始める。
+// 先に流すと逃げ道へ切り替えた時に拒否文が本文へ残る。
+const REFUSAL_SAFE_CHARS = 300;
+
+// buffered writer が拒否を見つけた時に stream を中断して次候補へ進ませるための内部シグナル。
+class RefusalSignal extends Error {
+  constructor() {
+    super("生成文の冒頭が拒否パターンに一致した");
+    this.name = "RefusalSignal";
+  }
+}
+
+// 締切で配信を始める前（溜め込みのまま）なら次の候補へ。配信済みの分は取り消せんので
+// 従来どおり部分生成として採用する。
+const classifyAttempt = (
+  result: CappedStreamResult,
+  caught: unknown,
+  emitted: boolean,
+): { kind: ModelAttempt["outcome"]; detail?: string } => {
+  // 配信を始めた後は何が起きても取り消せんので、その試行を部分生成として採用する。
+  // 逃げ道へ切り替えると配信済みの断片の後に別モデルの全文が続いて本文が壊れる。
+  if (emitted)
+    return {
+      kind: "ok",
+      detail: caught
+        ? "配信後に例外が起きた"
+        : result.truncated === "deadline"
+          ? "配信後に締切を迎えた"
+          : undefined,
+    };
+  if (caught instanceof RefusalSignal)
+    return { kind: "refused", detail: "冒頭が拒否パターンに一致" };
+  if (caught)
+    return { kind: "error", detail: caught instanceof Error ? caught.message : String(caught) };
+  if (result.truncated === "deadline")
+    return { kind: "timeout", detail: "締切までに本文が揃わんかった" };
+  if (result.error) return { kind: "error", detail: result.error };
+  if (hardRefusalDetect(result.raw)) return { kind: "refused", detail: result.raw.slice(0, 80) };
+  return { kind: "ok" };
+};
+
+// 逃げ道チェーンで採用されたモデル。ターン内の続き・書き直し・要約はこれへ投げる。
+const modelForTurn = (
+  deps: Pick<TurnGraphDeps, "model" | "models">,
+  state: { activeModelIndex: number },
+): TurnModel => deps.models?.[state.activeModelIndex]?.model ?? deps.model;
+
 // usage は最後の chunk にだけ載ることが多いので、出てきた最後の値を採る。
 const usageOf = (piece: AIMessageChunk): GenerationRecord["usage"] => {
   const usage = piece.usage_metadata;
@@ -207,6 +260,8 @@ export type TurnGraphDeps = {
   contextBudget?: Partial<ContextBudget>;
   retrieveMemories?: (conversationId: string, query: string) => Promise<MemoryContextEntry[]>;
   model: TurnModel;
+  // RIT-102: 拒否・時間切れ・5xx で順に試す逃げ道チェーン。未指定時は model 1 本だけ。
+  models?: ModelCandidate[];
   store: TurnStore;
   // 本文がこの割合に届かんターンだけ続きを書かせる。0 で無効（短い fixture で判定器だけを試すテスト用）。
   extendBelowRatio?: number;
@@ -245,19 +300,6 @@ type CappedStreamResult = {
 
 const upstreamIdOf = (piece: { id?: unknown }): string | undefined =>
   typeof piece.id === "string" && piece.id.startsWith("gen-") ? piece.id : undefined;
-
-// 実行先の引き取りに失敗しても返事は残す。"unknown" で残った行は照合クエリで洗える。
-// 未解決の時だけ onProviderUnresolved へ渡して遅延の引き直しに繋ぐ。
-const resolveProviderInline = async (
-  deps: TurnGraphDeps,
-  generationId: string,
-  upstreamId: string | undefined,
-): Promise<string | null> => {
-  if (!upstreamId) return null;
-  const resolved = (await deps.providerLookup?.(upstreamId).catch(() => null)) ?? null;
-  if (!resolved) deps.onProviderUnresolved?.(generationId, upstreamId);
-  return resolved ?? "unknown";
-};
 
 // 締切と字数上限は同じ controller で request を止める（実モデルでは fetch が閉じる）。
 // どちらで止めたかは abort の前に truncated へ書いてから abort する。generate ノードから
@@ -317,6 +359,163 @@ const collectCappedStream = async (
   return { raw, usage, truncated, error, upstreamId };
 };
 
+// token だけを溜めて、拒否パターンなら RefusalSignal、安全域を越えたら配信を始める writer。
+// flush は採用が決まった試行の残りを流す。
+const refusalGuardedWriter = (
+  writer: (event: TurnEvent) => void,
+): {
+  writer: (event: TurnEvent) => void;
+  emitted: () => boolean;
+  flush: () => void;
+} => {
+  let held = "";
+  let emitted = false;
+  return {
+    emitted: () => emitted,
+    flush: () => {
+      if (held.length > 0) writer({ type: "token", text: held });
+      held = "";
+    },
+    writer: (event) => {
+      if (event.type !== "token") return;
+      if (emitted) {
+        writer(event);
+        return;
+      }
+      held += event.text;
+      // 20 字未満は文が揃う前の部分文字列なのでパターンを当てん
+      // （短すぎる失速の判定は試行の最終結果にだけ効かせる）。
+      if (held.length >= 20 && hardRefusalDetect(held)) throw new RefusalSignal();
+      if (held.length >= REFUSAL_SAFE_CHARS) {
+        writer({ type: "token", text: held });
+        held = "";
+        emitted = true;
+      }
+    },
+  };
+};
+
+type CandidateOutcome = {
+  raw: string;
+  usage: GenerationRecord["usage"];
+  truncated?: TruncatedBy;
+  error?: string;
+  winnerIndex: number;
+  winnerUpstreamId?: string;
+  attempts: ModelAttempt[];
+};
+
+// 拒否・時間切れ・障害で順に試す。採用できた時点で打ち切り、切り替え理由は attempts へ残る。
+const runModelCandidates = async (
+  candidates: ModelCandidate[],
+  lcMessages: BaseMessage[],
+  opts: {
+    maxTokens: number;
+    charCap: number;
+    timeoutMs: number;
+    sampling: SamplingOptions;
+    writer: (event: TurnEvent) => void;
+  },
+): Promise<CandidateOutcome> => {
+  const attempts: ModelAttempt[] = [];
+  const failed: CandidateOutcome = {
+    raw: "",
+    usage: null,
+    winnerIndex: -1,
+    attempts,
+  };
+  for (const [index, candidate] of candidates.entries()) {
+    const guard = refusalGuardedWriter(opts.writer);
+    let result: CappedStreamResult;
+    let caught: unknown;
+    try {
+      result = await collectCappedStream(candidate.model, lcMessages, {
+        maxTokens: opts.maxTokens,
+        charCap: opts.charCap,
+        timeoutMs: opts.timeoutMs,
+        sampling: opts.sampling,
+        writer: guard.writer,
+      });
+    } catch (thrown) {
+      caught = thrown;
+      result = { raw: "", usage: null };
+    }
+    const outcome = classifyAttempt(result, caught, guard.emitted());
+    attempts.push({
+      model: candidate.name,
+      outcome: outcome.kind,
+      ...(outcome.detail ? { detail: outcome.detail } : {}),
+    });
+    // 時間切れが最後の候補で起きた時は、従来どおり部分生成をそのまま採用する
+    // （拒否・例外は最後でも本文へ載せんので全滅扱い）。
+    if (outcome.kind !== "ok" && !(outcome.kind === "timeout" && index === candidates.length - 1))
+      continue;
+    // 採用。溜まっとる分があれば流してから本文を確定する。
+    guard.flush();
+    // collectCappedStream の error イベントは guard に吸われとるので、
+    // 採用した試行の分だけここで流し直す（締切0出力など失敗の案内が欠けんよう）。
+    if (result.error) opts.writer({ type: "error", message: result.error });
+    return {
+      raw: result.raw,
+      usage: result.usage,
+      truncated: result.truncated,
+      error: result.error,
+      winnerIndex: index,
+      winnerUpstreamId: result.upstreamId,
+      attempts,
+    };
+  }
+  return failed;
+};
+
+// 試行の結果から保存用の生成レコードを組み立てる。全滅時は error イベントをここで流す。
+const settleGeneration = async (
+  deps: Pick<TurnGraphDeps, "providerLookup" | "onProviderUnresolved">,
+  args: {
+    generationId: string;
+    prompt: ComposedPrompt;
+    candidates: ModelCandidate[];
+    outcome: CandidateOutcome;
+    timeoutMs: number;
+    latencyMs: number;
+    emitError: (message: string) => void;
+  },
+): Promise<GenerationRecord> => {
+  const { outcome } = args;
+  let error = outcome.error;
+  if (outcome.winnerIndex < 0) {
+    error = `全モデルで生成に失敗した: ${outcome.attempts.map((a) => `${a.model}=${a.outcome}`).join(" → ")}`;
+    args.emitError(error);
+  }
+  // 実行先の引き取りに失敗しても返事は残す。"unknown" で残った行は照合クエリで洗える。
+  // 未解決の時だけ onProviderUnresolved へ渡して遅延の引き直しに繋ぐ（RIT-100 の振る舞いを
+  // 複数候補の採用試行へも引き継ぐ）。
+  let provider: string | null = null;
+  if (outcome.winnerUpstreamId) {
+    const resolved =
+      (await deps.providerLookup?.(outcome.winnerUpstreamId).catch(() => null)) ?? null;
+    if (!resolved) deps.onProviderUnresolved?.(args.generationId, outcome.winnerUpstreamId);
+    provider = resolved ?? "unknown";
+  }
+  return {
+    generationId: args.generationId,
+    model: args.candidates[Math.max(0, outcome.winnerIndex)].name,
+    provider,
+    upstreamId: outcome.winnerUpstreamId ?? null,
+    promptVersion: args.prompt.version,
+    systemPrompt: args.prompt.system,
+    request: args.prompt.messages,
+    rawOutput: outcome.raw,
+    usage: outcome.usage,
+    latencyMs: args.latencyMs,
+    status: outcome.winnerIndex < 0 ? "error" : outcome.truncated ? "aborted" : "ok",
+    ...(error ? { error } : {}),
+    ...(outcome.truncated ? { truncated: outcome.truncated } : {}),
+    attempts: outcome.attempts,
+    timeoutMs: args.timeoutMs,
+  };
+};
+
 const SUMMARY_DEFAULTS = { thresholdMessages: 20, maxLevel1: 4 } as const;
 
 // 作り話防止が本質の指示（壊しにいく確かめ: 要約に無い作り話が混ざらんか）。
@@ -360,10 +559,10 @@ const invokeForSummary = async (
 // 未集約の level 1 が閾値に届いたら「前の level 2 + 新しい level 1」でまとめ直す。
 // 新しい分だけを畳むと古い出来事が最新の level 2 から落ちて、巻き取りの意味が無くなる。
 const rollUpLevel2 = async (
-  deps: Pick<TurnGraphDeps, "model">,
+  deps: Pick<TurnGraphDeps, "model" | "models">,
   summaries: StoredSummary[],
   maxLevel1: number,
-  state: { timeoutMs?: number | null },
+  state: { timeoutMs?: number | null; activeModelIndex: number },
 ): Promise<string> => {
   const level2Covered = Math.max(
     0,
@@ -375,7 +574,7 @@ const rollUpLevel2 = async (
   if (uncovered.length < maxLevel1) return "";
   const previous2 = summaries.filter((entry) => entry.level === 2).at(-1);
   return invokeForSummary(
-    deps.model,
+    modelForTurn(deps, state),
     SUMMARIZE_LEVEL2_INSTRUCTION,
     [...(previous2 ? [previous2.text] : []), ...uncovered.map((entry) => entry.text)].join("\n"),
     state,
@@ -498,44 +697,39 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
         const maxTokens = maxTokensForTarget(targetChars);
         const charCap = streamedCharCap(targetChars);
         const timeoutMs = state.timeoutMs ?? DEFAULT_TURN_TIMEOUT_MS;
+        const sampling = samplingForPhase(mechanics(state));
+        // RIT-102: 拒否・時間切れ・障害で順に試す。切り替えた理由は attempts へ残る。
+        const candidates: ModelCandidate[] = deps.models ?? [
+          { name: modelName, model: deps.model },
+        ];
         const startedAt = now();
-        const { raw, usage, truncated, error, upstreamId } = await collectCappedStream(
-          deps.model,
-          lcMessages,
-          {
-            maxTokens,
-            charCap,
-            timeoutMs,
-            sampling: samplingForPhase(mechanics(state)),
-            writer: (event) => runtime.writer(event),
-          },
-        );
-        const provider = await resolveProviderInline(deps, generationId, upstreamId);
-        const generation: GenerationRecord = {
+        const outcome = await runModelCandidates(candidates, lcMessages, {
+          maxTokens,
+          charCap,
+          timeoutMs,
+          sampling,
+          writer: (event) => runtime.writer(event),
+        });
+        const generation = await settleGeneration(deps, {
           generationId,
-          model: modelName,
-          provider,
-          upstreamId: upstreamId ?? null,
-          promptVersion: state.prompt.version,
-          systemPrompt: state.prompt.system,
-          request: state.prompt.messages,
-          rawOutput: raw,
-          usage,
+          prompt: state.prompt,
+          candidates,
+          outcome,
+          timeoutMs,
           latencyMs: now() - startedAt,
-          status: truncated ? "aborted" : "ok",
-          ...(error ? { error } : {}),
-          ...(truncated ? { truncated } : {}),
-        };
+          emitError: (message) => runtime.writer({ type: "error", message }),
+        });
         // preExtendVisibleChars / preExtendRawLength は extend が raw を上書きする前の
         // 初回生成の寸法。発火の有無に関わらず毎ターンここで入れる（発火ターンだけ入れると
         // 「非発火」の対照セルが空になる = v15 の空セルバグの一層下）。
         return {
-          raw,
+          raw: outcome.raw,
           generationId,
           generation,
+          activeModelIndex: Math.max(0, outcome.winnerIndex),
           extended: 0,
-          preExtendVisibleChars: visibleCharsOf(raw),
-          preExtendRawLength: raw.length,
+          preExtendVisibleChars: visibleCharsOf(outcome.raw),
+          preExtendRawLength: outcome.raw.length,
         };
       })
       .addNode("extend", async (state) => {
@@ -549,7 +743,7 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
         ].join("\n");
         const lcMessages = [...toLangchainMessages(state.prompt), new HumanMessage(instruction)];
         const startedAt = now();
-        const extension = await regenerateWithDeadline(deps.model, lcMessages, {
+        const extension = await regenerateWithDeadline(modelForTurn(deps, state), lcMessages, {
           maxTokens: maxTokensForTarget(targetChars),
           timeoutMs: state.timeoutMs ?? DEFAULT_TURN_TIMEOUT_MS,
           sampling: samplingForPhase(mechanics(state)),
@@ -646,7 +840,7 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
         // 1 段落の書き直しにもターンと同じ max_tokens と締切を掛ける（invoke は stream と違って受信字数の
         // 網が無い。2026-09-04 v2 arm run 2 の Sakura t9 は締切 120 s のターンが 149 s かかった＝書き直しが
         // 締切の外で待っとった）。締切で切れた書き直しは空文として judge に渡し、empty で落として配らん。
-        const text = await regenerateWithDeadline(deps.model, lcMessages, {
+        const text = await regenerateWithDeadline(modelForTurn(deps, state), lcMessages, {
           maxTokens: maxTokensForTarget(targetCharsForPhase(mechanics(state))),
           timeoutMs: state.timeoutMs ?? DEFAULT_TURN_TIMEOUT_MS,
           sampling: samplingForPhase(mechanics(state)),
@@ -770,7 +964,7 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
           )
           .join("\n");
         const level1 = await invokeForSummary(
-          deps.model,
+          modelForTurn(deps, state),
           SUMMARIZE_LEVEL1_INSTRUCTION,
           body,
           state,

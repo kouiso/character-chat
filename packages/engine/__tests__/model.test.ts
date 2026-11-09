@@ -1,10 +1,13 @@
-import { createOpenRouterModel, OPENROUTER_PROVIDER_POLICY } from "../src/model";
+import { createModelChain, createOpenRouterModel, OPENROUTER_PROVIDER_POLICY } from "../src/model";
 
 // RIT-100 の「壊しにいく確かめ」: DeepSeek 本家の除外・data_collection=deny が
 // 外れた時に検査が止まること。provider フィールドはリクエストの provider プリファレンスへ
 // そのまま出る（@langchain/openrouter の invocationParams 参照）。
 // BaseChatModel の型には provider/baseURL が無いので modelNameOf と同じく Reflect で読む。
 const fieldOf = (model: object, key: string): unknown => Reflect.get(model, key);
+
+const providerOf = (candidate: { model: unknown }) =>
+  fieldOf(candidate.model as object, "provider") as Record<string, unknown> | undefined;
 
 describe("createOpenRouterModel の provider ポリシー", () => {
   test("DeepSeek 本家を除外し data_collection は deny", () => {
@@ -35,5 +38,56 @@ describe("createOpenRouterModel の provider ポリシー", () => {
   test("baseURL 未設定は OpenRouter 既定のまま", () => {
     const model = createOpenRouterModel({ OPENROUTER_API_KEY: "test-key" });
     expect(fieldOf(model, "baseURL")).toBe("https://openrouter.ai/api/v1");
+  });
+});
+
+// RIT-104: チェーンの順序・env 上書き・全候補への provider 制約の試験。
+describe("createModelChain（RIT-104）", () => {
+  test("既定は deepseek-v4.1-flash-1017 → Venice 固定 flash → dolphin の順", () => {
+    const chain = createModelChain({ OPENROUTER_API_KEY: "test-key" });
+    expect(chain.map((c) => c.name)).toEqual([
+      "deepseek/deepseek-v4.1-flash-1017",
+      "deepseek/deepseek-v4.1-flash",
+      "cognitivecomputations/dolphin-mistral-24b-venice-edition",
+    ]);
+  });
+
+  test("全候補に DeepSeek 実行先除外と学習利用の拒否が載る", () => {
+    for (const candidate of createModelChain({ OPENROUTER_API_KEY: "test-key" })) {
+      const provider = providerOf(candidate);
+      expect(provider?.ignore).toContain("DeepSeek");
+      expect(provider?.data_collection).toBe("deny");
+    }
+  });
+
+  test("逃げ道 1 だけ実行先を Venice へ固定する", () => {
+    const chain = createModelChain({ OPENROUTER_API_KEY: "test-key" });
+    expect(providerOf(chain[0])?.only).toBeUndefined();
+    expect(providerOf(chain[1])?.only).toEqual(["Venice"]);
+    expect(providerOf(chain[2])?.only).toBeUndefined();
+  });
+
+  test("V2_MODEL は単モデル指定として 1 本だけの列になる", () => {
+    const chain = createModelChain({ OPENROUTER_API_KEY: "test-key", V2_MODEL: "foo/bar" });
+    expect(chain.map((c) => c.name)).toEqual(["foo/bar"]);
+  });
+
+  test("V2_MODEL_CHAIN の JSON で候補列を上書きできる", () => {
+    const chain = createModelChain({
+      OPENROUTER_API_KEY: "test-key",
+      V2_MODEL_CHAIN: JSON.stringify([
+        { model: "a/one" },
+        { model: "b/two", providerOnly: ["Venice"] },
+      ]),
+    });
+    expect(chain.map((c) => c.name)).toEqual(["a/one", "b/two"]);
+    expect(providerOf(chain[1])?.only).toEqual(["Venice"]);
+  });
+
+  test("V2_MODEL_CHAIN が壊れとる・空列の時は黙って止まらず既定へ倒す", () => {
+    for (const broken of ["not json", "[]", "{}", JSON.stringify([{ wrong: 1 }])]) {
+      const chain = createModelChain({ OPENROUTER_API_KEY: "test-key", V2_MODEL_CHAIN: broken });
+      expect(chain).toHaveLength(3);
+    }
   });
 });

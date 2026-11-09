@@ -63,6 +63,8 @@ const chunkEvents = (turn: number): TurnEvent[] => [
     usage: { inputTokens: 1, outputTokens: 2, totalTokens: 3 },
     latencyMs: 5,
     status: "ok",
+    attempts: [{ model: "fake-list", outcome: "ok" }],
+    timeoutMs: 120_000,
   },
   // seq を逆順で渡して、保存側が seq 順に並べ直すことも同時に見る。
   {
@@ -262,6 +264,8 @@ describe("createD1TurnStore", () => {
       latencyMs: 5,
       status: "ok",
       error: null,
+      attemptsJson: JSON.stringify([{ model: "fake-list", outcome: "ok" }]),
+      timeoutMs: 120_000,
     });
   });
 

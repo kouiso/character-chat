@@ -24,6 +24,14 @@ import type { JudgeResult } from "@v2/judge";
 
 export type HistoryMessage = { role: "user" | "assistant"; content: string };
 
+// RIT-102: 逃げ道チェーンの 1 試行分。使った順に並び、最後の要素が採用モデル
+// （全滅時は全要素が失敗理由を持つ）。
+export type ModelAttempt = {
+  model: string;
+  outcome: "ok" | "refused" | "error" | "timeout";
+  detail?: string;
+};
+
 // v2_generation 1 行分。engine の generate ノードが 1 回の生成ごとに作り、persist が events の
 // 先頭に "generation" イベントとして載せる（SSE には流さん）。
 export type GenerationRecord = {
@@ -45,6 +53,10 @@ export type GenerationRecord = {
   error?: string;
   // 1 ターンの上限で切った生成。chars = 受け取った生の字数が上限を超えた、deadline = 締切（timeoutMs）。
   truncated?: "chars" | "deadline";
+  // 逃げ道チェーンを組んだ時の試行履歴（単モデルでも 1 件入る）。切り替えの理由を D1 に残す。
+  attempts?: ModelAttempt[];
+  // このターンに掛けた締切（設定値を記録して後から値を追えるようにする）。
+  timeoutMs?: number;
 };
 
 export type TurnEvent =
@@ -553,6 +565,8 @@ export const createD1TurnStore = (db: V2Db, opts: D1TurnStoreOptions): TurnStore
           latencyMs: generation.latencyMs,
           status: generation.status,
           error: generation.error ?? null,
+          attemptsJson: generation.attempts ? JSON.stringify(generation.attempts) : null,
+          timeoutMs: generation.timeoutMs ?? null,
           createdAt: now,
         }),
       ),
