@@ -463,6 +463,13 @@
       "when": 1762740000000,
       "tag": "20261110100000_rit215_chapter_image",
       "breakpoints": true
+    },
+    {
+      "idx": 101,
+      "version": "7",
+      "when": 1762743600000,
+      "tag": "20261110110000_rit217_chapter_media",
+      "breakpoints": true
     }
   ]
 }

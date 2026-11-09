@@ -755,3 +755,30 @@ body {
   border-radius: 8px;
   margin: 0.5rem 0;
 }
+
+.v2-chapter-media {
+  margin: 0.5rem 0;
+}
+.v2-media-buttons {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin: 0.4rem 0;
+}
+.v2-comic-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.4rem;
+  margin: 0.6rem 0;
+}
+.v2-comic-grid img {
+  width: 100%;
+  border-radius: 6px;
+}
+.v2-chapter-video,
+.v2-reader-video {
+  display: block;
+  max-width: 100%;
+  border-radius: 8px;
+  margin: 0.8rem 0;
+}
