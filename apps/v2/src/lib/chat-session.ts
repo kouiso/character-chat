@@ -59,6 +59,16 @@ const isDefinitiveRejection = async (response: Response): Promise<boolean> => {
   return body.success && body.data.code === "conflict";
 };
 
+// 使いすぎ止め（429）。理由文はサーバからのものをそのまま画面へ出す。
+// 再試行で直らんので Rejected の仲間として扱い、「入力に戻す」の出口が出る。
+export class ChatDailyLimitError extends ChatRequestRejectedError {
+  constructor(message: string) {
+    super();
+    this.name = "ChatDailyLimitError";
+    this.message = message;
+  }
+}
+
 // 送信が割り当てられたターンに pending.text が残り、返信まで残っとる時だけ「送信は保存された」とみなす。
 // サーバーが送信を知らん（null）なら、届いとらんので保存されてへん。
 // 通信そのものが切れた（fetch や応答の読み出しが TypeError で落ちた）時だけに使う。
@@ -273,6 +283,12 @@ export const connectChatTurn = async (
     }),
   );
   if (!response.ok && (await isDefinitiveRejection(response))) throw new ChatRequestRejectedError();
+  if (response.status === 429) {
+    const body = (await response.json().catch(() => null)) as { message?: string } | null;
+    throw new ChatDailyLimitError(
+      body?.message ?? "今日の会話回数の上限に達しました。送信文は入力欄に戻します。",
+    );
+  }
   if (!response.ok || !response.body)
     throw new Error("返信を受け取れませんでした。再接続してください。");
   return response.body;

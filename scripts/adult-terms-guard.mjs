@@ -16,6 +16,8 @@ const SELF_FILES = new Set([
   ".github/adult-terms-baseline.json",
   "scripts/adult-terms-guard.mjs",
   "scripts/adult-terms-guard.test.ts",
+  // wrangler types の生成物。型名の部分一致（Moonshotai の "shota"、escape の "rape"）は意味を持たん。
+  "apps/v2/src/worker-configuration.d.ts",
 ]);
 const MAX_FILE_BYTES = 2 * 1024 * 1024;
 
