@@ -146,7 +146,7 @@ export const useVoiceCall = (deps: VoiceCallDeps) => {
     try {
       rec.start();
     } catch {
-      listenRef.current();
+      setTimeout(() => listenRef.current(), 300);
     }
   };
 
@@ -182,8 +182,8 @@ export const useVoiceCall = (deps: VoiceCallDeps) => {
       accrued.current = 0;
       void charge(chunk).then((left) => {
         if (left !== null && left <= 0) {
-          setPhase("blocked");
           stop();
+          setPhase("blocked");
         }
       });
     }, HEARTBEAT_MS);

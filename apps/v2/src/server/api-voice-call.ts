@@ -44,7 +44,15 @@ export const handleVoiceCallQuotaGet = async (): Promise<Response> => {
 const addBodySchema = z.object({ seconds: z.number().int().min(1).max(60) });
 
 export const handleVoiceCallQuotaAdd = async (request: Request): Promise<Response> => {
-  const parsed = addBodySchema.safeParse(await request.json().catch(() => null));
+  // sendBeacon は text/plain で送るため json() ではなく text→parse に倒す。
+  const raw = await request.text().catch(() => "");
+  let body: unknown = null;
+  try {
+    body = JSON.parse(raw);
+  } catch {
+    body = null;
+  }
+  const parsed = addBodySchema.safeParse(body);
   if (!parsed.success) return json(400, { error: "invalid_body" });
   const { env } = await getPlatform();
   const dayStart = jstDayStartMs(Date.now());

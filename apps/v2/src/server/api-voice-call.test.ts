@@ -86,6 +86,18 @@ describe("api-voice-call quota", () => {
     expect(got.usedSeconds).toBe(180);
   });
 
+  it("sendBeacon 相当の text/plain ボディも積算できる", async () => {
+    const req = new Request("http://x/", {
+      method: "POST",
+      headers: { "content-type": "text/plain" },
+      body: JSON.stringify({ seconds: 12 }),
+    });
+    const res = await handleVoiceCallQuotaAdd(req);
+    expect(res.status).toBe(200);
+    const got: { usedSeconds: number } = await (await handleVoiceCallQuotaGet()).json();
+    expect(got.usedSeconds).toBe(12);
+  });
+
   it("本文不正は400", async () => {
     expect((await handleVoiceCallQuotaAdd(post({}))).status).toBe(400);
     expect((await handleVoiceCallQuotaAdd(post({ seconds: 0 }))).status).toBe(400);
