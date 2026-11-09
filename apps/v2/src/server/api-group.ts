@@ -6,6 +6,7 @@ import { z } from "zod";
 import { readCharacter } from "./character-data.server";
 import { postUserToGroup, runGroupTurn } from "./group-turn";
 import { LOCAL_USER_ID } from "./identity";
+import { createProviderLookup } from "./openrouter-lookup";
 import { getPlatform } from "./platform";
 
 const CreateGroupBody = z.object({
@@ -84,6 +85,7 @@ export const handleGroupMessages = async (request: Request, groupId: string): Pr
     db,
     model: createOpenRouterModel(env),
     loadCharacter: loadGroupCharacter,
+    providerLookup: createProviderLookup(env),
   };
   const replyCount = Math.min(parsed.data.replyCount ?? members.length, members.length);
   const replies = [];

@@ -57,6 +57,8 @@ export const saveProactiveMessage = async (
     conversationId: string;
     text: string;
     idempotencyKey: string;
+    provider?: string | null;
+    upstreamId?: string | null;
     now: number;
   },
 ): Promise<void> => {
@@ -73,6 +75,8 @@ export const saveProactiveMessage = async (
       role: "assistant",
       content: input.text,
       generationId: input.idempotencyKey,
+      provider: input.provider ?? null,
+      upstreamId: input.upstreamId ?? null,
       createdAt: input.now,
     }),
     db

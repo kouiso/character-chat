@@ -11,6 +11,7 @@ import { PROMPT_VERSION } from "@v2/prompt";
 
 import { readCharacter } from "./character-data.server";
 import { LOCAL_USER_ID } from "./identity";
+import { createProviderLookup, resolveProvider } from "./openrouter-lookup";
 import { sendProactivePush } from "./push";
 
 import type { ProactiveNotificationSink } from "./proactive-notification-store";
@@ -33,6 +34,8 @@ export type ProactiveSinkDeps = {
     text: string;
     conversationId: string;
   }) => Promise<void>;
+  // 実行先の記録用（RIT-100）。invoke の応答 id（gen-…）から provider を引く。
+  providerLookup?: (upstreamId: string) => Promise<string | null>;
 };
 
 // 一言はモデルの素直な文章をそのまま保存する（ターンの XML 形式は使わん）。
@@ -92,10 +95,14 @@ export const createProactiveSink = (deps: ProactiveSinkDeps): ProactiveNotificat
     const text = composeProactiveText(typeof response.content === "string" ? response.content : "");
     if (!text) return;
 
+    const { provider, upstreamId } = await resolveProvider(response.id, deps.providerLookup);
+
     await saveProactiveMessage(deps.db, {
       conversationId,
       text,
       idempotencyKey,
+      provider,
+      upstreamId,
       now,
     });
 
@@ -114,6 +121,7 @@ export const createEnvProactiveSink = async (env: {
   DB: Parameters<typeof createDb>[0];
   OPENROUTER_API_KEY?: string;
   V2_MODEL?: string;
+  V2_OPENROUTER_BASE_URL?: string;
   VAPID_PUBLIC_KEY?: string;
   VAPID_PRIVATE_KEY?: string;
   VAPID_SUBJECT?: string;
@@ -124,7 +132,9 @@ export const createEnvProactiveSink = async (env: {
     model: createOpenRouterModel({
       OPENROUTER_API_KEY: env.OPENROUTER_API_KEY,
       V2_MODEL: env.V2_MODEL,
+      V2_OPENROUTER_BASE_URL: env.V2_OPENROUTER_BASE_URL,
     }),
+    providerLookup: createProviderLookup(env),
     push: async ({ characterId, characterName, text, conversationId }) => {
       await sendProactivePush(db, env, {
         userId: LOCAL_USER_ID,

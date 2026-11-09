@@ -93,6 +93,10 @@ export const v2MessageTable = sqliteTable(
     dialogue: text("dialogue"),
     inner: text("inner"),
     generationId: text("generation_id"),
+    // 実行先（OpenRouter provider 名）と上流の生成 id。generation 表を持たん話しかけ・
+    // 単発返事でも返事を作った実行先が残る（RIT-100）。
+    provider: text("provider"),
+    upstreamId: text("upstream_id"),
     createdAt: integer("created_at").notNull(),
   },
   (table) => [
@@ -164,6 +168,9 @@ export const v2GenerationTable = sqliteTable(
       .references(() => v2ConversationTable.id),
     turn: integer("turn").notNull(),
     model: text("model").notNull(),
+    // 実行先（OpenRouter provider 名）と上流の生成 id。規約確認・課金照合に使う（RIT-100）。
+    provider: text("provider"),
+    upstreamId: text("upstream_id"),
     promptVersion: text("prompt_version").notNull(),
     systemPrompt: text("system_prompt").notNull(),
     requestJson: text("request_json").notNull(),
@@ -278,6 +285,8 @@ export const v2GroupMessageTable = sqliteTable(
     // 声混ざり検査の記録（RIT-112）。NULL は未検査。
     voiceMismatch: integer("voice_mismatch"),
     generationId: text("generation_id"),
+    // 実行先（OpenRouter provider 名）。照合は generation_id の上流 id で（RIT-100）。
+    provider: text("provider"),
     createdAt: integer("created_at").notNull(),
   },
   (table) => [

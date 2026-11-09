@@ -29,6 +29,10 @@ export type HistoryMessage = { role: "user" | "assistant"; content: string };
 export type GenerationRecord = {
   generationId: string;
   model: string;
+  // 実際に返事を返した実行先（OpenRouter の provider 名）。未記録は NULL、引けんかった時は "unknown"。
+  provider?: string | null;
+  // OpenRouter 側の生成 id（gen-…）。実行先の照合・課金の確認に使う。
+  upstreamId?: string | null;
   promptVersion: string;
   systemPrompt: string;
   // 送った messages[]（system は含まん。system は systemPrompt）。
@@ -237,6 +241,9 @@ export const readOwnedImageKey = async (db: V2Db, userId: string, messageId: str
 
 type ChunkEvent = Extract<TurnEvent, { type: "chunk" }>;
 type GenerationEvent = Extract<TurnEvent, { type: "generation" }>;
+
+// 型注釈の optional を保存時の NULL に揃えるだけ（undefined も null も空として入れる）。
+const toNull = (v: string | null | undefined): string | null => v ?? null;
 
 const isChunkEvent = (event: TurnEvent): event is ChunkEvent => event.type === "chunk";
 const isDroppedEvent = (event: TurnEvent): event is Extract<TurnEvent, { type: "dropped" }> =>
@@ -460,7 +467,7 @@ export const createD1TurnStore = (db: V2Db, opts: D1TurnStoreOptions): TurnStore
           characterId: opts.characterId,
           threadId: input.threadId ?? input.conversationId,
           promptVersion: opts.promptVersion,
-          characterVersionId: opts.characterVersionId ?? null,
+          characterVersionId: toNull(opts.characterVersionId),
           createdAt: now,
           updatedAt: now,
         })
@@ -514,6 +521,8 @@ export const createD1TurnStore = (db: V2Db, opts: D1TurnStoreOptions): TurnStore
           conversationId: input.conversationId,
           turn: input.turn,
           model: generation.model,
+          provider: toNull(generation.provider),
+          upstreamId: toNull(generation.upstreamId),
           promptVersion: generation.promptVersion,
           systemPrompt: generation.systemPrompt,
           requestJson: JSON.stringify(generation.request),
@@ -542,7 +551,9 @@ export const createD1TurnStore = (db: V2Db, opts: D1TurnStoreOptions): TurnStore
         action: extractTag(assistantText, "action"),
         dialogue: extractTag(assistantText, "dialogue"),
         inner: extractTag(assistantText, "inner"),
-        generationId: lastGeneration?.generationId ?? null,
+        generationId: toNull(lastGeneration?.generationId),
+        provider: toNull(lastGeneration?.provider),
+        upstreamId: toNull(lastGeneration?.upstreamId),
         createdAt: now,
       }),
       // D1 は 1 文あたりのバインド変数が 100 個までなので、chunk は 1 行 1 文で入れる。

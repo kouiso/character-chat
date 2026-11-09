@@ -12,10 +12,7 @@ export const countUserTurnsSince = async (
   const rows = await db
     .select({ n: count() })
     .from(v2MessageTable)
-    .innerJoin(
-      v2ConversationTable,
-      eq(v2MessageTable.conversationId, v2ConversationTable.id),
-    )
+    .innerJoin(v2ConversationTable, eq(v2MessageTable.conversationId, v2ConversationTable.id))
     .where(
       and(
         eq(v2ConversationTable.userId, input.userId),
