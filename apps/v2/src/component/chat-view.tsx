@@ -23,6 +23,7 @@ import { revealChunk, scheduleReveal } from "../lib/chunk-reveal";
 import { ChatImage } from "./chat-image";
 import { ChatMessage, ChatMessageText } from "./chat-message";
 import { ChatMessageLog } from "./chat-message-log";
+import { GalleryPanel } from "./gallery-panel";
 import { LedgerPanel } from "./ledger-panel";
 
 import type { ChatSseEvent } from "../lib/sse-events";
@@ -270,6 +271,7 @@ export const ChatView = ({
   const nextTurn = useRef(1);
   const controller = useRef<AbortController | null>(null);
   const revealCancel = useRef<(() => void) | null>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
 
   const consume = useCallback(async (turn: PendingTurn, signal: AbortSignal, retry = false) => {
     if (signal.aborted) return;
@@ -514,17 +516,47 @@ export const ChatView = ({
     void consume(pending, abort.signal, true);
   };
 
+  // ギャラリー（RIT-185）からの「会話へ」。バブルの data-image-src（=/api/media/<messageId>）で
+  // 該当メッセージを見つけてスクロールする。属性値の照合なのでエスケープ問題を避ける。
+  const jumpToMessage = (imageUrl: string) => {
+    const target = Array.from(
+      rootRef.current?.querySelectorAll<HTMLElement>("[data-image-src]") ?? [],
+    ).find((element) => element.dataset.imageSrc === imageUrl);
+    target?.scrollIntoView({ block: "center" });
+  };
+
+  // ギャラリーから画像を消すとタイムラインの画像メッセージも消えるので、履歴を読み直す。
+  const reloadAfterGalleryChange = async () => {
+    const targetConversationId = conversationId.current;
+    if (!targetConversationId) return;
+    const abort = new AbortController();
+    try {
+      const history = await loadChatHistory(characterId, targetConversationId, abort.signal);
+      nextTurn.current = history.nextTurn;
+      setBubbles(history.bubbles);
+    } catch (cause) {
+      setError(failureMessage(cause));
+    }
+  };
+
   return (
-    <div className="v2-chat">
+    <div className="v2-chat" ref={rootRef}>
       <div className="v2-chat-header">
         <ChatMessageText text={characterName} />
         <LedgerPanel characterId={characterId} getConversationId={() => conversationId.current} />
+        <GalleryPanel
+          characterId={characterId}
+          getConversationId={() => conversationId.current}
+          onJumpToMessage={jumpToMessage}
+          onChanged={() => void reloadAfterGalleryChange()}
+        />
       </div>
       <ChatMessageLog key={characterId} busy={busy}>
         {bubbles.map((bubble, index) => (
           <div
             key={index}
             className={`v2-bubble v2-message-turn ${bubble.role} ${bubble.pending ? "pending" : ""}`}
+            {...(bubble.imageUrl ? { "data-image-src": bubble.imageUrl } : {})}
           >
             {bubble.imageUrl && <ChatImage src={bubble.imageUrl} />}
             {bubble.imageUrl && messageIdOfImage(bubble.imageUrl) && (
