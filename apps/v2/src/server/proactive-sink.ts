@@ -11,7 +11,7 @@ import { PROMPT_VERSION } from "@v2/prompt";
 
 import { readCharacter } from "./character-data.server";
 import { LOCAL_USER_ID } from "./identity";
-import { createProviderLookup, resolveProvider } from "./openrouter-lookup";
+import { createProviderLookup, resolveProvider, retryProviderLookup } from "./openrouter-lookup";
 import { sendProactivePush } from "./push";
 
 import type { ProactiveNotificationSink } from "./proactive-notification-store";
@@ -127,6 +127,9 @@ export const createEnvProactiveSink = async (env: {
   VAPID_SUBJECT?: string;
 }): Promise<ProactiveNotificationSink> => {
   const db = createDb(env.DB);
+  // 話しかけは alarm の中で走るので応答を待つ者はおらん。/generation の索引が
+  // 乗るまでその場で粘ってから 1 行で保存する（即時 lookup だとほぼ必ず unknown になる）。
+  const lookup = createProviderLookup(env);
   return createProactiveSink({
     db,
     model: createOpenRouterModel({
@@ -134,7 +137,7 @@ export const createEnvProactiveSink = async (env: {
       V2_MODEL: env.V2_MODEL,
       V2_OPENROUTER_BASE_URL: env.V2_OPENROUTER_BASE_URL,
     }),
-    providerLookup: createProviderLookup(env),
+    providerLookup: (upstreamId) => retryProviderLookup(lookup, upstreamId),
     push: async ({ characterId, characterName, text, conversationId }) => {
       await sendProactivePush(db, env, {
         userId: LOCAL_USER_ID,

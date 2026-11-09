@@ -1,13 +1,23 @@
-import { addGroupMember, createDb, createGroup, listGroupHistory, listGroupMembers } from "@v2/db";
+import {
+  addGroupMember,
+  createDb,
+  createGroup,
+  listGroupHistory,
+  listGroupMembers,
+  updateGroupMessageProvider,
+} from "@v2/db";
 import { createOpenRouterModel } from "@v2/engine";
 import { PROMPT_VERSION } from "@v2/prompt";
+import { ctx } from "cloudflare:workers";
 import { z } from "zod";
 
 import { readCharacter } from "./character-data.server";
 import { postUserToGroup, runGroupTurn } from "./group-turn";
 import { LOCAL_USER_ID } from "./identity";
-import { createProviderLookup } from "./openrouter-lookup";
+import { createProviderLookup, retryProviderLookup } from "./openrouter-lookup";
 import { getPlatform } from "./platform";
+
+import type { V2Db } from "@v2/db";
 
 const CreateGroupBody = z.object({
   title: z.string().min(1).max(80),
@@ -49,6 +59,25 @@ export const handleCreateGroup = async (request: Request): Promise<Response> => 
     await addGroupMember(db, { groupId, characterId, position, now });
   }
   return Response.json({ id: groupId }, { status: 201 });
+};
+
+// /generation の索引待ちで引けんかった実行先は、応答を返した後で引き直して書き戻す。
+const deferProviderResolution = (
+  db: V2Db,
+  lookup: (upstreamId: string) => Promise<string | null>,
+  replies: { messageId?: string; upstreamId?: string }[],
+): void => {
+  for (const reply of replies) {
+    if (!reply.messageId || !reply.upstreamId) continue;
+    const messageId = reply.messageId;
+    const upstreamId = reply.upstreamId;
+    ctx.waitUntil(
+      (async () => {
+        const provider = await retryProviderLookup(lookup, upstreamId);
+        if (provider) await updateGroupMessageProvider(db, messageId, provider);
+      })(),
+    );
+  }
 };
 
 export const handleGroupMessages = async (request: Request, groupId: string): Promise<Response> => {
@@ -94,5 +123,6 @@ export const handleGroupMessages = async (request: Request, groupId: string): Pr
     if (!result) break;
     replies.push(result);
   }
+  deferProviderResolution(db, deps.providerLookup, replies);
   return Response.json({ replies });
 };
