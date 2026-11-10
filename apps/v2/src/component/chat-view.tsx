@@ -45,6 +45,7 @@ const isPlayableAssistant = (bubble: ChatBubble): boolean =>
 export type ChatViewProps = {
   characterId: string;
   characterName: string;
+  characterAvatar?: string | null;
   initialConversationId?: string;
   newConversationKey?: string;
 };
@@ -282,6 +283,7 @@ const startScheduledReveal = (
 export const ChatView = ({
   characterId,
   characterName,
+  characterAvatar,
   initialConversationId,
   newConversationKey,
 }: ChatViewProps) => {
@@ -737,56 +739,66 @@ export const ChatView = ({
       </div>
       <ChatMessageLog key={characterId} busy={busy}>
         {bubbles.map((bubble, index) => (
-          <div
-            key={index}
-            className={`v2-bubble v2-message-turn ${bubble.role} ${bubble.pending ? "pending" : ""}`}
-            {...bubbleDataAttrs(bubble)}
-          >
-            <BubbleMedia bubble={bubble} />
-            {bubble.imageUrl &&
-              bubble.mediaKind !== "video" &&
-              messageIdOfImage(bubble.imageUrl) && (
-                <div className="v2-i2i">
-                  {i2iTarget === messageIdOfImage(bubble.imageUrl) ? (
-                    <>
-                      <input
-                        value={i2iInstruction}
-                        onChange={(event) => setI2iInstruction(event.target.value)}
-                        placeholder="例: 怒った顔"
-                        aria-label="表情変更の依頼"
-                      />
+          // LINE 型の見た目に寄せるため、相手の発言はアイコン付きの行にする（本人専用の顔出し）。
+          <div key={index} className={`v2-turn-row ${bubble.role}`}>
+            {bubble.role === "assistant" && (
+              <span className="v2-avatar" aria-hidden>
+                {characterAvatar ? <img src={characterAvatar} alt="" /> : characterName.slice(0, 1)}
+              </span>
+            )}
+            <div
+              className={`v2-bubble v2-message-turn ${bubble.role} ${bubble.pending ? "pending" : ""}`}
+              {...bubbleDataAttrs(bubble)}
+            >
+              <BubbleMedia bubble={bubble} />
+              {bubble.imageUrl &&
+                bubble.mediaKind !== "video" &&
+                messageIdOfImage(bubble.imageUrl) && (
+                  <div className="v2-i2i">
+                    {i2iTarget === messageIdOfImage(bubble.imageUrl) ? (
+                      <>
+                        <input
+                          value={i2iInstruction}
+                          onChange={(event) => setI2iInstruction(event.target.value)}
+                          placeholder="例: 怒った顔"
+                          aria-label="表情変更の依頼"
+                        />
+                        <button
+                          type="button"
+                          onClick={requestI2i}
+                          disabled={[
+                            busy,
+                            imageBusy,
+                            pending !== null,
+                            !i2iInstruction.trim(),
+                          ].some(Boolean)}
+                        >
+                          生成
+                        </button>
+                        <button type="button" onClick={() => setI2iTarget(null)}>
+                          やめる
+                        </button>
+                      </>
+                    ) : (
                       <button
                         type="button"
-                        onClick={requestI2i}
-                        disabled={[busy, imageBusy, pending !== null, !i2iInstruction.trim()].some(
-                          Boolean,
-                        )}
+                        onClick={() => setI2iTarget(messageIdOfImage(bubble.imageUrl))}
+                        disabled={[busy, imageBusy, pending !== null].some(Boolean)}
                       >
-                        生成
+                        表情変更
                       </button>
-                      <button type="button" onClick={() => setI2iTarget(null)}>
-                        やめる
-                      </button>
-                    </>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => setI2iTarget(messageIdOfImage(bubble.imageUrl))}
-                      disabled={[busy, imageBusy, pending !== null].some(Boolean)}
-                    >
-                      表情変更
-                    </button>
-                  )}
-                </div>
-              )}
-            <ChatMessage
-              role={bubble.role}
-              text={bubble.text || (bubble.pending ? "…" : "")}
-              characterName={characterName}
-              streaming={bubble.pending}
-            />
-            {bubbleControls(bubble)}
-            {voiceButtonOf(bubble)}
+                    )}
+                  </div>
+                )}
+              <ChatMessage
+                role={bubble.role}
+                text={bubble.text || (bubble.pending ? "…" : "")}
+                characterName={characterName}
+                streaming={bubble.pending}
+              />
+              {bubbleControls(bubble)}
+              {voiceButtonOf(bubble)}
+            </div>
           </div>
         ))}
       </ChatMessageLog>
