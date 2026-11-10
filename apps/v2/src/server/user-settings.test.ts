@@ -13,10 +13,12 @@ const {
   readChatMode,
   readChatStyle,
   readSafeMode,
+  readUserPersona,
   readVoiceAutoplay,
   setChatMode,
   setChatStyle,
   setSafeMode,
+  setUserPersona,
   setVoiceAutoplay,
 } = await import("./user-settings");
 
@@ -108,6 +110,28 @@ describe("readChatStyle / setChatStyle", () => {
   });
 });
 
+describe("readUserPersona / setUserPersona", () => {
+  it("行が無いユーザーは既定で空文字", async () => {
+    expect(await readUserPersona(local.d1, `u-${crypto.randomUUID()}`)).toBe("");
+  });
+
+  it("往復でき、空白だけは消去（null）に倒す", async () => {
+    const userId = `u-${crypto.randomUUID()}`;
+    await setUserPersona(local.d1, userId, "クールぶってるが優しい先輩", T0);
+    expect(await readUserPersona(local.d1, userId)).toBe("クールぶってるが優しい先輩");
+    // 空文字にすると未設定へ戻る（行は残るが読み出しは空）。
+    await setUserPersona(local.d1, userId, "", T0 + 1000);
+    expect(await readUserPersona(local.d1, userId)).toBe("");
+  });
+
+  it("上限を超えた分は切る", async () => {
+    const userId = `u-${crypto.randomUUID()}`;
+    await setUserPersona(local.d1, userId, "あ".repeat(2500), T0);
+    const value = await readUserPersona(local.d1, userId);
+    expect(value.length).toBe(2000);
+  });
+});
+
 describe("settings API", () => {
   it("GET は現在値、PUT で更新して次回 GET に反映される", async () => {
     const before = await (await handleSettingsReadRequest()).json();
@@ -116,6 +140,7 @@ describe("settings API", () => {
       chatMode: await readChatMode(local.d1, "local"),
       style: await readChatStyle(local.d1, "local"),
       voiceAutoplay: await readVoiceAutoplay(local.d1, "local"),
+      userPersona: await readUserPersona(local.d1, "local"),
     });
 
     const put = await handleSettingsWriteRequest(
@@ -151,6 +176,7 @@ describe("settings API", () => {
       chatMode: "quality",
       style: await readChatStyle(local.d1, "local"),
       voiceAutoplay: await readVoiceAutoplay(local.d1, "local"),
+      userPersona: await readUserPersona(local.d1, "local"),
     };
     expect(body).toEqual(expected);
     expect(await (await handleSettingsReadRequest()).json()).toEqual(expected);
@@ -185,11 +211,25 @@ describe("settings API", () => {
     expect(await readChatStyle(local.d1, "local")).toBe("prose");
   });
 
+  it("PUT は userPersona だけでも更新でき、他列を上書きせん", async () => {
+    const put = await handleSettingsWriteRequest(
+      new Request("https://x/api/settings", {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ userPersona: "寡黙な護衛役" }),
+      }),
+    );
+    expect(put.status).toBe(200);
+    expect(await readUserPersona(local.d1, "local")).toBe("寡黙な護衛役");
+    expect(await readSafeMode(local.d1, "local")).toBe(true);
+  });
+
   it("PUT は型の違う safeMode・未対応の chatMode・空の更新を 400 で弾く", async () => {
     for (const body of [
       { safeMode: "yes" },
       { chatMode: "extreme" },
       { style: "poetic" },
+      { userPersona: 42 },
       {},
       { other: 1 },
     ]) {

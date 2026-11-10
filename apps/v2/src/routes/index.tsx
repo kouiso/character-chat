@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 import { createFileRoute, getRouteApi, Link } from "@tanstack/react-router";
 
 import { ChatModeSelect } from "../component/chat-mode-select";
@@ -9,6 +11,7 @@ import {
 } from "../component/list-route-state";
 import { SafeModeToggle } from "../component/safe-mode-toggle";
 import { StyleSelect } from "../component/style-select";
+import { UserPersonaInput } from "../component/user-persona-input";
 import { VoiceAutoplayToggle } from "../component/voice-autoplay-toggle";
 import { listCharacters, listSavedConversations } from "../server/characters";
 
@@ -16,6 +19,13 @@ const routeApi = getRouteApi("/");
 
 const CharacterListPage = () => {
   const { characters, conversations } = routeApi.useLoaderData();
+  // RIT-30 ギャップ（Saylo の検索バー）: 名前一覧が増えると目当てを引けんので
+  // クライアント側で絞る。キャラ数は個人利用の桁なのでサーバ検索は要らん。
+  const [query, setQuery] = useState("");
+  const needle = query.trim().toLowerCase();
+  const filtered = needle
+    ? characters.filter((c) => c.name.toLowerCase().includes(needle))
+    : characters;
 
   return (
     <div className="v2-list">
@@ -25,6 +35,7 @@ const CharacterListPage = () => {
       <ChatModeSelect />
       <StyleSelect />
       <VoiceAutoplayToggle />
+      <UserPersonaInput />
       <Link to="/characters/new">キャラクターを作る</Link>
       <Link to="/catalog">公開カタログ</Link>
       <Link to="/board">雑談広場</Link>
@@ -44,6 +55,9 @@ const CharacterListPage = () => {
                 >
                   {conversation.title || "無題の会話"}
                 </Link>
+                {conversation.lastMessage && (
+                  <p className="v2-conversation-preview">{conversation.lastMessage.slice(0, 60)}</p>
+                )}
               </li>
             ))}
           </ul>
@@ -52,20 +66,29 @@ const CharacterListPage = () => {
       {characters.length === 0 ? (
         <ListEmptyState />
       ) : (
-        <ul>
-          {characters.map((c) => (
-            <li key={c.id}>
-              <Link to="/chat/$id" params={{ id: c.id }}>
-                {c.name}
-              </Link>
-              {c.canEdit && (
-                <Link to="/characters/$id" params={{ id: c.id }}>
-                  設定・版の履歴
+        <>
+          <input
+            type="search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="キャラ名で検索"
+            aria-label="キャラ検索"
+          />
+          <ul>
+            {filtered.map((c) => (
+              <li key={c.id}>
+                <Link to="/chat/$id" params={{ id: c.id }}>
+                  {c.name}
                 </Link>
-              )}
-            </li>
-          ))}
-        </ul>
+                {c.canEdit && (
+                  <Link to="/characters/$id" params={{ id: c.id }}>
+                    設定・版の履歴
+                  </Link>
+                )}
+              </li>
+            ))}
+          </ul>
+        </>
       )}
     </div>
   );

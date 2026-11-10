@@ -10,14 +10,14 @@
       "database_name": "adult-ai-db",
       "database_id": "c0ffee00-0000-4000-8000-000000000001",
       "preview_database_id": "c0ffee00-0000-4000-8000-000000000001",
-      "migrations_dir": "../../drizzle",
-    },
+      "migrations_dir": "../../drizzle"
+    }
   ],
   "r2_buckets": [
     {
       "binding": "BUCKET",
-      "bucket_name": "adult-ai-images",
-    },
+      "bucket_name": "adult-ai-images"
+    }
   ],
   // AIとVectorizeはローカルで模擬できないため、通常の開発では接続しない。
   "env": {
@@ -44,7 +44,7 @@
         // AI Gateway ができたら https://gateway.ai.cloudflare.com/v1/<acct>/<gw>/openrouter を置く。空は OpenRouter 直（RIT-100）。
         "V2_OPENROUTER_BASE_URL": "https://openrouter.ai/api/v1",
         "VAPID_PUBLIC_KEY": "BHlCOMkST-7w3VDvwjNMWEcxFXWcf_6plP4H--WcgCLuGt8LgNjbbCAL3tdCKfD-t_SB-WjFqP513fLnD0I2MM8",
-        "VAPID_SUBJECT": "mailto:kouiso@ritmo.co.jp",
+        "VAPID_SUBJECT": "mailto:kouiso@ritmo.co.jp"
       },
       "secrets": {
         "required": [
@@ -52,12 +52,12 @@
           "BASIC_AUTH_PASSWORD",
           "OPENROUTER_API_KEY",
           "VAPID_PRIVATE_KEY",
-          "NOVITA_API_KEY",
-        ],
+          "NOVITA_API_KEY"
+        ]
       },
       "ai": { "binding": "AI", "remote": true },
       "vectorize": [
-        { "binding": "MEMORY_INDEX", "index_name": "adult-ai-v2-memory", "remote": true },
+        { "binding": "MEMORY_INDEX", "index_name": "adult-ai-v2-memory", "remote": true }
       ],
       // 新旧同居の間は旧アプリと同じ本番 D1 を正本として読む。
       "d1_databases": [
@@ -66,15 +66,15 @@
           "database_name": "adult-ai-db",
           "database_id": "b617800c-cf4c-4122-adbb-ce872a258da6",
           "preview_database_id": "b617800c-cf4c-4122-adbb-ce872a258da6",
-          "migrations_dir": "../../drizzle",
-        },
+          "migrations_dir": "../../drizzle"
+        }
       ],
       "r2_buckets": [{ "binding": "BUCKET", "bucket_name": "adult-ai-images" }],
       "durable_objects": {
         "bindings": [
           { "name": "CHAT_ROOMS", "class_name": "ChatRoom" },
-          { "name": "PROACTIVE_SCHEDULERS", "class_name": "ProactiveScheduler" },
-        ],
+          { "name": "PROACTIVE_SCHEDULERS", "class_name": "ProactiveScheduler" }
+        ]
       },
       "queues": {
         "producers": [{ "binding": "MEMORY_QUEUE", "queue": "adult-ai-v2-memory" }],
@@ -85,10 +85,10 @@
             "max_batch_timeout": 1,
             "max_retries": 4,
             "max_concurrency": 1,
-            "retry_delay": 30,
-          },
-        ],
-      },
+            "retry_delay": 30
+          }
+        ]
+      }
     },
     // 試し用 Worker adult-ai-v2-staging。vars・secrets・束ねは env へ継承されんので全部書く。
     "staging": {
@@ -113,7 +113,7 @@
         // AI Gateway ができたら https://gateway.ai.cloudflare.com/v1/<acct>/<gw>/openrouter を置く。空は OpenRouter 直（RIT-100）。
         "V2_OPENROUTER_BASE_URL": "https://openrouter.ai/api/v1",
         "VAPID_PUBLIC_KEY": "BHlCOMkST-7w3VDvwjNMWEcxFXWcf_6plP4H--WcgCLuGt8LgNjbbCAL3tdCKfD-t_SB-WjFqP513fLnD0I2MM8",
-        "VAPID_SUBJECT": "mailto:kouiso@ritmo.co.jp",
+        "VAPID_SUBJECT": "mailto:kouiso@ritmo.co.jp"
       },
       "secrets": {
         "required": [
@@ -121,12 +121,12 @@
           "BASIC_AUTH_PASSWORD",
           "OPENROUTER_API_KEY",
           "VAPID_PRIVATE_KEY",
-          "NOVITA_API_KEY",
-        ],
+          "NOVITA_API_KEY"
+        ]
       },
       "ai": { "binding": "AI", "remote": true },
       "vectorize": [
-        { "binding": "MEMORY_INDEX", "index_name": "character-chat-v2-staging", "remote": true },
+        { "binding": "MEMORY_INDEX", "index_name": "character-chat-v2-staging", "remote": true }
       ],
       "d1_databases": [
         {
@@ -134,15 +134,15 @@
           "database_name": "character-chat-v2-staging",
           "database_id": "0c161a82-6dca-45d6-9cbc-97b43e909099",
           "preview_database_id": "0c161a82-6dca-45d6-9cbc-97b43e909099",
-          "migrations_dir": "../../drizzle",
-        },
+          "migrations_dir": "../../drizzle"
+        }
       ],
       "r2_buckets": [{ "binding": "BUCKET", "bucket_name": "character-chat-v2-staging" }],
       "durable_objects": {
         "bindings": [
           { "name": "CHAT_ROOMS", "class_name": "ChatRoom" },
-          { "name": "PROACTIVE_SCHEDULERS", "class_name": "ProactiveScheduler" },
-        ],
+          { "name": "PROACTIVE_SCHEDULERS", "class_name": "ProactiveScheduler" }
+        ]
       },
       "queues": {
         "producers": [{ "binding": "MEMORY_QUEUE", "queue": "adult-ai-v2-memory-staging" }],
@@ -153,11 +153,11 @@
             "max_batch_timeout": 1,
             "max_retries": 4,
             "max_concurrency": 1,
-            "retry_delay": 30,
-          },
-        ],
-      },
-    },
+            "retry_delay": 30
+          }
+        ]
+      }
+    }
   },
   "main": "src/worker.ts",
   "compatibility_flags": ["nodejs_compat"],
@@ -168,7 +168,7 @@
   // 置かない。有料へ上げたら cpu_ms: 300000 を戻す（長い生成はその上限が要る）。
   "assets": {
     "binding": "ASSETS",
-    "run_worker_first": true,
+    "run_worker_first": true
   },
   "vars": {
     "APP_ENV": "development",
@@ -189,39 +189,39 @@
     "V2_TTS_AIVIS_URL": "http://localhost:10101",
     "V2_OPENROUTER_BASE_URL": "https://openrouter.ai/api/v1",
     "VAPID_PUBLIC_KEY": "BHlCOMkST-7w3VDvwjNMWEcxFXWcf_6plP4H--WcgCLuGt8LgNjbbCAL3tdCKfD-t_SB-WjFqP513fLnD0I2MM8",
-    "VAPID_SUBJECT": "mailto:kouiso@ritmo.co.jp",
+    "VAPID_SUBJECT": "mailto:kouiso@ritmo.co.jp"
   },
   "observability": {
-    "enabled": false,
+    "enabled": false
   },
   "secrets": {
     "required": [
       "BASIC_AUTH_USERNAME",
       "BASIC_AUTH_PASSWORD",
       "OPENROUTER_API_KEY",
-      "VAPID_PRIVATE_KEY",
-    ],
+      "VAPID_PRIVATE_KEY"
+    ]
   },
   "durable_objects": {
     "bindings": [
       {
         "name": "CHAT_ROOMS",
-        "class_name": "ChatRoom",
+        "class_name": "ChatRoom"
       },
       {
         "name": "PROACTIVE_SCHEDULERS",
-        "class_name": "ProactiveScheduler",
-      },
-    ],
+        "class_name": "ProactiveScheduler"
+      }
+    ]
   },
   "migrations": [
     {
       "tag": "v1-chat-room",
-      "new_sqlite_classes": ["ChatRoom"],
+      "new_sqlite_classes": ["ChatRoom"]
     },
     {
       "tag": "v2-proactive-scheduler",
-      "new_sqlite_classes": ["ProactiveScheduler"],
-    },
-  ],
+      "new_sqlite_classes": ["ProactiveScheduler"]
+    }
+  ]
 }

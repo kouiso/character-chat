@@ -470,6 +470,13 @@
       "when": 1762743600000,
       "tag": "20261110110000_rit217_chapter_media",
       "breakpoints": true
+    },
+    {
+      "idx": 102,
+      "version": "7",
+      "when": 1762747200000,
+      "tag": "20261110120000_user_persona",
+      "breakpoints": true
     }
   ]
 }

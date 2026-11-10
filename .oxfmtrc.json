@@ -17,6 +17,7 @@
     "doc/design/ouse/handoff/**",
     "**/routeTree.gen.ts",
     "**/worker-configuration.d.ts",
+    "**/wrangler.jsonc",
     "**/.output/**",
     "**/dist/**",
     "**/node_modules/**",

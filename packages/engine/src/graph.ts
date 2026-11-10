@@ -284,6 +284,9 @@ export type TurnGraphDeps = {
   charScale?: number;
   // RIT-203: 文体スタイル（balanced は未指定）。出力形式の地の文/台詞の配分だけ変える。
   style?: "prose" | "dialogue";
+  // RIT-30 ギャップ: キャラから見たユーザーの人物像。設定時だけコンテキスト 1 塊として
+  // 履歴の直前へ差す（キャラの systemPrompt には混ぜん。保存プロンプト版も据え置き）。
+  userPersona?: string;
   // 巻き取り要約（RIT-72）。未注入では要約も注入も走らん。
   summaryStore?: SummaryStore;
   // thresholdMessages: 窓から押し出された未要約メッセージがこの件数で level 1 を起こす。
@@ -709,6 +712,15 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
                   {
                     role: "user" as const,
                     content: DOCUMENT_CONTEXT_HEADER + state.retrievedDocuments.join("\n"),
+                  },
+                ]
+              : []),
+            // ユーザーの人物像は会話履歴の直前。記憶や資料より新しい指示として読ませる。
+            ...(deps.userPersona
+              ? [
+                  {
+                    role: "user" as const,
+                    content: `【ユーザーについて】\n${deps.userPersona}`,
                   },
                 ]
               : []),
