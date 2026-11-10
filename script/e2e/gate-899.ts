@@ -194,7 +194,11 @@ const main = async (): Promise<void> => {
     `${JSON.stringify({ gateId, runIds, missingRuns, passed, verdicts, records }, null, 2)}\n`,
     "utf8",
   );
-  await writeFile(path.join(outDir, "phase-timeline.txt"), `${renderPhaseTimeline(records)}\n`, "utf8");
+  await writeFile(
+    path.join(outDir, "phase-timeline.txt"),
+    `${renderPhaseTimeline(records)}\n`,
+    "utf8",
+  );
   const missingSection =
     missingRuns.length === 0
       ? ""

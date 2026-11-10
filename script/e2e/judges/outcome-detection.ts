@@ -24,7 +24,8 @@ const AFTERGLOW_TAIL_HITS_MIN = 2;
 
 // サーバーが返した phase ヘッダを採点の正とし、judge の detectedPhase はフォールバックとする。
 // 実 E2E では judge 判定とサーバー挙動がずれるケースがあり、rubric は製品の実際の phase で測る。
-export const effectiveScenePhase = (turn: TurnResult): Phase | null => turn.phase ?? turn.detectedPhase;
+export const effectiveScenePhase = (turn: TurnResult): Phase | null =>
+  turn.phase ?? turn.detectedPhase;
 
 const hasCreampieAssistantCue = (assistantMsg: string): boolean =>
   CREAMPIE_ASSISTANT_CUES.some((cue) => assistantMsg.includes(cue));
@@ -54,7 +55,8 @@ export const getAfterglowTailTurns = (scenario: ScenarioResult): TurnResult[] =>
   scenario.turns.filter((turn) => turn.expectedPhase === "afterglow").slice(-AFTERGLOW_TAIL_WINDOW);
 
 export const getAfterglowTailHitCount = (scenario: ScenarioResult): number =>
-  getAfterglowTailTurns(scenario).filter((turn) => effectiveScenePhase(turn) === "afterglow").length;
+  getAfterglowTailTurns(scenario).filter((turn) => effectiveScenePhase(turn) === "afterglow")
+    .length;
 
 export const getAfterglowTailWindowSize = (scenario: ScenarioResult): number =>
   getAfterglowTailTurns(scenario).length;

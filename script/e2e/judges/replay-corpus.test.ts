@@ -11,9 +11,7 @@ import type { Phase } from "../types";
 
 // 実コーパス(.work/e2e-results)は増減するのでテスト対象にしない。集計ロジックだけを
 // 固定の偽コーパスで検証する。
-const turn = (
-  overrides: Partial<CorpusTurn> & Pick<CorpusTurn, "expectedPhase">,
-): CorpusTurn => ({
+const turn = (overrides: Partial<CorpusTurn> & Pick<CorpusTurn, "expectedPhase">): CorpusTurn => ({
   runId: "run-1",
   scenarioId: "S1",
   turnIndex: 1,

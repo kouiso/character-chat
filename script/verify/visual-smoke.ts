@@ -67,7 +67,8 @@ function computeDiffHash(): string {
   // 含めると検証直後に hash が自己無効化するループになる（stop-gate hook 側と整合必須）
   const exclude = `-- . ':(exclude).work/verify/**'`;
   const diff = readCommand(`git diff HEAD ${exclude} 2>/dev/null`);
-  const content = diff.length > 0 ? diff : readCommand(`git diff --cached HEAD ${exclude} 2>/dev/null`);
+  const content =
+    diff.length > 0 ? diff : readCommand(`git diff --cached HEAD ${exclude} 2>/dev/null`);
   return createHash("sha256").update(content).digest("hex").slice(0, 16);
 }
 
@@ -97,7 +98,9 @@ function getRoutesToVerify(files: string[]): string[] {
 
 async function isDevServerRunning(port: number): Promise<boolean> {
   try {
-    const response = await fetch(`http://localhost:${port}`, { signal: AbortSignal.timeout(2_000) });
+    const response = await fetch(`http://localhost:${port}`, {
+      signal: AbortSignal.timeout(2_000),
+    });
     return response.ok || response.status < 500;
   } catch {
     return false;
@@ -145,7 +148,9 @@ async function launchBrowser(): Promise<Browser> {
     const playwright = await import("playwright");
     return await playwright.chromium.launch({ headless: true });
   } catch (error) {
-    throw new Error(`Playwright chromium could not start. Run 'pnpm install' and 'pnpm exec playwright install chromium'. ${error}`);
+    throw new Error(
+      `Playwright chromium could not start. Run 'pnpm install' and 'pnpm exec playwright install chromium'. ${error}`,
+    );
   }
 }
 
@@ -153,7 +158,11 @@ function writeResult(result: VerificationResult): void {
   writeFileSync(VERIFY_JSON, JSON.stringify(result, null, 2));
 }
 
-async function verifyRoutes(context: BrowserContext, routes: string[], ts: string): Promise<{
+async function verifyRoutes(
+  context: BrowserContext,
+  routes: string[],
+  ts: string,
+): Promise<{
   pageErrors: string[];
   failedRequests: RequestFailure[];
   screenshots: string[];

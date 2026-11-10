@@ -112,7 +112,8 @@ const report = (dir: string): void => {
     const values = cells.filter((c) => c.responseLength === length).map((c) => c.visibleChars);
     if (values.length === 0) continue;
     const sorted = [...values].sort((a, b) => a - b);
-    const at = (ratio: number): number => sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * ratio))];
+    const at = (ratio: number): number =>
+      sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * ratio))];
     console.log(
       `${length.padEnd(11)} ${String(values.length).padStart(3)} ${String(median(values)).padStart(7)} ` +
         `${String(at(0.25)).padStart(5)} ${String(at(0.75)).padStart(5)} ` +

@@ -9,12 +9,7 @@ const BUCKET_NAME = "adult-ai-images";
 const AVATAR_PREFIX = "avatars";
 const repoRoot = join(import.meta.dirname, "..");
 const avatarDir = join(repoRoot, "public", "avatars");
-const manifestPath = join(
-  repoRoot,
-  ".work",
-  "avatar-migration",
-  "uploaded-manifest.json",
-);
+const manifestPath = join(repoRoot, ".work", "avatar-migration", "uploaded-manifest.json");
 const localR2ObjectDir = join(
   repoRoot,
   ".wrangler",

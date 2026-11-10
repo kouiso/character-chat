@@ -920,28 +920,24 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
         }
         const events: TurnEvent[] = [
           ...(state.generation ? [{ type: "generation" as const, ...state.generation }] : []),
-          ...accepted.map(
-            (chunkItem): TurnEvent => ({
-              type: "chunk",
-              seq: chunkItem.seq,
-              text: chunkItem.text,
-              judge: chunkItem.judge,
-              attempt: chunkItem.attempt,
-              preExtend: chunkItem.preExtend,
-            }),
-          ),
+          ...accepted.map((chunkItem): TurnEvent => ({
+            type: "chunk",
+            seq: chunkItem.seq,
+            text: chunkItem.text,
+            judge: chunkItem.judge,
+            attempt: chunkItem.attempt,
+            preExtend: chunkItem.preExtend,
+          })),
           // 配らんかった塊も理由つきで D1 に残す（RIT-70）。SSE に出す dropped とは別で、
           // 保存用は本文と判定結果を持つ。
-          ...state.dropped.map(
-            (chunkItem): TurnEvent => ({
-              type: "dropped",
-              seq: chunkItem.seq,
-              reasons: chunkItem.judge.reasons,
-              attempt: chunkItem.attempt,
-              text: chunkItem.text,
-              judge: chunkItem.judge,
-            }),
-          ),
+          ...state.dropped.map((chunkItem): TurnEvent => ({
+            type: "dropped",
+            seq: chunkItem.seq,
+            reasons: chunkItem.judge.reasons,
+            attempt: chunkItem.attempt,
+            text: chunkItem.text,
+            judge: chunkItem.judge,
+          })),
         ];
         const saved = await deps.store.saveTurn({
           conversationId: state.conversationId,

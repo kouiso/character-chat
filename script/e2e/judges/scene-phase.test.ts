@@ -17,8 +17,7 @@ describe("judgePhase – afterglow detection", () => {
     // バグ修正前: climax と誤検出 → afterglow -10 penalty
     // バグ修正後: afterglow と正しく検出 → afterglow +10 bonus
     const afterglowResult = judgePhase({
-      assistantMsg:
-        "あなたの精液が中に注いだまま、余韻で体が震えている。もう動けない…",
+      assistantMsg: "あなたの精液が中に注いだまま、余韻で体が震えている。もう動けない…",
       expectedPhase: "afterglow",
       previousDetected: "climax",
     });

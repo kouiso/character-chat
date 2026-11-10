@@ -43,9 +43,7 @@ const logImageApiResponse = async (response: Response): Promise<void> => {
   }
 
   console.log(
-    `[probeR2Stages] /api/image POST status=${status}${
-      bodyPreview ? ` body=${bodyPreview}` : ""
-    }`,
+    `[probeR2Stages] /api/image POST status=${status}${bodyPreview ? ` body=${bodyPreview}` : ""}`,
   );
 };
 

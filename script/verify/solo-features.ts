@@ -240,7 +240,10 @@ const run = async (): Promise<void> => {
     await page.goto(`${BASE_URL}/chat?conv=${encodeURIComponent(setup.conversationId)}`, {
       waitUntil: "domcontentloaded",
     });
-    await page.waitForSelector('[data-testid="message-bubble"]', { state: "visible", timeout: 15_000 });
+    await page.waitForSelector('[data-testid="message-bubble"]', {
+      state: "visible",
+      timeout: 15_000,
+    });
     await sleep(500);
     await saveScreenshot(page, "04-chat-returned.png");
 

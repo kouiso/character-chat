@@ -255,7 +255,9 @@ describe("ドナーの履歴はターン番号で切る", () => {
       "c/z",
       [1, 2, 3].map((turn) => turnOf({ scenario: "c/z", run: "c", turn, character: "同じ子" })),
     ];
-    expect(donorFor([me, whole], "a/x", "同じ子", 3, 0, 2).map((t) => t.turn)).toStrictEqual([1, 2]);
+    expect(donorFor([me, whole], "a/x", "同じ子", 3, 0, 2).map((t) => t.turn)).toStrictEqual([
+      1, 2,
+    ]);
   });
 });
 
@@ -458,7 +460,13 @@ describe("長さ四分位", () => {
       // 変わらんので、順序を固定でけてへんことをテストが見逃す
       const echo = Number(/\d+/.exec(key)?.[0]) < 4;
       return [
-        turnOf({ scenario: key, run: key, turn: 1, config: CONFIG, rawBody: xml(echoed, "「そこ」") }),
+        turnOf({
+          scenario: key,
+          run: key,
+          turn: 1,
+          config: CONFIG,
+          rawBody: xml(echoed, "「そこ」"),
+        }),
         // 2ターン目は**どれも同じ字数**。違うのは前ターンの句を戻すかどうかだけ
         turnOf({
           scenario: key,
@@ -576,7 +584,12 @@ describe("長さ四分位", () => {
     const rendered = renderQuartiles(
       measureAll(
         [1, 2, 3, 4].map((turn) =>
-          turnOf({ scenario: `s${turn}/テスト`, run: `s${turn}`, turn, rawBody: xml("あ".repeat(turn * 300), "「うん」") }),
+          turnOf({
+            scenario: `s${turn}/テスト`,
+            run: `s${turn}`,
+            turn,
+            rawBody: xml("あ".repeat(turn * 300), "「うん」"),
+          }),
         ),
       ),
     );

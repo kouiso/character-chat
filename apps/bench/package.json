@@ -1,8 +1,8 @@
 {
   "name": "@character-chat/bench",
   "private": true,
-  "type": "module",
   "description": "検証台。既存の src/ functions/ には一切触らず、生成テキストの質だけを数字で測る。",
+  "type": "module",
   "scripts": {
     "baseline": "node script/baseline.ts",
     "test": "node --test 'src/**/*.test.ts'",

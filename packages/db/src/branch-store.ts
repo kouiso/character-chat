@@ -57,10 +57,7 @@ const branchGroupOf = async (db: V2Db, messageId: string) => {
 
 // active を別の系列へ張り替える（進む/戻るの枝切替）。対象行が無ければ null。
 // 代替系列が無い（自分だけの）グループでも同じ行へ張り直すだけなので無害。
-export const activateBranch = async (
-  db: V2Db,
-  messageId: string,
-): Promise<"ok" | "not-found"> => {
+export const activateBranch = async (db: V2Db, messageId: string): Promise<"ok" | "not-found"> => {
   const group = await branchGroupOf(db, messageId);
   if (!group) return "not-found";
   const sameGroup = and(
@@ -133,10 +130,7 @@ export const restoreFromTurn = async (
   );
   const targets = ids.filter((id): id is string => id !== undefined);
   if (targets.length === 0) return;
-  await db
-    .update(v2MessageTable)
-    .set({ active: 1 })
-    .where(inArray(v2MessageTable.id, targets));
+  await db.update(v2MessageTable).set({ active: 1 }).where(inArray(v2MessageTable.id, targets));
 };
 
 // 次の branch_no を出す。新しい代替系列は常に末尾へ足す。

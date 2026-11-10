@@ -1,0 +1,148 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": [
+    "typescript",
+    "unicorn",
+    "react",
+    "react-perf",
+    "import",
+    "jsx-a11y",
+    "promise",
+    "oxc"
+  ],
+  "categories": {
+    "correctness": "error"
+  },
+  "env": {
+    "browser": true,
+    "builtin": true,
+    "es2024": true,
+    "node": true
+  },
+  "ignorePatterns": [
+    "**/routeTree.gen.ts",
+    "**/worker-configuration.d.ts",
+    "**/.output/**",
+    "**/dist/**",
+    "**/node_modules/**",
+    "**/*.mjs",
+    "**/*.cjs"
+  ],
+  "rules": {
+    "no-useless-escape": "error",
+    "typescript/consistent-type-imports": "error",
+    "typescript/no-explicit-any": "error",
+    "typescript/ban-ts-comment": "error",
+    "no-unused-vars": [
+      "error",
+      {
+        "vars": "all",
+        "args": "after-used",
+        "ignoreRestSiblings": false
+      }
+    ],
+    "import/no-default-export": "error",
+    "react/button-has-type": "error",
+    "jsx-a11y/click-events-have-key-events": "warn",
+    "jsx-a11y/no-noninteractive-element-interactions": "warn",
+    "unicorn/prefer-array-flat-map": "error",
+    "unicorn/prefer-query-selector": "warn",
+    "unicorn/new-for-builtins": "error",
+    "unicorn/filename-case": [
+      "error",
+      {
+        "cases": {
+          "kebabCase": true
+        }
+      }
+    ],
+    "no-console": "error",
+    "no-alert": "error",
+    "no-param-reassign": "error",
+    "no-var": "error",
+    "prefer-const": "error",
+    "eqeqeq": "error",
+    "no-eval": "error",
+    "no-implied-eval": "error",
+    "no-return-assign": "error",
+    "no-self-compare": "error",
+    "no-sequences": "error",
+    "no-unused-expressions": "error",
+    "no-useless-concat": "error",
+    "no-debugger": "error",
+    "arrow-body-style": ["error", "as-needed"],
+    "no-useless-constructor": "error",
+    "max-depth": [
+      "error",
+      {
+        "max": 3
+      }
+    ],
+    "complexity": [
+      "error",
+      {
+        "max": 10
+      }
+    ],
+    "react/set-state-in-effect": "warn",
+    "react/refs": "warn",
+    "react/purity": "warn",
+    "promise/no-callback-in-promise": "warn",
+    "unicorn/no-new-array": "warn",
+    "unicorn/no-useless-spread": "warn",
+    "unicorn/no-useless-fallback-in-spread": "warn",
+    "jsx-a11y/prefer-tag-over-role": "warn",
+    "jsx-a11y/no-autofocus": "warn",
+    "jsx-a11y/media-has-caption": "warn",
+    "jsx-a11y/no-static-element-interactions": "warn",
+    "jsx-a11y/aria-role": "warn",
+    "jsx-a11y/alt-text": "warn",
+    "jsx-a11y/no-noninteractive-tabindex": "warn"
+  },
+  "settings": {
+    "react": {
+      "version": "19.0.0"
+    }
+  },
+  "overrides": [
+    {
+      "files": ["**/src/routes/**"],
+      "rules": {
+        "import/no-default-export": "off"
+      }
+    },
+    {
+      "files": [
+        "**/vite.config.ts",
+        "**/vitest.config.ts",
+        "**/vitest.config.mts",
+        "**/src/worker.ts",
+        "**/jest.config.*"
+      ],
+      "rules": {
+        "import/no-default-export": "off"
+      }
+    },
+    {
+      "files": [
+        "**/src/run.ts",
+        "**/src/persist-check.ts",
+        "**/src/script-run.ts",
+        "**/src/repetition-rate.ts",
+        "**/src/refusal-check.ts",
+        "**/src/fantasy-core-check.ts",
+        "**/src/conversation-quality-check.ts",
+        "**/src/memory-recall-check.ts",
+        "**/src/memory-adversarial-check.ts",
+        "**/src/compare-baseline.ts",
+        "**/src/check.ts",
+        "**/src/server/chat-room.ts",
+        "**/src/server/api-chat.ts",
+        "**/src/worker.ts"
+      ],
+      "rules": {
+        "no-console": "off"
+      }
+    }
+  ]
+}

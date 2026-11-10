@@ -55,8 +55,7 @@ const privateJson = (body: unknown, status = 200): Response =>
     },
   });
 
-const message = (status: number, text: string): Response =>
-  privateJson({ message: text }, status);
+const message = (status: number, text: string): Response => privateJson({ message: text }, status);
 
 const mutationRequestError = (request: Request): Response | null => {
   const origin = request.headers.get("origin");
@@ -173,11 +172,7 @@ export const handleMemoriesRequest = async (
       if (!conversationId) {
         return message(409, "会話が始まってから記憶を追加できます。");
       }
-      const memory = await insertManualMemory(
-        database,
-        { ...scope, conversationId },
-        payload,
-      );
+      const memory = await insertManualMemory(database, { ...scope, conversationId }, payload);
       if (!memory) {
         return message(409, "会話が始まってから記憶を追加できます。");
       }
@@ -205,9 +200,7 @@ export const handleMemoriesRequest = async (
         if (!ok) return message(404, "会話または記憶が見つかりません。");
       }
       const memory = await loadOwnedMemory(database, scope, payload.memoryId);
-      return memory
-        ? privateJson({ memory })
-        : message(404, "会話または記憶が見つかりません。");
+      return memory ? privateJson({ memory }) : message(404, "会話または記憶が見つかりません。");
     }
 
     if (request.method === "DELETE") {

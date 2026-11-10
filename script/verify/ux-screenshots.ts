@@ -15,11 +15,36 @@ interface Shot {
 
 const shots: Shot[] = [
   { name: "home", route: "/", viewport: { width: 375, height: 812 }, deviceLabel: "mobile" },
-  { name: "discover", route: "/discover", viewport: { width: 375, height: 812 }, deviceLabel: "mobile" },
-  { name: "chat", route: "/chat/char-tsukasa", viewport: { width: 375, height: 812 }, deviceLabel: "mobile" },
-  { name: "create", route: "/create", viewport: { width: 375, height: 812 }, deviceLabel: "mobile" },
-  { name: "home-desktop", route: "/", viewport: { width: 1280, height: 832 }, deviceLabel: "desktop" },
-  { name: "chat-desktop", route: "/chat/char-mitsuki", viewport: { width: 1280, height: 832 }, deviceLabel: "desktop" },
+  {
+    name: "discover",
+    route: "/discover",
+    viewport: { width: 375, height: 812 },
+    deviceLabel: "mobile",
+  },
+  {
+    name: "chat",
+    route: "/chat/char-tsukasa",
+    viewport: { width: 375, height: 812 },
+    deviceLabel: "mobile",
+  },
+  {
+    name: "create",
+    route: "/create",
+    viewport: { width: 375, height: 812 },
+    deviceLabel: "mobile",
+  },
+  {
+    name: "home-desktop",
+    route: "/",
+    viewport: { width: 1280, height: 832 },
+    deviceLabel: "desktop",
+  },
+  {
+    name: "chat-desktop",
+    route: "/chat/char-mitsuki",
+    viewport: { width: 1280, height: 832 },
+    deviceLabel: "desktop",
+  },
 ];
 
 async function main(): Promise<void> {
@@ -35,7 +60,10 @@ async function main(): Promise<void> {
       // 年齢確認・オンボーディングをスキップして UI 本体を撮影
       await page.goto(`${BASE_URL}/`, { waitUntil: "domcontentloaded" });
       await page.evaluate(() => {
-        localStorage.setItem("age_verified", JSON.stringify({ verified: true, timestamp: Date.now() }));
+        localStorage.setItem(
+          "age_verified",
+          JSON.stringify({ verified: true, timestamp: Date.now() }),
+        );
         localStorage.setItem("ou_onboarded", "1");
       });
 

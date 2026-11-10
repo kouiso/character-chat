@@ -39,8 +39,14 @@ const MOCK_ASSISTANT_TEXT =
 const MOCK_COMIC_BREAKDOWN = {
   panels: [
     { visual_prompt: "1girl, office, standing, looking at viewer", dialogue: "…まだ残ってたの？" },
-    { visual_prompt: "1girl, office, sitting at desk, side view", dialogue: "別にあんたのためじゃないから。" },
-    { visual_prompt: "1girl, office, leaning closer, blushing", dialogue: "……ちょっとだけなら、いてあげる。" },
+    {
+      visual_prompt: "1girl, office, sitting at desk, side view",
+      dialogue: "別にあんたのためじゃないから。",
+    },
+    {
+      visual_prompt: "1girl, office, leaning closer, blushing",
+      dialogue: "……ちょっとだけなら、いてあげる。",
+    },
     { visual_prompt: "1girl, office, smiling softly, night window", dialogue: "感謝しなさいよ。" },
   ],
 };

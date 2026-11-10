@@ -2,10 +2,7 @@
 // 全部 D1 側の行を正とする。R2 側は原本の置き場で、一覧は走らん。
 import { and, eq, inArray } from "drizzle-orm";
 
-import {
-  v2CharacterDocumentChunkTable,
-  v2CharacterDocumentTable,
-} from "./v2-schema";
+import { v2CharacterDocumentChunkTable, v2CharacterDocumentTable } from "./v2-schema";
 
 import type { V2Db } from "./client";
 
@@ -54,10 +51,7 @@ export const loadCharacterDocument = async (
     .select()
     .from(v2CharacterDocumentTable)
     .where(
-      and(
-        eq(v2CharacterDocumentTable.id, documentId),
-        eq(v2CharacterDocumentTable.userId, userId),
-      ),
+      and(eq(v2CharacterDocumentTable.id, documentId), eq(v2CharacterDocumentTable.userId, userId)),
     )
     .limit(1);
   return row ?? null;
@@ -89,10 +83,7 @@ export const setCharacterDocumentStatus = async (
     .update(v2CharacterDocumentTable)
     .set({ status })
     .where(
-      and(
-        eq(v2CharacterDocumentTable.id, documentId),
-        eq(v2CharacterDocumentTable.userId, userId),
-      ),
+      and(eq(v2CharacterDocumentTable.id, documentId), eq(v2CharacterDocumentTable.userId, userId)),
     );
   return (result.meta.changes ?? 0) > 0;
 };
@@ -118,10 +109,7 @@ export const deleteCharacterDocument = async (
   await db
     .delete(v2CharacterDocumentTable)
     .where(
-      and(
-        eq(v2CharacterDocumentTable.id, documentId),
-        eq(v2CharacterDocumentTable.userId, userId),
-      ),
+      and(eq(v2CharacterDocumentTable.id, documentId), eq(v2CharacterDocumentTable.userId, userId)),
     );
 };
 

@@ -3,7 +3,7 @@ name: Quarterly D1 Backup
 on:
   schedule:
     # 1st of Jan, Apr, Jul, Oct at 02:00 UTC
-    - cron: '0 2 1 1,4,7,10 *'
+    - cron: "0 2 1 1,4,7,10 *"
   workflow_dispatch:
 
 concurrency:

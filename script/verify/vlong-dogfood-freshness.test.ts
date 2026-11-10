@@ -27,10 +27,7 @@ describe("summarizeFreshness", () => {
   });
 
   it("重ならん本文は目減りせん", () => {
-    const turns = [
-      buildTurn(1, "erotic", [CLAUSE_A]),
-      buildTurn(2, "erotic", [CLAUSE_C]),
-    ];
+    const turns = [buildTurn(1, "erotic", [CLAUSE_A]), buildTurn(2, "erotic", [CLAUSE_C])];
     const row = summarizeFreshness(turns, ["erotic"]);
     expect(row.recycled).toBe(0);
     expect(row.fresh).toBe(row.visible);

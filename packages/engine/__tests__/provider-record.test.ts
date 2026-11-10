@@ -48,7 +48,7 @@ const isGenerationEvent = (event: TurnEvent): event is Extract<TurnEvent, { type
 describe("実行先の記録（RIT-100）", () => {
   test("providerLookup が引いた実行先と上流 id が generation に残る", async () => {
     const store = createMemoryTurnStore();
-    const providerLookup = jest.fn().mockResolvedValue("test-provider");
+    const providerLookup = vi.fn().mockResolvedValue("test-provider");
     const graph = createTurnGraph({
       model: new UpstreamIdModel({ responses: [VALID_XML] }),
       store,
@@ -69,7 +69,7 @@ describe("実行先の記録（RIT-100）", () => {
 
   test("lookup が落ちてもターンは完了し、provider は unknown で残る", async () => {
     const store = createMemoryTurnStore();
-    const providerLookup = jest.fn().mockRejectedValue(new Error("stats down"));
+    const providerLookup = vi.fn().mockRejectedValue(new Error("stats down"));
     const graph = createTurnGraph({
       model: new UpstreamIdModel({ responses: [VALID_XML] }),
       store,
@@ -86,8 +86,8 @@ describe("実行先の記録（RIT-100）", () => {
 
   test("即時 lookup で引けん分は onProviderUnresolved へ generationId と上流 id が届く", async () => {
     const store = createMemoryTurnStore();
-    const providerLookup = jest.fn().mockResolvedValue(null);
-    const onProviderUnresolved = jest.fn();
+    const providerLookup = vi.fn().mockResolvedValue(null);
+    const onProviderUnresolved = vi.fn();
     const graph = createTurnGraph({
       model: new UpstreamIdModel({ responses: [VALID_XML] }),
       store,
@@ -106,12 +106,12 @@ describe("実行先の記録（RIT-100）", () => {
 
   test("即時 lookup で引けた時は onProviderUnresolved を呼ばん", async () => {
     const store = createMemoryTurnStore();
-    const onProviderUnresolved = jest.fn();
+    const onProviderUnresolved = vi.fn();
     const graph = createTurnGraph({
       model: new UpstreamIdModel({ responses: [VALID_XML] }),
       store,
       extendBelowRatio: 0,
-      providerLookup: jest.fn().mockResolvedValue("test-provider"),
+      providerLookup: vi.fn().mockResolvedValue("test-provider"),
       onProviderUnresolved,
     });
     await drain(
@@ -122,7 +122,7 @@ describe("実行先の記録（RIT-100）", () => {
 
   test("上流 id が無い応答では lookup を呼ばず provider は null", async () => {
     const store = createMemoryTurnStore();
-    const providerLookup = jest.fn();
+    const providerLookup = vi.fn();
     const graph = createTurnGraph({
       model: new FakeListChatModel({ responses: [VALID_XML] }),
       store,

@@ -4031,7 +4031,8 @@ const generatePromptVariantSeedSql = (): string[] => {
   const now = Date.now();
   return Object.entries(PROMPT_VARIANT_DEFAULT_BODY).map(([slot, body]) => {
     const id = `prompt-variant-seed-${slot}`;
-    const phaseScope = PROMPT_VARIANT_DEFAULT_PHASE_SCOPE[slot as keyof typeof PROMPT_VARIANT_DEFAULT_PHASE_SCOPE];
+    const phaseScope =
+      PROMPT_VARIANT_DEFAULT_PHASE_SCOPE[slot as keyof typeof PROMPT_VARIANT_DEFAULT_PHASE_SCOPE];
     return `INSERT OR IGNORE INTO prompt_variant (id, slot, phase_scope, body, model_override, status, version, provenance, note, created_at) VALUES ('${id}', '${slot}', '${phaseScope}', '${escapeSqlPreserveNewlines(body)}', NULL, 'champion', 1, 'hand', NULL, ${now});`;
   });
 };

@@ -386,7 +386,11 @@ export const readCompletion = (
   };
   const choice = body?.choices?.[0];
   if (typeof choice?.message?.content !== "string") {
-    return { text: "", error: "[INFRA_ERROR:choices[0].message.content が無い]", finishReason: null };
+    return {
+      text: "",
+      error: "[INFRA_ERROR:choices[0].message.content が無い]",
+      finishReason: null,
+    };
   }
   // finish_reason: "length" は max_tokens に当たった印。HTTP 200 で本文も返るが、
   // XML は途中で切れとる。これを捨てると「モデルが非XMLを返した」に化ける。
@@ -427,7 +431,8 @@ export const estimateCostRange = (
   completionTokens: number,
   pricing: Pricing,
 ): { once: number; ceiling: number } => {
-  const once = promptTokens * pricing.promptPerToken + completionTokens * pricing.completionPerToken;
+  const once =
+    promptTokens * pricing.promptPerToken + completionTokens * pricing.completionPerToken;
   return { once, ceiling: once * MAX_ATTEMPTS_PER_TURN };
 };
 

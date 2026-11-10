@@ -88,7 +88,13 @@ describe("api-voice", () => {
   it("PUT 保存→GET で読める・冪等上書き", async () => {
     const res = await handleVoicePut(
       "c1",
-      putReq({ engine: "aivisspeech", speakerId: "888753760", speed: 1.2, pitch: 0.05, intonation: 1.3 }),
+      putReq({
+        engine: "aivisspeech",
+        speakerId: "888753760",
+        speed: 1.2,
+        pitch: 0.05,
+        intonation: 1.3,
+      }),
     );
     expect(res.status).toBe(200);
     const body = await res.json();

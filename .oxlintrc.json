@@ -1,0 +1,208 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": [
+    "typescript",
+    "unicorn",
+    "react",
+    "react-perf",
+    "import",
+    "jsx-a11y",
+    "promise",
+    "oxc"
+  ],
+  "categories": {
+    "correctness": "error"
+  },
+  "env": {
+    "browser": true,
+    "builtin": true,
+    "es2024": true
+  },
+  "ignorePatterns": [
+    "dist",
+    "coverage",
+    "doc/design/ouse/handoff/",
+    ".wrangler/",
+    ".work/",
+    ".worktrees/",
+    "drizzle/schema.ts",
+    ".claude/worktrees/",
+    ".codex/worktrees/",
+    "scripts/avatar-pipeline/",
+    "scripts/regenerate-character-prompts.ts",
+    "script/",
+    "apps/bench/",
+    "node_modules",
+    ".github/",
+    ".codex/",
+    "coverage/",
+    "**/*.mjs",
+    "**/*.cjs",
+    "apps/v2/src/routeTree.gen.ts",
+    "**/worker-configuration.d.ts",
+    "routeTree.gen.ts",
+    "apps/",
+    "packages/"
+  ],
+  "rules": {
+    "no-useless-escape": "error",
+    "typescript/consistent-type-imports": "error",
+    "typescript/no-explicit-any": "error",
+    "typescript/ban-ts-comment": "error",
+    "no-unused-vars": [
+      "error",
+      {
+        "vars": "all",
+        "args": "after-used",
+        "ignoreRestSiblings": false
+      }
+    ],
+    "import/no-default-export": "error",
+    "react/button-has-type": "error",
+    "jsx-a11y/click-events-have-key-events": "warn",
+    "jsx-a11y/no-noninteractive-element-interactions": "warn",
+    "unicorn/prefer-array-flat-map": "error",
+    "unicorn/prefer-query-selector": "warn",
+    "unicorn/new-for-builtins": "error",
+    "unicorn/filename-case": [
+      "error",
+      {
+        "cases": {
+          "kebabCase": true
+        }
+      }
+    ],
+    "no-console": "error",
+    "no-alert": "error",
+    "no-param-reassign": "error",
+    "no-var": "error",
+    "prefer-const": "error",
+    "eqeqeq": "error",
+    "no-eval": "error",
+    "no-implied-eval": "error",
+    "no-return-assign": "error",
+    "no-self-compare": "error",
+    "no-sequences": "error",
+    "no-unused-expressions": "error",
+    "no-useless-concat": "error",
+    "no-debugger": "error",
+    "arrow-body-style": ["error", "as-needed"],
+    "no-useless-constructor": "error",
+    "max-depth": [
+      "error",
+      {
+        "max": 3
+      }
+    ],
+    "complexity": [
+      "error",
+      {
+        "max": 10
+      }
+    ],
+    "react/set-state-in-effect": "warn",
+    "react/refs": "warn",
+    "react/purity": "warn",
+    "promise/no-callback-in-promise": "warn",
+    "unicorn/no-new-array": "warn",
+    "unicorn/no-useless-spread": "warn",
+    "unicorn/no-useless-fallback-in-spread": "warn",
+    "jsx-a11y/prefer-tag-over-role": "warn",
+    "jsx-a11y/no-autofocus": "warn",
+    "jsx-a11y/media-has-caption": "warn",
+    "jsx-a11y/no-static-element-interactions": "warn",
+    "jsx-a11y/aria-role": "warn",
+    "jsx-a11y/alt-text": "warn",
+    "jsx-a11y/no-noninteractive-tabindex": "warn"
+  },
+  "settings": {
+    "react": {
+      "version": "19.0.0"
+    }
+  },
+  "overrides": [
+    {
+      "files": ["src/component/ui/**/*.{ts,tsx}"],
+      "rules": {
+        "import/no-default-export": "off"
+      }
+    },
+    {
+      "files": ["functions/**/*.ts"],
+      "rules": {
+        "import/no-default-export": "off",
+        "no-console": "off",
+        "complexity": "off"
+      }
+    },
+    {
+      "files": [
+        "src/lib/logger.ts",
+        "src/lib/logger.test.ts",
+        "scripts/*.ts",
+        "apps/v2/src/check.ts",
+        "apps/v2/src/server/chat-room.ts",
+        "apps/v2/src/server/api-chat.ts",
+        "apps/v2/src/worker.ts",
+        "packages/*/src/check.ts"
+      ],
+      "rules": {
+        "no-console": "off"
+      }
+    },
+    {
+      "files": [
+        "src/main.tsx",
+        "vite.config.ts",
+        "vitest.config.ts",
+        "drizzle.config.ts",
+        "playwright.config.ts",
+        "apps/**/vite.config.ts",
+        "apps/**/vitest.config.ts",
+        "apps/v2/src/worker.ts",
+        "packages/**/vitest.config.ts",
+        "**/vitest.workspace.*",
+        "**/jest.config.*"
+      ],
+      "rules": {
+        "import/no-default-export": "off"
+      }
+    },
+    {
+      "files": ["apps/v2/src/routes/**"],
+      "rules": {
+        "import/no-default-export": "off"
+      }
+    },
+    {
+      "files": ["**/*.test.{ts,tsx}", "**/__tests__/**/*.ts", "e2e/**/*.ts", "src/test/**/*.ts"],
+      "env": {
+        "browser": true,
+        "node": true
+      },
+      "rules": {
+        "no-console": "off"
+      }
+    },
+    {
+      "files": ["packages/bench/**"],
+      "rules": {
+        "no-console": "off"
+      }
+    },
+    {
+      "files": ["scripts/**/*.ts"],
+      "rules": {
+        "no-console": "off",
+        "complexity": "off",
+        "max-depth": "off"
+      }
+    },
+    {
+      "files": ["src/component/chat/message-bubble.tsx"],
+      "rules": {
+        "complexity": "off"
+      }
+    }
+  ]
+}

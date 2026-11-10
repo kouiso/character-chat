@@ -469,8 +469,7 @@ export const detectTaper = (measurements: TurnMeasurement[]): TaperResult[] => {
       .sort((a, b) => a.turn.turn - b.turn.turn)
       .filter((m) => !m.isEmpty && m.turn.finishReason !== "length");
     const source = group[0].turn.source;
-    const expected =
-      group[0].turn.config?.expectedTurns ?? expectedLastTurn.get(source) ?? reached;
+    const expected = group[0].turn.config?.expectedTurns ?? expectedLastTurn.get(source) ?? reached;
     // **最後まで行った＝宣言された最終ターンに「使える応答」が在る**こと。
     // 記録の在る一番後ろのターン番号で見とった間、最終ターンが経路失敗や上限切れでも
     // 完走扱いになって、その手前の応答を末尾として尻すぼみを判定しとった
@@ -557,7 +556,13 @@ export const renderTaperSummary = (results: TaperResult[]): string => {
       (r) =>
         `| ${r.scenario} | ${r.firstTurn}→${r.lastTurn} | ${r.firstChars} | ${r.peakChars} ` +
         `| ${Math.round(r.tailMeanChars)} | ${
-          r.truncated ? "（途中終了）" : !r.taperComputable ? "（測れん）" : r.tapered ? "はい" : "—"
+          r.truncated
+            ? "（途中終了）"
+            : !r.taperComputable
+              ? "（測れん）"
+              : r.tapered
+                ? "はい"
+                : "—"
         } |`,
     ),
   ];

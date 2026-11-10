@@ -28,7 +28,7 @@ AI キャラクターチャット＆画像生成 PWA。Cloudflare Pages + Hono �
 pnpm install         # 依存インストール
 pnpm dev             # Vite 開発サーバー
 pnpm build           # tsc -b && vite build
-pnpm lint            # ESLint
+pnpm lint            # oxlint + oxfmt
 pnpm test            # Vitest
 pnpm dev:worker      # Cloudflare Pages ローカル開発
 task ci              # CI チェック（lint + build）

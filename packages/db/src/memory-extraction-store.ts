@@ -153,7 +153,10 @@ export const loadMemoryExtractionPolicy = async (
       characterRevisionTable,
       eq(characterRevisionTable.characterId, v2ConversationTable.characterId),
     )
-    .innerJoin(characterVersionTable, eq(characterVersionTable.id, characterRevisionTable.versionId))
+    .innerJoin(
+      characterVersionTable,
+      eq(characterVersionTable.id, characterRevisionTable.versionId),
+    )
     .where(eq(v2ConversationTable.id, conversationId))
     .orderBy(desc(characterRevisionTable.revision))
     .limit(1);

@@ -20,10 +20,7 @@ let charId: string;
 const deleted: string[] = [];
 
 const seed = async () => {
-  const chars = await local.db
-    .select({ id: characterTable.id })
-    .from(characterTable)
-    .limit(1);
+  const chars = await local.db.select({ id: characterTable.id }).from(characterTable).limit(1);
   charId = chars[0].id;
   await local.d1
     .prepare(
@@ -101,7 +98,9 @@ describe("画像履歴 API", () => {
       local.d1
         .prepare("DELETE FROM v2_image_generation WHERE conversation_id IN (?, ?)")
         .bind(CONV, "rit185-other"),
-      local.d1.prepare("DELETE FROM v2_message WHERE conversation_id IN (?, ?)").bind(CONV, "rit185-other"),
+      local.d1
+        .prepare("DELETE FROM v2_message WHERE conversation_id IN (?, ?)")
+        .bind(CONV, "rit185-other"),
       local.d1.prepare("DELETE FROM v2_conversation WHERE id IN (?, ?)").bind(CONV, "rit185-other"),
     ]);
     await local.dispose();

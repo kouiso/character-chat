@@ -131,10 +131,7 @@ const buildImageReviewTable = (manifest: RunManifest, finalSummary: boolean): st
 
   const rows = manifest.scenarios.map((scenario) => {
     const imageResults = scenario.imageResults ?? [];
-    const base = [
-      scenario.scenarioId,
-      `${reviewedImageCount(scenario)}/${imageResults.length}`,
-    ];
+    const base = [scenario.scenarioId, `${reviewedImageCount(scenario)}/${imageResults.length}`];
     return finalSummary ? base : [...base, formatBoolean(scenario.provisional ?? true)];
   });
 
@@ -303,7 +300,8 @@ export function buildEventWeightedScore(manifest: RunManifest): Record<string, R
   const scores: Record<string, RubricScore> = {};
 
   for (const scenario of manifest.scenarios) {
-    scores[scenario.scenarioId] = scenario.rubric ?? scoreScenario(scenario, scenario.imageResults ?? []);
+    scores[scenario.scenarioId] =
+      scenario.rubric ?? scoreScenario(scenario, scenario.imageResults ?? []);
   }
 
   return scores;

@@ -63,7 +63,9 @@ const main = async () => {
     const deployedPath = resolve(join(appDir, ".wrangler/deploy"), redirect.configPath ?? "");
     // wrangler が実際に読む設定と、ここで確かめる設定が別物なら確かめた意味が無い。
     if (deployedPath !== builtPath) {
-      problems.push("wrangler の転送先が dist/server/wrangler.json でない（別の場所へのビルドが残っとる）");
+      problems.push(
+        "wrangler の転送先が dist/server/wrangler.json でない（別の場所へのビルドが残っとる）",
+      );
     } else {
       delete process.env.CLOUDFLARE_ENV;
       const { unstable_readConfig: readConfig } = await import("wrangler");
@@ -83,7 +85,9 @@ const main = async () => {
   if (problems.length > 0) {
     console.error(`deploy を止めた: ビルド済みの設定が ${envName} 向けでない`);
     for (const problem of problems) console.error(`  - ${problem}`);
-    console.error(`  ${envName === "staging" ? "pnpm run deploy:staging" : "pnpm run deploy"} で作り直してから出す`);
+    console.error(
+      `  ${envName === "staging" ? "pnpm run deploy:staging" : "pnpm run deploy"} で作り直してから出す`,
+    );
     process.exit(1);
   }
   console.log(`ビルド済みの設定は ${envName} 向け`);

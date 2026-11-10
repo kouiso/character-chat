@@ -96,9 +96,7 @@ export const VoicePanel = ({ characterId }: { characterId: string }) => {
           max={2.0}
           step={0.05}
           value={settings.intonation}
-          onChange={(e) =>
-            setSettings({ ...settings, intonation: Number(e.target.value) })
-          }
+          onChange={(e) => setSettings({ ...settings, intonation: Number(e.target.value) })}
         />
       </label>
       <button type="button" disabled={saving} onClick={() => void save()}>

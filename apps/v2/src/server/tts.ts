@@ -17,14 +17,13 @@ export interface VoiceSettings {
 export const TTS_LAYERS = ["scene", "action", "dialogue", "inner", "narration"] as const;
 export type TtsLayer = (typeof TTS_LAYERS)[number];
 
-const LAYER_VOICE_DELTA: Record<TtsLayer, { speed: number; pitch: number; intonation: number }> =
-  {
-    inner: { speed: 0.9, pitch: -0.04, intonation: 0.85 },
-    action: { speed: 0.95, pitch: 0, intonation: 1.05 },
-    scene: { speed: 1.0, pitch: 0, intonation: 0.95 },
-    narration: { speed: 0.95, pitch: 0, intonation: 0.95 },
-    dialogue: { speed: 1, pitch: 0, intonation: 1 },
-  };
+const LAYER_VOICE_DELTA: Record<TtsLayer, { speed: number; pitch: number; intonation: number }> = {
+  inner: { speed: 0.9, pitch: -0.04, intonation: 0.85 },
+  action: { speed: 0.95, pitch: 0, intonation: 1.05 },
+  scene: { speed: 1.0, pitch: 0, intonation: 0.95 },
+  narration: { speed: 0.95, pitch: 0, intonation: 0.95 },
+  dialogue: { speed: 1, pitch: 0, intonation: 1 },
+};
 
 const clamp = (v: number, lo: number, hi: number): number => Math.min(hi, Math.max(lo, v));
 
@@ -55,8 +54,7 @@ interface TtsEnv {
 
 // エンジン別の接続先。ローカル実行前提の既定値（VOICEVOX:50021 / AivisSpeech:10101）
 export const engineBaseUrl = (env: TtsEnv, engine: VoiceEngine): string => {
-  if (engine === "aivisspeech")
-    return env.V2_TTS_AIVIS_URL ?? "http://localhost:10101";
+  if (engine === "aivisspeech") return env.V2_TTS_AIVIS_URL ?? "http://localhost:10101";
   return env.V2_TTS_VOICEVOX_URL ?? "http://localhost:50021";
 };
 

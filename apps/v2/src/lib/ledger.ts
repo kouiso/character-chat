@@ -23,10 +23,9 @@ export const loadLedger = async (
   signal: AbortSignal,
 ): Promise<LedgerData | null> => {
   const query = new URLSearchParams({ conversationId });
-  const response = await fetch(
-    `/api/chat/${encodeURIComponent(characterId)}/ledger?${query}`,
-    { signal },
-  );
+  const response = await fetch(`/api/chat/${encodeURIComponent(characterId)}/ledger?${query}`, {
+    signal,
+  });
   if (response.status === 404) throw new Error("会話が見つかりません。");
   if (!response.ok) throw new Error("台帳を読み込めませんでした。");
   return getSchema.parse(await response.json()).ledger;

@@ -3,10 +3,10 @@ name: AI Rules Drift Check
 on:
   pull_request:
     paths:
-      - 'AGENTS.md'
-      - '.gemini/styleguide.md'
-      - '.github/copilot-instructions.md'
-      - 'scripts/sync-ai-rules.sh'
+      - "AGENTS.md"
+      - ".gemini/styleguide.md"
+      - ".github/copilot-instructions.md"
+      - "scripts/sync-ai-rules.sh"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

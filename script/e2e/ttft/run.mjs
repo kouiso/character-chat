@@ -117,9 +117,7 @@ const runOne = async (cell, seed) => {
   const failedChecks = [...logs.matchAll(/\[quality\] attempt \d+ failed: ([^\u001b\n]+)/g)].map(
     (m) => m[1].trim(),
   );
-  const reaskLines = logs
-    .split("\n")
-    .filter((l) => l.includes("phase_de_escalation_classifier"));
+  const reaskLines = logs.split("\n").filter((l) => l.includes("phase_de_escalation_classifier"));
   let reaskLatency = null;
   let reaskDecision = null;
   if (reaskLines.length > 0) {

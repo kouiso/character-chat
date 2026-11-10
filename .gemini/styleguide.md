@@ -48,12 +48,16 @@ AI キャラクターチャット＆画像生成 PWA。Cloudflare Pages + Hono �
 pnpm install         # 依存インストール
 pnpm dev             # Vite 開発サーバー
 pnpm build           # tsc -b && vite build
-pnpm lint            # ESLint
+pnpm lint            # oxlint + oxfmt
 pnpm test            # Vitest
 pnpm dev:worker      # Cloudflare Pages ローカル開発
 task ci              # CI チェック（lint + build）
 task deploy          # デプロイ（D1 migration auto-apply ゲートあり）
 ```
+
+さくら台本ドッグフードは `script/verify/run-sakura-dogfood.sh [--run N]` の1コマンドで
+bench 実行→fantasy-core-check→HTML レポート生成まで通る（`.dev.vars` の OPENROUTER_API_KEY
+を自動読込、未設定なら課金 API を叩かず中断）。結果は `.work/report/` に出る。
 
 ## Codex Cloud コンテナ環境（自己プロビジョニング）
 
@@ -100,6 +104,13 @@ GitHub Copilot にはシンボリックリンクで配信する。
 - `--no-verify` 禁止
 - `--force`（`--force-with-lease` 以外）禁止
 - `git reset --hard/--soft/--mixed` 禁止
+
+## Issue / タスク管理
+
+- **GitHub Issue**: アダルト内容・秘匿情報（競合逆解析の調査詳細等）を含まないもの
+- **Linear（RIT-）**: アダルト内容・秘匿情報を含むもの全般
+
+命名: リポジトリは character-chat。v1 = 従来 adult-ai-app（ルート app、adult-ai-chat.pages.dev）、v2 = `apps/v2`（新 character-chat、adult-ai-v2.kouiso.workers.dev）。
 
 ## レビュー観点（よくある失敗パターン）
 

@@ -408,7 +408,12 @@
 
   /* create-flow の合流点パネル — 全ステップ共通の「燈」背景（design 1a/1b/1c 共通） */
   .create-flow-panel {
-    background: radial-gradient(120% 60% at 50% -6%, var(--ink) 0%, var(--night-mid) 52%, var(--night) 100%);
+    background: radial-gradient(
+      120% 60% at 50% -6%,
+      var(--ink) 0%,
+      var(--night-mid) 52%,
+      var(--night) 100%
+    );
   }
 
   /* ヘッダー裏の灯り。7秒で明滅し「燈がついている」体感を出す */

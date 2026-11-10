@@ -1,0 +1,28 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "printWidth": 100,
+  "tabWidth": 2,
+  "useTabs": false,
+  "semi": true,
+  "singleQuote": false,
+  "jsxSingleQuote": false,
+  "trailingComma": "all",
+  "bracketSpacing": true,
+  "bracketSameLine": false,
+  "arrowParens": "always",
+  "endOfLine": "lf",
+  "ignorePatterns": [
+    "**/*.md",
+    "drizzle/meta/**",
+    "doc/design/ouse/handoff/**",
+    "**/routeTree.gen.ts",
+    "**/worker-configuration.d.ts",
+    "**/.output/**",
+    "**/dist/**",
+    "**/node_modules/**",
+    "coverage/**",
+    ".work/**",
+    ".worktrees/**",
+    ".wrangler/**"
+  ]
+}

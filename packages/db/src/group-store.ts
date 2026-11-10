@@ -60,7 +60,12 @@ export const listGroups = async (db: V2Db, userId: string): Promise<GroupRow[]> 
   const members = await db
     .select({ groupId: v2GroupMemberTable.groupId, characterId: v2GroupMemberTable.characterId })
     .from(v2GroupMemberTable)
-    .where(inArray(v2GroupMemberTable.groupId, groups.map((g) => g.id)))
+    .where(
+      inArray(
+        v2GroupMemberTable.groupId,
+        groups.map((g) => g.id),
+      ),
+    )
     .orderBy(asc(v2GroupMemberTable.position));
   const byGroup = new Map<string, string[]>();
   for (const m of members) {

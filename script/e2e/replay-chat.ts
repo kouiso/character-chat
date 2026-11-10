@@ -40,8 +40,7 @@ const SCENARIOS: Record<string, ScenarioDefinition> = {
 
 const BASE = process.env.BASE ?? "http://127.0.0.1:8788";
 const EMAIL = process.env.EMAIL ?? "sukererion@gmail.com";
-const DEFAULT_SCENARIOS =
-  "s1-midnight-meeting,s6-rinka-lab,s7-saya-rain,s8-reina-reversal";
+const DEFAULT_SCENARIOS = "s1-midnight-meeting,s6-rinka-lab,s7-saya-rain,s8-reina-reversal";
 const requestedScenarioNames = (process.env.SCENARIOS ?? DEFAULT_SCENARIOS)
   .split(",")
   .map((name) => name.trim())
@@ -113,7 +112,9 @@ const isPhase = (value: string | null): value is Phase =>
 const readChatStream = async (
   response: Response,
   startedAt: number,
-): Promise<Pick<ReplayTurnRecord, "assistant" | "ttfbMs" | "totalMs" | "servedModel" | "serverPhase">> => {
+): Promise<
+  Pick<ReplayTurnRecord, "assistant" | "ttfbMs" | "totalMs" | "servedModel" | "serverPhase">
+> => {
   if (!response.body) {
     throw new Error("response body is empty");
   }
@@ -146,7 +147,9 @@ const postTurn = async (
   history: ChatMessage[],
   characterSlug: string,
   phase: Phase,
-): Promise<Pick<ReplayTurnRecord, "assistant" | "ttfbMs" | "totalMs" | "servedModel" | "serverPhase">> => {
+): Promise<
+  Pick<ReplayTurnRecord, "assistant" | "ttfbMs" | "totalMs" | "servedModel" | "serverPhase">
+> => {
   const startedAt = Date.now();
   const model = getDefaultModelForPhase(phase);
   const response = await fetch(`${BASE}/api/chat`, {
@@ -177,7 +180,12 @@ const runTurn = async (
   characterSlug: string,
   turn: number,
   phase: Phase,
-): Promise<Omit<ReplayTurnRecord, "turn" | "phase" | "userMsg" | "refusal" | "nearDuplicate" | "exactDuplicate">> => {
+): Promise<
+  Omit<
+    ReplayTurnRecord,
+    "turn" | "phase" | "userMsg" | "refusal" | "nearDuplicate" | "exactDuplicate"
+  >
+> => {
   try {
     return { ...(await postTurn(history, characterSlug, phase)), error: null };
   } catch (firstError) {

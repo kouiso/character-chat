@@ -1,5 +1,5 @@
 // 1ターン分の LangGraph 状態定義。
-// StateSchema（zod ベース）を使う。Jest(@swc/jest, CJS変換)で通ることは
+// StateSchema（zod ベース）を使う。Vitestで通ることは
 // __tests__/graph.test.ts の実行で確認済み（doc/v2/scaffold-spec.md §14-2 の懸念への回答）。
 import { StateSchema } from "@langchain/langgraph";
 import { z } from "zod";

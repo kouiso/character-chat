@@ -135,11 +135,18 @@ test("Task aliases share the same entry and local-only deploy safety remains", (
 test("full prepares Chromium before either browser check and stops on setup failure", () => {
   const ready = trace("full");
   assert.equal(ready.status, 0, ready.stderr);
-  const setup = ready.commands.findIndex((cmd) => cmd.join(" ") === "pnpm exec playwright install --with-deps chromium");
+  const setup = ready.commands.findIndex(
+    (cmd) => cmd.join(" ") === "pnpm exec playwright install --with-deps chromium",
+  );
   assert.ok(setup >= 0);
   assert.ok(setup < ready.commands.findIndex((cmd) => cmd.join(" ") === "pnpm run test:e2e"));
-  assert.ok(setup < ready.commands.findIndex((cmd) => cmd.join(" ") === "node scripts/boot-smoke.mjs"));
+  assert.ok(
+    setup < ready.commands.findIndex((cmd) => cmd.join(" ") === "node scripts/boot-smoke.mjs"),
+  );
   const failed = trace("full", "pnpm exec playwright");
   assert.equal(failed.status, 37);
-  assert.equal(failed.commands.at(-1).join(" "), "pnpm exec playwright install --with-deps chromium");
+  assert.equal(
+    failed.commands.at(-1).join(" "),
+    "pnpm exec playwright install --with-deps chromium",
+  );
 });

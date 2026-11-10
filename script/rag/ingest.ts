@@ -164,7 +164,10 @@ const embedText = async (text: string): Promise<number[]> => {
 
   const payload = (await response.json()) as WorkersAiEmbeddingResponse;
   if (!response.ok || payload.success === false) {
-    const message = payload.errors?.map((error) => error.message).filter(Boolean).join("; ");
+    const message = payload.errors
+      ?.map((error) => error.message)
+      .filter(Boolean)
+      .join("; ");
     throw new Error(`Workers AI embedding request failed: ${message || response.statusText}`);
   }
 
@@ -178,7 +181,14 @@ const upsertChunk = async (chunk: IngestChunk, embedding: number[]): Promise<voi
     chunk.characterId,
   )}, ${sqlString(chunk.text)}, X'${packEmbeddingHex(embedding)}', unixepoch());`;
 
-  await execFileAsync("wrangler", ["d1", "execute", D1_DATABASE_NAME, "--local", "--command", command]);
+  await execFileAsync("wrangler", [
+    "d1",
+    "execute",
+    D1_DATABASE_NAME,
+    "--local",
+    "--command",
+    command,
+  ]);
 };
 
 const main = async (): Promise<void> => {

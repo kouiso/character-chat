@@ -28,7 +28,7 @@ AI chat application with character personas, speech synthesis, and local-first s
 ```bash
 pnpm dev           # Start dev server (Vite)
 pnpm build         # tsc -b && vite build
-pnpm lint          # ESLint
+pnpm lint          # oxlint + oxfmt
 pnpm dev:worker    # Cloudflare Pages local dev
 task setup         # Full project setup (Taskfile)
 task ci            # CI check (lint + build)

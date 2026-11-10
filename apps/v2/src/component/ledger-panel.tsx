@@ -2,12 +2,7 @@
 // 直した値は PATCH /api/chat/:id/ledger で最新台帳行を上書きし、次のターンの指示文へ入る。
 import { useState } from "react";
 
-import {
-  ledgerSchema,
-  loadLedger,
-  saveLedger,
-  type LedgerData,
-} from "../lib/ledger";
+import { ledgerSchema, loadLedger, saveLedger, type LedgerData } from "../lib/ledger";
 
 const PHASES = ["conversation", "intimate", "erotic", "climax", "afterglow"] as const;
 
@@ -192,18 +187,14 @@ export const LedgerPanel = ({ characterId, getConversationId }: LedgerPanelProps
                 場所
                 <input
                   value={draft.location ?? ""}
-                  onChange={(event) =>
-                    setDraft({ ...draft, location: event.target.value || null })
-                  }
+                  onChange={(event) => setDraft({ ...draft, location: event.target.value || null })}
                 />
               </label>
               <label>
                 時刻
                 <input
                   value={draft.time ?? ""}
-                  onChange={(event) =>
-                    setDraft({ ...draft, time: event.target.value || null })
-                  }
+                  onChange={(event) => setDraft({ ...draft, time: event.target.value || null })}
                 />
               </label>
               <label>
@@ -233,9 +224,7 @@ export const LedgerPanel = ({ characterId, getConversationId }: LedgerPanelProps
                 体位
                 <input
                   value={draft.position ?? ""}
-                  onChange={(event) =>
-                    setDraft({ ...draft, position: event.target.value || null })
-                  }
+                  onChange={(event) => setDraft({ ...draft, position: event.target.value || null })}
                 />
               </label>
               <label>

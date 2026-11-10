@@ -87,7 +87,7 @@ describe("generate の上限: max_tokens", () => {
   test("段の目安字数 × 2.5 を [400, 1400] に丸めた maxTokens と AbortSignal を .stream の呼び出しオプションで渡す", async () => {
     const store = createMemoryTurnStore();
     const model = new FakeListChatModel({ responses: [VALID_XML, VALID_XML] });
-    const streamSpy = jest.spyOn(model, "stream");
+    const streamSpy = vi.spyOn(model, "stream");
     const graph = createTurnGraph({ model, store });
 
     // conversation（220 字）→ ceil(550) = 550
@@ -119,7 +119,7 @@ describe("generate の上限: 受け取った字数", () => {
     const endless = `<response>${block.repeat(120)}</response>`;
     expect(endless.length).toBeGreaterThan(5000);
     const model = new FakeListChatModel({ responses: [endless] });
-    const streamSpy = jest.spyOn(model, "stream");
+    const streamSpy = vi.spyOn(model, "stream");
     const graph = createTurnGraph({ model, store });
 
     const events = await collect(graph, { conversationId: "cap-3", userText: "続けて", character });

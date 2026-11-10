@@ -50,11 +50,7 @@ export type ChatViewProps = {
   newConversationKey?: string;
 };
 
-const withPending = (
-  history: ChatBubble[],
-  nextTurn: number,
-  pending: PendingTurn,
-): ChatBubble[] =>
+const withPending = (history: ChatBubble[], nextTurn: number, pending: PendingTurn): ChatBubble[] =>
   nextTurn > pending.baseTurn
     ? history
     : [

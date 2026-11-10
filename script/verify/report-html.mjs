@@ -77,11 +77,20 @@ const CORE_ITEMS = [
   ["弱い抵抗", /(やめて|いけません|だめ|やだ|嫌だ|離して|外して|やめ(て|ろ|なさい))/u],
   // 悲鳴・助けを求める叫び。出ないのが正解（ネガティブ項目）
   ["悲鳴・助けて", /(助けて|誰か(助け|来て|いない)|悲鳴|叫(ん|び)|きゃあ|ひゃあ|逃げて)/u],
-  ["流される", /(断れ|流され|ついて(い|行)|そのまま|なされるがまま|押し(が|に)|引かれる|導かれ|抗え(ず|ない))/u],
-  ["体が喜ぶ", /(喜ん|感じ(て|てしまう|ちゃう)|疼く|濡れ|熱く|悦(ん|び)|快楽|気持ちよく|声が漏れ|勝手に)/u],
+  [
+    "流される",
+    /(断れ|流され|ついて(い|行)|そのまま|なされるがまま|押し(が|に)|引かれる|導かれ|抗え(ず|ない))/u,
+  ],
+  [
+    "体が喜ぶ",
+    /(喜ん|感じ(て|てしまう|ちゃう)|疼く|濡れ|熱く|悦(ん|び)|快楽|気持ちよく|声が漏れ|勝手に)/u,
+  ],
   ["背徳感", /(いけない|こんな(こと|の)|恥ずかしい|淫ら|汚され|汚れて|世間体|イメージとは裏腹)/u],
   ["心も犯される", /(犯され|堕ち|壊れ|知らない自分|変わって(い|ゆ)|溺れ|負けて(い|ゆ))/u],
-  ["中出し", /(中(に|で)(出(す|し|て)|注(ぐ|いで|がれ|がっ)|広が|満た|入っ|溢れ)|注ぎ込(む|まれ|ん)|注がれ(る|始め|る精)?|子宮(口)?(に|へ|が)(注|流)|精(液|を|が)(注|流))/u],
+  [
+    "中出し",
+    /(中(に|で)(出(す|し|て)|注(ぐ|いで|がれ|がっ)|広が|満た|入っ|溢れ)|注ぎ込(む|まれ|ん)|注がれ(る|始め|る精)?|子宮(口)?(に|へ|が)(注|流)|精(液|を|が)(注|流))/u,
+  ],
   ["乱交", /(仲間|他の男|別の男|ほかの男|渡され|回され|順番|交代|乱交|チーム|皆?さん?で|皆で)/u],
 ];
 const coreCounts = (dir) => {
@@ -99,7 +108,9 @@ const coreCounts = (dir) => {
 };
 const coreSummary = (dir) => {
   const { n, totals } = coreCounts(dir);
-  return CORE_ITEMS.map(([label], i) => `${label} ${totals[i]}/${n}（${Math.round((totals[i] / n) * 100)}%）`).join("<br>");
+  return CORE_ITEMS.map(
+    ([label], i) => `${label} ${totals[i]}/${n}（${Math.round((totals[i] / n) * 100)}%）`,
+  ).join("<br>");
 };
 const core2_1 = coreSummary(CORE_DIRS.core2_1);
 const core2_2 = coreSummary(CORE_DIRS.core2_2);
@@ -170,12 +181,7 @@ pre{white-space:pre-wrap;background:#fafafa;border:1px solid #e0e0e0;padding:.8r
 <p>同じキャラ・同じ場面の、改修前後どっちか分からんコピー。
 <b>問い: 「続きを自分で読みたなった側はあるか。A・B どっちか、あるいはどっちも読めん」</b></p>
 <div class="pair">
-${blindBlocks
-  .map(
-    ([label, body]) =>
-      `<div><h3>${label}</h3>${renderBody(body)}</div>`,
-  )
-  .join("\n")}
+${blindBlocks.map(([label, body]) => `<div><h3>${label}</h3>${renderBody(body)}</div>`).join("\n")}
 </div>
 <p class="note">見る点: ①同じ動作が1返事内で繰り返されとらんか ②キャラの口調（さくら=敬語で内気）が保てとるか ③山場で水増しっぽくならんか。
 対応表は script/verify/scratchpad/mapping.json（読了後に開く）。</p>
@@ -220,7 +226,7 @@ t8「中、入らないで…まだ、外で…」＋「やだ、こんなに濡
 </div>
 `;
 
-const page = html.replace('<h2>潰れた仮説</h2>', `${coreHtml}\n<h2>潰れた仮説</h2>`);
+const page = html.replace("<h2>潰れた仮説</h2>", `${coreHtml}\n<h2>潰れた仮説</h2>`);
 
 writeFileSync(join(OUT, "index.html"), page, "utf8");
 console.log("wrote", join(OUT, "index.html"));

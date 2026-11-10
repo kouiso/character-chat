@@ -107,7 +107,8 @@ describe("条件の arm は run と別に付く", () => {
 });
 
 describe("会話を止める形", () => {
-  const text = "<response><action>肩に手を置いた。</action><dialogue>「来たよ」</dialogue></response>";
+  const text =
+    "<response><action>肩に手を置いた。</action><dialogue>「来たよ」</dialogue></response>";
 
   it("画面に何も出せん応答で会話を続けん（読み込み側と同じ判定）", () => {
     // 空白だけを見とった間、`<response></response>` で会話を続けて、読み込み側が
@@ -181,7 +182,12 @@ describe("200 の封筒を読む", () => {
   it("choices が無い 200 は経路の失敗として返す（撮り直しへ回る）", () => {
     // 空のモデル応答として記録すると、API のプロトコル異常を**モデルの空返信**として
     // 数えた上に、リトライも回らんまま課金だけ済む
-    for (const payload of [{}, { choices: [] }, { choices: [{}] }, { choices: [{ message: {} }] }]) {
+    for (const payload of [
+      {},
+      { choices: [] },
+      { choices: [{}] },
+      { choices: [{ message: {} }] },
+    ]) {
       const read = readCompletion(payload);
       expect(read.error).toMatch(/^\[INFRA_ERROR/);
       expect(read.text).toBe("");

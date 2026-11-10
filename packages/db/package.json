@@ -1,9 +1,9 @@
 {
   "name": "@v2/db",
+  "version": "0.0.0",
   "private": true,
   "type": "module",
   "sideEffects": false,
-  "version": "0.0.0",
   "exports": {
     ".": {
       "types": "./src/index.ts",
@@ -21,7 +21,7 @@
   "scripts": {
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
-    "lint": "eslint --config ../../eslint.v2.config.js ."
+    "lint": "oxlint --config ../../.oxlintrc.v2.json ."
   },
   "dependencies": {
     "@v2/judge": "workspace:^",

@@ -66,7 +66,7 @@ const cfFetch = async (
   opts: {
     method?: string;
     body?: string;
-    skipAuth?: boolean;   // skip Bearer token (API-level auth)
+    skipAuth?: boolean; // skip Bearer token (API-level auth)
   },
 ): Promise<FetchResult> => {
   const url = new URL(path, BASE_URL);
@@ -183,7 +183,6 @@ const isRefusal = (text: string): boolean =>
 
 const extractSseText = (body: string): string => parseChatSseBody(body).text;
 
-// eslint-disable-next-line complexity
 const testChatSmoke = async (): Promise<void> => {
   section("CHAT SMOKE — model identity + refusal check (N=3 turns)");
 
@@ -265,7 +264,6 @@ const testChatSmoke = async (): Promise<void> => {
 const pollTaskResult = async (
   taskId: string,
   timeoutMs: number,
-  // eslint-disable-next-line complexity
 ): Promise<{ status: string; imageUrl?: string } | null> => {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
@@ -292,7 +290,6 @@ const pollTaskResult = async (
   return null;
 };
 
-// eslint-disable-next-line complexity
 const testImagePipeline = async (): Promise<void> => {
   section("IMAGE PIPELINE — generate → poll → persist (write path)");
 
@@ -366,7 +363,9 @@ const testImagePipeline = async (): Promise<void> => {
   info(`  status ${persistR.status}, body: ${persistR.body.slice(0, 400)}`);
 
   if (persistR.status === 404 && persistR.body.includes("message not found")) {
-    pass("persist ownership pre-check reached — fake messageId correctly returned message not found");
+    pass(
+      "persist ownership pre-check reached — fake messageId correctly returned message not found",
+    );
     return;
   }
 
@@ -389,7 +388,7 @@ const testImagePipeline = async (): Promise<void> => {
 
 // R2 表示確認: 既存の実メッセージの imageKey を使って所有者チェック込みで検証する。
 // 偽 messageId では IDOR 防御の所有者チェックが通らないため、実メッセージを使う。
-// eslint-disable-next-line complexity
+
 const testR2Display = async (): Promise<void> => {
   section("R2 DISPLAY — read path via real owned message");
 
@@ -406,7 +405,10 @@ const testR2Display = async (): Promise<void> => {
       | Array<{ id?: string }>
       | { conversations?: Array<{ id?: string }> };
     const arr = Array.isArray(json) ? json : (json.conversations ?? []);
-    convIds = arr.slice(0, 20).map((c) => c.id ?? "").filter(Boolean);
+    convIds = arr
+      .slice(0, 20)
+      .map((c) => c.id ?? "")
+      .filter(Boolean);
   } catch {
     info("conversations parse error — skipping R2 display test");
     return;

@@ -47,10 +47,7 @@ const toRow = (row: {
 }): MemoryRow => ({ ...row, pinned: row.pinned === 1 });
 
 // キャラごとの記憶一覧（会話を跨ぐ。所有者一致の会話に限る）。
-export const listCharacterMemories = async (
-  db: V2Db,
-  scope: MemoryScope,
-): Promise<MemoryRow[]> => {
+export const listCharacterMemories = async (db: V2Db, scope: MemoryScope): Promise<MemoryRow[]> => {
   const rows = await db
     .select({
       id: v2MemoryTable.id,
@@ -64,10 +61,7 @@ export const listCharacterMemories = async (
       supersededBy: v2MemoryTable.supersededBy,
     })
     .from(v2MemoryTable)
-    .innerJoin(
-      v2ConversationTable,
-      eq(v2ConversationTable.id, v2MemoryTable.conversationId),
-    )
+    .innerJoin(v2ConversationTable, eq(v2ConversationTable.id, v2MemoryTable.conversationId))
     .where(
       and(
         eq(v2ConversationTable.userId, scope.userId),
@@ -99,10 +93,7 @@ export const loadOwnedMemory = async (
       embedding: v2MemoryTable.embedding,
     })
     .from(v2MemoryTable)
-    .innerJoin(
-      v2ConversationTable,
-      eq(v2ConversationTable.id, v2MemoryTable.conversationId),
-    )
+    .innerJoin(v2ConversationTable, eq(v2ConversationTable.id, v2MemoryTable.conversationId))
     .where(
       and(
         eq(v2MemoryTable.id, memoryId),
@@ -193,9 +184,7 @@ export const deleteMemory = async (
       and(
         eq(v2MemoryTable.conversationId, owned.conversationId),
         eq(v2MemoryTable.kind, "summary"),
-        owned.sourceTurn === null
-          ? undefined
-          : gte(v2MemoryTable.sourceTurn, owned.sourceTurn),
+        owned.sourceTurn === null ? undefined : gte(v2MemoryTable.sourceTurn, owned.sourceTurn),
       ),
     );
   await db.batch([
@@ -207,12 +196,9 @@ export const deleteMemory = async (
         createdAt: Date.now(),
       })
       .onConflictDoNothing(),
-    db.delete(v2MemoryTable).where(
-      inArray(
-        v2MemoryTable.id,
-        [memoryId, ...swept.map((row) => row.id)],
-      ),
-    ),
+    db
+      .delete(v2MemoryTable)
+      .where(inArray(v2MemoryTable.id, [memoryId, ...swept.map((row) => row.id)])),
   ]);
   return [{ id: owned.id, content: owned.content }, ...swept];
 };
@@ -268,10 +254,7 @@ export const insertManualMemory = async (
     })
     .from(v2MessageTable)
     .where(
-      and(
-        eq(v2MessageTable.conversationId, scope.conversationId),
-        eq(v2MessageTable.role, "user"),
-      ),
+      and(eq(v2MessageTable.conversationId, scope.conversationId), eq(v2MessageTable.role, "user")),
     )
     .orderBy(desc(v2MessageTable.turn), desc(v2MessageTable.createdAt))
     .limit(1);
@@ -340,10 +323,7 @@ export const loadPinnedMemories = async (
       supersededBy: v2MemoryTable.supersededBy,
     })
     .from(v2MemoryTable)
-    .innerJoin(
-      v2ConversationTable,
-      eq(v2ConversationTable.id, v2MemoryTable.conversationId),
-    )
+    .innerJoin(v2ConversationTable, eq(v2ConversationTable.id, v2MemoryTable.conversationId))
     .where(
       and(
         eq(v2MemoryTable.conversationId, scope.conversationId),
@@ -354,7 +334,5 @@ export const loadPinnedMemories = async (
     )
     .orderBy(desc(v2MemoryTable.createdAt))
     .limit(20);
-  return rows
-    .filter((row) => row.kind === "fact" || row.kind === "preference")
-    .map(toRow);
+  return rows.filter((row) => row.kind === "fact" || row.kind === "preference").map(toRow);
 };

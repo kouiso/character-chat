@@ -2,7 +2,10 @@
 // node:sqlite は jsdom 環境ではバンドルできん。character-fixture.test.ts と同じ扱い。
 import { describe, expect, it } from "vitest";
 
-import { expectedPoliteRegister, registerExpectation } from "../../packages/judge/src/register-check";
+import {
+  expectedPoliteRegister,
+  registerExpectation,
+} from "../../packages/judge/src/register-check";
 import { buildCharacterTable } from "./character-fixture";
 
 // register-check がどのシートを「丁寧語固定」と読むかを、実データで固定する。

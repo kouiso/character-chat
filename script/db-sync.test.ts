@@ -1,10 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  buildCatalogSyncSql,
-  CATALOG_TABLES,
-  type CatalogTableData,
-} from "./db-sync";
+import { buildCatalogSyncSql, CATALOG_TABLES, type CatalogTableData } from "./db-sync";
 
 describe("buildCatalogSyncSql", () => {
   it("emits INSERT OR REPLACE for every row of a table", () => {
@@ -30,8 +26,14 @@ describe("buildCatalogSyncSql", () => {
     // 入力は子→親の逆順で与え、出力が親→子に並び替えられることを確認する
     const tables: CatalogTableData[] = [
       { name: "wardrobe_outfit_tag", rows: [{ outfit_id: "o-1", tag: "skirt" }] },
-      { name: "wardrobe_outfit", rows: [{ id: "o-1", character_id: "c-1", name: "制服", is_default: 1, created_at: 5 }] },
-      { name: "character_visual", rows: [{ character_id: "c-1", hair_color: "black", updated_at: 9 }] },
+      {
+        name: "wardrobe_outfit",
+        rows: [{ id: "o-1", character_id: "c-1", name: "制服", is_default: 1, created_at: 5 }],
+      },
+      {
+        name: "character_visual",
+        rows: [{ character_id: "c-1", hair_color: "black", updated_at: 9 }],
+      },
       { name: "character", rows: [{ id: "c-1", user_id: "u-1", name: "桜", created_at: 1 }] },
     ];
 
@@ -39,12 +41,8 @@ describe("buildCatalogSyncSql", () => {
     const tableOrder = sql.map((s) => s.match(/INTO (\w+)/)?.[1]);
 
     // character は全 character_* / wardrobe_* より前
-    expect(tableOrder.indexOf("character")).toBeLessThan(
-      tableOrder.indexOf("character_visual"),
-    );
-    expect(tableOrder.indexOf("character")).toBeLessThan(
-      tableOrder.indexOf("wardrobe_outfit"),
-    );
+    expect(tableOrder.indexOf("character")).toBeLessThan(tableOrder.indexOf("character_visual"));
+    expect(tableOrder.indexOf("character")).toBeLessThan(tableOrder.indexOf("wardrobe_outfit"));
     // wardrobe_outfit は wardrobe_outfit_tag より前（孫の前に子）
     expect(tableOrder.indexOf("wardrobe_outfit")).toBeLessThan(
       tableOrder.indexOf("wardrobe_outfit_tag"),
@@ -97,9 +95,7 @@ describe("buildCatalogSyncSql", () => {
     const sql = buildCatalogSyncSql(tables);
     const tableOrder = sql.map((s) => s.match(/INTO (\w+)/)?.[1]);
 
-    expect(tableOrder.indexOf("character")).toBeLessThan(
-      tableOrder.indexOf("some_future_table"),
-    );
+    expect(tableOrder.indexOf("character")).toBeLessThan(tableOrder.indexOf("some_future_table"));
   });
 
   it("returns an empty array when given no tables", () => {

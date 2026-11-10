@@ -85,7 +85,8 @@ for (const arm of arms) {
     else {
       armStat.failed += 1;
       const check = result.failedCheck ?? "?";
-      if (check.includes("repetition") || check === "near-duplicate-response") armStat.repetition += 1;
+      if (check.includes("repetition") || check === "near-duplicate-response")
+        armStat.repetition += 1;
       firstFailure.set(check, (firstFailure.get(check) ?? 0) + 1);
     }
 
