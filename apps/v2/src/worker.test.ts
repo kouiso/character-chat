@@ -140,6 +140,12 @@ const UNAUTHENTICATED_PROBES = [
   ["POST", "/api/characters/example/documents"],
   ["PATCH", "/api/characters/example/documents/doc-1"],
   ["DELETE", "/api/characters/example/documents/doc-1"],
+  ["GET", "/clips"],
+  ["GET", "/create"],
+  ["GET", "/api/clips"],
+  ["GET", "/api/clip-media/example"],
+  ["GET", "/api/clips/example"],
+  ["POST", "/api/clips/example/play"],
 ] as const;
 
 // routes/ のファイル名と URL を区切りごとに突き合わせる（$id は任意の 1 区切り、末尾 _ は入れ子を外す印、index は親）。
@@ -284,6 +290,26 @@ describe("Worker 入口の BASIC 認証", () => {
     expect(await response.text()).toBe("");
     expect(assetFetch).not.toHaveBeenCalled();
     expect(startFetch).not.toHaveBeenCalled();
+  });
+
+  it("V2_CF_ACCESS=1 なら認証ヘッダが無くてもアプリへ渡す", async () => {
+    // 本番は Cloudflare Access が入口で認証するので、Basic 認証は二重になって外す。
+    const { env, assetFetch } = createEnv(404, { V2_CF_ACCESS: "1" });
+    const response = await call(new Request("https://example.com/chat/example"), env);
+    expect(response.status).toBe(200);
+    expect(await response.text()).toBe("app");
+    expect(startFetch).toHaveBeenCalledOnce();
+    assetFetch.mockClear();
+  });
+
+  it("V2_CF_ACCESS=1 でも Basic 認証を付けた要求はそのまま通る", async () => {
+    const { env } = createEnv(200, { V2_CF_ACCESS: "1", ...credentials });
+    const response = await call(
+      new Request("https://example.com/assets/main.js", { headers: { authorization } }),
+      env,
+    );
+    expect(response.status).toBe(200);
+    expect(await response.text()).toBe("asset");
   });
 
   it("アプリが例外を投げても中身を出さず 500 を返す", async () => {

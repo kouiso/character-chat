@@ -7,11 +7,17 @@ export { ChatRoom } from "./server/chat-room";
 export { ProactiveScheduler } from "./server/proactive-scheduler";
 
 // 入口が触る束縛だけを型にしておくと、テストが Env 全体を偽装せずに済む。
-export type WorkerEntryEnv = BasicAuthConfig & { ASSETS: Pick<Fetcher, "fetch"> };
+export type WorkerEntryEnv = BasicAuthConfig & {
+  ASSETS: Pick<Fetcher, "fetch">;
+  V2_CF_ACCESS?: string;
+};
 
 const fetchEntry = async (request: Request, env: WorkerEntryEnv): Promise<Response> => {
-  const denied = await requireBasicAuth(request, env);
-  if (denied) return denied;
+  // Cloudflare Access が入口で認証済みの環境では Basic 認証は二重になり無用なので外す。
+  if (env.V2_CF_ACCESS !== "1") {
+    const denied = await requireBasicAuth(request, env);
+    if (denied) return denied;
+  }
   try {
     if (request.method === "GET" || request.method === "HEAD") {
       const asset = await env.ASSETS.fetch(request);
