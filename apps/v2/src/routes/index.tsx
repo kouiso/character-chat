@@ -32,40 +32,16 @@ const CharacterListPage = () => {
     <div className="v2-list">
       {characters.length > 0 && <ListConnectionState />}
       <h1>キャラクター</h1>
-      <SafeModeToggle />
-      <ChatModeSelect />
-      <StyleSelect />
-      <VoiceAutoplayToggle />
-      <UserPersonaInput />
-      <Link to="/characters/new">キャラクターを作る</Link>
-      <Link to="/catalog">公開カタログ</Link>
-      <Link to="/board">雑談広場</Link>
-      <Link to="/stories">ストーリー</Link>
-      <Link to="/groups">パーティ</Link>
-      <Link to="/clips">クリップ</Link>
-      <Link to="/create">創作センター</Link>
-      <Link to="/revenue">収益</Link>
-      {conversations.length > 0 && (
-        <section>
-          <h2>保存した会話</h2>
-          <ul>
-            {conversations.map((conversation) => (
-              <li key={conversation.id}>
-                <Link
-                  to="/chat/$id"
-                  params={{ id: conversation.characterId }}
-                  search={{ conversationId: conversation.id }}
-                >
-                  {conversation.title || "無題の会話"}
-                </Link>
-                {conversation.lastMessage && (
-                  <p className="v2-conversation-preview">{conversation.lastMessage.slice(0, 60)}</p>
-                )}
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
+      <nav className="v2-nav-grid" aria-label="メニュー">
+        <Link to="/characters/new">＋作る</Link>
+        <Link to="/catalog">カタログ</Link>
+        <Link to="/clips">クリップ</Link>
+        <Link to="/create">創作</Link>
+        <Link to="/stories">ストーリー</Link>
+        <Link to="/groups">パーティ</Link>
+        <Link to="/board">雑談</Link>
+        <Link to="/revenue">収益</Link>
+      </nav>
       {characters.length === 0 ? (
         <ListEmptyState />
       ) : (
@@ -77,7 +53,7 @@ const CharacterListPage = () => {
             placeholder="キャラ名で検索"
             aria-label="キャラ検索"
           />
-          <ul>
+          <ul className="v2-char-list">
             {filtered.map((c) => (
               <li key={c.id}>
                 <Link to="/chat/$id" params={{ id: c.id }} className="v2-char-link">
@@ -92,12 +68,12 @@ const CharacterListPage = () => {
                       />
                     )}
                   </span>
-                  {c.name}
+                  <span className="v2-char-name">{c.name}</span>
+                  {c.playCount > 0 && <span className="v2-play-count">▶ {c.playCount}</span>}
                 </Link>
-                {c.playCount > 0 && <span className="v2-play-count">▶ {c.playCount}</span>}
                 {c.canEdit && (
-                  <Link to="/characters/$id" params={{ id: c.id }}>
-                    設定・版の履歴
+                  <Link to="/characters/$id" params={{ id: c.id }} className="v2-char-edit">
+                    設定
                   </Link>
                 )}
               </li>
@@ -105,6 +81,37 @@ const CharacterListPage = () => {
           </ul>
         </>
       )}
+      {conversations.length > 0 && (
+        <section>
+          <h2>保存した会話</h2>
+          <ul>
+            {conversations.map((conversation) => (
+              <li key={conversation.id}>
+                <Link
+                  to="/chat/$id"
+                  params={{ id: conversation.characterId }}
+                  search={{ conversationId: conversation.id }}
+                >
+                  {conversation.title || "無題の会話"}
+                  {conversation.lastMessage && (
+                    <span className="v2-conversation-preview">
+                      {conversation.lastMessage.slice(0, 60)}
+                    </span>
+                  )}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+      <details className="v2-settings">
+        <summary>設定</summary>
+        <SafeModeToggle />
+        <ChatModeSelect />
+        <StyleSelect />
+        <VoiceAutoplayToggle />
+        <UserPersonaInput />
+      </details>
     </div>
   );
 };
