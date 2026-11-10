@@ -104,3 +104,39 @@ export const setVoiceAutoplay = async (
     .bind(userId, on ? 1 : 0, now)
     .run();
 };
+
+// RIT-30 ギャップ（Saylo のユーザーの役割設定）: キャラから見たユーザー自身の人物像。
+// 設定すると全キャラの会話へ共通のコンテキストとして渡る。空文字は消去と同じ扱い。
+export const USER_PERSONA_MAX_CHARS = 2000;
+
+export const readUserPersona = async (db: D1Database, userId: string): Promise<string> => {
+  const row = await db
+    .prepare("SELECT user_persona FROM v2_user_settings WHERE user_id = ?")
+    .bind(userId)
+    .first<{ user_persona: string | null }>();
+  return row?.user_persona ?? "";
+};
+
+// 生成 deps へ渡す用。DB 無しや未設定は undefined に正規化して
+// 呼び出し側（startTurn）で分岐を増やさない。
+export const readUserPersonaForPrompt = async (
+  db: D1Database | undefined,
+  userId: string,
+): Promise<string | undefined> =>
+  db ? (await readUserPersona(db, userId)) || undefined : undefined;
+
+export const setUserPersona = async (
+  db: D1Database,
+  userId: string,
+  persona: string,
+  now: number,
+): Promise<void> => {
+  const trimmed = persona.slice(0, USER_PERSONA_MAX_CHARS);
+  await db
+    .prepare(
+      "INSERT INTO v2_user_settings (user_id, user_persona, updated_at) VALUES (?, ?, ?) " +
+        "ON CONFLICT(user_id) DO UPDATE SET user_persona = excluded.user_persona, updated_at = excluded.updated_at",
+    )
+    .bind(userId, trimmed.length > 0 ? trimmed : null, now)
+    .run();
+};

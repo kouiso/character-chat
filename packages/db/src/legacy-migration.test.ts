@@ -220,6 +220,74 @@ describe("v2 conversation list", () => {
     await local.db.delete(userTable).where(eq(userTable.id, listOwner));
     await local.dispose();
   });
+
+  it("一覧の preview は直近の active な assistant 発言で、枝分かれの inactive 行を出さない", async () => {
+    const local = await openLocalD1();
+    const listOwner = `list-preview-${crypto.randomUUID()}`;
+    const [character] = await local.db
+      .select({ id: characterTable.id })
+      .from(characterTable)
+      .limit(1);
+    await local.db
+      .insert(userTable)
+      .values({ id: listOwner, email: `${listOwner}@example.invalid`, createdAt: 1 });
+    const conversationId = `${listOwner}-conversation`;
+    const emptyId = `${listOwner}-empty`;
+    for (const id of [conversationId, emptyId]) {
+      await ensureConversationVersion(local.db, {
+        conversationId: id,
+        userId: listOwner,
+        characterId: character.id,
+        promptVersion: "test",
+        versionId: "pinned-version",
+      });
+    }
+    await local.db.insert(v2MessageTable).values([
+      {
+        id: `${conversationId}-a1`,
+        conversationId,
+        turn: 1,
+        role: "assistant",
+        content: "古い返事",
+        createdAt: 1,
+      },
+      {
+        id: `${conversationId}-u2`,
+        conversationId,
+        turn: 2,
+        role: "user",
+        content: "次の一言",
+        createdAt: 2,
+      },
+      {
+        id: `${conversationId}-a3`,
+        conversationId,
+        turn: 3,
+        role: "assistant",
+        content: "直近の返事",
+        createdAt: 3,
+      },
+      {
+        id: `${conversationId}-a3b`,
+        conversationId,
+        turn: 3,
+        role: "assistant",
+        content: "枝分かれで隠れた返事",
+        createdAt: 4,
+        branchNo: 1,
+        active: 0,
+      },
+    ]);
+    const rows = await listConversations(local.db, listOwner);
+    expect(rows.find((row) => row.id === conversationId)?.lastMessage).toBe("直近の返事");
+    // 発言ゼロの pin だけの会話は一覧自体から隠れる既存仕様どおり。
+    expect(rows.find((row) => row.id === emptyId)).toBeUndefined();
+    await local.db.delete(v2MessageTable).where(eq(v2MessageTable.conversationId, conversationId));
+    await local.db.delete(v2ConversationTable).where(eq(v2ConversationTable.id, conversationId));
+    await local.db.delete(v2ConversationTable).where(eq(v2ConversationTable.id, emptyId));
+    await local.db.delete(userTable).where(eq(userTable.id, listOwner));
+    await local.dispose();
+  });
 });
 
 describe("legacy migration の再実行で元から消えた発言", () => {

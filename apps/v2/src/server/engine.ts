@@ -35,7 +35,13 @@ import { memoryVectorReady } from "./memory-vector";
 import { createProviderLookup, retryProviderLookup } from "./openrouter-lookup";
 import { readPlan } from "./plan";
 import { getPlatform } from "./platform";
-import { readChatMode, readChatStyle, readSafeMode, type ChatMode } from "./user-settings";
+import {
+  readChatMode,
+  readChatStyle,
+  readSafeMode,
+  readUserPersonaForPrompt,
+  type ChatMode,
+} from "./user-settings";
 
 export { LOCAL_USER_ID } from "./identity";
 
@@ -194,6 +200,7 @@ export const startTurn = async (
   const safeMode = modelEnv.DB ? await readSafeMode(modelEnv.DB, LOCAL_USER_ID) : false;
   const chatMode = modelEnv.DB ? await readChatMode(modelEnv.DB, LOCAL_USER_ID) : "standard";
   const chatStyle = modelEnv.DB ? await readChatStyle(modelEnv.DB, LOCAL_USER_ID) : "balanced";
+  const userPersona = await readUserPersonaForPrompt(modelEnv.DB, LOCAL_USER_ID);
   const models = await getModels(safeMode, chatMode);
   const db = await getDb();
   const conversationId = input.conversationId ?? crypto.randomUUID();
@@ -209,6 +216,7 @@ export const startTurn = async (
     models,
     charScale: CHAT_MODE_CHAR_SCALE[chatMode],
     style: chatStyle === "balanced" ? undefined : chatStyle,
+    userPersona,
     contextBudget: contextBudgetFromEnv(env),
     retrieveMemories: memoryVectorReady(env)
       ? async (targetConversationId, query) =>

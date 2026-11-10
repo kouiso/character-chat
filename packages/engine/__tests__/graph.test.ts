@@ -169,6 +169,51 @@ describe("createTurnGraph", () => {
     expect(request.some((message) => String(message.content).includes("設定資料"))).toBe(false);
   });
 
+  test("userPersona は履歴直前のコンテキスト塊として渡り、system には混ざらん (RIT-30)", async () => {
+    const store = createMemoryTurnStore();
+    const graph = createTurnGraph({
+      model: new FakeListChatModel({ responses: [VALID_XML, VALID_XML_SECOND] }),
+      store,
+      extendBelowRatio: 0,
+      userPersona: "クールぶってるが本当は優しい先輩",
+    });
+    await drain(
+      runTurn(
+        graph,
+        { conversationId: "conv-memory", userText: "こんにちは", character },
+        "conv-memory",
+      ),
+    );
+    const generation = generationAt(store, 0);
+    const personaIndex = generation.request.findIndex((message) =>
+      String(message.content).includes("【ユーザーについて】"),
+    );
+    expect(personaIndex).toBe(0);
+    expect(generation.request[personaIndex]?.content).toContain("優しい先輩");
+    expect(generation.request[personaIndex + 1]?.content).toBe("こんにちは");
+    expect(generation.systemPrompt).not.toContain("優しい先輩");
+  });
+
+  test("userPersona 未設定ではペルソナ塊のメッセージ自体を出さない", async () => {
+    const store = createMemoryTurnStore();
+    const graph = createTurnGraph({
+      model: new FakeListChatModel({ responses: [VALID_XML, VALID_XML_SECOND] }),
+      store,
+      extendBelowRatio: 0,
+    });
+    await drain(
+      runTurn(
+        graph,
+        { conversationId: "conv-memory", userText: "こんにちは", character },
+        "conv-memory",
+      ),
+    );
+    const request = generationAt(store, 0).request;
+    expect(request.some((message) => String(message.content).includes("ユーザーについて"))).toBe(
+      false,
+    );
+  });
+
   test("token* → chunk+ → done の順でイベントが流れ、store に1ターン保存される", async () => {
     const store = createMemoryTurnStore();
     const model = new FakeListChatModel({ responses: [VALID_XML, VALID_XML_SECOND] });

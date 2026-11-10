@@ -45,6 +45,15 @@ const CatalogCard = ({ item }: { item: CatalogItem }) => {
 
 const CatalogPage = () => {
   const { items } = routeApi.useLoaderData();
+  // RIT-30 ギャップ（Saylo の検索バー）: 名前・紹介・あいさつのどれかに引っかかれば出す。
+  const [query, setQuery] = useState("");
+  const needle = query.trim().toLowerCase();
+  const filtered = needle
+    ? items.filter((item) =>
+        [item.name, item.summary ?? "", item.greeting].join("\n").toLowerCase().includes(needle),
+      )
+    : items;
+
   return (
     <div className="v2-catalog">
       <h1>公開キャラクター</h1>
@@ -52,11 +61,20 @@ const CatalogPage = () => {
       {items.length === 0 ? (
         <p>公開キャラクターはまだいません。</p>
       ) : (
-        <ul>
-          {items.map((item) => (
-            <CatalogCard key={item.characterId} item={item} />
-          ))}
-        </ul>
+        <>
+          <input
+            type="search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="名前・紹介で検索"
+            aria-label="公開キャラ検索"
+          />
+          <ul>
+            {filtered.map((item) => (
+              <CatalogCard key={item.characterId} item={item} />
+            ))}
+          </ul>
+        </>
       )}
     </div>
   );

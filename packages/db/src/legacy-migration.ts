@@ -340,6 +340,18 @@ export const listConversations = async (db: V2Db, userId: string) =>
       characterId: v2ConversationTable.characterId,
       title: v2ConversationTable.title,
       updatedAt: v2ConversationTable.updatedAt,
+      // RIT-30 ギャップ（Saylo 会話一覧の AI 応答プレビュー）: 直近の相手の発話を
+      // 一覧へ出す。枝分かれの inactive 行は出さん。
+      // select 句内の sql 片では drizzle がカラムのテーブル修飾を落とすため、
+      // 相関サブクエリは下の exists と同じくリテラル名で書く。
+      lastMessage: sql<string | null>`(
+        select content from v2_message
+        where v2_message.conversation_id = v2_conversation.id
+          and v2_message.role = 'assistant'
+          and v2_message.active = 1
+        order by v2_message.turn desc
+        limit 1
+      )`,
     })
     .from(v2ConversationTable)
     .where(

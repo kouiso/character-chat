@@ -838,3 +838,44 @@ body {
   border-radius: 8px;
   margin: 0.8rem 0;
 }
+
+/* 検索入力・会話プレビュー・人物像入力（RIT-30 ギャップ） */
+.v2-list input[type="search"],
+.v2-catalog input[type="search"] {
+  width: 100%;
+  padding: 10px 12px;
+  margin: 8px 0 12px;
+  border: 1px solid #2a2a34;
+  border-radius: 10px;
+  background: var(--panel);
+  color: var(--text);
+  box-sizing: border-box;
+}
+
+.v2-conversation-preview {
+  margin: -4px 0 0;
+  padding: 0 14px 8px;
+  color: var(--muted);
+  font-size: 0.8rem;
+  /* プレビューは1行に畳む。長い返答の全文を一覧へは出さん */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.v2-persona label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.9rem;
+  margin: 12px 0 4px;
+}
+
+.v2-persona textarea {
+  padding: 10px 12px;
+  border: 1px solid #2a2a34;
+  border-radius: 10px;
+  background: var(--panel);
+  color: var(--text);
+  resize: vertical;
+}

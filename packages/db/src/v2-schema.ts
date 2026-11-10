@@ -583,6 +583,8 @@ export const v2UserSettingsTable = sqliteTable("v2_user_settings", {
   style: text("style").notNull().default("balanced"),
   // RIT-211: 応答音声の自動再生。ON でもブラウザの自動再生制限は別途かかる。
   voiceAutoplay: integer("voice_autoplay").notNull().default(0),
+  // RIT-30 ギャップ: 「AIから見たユーザー」の人物像。空文字は未設定と同じ扱い。
+  userPersona: text("user_persona"),
   updatedAt: integer("updated_at").notNull(),
 });
 
