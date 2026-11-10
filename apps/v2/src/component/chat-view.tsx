@@ -741,7 +741,7 @@ export const ChatView = ({
               <span className="v2-avatar" aria-hidden>
                 {characterName.slice(0, 1)}
                 {characterAvatar && (
-                  // avatar 参照は v1 側の静的パスで v2 では配信されない — 404 なら外して頭文字に戻す。
+                  // 画像が無い・404 の時は外して頭文字へ戻す（公式キャラは /avatars/ で配信）。
                   <img src={characterAvatar} alt="" onError={(e) => e.currentTarget.remove()} />
                 )}
               </span>

@@ -79,7 +79,18 @@ const CharacterListPage = () => {
           <ul>
             {filtered.map((c) => (
               <li key={c.id}>
-                <Link to="/chat/$id" params={{ id: c.id }}>
+                <Link to="/chat/$id" params={{ id: c.id }} className="v2-char-link">
+                  <span className="v2-avatar" aria-hidden>
+                    {c.name.slice(0, 1)}
+                    {c.avatar && (
+                      <img
+                        src={`/avatars/${encodeURIComponent(c.avatar)}`}
+                        alt=""
+                        loading="lazy"
+                        onError={(e) => e.currentTarget.remove()}
+                      />
+                    )}
+                  </span>
                   {c.name}
                 </Link>
                 {c.playCount > 0 && <span className="v2-play-count">▶ {c.playCount}</span>}
