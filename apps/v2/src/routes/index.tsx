@@ -41,6 +41,8 @@ const CharacterListPage = () => {
       <Link to="/board">雑談広場</Link>
       <Link to="/stories">ストーリー</Link>
       <Link to="/groups">パーティ</Link>
+      <Link to="/clips">クリップ</Link>
+      <Link to="/create">創作センター</Link>
       <Link to="/revenue">収益</Link>
       {conversations.length > 0 && (
         <section>
@@ -80,6 +82,7 @@ const CharacterListPage = () => {
                 <Link to="/chat/$id" params={{ id: c.id }}>
                   {c.name}
                 </Link>
+                {c.playCount > 0 && <span className="v2-play-count">▶ {c.playCount}</span>}
                 {c.canEdit && (
                   <Link to="/characters/$id" params={{ id: c.id }}>
                     設定・版の履歴

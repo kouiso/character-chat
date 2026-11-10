@@ -26,6 +26,8 @@ export type CharacterSheet = z.infer<typeof characterSheetSchema>;
 
 export type CharacterSummary = Pick<CharacterSheet, "id" | "name" | "avatar"> & {
   canEdit: boolean;
+  // RIT-30 ギャップ（Saylo のプレイ数表示）: そのキャラのクリップ再生数の合計。
+  playCount: number;
 };
 
 // 旧版から移した会話のキャラは旧ユーザー名義のまま。同一人物の名義の集合を
@@ -45,6 +47,11 @@ export const listCharacterSummaries = async (
       avatar: characterTable.avatar,
       // 編集・削除は primary（先頭）名義のキャラだけに絞る。旧名義は閲覧・会話の対象。
       canEdit: sql<boolean>`${characterTable.userId} = ${owners[0]}`.mapWith(Boolean),
+      // drizzle は select 句の sql 片でテーブル修飾を落とすので、相関側はリテラル名で書く。
+      playCount:
+        sql<number>`(SELECT COALESCE(SUM(play_count), 0) FROM v2_clip WHERE v2_clip.character_id = character.id)`.mapWith(
+          Number,
+        ),
     })
     .from(characterTable)
     .where(or(inArray(characterTable.userId, owners), eq(characterTable.isOfficial, true)))

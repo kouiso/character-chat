@@ -477,6 +477,13 @@
       "when": 1762747200000,
       "tag": "20261110120000_user_persona",
       "breakpoints": true
+    },
+    {
+      "idx": 103,
+      "version": "7",
+      "when": 1762750800000,
+      "tag": "20261110130000_v2_clip",
+      "breakpoints": true
     }
   ]
 }

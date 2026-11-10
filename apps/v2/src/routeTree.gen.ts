@@ -12,10 +12,13 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BoardRouteImport } from './routes/board'
 import { Route as CatalogRouteImport } from './routes/catalog'
+import { Route as ClipsRouteImport } from './routes/clips'
+import { Route as CreateRouteImport } from './routes/create'
 import { Route as RevenueRouteImport } from './routes/revenue'
 import { Route as ApiBoardRouteImport } from './routes/api/board'
 import { Route as ApiCatalogRouteImport } from './routes/api/catalog'
 import { Route as ApiCharactersRouteImport } from './routes/api/characters'
+import { Route as ApiClipsRouteImport } from './routes/api/clips'
 import { Route as ApiCurrencyRouteImport } from './routes/api/currency'
 import { Route as ApiFollowsRouteImport } from './routes/api/follows'
 import { Route as ApiGroupsRouteImport } from './routes/api/groups'
@@ -39,6 +42,8 @@ import { Route as ApiChapterMediaIdRouteImport } from './routes/api/chapter-medi
 import { Route as ApiChapterVideoIdRouteImport } from './routes/api/chapter-video/$id'
 import { Route as ApiCharactersIdRouteImport } from './routes/api/characters/$id'
 import { Route as ApiChatIdRouteImport } from './routes/api/chat/$id'
+import { Route as ApiClipMediaIdRouteImport } from './routes/api/clip-media/$id'
+import { Route as ApiClipsIdRouteImport } from './routes/api/clips/$id'
 import { Route as ApiCurrencyAdRewardRouteImport } from './routes/api/currency/ad-reward'
 import { Route as ApiCurrencyDailyPassRouteImport } from './routes/api/currency/daily-pass'
 import { Route as ApiCurrencyLoginBonusRouteImport } from './routes/api/currency/login-bonus'
@@ -71,6 +76,7 @@ import { Route as ApiChatIdMarksRouteImport } from './routes/api/chat/$id_/marks
 import { Route as ApiChatIdMemoryRouteImport } from './routes/api/chat/$id_/memory'
 import { Route as ApiChatIdSuggestRouteImport } from './routes/api/chat/$id_/suggest'
 import { Route as ApiChatIdVideoRouteImport } from './routes/api/chat/$id_/video'
+import { Route as ApiClipsIdPlayRouteImport } from './routes/api/clips/$id_/play'
 import { Route as ApiGroupsIdMessagesRouteImport } from './routes/api/groups/$id_/messages'
 import { Route as ApiStoriesIdChaptersRouteImport } from './routes/api/stories/$id_/chapters'
 import { Route as ApiCatalogIdCommentsCidRouteImport } from './routes/api/catalog/$id_/comments/$cid'
@@ -98,6 +104,16 @@ const CatalogRoute = CatalogRouteImport.update({
   path: '/catalog',
   getParentRoute: () => rootRouteImport,
 })
+const ClipsRoute = ClipsRouteImport.update({
+  id: '/clips',
+  path: '/clips',
+  getParentRoute: () => rootRouteImport,
+})
+const CreateRoute = CreateRouteImport.update({
+  id: '/create',
+  path: '/create',
+  getParentRoute: () => rootRouteImport,
+})
 const RevenueRoute = RevenueRouteImport.update({
   id: '/revenue',
   path: '/revenue',
@@ -116,6 +132,11 @@ const ApiCatalogRoute = ApiCatalogRouteImport.update({
 const ApiCharactersRoute = ApiCharactersRouteImport.update({
   id: '/api/characters',
   path: '/api/characters',
+  getParentRoute: () => rootRouteImport,
+})
+const ApiClipsRoute = ApiClipsRouteImport.update({
+  id: '/api/clips',
+  path: '/api/clips',
   getParentRoute: () => rootRouteImport,
 })
 const ApiCurrencyRoute = ApiCurrencyRouteImport.update({
@@ -232,6 +253,16 @@ const ApiChatIdRoute = ApiChatIdRouteImport.update({
   id: '/api/chat/$id',
   path: '/api/chat/$id',
   getParentRoute: () => rootRouteImport,
+})
+const ApiClipMediaIdRoute = ApiClipMediaIdRouteImport.update({
+  id: '/api/clip-media/$id',
+  path: '/api/clip-media/$id',
+  getParentRoute: () => rootRouteImport,
+})
+const ApiClipsIdRoute = ApiClipsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiClipsRoute,
 })
 const ApiCurrencyAdRewardRoute = ApiCurrencyAdRewardRouteImport.update({
   id: '/ad-reward',
@@ -394,6 +425,11 @@ const ApiChatIdVideoRoute = ApiChatIdVideoRouteImport.update({
   path: '/api/chat/$id/video',
   getParentRoute: () => rootRouteImport,
 })
+const ApiClipsIdPlayRoute = ApiClipsIdPlayRouteImport.update({
+  id: '/$id_/play',
+  path: '/$id/play',
+  getParentRoute: () => ApiClipsRoute,
+})
 const ApiGroupsIdMessagesRoute = ApiGroupsIdMessagesRouteImport.update({
   id: '/$id_/messages',
   path: '/$id/messages',
@@ -461,10 +497,13 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/board': typeof BoardRoute
   '/catalog': typeof CatalogRoute
+  '/clips': typeof ClipsRoute
+  '/create': typeof CreateRoute
   '/revenue': typeof RevenueRoute
   '/api/board': typeof ApiBoardRouteWithChildren
   '/api/catalog': typeof ApiCatalogRouteWithChildren
   '/api/characters': typeof ApiCharactersRouteWithChildren
+  '/api/clips': typeof ApiClipsRouteWithChildren
   '/api/currency': typeof ApiCurrencyRouteWithChildren
   '/api/follows': typeof ApiFollowsRoute
   '/api/groups': typeof ApiGroupsRouteWithChildren
@@ -488,6 +527,8 @@ export interface FileRoutesByFullPath {
   '/api/chapter-video/$id': typeof ApiChapterVideoIdRoute
   '/api/characters/$id': typeof ApiCharactersIdRoute
   '/api/chat/$id': typeof ApiChatIdRoute
+  '/api/clip-media/$id': typeof ApiClipMediaIdRoute
+  '/api/clips/$id': typeof ApiClipsIdRoute
   '/api/currency/ad-reward': typeof ApiCurrencyAdRewardRoute
   '/api/currency/daily-pass': typeof ApiCurrencyDailyPassRoute
   '/api/currency/login-bonus': typeof ApiCurrencyLoginBonusRoute
@@ -520,6 +561,7 @@ export interface FileRoutesByFullPath {
   '/api/chat/$id/memory': typeof ApiChatIdMemoryRoute
   '/api/chat/$id/suggest': typeof ApiChatIdSuggestRoute
   '/api/chat/$id/video': typeof ApiChatIdVideoRoute
+  '/api/clips/$id/play': typeof ApiClipsIdPlayRoute
   '/api/groups/$id/messages': typeof ApiGroupsIdMessagesRoute
   '/api/stories/$id/chapters': typeof ApiStoriesIdChaptersRouteWithChildren
   '/api/catalog/$id/comments/$cid': typeof ApiCatalogIdCommentsCidRoute
@@ -536,10 +578,13 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/board': typeof BoardRoute
   '/catalog': typeof CatalogRoute
+  '/clips': typeof ClipsRoute
+  '/create': typeof CreateRoute
   '/revenue': typeof RevenueRoute
   '/api/board': typeof ApiBoardRouteWithChildren
   '/api/catalog': typeof ApiCatalogRouteWithChildren
   '/api/characters': typeof ApiCharactersRouteWithChildren
+  '/api/clips': typeof ApiClipsRouteWithChildren
   '/api/currency': typeof ApiCurrencyRouteWithChildren
   '/api/follows': typeof ApiFollowsRoute
   '/api/groups': typeof ApiGroupsRouteWithChildren
@@ -563,6 +608,8 @@ export interface FileRoutesByTo {
   '/api/chapter-video/$id': typeof ApiChapterVideoIdRoute
   '/api/characters/$id': typeof ApiCharactersIdRoute
   '/api/chat/$id': typeof ApiChatIdRoute
+  '/api/clip-media/$id': typeof ApiClipMediaIdRoute
+  '/api/clips/$id': typeof ApiClipsIdRoute
   '/api/currency/ad-reward': typeof ApiCurrencyAdRewardRoute
   '/api/currency/daily-pass': typeof ApiCurrencyDailyPassRoute
   '/api/currency/login-bonus': typeof ApiCurrencyLoginBonusRoute
@@ -595,6 +642,7 @@ export interface FileRoutesByTo {
   '/api/chat/$id/memory': typeof ApiChatIdMemoryRoute
   '/api/chat/$id/suggest': typeof ApiChatIdSuggestRoute
   '/api/chat/$id/video': typeof ApiChatIdVideoRoute
+  '/api/clips/$id/play': typeof ApiClipsIdPlayRoute
   '/api/groups/$id/messages': typeof ApiGroupsIdMessagesRoute
   '/api/stories/$id/chapters': typeof ApiStoriesIdChaptersRouteWithChildren
   '/api/catalog/$id/comments/$cid': typeof ApiCatalogIdCommentsCidRoute
@@ -612,10 +660,13 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/board': typeof BoardRoute
   '/catalog': typeof CatalogRoute
+  '/clips': typeof ClipsRoute
+  '/create': typeof CreateRoute
   '/revenue': typeof RevenueRoute
   '/api/board': typeof ApiBoardRouteWithChildren
   '/api/catalog': typeof ApiCatalogRouteWithChildren
   '/api/characters': typeof ApiCharactersRouteWithChildren
+  '/api/clips': typeof ApiClipsRouteWithChildren
   '/api/currency': typeof ApiCurrencyRouteWithChildren
   '/api/follows': typeof ApiFollowsRoute
   '/api/groups': typeof ApiGroupsRouteWithChildren
@@ -639,6 +690,8 @@ export interface FileRoutesById {
   '/api/chapter-video/$id': typeof ApiChapterVideoIdRoute
   '/api/characters/$id': typeof ApiCharactersIdRoute
   '/api/chat/$id': typeof ApiChatIdRoute
+  '/api/clip-media/$id': typeof ApiClipMediaIdRoute
+  '/api/clips/$id': typeof ApiClipsIdRoute
   '/api/currency/ad-reward': typeof ApiCurrencyAdRewardRoute
   '/api/currency/daily-pass': typeof ApiCurrencyDailyPassRoute
   '/api/currency/login-bonus': typeof ApiCurrencyLoginBonusRoute
@@ -671,6 +724,7 @@ export interface FileRoutesById {
   '/api/chat/$id_/memory': typeof ApiChatIdMemoryRoute
   '/api/chat/$id_/suggest': typeof ApiChatIdSuggestRoute
   '/api/chat/$id_/video': typeof ApiChatIdVideoRoute
+  '/api/clips/$id_/play': typeof ApiClipsIdPlayRoute
   '/api/groups/$id_/messages': typeof ApiGroupsIdMessagesRoute
   '/api/stories/$id_/chapters': typeof ApiStoriesIdChaptersRouteWithChildren
   '/api/catalog/$id_/comments/$cid': typeof ApiCatalogIdCommentsCidRoute
@@ -689,10 +743,13 @@ export interface FileRouteTypes {
     | '/'
     | '/board'
     | '/catalog'
+    | '/clips'
+    | '/create'
     | '/revenue'
     | '/api/board'
     | '/api/catalog'
     | '/api/characters'
+    | '/api/clips'
     | '/api/currency'
     | '/api/follows'
     | '/api/groups'
@@ -716,6 +773,8 @@ export interface FileRouteTypes {
     | '/api/chapter-video/$id'
     | '/api/characters/$id'
     | '/api/chat/$id'
+    | '/api/clip-media/$id'
+    | '/api/clips/$id'
     | '/api/currency/ad-reward'
     | '/api/currency/daily-pass'
     | '/api/currency/login-bonus'
@@ -748,6 +807,7 @@ export interface FileRouteTypes {
     | '/api/chat/$id/memory'
     | '/api/chat/$id/suggest'
     | '/api/chat/$id/video'
+    | '/api/clips/$id/play'
     | '/api/groups/$id/messages'
     | '/api/stories/$id/chapters'
     | '/api/catalog/$id/comments/$cid'
@@ -764,10 +824,13 @@ export interface FileRouteTypes {
     | '/'
     | '/board'
     | '/catalog'
+    | '/clips'
+    | '/create'
     | '/revenue'
     | '/api/board'
     | '/api/catalog'
     | '/api/characters'
+    | '/api/clips'
     | '/api/currency'
     | '/api/follows'
     | '/api/groups'
@@ -791,6 +854,8 @@ export interface FileRouteTypes {
     | '/api/chapter-video/$id'
     | '/api/characters/$id'
     | '/api/chat/$id'
+    | '/api/clip-media/$id'
+    | '/api/clips/$id'
     | '/api/currency/ad-reward'
     | '/api/currency/daily-pass'
     | '/api/currency/login-bonus'
@@ -823,6 +888,7 @@ export interface FileRouteTypes {
     | '/api/chat/$id/memory'
     | '/api/chat/$id/suggest'
     | '/api/chat/$id/video'
+    | '/api/clips/$id/play'
     | '/api/groups/$id/messages'
     | '/api/stories/$id/chapters'
     | '/api/catalog/$id/comments/$cid'
@@ -839,10 +905,13 @@ export interface FileRouteTypes {
     | '/'
     | '/board'
     | '/catalog'
+    | '/clips'
+    | '/create'
     | '/revenue'
     | '/api/board'
     | '/api/catalog'
     | '/api/characters'
+    | '/api/clips'
     | '/api/currency'
     | '/api/follows'
     | '/api/groups'
@@ -866,6 +935,8 @@ export interface FileRouteTypes {
     | '/api/chapter-video/$id'
     | '/api/characters/$id'
     | '/api/chat/$id'
+    | '/api/clip-media/$id'
+    | '/api/clips/$id'
     | '/api/currency/ad-reward'
     | '/api/currency/daily-pass'
     | '/api/currency/login-bonus'
@@ -898,6 +969,7 @@ export interface FileRouteTypes {
     | '/api/chat/$id_/memory'
     | '/api/chat/$id_/suggest'
     | '/api/chat/$id_/video'
+    | '/api/clips/$id_/play'
     | '/api/groups/$id_/messages'
     | '/api/stories/$id_/chapters'
     | '/api/catalog/$id_/comments/$cid'
@@ -915,10 +987,13 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BoardRoute: typeof BoardRoute
   CatalogRoute: typeof CatalogRoute
+  ClipsRoute: typeof ClipsRoute
+  CreateRoute: typeof CreateRoute
   RevenueRoute: typeof RevenueRoute
   ApiBoardRoute: typeof ApiBoardRouteWithChildren
   ApiCatalogRoute: typeof ApiCatalogRouteWithChildren
   ApiCharactersRoute: typeof ApiCharactersRouteWithChildren
+  ApiClipsRoute: typeof ApiClipsRouteWithChildren
   ApiCurrencyRoute: typeof ApiCurrencyRouteWithChildren
   ApiFollowsRoute: typeof ApiFollowsRoute
   ApiGroupsRoute: typeof ApiGroupsRouteWithChildren
@@ -939,6 +1014,7 @@ export interface RootRouteChildren {
   ApiChapterMediaIdRoute: typeof ApiChapterMediaIdRoute
   ApiChapterVideoIdRoute: typeof ApiChapterVideoIdRoute
   ApiChatIdRoute: typeof ApiChatIdRoute
+  ApiClipMediaIdRoute: typeof ApiClipMediaIdRoute
   ApiMediaIdRoute: typeof ApiMediaIdRoute
   ApiPushSubscriptionsRoute: typeof ApiPushSubscriptionsRoute
   ApiPushVapidKeyRoute: typeof ApiPushVapidKeyRoute
@@ -979,6 +1055,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CatalogRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/clips': {
+      id: '/clips'
+      path: '/clips'
+      fullPath: '/clips'
+      preLoaderRoute: typeof ClipsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/create': {
+      id: '/create'
+      path: '/create'
+      fullPath: '/create'
+      preLoaderRoute: typeof CreateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/revenue': {
       id: '/revenue'
       path: '/revenue'
@@ -1005,6 +1095,13 @@ declare module '@tanstack/react-router' {
       path: '/api/characters'
       fullPath: '/api/characters'
       preLoaderRoute: typeof ApiCharactersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/clips': {
+      id: '/api/clips'
+      path: '/api/clips'
+      fullPath: '/api/clips'
+      preLoaderRoute: typeof ApiClipsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/currency': {
@@ -1167,6 +1264,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/chat/$id'
       preLoaderRoute: typeof ApiChatIdRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/api/clip-media/$id': {
+      id: '/api/clip-media/$id'
+      path: '/api/clip-media/$id'
+      fullPath: '/api/clip-media/$id'
+      preLoaderRoute: typeof ApiClipMediaIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/clips/$id': {
+      id: '/api/clips/$id'
+      path: '/$id'
+      fullPath: '/api/clips/$id'
+      preLoaderRoute: typeof ApiClipsIdRouteImport
+      parentRoute: typeof ApiClipsRoute
     }
     '/api/currency/ad-reward': {
       id: '/api/currency/ad-reward'
@@ -1392,6 +1503,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiChatIdVideoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/clips/$id_/play': {
+      id: '/api/clips/$id_/play'
+      path: '/$id/play'
+      fullPath: '/api/clips/$id/play'
+      preLoaderRoute: typeof ApiClipsIdPlayRouteImport
+      parentRoute: typeof ApiClipsRoute
+    }
     '/api/groups/$id_/messages': {
       id: '/api/groups/$id_/messages'
       path: '/$id/messages'
@@ -1571,6 +1689,20 @@ const ApiCharactersRouteWithChildren = ApiCharactersRoute._addFileChildren(
   ApiCharactersRouteChildren,
 )
 
+interface ApiClipsRouteChildren {
+  ApiClipsIdRoute: typeof ApiClipsIdRoute
+  ApiClipsIdPlayRoute: typeof ApiClipsIdPlayRoute
+}
+
+const ApiClipsRouteChildren: ApiClipsRouteChildren = {
+  ApiClipsIdRoute: ApiClipsIdRoute,
+  ApiClipsIdPlayRoute: ApiClipsIdPlayRoute,
+}
+
+const ApiClipsRouteWithChildren = ApiClipsRoute._addFileChildren(
+  ApiClipsRouteChildren,
+)
+
 interface ApiCurrencyRouteChildren {
   ApiCurrencyAdRewardRoute: typeof ApiCurrencyAdRewardRoute
   ApiCurrencyDailyPassRoute: typeof ApiCurrencyDailyPassRoute
@@ -1660,10 +1792,13 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BoardRoute: BoardRoute,
   CatalogRoute: CatalogRoute,
+  ClipsRoute: ClipsRoute,
+  CreateRoute: CreateRoute,
   RevenueRoute: RevenueRoute,
   ApiBoardRoute: ApiBoardRouteWithChildren,
   ApiCatalogRoute: ApiCatalogRouteWithChildren,
   ApiCharactersRoute: ApiCharactersRouteWithChildren,
+  ApiClipsRoute: ApiClipsRouteWithChildren,
   ApiCurrencyRoute: ApiCurrencyRouteWithChildren,
   ApiFollowsRoute: ApiFollowsRoute,
   ApiGroupsRoute: ApiGroupsRouteWithChildren,
@@ -1684,6 +1819,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiChapterMediaIdRoute: ApiChapterMediaIdRoute,
   ApiChapterVideoIdRoute: ApiChapterVideoIdRoute,
   ApiChatIdRoute: ApiChatIdRoute,
+  ApiClipMediaIdRoute: ApiClipMediaIdRoute,
   ApiMediaIdRoute: ApiMediaIdRoute,
   ApiPushSubscriptionsRoute: ApiPushSubscriptionsRoute,
   ApiPushVapidKeyRoute: ApiPushVapidKeyRoute,

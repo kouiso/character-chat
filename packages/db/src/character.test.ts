@@ -57,8 +57,16 @@ describe("loadCharacters / loadCharacter", () => {
   it("一覧には本文や内部設定を含めず必要な項目を返す", async () => {
     const summaries = await listCharacterSummaries(local.db);
     expect(summaries.length).toBeGreaterThan(0);
-    expect(Object.keys(summaries[0]).sort()).toEqual(["avatar", "canEdit", "id", "name"]);
+    expect(Object.keys(summaries[0]).sort()).toEqual([
+      "avatar",
+      "canEdit",
+      "id",
+      "name",
+      "playCount",
+    ]);
     expect(summaries.every(({ canEdit }) => typeof canEdit === "boolean")).toBe(true);
+    // RIT-30 ギャップ: クリップ未作成のキャラは再生数 0。
+    expect(summaries.every(({ playCount }) => playCount === 0)).toBe(true);
   });
 
   it("owner detail reads and display lists hide private characters from other users", async () => {

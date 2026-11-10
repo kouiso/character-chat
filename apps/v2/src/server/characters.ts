@@ -5,6 +5,7 @@ export type CharacterListItem = {
   name: string;
   avatar: string | null;
   canEdit: boolean;
+  playCount: number;
 };
 
 export const toCharacterDisplay = <Character extends { id: string; name: string }>(
