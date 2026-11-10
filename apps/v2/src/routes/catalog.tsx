@@ -31,6 +31,7 @@ const CatalogCard = ({ item }: { item: CatalogItem }) => {
   return (
     <li>
       <strong>{item.name}</strong>
+      {item.playCount > 0 && <span className="v2-play-count">▶ {item.playCount}</span>}
       {item.summary && <p>{item.summary}</p>}
       <p>{item.greeting}</p>
       <button type="button" disabled={busy} onClick={fork}>

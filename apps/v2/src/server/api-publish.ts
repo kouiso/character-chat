@@ -48,6 +48,8 @@ export type CatalogItem = {
   summary: string | null;
   authorUserId: string;
   publishedAt: number;
+  // そのキャラのクリップの総再生数（RIT-30 ギャップのプレイ数表示）。
+  playCount: number;
 };
 
 const toCatalogItem = (row: {
@@ -58,6 +60,7 @@ const toCatalogItem = (row: {
   name: string;
   avatar: string | null;
   greeting: string;
+  play_count: number | null;
 }): CatalogItem => ({
   characterId: row.character_id,
   name: row.name,
@@ -66,6 +69,7 @@ const toCatalogItem = (row: {
   summary: row.summary,
   authorUserId: row.user_id,
   publishedAt: row.published_at,
+  playCount: row.play_count ?? 0,
 });
 
 // GET /api/characters/:id/publish — 自分のキャラの公開状態
@@ -112,7 +116,9 @@ export const handlePublishUnset = async (characterId: string): Promise<Response>
 export const loadCatalogItems = async (db: D1Database): Promise<CatalogItem[]> => {
   const { results } = await db
     .prepare(
-      "SELECT p.character_id, p.user_id, p.summary, p.published_at, c.name, c.avatar, c.greeting " +
+      "SELECT p.character_id, p.user_id, p.summary, p.published_at, c.name, c.avatar, c.greeting, " +
+        "(SELECT COALESCE(SUM(play_count), 0) FROM v2_clip WHERE v2_clip.character_id = p.character_id) " +
+        "AS play_count " +
         "FROM v2_character_publish p JOIN character c ON c.id = p.character_id " +
         "ORDER BY p.published_at DESC LIMIT 100",
     )
@@ -124,6 +130,7 @@ export const loadCatalogItems = async (db: D1Database): Promise<CatalogItem[]> =
       name: string;
       avatar: string | null;
       greeting: string;
+      play_count: number | null;
     }>();
   return (results ?? []).map(toCatalogItem);
 };
@@ -138,7 +145,9 @@ export const handleCatalogList = async (): Promise<Response> => {
 export const handleCatalogDetail = async (characterId: string): Promise<Response> => {
   const { env } = await getPlatform();
   const row = await env.DB.prepare(
-    "SELECT p.character_id, p.user_id, p.summary, p.published_at, c.name, c.avatar, c.greeting " +
+    "SELECT p.character_id, p.user_id, p.summary, p.published_at, c.name, c.avatar, c.greeting, " +
+      "(SELECT COALESCE(SUM(play_count), 0) FROM v2_clip WHERE v2_clip.character_id = p.character_id) " +
+      "AS play_count " +
       "FROM v2_character_publish p JOIN character c ON c.id = p.character_id " +
       "WHERE p.character_id = ?",
   )
@@ -151,6 +160,7 @@ export const handleCatalogDetail = async (characterId: string): Promise<Response
       name: string;
       avatar: string | null;
       greeting: string;
+      play_count: number | null;
     }>();
   if (!row) return json(404, { message: "公開キャラクターが見つかりません。" });
   return json(200, toCatalogItem(row));

@@ -438,6 +438,36 @@ export const v2VideoGenerationTable = sqliteTable(
   ],
 );
 
+// クリップ（RIT-30 ギャップ: Saylo のショート動画フィード）。会話に紐付かん
+// 単発の画像→動画生成と、その再生数。動画実体は R2 の videos/*.mp4。
+export const v2ClipTable = sqliteTable(
+  "v2_clip",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull(),
+    characterId: text("character_id")
+      .notNull()
+      .references(() => characterTable.id),
+    // first-frame にした v2_image_generation 行。元画像・プロンプトはそっちが正本。
+    sourceGenerationId: text("source_generation_id"),
+    taskId: text("task_id"),
+    model: text("model").notNull(),
+    prompt: text("prompt").notNull(),
+    // v2_video_generation と同じ遷移。queued=依頼受付 / processing=上流生成中。
+    status: text("status", { enum: ["queued", "processing", "ok", "failed"] }).notNull(),
+    failureReason: text("failure_reason"),
+    videoKey: text("video_key"),
+    playCount: integer("play_count").notNull().default(0),
+    createdAt: integer("created_at").notNull(),
+    finishedAt: integer("finished_at"),
+  },
+  (table) => [
+    index("v2_clip_character_idx").on(table.characterId, table.createdAt),
+    index("v2_clip_user_idx").on(table.userId, table.createdAt),
+    check("v2_clip_status_check", sql`${table.status} in ('queued','processing','ok','failed')`),
+  ],
+);
+
 // 手で消した記憶の内容ハッシュ。抽出の再実行で同じ内容が蘇らんようにする（RIT-94）。
 // 会話ごとの帳簿なので、別会話で同じ内容を覚えるのは妨げない。
 export const v2MemoryTombstoneTable = sqliteTable(

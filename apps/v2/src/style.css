@@ -879,3 +879,103 @@ body {
   color: var(--text);
   resize: vertical;
 }
+
+/* クリップフィード・創作センター・再生数バッジ（RIT-30 ギャップ） */
+.v2-clips,
+.v2-create {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.v2-page-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.v2-page-head nav {
+  display: flex;
+  gap: 12px;
+  font-size: 0.85rem;
+}
+
+.v2-clip-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 0;
+  list-style: none;
+}
+
+.v2-clip-video {
+  width: 100%;
+  border-radius: 12px;
+  background: #000;
+  /* first-frame は縦向きが多いので高さに上限を掛ける */
+  max-height: 70vh;
+}
+
+.v2-clip-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 6px;
+  font-size: 0.9rem;
+}
+
+.v2-play-count {
+  color: var(--muted);
+  font-size: 0.8rem;
+  padding-left: 6px;
+}
+
+.v2-clip-pending {
+  color: var(--muted);
+}
+
+.v2-create label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 14px 0;
+  font-size: 0.9rem;
+}
+
+.v2-create select,
+.v2-create input[type="text"] {
+  padding: 10px 12px;
+  border: 1px solid #2a2a34;
+  border-radius: 10px;
+  background: var(--panel);
+  color: var(--text);
+}
+
+.v2-create-images ul {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 0;
+  list-style: none;
+}
+
+.v2-create-image {
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  background: none;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.v2-create-image.selected {
+  border-color: #6f7cff;
+}
+
+.v2-create-image img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+}
