@@ -743,7 +743,11 @@ export const ChatView = ({
           <div key={index} className={`v2-turn-row ${bubble.role}`}>
             {bubble.role === "assistant" && (
               <span className="v2-avatar" aria-hidden>
-                {characterAvatar ? <img src={characterAvatar} alt="" /> : characterName.slice(0, 1)}
+                {characterName.slice(0, 1)}
+                {characterAvatar && (
+                  // avatar 参照は v1 側の静的パスで v2 では配信されない — 404 なら外して頭文字に戻す。
+                  <img src={characterAvatar} alt="" onError={(e) => e.currentTarget.remove()} />
+                )}
               </span>
             )}
             <div
