@@ -124,7 +124,7 @@ export const generateChapterIllustration = async (input: {
   const generationId = crypto.randomUUID();
   // 課金台帳は会話画像と同じ charge/refund 経路。失敗したら同額を返す。
   try {
-    await chargeGeneration(env.DB, { userId: "local", generationId, kind: "image" });
+    await chargeGeneration(env.DB, { userId: "local", generationId, kind: "image" }, env);
   } catch (error) {
     if (error instanceof CurrencyError) {
       return { ok: false, status: error.status, message: error.message };

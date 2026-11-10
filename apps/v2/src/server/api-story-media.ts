@@ -33,7 +33,7 @@ type MediaEnv = ImageEnv & VideoEnv;
 
 const chargePanel = async (env: MediaEnv, generationId: string): Promise<string | null> => {
   try {
-    await chargeGeneration(env.DB, { userId: "local", generationId, kind: "image" });
+    await chargeGeneration(env.DB, { userId: "local", generationId, kind: "image" }, env);
     return null;
   } catch (error) {
     return error instanceof CurrencyError ? error.message : "課金に失敗しました。";
@@ -265,7 +265,7 @@ export const startChapterVideo = async (input: {
   }
   const generationId = crypto.randomUUID();
   try {
-    await chargeGeneration(env.DB, { userId: "local", generationId, kind: "video" });
+    await chargeGeneration(env.DB, { userId: "local", generationId, kind: "video" }, env);
   } catch (error) {
     if (error instanceof CurrencyError) {
       return { ok: false, status: error.status, message: error.message };

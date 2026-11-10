@@ -10,7 +10,12 @@ const json = (status: number, body: Record<string, unknown>): Response =>
   Response.json(body, { status });
 
 const FREE_SECONDS_DEFAULT = 180; // MiraiMind 型: 1日最初3分無料
-const quotaLimit = (env: { V2_VOICE_CALL_FREE_SECONDS?: string }): number => {
+// 本人専用運用の V2_UNLIMITED=1 では日次枠を実質無制限にする。
+const quotaLimit = (env: {
+  V2_VOICE_CALL_FREE_SECONDS?: string;
+  V2_UNLIMITED?: string;
+}): number => {
+  if (env.V2_UNLIMITED === "1") return Number.MAX_SAFE_INTEGER;
   const parsed = Number(env.V2_VOICE_CALL_FREE_SECONDS);
   return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : FREE_SECONDS_DEFAULT;
 };

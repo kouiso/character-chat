@@ -21,14 +21,16 @@ export const jstDayStartMs = (nowMs: number): number =>
 
 export const checkDailyTurnLimit = async (
   db: V2Db,
-  env: { V2_DAILY_TURN_LIMIT?: string },
+  env: { V2_DAILY_TURN_LIMIT?: string; V2_UNLIMITED?: string },
   nowMs: number,
   userId = LOCAL_USER_ID,
 ): Promise<{ allowed: boolean; limit: number; used: number }> => {
-  const limit = dailyTurnLimit(env);
+  // 本人専用運用の V2_UNLIMITED=1 では枠を消す（表示は最大整数へ倒す）。
+  const unlimited = env.V2_UNLIMITED === "1";
+  const limit = unlimited ? Number.MAX_SAFE_INTEGER : dailyTurnLimit(env);
   const used = await countUserTurnsSince(db, {
     userId,
     sinceMs: jstDayStartMs(nowMs),
   });
-  return { allowed: used < limit, limit, used };
+  return { allowed: unlimited || used < limit, limit, used };
 };
