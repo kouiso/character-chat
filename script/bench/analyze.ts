@@ -151,8 +151,7 @@ export const donorFor = (
   // 履歴が薄い時にドナー側だけ長い並びを求めることになって、選べんくなる
   // **配列の位置やのうてターン番号で切る。**ドナーに穴が空いとると、位置で切った時に
   // **受け手と同じ位置か後ろのターン**が「前方履歴」として入って、帰無率が高う出る
-  const beforeOf = (group: BenchTurn[]): BenchTurn[] =>
-    group.filter((t) => t.turn < beforeTurn);
+  const beforeOf = (group: BenchTurn[]): BenchTurn[] => group.filter((t) => t.turn < beforeTurn);
   // **phase だけやのうてモデルの並びも揃える。**会話の途中でモデルが変わる run が
   // 実際にある（phase17 と phase19 は Qwen と DeepSeek が混ざる）。先頭のターンだけ
   // 見とった間、DeepSeek の履歴が Qwen の履歴に差し替わっとった

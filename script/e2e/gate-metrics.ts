@@ -46,7 +46,12 @@ const META_PATTERNS: readonly RegExp[] = [
   /コンテンツ(規約|ポリシー)/u,
 ];
 
-const CHARACTER_BREAK_CHECKS = ["wrong-first-person", "english_drift", "other-character-name", "user-perspective-ejaculation"];
+const CHARACTER_BREAK_CHECKS = [
+  "wrong-first-person",
+  "english_drift",
+  "other-character-name",
+  "user-perspective-ejaculation",
+];
 
 export type LatencySummary = {
   ttfbSamples: number;

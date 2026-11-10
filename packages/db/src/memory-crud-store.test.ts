@@ -146,9 +146,7 @@ describe("memory crud store", () => {
     const list = await listCharacterMemories(local.db, { ...scope, characterId });
     expect(list.map((row) => row.id)).toContain(memory!.id);
     // 別の利用者からは見えない
-    expect(
-      await listCharacterMemories(local.db, { userId: "other", characterId }),
-    ).toEqual([]);
+    expect(await listCharacterMemories(local.db, { userId: "other", characterId })).toEqual([]);
   });
 
   it("発言の無い会話では足せず、他人の会話では拒否される", async () => {
@@ -192,9 +190,9 @@ describe("memory crud store", () => {
     expect(row.embedding).toBeNull();
 
     // 固定するまでは pinned 経路に出ない
-    expect(
-      await loadPinnedMemories(local.db, { ...scope, characterId, conversationId }),
-    ).toEqual([]);
+    expect(await loadPinnedMemories(local.db, { ...scope, characterId, conversationId })).toEqual(
+      [],
+    );
     await setMemoryPinned(local.db, { ...scope, characterId }, memory!.id, true);
     const pinned = await loadPinnedMemories(local.db, {
       ...scope,

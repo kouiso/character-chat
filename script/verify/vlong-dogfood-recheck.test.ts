@@ -224,10 +224,13 @@ describe("findSameTemplateParagraphs", () => {
   // 「過半」という言葉自体が意味を持たん、というのが人間レビュアーの判断
   // （doc/dogfood/vlong-2026-08-20-phase57.md:130 が n=3・67%で「過半と断定はできず」と
   // 明言しとる）。これを機械的にも再現する: 一致率が高くても段落数が足りんターンは拾わん。
-  it.skipIf(!PHASE66_PRESENT)("段落数が足りん通常の地の文は一致率100%でも拾わん（誤検出防止の核）", () => {
-    const turn = buildTurn("Downer", loadRealBody("Downer-03-"));
-    expect(findSameTemplateParagraphs(turn)).toBeNull();
-  });
+  it.skipIf(!PHASE66_PRESENT)(
+    "段落数が足りん通常の地の文は一致率100%でも拾わん（誤検出防止の核）",
+    () => {
+      const turn = buildTurn("Downer", loadRealBody("Downer-03-"));
+      expect(findSameTemplateParagraphs(turn)).toBeNull();
+    },
+  );
 
   it("<action> が無いターンは拾わん", () => {
     const turn = buildTurn("Sakura", "<response><dialogue>「……」</dialogue></response>");

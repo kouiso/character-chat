@@ -2,9 +2,9 @@
 documentation:
   - changed-files:
       - any-glob-to-any-file:
-          - 'doc/**/*'
-          - '**/README*.md'
+          - "doc/**/*"
+          - "**/README*.md"
 
 admin:
   - changed-files:
-      - any-glob-to-any-file: 'admin/**/*'
+      - any-glob-to-any-file: "admin/**/*"

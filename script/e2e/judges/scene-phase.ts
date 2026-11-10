@@ -788,7 +788,6 @@ export const detectAssistantScenePhase = (assistantMsg: string): Exclude<Phase, 
   }
 
   for (const { phase, keywords } of ASSISTANT_PHASE_KEYWORDS) {
-
     if (phase === "erotic" && hasGenitalTighteningCue(assistantMsg)) {
       return phase;
     }
@@ -851,7 +850,11 @@ export function judgePhase(args: {
     hadRecentClimax &&
     hasAfterglowCue(args.assistantMsg);
   const detected: Phase = afterglowDetected ? "afterglow" : baseDetected;
-  const monotonicViolation = computeMonotonicViolation(args.previousDetected, detected, args.assistantMsg);
+  const monotonicViolation = computeMonotonicViolation(
+    args.previousDetected,
+    detected,
+    args.assistantMsg,
+  );
 
   return {
     detected,

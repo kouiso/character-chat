@@ -8,1501 +8,1493 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as BoardRouteImport } from './routes/board'
-import { Route as CatalogRouteImport } from './routes/catalog'
-import { Route as RevenueRouteImport } from './routes/revenue'
-import { Route as ApiBoardRouteImport } from './routes/api/board'
-import { Route as ApiCatalogRouteImport } from './routes/api/catalog'
-import { Route as ApiCharactersRouteImport } from './routes/api/characters'
-import { Route as ApiCurrencyRouteImport } from './routes/api/currency'
-import { Route as ApiFollowsRouteImport } from './routes/api/follows'
-import { Route as ApiGroupsRouteImport } from './routes/api/groups'
-import { Route as ApiHealthRouteImport } from './routes/api/health'
-import { Route as ApiPlanRouteImport } from './routes/api/plan'
-import { Route as ApiRevenueRouteImport } from './routes/api/revenue'
-import { Route as ApiSettingsRouteImport } from './routes/api/settings'
-import { Route as ApiStoriesRouteImport } from './routes/api/stories'
-import { Route as ApiTtsRouteImport } from './routes/api/tts'
-import { Route as CharactersIdRouteImport } from './routes/characters/$id'
-import { Route as CharactersNewRouteImport } from './routes/characters/new'
-import { Route as ChatIdRouteImport } from './routes/chat/$id'
-import { Route as GroupsIndexRouteImport } from './routes/groups/index'
-import { Route as GroupsIdRouteImport } from './routes/groups/$id'
-import { Route as StoriesIndexRouteImport } from './routes/stories/index'
-import { Route as StoriesIdRouteImport } from './routes/stories/$id'
-import { Route as ApiAdminLegacyMigrationRouteImport } from './routes/api/admin/legacy-migration'
-import { Route as ApiBoardIdRouteImport } from './routes/api/board/$id'
-import { Route as ApiCatalogIdRouteImport } from './routes/api/catalog/$id'
-import { Route as ApiChapterMediaIdRouteImport } from './routes/api/chapter-media/$id'
-import { Route as ApiChapterVideoIdRouteImport } from './routes/api/chapter-video/$id'
-import { Route as ApiCharactersIdRouteImport } from './routes/api/characters/$id'
-import { Route as ApiChatIdRouteImport } from './routes/api/chat/$id'
-import { Route as ApiCurrencyAdRewardRouteImport } from './routes/api/currency/ad-reward'
-import { Route as ApiCurrencyDailyPassRouteImport } from './routes/api/currency/daily-pass'
-import { Route as ApiCurrencyLoginBonusRouteImport } from './routes/api/currency/login-bonus'
-import { Route as ApiMediaIdRouteImport } from './routes/api/media/$id'
-import { Route as ApiPlanCancelRouteImport } from './routes/api/plan/cancel'
-import { Route as ApiPushSubscriptionsRouteImport } from './routes/api/push/subscriptions'
-import { Route as ApiPushVapidKeyRouteImport } from './routes/api/push/vapid-key'
-import { Route as ApiRevenueAggregateRouteImport } from './routes/api/revenue_/aggregate'
-import { Route as ApiStoriesIdRouteImport } from './routes/api/stories/$id'
-import { Route as ApiVoiceCallQuotaRouteImport } from './routes/api/voice-call/quota'
-import { Route as StoriesIdReadRouteImport } from './routes/stories/$id/read'
-import { Route as ApiCatalogIdCommentsRouteImport } from './routes/api/catalog/$id_/comments'
-import { Route as ApiCatalogIdFollowRouteImport } from './routes/api/catalog/$id_/follow'
-import { Route as ApiCatalogIdForkRouteImport } from './routes/api/catalog/$id_/fork'
-import { Route as ApiCatalogIdLikeRouteImport } from './routes/api/catalog/$id_/like'
-import { Route as ApiCatalogIdReactionsRouteImport } from './routes/api/catalog/$id_/reactions'
-import { Route as ApiCatalogIdTipRouteImport } from './routes/api/catalog/$id_/tip'
-import { Route as ApiCharactersIdDocumentsRouteImport } from './routes/api/characters/$id_/documents'
-import { Route as ApiCharactersIdMemoriesRouteImport } from './routes/api/characters/$id_/memories'
-import { Route as ApiCharactersIdPublishRouteImport } from './routes/api/characters/$id_/publish'
-import { Route as ApiCharactersIdRestoreRouteImport } from './routes/api/characters/$id_/restore'
-import { Route as ApiCharactersIdVersionsRouteImport } from './routes/api/characters/$id_/versions'
-import { Route as ApiCharactersIdVoiceRouteImport } from './routes/api/characters/$id_/voice'
-import { Route as ApiChatIdBranchRouteImport } from './routes/api/chat/$id_/branch'
-import { Route as ApiChatIdComicRouteImport } from './routes/api/chat/$id_/comic'
-import { Route as ApiChatIdHistoryRouteImport } from './routes/api/chat/$id_/history'
-import { Route as ApiChatIdImagesRouteImport } from './routes/api/chat/$id_/images'
-import { Route as ApiChatIdLedgerRouteImport } from './routes/api/chat/$id_/ledger'
-import { Route as ApiChatIdMarksRouteImport } from './routes/api/chat/$id_/marks'
-import { Route as ApiChatIdMemoryRouteImport } from './routes/api/chat/$id_/memory'
-import { Route as ApiChatIdSuggestRouteImport } from './routes/api/chat/$id_/suggest'
-import { Route as ApiChatIdVideoRouteImport } from './routes/api/chat/$id_/video'
-import { Route as ApiGroupsIdMessagesRouteImport } from './routes/api/groups/$id_/messages'
-import { Route as ApiStoriesIdChaptersRouteImport } from './routes/api/stories/$id_/chapters'
-import { Route as ApiCatalogIdCommentsCidRouteImport } from './routes/api/catalog/$id_/comments/$cid'
-import { Route as ApiCharactersIdDocumentsDocRouteImport } from './routes/api/characters/$id_/documents/$doc'
-import { Route as ApiCharactersIdVersionsVersionRouteImport } from './routes/api/characters/$id_/versions/$version'
-import { Route as ApiProactiveCharactersIdSettingsRouteImport } from './routes/api/proactive/characters/$id_/settings'
-import { Route as ApiStoriesIdChaptersCidRouteImport } from './routes/api/stories/$id_/chapters/$cid'
-import { Route as ApiStoriesIdChaptersReorderRouteImport } from './routes/api/stories/$id_/chapters/reorder'
-import { Route as ApiStoriesIdChaptersCidComicRouteImport } from './routes/api/stories/$id_/chapters/$cid_/comic'
-import { Route as ApiStoriesIdChaptersCidIllustrationRouteImport } from './routes/api/stories/$id_/chapters/$cid_/illustration'
-import { Route as ApiStoriesIdChaptersCidVideoRouteImport } from './routes/api/stories/$id_/chapters/$cid_/video'
+import { Route as rootRouteImport } from "./routes/__root";
+import { Route as IndexRouteImport } from "./routes/index";
+import { Route as BoardRouteImport } from "./routes/board";
+import { Route as CatalogRouteImport } from "./routes/catalog";
+import { Route as RevenueRouteImport } from "./routes/revenue";
+import { Route as ApiBoardRouteImport } from "./routes/api/board";
+import { Route as ApiCatalogRouteImport } from "./routes/api/catalog";
+import { Route as ApiCharactersRouteImport } from "./routes/api/characters";
+import { Route as ApiCurrencyRouteImport } from "./routes/api/currency";
+import { Route as ApiFollowsRouteImport } from "./routes/api/follows";
+import { Route as ApiGroupsRouteImport } from "./routes/api/groups";
+import { Route as ApiHealthRouteImport } from "./routes/api/health";
+import { Route as ApiPlanRouteImport } from "./routes/api/plan";
+import { Route as ApiRevenueRouteImport } from "./routes/api/revenue";
+import { Route as ApiSettingsRouteImport } from "./routes/api/settings";
+import { Route as ApiStoriesRouteImport } from "./routes/api/stories";
+import { Route as ApiTtsRouteImport } from "./routes/api/tts";
+import { Route as CharactersIdRouteImport } from "./routes/characters/$id";
+import { Route as CharactersNewRouteImport } from "./routes/characters/new";
+import { Route as ChatIdRouteImport } from "./routes/chat/$id";
+import { Route as GroupsIndexRouteImport } from "./routes/groups/index";
+import { Route as GroupsIdRouteImport } from "./routes/groups/$id";
+import { Route as StoriesIndexRouteImport } from "./routes/stories/index";
+import { Route as StoriesIdRouteImport } from "./routes/stories/$id";
+import { Route as ApiAdminLegacyMigrationRouteImport } from "./routes/api/admin/legacy-migration";
+import { Route as ApiBoardIdRouteImport } from "./routes/api/board/$id";
+import { Route as ApiCatalogIdRouteImport } from "./routes/api/catalog/$id";
+import { Route as ApiChapterMediaIdRouteImport } from "./routes/api/chapter-media/$id";
+import { Route as ApiChapterVideoIdRouteImport } from "./routes/api/chapter-video/$id";
+import { Route as ApiCharactersIdRouteImport } from "./routes/api/characters/$id";
+import { Route as ApiChatIdRouteImport } from "./routes/api/chat/$id";
+import { Route as ApiCurrencyAdRewardRouteImport } from "./routes/api/currency/ad-reward";
+import { Route as ApiCurrencyDailyPassRouteImport } from "./routes/api/currency/daily-pass";
+import { Route as ApiCurrencyLoginBonusRouteImport } from "./routes/api/currency/login-bonus";
+import { Route as ApiMediaIdRouteImport } from "./routes/api/media/$id";
+import { Route as ApiPlanCancelRouteImport } from "./routes/api/plan/cancel";
+import { Route as ApiPushSubscriptionsRouteImport } from "./routes/api/push/subscriptions";
+import { Route as ApiPushVapidKeyRouteImport } from "./routes/api/push/vapid-key";
+import { Route as ApiRevenueAggregateRouteImport } from "./routes/api/revenue_/aggregate";
+import { Route as ApiStoriesIdRouteImport } from "./routes/api/stories/$id";
+import { Route as ApiVoiceCallQuotaRouteImport } from "./routes/api/voice-call/quota";
+import { Route as StoriesIdReadRouteImport } from "./routes/stories/$id/read";
+import { Route as ApiCatalogIdCommentsRouteImport } from "./routes/api/catalog/$id_/comments";
+import { Route as ApiCatalogIdFollowRouteImport } from "./routes/api/catalog/$id_/follow";
+import { Route as ApiCatalogIdForkRouteImport } from "./routes/api/catalog/$id_/fork";
+import { Route as ApiCatalogIdLikeRouteImport } from "./routes/api/catalog/$id_/like";
+import { Route as ApiCatalogIdReactionsRouteImport } from "./routes/api/catalog/$id_/reactions";
+import { Route as ApiCatalogIdTipRouteImport } from "./routes/api/catalog/$id_/tip";
+import { Route as ApiCharactersIdDocumentsRouteImport } from "./routes/api/characters/$id_/documents";
+import { Route as ApiCharactersIdMemoriesRouteImport } from "./routes/api/characters/$id_/memories";
+import { Route as ApiCharactersIdPublishRouteImport } from "./routes/api/characters/$id_/publish";
+import { Route as ApiCharactersIdRestoreRouteImport } from "./routes/api/characters/$id_/restore";
+import { Route as ApiCharactersIdVersionsRouteImport } from "./routes/api/characters/$id_/versions";
+import { Route as ApiCharactersIdVoiceRouteImport } from "./routes/api/characters/$id_/voice";
+import { Route as ApiChatIdBranchRouteImport } from "./routes/api/chat/$id_/branch";
+import { Route as ApiChatIdComicRouteImport } from "./routes/api/chat/$id_/comic";
+import { Route as ApiChatIdHistoryRouteImport } from "./routes/api/chat/$id_/history";
+import { Route as ApiChatIdImagesRouteImport } from "./routes/api/chat/$id_/images";
+import { Route as ApiChatIdLedgerRouteImport } from "./routes/api/chat/$id_/ledger";
+import { Route as ApiChatIdMarksRouteImport } from "./routes/api/chat/$id_/marks";
+import { Route as ApiChatIdMemoryRouteImport } from "./routes/api/chat/$id_/memory";
+import { Route as ApiChatIdSuggestRouteImport } from "./routes/api/chat/$id_/suggest";
+import { Route as ApiChatIdVideoRouteImport } from "./routes/api/chat/$id_/video";
+import { Route as ApiGroupsIdMessagesRouteImport } from "./routes/api/groups/$id_/messages";
+import { Route as ApiStoriesIdChaptersRouteImport } from "./routes/api/stories/$id_/chapters";
+import { Route as ApiCatalogIdCommentsCidRouteImport } from "./routes/api/catalog/$id_/comments/$cid";
+import { Route as ApiCharactersIdDocumentsDocRouteImport } from "./routes/api/characters/$id_/documents/$doc";
+import { Route as ApiCharactersIdVersionsVersionRouteImport } from "./routes/api/characters/$id_/versions/$version";
+import { Route as ApiProactiveCharactersIdSettingsRouteImport } from "./routes/api/proactive/characters/$id_/settings";
+import { Route as ApiStoriesIdChaptersCidRouteImport } from "./routes/api/stories/$id_/chapters/$cid";
+import { Route as ApiStoriesIdChaptersReorderRouteImport } from "./routes/api/stories/$id_/chapters/reorder";
+import { Route as ApiStoriesIdChaptersCidComicRouteImport } from "./routes/api/stories/$id_/chapters/$cid_/comic";
+import { Route as ApiStoriesIdChaptersCidIllustrationRouteImport } from "./routes/api/stories/$id_/chapters/$cid_/illustration";
+import { Route as ApiStoriesIdChaptersCidVideoRouteImport } from "./routes/api/stories/$id_/chapters/$cid_/video";
 
 const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+  id: "/",
+  path: "/",
   getParentRoute: () => rootRouteImport,
-})
+});
 const BoardRoute = BoardRouteImport.update({
-  id: '/board',
-  path: '/board',
+  id: "/board",
+  path: "/board",
   getParentRoute: () => rootRouteImport,
-})
+});
 const CatalogRoute = CatalogRouteImport.update({
-  id: '/catalog',
-  path: '/catalog',
+  id: "/catalog",
+  path: "/catalog",
   getParentRoute: () => rootRouteImport,
-})
+});
 const RevenueRoute = RevenueRouteImport.update({
-  id: '/revenue',
-  path: '/revenue',
+  id: "/revenue",
+  path: "/revenue",
   getParentRoute: () => rootRouteImport,
-})
+});
 const ApiBoardRoute = ApiBoardRouteImport.update({
-  id: '/api/board',
-  path: '/api/board',
+  id: "/api/board",
+  path: "/api/board",
   getParentRoute: () => rootRouteImport,
-})
+});
 const ApiCatalogRoute = ApiCatalogRouteImport.update({
-  id: '/api/catalog',
-  path: '/api/catalog',
+  id: "/api/catalog",
+  path: "/api/catalog",
   getParentRoute: () => rootRouteImport,
-})
+});
 const ApiCharactersRoute = ApiCharactersRouteImport.update({
-  id: '/api/characters',
-  path: '/api/characters',
+  id: "/api/characters",
+  path: "/api/characters",
   getParentRoute: () => rootRouteImport,
-})
+});
 const ApiCurrencyRoute = ApiCurrencyRouteImport.update({
-  id: '/api/currency',
-  path: '/api/currency',
+  id: "/api/currency",
+  path: "/api/currency",
   getParentRoute: () => rootRouteImport,
-})
+});
 const ApiFollowsRoute = ApiFollowsRouteImport.update({
-  id: '/api/follows',
-  path: '/api/follows',
+  id: "/api/follows",
+  path: "/api/follows",
   getParentRoute: () => rootRouteImport,
-})
+});
 const ApiGroupsRoute = ApiGroupsRouteImport.update({
-  id: '/api/groups',
-  path: '/api/groups',
+  id: "/api/groups",
+  path: "/api/groups",
   getParentRoute: () => rootRouteImport,
-})
+});
 const ApiHealthRoute = ApiHealthRouteImport.update({
-  id: '/api/health',
-  path: '/api/health',
+  id: "/api/health",
+  path: "/api/health",
   getParentRoute: () => rootRouteImport,
-})
+});
 const ApiPlanRoute = ApiPlanRouteImport.update({
-  id: '/api/plan',
-  path: '/api/plan',
+  id: "/api/plan",
+  path: "/api/plan",
   getParentRoute: () => rootRouteImport,
-})
+});
 const ApiRevenueRoute = ApiRevenueRouteImport.update({
-  id: '/api/revenue',
-  path: '/api/revenue',
+  id: "/api/revenue",
+  path: "/api/revenue",
   getParentRoute: () => rootRouteImport,
-})
+});
 const ApiSettingsRoute = ApiSettingsRouteImport.update({
-  id: '/api/settings',
-  path: '/api/settings',
+  id: "/api/settings",
+  path: "/api/settings",
   getParentRoute: () => rootRouteImport,
-})
+});
 const ApiStoriesRoute = ApiStoriesRouteImport.update({
-  id: '/api/stories',
-  path: '/api/stories',
+  id: "/api/stories",
+  path: "/api/stories",
   getParentRoute: () => rootRouteImport,
-})
+});
 const ApiTtsRoute = ApiTtsRouteImport.update({
-  id: '/api/tts',
-  path: '/api/tts',
+  id: "/api/tts",
+  path: "/api/tts",
   getParentRoute: () => rootRouteImport,
-})
+});
 const CharactersIdRoute = CharactersIdRouteImport.update({
-  id: '/characters/$id',
-  path: '/characters/$id',
+  id: "/characters/$id",
+  path: "/characters/$id",
   getParentRoute: () => rootRouteImport,
-})
+});
 const CharactersNewRoute = CharactersNewRouteImport.update({
-  id: '/characters/new',
-  path: '/characters/new',
+  id: "/characters/new",
+  path: "/characters/new",
   getParentRoute: () => rootRouteImport,
-})
+});
 const ChatIdRoute = ChatIdRouteImport.update({
-  id: '/chat/$id',
-  path: '/chat/$id',
+  id: "/chat/$id",
+  path: "/chat/$id",
   getParentRoute: () => rootRouteImport,
-})
+});
 const GroupsIndexRoute = GroupsIndexRouteImport.update({
-  id: '/groups/',
-  path: '/groups/',
+  id: "/groups/",
+  path: "/groups/",
   getParentRoute: () => rootRouteImport,
-})
+});
 const GroupsIdRoute = GroupsIdRouteImport.update({
-  id: '/groups/$id',
-  path: '/groups/$id',
+  id: "/groups/$id",
+  path: "/groups/$id",
   getParentRoute: () => rootRouteImport,
-})
+});
 const StoriesIndexRoute = StoriesIndexRouteImport.update({
-  id: '/stories/',
-  path: '/stories/',
+  id: "/stories/",
+  path: "/stories/",
   getParentRoute: () => rootRouteImport,
-})
+});
 const StoriesIdRoute = StoriesIdRouteImport.update({
-  id: '/stories/$id',
-  path: '/stories/$id',
+  id: "/stories/$id",
+  path: "/stories/$id",
   getParentRoute: () => rootRouteImport,
-})
+});
 const ApiAdminLegacyMigrationRoute = ApiAdminLegacyMigrationRouteImport.update({
-  id: '/api/admin/legacy-migration',
-  path: '/api/admin/legacy-migration',
+  id: "/api/admin/legacy-migration",
+  path: "/api/admin/legacy-migration",
   getParentRoute: () => rootRouteImport,
-})
+});
 const ApiBoardIdRoute = ApiBoardIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
+  id: "/$id",
+  path: "/$id",
   getParentRoute: () => ApiBoardRoute,
-})
+});
 const ApiCatalogIdRoute = ApiCatalogIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
+  id: "/$id",
+  path: "/$id",
   getParentRoute: () => ApiCatalogRoute,
-})
+});
 const ApiChapterMediaIdRoute = ApiChapterMediaIdRouteImport.update({
-  id: '/api/chapter-media/$id',
-  path: '/api/chapter-media/$id',
+  id: "/api/chapter-media/$id",
+  path: "/api/chapter-media/$id",
   getParentRoute: () => rootRouteImport,
-})
+});
 const ApiChapterVideoIdRoute = ApiChapterVideoIdRouteImport.update({
-  id: '/api/chapter-video/$id',
-  path: '/api/chapter-video/$id',
+  id: "/api/chapter-video/$id",
+  path: "/api/chapter-video/$id",
   getParentRoute: () => rootRouteImport,
-})
+});
 const ApiCharactersIdRoute = ApiCharactersIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
+  id: "/$id",
+  path: "/$id",
   getParentRoute: () => ApiCharactersRoute,
-})
+});
 const ApiChatIdRoute = ApiChatIdRouteImport.update({
-  id: '/api/chat/$id',
-  path: '/api/chat/$id',
+  id: "/api/chat/$id",
+  path: "/api/chat/$id",
   getParentRoute: () => rootRouteImport,
-})
+});
 const ApiCurrencyAdRewardRoute = ApiCurrencyAdRewardRouteImport.update({
-  id: '/ad-reward',
-  path: '/ad-reward',
+  id: "/ad-reward",
+  path: "/ad-reward",
   getParentRoute: () => ApiCurrencyRoute,
-})
+});
 const ApiCurrencyDailyPassRoute = ApiCurrencyDailyPassRouteImport.update({
-  id: '/daily-pass',
-  path: '/daily-pass',
+  id: "/daily-pass",
+  path: "/daily-pass",
   getParentRoute: () => ApiCurrencyRoute,
-})
+});
 const ApiCurrencyLoginBonusRoute = ApiCurrencyLoginBonusRouteImport.update({
-  id: '/login-bonus',
-  path: '/login-bonus',
+  id: "/login-bonus",
+  path: "/login-bonus",
   getParentRoute: () => ApiCurrencyRoute,
-})
+});
 const ApiMediaIdRoute = ApiMediaIdRouteImport.update({
-  id: '/api/media/$id',
-  path: '/api/media/$id',
+  id: "/api/media/$id",
+  path: "/api/media/$id",
   getParentRoute: () => rootRouteImport,
-})
+});
 const ApiPlanCancelRoute = ApiPlanCancelRouteImport.update({
-  id: '/cancel',
-  path: '/cancel',
+  id: "/cancel",
+  path: "/cancel",
   getParentRoute: () => ApiPlanRoute,
-})
+});
 const ApiPushSubscriptionsRoute = ApiPushSubscriptionsRouteImport.update({
-  id: '/api/push/subscriptions',
-  path: '/api/push/subscriptions',
+  id: "/api/push/subscriptions",
+  path: "/api/push/subscriptions",
   getParentRoute: () => rootRouteImport,
-})
+});
 const ApiPushVapidKeyRoute = ApiPushVapidKeyRouteImport.update({
-  id: '/api/push/vapid-key',
-  path: '/api/push/vapid-key',
+  id: "/api/push/vapid-key",
+  path: "/api/push/vapid-key",
   getParentRoute: () => rootRouteImport,
-})
+});
 const ApiRevenueAggregateRoute = ApiRevenueAggregateRouteImport.update({
-  id: '/api/revenue_/aggregate',
-  path: '/api/revenue/aggregate',
+  id: "/api/revenue_/aggregate",
+  path: "/api/revenue/aggregate",
   getParentRoute: () => rootRouteImport,
-})
+});
 const ApiStoriesIdRoute = ApiStoriesIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
+  id: "/$id",
+  path: "/$id",
   getParentRoute: () => ApiStoriesRoute,
-})
+});
 const ApiVoiceCallQuotaRoute = ApiVoiceCallQuotaRouteImport.update({
-  id: '/api/voice-call/quota',
-  path: '/api/voice-call/quota',
+  id: "/api/voice-call/quota",
+  path: "/api/voice-call/quota",
   getParentRoute: () => rootRouteImport,
-})
+});
 const StoriesIdReadRoute = StoriesIdReadRouteImport.update({
-  id: '/read',
-  path: '/read',
+  id: "/read",
+  path: "/read",
   getParentRoute: () => StoriesIdRoute,
-})
+});
 const ApiCatalogIdCommentsRoute = ApiCatalogIdCommentsRouteImport.update({
-  id: '/$id_/comments',
-  path: '/$id/comments',
+  id: "/$id_/comments",
+  path: "/$id/comments",
   getParentRoute: () => ApiCatalogRoute,
-})
+});
 const ApiCatalogIdFollowRoute = ApiCatalogIdFollowRouteImport.update({
-  id: '/$id_/follow',
-  path: '/$id/follow',
+  id: "/$id_/follow",
+  path: "/$id/follow",
   getParentRoute: () => ApiCatalogRoute,
-})
+});
 const ApiCatalogIdForkRoute = ApiCatalogIdForkRouteImport.update({
-  id: '/$id_/fork',
-  path: '/$id/fork',
+  id: "/$id_/fork",
+  path: "/$id/fork",
   getParentRoute: () => ApiCatalogRoute,
-})
+});
 const ApiCatalogIdLikeRoute = ApiCatalogIdLikeRouteImport.update({
-  id: '/$id_/like',
-  path: '/$id/like',
+  id: "/$id_/like",
+  path: "/$id/like",
   getParentRoute: () => ApiCatalogRoute,
-})
+});
 const ApiCatalogIdReactionsRoute = ApiCatalogIdReactionsRouteImport.update({
-  id: '/$id_/reactions',
-  path: '/$id/reactions',
+  id: "/$id_/reactions",
+  path: "/$id/reactions",
   getParentRoute: () => ApiCatalogRoute,
-})
+});
 const ApiCatalogIdTipRoute = ApiCatalogIdTipRouteImport.update({
-  id: '/$id_/tip',
-  path: '/$id/tip',
+  id: "/$id_/tip",
+  path: "/$id/tip",
   getParentRoute: () => ApiCatalogRoute,
-})
-const ApiCharactersIdDocumentsRoute =
-  ApiCharactersIdDocumentsRouteImport.update({
-    id: '/$id_/documents',
-    path: '/$id/documents',
-    getParentRoute: () => ApiCharactersRoute,
-  })
+});
+const ApiCharactersIdDocumentsRoute = ApiCharactersIdDocumentsRouteImport.update({
+  id: "/$id_/documents",
+  path: "/$id/documents",
+  getParentRoute: () => ApiCharactersRoute,
+});
 const ApiCharactersIdMemoriesRoute = ApiCharactersIdMemoriesRouteImport.update({
-  id: '/$id_/memories',
-  path: '/$id/memories',
+  id: "/$id_/memories",
+  path: "/$id/memories",
   getParentRoute: () => ApiCharactersRoute,
-})
+});
 const ApiCharactersIdPublishRoute = ApiCharactersIdPublishRouteImport.update({
-  id: '/$id_/publish',
-  path: '/$id/publish',
+  id: "/$id_/publish",
+  path: "/$id/publish",
   getParentRoute: () => ApiCharactersRoute,
-})
+});
 const ApiCharactersIdRestoreRoute = ApiCharactersIdRestoreRouteImport.update({
-  id: '/$id_/restore',
-  path: '/$id/restore',
+  id: "/$id_/restore",
+  path: "/$id/restore",
   getParentRoute: () => ApiCharactersRoute,
-})
+});
 const ApiCharactersIdVersionsRoute = ApiCharactersIdVersionsRouteImport.update({
-  id: '/$id_/versions',
-  path: '/$id/versions',
+  id: "/$id_/versions",
+  path: "/$id/versions",
   getParentRoute: () => ApiCharactersRoute,
-})
+});
 const ApiCharactersIdVoiceRoute = ApiCharactersIdVoiceRouteImport.update({
-  id: '/$id_/voice',
-  path: '/$id/voice',
+  id: "/$id_/voice",
+  path: "/$id/voice",
   getParentRoute: () => ApiCharactersRoute,
-})
+});
 const ApiChatIdBranchRoute = ApiChatIdBranchRouteImport.update({
-  id: '/api/chat/$id_/branch',
-  path: '/api/chat/$id/branch',
+  id: "/api/chat/$id_/branch",
+  path: "/api/chat/$id/branch",
   getParentRoute: () => rootRouteImport,
-})
+});
 const ApiChatIdComicRoute = ApiChatIdComicRouteImport.update({
-  id: '/api/chat/$id_/comic',
-  path: '/api/chat/$id/comic',
+  id: "/api/chat/$id_/comic",
+  path: "/api/chat/$id/comic",
   getParentRoute: () => rootRouteImport,
-})
+});
 const ApiChatIdHistoryRoute = ApiChatIdHistoryRouteImport.update({
-  id: '/api/chat/$id_/history',
-  path: '/api/chat/$id/history',
+  id: "/api/chat/$id_/history",
+  path: "/api/chat/$id/history",
   getParentRoute: () => rootRouteImport,
-})
+});
 const ApiChatIdImagesRoute = ApiChatIdImagesRouteImport.update({
-  id: '/api/chat/$id_/images',
-  path: '/api/chat/$id/images',
+  id: "/api/chat/$id_/images",
+  path: "/api/chat/$id/images",
   getParentRoute: () => rootRouteImport,
-})
+});
 const ApiChatIdLedgerRoute = ApiChatIdLedgerRouteImport.update({
-  id: '/api/chat/$id_/ledger',
-  path: '/api/chat/$id/ledger',
+  id: "/api/chat/$id_/ledger",
+  path: "/api/chat/$id/ledger",
   getParentRoute: () => rootRouteImport,
-})
+});
 const ApiChatIdMarksRoute = ApiChatIdMarksRouteImport.update({
-  id: '/api/chat/$id_/marks',
-  path: '/api/chat/$id/marks',
+  id: "/api/chat/$id_/marks",
+  path: "/api/chat/$id/marks",
   getParentRoute: () => rootRouteImport,
-})
+});
 const ApiChatIdMemoryRoute = ApiChatIdMemoryRouteImport.update({
-  id: '/api/chat/$id_/memory',
-  path: '/api/chat/$id/memory',
+  id: "/api/chat/$id_/memory",
+  path: "/api/chat/$id/memory",
   getParentRoute: () => rootRouteImport,
-})
+});
 const ApiChatIdSuggestRoute = ApiChatIdSuggestRouteImport.update({
-  id: '/api/chat/$id_/suggest',
-  path: '/api/chat/$id/suggest',
+  id: "/api/chat/$id_/suggest",
+  path: "/api/chat/$id/suggest",
   getParentRoute: () => rootRouteImport,
-})
+});
 const ApiChatIdVideoRoute = ApiChatIdVideoRouteImport.update({
-  id: '/api/chat/$id_/video',
-  path: '/api/chat/$id/video',
+  id: "/api/chat/$id_/video",
+  path: "/api/chat/$id/video",
   getParentRoute: () => rootRouteImport,
-})
+});
 const ApiGroupsIdMessagesRoute = ApiGroupsIdMessagesRouteImport.update({
-  id: '/$id_/messages',
-  path: '/$id/messages',
+  id: "/$id_/messages",
+  path: "/$id/messages",
   getParentRoute: () => ApiGroupsRoute,
-})
+});
 const ApiStoriesIdChaptersRoute = ApiStoriesIdChaptersRouteImport.update({
-  id: '/$id_/chapters',
-  path: '/$id/chapters',
+  id: "/$id_/chapters",
+  path: "/$id/chapters",
   getParentRoute: () => ApiStoriesRoute,
-})
+});
 const ApiCatalogIdCommentsCidRoute = ApiCatalogIdCommentsCidRouteImport.update({
-  id: '/$cid',
-  path: '/$cid',
+  id: "/$cid",
+  path: "/$cid",
   getParentRoute: () => ApiCatalogIdCommentsRoute,
-})
-const ApiCharactersIdDocumentsDocRoute =
-  ApiCharactersIdDocumentsDocRouteImport.update({
-    id: '/$doc',
-    path: '/$doc',
-    getParentRoute: () => ApiCharactersIdDocumentsRoute,
-  })
-const ApiCharactersIdVersionsVersionRoute =
-  ApiCharactersIdVersionsVersionRouteImport.update({
-    id: '/$version',
-    path: '/$version',
-    getParentRoute: () => ApiCharactersIdVersionsRoute,
-  })
-const ApiProactiveCharactersIdSettingsRoute =
-  ApiProactiveCharactersIdSettingsRouteImport.update({
-    id: '/api/proactive/characters/$id_/settings',
-    path: '/api/proactive/characters/$id/settings',
-    getParentRoute: () => rootRouteImport,
-  })
+});
+const ApiCharactersIdDocumentsDocRoute = ApiCharactersIdDocumentsDocRouteImport.update({
+  id: "/$doc",
+  path: "/$doc",
+  getParentRoute: () => ApiCharactersIdDocumentsRoute,
+});
+const ApiCharactersIdVersionsVersionRoute = ApiCharactersIdVersionsVersionRouteImport.update({
+  id: "/$version",
+  path: "/$version",
+  getParentRoute: () => ApiCharactersIdVersionsRoute,
+});
+const ApiProactiveCharactersIdSettingsRoute = ApiProactiveCharactersIdSettingsRouteImport.update({
+  id: "/api/proactive/characters/$id_/settings",
+  path: "/api/proactive/characters/$id/settings",
+  getParentRoute: () => rootRouteImport,
+});
 const ApiStoriesIdChaptersCidRoute = ApiStoriesIdChaptersCidRouteImport.update({
-  id: '/$cid',
-  path: '/$cid',
+  id: "/$cid",
+  path: "/$cid",
   getParentRoute: () => ApiStoriesIdChaptersRoute,
-})
-const ApiStoriesIdChaptersReorderRoute =
-  ApiStoriesIdChaptersReorderRouteImport.update({
-    id: '/reorder',
-    path: '/reorder',
-    getParentRoute: () => ApiStoriesIdChaptersRoute,
-  })
-const ApiStoriesIdChaptersCidComicRoute =
-  ApiStoriesIdChaptersCidComicRouteImport.update({
-    id: '/$cid_/comic',
-    path: '/$cid/comic',
-    getParentRoute: () => ApiStoriesIdChaptersRoute,
-  })
+});
+const ApiStoriesIdChaptersReorderRoute = ApiStoriesIdChaptersReorderRouteImport.update({
+  id: "/reorder",
+  path: "/reorder",
+  getParentRoute: () => ApiStoriesIdChaptersRoute,
+});
+const ApiStoriesIdChaptersCidComicRoute = ApiStoriesIdChaptersCidComicRouteImport.update({
+  id: "/$cid_/comic",
+  path: "/$cid/comic",
+  getParentRoute: () => ApiStoriesIdChaptersRoute,
+});
 const ApiStoriesIdChaptersCidIllustrationRoute =
   ApiStoriesIdChaptersCidIllustrationRouteImport.update({
-    id: '/$cid_/illustration',
-    path: '/$cid/illustration',
+    id: "/$cid_/illustration",
+    path: "/$cid/illustration",
     getParentRoute: () => ApiStoriesIdChaptersRoute,
-  })
-const ApiStoriesIdChaptersCidVideoRoute =
-  ApiStoriesIdChaptersCidVideoRouteImport.update({
-    id: '/$cid_/video',
-    path: '/$cid/video',
-    getParentRoute: () => ApiStoriesIdChaptersRoute,
-  })
+  });
+const ApiStoriesIdChaptersCidVideoRoute = ApiStoriesIdChaptersCidVideoRouteImport.update({
+  id: "/$cid_/video",
+  path: "/$cid/video",
+  getParentRoute: () => ApiStoriesIdChaptersRoute,
+});
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/board': typeof BoardRoute
-  '/catalog': typeof CatalogRoute
-  '/revenue': typeof RevenueRoute
-  '/api/board': typeof ApiBoardRouteWithChildren
-  '/api/catalog': typeof ApiCatalogRouteWithChildren
-  '/api/characters': typeof ApiCharactersRouteWithChildren
-  '/api/currency': typeof ApiCurrencyRouteWithChildren
-  '/api/follows': typeof ApiFollowsRoute
-  '/api/groups': typeof ApiGroupsRouteWithChildren
-  '/api/health': typeof ApiHealthRoute
-  '/api/plan': typeof ApiPlanRouteWithChildren
-  '/api/revenue': typeof ApiRevenueRoute
-  '/api/settings': typeof ApiSettingsRoute
-  '/api/stories': typeof ApiStoriesRouteWithChildren
-  '/api/tts': typeof ApiTtsRoute
-  '/characters/$id': typeof CharactersIdRoute
-  '/characters/new': typeof CharactersNewRoute
-  '/chat/$id': typeof ChatIdRoute
-  '/groups/$id': typeof GroupsIdRoute
-  '/stories/$id': typeof StoriesIdRouteWithChildren
-  '/groups/': typeof GroupsIndexRoute
-  '/stories/': typeof StoriesIndexRoute
-  '/api/admin/legacy-migration': typeof ApiAdminLegacyMigrationRoute
-  '/api/board/$id': typeof ApiBoardIdRoute
-  '/api/catalog/$id': typeof ApiCatalogIdRoute
-  '/api/chapter-media/$id': typeof ApiChapterMediaIdRoute
-  '/api/chapter-video/$id': typeof ApiChapterVideoIdRoute
-  '/api/characters/$id': typeof ApiCharactersIdRoute
-  '/api/chat/$id': typeof ApiChatIdRoute
-  '/api/currency/ad-reward': typeof ApiCurrencyAdRewardRoute
-  '/api/currency/daily-pass': typeof ApiCurrencyDailyPassRoute
-  '/api/currency/login-bonus': typeof ApiCurrencyLoginBonusRoute
-  '/api/media/$id': typeof ApiMediaIdRoute
-  '/api/plan/cancel': typeof ApiPlanCancelRoute
-  '/api/push/subscriptions': typeof ApiPushSubscriptionsRoute
-  '/api/push/vapid-key': typeof ApiPushVapidKeyRoute
-  '/api/revenue/aggregate': typeof ApiRevenueAggregateRoute
-  '/api/stories/$id': typeof ApiStoriesIdRoute
-  '/api/voice-call/quota': typeof ApiVoiceCallQuotaRoute
-  '/stories/$id/read': typeof StoriesIdReadRoute
-  '/api/catalog/$id/comments': typeof ApiCatalogIdCommentsRouteWithChildren
-  '/api/catalog/$id/follow': typeof ApiCatalogIdFollowRoute
-  '/api/catalog/$id/fork': typeof ApiCatalogIdForkRoute
-  '/api/catalog/$id/like': typeof ApiCatalogIdLikeRoute
-  '/api/catalog/$id/reactions': typeof ApiCatalogIdReactionsRoute
-  '/api/catalog/$id/tip': typeof ApiCatalogIdTipRoute
-  '/api/characters/$id/documents': typeof ApiCharactersIdDocumentsRouteWithChildren
-  '/api/characters/$id/memories': typeof ApiCharactersIdMemoriesRoute
-  '/api/characters/$id/publish': typeof ApiCharactersIdPublishRoute
-  '/api/characters/$id/restore': typeof ApiCharactersIdRestoreRoute
-  '/api/characters/$id/versions': typeof ApiCharactersIdVersionsRouteWithChildren
-  '/api/characters/$id/voice': typeof ApiCharactersIdVoiceRoute
-  '/api/chat/$id/branch': typeof ApiChatIdBranchRoute
-  '/api/chat/$id/comic': typeof ApiChatIdComicRoute
-  '/api/chat/$id/history': typeof ApiChatIdHistoryRoute
-  '/api/chat/$id/images': typeof ApiChatIdImagesRoute
-  '/api/chat/$id/ledger': typeof ApiChatIdLedgerRoute
-  '/api/chat/$id/marks': typeof ApiChatIdMarksRoute
-  '/api/chat/$id/memory': typeof ApiChatIdMemoryRoute
-  '/api/chat/$id/suggest': typeof ApiChatIdSuggestRoute
-  '/api/chat/$id/video': typeof ApiChatIdVideoRoute
-  '/api/groups/$id/messages': typeof ApiGroupsIdMessagesRoute
-  '/api/stories/$id/chapters': typeof ApiStoriesIdChaptersRouteWithChildren
-  '/api/catalog/$id/comments/$cid': typeof ApiCatalogIdCommentsCidRoute
-  '/api/characters/$id/documents/$doc': typeof ApiCharactersIdDocumentsDocRoute
-  '/api/characters/$id/versions/$version': typeof ApiCharactersIdVersionsVersionRoute
-  '/api/proactive/characters/$id/settings': typeof ApiProactiveCharactersIdSettingsRoute
-  '/api/stories/$id/chapters/$cid': typeof ApiStoriesIdChaptersCidRoute
-  '/api/stories/$id/chapters/reorder': typeof ApiStoriesIdChaptersReorderRoute
-  '/api/stories/$id/chapters/$cid/comic': typeof ApiStoriesIdChaptersCidComicRoute
-  '/api/stories/$id/chapters/$cid/illustration': typeof ApiStoriesIdChaptersCidIllustrationRoute
-  '/api/stories/$id/chapters/$cid/video': typeof ApiStoriesIdChaptersCidVideoRoute
+  "/": typeof IndexRoute;
+  "/board": typeof BoardRoute;
+  "/catalog": typeof CatalogRoute;
+  "/revenue": typeof RevenueRoute;
+  "/api/board": typeof ApiBoardRouteWithChildren;
+  "/api/catalog": typeof ApiCatalogRouteWithChildren;
+  "/api/characters": typeof ApiCharactersRouteWithChildren;
+  "/api/currency": typeof ApiCurrencyRouteWithChildren;
+  "/api/follows": typeof ApiFollowsRoute;
+  "/api/groups": typeof ApiGroupsRouteWithChildren;
+  "/api/health": typeof ApiHealthRoute;
+  "/api/plan": typeof ApiPlanRouteWithChildren;
+  "/api/revenue": typeof ApiRevenueRoute;
+  "/api/settings": typeof ApiSettingsRoute;
+  "/api/stories": typeof ApiStoriesRouteWithChildren;
+  "/api/tts": typeof ApiTtsRoute;
+  "/characters/$id": typeof CharactersIdRoute;
+  "/characters/new": typeof CharactersNewRoute;
+  "/chat/$id": typeof ChatIdRoute;
+  "/groups/$id": typeof GroupsIdRoute;
+  "/stories/$id": typeof StoriesIdRouteWithChildren;
+  "/groups/": typeof GroupsIndexRoute;
+  "/stories/": typeof StoriesIndexRoute;
+  "/api/admin/legacy-migration": typeof ApiAdminLegacyMigrationRoute;
+  "/api/board/$id": typeof ApiBoardIdRoute;
+  "/api/catalog/$id": typeof ApiCatalogIdRoute;
+  "/api/chapter-media/$id": typeof ApiChapterMediaIdRoute;
+  "/api/chapter-video/$id": typeof ApiChapterVideoIdRoute;
+  "/api/characters/$id": typeof ApiCharactersIdRoute;
+  "/api/chat/$id": typeof ApiChatIdRoute;
+  "/api/currency/ad-reward": typeof ApiCurrencyAdRewardRoute;
+  "/api/currency/daily-pass": typeof ApiCurrencyDailyPassRoute;
+  "/api/currency/login-bonus": typeof ApiCurrencyLoginBonusRoute;
+  "/api/media/$id": typeof ApiMediaIdRoute;
+  "/api/plan/cancel": typeof ApiPlanCancelRoute;
+  "/api/push/subscriptions": typeof ApiPushSubscriptionsRoute;
+  "/api/push/vapid-key": typeof ApiPushVapidKeyRoute;
+  "/api/revenue/aggregate": typeof ApiRevenueAggregateRoute;
+  "/api/stories/$id": typeof ApiStoriesIdRoute;
+  "/api/voice-call/quota": typeof ApiVoiceCallQuotaRoute;
+  "/stories/$id/read": typeof StoriesIdReadRoute;
+  "/api/catalog/$id/comments": typeof ApiCatalogIdCommentsRouteWithChildren;
+  "/api/catalog/$id/follow": typeof ApiCatalogIdFollowRoute;
+  "/api/catalog/$id/fork": typeof ApiCatalogIdForkRoute;
+  "/api/catalog/$id/like": typeof ApiCatalogIdLikeRoute;
+  "/api/catalog/$id/reactions": typeof ApiCatalogIdReactionsRoute;
+  "/api/catalog/$id/tip": typeof ApiCatalogIdTipRoute;
+  "/api/characters/$id/documents": typeof ApiCharactersIdDocumentsRouteWithChildren;
+  "/api/characters/$id/memories": typeof ApiCharactersIdMemoriesRoute;
+  "/api/characters/$id/publish": typeof ApiCharactersIdPublishRoute;
+  "/api/characters/$id/restore": typeof ApiCharactersIdRestoreRoute;
+  "/api/characters/$id/versions": typeof ApiCharactersIdVersionsRouteWithChildren;
+  "/api/characters/$id/voice": typeof ApiCharactersIdVoiceRoute;
+  "/api/chat/$id/branch": typeof ApiChatIdBranchRoute;
+  "/api/chat/$id/comic": typeof ApiChatIdComicRoute;
+  "/api/chat/$id/history": typeof ApiChatIdHistoryRoute;
+  "/api/chat/$id/images": typeof ApiChatIdImagesRoute;
+  "/api/chat/$id/ledger": typeof ApiChatIdLedgerRoute;
+  "/api/chat/$id/marks": typeof ApiChatIdMarksRoute;
+  "/api/chat/$id/memory": typeof ApiChatIdMemoryRoute;
+  "/api/chat/$id/suggest": typeof ApiChatIdSuggestRoute;
+  "/api/chat/$id/video": typeof ApiChatIdVideoRoute;
+  "/api/groups/$id/messages": typeof ApiGroupsIdMessagesRoute;
+  "/api/stories/$id/chapters": typeof ApiStoriesIdChaptersRouteWithChildren;
+  "/api/catalog/$id/comments/$cid": typeof ApiCatalogIdCommentsCidRoute;
+  "/api/characters/$id/documents/$doc": typeof ApiCharactersIdDocumentsDocRoute;
+  "/api/characters/$id/versions/$version": typeof ApiCharactersIdVersionsVersionRoute;
+  "/api/proactive/characters/$id/settings": typeof ApiProactiveCharactersIdSettingsRoute;
+  "/api/stories/$id/chapters/$cid": typeof ApiStoriesIdChaptersCidRoute;
+  "/api/stories/$id/chapters/reorder": typeof ApiStoriesIdChaptersReorderRoute;
+  "/api/stories/$id/chapters/$cid/comic": typeof ApiStoriesIdChaptersCidComicRoute;
+  "/api/stories/$id/chapters/$cid/illustration": typeof ApiStoriesIdChaptersCidIllustrationRoute;
+  "/api/stories/$id/chapters/$cid/video": typeof ApiStoriesIdChaptersCidVideoRoute;
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/board': typeof BoardRoute
-  '/catalog': typeof CatalogRoute
-  '/revenue': typeof RevenueRoute
-  '/api/board': typeof ApiBoardRouteWithChildren
-  '/api/catalog': typeof ApiCatalogRouteWithChildren
-  '/api/characters': typeof ApiCharactersRouteWithChildren
-  '/api/currency': typeof ApiCurrencyRouteWithChildren
-  '/api/follows': typeof ApiFollowsRoute
-  '/api/groups': typeof ApiGroupsRouteWithChildren
-  '/api/health': typeof ApiHealthRoute
-  '/api/plan': typeof ApiPlanRouteWithChildren
-  '/api/revenue': typeof ApiRevenueRoute
-  '/api/settings': typeof ApiSettingsRoute
-  '/api/stories': typeof ApiStoriesRouteWithChildren
-  '/api/tts': typeof ApiTtsRoute
-  '/characters/$id': typeof CharactersIdRoute
-  '/characters/new': typeof CharactersNewRoute
-  '/chat/$id': typeof ChatIdRoute
-  '/groups/$id': typeof GroupsIdRoute
-  '/stories/$id': typeof StoriesIdRouteWithChildren
-  '/groups': typeof GroupsIndexRoute
-  '/stories': typeof StoriesIndexRoute
-  '/api/admin/legacy-migration': typeof ApiAdminLegacyMigrationRoute
-  '/api/board/$id': typeof ApiBoardIdRoute
-  '/api/catalog/$id': typeof ApiCatalogIdRoute
-  '/api/chapter-media/$id': typeof ApiChapterMediaIdRoute
-  '/api/chapter-video/$id': typeof ApiChapterVideoIdRoute
-  '/api/characters/$id': typeof ApiCharactersIdRoute
-  '/api/chat/$id': typeof ApiChatIdRoute
-  '/api/currency/ad-reward': typeof ApiCurrencyAdRewardRoute
-  '/api/currency/daily-pass': typeof ApiCurrencyDailyPassRoute
-  '/api/currency/login-bonus': typeof ApiCurrencyLoginBonusRoute
-  '/api/media/$id': typeof ApiMediaIdRoute
-  '/api/plan/cancel': typeof ApiPlanCancelRoute
-  '/api/push/subscriptions': typeof ApiPushSubscriptionsRoute
-  '/api/push/vapid-key': typeof ApiPushVapidKeyRoute
-  '/api/revenue/aggregate': typeof ApiRevenueAggregateRoute
-  '/api/stories/$id': typeof ApiStoriesIdRoute
-  '/api/voice-call/quota': typeof ApiVoiceCallQuotaRoute
-  '/stories/$id/read': typeof StoriesIdReadRoute
-  '/api/catalog/$id/comments': typeof ApiCatalogIdCommentsRouteWithChildren
-  '/api/catalog/$id/follow': typeof ApiCatalogIdFollowRoute
-  '/api/catalog/$id/fork': typeof ApiCatalogIdForkRoute
-  '/api/catalog/$id/like': typeof ApiCatalogIdLikeRoute
-  '/api/catalog/$id/reactions': typeof ApiCatalogIdReactionsRoute
-  '/api/catalog/$id/tip': typeof ApiCatalogIdTipRoute
-  '/api/characters/$id/documents': typeof ApiCharactersIdDocumentsRouteWithChildren
-  '/api/characters/$id/memories': typeof ApiCharactersIdMemoriesRoute
-  '/api/characters/$id/publish': typeof ApiCharactersIdPublishRoute
-  '/api/characters/$id/restore': typeof ApiCharactersIdRestoreRoute
-  '/api/characters/$id/versions': typeof ApiCharactersIdVersionsRouteWithChildren
-  '/api/characters/$id/voice': typeof ApiCharactersIdVoiceRoute
-  '/api/chat/$id/branch': typeof ApiChatIdBranchRoute
-  '/api/chat/$id/comic': typeof ApiChatIdComicRoute
-  '/api/chat/$id/history': typeof ApiChatIdHistoryRoute
-  '/api/chat/$id/images': typeof ApiChatIdImagesRoute
-  '/api/chat/$id/ledger': typeof ApiChatIdLedgerRoute
-  '/api/chat/$id/marks': typeof ApiChatIdMarksRoute
-  '/api/chat/$id/memory': typeof ApiChatIdMemoryRoute
-  '/api/chat/$id/suggest': typeof ApiChatIdSuggestRoute
-  '/api/chat/$id/video': typeof ApiChatIdVideoRoute
-  '/api/groups/$id/messages': typeof ApiGroupsIdMessagesRoute
-  '/api/stories/$id/chapters': typeof ApiStoriesIdChaptersRouteWithChildren
-  '/api/catalog/$id/comments/$cid': typeof ApiCatalogIdCommentsCidRoute
-  '/api/characters/$id/documents/$doc': typeof ApiCharactersIdDocumentsDocRoute
-  '/api/characters/$id/versions/$version': typeof ApiCharactersIdVersionsVersionRoute
-  '/api/proactive/characters/$id/settings': typeof ApiProactiveCharactersIdSettingsRoute
-  '/api/stories/$id/chapters/$cid': typeof ApiStoriesIdChaptersCidRoute
-  '/api/stories/$id/chapters/reorder': typeof ApiStoriesIdChaptersReorderRoute
-  '/api/stories/$id/chapters/$cid/comic': typeof ApiStoriesIdChaptersCidComicRoute
-  '/api/stories/$id/chapters/$cid/illustration': typeof ApiStoriesIdChaptersCidIllustrationRoute
-  '/api/stories/$id/chapters/$cid/video': typeof ApiStoriesIdChaptersCidVideoRoute
+  "/": typeof IndexRoute;
+  "/board": typeof BoardRoute;
+  "/catalog": typeof CatalogRoute;
+  "/revenue": typeof RevenueRoute;
+  "/api/board": typeof ApiBoardRouteWithChildren;
+  "/api/catalog": typeof ApiCatalogRouteWithChildren;
+  "/api/characters": typeof ApiCharactersRouteWithChildren;
+  "/api/currency": typeof ApiCurrencyRouteWithChildren;
+  "/api/follows": typeof ApiFollowsRoute;
+  "/api/groups": typeof ApiGroupsRouteWithChildren;
+  "/api/health": typeof ApiHealthRoute;
+  "/api/plan": typeof ApiPlanRouteWithChildren;
+  "/api/revenue": typeof ApiRevenueRoute;
+  "/api/settings": typeof ApiSettingsRoute;
+  "/api/stories": typeof ApiStoriesRouteWithChildren;
+  "/api/tts": typeof ApiTtsRoute;
+  "/characters/$id": typeof CharactersIdRoute;
+  "/characters/new": typeof CharactersNewRoute;
+  "/chat/$id": typeof ChatIdRoute;
+  "/groups/$id": typeof GroupsIdRoute;
+  "/stories/$id": typeof StoriesIdRouteWithChildren;
+  "/groups": typeof GroupsIndexRoute;
+  "/stories": typeof StoriesIndexRoute;
+  "/api/admin/legacy-migration": typeof ApiAdminLegacyMigrationRoute;
+  "/api/board/$id": typeof ApiBoardIdRoute;
+  "/api/catalog/$id": typeof ApiCatalogIdRoute;
+  "/api/chapter-media/$id": typeof ApiChapterMediaIdRoute;
+  "/api/chapter-video/$id": typeof ApiChapterVideoIdRoute;
+  "/api/characters/$id": typeof ApiCharactersIdRoute;
+  "/api/chat/$id": typeof ApiChatIdRoute;
+  "/api/currency/ad-reward": typeof ApiCurrencyAdRewardRoute;
+  "/api/currency/daily-pass": typeof ApiCurrencyDailyPassRoute;
+  "/api/currency/login-bonus": typeof ApiCurrencyLoginBonusRoute;
+  "/api/media/$id": typeof ApiMediaIdRoute;
+  "/api/plan/cancel": typeof ApiPlanCancelRoute;
+  "/api/push/subscriptions": typeof ApiPushSubscriptionsRoute;
+  "/api/push/vapid-key": typeof ApiPushVapidKeyRoute;
+  "/api/revenue/aggregate": typeof ApiRevenueAggregateRoute;
+  "/api/stories/$id": typeof ApiStoriesIdRoute;
+  "/api/voice-call/quota": typeof ApiVoiceCallQuotaRoute;
+  "/stories/$id/read": typeof StoriesIdReadRoute;
+  "/api/catalog/$id/comments": typeof ApiCatalogIdCommentsRouteWithChildren;
+  "/api/catalog/$id/follow": typeof ApiCatalogIdFollowRoute;
+  "/api/catalog/$id/fork": typeof ApiCatalogIdForkRoute;
+  "/api/catalog/$id/like": typeof ApiCatalogIdLikeRoute;
+  "/api/catalog/$id/reactions": typeof ApiCatalogIdReactionsRoute;
+  "/api/catalog/$id/tip": typeof ApiCatalogIdTipRoute;
+  "/api/characters/$id/documents": typeof ApiCharactersIdDocumentsRouteWithChildren;
+  "/api/characters/$id/memories": typeof ApiCharactersIdMemoriesRoute;
+  "/api/characters/$id/publish": typeof ApiCharactersIdPublishRoute;
+  "/api/characters/$id/restore": typeof ApiCharactersIdRestoreRoute;
+  "/api/characters/$id/versions": typeof ApiCharactersIdVersionsRouteWithChildren;
+  "/api/characters/$id/voice": typeof ApiCharactersIdVoiceRoute;
+  "/api/chat/$id/branch": typeof ApiChatIdBranchRoute;
+  "/api/chat/$id/comic": typeof ApiChatIdComicRoute;
+  "/api/chat/$id/history": typeof ApiChatIdHistoryRoute;
+  "/api/chat/$id/images": typeof ApiChatIdImagesRoute;
+  "/api/chat/$id/ledger": typeof ApiChatIdLedgerRoute;
+  "/api/chat/$id/marks": typeof ApiChatIdMarksRoute;
+  "/api/chat/$id/memory": typeof ApiChatIdMemoryRoute;
+  "/api/chat/$id/suggest": typeof ApiChatIdSuggestRoute;
+  "/api/chat/$id/video": typeof ApiChatIdVideoRoute;
+  "/api/groups/$id/messages": typeof ApiGroupsIdMessagesRoute;
+  "/api/stories/$id/chapters": typeof ApiStoriesIdChaptersRouteWithChildren;
+  "/api/catalog/$id/comments/$cid": typeof ApiCatalogIdCommentsCidRoute;
+  "/api/characters/$id/documents/$doc": typeof ApiCharactersIdDocumentsDocRoute;
+  "/api/characters/$id/versions/$version": typeof ApiCharactersIdVersionsVersionRoute;
+  "/api/proactive/characters/$id/settings": typeof ApiProactiveCharactersIdSettingsRoute;
+  "/api/stories/$id/chapters/$cid": typeof ApiStoriesIdChaptersCidRoute;
+  "/api/stories/$id/chapters/reorder": typeof ApiStoriesIdChaptersReorderRoute;
+  "/api/stories/$id/chapters/$cid/comic": typeof ApiStoriesIdChaptersCidComicRoute;
+  "/api/stories/$id/chapters/$cid/illustration": typeof ApiStoriesIdChaptersCidIllustrationRoute;
+  "/api/stories/$id/chapters/$cid/video": typeof ApiStoriesIdChaptersCidVideoRoute;
 }
 export interface FileRoutesById {
-  __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/board': typeof BoardRoute
-  '/catalog': typeof CatalogRoute
-  '/revenue': typeof RevenueRoute
-  '/api/board': typeof ApiBoardRouteWithChildren
-  '/api/catalog': typeof ApiCatalogRouteWithChildren
-  '/api/characters': typeof ApiCharactersRouteWithChildren
-  '/api/currency': typeof ApiCurrencyRouteWithChildren
-  '/api/follows': typeof ApiFollowsRoute
-  '/api/groups': typeof ApiGroupsRouteWithChildren
-  '/api/health': typeof ApiHealthRoute
-  '/api/plan': typeof ApiPlanRouteWithChildren
-  '/api/revenue': typeof ApiRevenueRoute
-  '/api/settings': typeof ApiSettingsRoute
-  '/api/stories': typeof ApiStoriesRouteWithChildren
-  '/api/tts': typeof ApiTtsRoute
-  '/characters/$id': typeof CharactersIdRoute
-  '/characters/new': typeof CharactersNewRoute
-  '/chat/$id': typeof ChatIdRoute
-  '/groups/$id': typeof GroupsIdRoute
-  '/stories/$id': typeof StoriesIdRouteWithChildren
-  '/groups/': typeof GroupsIndexRoute
-  '/stories/': typeof StoriesIndexRoute
-  '/api/admin/legacy-migration': typeof ApiAdminLegacyMigrationRoute
-  '/api/board/$id': typeof ApiBoardIdRoute
-  '/api/catalog/$id': typeof ApiCatalogIdRoute
-  '/api/chapter-media/$id': typeof ApiChapterMediaIdRoute
-  '/api/chapter-video/$id': typeof ApiChapterVideoIdRoute
-  '/api/characters/$id': typeof ApiCharactersIdRoute
-  '/api/chat/$id': typeof ApiChatIdRoute
-  '/api/currency/ad-reward': typeof ApiCurrencyAdRewardRoute
-  '/api/currency/daily-pass': typeof ApiCurrencyDailyPassRoute
-  '/api/currency/login-bonus': typeof ApiCurrencyLoginBonusRoute
-  '/api/media/$id': typeof ApiMediaIdRoute
-  '/api/plan/cancel': typeof ApiPlanCancelRoute
-  '/api/push/subscriptions': typeof ApiPushSubscriptionsRoute
-  '/api/push/vapid-key': typeof ApiPushVapidKeyRoute
-  '/api/revenue_/aggregate': typeof ApiRevenueAggregateRoute
-  '/api/stories/$id': typeof ApiStoriesIdRoute
-  '/api/voice-call/quota': typeof ApiVoiceCallQuotaRoute
-  '/stories/$id/read': typeof StoriesIdReadRoute
-  '/api/catalog/$id_/comments': typeof ApiCatalogIdCommentsRouteWithChildren
-  '/api/catalog/$id_/follow': typeof ApiCatalogIdFollowRoute
-  '/api/catalog/$id_/fork': typeof ApiCatalogIdForkRoute
-  '/api/catalog/$id_/like': typeof ApiCatalogIdLikeRoute
-  '/api/catalog/$id_/reactions': typeof ApiCatalogIdReactionsRoute
-  '/api/catalog/$id_/tip': typeof ApiCatalogIdTipRoute
-  '/api/characters/$id_/documents': typeof ApiCharactersIdDocumentsRouteWithChildren
-  '/api/characters/$id_/memories': typeof ApiCharactersIdMemoriesRoute
-  '/api/characters/$id_/publish': typeof ApiCharactersIdPublishRoute
-  '/api/characters/$id_/restore': typeof ApiCharactersIdRestoreRoute
-  '/api/characters/$id_/versions': typeof ApiCharactersIdVersionsRouteWithChildren
-  '/api/characters/$id_/voice': typeof ApiCharactersIdVoiceRoute
-  '/api/chat/$id_/branch': typeof ApiChatIdBranchRoute
-  '/api/chat/$id_/comic': typeof ApiChatIdComicRoute
-  '/api/chat/$id_/history': typeof ApiChatIdHistoryRoute
-  '/api/chat/$id_/images': typeof ApiChatIdImagesRoute
-  '/api/chat/$id_/ledger': typeof ApiChatIdLedgerRoute
-  '/api/chat/$id_/marks': typeof ApiChatIdMarksRoute
-  '/api/chat/$id_/memory': typeof ApiChatIdMemoryRoute
-  '/api/chat/$id_/suggest': typeof ApiChatIdSuggestRoute
-  '/api/chat/$id_/video': typeof ApiChatIdVideoRoute
-  '/api/groups/$id_/messages': typeof ApiGroupsIdMessagesRoute
-  '/api/stories/$id_/chapters': typeof ApiStoriesIdChaptersRouteWithChildren
-  '/api/catalog/$id_/comments/$cid': typeof ApiCatalogIdCommentsCidRoute
-  '/api/characters/$id_/documents/$doc': typeof ApiCharactersIdDocumentsDocRoute
-  '/api/characters/$id_/versions/$version': typeof ApiCharactersIdVersionsVersionRoute
-  '/api/proactive/characters/$id_/settings': typeof ApiProactiveCharactersIdSettingsRoute
-  '/api/stories/$id_/chapters/$cid': typeof ApiStoriesIdChaptersCidRoute
-  '/api/stories/$id_/chapters/reorder': typeof ApiStoriesIdChaptersReorderRoute
-  '/api/stories/$id_/chapters/$cid_/comic': typeof ApiStoriesIdChaptersCidComicRoute
-  '/api/stories/$id_/chapters/$cid_/illustration': typeof ApiStoriesIdChaptersCidIllustrationRoute
-  '/api/stories/$id_/chapters/$cid_/video': typeof ApiStoriesIdChaptersCidVideoRoute
+  __root__: typeof rootRouteImport;
+  "/": typeof IndexRoute;
+  "/board": typeof BoardRoute;
+  "/catalog": typeof CatalogRoute;
+  "/revenue": typeof RevenueRoute;
+  "/api/board": typeof ApiBoardRouteWithChildren;
+  "/api/catalog": typeof ApiCatalogRouteWithChildren;
+  "/api/characters": typeof ApiCharactersRouteWithChildren;
+  "/api/currency": typeof ApiCurrencyRouteWithChildren;
+  "/api/follows": typeof ApiFollowsRoute;
+  "/api/groups": typeof ApiGroupsRouteWithChildren;
+  "/api/health": typeof ApiHealthRoute;
+  "/api/plan": typeof ApiPlanRouteWithChildren;
+  "/api/revenue": typeof ApiRevenueRoute;
+  "/api/settings": typeof ApiSettingsRoute;
+  "/api/stories": typeof ApiStoriesRouteWithChildren;
+  "/api/tts": typeof ApiTtsRoute;
+  "/characters/$id": typeof CharactersIdRoute;
+  "/characters/new": typeof CharactersNewRoute;
+  "/chat/$id": typeof ChatIdRoute;
+  "/groups/$id": typeof GroupsIdRoute;
+  "/stories/$id": typeof StoriesIdRouteWithChildren;
+  "/groups/": typeof GroupsIndexRoute;
+  "/stories/": typeof StoriesIndexRoute;
+  "/api/admin/legacy-migration": typeof ApiAdminLegacyMigrationRoute;
+  "/api/board/$id": typeof ApiBoardIdRoute;
+  "/api/catalog/$id": typeof ApiCatalogIdRoute;
+  "/api/chapter-media/$id": typeof ApiChapterMediaIdRoute;
+  "/api/chapter-video/$id": typeof ApiChapterVideoIdRoute;
+  "/api/characters/$id": typeof ApiCharactersIdRoute;
+  "/api/chat/$id": typeof ApiChatIdRoute;
+  "/api/currency/ad-reward": typeof ApiCurrencyAdRewardRoute;
+  "/api/currency/daily-pass": typeof ApiCurrencyDailyPassRoute;
+  "/api/currency/login-bonus": typeof ApiCurrencyLoginBonusRoute;
+  "/api/media/$id": typeof ApiMediaIdRoute;
+  "/api/plan/cancel": typeof ApiPlanCancelRoute;
+  "/api/push/subscriptions": typeof ApiPushSubscriptionsRoute;
+  "/api/push/vapid-key": typeof ApiPushVapidKeyRoute;
+  "/api/revenue_/aggregate": typeof ApiRevenueAggregateRoute;
+  "/api/stories/$id": typeof ApiStoriesIdRoute;
+  "/api/voice-call/quota": typeof ApiVoiceCallQuotaRoute;
+  "/stories/$id/read": typeof StoriesIdReadRoute;
+  "/api/catalog/$id_/comments": typeof ApiCatalogIdCommentsRouteWithChildren;
+  "/api/catalog/$id_/follow": typeof ApiCatalogIdFollowRoute;
+  "/api/catalog/$id_/fork": typeof ApiCatalogIdForkRoute;
+  "/api/catalog/$id_/like": typeof ApiCatalogIdLikeRoute;
+  "/api/catalog/$id_/reactions": typeof ApiCatalogIdReactionsRoute;
+  "/api/catalog/$id_/tip": typeof ApiCatalogIdTipRoute;
+  "/api/characters/$id_/documents": typeof ApiCharactersIdDocumentsRouteWithChildren;
+  "/api/characters/$id_/memories": typeof ApiCharactersIdMemoriesRoute;
+  "/api/characters/$id_/publish": typeof ApiCharactersIdPublishRoute;
+  "/api/characters/$id_/restore": typeof ApiCharactersIdRestoreRoute;
+  "/api/characters/$id_/versions": typeof ApiCharactersIdVersionsRouteWithChildren;
+  "/api/characters/$id_/voice": typeof ApiCharactersIdVoiceRoute;
+  "/api/chat/$id_/branch": typeof ApiChatIdBranchRoute;
+  "/api/chat/$id_/comic": typeof ApiChatIdComicRoute;
+  "/api/chat/$id_/history": typeof ApiChatIdHistoryRoute;
+  "/api/chat/$id_/images": typeof ApiChatIdImagesRoute;
+  "/api/chat/$id_/ledger": typeof ApiChatIdLedgerRoute;
+  "/api/chat/$id_/marks": typeof ApiChatIdMarksRoute;
+  "/api/chat/$id_/memory": typeof ApiChatIdMemoryRoute;
+  "/api/chat/$id_/suggest": typeof ApiChatIdSuggestRoute;
+  "/api/chat/$id_/video": typeof ApiChatIdVideoRoute;
+  "/api/groups/$id_/messages": typeof ApiGroupsIdMessagesRoute;
+  "/api/stories/$id_/chapters": typeof ApiStoriesIdChaptersRouteWithChildren;
+  "/api/catalog/$id_/comments/$cid": typeof ApiCatalogIdCommentsCidRoute;
+  "/api/characters/$id_/documents/$doc": typeof ApiCharactersIdDocumentsDocRoute;
+  "/api/characters/$id_/versions/$version": typeof ApiCharactersIdVersionsVersionRoute;
+  "/api/proactive/characters/$id_/settings": typeof ApiProactiveCharactersIdSettingsRoute;
+  "/api/stories/$id_/chapters/$cid": typeof ApiStoriesIdChaptersCidRoute;
+  "/api/stories/$id_/chapters/reorder": typeof ApiStoriesIdChaptersReorderRoute;
+  "/api/stories/$id_/chapters/$cid_/comic": typeof ApiStoriesIdChaptersCidComicRoute;
+  "/api/stories/$id_/chapters/$cid_/illustration": typeof ApiStoriesIdChaptersCidIllustrationRoute;
+  "/api/stories/$id_/chapters/$cid_/video": typeof ApiStoriesIdChaptersCidVideoRoute;
 }
 export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath
+  fileRoutesByFullPath: FileRoutesByFullPath;
   fullPaths:
-    | '/'
-    | '/board'
-    | '/catalog'
-    | '/revenue'
-    | '/api/board'
-    | '/api/catalog'
-    | '/api/characters'
-    | '/api/currency'
-    | '/api/follows'
-    | '/api/groups'
-    | '/api/health'
-    | '/api/plan'
-    | '/api/revenue'
-    | '/api/settings'
-    | '/api/stories'
-    | '/api/tts'
-    | '/characters/$id'
-    | '/characters/new'
-    | '/chat/$id'
-    | '/groups/$id'
-    | '/stories/$id'
-    | '/groups/'
-    | '/stories/'
-    | '/api/admin/legacy-migration'
-    | '/api/board/$id'
-    | '/api/catalog/$id'
-    | '/api/chapter-media/$id'
-    | '/api/chapter-video/$id'
-    | '/api/characters/$id'
-    | '/api/chat/$id'
-    | '/api/currency/ad-reward'
-    | '/api/currency/daily-pass'
-    | '/api/currency/login-bonus'
-    | '/api/media/$id'
-    | '/api/plan/cancel'
-    | '/api/push/subscriptions'
-    | '/api/push/vapid-key'
-    | '/api/revenue/aggregate'
-    | '/api/stories/$id'
-    | '/api/voice-call/quota'
-    | '/stories/$id/read'
-    | '/api/catalog/$id/comments'
-    | '/api/catalog/$id/follow'
-    | '/api/catalog/$id/fork'
-    | '/api/catalog/$id/like'
-    | '/api/catalog/$id/reactions'
-    | '/api/catalog/$id/tip'
-    | '/api/characters/$id/documents'
-    | '/api/characters/$id/memories'
-    | '/api/characters/$id/publish'
-    | '/api/characters/$id/restore'
-    | '/api/characters/$id/versions'
-    | '/api/characters/$id/voice'
-    | '/api/chat/$id/branch'
-    | '/api/chat/$id/comic'
-    | '/api/chat/$id/history'
-    | '/api/chat/$id/images'
-    | '/api/chat/$id/ledger'
-    | '/api/chat/$id/marks'
-    | '/api/chat/$id/memory'
-    | '/api/chat/$id/suggest'
-    | '/api/chat/$id/video'
-    | '/api/groups/$id/messages'
-    | '/api/stories/$id/chapters'
-    | '/api/catalog/$id/comments/$cid'
-    | '/api/characters/$id/documents/$doc'
-    | '/api/characters/$id/versions/$version'
-    | '/api/proactive/characters/$id/settings'
-    | '/api/stories/$id/chapters/$cid'
-    | '/api/stories/$id/chapters/reorder'
-    | '/api/stories/$id/chapters/$cid/comic'
-    | '/api/stories/$id/chapters/$cid/illustration'
-    | '/api/stories/$id/chapters/$cid/video'
-  fileRoutesByTo: FileRoutesByTo
+    | "/"
+    | "/board"
+    | "/catalog"
+    | "/revenue"
+    | "/api/board"
+    | "/api/catalog"
+    | "/api/characters"
+    | "/api/currency"
+    | "/api/follows"
+    | "/api/groups"
+    | "/api/health"
+    | "/api/plan"
+    | "/api/revenue"
+    | "/api/settings"
+    | "/api/stories"
+    | "/api/tts"
+    | "/characters/$id"
+    | "/characters/new"
+    | "/chat/$id"
+    | "/groups/$id"
+    | "/stories/$id"
+    | "/groups/"
+    | "/stories/"
+    | "/api/admin/legacy-migration"
+    | "/api/board/$id"
+    | "/api/catalog/$id"
+    | "/api/chapter-media/$id"
+    | "/api/chapter-video/$id"
+    | "/api/characters/$id"
+    | "/api/chat/$id"
+    | "/api/currency/ad-reward"
+    | "/api/currency/daily-pass"
+    | "/api/currency/login-bonus"
+    | "/api/media/$id"
+    | "/api/plan/cancel"
+    | "/api/push/subscriptions"
+    | "/api/push/vapid-key"
+    | "/api/revenue/aggregate"
+    | "/api/stories/$id"
+    | "/api/voice-call/quota"
+    | "/stories/$id/read"
+    | "/api/catalog/$id/comments"
+    | "/api/catalog/$id/follow"
+    | "/api/catalog/$id/fork"
+    | "/api/catalog/$id/like"
+    | "/api/catalog/$id/reactions"
+    | "/api/catalog/$id/tip"
+    | "/api/characters/$id/documents"
+    | "/api/characters/$id/memories"
+    | "/api/characters/$id/publish"
+    | "/api/characters/$id/restore"
+    | "/api/characters/$id/versions"
+    | "/api/characters/$id/voice"
+    | "/api/chat/$id/branch"
+    | "/api/chat/$id/comic"
+    | "/api/chat/$id/history"
+    | "/api/chat/$id/images"
+    | "/api/chat/$id/ledger"
+    | "/api/chat/$id/marks"
+    | "/api/chat/$id/memory"
+    | "/api/chat/$id/suggest"
+    | "/api/chat/$id/video"
+    | "/api/groups/$id/messages"
+    | "/api/stories/$id/chapters"
+    | "/api/catalog/$id/comments/$cid"
+    | "/api/characters/$id/documents/$doc"
+    | "/api/characters/$id/versions/$version"
+    | "/api/proactive/characters/$id/settings"
+    | "/api/stories/$id/chapters/$cid"
+    | "/api/stories/$id/chapters/reorder"
+    | "/api/stories/$id/chapters/$cid/comic"
+    | "/api/stories/$id/chapters/$cid/illustration"
+    | "/api/stories/$id/chapters/$cid/video";
+  fileRoutesByTo: FileRoutesByTo;
   to:
-    | '/'
-    | '/board'
-    | '/catalog'
-    | '/revenue'
-    | '/api/board'
-    | '/api/catalog'
-    | '/api/characters'
-    | '/api/currency'
-    | '/api/follows'
-    | '/api/groups'
-    | '/api/health'
-    | '/api/plan'
-    | '/api/revenue'
-    | '/api/settings'
-    | '/api/stories'
-    | '/api/tts'
-    | '/characters/$id'
-    | '/characters/new'
-    | '/chat/$id'
-    | '/groups/$id'
-    | '/stories/$id'
-    | '/groups'
-    | '/stories'
-    | '/api/admin/legacy-migration'
-    | '/api/board/$id'
-    | '/api/catalog/$id'
-    | '/api/chapter-media/$id'
-    | '/api/chapter-video/$id'
-    | '/api/characters/$id'
-    | '/api/chat/$id'
-    | '/api/currency/ad-reward'
-    | '/api/currency/daily-pass'
-    | '/api/currency/login-bonus'
-    | '/api/media/$id'
-    | '/api/plan/cancel'
-    | '/api/push/subscriptions'
-    | '/api/push/vapid-key'
-    | '/api/revenue/aggregate'
-    | '/api/stories/$id'
-    | '/api/voice-call/quota'
-    | '/stories/$id/read'
-    | '/api/catalog/$id/comments'
-    | '/api/catalog/$id/follow'
-    | '/api/catalog/$id/fork'
-    | '/api/catalog/$id/like'
-    | '/api/catalog/$id/reactions'
-    | '/api/catalog/$id/tip'
-    | '/api/characters/$id/documents'
-    | '/api/characters/$id/memories'
-    | '/api/characters/$id/publish'
-    | '/api/characters/$id/restore'
-    | '/api/characters/$id/versions'
-    | '/api/characters/$id/voice'
-    | '/api/chat/$id/branch'
-    | '/api/chat/$id/comic'
-    | '/api/chat/$id/history'
-    | '/api/chat/$id/images'
-    | '/api/chat/$id/ledger'
-    | '/api/chat/$id/marks'
-    | '/api/chat/$id/memory'
-    | '/api/chat/$id/suggest'
-    | '/api/chat/$id/video'
-    | '/api/groups/$id/messages'
-    | '/api/stories/$id/chapters'
-    | '/api/catalog/$id/comments/$cid'
-    | '/api/characters/$id/documents/$doc'
-    | '/api/characters/$id/versions/$version'
-    | '/api/proactive/characters/$id/settings'
-    | '/api/stories/$id/chapters/$cid'
-    | '/api/stories/$id/chapters/reorder'
-    | '/api/stories/$id/chapters/$cid/comic'
-    | '/api/stories/$id/chapters/$cid/illustration'
-    | '/api/stories/$id/chapters/$cid/video'
+    | "/"
+    | "/board"
+    | "/catalog"
+    | "/revenue"
+    | "/api/board"
+    | "/api/catalog"
+    | "/api/characters"
+    | "/api/currency"
+    | "/api/follows"
+    | "/api/groups"
+    | "/api/health"
+    | "/api/plan"
+    | "/api/revenue"
+    | "/api/settings"
+    | "/api/stories"
+    | "/api/tts"
+    | "/characters/$id"
+    | "/characters/new"
+    | "/chat/$id"
+    | "/groups/$id"
+    | "/stories/$id"
+    | "/groups"
+    | "/stories"
+    | "/api/admin/legacy-migration"
+    | "/api/board/$id"
+    | "/api/catalog/$id"
+    | "/api/chapter-media/$id"
+    | "/api/chapter-video/$id"
+    | "/api/characters/$id"
+    | "/api/chat/$id"
+    | "/api/currency/ad-reward"
+    | "/api/currency/daily-pass"
+    | "/api/currency/login-bonus"
+    | "/api/media/$id"
+    | "/api/plan/cancel"
+    | "/api/push/subscriptions"
+    | "/api/push/vapid-key"
+    | "/api/revenue/aggregate"
+    | "/api/stories/$id"
+    | "/api/voice-call/quota"
+    | "/stories/$id/read"
+    | "/api/catalog/$id/comments"
+    | "/api/catalog/$id/follow"
+    | "/api/catalog/$id/fork"
+    | "/api/catalog/$id/like"
+    | "/api/catalog/$id/reactions"
+    | "/api/catalog/$id/tip"
+    | "/api/characters/$id/documents"
+    | "/api/characters/$id/memories"
+    | "/api/characters/$id/publish"
+    | "/api/characters/$id/restore"
+    | "/api/characters/$id/versions"
+    | "/api/characters/$id/voice"
+    | "/api/chat/$id/branch"
+    | "/api/chat/$id/comic"
+    | "/api/chat/$id/history"
+    | "/api/chat/$id/images"
+    | "/api/chat/$id/ledger"
+    | "/api/chat/$id/marks"
+    | "/api/chat/$id/memory"
+    | "/api/chat/$id/suggest"
+    | "/api/chat/$id/video"
+    | "/api/groups/$id/messages"
+    | "/api/stories/$id/chapters"
+    | "/api/catalog/$id/comments/$cid"
+    | "/api/characters/$id/documents/$doc"
+    | "/api/characters/$id/versions/$version"
+    | "/api/proactive/characters/$id/settings"
+    | "/api/stories/$id/chapters/$cid"
+    | "/api/stories/$id/chapters/reorder"
+    | "/api/stories/$id/chapters/$cid/comic"
+    | "/api/stories/$id/chapters/$cid/illustration"
+    | "/api/stories/$id/chapters/$cid/video";
   id:
-    | '__root__'
-    | '/'
-    | '/board'
-    | '/catalog'
-    | '/revenue'
-    | '/api/board'
-    | '/api/catalog'
-    | '/api/characters'
-    | '/api/currency'
-    | '/api/follows'
-    | '/api/groups'
-    | '/api/health'
-    | '/api/plan'
-    | '/api/revenue'
-    | '/api/settings'
-    | '/api/stories'
-    | '/api/tts'
-    | '/characters/$id'
-    | '/characters/new'
-    | '/chat/$id'
-    | '/groups/$id'
-    | '/stories/$id'
-    | '/groups/'
-    | '/stories/'
-    | '/api/admin/legacy-migration'
-    | '/api/board/$id'
-    | '/api/catalog/$id'
-    | '/api/chapter-media/$id'
-    | '/api/chapter-video/$id'
-    | '/api/characters/$id'
-    | '/api/chat/$id'
-    | '/api/currency/ad-reward'
-    | '/api/currency/daily-pass'
-    | '/api/currency/login-bonus'
-    | '/api/media/$id'
-    | '/api/plan/cancel'
-    | '/api/push/subscriptions'
-    | '/api/push/vapid-key'
-    | '/api/revenue_/aggregate'
-    | '/api/stories/$id'
-    | '/api/voice-call/quota'
-    | '/stories/$id/read'
-    | '/api/catalog/$id_/comments'
-    | '/api/catalog/$id_/follow'
-    | '/api/catalog/$id_/fork'
-    | '/api/catalog/$id_/like'
-    | '/api/catalog/$id_/reactions'
-    | '/api/catalog/$id_/tip'
-    | '/api/characters/$id_/documents'
-    | '/api/characters/$id_/memories'
-    | '/api/characters/$id_/publish'
-    | '/api/characters/$id_/restore'
-    | '/api/characters/$id_/versions'
-    | '/api/characters/$id_/voice'
-    | '/api/chat/$id_/branch'
-    | '/api/chat/$id_/comic'
-    | '/api/chat/$id_/history'
-    | '/api/chat/$id_/images'
-    | '/api/chat/$id_/ledger'
-    | '/api/chat/$id_/marks'
-    | '/api/chat/$id_/memory'
-    | '/api/chat/$id_/suggest'
-    | '/api/chat/$id_/video'
-    | '/api/groups/$id_/messages'
-    | '/api/stories/$id_/chapters'
-    | '/api/catalog/$id_/comments/$cid'
-    | '/api/characters/$id_/documents/$doc'
-    | '/api/characters/$id_/versions/$version'
-    | '/api/proactive/characters/$id_/settings'
-    | '/api/stories/$id_/chapters/$cid'
-    | '/api/stories/$id_/chapters/reorder'
-    | '/api/stories/$id_/chapters/$cid_/comic'
-    | '/api/stories/$id_/chapters/$cid_/illustration'
-    | '/api/stories/$id_/chapters/$cid_/video'
-  fileRoutesById: FileRoutesById
+    | "__root__"
+    | "/"
+    | "/board"
+    | "/catalog"
+    | "/revenue"
+    | "/api/board"
+    | "/api/catalog"
+    | "/api/characters"
+    | "/api/currency"
+    | "/api/follows"
+    | "/api/groups"
+    | "/api/health"
+    | "/api/plan"
+    | "/api/revenue"
+    | "/api/settings"
+    | "/api/stories"
+    | "/api/tts"
+    | "/characters/$id"
+    | "/characters/new"
+    | "/chat/$id"
+    | "/groups/$id"
+    | "/stories/$id"
+    | "/groups/"
+    | "/stories/"
+    | "/api/admin/legacy-migration"
+    | "/api/board/$id"
+    | "/api/catalog/$id"
+    | "/api/chapter-media/$id"
+    | "/api/chapter-video/$id"
+    | "/api/characters/$id"
+    | "/api/chat/$id"
+    | "/api/currency/ad-reward"
+    | "/api/currency/daily-pass"
+    | "/api/currency/login-bonus"
+    | "/api/media/$id"
+    | "/api/plan/cancel"
+    | "/api/push/subscriptions"
+    | "/api/push/vapid-key"
+    | "/api/revenue_/aggregate"
+    | "/api/stories/$id"
+    | "/api/voice-call/quota"
+    | "/stories/$id/read"
+    | "/api/catalog/$id_/comments"
+    | "/api/catalog/$id_/follow"
+    | "/api/catalog/$id_/fork"
+    | "/api/catalog/$id_/like"
+    | "/api/catalog/$id_/reactions"
+    | "/api/catalog/$id_/tip"
+    | "/api/characters/$id_/documents"
+    | "/api/characters/$id_/memories"
+    | "/api/characters/$id_/publish"
+    | "/api/characters/$id_/restore"
+    | "/api/characters/$id_/versions"
+    | "/api/characters/$id_/voice"
+    | "/api/chat/$id_/branch"
+    | "/api/chat/$id_/comic"
+    | "/api/chat/$id_/history"
+    | "/api/chat/$id_/images"
+    | "/api/chat/$id_/ledger"
+    | "/api/chat/$id_/marks"
+    | "/api/chat/$id_/memory"
+    | "/api/chat/$id_/suggest"
+    | "/api/chat/$id_/video"
+    | "/api/groups/$id_/messages"
+    | "/api/stories/$id_/chapters"
+    | "/api/catalog/$id_/comments/$cid"
+    | "/api/characters/$id_/documents/$doc"
+    | "/api/characters/$id_/versions/$version"
+    | "/api/proactive/characters/$id_/settings"
+    | "/api/stories/$id_/chapters/$cid"
+    | "/api/stories/$id_/chapters/reorder"
+    | "/api/stories/$id_/chapters/$cid_/comic"
+    | "/api/stories/$id_/chapters/$cid_/illustration"
+    | "/api/stories/$id_/chapters/$cid_/video";
+  fileRoutesById: FileRoutesById;
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  BoardRoute: typeof BoardRoute
-  CatalogRoute: typeof CatalogRoute
-  RevenueRoute: typeof RevenueRoute
-  ApiBoardRoute: typeof ApiBoardRouteWithChildren
-  ApiCatalogRoute: typeof ApiCatalogRouteWithChildren
-  ApiCharactersRoute: typeof ApiCharactersRouteWithChildren
-  ApiCurrencyRoute: typeof ApiCurrencyRouteWithChildren
-  ApiFollowsRoute: typeof ApiFollowsRoute
-  ApiGroupsRoute: typeof ApiGroupsRouteWithChildren
-  ApiHealthRoute: typeof ApiHealthRoute
-  ApiPlanRoute: typeof ApiPlanRouteWithChildren
-  ApiRevenueRoute: typeof ApiRevenueRoute
-  ApiSettingsRoute: typeof ApiSettingsRoute
-  ApiStoriesRoute: typeof ApiStoriesRouteWithChildren
-  ApiTtsRoute: typeof ApiTtsRoute
-  CharactersIdRoute: typeof CharactersIdRoute
-  CharactersNewRoute: typeof CharactersNewRoute
-  ChatIdRoute: typeof ChatIdRoute
-  GroupsIdRoute: typeof GroupsIdRoute
-  StoriesIdRoute: typeof StoriesIdRouteWithChildren
-  GroupsIndexRoute: typeof GroupsIndexRoute
-  StoriesIndexRoute: typeof StoriesIndexRoute
-  ApiAdminLegacyMigrationRoute: typeof ApiAdminLegacyMigrationRoute
-  ApiChapterMediaIdRoute: typeof ApiChapterMediaIdRoute
-  ApiChapterVideoIdRoute: typeof ApiChapterVideoIdRoute
-  ApiChatIdRoute: typeof ApiChatIdRoute
-  ApiMediaIdRoute: typeof ApiMediaIdRoute
-  ApiPushSubscriptionsRoute: typeof ApiPushSubscriptionsRoute
-  ApiPushVapidKeyRoute: typeof ApiPushVapidKeyRoute
-  ApiRevenueAggregateRoute: typeof ApiRevenueAggregateRoute
-  ApiVoiceCallQuotaRoute: typeof ApiVoiceCallQuotaRoute
-  ApiChatIdBranchRoute: typeof ApiChatIdBranchRoute
-  ApiChatIdComicRoute: typeof ApiChatIdComicRoute
-  ApiChatIdHistoryRoute: typeof ApiChatIdHistoryRoute
-  ApiChatIdImagesRoute: typeof ApiChatIdImagesRoute
-  ApiChatIdLedgerRoute: typeof ApiChatIdLedgerRoute
-  ApiChatIdMarksRoute: typeof ApiChatIdMarksRoute
-  ApiChatIdMemoryRoute: typeof ApiChatIdMemoryRoute
-  ApiChatIdSuggestRoute: typeof ApiChatIdSuggestRoute
-  ApiChatIdVideoRoute: typeof ApiChatIdVideoRoute
-  ApiProactiveCharactersIdSettingsRoute: typeof ApiProactiveCharactersIdSettingsRoute
+  IndexRoute: typeof IndexRoute;
+  BoardRoute: typeof BoardRoute;
+  CatalogRoute: typeof CatalogRoute;
+  RevenueRoute: typeof RevenueRoute;
+  ApiBoardRoute: typeof ApiBoardRouteWithChildren;
+  ApiCatalogRoute: typeof ApiCatalogRouteWithChildren;
+  ApiCharactersRoute: typeof ApiCharactersRouteWithChildren;
+  ApiCurrencyRoute: typeof ApiCurrencyRouteWithChildren;
+  ApiFollowsRoute: typeof ApiFollowsRoute;
+  ApiGroupsRoute: typeof ApiGroupsRouteWithChildren;
+  ApiHealthRoute: typeof ApiHealthRoute;
+  ApiPlanRoute: typeof ApiPlanRouteWithChildren;
+  ApiRevenueRoute: typeof ApiRevenueRoute;
+  ApiSettingsRoute: typeof ApiSettingsRoute;
+  ApiStoriesRoute: typeof ApiStoriesRouteWithChildren;
+  ApiTtsRoute: typeof ApiTtsRoute;
+  CharactersIdRoute: typeof CharactersIdRoute;
+  CharactersNewRoute: typeof CharactersNewRoute;
+  ChatIdRoute: typeof ChatIdRoute;
+  GroupsIdRoute: typeof GroupsIdRoute;
+  StoriesIdRoute: typeof StoriesIdRouteWithChildren;
+  GroupsIndexRoute: typeof GroupsIndexRoute;
+  StoriesIndexRoute: typeof StoriesIndexRoute;
+  ApiAdminLegacyMigrationRoute: typeof ApiAdminLegacyMigrationRoute;
+  ApiChapterMediaIdRoute: typeof ApiChapterMediaIdRoute;
+  ApiChapterVideoIdRoute: typeof ApiChapterVideoIdRoute;
+  ApiChatIdRoute: typeof ApiChatIdRoute;
+  ApiMediaIdRoute: typeof ApiMediaIdRoute;
+  ApiPushSubscriptionsRoute: typeof ApiPushSubscriptionsRoute;
+  ApiPushVapidKeyRoute: typeof ApiPushVapidKeyRoute;
+  ApiRevenueAggregateRoute: typeof ApiRevenueAggregateRoute;
+  ApiVoiceCallQuotaRoute: typeof ApiVoiceCallQuotaRoute;
+  ApiChatIdBranchRoute: typeof ApiChatIdBranchRoute;
+  ApiChatIdComicRoute: typeof ApiChatIdComicRoute;
+  ApiChatIdHistoryRoute: typeof ApiChatIdHistoryRoute;
+  ApiChatIdImagesRoute: typeof ApiChatIdImagesRoute;
+  ApiChatIdLedgerRoute: typeof ApiChatIdLedgerRoute;
+  ApiChatIdMarksRoute: typeof ApiChatIdMarksRoute;
+  ApiChatIdMemoryRoute: typeof ApiChatIdMemoryRoute;
+  ApiChatIdSuggestRoute: typeof ApiChatIdSuggestRoute;
+  ApiChatIdVideoRoute: typeof ApiChatIdVideoRoute;
+  ApiProactiveCharactersIdSettingsRoute: typeof ApiProactiveCharactersIdSettingsRoute;
 }
 
-declare module '@tanstack/react-router' {
+declare module "@tanstack/react-router" {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/board': {
-      id: '/board'
-      path: '/board'
-      fullPath: '/board'
-      preLoaderRoute: typeof BoardRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/catalog': {
-      id: '/catalog'
-      path: '/catalog'
-      fullPath: '/catalog'
-      preLoaderRoute: typeof CatalogRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/revenue': {
-      id: '/revenue'
-      path: '/revenue'
-      fullPath: '/revenue'
-      preLoaderRoute: typeof RevenueRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/board': {
-      id: '/api/board'
-      path: '/api/board'
-      fullPath: '/api/board'
-      preLoaderRoute: typeof ApiBoardRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/catalog': {
-      id: '/api/catalog'
-      path: '/api/catalog'
-      fullPath: '/api/catalog'
-      preLoaderRoute: typeof ApiCatalogRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/characters': {
-      id: '/api/characters'
-      path: '/api/characters'
-      fullPath: '/api/characters'
-      preLoaderRoute: typeof ApiCharactersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/currency': {
-      id: '/api/currency'
-      path: '/api/currency'
-      fullPath: '/api/currency'
-      preLoaderRoute: typeof ApiCurrencyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/follows': {
-      id: '/api/follows'
-      path: '/api/follows'
-      fullPath: '/api/follows'
-      preLoaderRoute: typeof ApiFollowsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/groups': {
-      id: '/api/groups'
-      path: '/api/groups'
-      fullPath: '/api/groups'
-      preLoaderRoute: typeof ApiGroupsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/health': {
-      id: '/api/health'
-      path: '/api/health'
-      fullPath: '/api/health'
-      preLoaderRoute: typeof ApiHealthRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/plan': {
-      id: '/api/plan'
-      path: '/api/plan'
-      fullPath: '/api/plan'
-      preLoaderRoute: typeof ApiPlanRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/revenue': {
-      id: '/api/revenue'
-      path: '/api/revenue'
-      fullPath: '/api/revenue'
-      preLoaderRoute: typeof ApiRevenueRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/settings': {
-      id: '/api/settings'
-      path: '/api/settings'
-      fullPath: '/api/settings'
-      preLoaderRoute: typeof ApiSettingsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/stories': {
-      id: '/api/stories'
-      path: '/api/stories'
-      fullPath: '/api/stories'
-      preLoaderRoute: typeof ApiStoriesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/tts': {
-      id: '/api/tts'
-      path: '/api/tts'
-      fullPath: '/api/tts'
-      preLoaderRoute: typeof ApiTtsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/characters/$id': {
-      id: '/characters/$id'
-      path: '/characters/$id'
-      fullPath: '/characters/$id'
-      preLoaderRoute: typeof CharactersIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/characters/new': {
-      id: '/characters/new'
-      path: '/characters/new'
-      fullPath: '/characters/new'
-      preLoaderRoute: typeof CharactersNewRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/chat/$id': {
-      id: '/chat/$id'
-      path: '/chat/$id'
-      fullPath: '/chat/$id'
-      preLoaderRoute: typeof ChatIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/groups/': {
-      id: '/groups/'
-      path: '/groups'
-      fullPath: '/groups/'
-      preLoaderRoute: typeof GroupsIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/groups/$id': {
-      id: '/groups/$id'
-      path: '/groups/$id'
-      fullPath: '/groups/$id'
-      preLoaderRoute: typeof GroupsIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/stories/': {
-      id: '/stories/'
-      path: '/stories'
-      fullPath: '/stories/'
-      preLoaderRoute: typeof StoriesIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/stories/$id': {
-      id: '/stories/$id'
-      path: '/stories/$id'
-      fullPath: '/stories/$id'
-      preLoaderRoute: typeof StoriesIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/admin/legacy-migration': {
-      id: '/api/admin/legacy-migration'
-      path: '/api/admin/legacy-migration'
-      fullPath: '/api/admin/legacy-migration'
-      preLoaderRoute: typeof ApiAdminLegacyMigrationRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/board/$id': {
-      id: '/api/board/$id'
-      path: '/$id'
-      fullPath: '/api/board/$id'
-      preLoaderRoute: typeof ApiBoardIdRouteImport
-      parentRoute: typeof ApiBoardRoute
-    }
-    '/api/catalog/$id': {
-      id: '/api/catalog/$id'
-      path: '/$id'
-      fullPath: '/api/catalog/$id'
-      preLoaderRoute: typeof ApiCatalogIdRouteImport
-      parentRoute: typeof ApiCatalogRoute
-    }
-    '/api/chapter-media/$id': {
-      id: '/api/chapter-media/$id'
-      path: '/api/chapter-media/$id'
-      fullPath: '/api/chapter-media/$id'
-      preLoaderRoute: typeof ApiChapterMediaIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/chapter-video/$id': {
-      id: '/api/chapter-video/$id'
-      path: '/api/chapter-video/$id'
-      fullPath: '/api/chapter-video/$id'
-      preLoaderRoute: typeof ApiChapterVideoIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/characters/$id': {
-      id: '/api/characters/$id'
-      path: '/$id'
-      fullPath: '/api/characters/$id'
-      preLoaderRoute: typeof ApiCharactersIdRouteImport
-      parentRoute: typeof ApiCharactersRoute
-    }
-    '/api/chat/$id': {
-      id: '/api/chat/$id'
-      path: '/api/chat/$id'
-      fullPath: '/api/chat/$id'
-      preLoaderRoute: typeof ApiChatIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/currency/ad-reward': {
-      id: '/api/currency/ad-reward'
-      path: '/ad-reward'
-      fullPath: '/api/currency/ad-reward'
-      preLoaderRoute: typeof ApiCurrencyAdRewardRouteImport
-      parentRoute: typeof ApiCurrencyRoute
-    }
-    '/api/currency/daily-pass': {
-      id: '/api/currency/daily-pass'
-      path: '/daily-pass'
-      fullPath: '/api/currency/daily-pass'
-      preLoaderRoute: typeof ApiCurrencyDailyPassRouteImport
-      parentRoute: typeof ApiCurrencyRoute
-    }
-    '/api/currency/login-bonus': {
-      id: '/api/currency/login-bonus'
-      path: '/login-bonus'
-      fullPath: '/api/currency/login-bonus'
-      preLoaderRoute: typeof ApiCurrencyLoginBonusRouteImport
-      parentRoute: typeof ApiCurrencyRoute
-    }
-    '/api/media/$id': {
-      id: '/api/media/$id'
-      path: '/api/media/$id'
-      fullPath: '/api/media/$id'
-      preLoaderRoute: typeof ApiMediaIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/plan/cancel': {
-      id: '/api/plan/cancel'
-      path: '/cancel'
-      fullPath: '/api/plan/cancel'
-      preLoaderRoute: typeof ApiPlanCancelRouteImport
-      parentRoute: typeof ApiPlanRoute
-    }
-    '/api/push/subscriptions': {
-      id: '/api/push/subscriptions'
-      path: '/api/push/subscriptions'
-      fullPath: '/api/push/subscriptions'
-      preLoaderRoute: typeof ApiPushSubscriptionsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/push/vapid-key': {
-      id: '/api/push/vapid-key'
-      path: '/api/push/vapid-key'
-      fullPath: '/api/push/vapid-key'
-      preLoaderRoute: typeof ApiPushVapidKeyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/revenue_/aggregate': {
-      id: '/api/revenue_/aggregate'
-      path: '/api/revenue/aggregate'
-      fullPath: '/api/revenue/aggregate'
-      preLoaderRoute: typeof ApiRevenueAggregateRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/stories/$id': {
-      id: '/api/stories/$id'
-      path: '/$id'
-      fullPath: '/api/stories/$id'
-      preLoaderRoute: typeof ApiStoriesIdRouteImport
-      parentRoute: typeof ApiStoriesRoute
-    }
-    '/api/voice-call/quota': {
-      id: '/api/voice-call/quota'
-      path: '/api/voice-call/quota'
-      fullPath: '/api/voice-call/quota'
-      preLoaderRoute: typeof ApiVoiceCallQuotaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/stories/$id/read': {
-      id: '/stories/$id/read'
-      path: '/read'
-      fullPath: '/stories/$id/read'
-      preLoaderRoute: typeof StoriesIdReadRouteImport
-      parentRoute: typeof StoriesIdRoute
-    }
-    '/api/catalog/$id_/comments': {
-      id: '/api/catalog/$id_/comments'
-      path: '/$id/comments'
-      fullPath: '/api/catalog/$id/comments'
-      preLoaderRoute: typeof ApiCatalogIdCommentsRouteImport
-      parentRoute: typeof ApiCatalogRoute
-    }
-    '/api/catalog/$id_/follow': {
-      id: '/api/catalog/$id_/follow'
-      path: '/$id/follow'
-      fullPath: '/api/catalog/$id/follow'
-      preLoaderRoute: typeof ApiCatalogIdFollowRouteImport
-      parentRoute: typeof ApiCatalogRoute
-    }
-    '/api/catalog/$id_/fork': {
-      id: '/api/catalog/$id_/fork'
-      path: '/$id/fork'
-      fullPath: '/api/catalog/$id/fork'
-      preLoaderRoute: typeof ApiCatalogIdForkRouteImport
-      parentRoute: typeof ApiCatalogRoute
-    }
-    '/api/catalog/$id_/like': {
-      id: '/api/catalog/$id_/like'
-      path: '/$id/like'
-      fullPath: '/api/catalog/$id/like'
-      preLoaderRoute: typeof ApiCatalogIdLikeRouteImport
-      parentRoute: typeof ApiCatalogRoute
-    }
-    '/api/catalog/$id_/reactions': {
-      id: '/api/catalog/$id_/reactions'
-      path: '/$id/reactions'
-      fullPath: '/api/catalog/$id/reactions'
-      preLoaderRoute: typeof ApiCatalogIdReactionsRouteImport
-      parentRoute: typeof ApiCatalogRoute
-    }
-    '/api/catalog/$id_/tip': {
-      id: '/api/catalog/$id_/tip'
-      path: '/$id/tip'
-      fullPath: '/api/catalog/$id/tip'
-      preLoaderRoute: typeof ApiCatalogIdTipRouteImport
-      parentRoute: typeof ApiCatalogRoute
-    }
-    '/api/characters/$id_/documents': {
-      id: '/api/characters/$id_/documents'
-      path: '/$id/documents'
-      fullPath: '/api/characters/$id/documents'
-      preLoaderRoute: typeof ApiCharactersIdDocumentsRouteImport
-      parentRoute: typeof ApiCharactersRoute
-    }
-    '/api/characters/$id_/memories': {
-      id: '/api/characters/$id_/memories'
-      path: '/$id/memories'
-      fullPath: '/api/characters/$id/memories'
-      preLoaderRoute: typeof ApiCharactersIdMemoriesRouteImport
-      parentRoute: typeof ApiCharactersRoute
-    }
-    '/api/characters/$id_/publish': {
-      id: '/api/characters/$id_/publish'
-      path: '/$id/publish'
-      fullPath: '/api/characters/$id/publish'
-      preLoaderRoute: typeof ApiCharactersIdPublishRouteImport
-      parentRoute: typeof ApiCharactersRoute
-    }
-    '/api/characters/$id_/restore': {
-      id: '/api/characters/$id_/restore'
-      path: '/$id/restore'
-      fullPath: '/api/characters/$id/restore'
-      preLoaderRoute: typeof ApiCharactersIdRestoreRouteImport
-      parentRoute: typeof ApiCharactersRoute
-    }
-    '/api/characters/$id_/versions': {
-      id: '/api/characters/$id_/versions'
-      path: '/$id/versions'
-      fullPath: '/api/characters/$id/versions'
-      preLoaderRoute: typeof ApiCharactersIdVersionsRouteImport
-      parentRoute: typeof ApiCharactersRoute
-    }
-    '/api/characters/$id_/voice': {
-      id: '/api/characters/$id_/voice'
-      path: '/$id/voice'
-      fullPath: '/api/characters/$id/voice'
-      preLoaderRoute: typeof ApiCharactersIdVoiceRouteImport
-      parentRoute: typeof ApiCharactersRoute
-    }
-    '/api/chat/$id_/branch': {
-      id: '/api/chat/$id_/branch'
-      path: '/api/chat/$id/branch'
-      fullPath: '/api/chat/$id/branch'
-      preLoaderRoute: typeof ApiChatIdBranchRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/chat/$id_/comic': {
-      id: '/api/chat/$id_/comic'
-      path: '/api/chat/$id/comic'
-      fullPath: '/api/chat/$id/comic'
-      preLoaderRoute: typeof ApiChatIdComicRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/chat/$id_/history': {
-      id: '/api/chat/$id_/history'
-      path: '/api/chat/$id/history'
-      fullPath: '/api/chat/$id/history'
-      preLoaderRoute: typeof ApiChatIdHistoryRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/chat/$id_/images': {
-      id: '/api/chat/$id_/images'
-      path: '/api/chat/$id/images'
-      fullPath: '/api/chat/$id/images'
-      preLoaderRoute: typeof ApiChatIdImagesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/chat/$id_/ledger': {
-      id: '/api/chat/$id_/ledger'
-      path: '/api/chat/$id/ledger'
-      fullPath: '/api/chat/$id/ledger'
-      preLoaderRoute: typeof ApiChatIdLedgerRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/chat/$id_/marks': {
-      id: '/api/chat/$id_/marks'
-      path: '/api/chat/$id/marks'
-      fullPath: '/api/chat/$id/marks'
-      preLoaderRoute: typeof ApiChatIdMarksRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/chat/$id_/memory': {
-      id: '/api/chat/$id_/memory'
-      path: '/api/chat/$id/memory'
-      fullPath: '/api/chat/$id/memory'
-      preLoaderRoute: typeof ApiChatIdMemoryRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/chat/$id_/suggest': {
-      id: '/api/chat/$id_/suggest'
-      path: '/api/chat/$id/suggest'
-      fullPath: '/api/chat/$id/suggest'
-      preLoaderRoute: typeof ApiChatIdSuggestRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/chat/$id_/video': {
-      id: '/api/chat/$id_/video'
-      path: '/api/chat/$id/video'
-      fullPath: '/api/chat/$id/video'
-      preLoaderRoute: typeof ApiChatIdVideoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/groups/$id_/messages': {
-      id: '/api/groups/$id_/messages'
-      path: '/$id/messages'
-      fullPath: '/api/groups/$id/messages'
-      preLoaderRoute: typeof ApiGroupsIdMessagesRouteImport
-      parentRoute: typeof ApiGroupsRoute
-    }
-    '/api/stories/$id_/chapters': {
-      id: '/api/stories/$id_/chapters'
-      path: '/$id/chapters'
-      fullPath: '/api/stories/$id/chapters'
-      preLoaderRoute: typeof ApiStoriesIdChaptersRouteImport
-      parentRoute: typeof ApiStoriesRoute
-    }
-    '/api/catalog/$id_/comments/$cid': {
-      id: '/api/catalog/$id_/comments/$cid'
-      path: '/$cid'
-      fullPath: '/api/catalog/$id/comments/$cid'
-      preLoaderRoute: typeof ApiCatalogIdCommentsCidRouteImport
-      parentRoute: typeof ApiCatalogIdCommentsRoute
-    }
-    '/api/characters/$id_/documents/$doc': {
-      id: '/api/characters/$id_/documents/$doc'
-      path: '/$doc'
-      fullPath: '/api/characters/$id/documents/$doc'
-      preLoaderRoute: typeof ApiCharactersIdDocumentsDocRouteImport
-      parentRoute: typeof ApiCharactersIdDocumentsRoute
-    }
-    '/api/characters/$id_/versions/$version': {
-      id: '/api/characters/$id_/versions/$version'
-      path: '/$version'
-      fullPath: '/api/characters/$id/versions/$version'
-      preLoaderRoute: typeof ApiCharactersIdVersionsVersionRouteImport
-      parentRoute: typeof ApiCharactersIdVersionsRoute
-    }
-    '/api/proactive/characters/$id_/settings': {
-      id: '/api/proactive/characters/$id_/settings'
-      path: '/api/proactive/characters/$id/settings'
-      fullPath: '/api/proactive/characters/$id/settings'
-      preLoaderRoute: typeof ApiProactiveCharactersIdSettingsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/stories/$id_/chapters/$cid': {
-      id: '/api/stories/$id_/chapters/$cid'
-      path: '/$cid'
-      fullPath: '/api/stories/$id/chapters/$cid'
-      preLoaderRoute: typeof ApiStoriesIdChaptersCidRouteImport
-      parentRoute: typeof ApiStoriesIdChaptersRoute
-    }
-    '/api/stories/$id_/chapters/reorder': {
-      id: '/api/stories/$id_/chapters/reorder'
-      path: '/reorder'
-      fullPath: '/api/stories/$id/chapters/reorder'
-      preLoaderRoute: typeof ApiStoriesIdChaptersReorderRouteImport
-      parentRoute: typeof ApiStoriesIdChaptersRoute
-    }
-    '/api/stories/$id_/chapters/$cid_/comic': {
-      id: '/api/stories/$id_/chapters/$cid_/comic'
-      path: '/$cid/comic'
-      fullPath: '/api/stories/$id/chapters/$cid/comic'
-      preLoaderRoute: typeof ApiStoriesIdChaptersCidComicRouteImport
-      parentRoute: typeof ApiStoriesIdChaptersRoute
-    }
-    '/api/stories/$id_/chapters/$cid_/illustration': {
-      id: '/api/stories/$id_/chapters/$cid_/illustration'
-      path: '/$cid/illustration'
-      fullPath: '/api/stories/$id/chapters/$cid/illustration'
-      preLoaderRoute: typeof ApiStoriesIdChaptersCidIllustrationRouteImport
-      parentRoute: typeof ApiStoriesIdChaptersRoute
-    }
-    '/api/stories/$id_/chapters/$cid_/video': {
-      id: '/api/stories/$id_/chapters/$cid_/video'
-      path: '/$cid/video'
-      fullPath: '/api/stories/$id/chapters/$cid/video'
-      preLoaderRoute: typeof ApiStoriesIdChaptersCidVideoRouteImport
-      parentRoute: typeof ApiStoriesIdChaptersRoute
-    }
+    "/": {
+      id: "/";
+      path: "/";
+      fullPath: "/";
+      preLoaderRoute: typeof IndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/board": {
+      id: "/board";
+      path: "/board";
+      fullPath: "/board";
+      preLoaderRoute: typeof BoardRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/catalog": {
+      id: "/catalog";
+      path: "/catalog";
+      fullPath: "/catalog";
+      preLoaderRoute: typeof CatalogRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/revenue": {
+      id: "/revenue";
+      path: "/revenue";
+      fullPath: "/revenue";
+      preLoaderRoute: typeof RevenueRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/api/board": {
+      id: "/api/board";
+      path: "/api/board";
+      fullPath: "/api/board";
+      preLoaderRoute: typeof ApiBoardRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/api/catalog": {
+      id: "/api/catalog";
+      path: "/api/catalog";
+      fullPath: "/api/catalog";
+      preLoaderRoute: typeof ApiCatalogRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/api/characters": {
+      id: "/api/characters";
+      path: "/api/characters";
+      fullPath: "/api/characters";
+      preLoaderRoute: typeof ApiCharactersRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/api/currency": {
+      id: "/api/currency";
+      path: "/api/currency";
+      fullPath: "/api/currency";
+      preLoaderRoute: typeof ApiCurrencyRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/api/follows": {
+      id: "/api/follows";
+      path: "/api/follows";
+      fullPath: "/api/follows";
+      preLoaderRoute: typeof ApiFollowsRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/api/groups": {
+      id: "/api/groups";
+      path: "/api/groups";
+      fullPath: "/api/groups";
+      preLoaderRoute: typeof ApiGroupsRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/api/health": {
+      id: "/api/health";
+      path: "/api/health";
+      fullPath: "/api/health";
+      preLoaderRoute: typeof ApiHealthRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/api/plan": {
+      id: "/api/plan";
+      path: "/api/plan";
+      fullPath: "/api/plan";
+      preLoaderRoute: typeof ApiPlanRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/api/revenue": {
+      id: "/api/revenue";
+      path: "/api/revenue";
+      fullPath: "/api/revenue";
+      preLoaderRoute: typeof ApiRevenueRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/api/settings": {
+      id: "/api/settings";
+      path: "/api/settings";
+      fullPath: "/api/settings";
+      preLoaderRoute: typeof ApiSettingsRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/api/stories": {
+      id: "/api/stories";
+      path: "/api/stories";
+      fullPath: "/api/stories";
+      preLoaderRoute: typeof ApiStoriesRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/api/tts": {
+      id: "/api/tts";
+      path: "/api/tts";
+      fullPath: "/api/tts";
+      preLoaderRoute: typeof ApiTtsRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/characters/$id": {
+      id: "/characters/$id";
+      path: "/characters/$id";
+      fullPath: "/characters/$id";
+      preLoaderRoute: typeof CharactersIdRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/characters/new": {
+      id: "/characters/new";
+      path: "/characters/new";
+      fullPath: "/characters/new";
+      preLoaderRoute: typeof CharactersNewRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/chat/$id": {
+      id: "/chat/$id";
+      path: "/chat/$id";
+      fullPath: "/chat/$id";
+      preLoaderRoute: typeof ChatIdRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/groups/": {
+      id: "/groups/";
+      path: "/groups";
+      fullPath: "/groups/";
+      preLoaderRoute: typeof GroupsIndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/groups/$id": {
+      id: "/groups/$id";
+      path: "/groups/$id";
+      fullPath: "/groups/$id";
+      preLoaderRoute: typeof GroupsIdRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/stories/": {
+      id: "/stories/";
+      path: "/stories";
+      fullPath: "/stories/";
+      preLoaderRoute: typeof StoriesIndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/stories/$id": {
+      id: "/stories/$id";
+      path: "/stories/$id";
+      fullPath: "/stories/$id";
+      preLoaderRoute: typeof StoriesIdRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/api/admin/legacy-migration": {
+      id: "/api/admin/legacy-migration";
+      path: "/api/admin/legacy-migration";
+      fullPath: "/api/admin/legacy-migration";
+      preLoaderRoute: typeof ApiAdminLegacyMigrationRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/api/board/$id": {
+      id: "/api/board/$id";
+      path: "/$id";
+      fullPath: "/api/board/$id";
+      preLoaderRoute: typeof ApiBoardIdRouteImport;
+      parentRoute: typeof ApiBoardRoute;
+    };
+    "/api/catalog/$id": {
+      id: "/api/catalog/$id";
+      path: "/$id";
+      fullPath: "/api/catalog/$id";
+      preLoaderRoute: typeof ApiCatalogIdRouteImport;
+      parentRoute: typeof ApiCatalogRoute;
+    };
+    "/api/chapter-media/$id": {
+      id: "/api/chapter-media/$id";
+      path: "/api/chapter-media/$id";
+      fullPath: "/api/chapter-media/$id";
+      preLoaderRoute: typeof ApiChapterMediaIdRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/api/chapter-video/$id": {
+      id: "/api/chapter-video/$id";
+      path: "/api/chapter-video/$id";
+      fullPath: "/api/chapter-video/$id";
+      preLoaderRoute: typeof ApiChapterVideoIdRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/api/characters/$id": {
+      id: "/api/characters/$id";
+      path: "/$id";
+      fullPath: "/api/characters/$id";
+      preLoaderRoute: typeof ApiCharactersIdRouteImport;
+      parentRoute: typeof ApiCharactersRoute;
+    };
+    "/api/chat/$id": {
+      id: "/api/chat/$id";
+      path: "/api/chat/$id";
+      fullPath: "/api/chat/$id";
+      preLoaderRoute: typeof ApiChatIdRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/api/currency/ad-reward": {
+      id: "/api/currency/ad-reward";
+      path: "/ad-reward";
+      fullPath: "/api/currency/ad-reward";
+      preLoaderRoute: typeof ApiCurrencyAdRewardRouteImport;
+      parentRoute: typeof ApiCurrencyRoute;
+    };
+    "/api/currency/daily-pass": {
+      id: "/api/currency/daily-pass";
+      path: "/daily-pass";
+      fullPath: "/api/currency/daily-pass";
+      preLoaderRoute: typeof ApiCurrencyDailyPassRouteImport;
+      parentRoute: typeof ApiCurrencyRoute;
+    };
+    "/api/currency/login-bonus": {
+      id: "/api/currency/login-bonus";
+      path: "/login-bonus";
+      fullPath: "/api/currency/login-bonus";
+      preLoaderRoute: typeof ApiCurrencyLoginBonusRouteImport;
+      parentRoute: typeof ApiCurrencyRoute;
+    };
+    "/api/media/$id": {
+      id: "/api/media/$id";
+      path: "/api/media/$id";
+      fullPath: "/api/media/$id";
+      preLoaderRoute: typeof ApiMediaIdRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/api/plan/cancel": {
+      id: "/api/plan/cancel";
+      path: "/cancel";
+      fullPath: "/api/plan/cancel";
+      preLoaderRoute: typeof ApiPlanCancelRouteImport;
+      parentRoute: typeof ApiPlanRoute;
+    };
+    "/api/push/subscriptions": {
+      id: "/api/push/subscriptions";
+      path: "/api/push/subscriptions";
+      fullPath: "/api/push/subscriptions";
+      preLoaderRoute: typeof ApiPushSubscriptionsRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/api/push/vapid-key": {
+      id: "/api/push/vapid-key";
+      path: "/api/push/vapid-key";
+      fullPath: "/api/push/vapid-key";
+      preLoaderRoute: typeof ApiPushVapidKeyRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/api/revenue_/aggregate": {
+      id: "/api/revenue_/aggregate";
+      path: "/api/revenue/aggregate";
+      fullPath: "/api/revenue/aggregate";
+      preLoaderRoute: typeof ApiRevenueAggregateRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/api/stories/$id": {
+      id: "/api/stories/$id";
+      path: "/$id";
+      fullPath: "/api/stories/$id";
+      preLoaderRoute: typeof ApiStoriesIdRouteImport;
+      parentRoute: typeof ApiStoriesRoute;
+    };
+    "/api/voice-call/quota": {
+      id: "/api/voice-call/quota";
+      path: "/api/voice-call/quota";
+      fullPath: "/api/voice-call/quota";
+      preLoaderRoute: typeof ApiVoiceCallQuotaRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/stories/$id/read": {
+      id: "/stories/$id/read";
+      path: "/read";
+      fullPath: "/stories/$id/read";
+      preLoaderRoute: typeof StoriesIdReadRouteImport;
+      parentRoute: typeof StoriesIdRoute;
+    };
+    "/api/catalog/$id_/comments": {
+      id: "/api/catalog/$id_/comments";
+      path: "/$id/comments";
+      fullPath: "/api/catalog/$id/comments";
+      preLoaderRoute: typeof ApiCatalogIdCommentsRouteImport;
+      parentRoute: typeof ApiCatalogRoute;
+    };
+    "/api/catalog/$id_/follow": {
+      id: "/api/catalog/$id_/follow";
+      path: "/$id/follow";
+      fullPath: "/api/catalog/$id/follow";
+      preLoaderRoute: typeof ApiCatalogIdFollowRouteImport;
+      parentRoute: typeof ApiCatalogRoute;
+    };
+    "/api/catalog/$id_/fork": {
+      id: "/api/catalog/$id_/fork";
+      path: "/$id/fork";
+      fullPath: "/api/catalog/$id/fork";
+      preLoaderRoute: typeof ApiCatalogIdForkRouteImport;
+      parentRoute: typeof ApiCatalogRoute;
+    };
+    "/api/catalog/$id_/like": {
+      id: "/api/catalog/$id_/like";
+      path: "/$id/like";
+      fullPath: "/api/catalog/$id/like";
+      preLoaderRoute: typeof ApiCatalogIdLikeRouteImport;
+      parentRoute: typeof ApiCatalogRoute;
+    };
+    "/api/catalog/$id_/reactions": {
+      id: "/api/catalog/$id_/reactions";
+      path: "/$id/reactions";
+      fullPath: "/api/catalog/$id/reactions";
+      preLoaderRoute: typeof ApiCatalogIdReactionsRouteImport;
+      parentRoute: typeof ApiCatalogRoute;
+    };
+    "/api/catalog/$id_/tip": {
+      id: "/api/catalog/$id_/tip";
+      path: "/$id/tip";
+      fullPath: "/api/catalog/$id/tip";
+      preLoaderRoute: typeof ApiCatalogIdTipRouteImport;
+      parentRoute: typeof ApiCatalogRoute;
+    };
+    "/api/characters/$id_/documents": {
+      id: "/api/characters/$id_/documents";
+      path: "/$id/documents";
+      fullPath: "/api/characters/$id/documents";
+      preLoaderRoute: typeof ApiCharactersIdDocumentsRouteImport;
+      parentRoute: typeof ApiCharactersRoute;
+    };
+    "/api/characters/$id_/memories": {
+      id: "/api/characters/$id_/memories";
+      path: "/$id/memories";
+      fullPath: "/api/characters/$id/memories";
+      preLoaderRoute: typeof ApiCharactersIdMemoriesRouteImport;
+      parentRoute: typeof ApiCharactersRoute;
+    };
+    "/api/characters/$id_/publish": {
+      id: "/api/characters/$id_/publish";
+      path: "/$id/publish";
+      fullPath: "/api/characters/$id/publish";
+      preLoaderRoute: typeof ApiCharactersIdPublishRouteImport;
+      parentRoute: typeof ApiCharactersRoute;
+    };
+    "/api/characters/$id_/restore": {
+      id: "/api/characters/$id_/restore";
+      path: "/$id/restore";
+      fullPath: "/api/characters/$id/restore";
+      preLoaderRoute: typeof ApiCharactersIdRestoreRouteImport;
+      parentRoute: typeof ApiCharactersRoute;
+    };
+    "/api/characters/$id_/versions": {
+      id: "/api/characters/$id_/versions";
+      path: "/$id/versions";
+      fullPath: "/api/characters/$id/versions";
+      preLoaderRoute: typeof ApiCharactersIdVersionsRouteImport;
+      parentRoute: typeof ApiCharactersRoute;
+    };
+    "/api/characters/$id_/voice": {
+      id: "/api/characters/$id_/voice";
+      path: "/$id/voice";
+      fullPath: "/api/characters/$id/voice";
+      preLoaderRoute: typeof ApiCharactersIdVoiceRouteImport;
+      parentRoute: typeof ApiCharactersRoute;
+    };
+    "/api/chat/$id_/branch": {
+      id: "/api/chat/$id_/branch";
+      path: "/api/chat/$id/branch";
+      fullPath: "/api/chat/$id/branch";
+      preLoaderRoute: typeof ApiChatIdBranchRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/api/chat/$id_/comic": {
+      id: "/api/chat/$id_/comic";
+      path: "/api/chat/$id/comic";
+      fullPath: "/api/chat/$id/comic";
+      preLoaderRoute: typeof ApiChatIdComicRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/api/chat/$id_/history": {
+      id: "/api/chat/$id_/history";
+      path: "/api/chat/$id/history";
+      fullPath: "/api/chat/$id/history";
+      preLoaderRoute: typeof ApiChatIdHistoryRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/api/chat/$id_/images": {
+      id: "/api/chat/$id_/images";
+      path: "/api/chat/$id/images";
+      fullPath: "/api/chat/$id/images";
+      preLoaderRoute: typeof ApiChatIdImagesRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/api/chat/$id_/ledger": {
+      id: "/api/chat/$id_/ledger";
+      path: "/api/chat/$id/ledger";
+      fullPath: "/api/chat/$id/ledger";
+      preLoaderRoute: typeof ApiChatIdLedgerRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/api/chat/$id_/marks": {
+      id: "/api/chat/$id_/marks";
+      path: "/api/chat/$id/marks";
+      fullPath: "/api/chat/$id/marks";
+      preLoaderRoute: typeof ApiChatIdMarksRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/api/chat/$id_/memory": {
+      id: "/api/chat/$id_/memory";
+      path: "/api/chat/$id/memory";
+      fullPath: "/api/chat/$id/memory";
+      preLoaderRoute: typeof ApiChatIdMemoryRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/api/chat/$id_/suggest": {
+      id: "/api/chat/$id_/suggest";
+      path: "/api/chat/$id/suggest";
+      fullPath: "/api/chat/$id/suggest";
+      preLoaderRoute: typeof ApiChatIdSuggestRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/api/chat/$id_/video": {
+      id: "/api/chat/$id_/video";
+      path: "/api/chat/$id/video";
+      fullPath: "/api/chat/$id/video";
+      preLoaderRoute: typeof ApiChatIdVideoRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/api/groups/$id_/messages": {
+      id: "/api/groups/$id_/messages";
+      path: "/$id/messages";
+      fullPath: "/api/groups/$id/messages";
+      preLoaderRoute: typeof ApiGroupsIdMessagesRouteImport;
+      parentRoute: typeof ApiGroupsRoute;
+    };
+    "/api/stories/$id_/chapters": {
+      id: "/api/stories/$id_/chapters";
+      path: "/$id/chapters";
+      fullPath: "/api/stories/$id/chapters";
+      preLoaderRoute: typeof ApiStoriesIdChaptersRouteImport;
+      parentRoute: typeof ApiStoriesRoute;
+    };
+    "/api/catalog/$id_/comments/$cid": {
+      id: "/api/catalog/$id_/comments/$cid";
+      path: "/$cid";
+      fullPath: "/api/catalog/$id/comments/$cid";
+      preLoaderRoute: typeof ApiCatalogIdCommentsCidRouteImport;
+      parentRoute: typeof ApiCatalogIdCommentsRoute;
+    };
+    "/api/characters/$id_/documents/$doc": {
+      id: "/api/characters/$id_/documents/$doc";
+      path: "/$doc";
+      fullPath: "/api/characters/$id/documents/$doc";
+      preLoaderRoute: typeof ApiCharactersIdDocumentsDocRouteImport;
+      parentRoute: typeof ApiCharactersIdDocumentsRoute;
+    };
+    "/api/characters/$id_/versions/$version": {
+      id: "/api/characters/$id_/versions/$version";
+      path: "/$version";
+      fullPath: "/api/characters/$id/versions/$version";
+      preLoaderRoute: typeof ApiCharactersIdVersionsVersionRouteImport;
+      parentRoute: typeof ApiCharactersIdVersionsRoute;
+    };
+    "/api/proactive/characters/$id_/settings": {
+      id: "/api/proactive/characters/$id_/settings";
+      path: "/api/proactive/characters/$id/settings";
+      fullPath: "/api/proactive/characters/$id/settings";
+      preLoaderRoute: typeof ApiProactiveCharactersIdSettingsRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/api/stories/$id_/chapters/$cid": {
+      id: "/api/stories/$id_/chapters/$cid";
+      path: "/$cid";
+      fullPath: "/api/stories/$id/chapters/$cid";
+      preLoaderRoute: typeof ApiStoriesIdChaptersCidRouteImport;
+      parentRoute: typeof ApiStoriesIdChaptersRoute;
+    };
+    "/api/stories/$id_/chapters/reorder": {
+      id: "/api/stories/$id_/chapters/reorder";
+      path: "/reorder";
+      fullPath: "/api/stories/$id/chapters/reorder";
+      preLoaderRoute: typeof ApiStoriesIdChaptersReorderRouteImport;
+      parentRoute: typeof ApiStoriesIdChaptersRoute;
+    };
+    "/api/stories/$id_/chapters/$cid_/comic": {
+      id: "/api/stories/$id_/chapters/$cid_/comic";
+      path: "/$cid/comic";
+      fullPath: "/api/stories/$id/chapters/$cid/comic";
+      preLoaderRoute: typeof ApiStoriesIdChaptersCidComicRouteImport;
+      parentRoute: typeof ApiStoriesIdChaptersRoute;
+    };
+    "/api/stories/$id_/chapters/$cid_/illustration": {
+      id: "/api/stories/$id_/chapters/$cid_/illustration";
+      path: "/$cid/illustration";
+      fullPath: "/api/stories/$id/chapters/$cid/illustration";
+      preLoaderRoute: typeof ApiStoriesIdChaptersCidIllustrationRouteImport;
+      parentRoute: typeof ApiStoriesIdChaptersRoute;
+    };
+    "/api/stories/$id_/chapters/$cid_/video": {
+      id: "/api/stories/$id_/chapters/$cid_/video";
+      path: "/$cid/video";
+      fullPath: "/api/stories/$id/chapters/$cid/video";
+      preLoaderRoute: typeof ApiStoriesIdChaptersCidVideoRouteImport;
+      parentRoute: typeof ApiStoriesIdChaptersRoute;
+    };
   }
 }
 
 interface ApiBoardRouteChildren {
-  ApiBoardIdRoute: typeof ApiBoardIdRoute
+  ApiBoardIdRoute: typeof ApiBoardIdRoute;
 }
 
 const ApiBoardRouteChildren: ApiBoardRouteChildren = {
   ApiBoardIdRoute: ApiBoardIdRoute,
-}
+};
 
-const ApiBoardRouteWithChildren = ApiBoardRoute._addFileChildren(
-  ApiBoardRouteChildren,
-)
+const ApiBoardRouteWithChildren = ApiBoardRoute._addFileChildren(ApiBoardRouteChildren);
 
 interface ApiCatalogIdCommentsRouteChildren {
-  ApiCatalogIdCommentsCidRoute: typeof ApiCatalogIdCommentsCidRoute
+  ApiCatalogIdCommentsCidRoute: typeof ApiCatalogIdCommentsCidRoute;
 }
 
 const ApiCatalogIdCommentsRouteChildren: ApiCatalogIdCommentsRouteChildren = {
   ApiCatalogIdCommentsCidRoute: ApiCatalogIdCommentsCidRoute,
-}
+};
 
-const ApiCatalogIdCommentsRouteWithChildren =
-  ApiCatalogIdCommentsRoute._addFileChildren(ApiCatalogIdCommentsRouteChildren)
+const ApiCatalogIdCommentsRouteWithChildren = ApiCatalogIdCommentsRoute._addFileChildren(
+  ApiCatalogIdCommentsRouteChildren,
+);
 
 interface ApiCatalogRouteChildren {
-  ApiCatalogIdRoute: typeof ApiCatalogIdRoute
-  ApiCatalogIdCommentsRoute: typeof ApiCatalogIdCommentsRouteWithChildren
-  ApiCatalogIdFollowRoute: typeof ApiCatalogIdFollowRoute
-  ApiCatalogIdForkRoute: typeof ApiCatalogIdForkRoute
-  ApiCatalogIdLikeRoute: typeof ApiCatalogIdLikeRoute
-  ApiCatalogIdReactionsRoute: typeof ApiCatalogIdReactionsRoute
-  ApiCatalogIdTipRoute: typeof ApiCatalogIdTipRoute
+  ApiCatalogIdRoute: typeof ApiCatalogIdRoute;
+  ApiCatalogIdCommentsRoute: typeof ApiCatalogIdCommentsRouteWithChildren;
+  ApiCatalogIdFollowRoute: typeof ApiCatalogIdFollowRoute;
+  ApiCatalogIdForkRoute: typeof ApiCatalogIdForkRoute;
+  ApiCatalogIdLikeRoute: typeof ApiCatalogIdLikeRoute;
+  ApiCatalogIdReactionsRoute: typeof ApiCatalogIdReactionsRoute;
+  ApiCatalogIdTipRoute: typeof ApiCatalogIdTipRoute;
 }
 
 const ApiCatalogRouteChildren: ApiCatalogRouteChildren = {
@@ -1513,48 +1505,42 @@ const ApiCatalogRouteChildren: ApiCatalogRouteChildren = {
   ApiCatalogIdLikeRoute: ApiCatalogIdLikeRoute,
   ApiCatalogIdReactionsRoute: ApiCatalogIdReactionsRoute,
   ApiCatalogIdTipRoute: ApiCatalogIdTipRoute,
-}
+};
 
-const ApiCatalogRouteWithChildren = ApiCatalogRoute._addFileChildren(
-  ApiCatalogRouteChildren,
-)
+const ApiCatalogRouteWithChildren = ApiCatalogRoute._addFileChildren(ApiCatalogRouteChildren);
 
 interface ApiCharactersIdDocumentsRouteChildren {
-  ApiCharactersIdDocumentsDocRoute: typeof ApiCharactersIdDocumentsDocRoute
+  ApiCharactersIdDocumentsDocRoute: typeof ApiCharactersIdDocumentsDocRoute;
 }
 
-const ApiCharactersIdDocumentsRouteChildren: ApiCharactersIdDocumentsRouteChildren =
-  {
-    ApiCharactersIdDocumentsDocRoute: ApiCharactersIdDocumentsDocRoute,
-  }
+const ApiCharactersIdDocumentsRouteChildren: ApiCharactersIdDocumentsRouteChildren = {
+  ApiCharactersIdDocumentsDocRoute: ApiCharactersIdDocumentsDocRoute,
+};
 
-const ApiCharactersIdDocumentsRouteWithChildren =
-  ApiCharactersIdDocumentsRoute._addFileChildren(
-    ApiCharactersIdDocumentsRouteChildren,
-  )
+const ApiCharactersIdDocumentsRouteWithChildren = ApiCharactersIdDocumentsRoute._addFileChildren(
+  ApiCharactersIdDocumentsRouteChildren,
+);
 
 interface ApiCharactersIdVersionsRouteChildren {
-  ApiCharactersIdVersionsVersionRoute: typeof ApiCharactersIdVersionsVersionRoute
+  ApiCharactersIdVersionsVersionRoute: typeof ApiCharactersIdVersionsVersionRoute;
 }
 
-const ApiCharactersIdVersionsRouteChildren: ApiCharactersIdVersionsRouteChildren =
-  {
-    ApiCharactersIdVersionsVersionRoute: ApiCharactersIdVersionsVersionRoute,
-  }
+const ApiCharactersIdVersionsRouteChildren: ApiCharactersIdVersionsRouteChildren = {
+  ApiCharactersIdVersionsVersionRoute: ApiCharactersIdVersionsVersionRoute,
+};
 
-const ApiCharactersIdVersionsRouteWithChildren =
-  ApiCharactersIdVersionsRoute._addFileChildren(
-    ApiCharactersIdVersionsRouteChildren,
-  )
+const ApiCharactersIdVersionsRouteWithChildren = ApiCharactersIdVersionsRoute._addFileChildren(
+  ApiCharactersIdVersionsRouteChildren,
+);
 
 interface ApiCharactersRouteChildren {
-  ApiCharactersIdRoute: typeof ApiCharactersIdRoute
-  ApiCharactersIdDocumentsRoute: typeof ApiCharactersIdDocumentsRouteWithChildren
-  ApiCharactersIdMemoriesRoute: typeof ApiCharactersIdMemoriesRoute
-  ApiCharactersIdPublishRoute: typeof ApiCharactersIdPublishRoute
-  ApiCharactersIdRestoreRoute: typeof ApiCharactersIdRestoreRoute
-  ApiCharactersIdVersionsRoute: typeof ApiCharactersIdVersionsRouteWithChildren
-  ApiCharactersIdVoiceRoute: typeof ApiCharactersIdVoiceRoute
+  ApiCharactersIdRoute: typeof ApiCharactersIdRoute;
+  ApiCharactersIdDocumentsRoute: typeof ApiCharactersIdDocumentsRouteWithChildren;
+  ApiCharactersIdMemoriesRoute: typeof ApiCharactersIdMemoriesRoute;
+  ApiCharactersIdPublishRoute: typeof ApiCharactersIdPublishRoute;
+  ApiCharactersIdRestoreRoute: typeof ApiCharactersIdRestoreRoute;
+  ApiCharactersIdVersionsRoute: typeof ApiCharactersIdVersionsRouteWithChildren;
+  ApiCharactersIdVoiceRoute: typeof ApiCharactersIdVoiceRoute;
 }
 
 const ApiCharactersRouteChildren: ApiCharactersRouteChildren = {
@@ -1565,96 +1551,87 @@ const ApiCharactersRouteChildren: ApiCharactersRouteChildren = {
   ApiCharactersIdRestoreRoute: ApiCharactersIdRestoreRoute,
   ApiCharactersIdVersionsRoute: ApiCharactersIdVersionsRouteWithChildren,
   ApiCharactersIdVoiceRoute: ApiCharactersIdVoiceRoute,
-}
+};
 
 const ApiCharactersRouteWithChildren = ApiCharactersRoute._addFileChildren(
   ApiCharactersRouteChildren,
-)
+);
 
 interface ApiCurrencyRouteChildren {
-  ApiCurrencyAdRewardRoute: typeof ApiCurrencyAdRewardRoute
-  ApiCurrencyDailyPassRoute: typeof ApiCurrencyDailyPassRoute
-  ApiCurrencyLoginBonusRoute: typeof ApiCurrencyLoginBonusRoute
+  ApiCurrencyAdRewardRoute: typeof ApiCurrencyAdRewardRoute;
+  ApiCurrencyDailyPassRoute: typeof ApiCurrencyDailyPassRoute;
+  ApiCurrencyLoginBonusRoute: typeof ApiCurrencyLoginBonusRoute;
 }
 
 const ApiCurrencyRouteChildren: ApiCurrencyRouteChildren = {
   ApiCurrencyAdRewardRoute: ApiCurrencyAdRewardRoute,
   ApiCurrencyDailyPassRoute: ApiCurrencyDailyPassRoute,
   ApiCurrencyLoginBonusRoute: ApiCurrencyLoginBonusRoute,
-}
+};
 
-const ApiCurrencyRouteWithChildren = ApiCurrencyRoute._addFileChildren(
-  ApiCurrencyRouteChildren,
-)
+const ApiCurrencyRouteWithChildren = ApiCurrencyRoute._addFileChildren(ApiCurrencyRouteChildren);
 
 interface ApiGroupsRouteChildren {
-  ApiGroupsIdMessagesRoute: typeof ApiGroupsIdMessagesRoute
+  ApiGroupsIdMessagesRoute: typeof ApiGroupsIdMessagesRoute;
 }
 
 const ApiGroupsRouteChildren: ApiGroupsRouteChildren = {
   ApiGroupsIdMessagesRoute: ApiGroupsIdMessagesRoute,
-}
+};
 
-const ApiGroupsRouteWithChildren = ApiGroupsRoute._addFileChildren(
-  ApiGroupsRouteChildren,
-)
+const ApiGroupsRouteWithChildren = ApiGroupsRoute._addFileChildren(ApiGroupsRouteChildren);
 
 interface ApiPlanRouteChildren {
-  ApiPlanCancelRoute: typeof ApiPlanCancelRoute
+  ApiPlanCancelRoute: typeof ApiPlanCancelRoute;
 }
 
 const ApiPlanRouteChildren: ApiPlanRouteChildren = {
   ApiPlanCancelRoute: ApiPlanCancelRoute,
-}
+};
 
-const ApiPlanRouteWithChildren =
-  ApiPlanRoute._addFileChildren(ApiPlanRouteChildren)
+const ApiPlanRouteWithChildren = ApiPlanRoute._addFileChildren(ApiPlanRouteChildren);
 
 interface ApiStoriesIdChaptersRouteChildren {
-  ApiStoriesIdChaptersCidRoute: typeof ApiStoriesIdChaptersCidRoute
-  ApiStoriesIdChaptersReorderRoute: typeof ApiStoriesIdChaptersReorderRoute
-  ApiStoriesIdChaptersCidComicRoute: typeof ApiStoriesIdChaptersCidComicRoute
-  ApiStoriesIdChaptersCidIllustrationRoute: typeof ApiStoriesIdChaptersCidIllustrationRoute
-  ApiStoriesIdChaptersCidVideoRoute: typeof ApiStoriesIdChaptersCidVideoRoute
+  ApiStoriesIdChaptersCidRoute: typeof ApiStoriesIdChaptersCidRoute;
+  ApiStoriesIdChaptersReorderRoute: typeof ApiStoriesIdChaptersReorderRoute;
+  ApiStoriesIdChaptersCidComicRoute: typeof ApiStoriesIdChaptersCidComicRoute;
+  ApiStoriesIdChaptersCidIllustrationRoute: typeof ApiStoriesIdChaptersCidIllustrationRoute;
+  ApiStoriesIdChaptersCidVideoRoute: typeof ApiStoriesIdChaptersCidVideoRoute;
 }
 
 const ApiStoriesIdChaptersRouteChildren: ApiStoriesIdChaptersRouteChildren = {
   ApiStoriesIdChaptersCidRoute: ApiStoriesIdChaptersCidRoute,
   ApiStoriesIdChaptersReorderRoute: ApiStoriesIdChaptersReorderRoute,
   ApiStoriesIdChaptersCidComicRoute: ApiStoriesIdChaptersCidComicRoute,
-  ApiStoriesIdChaptersCidIllustrationRoute:
-    ApiStoriesIdChaptersCidIllustrationRoute,
+  ApiStoriesIdChaptersCidIllustrationRoute: ApiStoriesIdChaptersCidIllustrationRoute,
   ApiStoriesIdChaptersCidVideoRoute: ApiStoriesIdChaptersCidVideoRoute,
-}
+};
 
-const ApiStoriesIdChaptersRouteWithChildren =
-  ApiStoriesIdChaptersRoute._addFileChildren(ApiStoriesIdChaptersRouteChildren)
+const ApiStoriesIdChaptersRouteWithChildren = ApiStoriesIdChaptersRoute._addFileChildren(
+  ApiStoriesIdChaptersRouteChildren,
+);
 
 interface ApiStoriesRouteChildren {
-  ApiStoriesIdRoute: typeof ApiStoriesIdRoute
-  ApiStoriesIdChaptersRoute: typeof ApiStoriesIdChaptersRouteWithChildren
+  ApiStoriesIdRoute: typeof ApiStoriesIdRoute;
+  ApiStoriesIdChaptersRoute: typeof ApiStoriesIdChaptersRouteWithChildren;
 }
 
 const ApiStoriesRouteChildren: ApiStoriesRouteChildren = {
   ApiStoriesIdRoute: ApiStoriesIdRoute,
   ApiStoriesIdChaptersRoute: ApiStoriesIdChaptersRouteWithChildren,
-}
+};
 
-const ApiStoriesRouteWithChildren = ApiStoriesRoute._addFileChildren(
-  ApiStoriesRouteChildren,
-)
+const ApiStoriesRouteWithChildren = ApiStoriesRoute._addFileChildren(ApiStoriesRouteChildren);
 
 interface StoriesIdRouteChildren {
-  StoriesIdReadRoute: typeof StoriesIdReadRoute
+  StoriesIdReadRoute: typeof StoriesIdReadRoute;
 }
 
 const StoriesIdRouteChildren: StoriesIdRouteChildren = {
   StoriesIdReadRoute: StoriesIdReadRoute,
-}
+};
 
-const StoriesIdRouteWithChildren = StoriesIdRoute._addFileChildren(
-  StoriesIdRouteChildren,
-)
+const StoriesIdRouteWithChildren = StoriesIdRoute._addFileChildren(StoriesIdRouteChildren);
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -1699,16 +1676,16 @@ const rootRouteChildren: RootRouteChildren = {
   ApiChatIdSuggestRoute: ApiChatIdSuggestRoute,
   ApiChatIdVideoRoute: ApiChatIdVideoRoute,
   ApiProactiveCharactersIdSettingsRoute: ApiProactiveCharactersIdSettingsRoute,
-}
+};
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>()
+  ._addFileTypes<FileRouteTypes>();
 
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
+import type { getRouter } from "./router.tsx";
+import type { createStart } from "@tanstack/react-start";
+declare module "@tanstack/react-start" {
   interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
+    ssr: true;
+    router: Awaited<ReturnType<typeof getRouter>>;
   }
 }

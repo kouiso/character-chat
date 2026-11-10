@@ -6,7 +6,9 @@ const sw = readFileSync(swPath, "utf8");
 const MIN_SIZE_BYTES = 1_000;
 
 if (sw.length < MIN_SIZE_BYTES) {
-  throw new Error(`dist/sw.js is too small (${sw.length} bytes). selfDestroying may still be enabled.`);
+  throw new Error(
+    `dist/sw.js is too small (${sw.length} bytes). selfDestroying may still be enabled.`,
+  );
 }
 
 if (!sw.includes("precacheAndRoute")) {

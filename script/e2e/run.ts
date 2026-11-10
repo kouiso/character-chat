@@ -309,10 +309,7 @@ const buildScenarioSelection = (cli: CliOptions): ScenarioDefinition[] => {
     return [
       {
         ...smokeScenario,
-        turns:
-          cli.turns === null
-            ? smokeScenario.turns
-            : smokeScenario.turns.slice(0, cli.turns),
+        turns: cli.turns === null ? smokeScenario.turns : smokeScenario.turns.slice(0, cli.turns),
       },
     ];
   }

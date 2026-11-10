@@ -136,7 +136,8 @@ const scan = (path, text) => {
   }
 };
 
-const TEXT_FILE = /\.(mjs|cjs|js|jsx|ts|tsx|json|jsonc|toml|yml|yaml|md|txt|sh|py|sql|vars|example|env)$/i;
+const TEXT_FILE =
+  /\.(mjs|cjs|js|jsx|ts|tsx|json|jsonc|toml|yml|yaml|md|txt|sh|py|sql|vars|example|env)$/i;
 for (const path of tracked) {
   if (!TEXT_FILE.test(path)) continue;
   let text;
@@ -169,4 +170,6 @@ if (failures.length > 0) {
   for (const message of failures) console.error(`  - ${message}`);
   process.exit(1);
 }
-console.log(`資格情報検査: OK（追跡 ${tracked.length} ファイル、無視ルール ${mustBeIgnored.length} 件確認）`);
+console.log(
+  `資格情報検査: OK（追跡 ${tracked.length} ファイル、無視ルール ${mustBeIgnored.length} 件確認）`,
+);

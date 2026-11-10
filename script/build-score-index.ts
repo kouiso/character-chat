@@ -51,7 +51,7 @@ const E2E_DIR = path.join(REPO_ROOT, ".work/e2e-results");
 const SEEDS_IMAGES_DIR = path.join(REPO_ROOT, ".work/seeds/images");
 const AVATAR_HISTORY_PATH = path.join(
   os.homedir(),
-  ".claude/projects/-home-kouiso-ghq-kouiso-adult-ai-app/memory/avatar-scoring-history-full.md"
+  ".claude/projects/-home-kouiso-ghq-kouiso-adult-ai-app/memory/avatar-scoring-history-full.md",
 );
 const OUTPUT_DIR = path.join(REPO_ROOT, "evals");
 const OUTPUT_PATH = path.join(OUTPUT_DIR, "score-index.jsonl");
@@ -147,7 +147,9 @@ function parseManifests(): ScoreEntry[] {
     const rawDate = runId.slice(4, 12); // "20260507"
     const runDate =
       manifest.date ??
-      (rawDate.length === 8 ? `${rawDate.slice(0, 4)}-${rawDate.slice(4, 6)}-${rawDate.slice(6, 8)}` : "");
+      (rawDate.length === 8
+        ? `${rawDate.slice(0, 4)}-${rawDate.slice(4, 6)}-${rawDate.slice(6, 8)}`
+        : "");
     loaded++;
 
     for (const s of manifest.scenarios ?? []) {
@@ -192,7 +194,9 @@ function parseManifests(): ScoreEntry[] {
         scores,
         judgment,
         score: total,
-        notes: s.terminationReason ? `status:${s.status} — ${String(s.terminationReason).slice(0, 80)}` : `status:${s.status ?? "?"}`,
+        notes: s.terminationReason
+          ? `status:${s.status} — ${String(s.terminationReason).slice(0, 80)}`
+          : `status:${s.status ?? "?"}`,
         image_ref: `gdrive:evals/${runDate.slice(0, 7)}/${runId}/`,
         drive_file_id: "",
         source: path.relative(REPO_ROOT, file),
@@ -200,7 +204,9 @@ function parseManifests(): ScoreEntry[] {
     }
   }
 
-  console.log(`[1] manifest.json: ${files.length} files, ${loaded} loaded, ${entries.length} entries`);
+  console.log(
+    `[1] manifest.json: ${files.length} files, ${loaded} loaded, ${entries.length} entries`,
+  );
   return entries;
 }
 
@@ -273,7 +279,6 @@ function parseAbScored(): ScoreEntry[] {
 
 const PIPE_LINE_RE =
   /^(\d{4}-\d{2}-\d{2})\s*\|\s*([A-Z]{1,2})\s*\|\s*([^\|]+?)\s*\|\s*(\d+(?:\.\d+)?)点\s*(PASS|FAIL)([^\n]*)/;
-
 
 // キャラ名を相対パスから推定
 function guessCharFromPath(p: string): string {
@@ -446,7 +451,10 @@ function main() {
   // scores が完全に空の eval エントリを警告
   let emptyScores = 0;
   for (const e of deduped) {
-    if (e.type === "eval" && Object.keys(e.scores).every((k) => e.scores[k as keyof typeof e.scores] == null)) {
+    if (
+      e.type === "eval" &&
+      Object.keys(e.scores).every((k) => e.scores[k as keyof typeof e.scores] == null)
+    ) {
       emptyScores++;
     }
   }
@@ -471,7 +479,11 @@ function main() {
     if (cc == null) continue;
     // モデルはノートから抽出 or ソースから推定
     const modelMatch = e.notes.match(/model:(\S+)/);
-    const model = modelMatch ? modelMatch[1] : e.source.includes("ab-") ? path.basename(e.source, ".json").replace(/^ab-|-scored$/, "") : "manifest";
+    const model = modelMatch
+      ? modelMatch[1]
+      : e.source.includes("ab-")
+        ? path.basename(e.source, ".json").replace(/^ab-|-scored$/, "")
+        : "manifest";
     (byModel[model] ??= []).push(cc);
   }
   for (const [model, vals] of Object.entries(byModel).sort()) {

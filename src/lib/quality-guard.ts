@@ -1665,9 +1665,7 @@ const QUALITY_FAILURE_CATEGORY_BY_CHECK: Record<string, QualityFailureCategory> 
   "sensual-abstract": "sensual_abstract",
 };
 
-export const categorizeQualityFailure = (
-  failedCheck: string | undefined,
-): QualityFailureCategory =>
+export const categorizeQualityFailure = (failedCheck: string | undefined): QualityFailureCategory =>
   failedCheck ? (QUALITY_FAILURE_CATEGORY_BY_CHECK[failedCheck] ?? "other") : "other";
 
 // 試行同士を比べて「どれを配るか」を決める時だけ使う。撮り直すかどうかの判定には

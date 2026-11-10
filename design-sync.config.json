@@ -6,9 +6,7 @@
   "srcDir": "src/component/ui",
   "tsconfig": "tsconfig.json",
   "cssEntry": "dist/assets/ds-combined.css",
-  "guidelinesGlob": [
-    "doc/regression-coverage.md"
-  ],
+  "guidelinesGlob": ["doc/regression-coverage.md"],
   "extraFonts": [
     "node_modules/@fontsource-variable/geist/index.css",
     "node_modules/@fontsource-variable/noto-serif-jp/index.css"

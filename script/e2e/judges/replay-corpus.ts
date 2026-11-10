@@ -212,7 +212,11 @@ export const diffLabels = (
     if (to === turn.expectedPhase) headAgreed += 1;
     if (from === to) return;
     const direction =
-      to === turn.expectedPhase ? "improved" : from === turn.expectedPhase ? "regressed" : "neutral";
+      to === turn.expectedPhase
+        ? "improved"
+        : from === turn.expectedPhase
+          ? "regressed"
+          : "neutral";
     changed.push({ turn, from, to, direction });
   });
   return {
@@ -232,7 +236,8 @@ export const formatSummaryTable = (summary: CorpusSummary): string => {
     "-------------  --------  ------  ------  ------",
   ];
   for (const row of summary.rows) {
-    const recall = row.expected === 0 ? "  n/a" : `${((row.agreed / row.expected) * 100).toFixed(0)}%`;
+    const recall =
+      row.expected === 0 ? "  n/a" : `${((row.agreed / row.expected) * 100).toFixed(0)}%`;
     lines.push(
       `${row.phase.padEnd(13)}  ${String(row.expected).padStart(8)}  ${String(row.judged).padStart(6)}  ${String(row.agreed).padStart(6)}  ${recall.padStart(6)}`,
     );

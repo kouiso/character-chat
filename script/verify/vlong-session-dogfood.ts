@@ -16,7 +16,11 @@ import { buildMessagesForApi } from "../../src/lib/chat-message-adapter";
 import { parseXmlResponse } from "../../src/lib/xml-response-parser";
 import { describeChatSseFailure, readChatSseResponse } from "../lib/read-chat-sse";
 import type { ChatSseSnapshot } from "../lib/read-chat-sse";
-import { buildChatHeaders, buildMessagePersistBody, isScenePhase } from "./vlong-session-request-shape";
+import {
+  buildChatHeaders,
+  buildMessagePersistBody,
+  isScenePhase,
+} from "./vlong-session-request-shape";
 
 type ResponseLength = "short" | "medium" | "long" | "very_long";
 type ScenePhase = "conversation" | "intimate" | "erotic" | "climax" | "afterglow";
@@ -63,26 +67,59 @@ type CharacterKey = keyof typeof CHARACTERS;
 // 書き込んだターンが混ざらんと、応答長が相手の熱量に追従しとるかを読めん。
 const SCRIPTS: Record<CharacterKey, ScriptedTurn[]> = {
   sakura: [
-    { intent: "conversation", user: "急に声かけてごめん。……でも、ずっとひとりで本を読んでるきみのことが気になって。少しだけ、話してもいい？" },
-    { intent: "conversation", user: "俺の奢りだから、好きなの頼んで。……きみ、甘いのが好きそうだなって思ってた。当たってる？" },
-    { intent: "conversation", user: "その本、同じページばっかり読み返してたよ。……考えてること、聞かせて" },
-    { intent: "intimate", user: "きみの手、小さいね。……触れていい？　……なんて、聞く前にもう触れてるんだけど。ほら、手、貸して" },
-    { intent: "intimate", user: "髪、耳にかかってるね。取ってあげる。……首筋、赤くなってるよ。きみの緊張、ぜんぶここに出てる。……隠しても遅いよ、見えてる" },
+    {
+      intent: "conversation",
+      user: "急に声かけてごめん。……でも、ずっとひとりで本を読んでるきみのことが気になって。少しだけ、話してもいい？",
+    },
+    {
+      intent: "conversation",
+      user: "俺の奢りだから、好きなの頼んで。……きみ、甘いのが好きそうだなって思ってた。当たってる？",
+    },
+    {
+      intent: "conversation",
+      user: "その本、同じページばっかり読み返してたよ。……考えてること、聞かせて",
+    },
+    {
+      intent: "intimate",
+      user: "きみの手、小さいね。……触れていい？　……なんて、聞く前にもう触れてるんだけど。ほら、手、貸して",
+    },
+    {
+      intent: "intimate",
+      user: "髪、耳にかかってるね。取ってあげる。……首筋、赤くなってるよ。きみの緊張、ぜんぶここに出てる。……隠しても遅いよ、見えてる",
+    },
     // 実測(2026-08-16)で分かった台本の欠陥: カフェから一度も移動せんまま erotic/climax を
     // 要求しとった。モデルは公共の場で性行為を書かんので、9ターン全部が「小道具が動いて
     // 体が震える」に化ける。実ユーザーはここで場所を変える。台本にも入れる。
-    { intent: "intimate", user: "……ねえ、このまま別れるの、もったいないよ。うち、すぐ近くなんだ。断るならここで断って。……ほら、きみの手、まだ握ってる" },
-    { intent: "erotic", user: "……結局、断らなかったね。……ドア、閉まったね。鍵もかけとく。……きみの吐息、熱くなってる" },
-    { intent: "erotic", user: "……その服、下だけ脱がせるよ。……俺の指、もう濡れてる。……挿れるよ。奥まで" },
+    {
+      intent: "intimate",
+      user: "……ねえ、このまま別れるの、もったいないよ。うち、すぐ近くなんだ。断るならここで断って。……ほら、きみの手、まだ握ってる",
+    },
+    {
+      intent: "erotic",
+      user: "……結局、断らなかったね。……ドア、閉まったね。鍵もかけとく。……きみの吐息、熱くなってる",
+    },
+    {
+      intent: "erotic",
+      user: "……その服、下だけ脱がせるよ。……俺の指、もう濡れてる。……挿れるよ。奥まで",
+    },
     { intent: "climax", user: "……奥、突くたびに締まるな。……中に出すから。きみの中で受けて" },
-    { intent: "afterglow", user: "……汗、拭いてあげる。……もう元には戻れないよ。きみのこと、ぜんぶ俺のものにしたから。……今、どんな気持ち？" },
+    {
+      intent: "afterglow",
+      user: "……汗、拭いてあげる。……もう元には戻れないよ。きみのこと、ぜんぶ俺のものにしたから。……今、どんな気持ち？",
+    },
   ],
   downer: [
     { intent: "conversation", user: "……助かった。ずぶ濡れで死ぬかと思った。" },
-    { intent: "conversation", user: "この部屋、絵の道具だらけだね。イラストレーターって聞いてないけど" },
+    {
+      intent: "conversation",
+      user: "この部屋、絵の道具だらけだね。イラストレーターって聞いてないけど",
+    },
     { intent: "conversation", user: "なんで俺なんか拾ったの" },
     { intent: "intimate", user: "……その距離、わざと？" },
-    { intent: "intimate", user: "きみの手、冷たい。もっとこっち来て。首のとこ、ピアスが光ってる。" },
+    {
+      intent: "intimate",
+      user: "きみの手、冷たい。もっとこっち来て。首のとこ、ピアスが光ってる。",
+    },
     { intent: "intimate", user: "……ベッド、そっちだよね。連れてって。" },
     { intent: "erotic", user: "逃がす気ないんでしょ。分かってるよ。" },
     { intent: "erotic", user: "そのまま、上から" },
@@ -229,7 +266,9 @@ const createConversationForCharacter = async (
     body: JSON.stringify({ title, characterId }),
   });
   if (!res.ok) {
-    throw new Error(`POST /api/conversations failed: ${res.status} ${(await res.text()).slice(0, 300)}`);
+    throw new Error(
+      `POST /api/conversations failed: ${res.status} ${(await res.text()).slice(0, 300)}`,
+    );
   }
   const body = (await res.json()) as {
     conversation: { id: string; characterGreeting?: string; greetingMessageId?: string | null };
@@ -247,7 +286,12 @@ const createConversationForCharacter = async (
 // また null に戻り、applyPhaseFloor が効かんまま先の計測が続く。
 const persistMessage = async (
   conversationId: string,
-  message: { id: string; role: "user" | "assistant"; content: string; generationPhase?: string | null },
+  message: {
+    id: string;
+    role: "user" | "assistant";
+    content: string;
+    generationPhase?: string | null;
+  },
 ): Promise<{ ok: true } | { ok: false; error: string }> => {
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   if (AUTH_TOKEN) headers.Authorization = `Bearer ${AUTH_TOKEN}`;
@@ -271,7 +315,10 @@ const persistMessage = async (
     }
     return { ok: true };
   } catch (err) {
-    return { ok: false, error: `POST /messages(${message.role}) threw: ${String(err).slice(0, 300)}` };
+    return {
+      ok: false,
+      error: `POST /messages(${message.role}) threw: ${String(err).slice(0, 300)}`,
+    };
   }
 };
 
@@ -608,7 +655,14 @@ async function main() {
   writeFileSync(
     resolve(OUT_DIR, `summary-${MODE}-${ARM}-${RUN_ID}.json`),
     JSON.stringify(
-      { mode: MODE, arm: ARM, runId: RUN_ID, baseUrl: BASE_URL, responseLength: RESPONSE_LENGTH, results: all },
+      {
+        mode: MODE,
+        arm: ARM,
+        runId: RUN_ID,
+        baseUrl: BASE_URL,
+        responseLength: RESPONSE_LENGTH,
+        results: all,
+      },
       null,
       2,
     ),

@@ -21,10 +21,7 @@ export const extractMemories = async (
     ? `${EXTRACTION_INSTRUCTION}\nCharacter-specific instruction (follow it strictly, in addition to the rules above): ${instruction.trim()}`
     : EXTRACTION_INSTRUCTION;
   const result = await model.invoke(
-    [
-      new SystemMessage(system),
-      new HumanMessage(JSON.stringify({ userMessage: source })),
-    ],
+    [new SystemMessage(system), new HumanMessage(JSON.stringify({ userMessage: source }))],
     { signal: AbortSignal.timeout(20_000) },
   );
   if (typeof result.content !== "string" || result.content.length > 16_000) {

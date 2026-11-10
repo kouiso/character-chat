@@ -28,7 +28,10 @@ const ready = async () => {
   for (let attempt = 0; attempt < 300; attempt++) {
     if (server.exitCode !== null) throw new Error("Runtime server exited before readiness");
     try {
-      const response = await fetch(`${url}/api/health`, { headers, signal: AbortSignal.timeout(1000) });
+      const response = await fetch(`${url}/api/health`, {
+        headers,
+        signal: AbortSignal.timeout(1000),
+      });
       if (response.ok && (await response.json()).mockModel === true) return;
     } catch {}
     await new Promise((resolve) => setTimeout(resolve, 100));

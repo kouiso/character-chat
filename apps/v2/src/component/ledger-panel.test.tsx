@@ -14,8 +14,7 @@ const LEDGER = {
   items: { スマホ: "彼のポケット" },
 };
 
-const ledgerResponse = (ledger: unknown) =>
-  Response.json({ ledger }, { status: 200 });
+const ledgerResponse = (ledger: unknown) => Response.json({ ledger }, { status: 200 });
 
 describe("台帳パネル", () => {
   afterEach(() => {
@@ -40,7 +39,10 @@ describe("台帳パネル", () => {
   });
 
   it("台帳が無い会話では案内を出す", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () => ledgerResponse(null)));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ledgerResponse(null)),
+    );
     render(<LedgerPanel characterId="char" getConversationId={() => "conv"} />);
 
     fireEvent.click(screen.getByRole("button", { name: "台帳" }));

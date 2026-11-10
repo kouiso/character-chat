@@ -25,16 +25,18 @@ const parseSourceScripts = (): Record<string, { intent: string; user: string }[]
   );
   if (!block) throw new Error("元ファイルの SCRIPTS ブロックが見つからん");
   const parsed: Record<string, { intent: string; user: string }[]> = {};
+  // フォーマッタが1行オブジェクトを複数行へ展開しても拾えるよう、
+  // キー行と { intent, user } オブジェクトは行単位でなくブロック全体から順に取る。
+  const entry =
+    /^\s{2}(\w+):\s*\[|\{\s*intent:\s*"(\w+)",\s*user:\s*"((?:[^"\\]|\\.)*)"\s*,?\s*\}/gm;
   let current: string | null = null;
-  for (const line of block[1].split("\n")) {
-    const key = /^\s{2}(\w+):\s*\[/.exec(line);
-    if (key) {
-      current = key[1];
+  for (const m of block[1].matchAll(entry)) {
+    if (m[1]) {
+      current = m[1];
       parsed[current] = [];
       continue;
     }
-    const turn = /\{\s*intent:\s*"(\w+)",\s*user:\s*"([^"]*)"\s*\}/.exec(line);
-    if (turn && current) parsed[current].push({ intent: turn[1], user: turn[2] });
+    if (current) parsed[current].push({ intent: m[2], user: m[3] });
   }
   return parsed;
 };

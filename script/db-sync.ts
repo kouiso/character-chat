@@ -72,10 +72,10 @@ function wranglerQuery<T>(sql: string, remote: boolean): T[] {
   // wrangler d1 execute --command は単一クォートを含むと bash 展開されるため --file 経由が安全だが
   // ここでは --json + stdin 経由で渡す
   const escaped = sql.replace(/"/g, '\\"');
-  const out = execSync(
-    `npx wrangler d1 execute ${DB_NAME} ${flag} --json --command "${escaped}"`,
-    { encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"] },
-  );
+  const out = execSync(`npx wrangler d1 execute ${DB_NAME} ${flag} --json --command "${escaped}"`, {
+    encoding: "utf-8",
+    stdio: ["pipe", "pipe", "pipe"],
+  });
   const parsed = JSON.parse(out) as Array<{ results?: T[] }>;
   return parsed[0]?.results ?? [];
 }
@@ -140,10 +140,7 @@ function runCatalogPull(): void {
 
   const tableData: CatalogTableData[] = [];
   for (const { name } of CATALOG_TABLES) {
-    const rows = wranglerQuery<Record<string, unknown>>(
-      `SELECT * FROM ${name}`,
-      true,
-    );
+    const rows = wranglerQuery<Record<string, unknown>>(`SELECT * FROM ${name}`, true);
     tableData.push({ name, rows });
     console.log(`  prod ${name}: ${rows.length} rows`);
   }
@@ -176,9 +173,7 @@ function runPush(mode: "dry" | "apply"): void {
 
   console.log("Querying prod D1...");
   const prodCharIds = new Set(
-    wranglerQuery<{ id: string }>(`SELECT id FROM character`, true).map(
-      (r) => r.id,
-    ),
+    wranglerQuery<{ id: string }>(`SELECT id FROM character`, true).map((r) => r.id),
   );
   const prodUserIds = new Set(
     wranglerQuery<{ id: string }>(`SELECT id FROM user`, true).map((r) => r.id),
@@ -201,9 +196,7 @@ function runPush(mode: "dry" | "apply"): void {
   }
 
   if (mode === "dry") {
-    console.log(
-      "\n[dry-run] prod への書き込みなし。実行するには: tsx script/db-sync.ts apply",
-    );
+    console.log("\n[dry-run] prod への書き込みなし。実行するには: tsx script/db-sync.ts apply");
     return;
   }
 
@@ -215,9 +208,20 @@ function runPush(mode: "dry" | "apply"): void {
   const userMap = new Map(localUsers.map((u) => [u.id, u]));
 
   const CHAR_COLS = [
-    "id", "name", "user_id", "avatar", "system_prompt", "visual_prompt",
-    "image_meta", "greeting", "tags", "user_persona_name", "user_persona_gender",
-    "user_persona_personality", "display_order", "created_at",
+    "id",
+    "name",
+    "user_id",
+    "avatar",
+    "system_prompt",
+    "visual_prompt",
+    "image_meta",
+    "greeting",
+    "tags",
+    "user_persona_name",
+    "user_persona_gender",
+    "user_persona_personality",
+    "display_order",
+    "created_at",
   ] as const;
 
   let pushed = 0;

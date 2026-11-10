@@ -55,10 +55,7 @@ export const handleVoiceGet = async (characterId: string): Promise<Response> => 
   return json(200, await readVoice(env.DB, characterId));
 };
 
-export const handleVoicePut = async (
-  characterId: string,
-  request: Request,
-): Promise<Response> => {
+export const handleVoicePut = async (characterId: string, request: Request): Promise<Response> => {
   const { env } = await getPlatform();
   if (!(await ownsCharacter(env.DB, characterId))) return json(404, { error: "not_found" });
   const raw = await request.json();

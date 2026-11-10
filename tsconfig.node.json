@@ -2,14 +2,9 @@
   "compilerOptions": {
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
     "target": "ES2023",
-    "lib": [
-      "ES2023",
-      "DOM"
-    ],
+    "lib": ["ES2023", "DOM"],
     "module": "ESNext",
-    "types": [
-      "node"
-    ],
+    "types": ["node"],
     "skipLibCheck": true,
     /* Bundler mode */
     "moduleResolution": "bundler",
@@ -29,10 +24,5 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": [
-    "vite.config.ts",
-    "vitest.config.ts",
-    "drizzle.config.ts",
-    "script/**/*.ts"
-  ]
+  "include": ["vite.config.ts", "vitest.config.ts", "drizzle.config.ts", "script/**/*.ts"]
 }

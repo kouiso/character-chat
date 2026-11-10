@@ -119,7 +119,14 @@ async function main() {
       const r = await cfFetch("/api/chat", payload);
       if (!r.ok) {
         console.error(`  status ${r.status}: ${r.body.slice(0, 200)}`);
-        results.push({ character: name, phase, visible: 0, model: null, error: `${r.status} ${r.body.slice(0, 120)}`, pass: false });
+        results.push({
+          character: name,
+          phase,
+          visible: 0,
+          model: null,
+          error: `${r.status} ${r.body.slice(0, 120)}`,
+          pass: false,
+        });
         continue;
       }
       const visible = countVisible(r.text);
@@ -128,18 +135,29 @@ async function main() {
       const pass = visible > FLOOR;
       const safeId = `${name}-${phase}`.replace(/[^a-zA-Z0-9\-_]/g, "_");
       writeFileSync(resolve(RESULT_DIR, `vlong-${safeId}.txt`), r.text, "utf8");
-      console.log(`  model=${r.model ?? "(none)"} visible=${visible} inner=${inner} total=${total} pass=${pass} done=${r.done} error=${r.error ?? "-"}`);
+      console.log(
+        `  model=${r.model ?? "(none)"} visible=${visible} inner=${inner} total=${total} pass=${pass} done=${r.done} error=${r.error ?? "-"}`,
+      );
       if (!pass) {
         console.log(`  text (first 240): ${r.text.slice(0, 240).replace(/\n/g, " ")}`);
       }
-      results.push({ character: name, phase, visible, model: r.model, error: r.error ?? undefined, pass });
+      results.push({
+        character: name,
+        phase,
+        visible,
+        model: r.model,
+        error: r.error ?? undefined,
+        pass,
+      });
     }
   }
 
   console.log("\n=== SUMMARY ===");
   for (const row of results) {
     const mark = row.pass ? "PASS" : "FAIL";
-    console.log(`${mark}: ${row.character}/${row.phase} visible=${row.visible} model=${row.model ?? "-"} ${row.error ?? ""}`);
+    console.log(
+      `${mark}: ${row.character}/${row.phase} visible=${row.visible} model=${row.model ?? "-"} ${row.error ?? ""}`,
+    );
   }
   const allPass = results.every((r) => r.pass);
   process.exit(allPass ? 0 : 1);

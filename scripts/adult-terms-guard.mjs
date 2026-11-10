@@ -51,7 +51,11 @@ export const scanFiles = (files, terms) => {
 };
 
 const trackedFiles = () =>
-  execFileSync("git", ["ls-files", "-z"], { cwd: root, encoding: "utf8", maxBuffer: 64 * 1024 * 1024 })
+  execFileSync("git", ["ls-files", "-z"], {
+    cwd: root,
+    encoding: "utf8",
+    maxBuffer: 64 * 1024 * 1024,
+  })
     .split("\0")
     .filter(Boolean)
     .filter((path) => !SELF_FILES.has(path));

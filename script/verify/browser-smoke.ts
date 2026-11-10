@@ -21,7 +21,10 @@ function loadProdVars(): Record<string, string> {
     const eq = trimmed.indexOf("=");
     if (eq < 0) continue;
     const key = trimmed.slice(0, eq).trim();
-    const val = trimmed.slice(eq + 1).trim().replace(/^["']|["']$/g, "");
+    const val = trimmed
+      .slice(eq + 1)
+      .trim()
+      .replace(/^["']|["']$/g, "");
     result[key] = val;
   }
   return result;
@@ -50,15 +53,22 @@ function getMode(): Mode {
 
 // ── HTTP helper ────────────────────────────────────────────────────────────────
 
-function httpsGet(url: string, headers: Record<string, string>): Promise<{ status: number; body: string; location?: string }> {
+function httpsGet(
+  url: string,
+  headers: Record<string, string>,
+): Promise<{ status: number; body: string; location?: string }> {
   return new Promise((resolve, reject) => {
     const u = new URL(url);
     const req = https.request(
       { hostname: u.hostname, path: u.pathname + u.search, headers, method: "GET" },
       (res) => {
         let body = "";
-        res.on("data", (chunk: Buffer) => { body += chunk.toString(); });
-        res.on("end", () => resolve({ status: res.statusCode ?? 0, body, location: res.headers["location"] }));
+        res.on("data", (chunk: Buffer) => {
+          body += chunk.toString();
+        });
+        res.on("end", () =>
+          resolve({ status: res.statusCode ?? 0, body, location: res.headers["location"] }),
+        );
       },
     );
     req.on("error", reject);
@@ -80,7 +90,9 @@ async function runReachableCheck(vars: Record<string, string>): Promise<boolean>
 
   const edgeRes = await httpsGet(base + "/", basicHeaders);
   const edgePass = edgeRes.status === 200;
-  console.log(`[${edgePass ? "GREEN" : "RED  "}] エッジ通過(Basic): ${edgeRes.status} (expect 200)`);
+  console.log(
+    `[${edgePass ? "GREEN" : "RED  "}] エッジ通過(Basic): ${edgeRes.status} (expect 200)`,
+  );
 
   const publicShellRes = await httpsGet(base + "/", {});
   const publicShellPass = isPublicAppShell(publicShellRes);
@@ -157,10 +169,9 @@ async function bootstrapAppAuth(
     console.error(`  /api/auth/basic-login 失敗: ${JSON.stringify(result)}`);
     return null;
   }
-  await page.evaluate(
-    ({ t }: { t: string }) => localStorage.setItem("auth_token", t),
-    { t: result.token },
-  );
+  await page.evaluate(({ t }: { t: string }) => localStorage.setItem("auth_token", t), {
+    t: result.token,
+  });
   return result.token;
 }
 
@@ -187,8 +198,13 @@ async function runFeedbackAndDelete(page: Page): Promise<{ itemD: boolean; itemE
     await charItem.click();
 
     // キャラ詳細画面 → 「はじめる」or「つづきから、話す」ボタンでチャット画面へ
-    const chatStartBtn = page.locator('button:has-text("はじめる"), button:has-text("つづきから、話す")');
-    await chatStartBtn.first().waitFor({ state: "visible", timeout: 15_000 }).catch(() => null);
+    const chatStartBtn = page.locator(
+      'button:has-text("はじめる"), button:has-text("つづきから、話す")',
+    );
+    await chatStartBtn
+      .first()
+      .waitFor({ state: "visible", timeout: 15_000 })
+      .catch(() => null);
     if ((await chatStartBtn.count()) > 0) await chatStartBtn.first().click();
 
     const textarea = page.locator("textarea").first();
@@ -209,7 +225,10 @@ async function runFeedbackAndDelete(page: Page): Promise<{ itemD: boolean; itemE
       for (let i = 0; i < 60; i++) {
         await page.waitForTimeout(1_000);
         const count = await page.locator('[data-testid="message-bubble"]').count();
-        if (count > bubblesOnEntry + 1) { assistantReceived = true; break; }
+        if (count > bubblesOnEntry + 1) {
+          assistantReceived = true;
+          break;
+        }
       }
     }
 
@@ -296,7 +315,11 @@ async function runFeedbackAndDelete(page: Page): Promise<{ itemD: boolean; itemE
   return { itemD, itemE };
 }
 
-async function runBrowser(vars: Record<string, string>, functional: boolean, mode: Mode): Promise<boolean> {
+async function runBrowser(
+  vars: Record<string, string>,
+  functional: boolean,
+  mode: Mode,
+): Promise<boolean> {
   let playwright: typeof import("playwright");
   try {
     playwright = await import("playwright");
@@ -387,11 +410,15 @@ async function runBrowser(vars: Record<string, string>, functional: boolean, mod
         `[${visibleCardCount > 0 ? "GREEN" : "RED  "}] 表示中のキャラカード件数: ${visibleCardCount}/${cardCount}`,
       );
       console.log(`[${!hasError ? "GREEN" : "RED  "}] エラー文言なし: ${!hasError}`);
-      console.log(`[${!onboardingVisible ? "GREEN" : "RED  "}] オンボーディング非表示: ${!onboardingVisible}`);
+      console.log(
+        `[${!onboardingVisible ? "GREEN" : "RED  "}] オンボーディング非表示: ${!onboardingVisible}`,
+      );
       console.log(`[${passed ? "GREEN" : "RED  "}] discover 画面 PASS: ${passed}`);
 
       if (!passed) {
-        console.error("  ❌ キャラが描画されていません。スクショは証拠として撮りますが FAIL です。");
+        console.error(
+          "  ❌ キャラが描画されていません。スクショは証拠として撮りますが FAIL です。",
+        );
       }
     }
 
@@ -432,7 +459,10 @@ async function runFunctional(page: Page, base: string): Promise<boolean> {
 
     // キャラ詳細画面 → 「この子と話す →」でトーク画面へ
     const chatStartBtn = page.locator('button:has-text("この子と話す")');
-    await chatStartBtn.first().waitFor({ state: "visible", timeout: 15_000 }).catch(() => null);
+    await chatStartBtn
+      .first()
+      .waitFor({ state: "visible", timeout: 15_000 })
+      .catch(() => null);
     if ((await chatStartBtn.count()) > 0) await chatStartBtn.first().click();
 
     const composer = page.locator(COMPOSER_SELECTOR).first();
@@ -443,7 +473,10 @@ async function runFunctional(page: Page, base: string): Promise<boolean> {
 
     const sendBtn = page.locator(CHAT_SEND_SELECTOR);
     await sendBtn.waitFor({ state: "visible", timeout: 5_000 }).catch(() => null);
-    if ((await sendBtn.count()) > 0 && !(await sendBtn.evaluate((el) => (el as HTMLButtonElement).disabled))) {
+    if (
+      (await sendBtn.count()) > 0 &&
+      !(await sendBtn.evaluate((el) => (el as HTMLButtonElement).disabled))
+    ) {
       await sendBtn.click();
     } else {
       await composer.press("Enter");
@@ -454,7 +487,10 @@ async function runFunctional(page: Page, base: string): Promise<boolean> {
     for (let i = 0; i < 60; i++) {
       await page.waitForTimeout(1_000);
       const msgs = await page.locator(BUBBLE_SELECTOR).count();
-      if (msgs > countBefore + 1) { responseReceived = true; break; }
+      if (msgs > countBefore + 1) {
+        responseReceived = true;
+        break;
+      }
     }
     console.log(`[${responseReceived ? "GREEN" : "RED  "}] chat 応答受信`);
     return responseReceived;

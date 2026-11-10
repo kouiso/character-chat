@@ -62,8 +62,13 @@ if (!existsSync(dirname(logPath))) {
 }
 
 const scenarios = (manifest.scenarios ?? []).map(parseScenario);
-const completedScores = scenarios.filter((s) => !s.aborted && s.score !== null).map((s) => s.score as number);
-const avgScore = completedScores.length > 0 ? completedScores.reduce((a, b) => a + b, 0) / completedScores.length : null;
+const completedScores = scenarios
+  .filter((s) => !s.aborted && s.score !== null)
+  .map((s) => s.score as number);
+const avgScore =
+  completedScores.length > 0
+    ? completedScores.reduce((a, b) => a + b, 0) / completedScores.length
+    : null;
 const abortCount = scenarios.filter((s) => s.aborted).length;
 
 const entry = {

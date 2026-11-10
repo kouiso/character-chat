@@ -8,7 +8,7 @@ on:
     # 何もせず終わっとった。ラベルの削除は元々行わんため、起動せんこと自体が
     # 挙動の変化にならん。
     paths:
-      - 'drizzle/**.sql'
+      - "drizzle/**.sql"
 
 permissions:
   contents: read

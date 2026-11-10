@@ -613,7 +613,14 @@ describe("group-by の切り口（宣言された設定）", () => {
   const withConfig = (arm: string, responseLength: string, run: string): BenchTurn =>
     turnOf({
       run,
-      config: { mode: "session", arm, responseLength, runId: "1", expectedTurns: null, lengthDirective: true },
+      config: {
+        mode: "session",
+        arm,
+        responseLength,
+        runId: "1",
+        expectedTurns: null,
+        lengthDirective: true,
+      },
     });
 
   it("設定が記録されとる run は arm / responseLength で束ねる", () => {
@@ -734,9 +741,7 @@ describe("toJsonlRecord", () => {
   });
 
   it("CLI が品質軸から外した印を残す（同じ母集団を作り直せるように）", () => {
-    const record = toJsonlRecord(
-      measureAll([turnOf({ run: "x", afterBrokenContext: true })])[0],
-    );
+    const record = toJsonlRecord(measureAll([turnOf({ run: "x", afterBrokenContext: true })])[0]);
     expect(record.afterBrokenContext).toBe(true);
   });
 

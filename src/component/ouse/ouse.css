@@ -8,7 +8,12 @@
 .ou-face-fallback {
   position: absolute;
   inset: 0;
-  background: radial-gradient(140% 100% at 68% 20%, var(--ink) 0%, var(--night-mid) 55%, var(--night) 100%);
+  background: radial-gradient(
+    140% 100% at 68% 20%,
+    var(--ink) 0%,
+    var(--night-mid) 55%,
+    var(--night) 100%
+  );
 }
 /* talk 画面（案A「燈」）専用のフラット背景。背景色は ou-stage.tsx から OU2 トークンで注入する */
 .ou-stage-flat-bg {
@@ -811,7 +816,12 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: linear-gradient(to bottom, transparent 40%, rgba(11, 9, 7, 0.5) 72%, var(--viewer-black) 100%);
+  background: linear-gradient(
+    to bottom,
+    transparent 40%,
+    rgba(11, 9, 7, 0.5) 72%,
+    var(--viewer-black) 100%
+  );
 }
 .ou-pf-hero-meta {
   position: absolute;

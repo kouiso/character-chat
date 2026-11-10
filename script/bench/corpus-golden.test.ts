@@ -41,17 +41,14 @@ const BENCH_RUNS_DIR = path.join(ROOT, ".work", "e2e-results", "bench-runs");
 // コーパス一式が揃っとる環境だけで走る。gitignore 済みの実測データなので
 // fresh clone（CI・Devin Cloud 等）では存在せん → その場合は skip。
 const CORPUS_PRESENT =
-  existsSync(VLONG_DIR) &&
-  MODEL_AB_FILES.every((f) => existsSync(f)) &&
-  existsSync(BENCH_RUNS_DIR);
+  existsSync(VLONG_DIR) && MODEL_AB_FILES.every((f) => existsSync(f)) && existsSync(BENCH_RUNS_DIR);
 
 /**
  * **CLI と同じ前処理を通す。**`markTurnsAfterBrokenContext` を飛ばして測っとった間、
  * 壊れた文脈の後を採点し直す regression が入っても golden は全部 green のまま、
  * CLI の表だけが変わる形やった（cli.ts:151 が本番の経路）。
  */
-const prepared = (turns: ReturnType<typeof normalizeTurn>[]) =>
-  markTurnsAfterBrokenContext(turns);
+const prepared = (turns: ReturnType<typeof normalizeTurn>[]) => markTurnsAfterBrokenContext(turns);
 
 // 実測系は全ターン走査するので、遅い GitHub-hosted runner では既定 5s を超える
 const MEASURE_TIMEOUT = 120_000;
@@ -102,19 +99,23 @@ describe.skipIf(!CORPUS_PRESENT)("実コーパスの golden（軸を触った時
     expect(summary.repeatLayerAware).toStrictEqual({ hits: 3, total: 410 });
   });
 
-  it("bench-run（生成した run）の実測値 — 壊れた文脈の後は採点せん", { timeout: MEASURE_TIMEOUT }, () => {
-    // この run が、除外の規則が効いとることを示す唯一の実証拠。golden へ入れてへんかった
-    // 間は、turn6-10 を採点し直す regression が入っても全部 green のままやった
-    expect(existsSync(BENCH_RUNS_DIR)).toBe(true);
-    const summary = summarize(
-      "bench-run",
-      measureAll(prepared(loadBenchRuns(BENCH_RUNS_DIR).map(normalizeTurn))),
-    );
-    // 10ターン投げて、turn5 が 429。採点できるのは turn1-4
-    expect(summary.turns).toBe(4);
-    expect(summary.transportError).toStrictEqual({ hits: 1, total: 10 });
-    expect(summary.afterBrokenContext).toBe(5);
-    // 分量の指示を送っとらん run なので、床が付かん＝不足は判定せん
-    expect(summary.tooShort).toStrictEqual({ hits: 0, total: 0 });
-  });
+  it(
+    "bench-run（生成した run）の実測値 — 壊れた文脈の後は採点せん",
+    { timeout: MEASURE_TIMEOUT },
+    () => {
+      // この run が、除外の規則が効いとることを示す唯一の実証拠。golden へ入れてへんかった
+      // 間は、turn6-10 を採点し直す regression が入っても全部 green のままやった
+      expect(existsSync(BENCH_RUNS_DIR)).toBe(true);
+      const summary = summarize(
+        "bench-run",
+        measureAll(prepared(loadBenchRuns(BENCH_RUNS_DIR).map(normalizeTurn))),
+      );
+      // 10ターン投げて、turn5 が 429。採点できるのは turn1-4
+      expect(summary.turns).toBe(4);
+      expect(summary.transportError).toStrictEqual({ hits: 1, total: 10 });
+      expect(summary.afterBrokenContext).toBe(5);
+      // 分量の指示を送っとらん run なので、床が付かん＝不足は判定せん
+      expect(summary.tooShort).toStrictEqual({ hits: 0, total: 0 });
+    },
+  );
 });

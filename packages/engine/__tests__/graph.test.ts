@@ -77,7 +77,7 @@ const generationAt = (store: MemoryTurnStore, index: number, convId = "conv-memo
 describe("createTurnGraph", () => {
   test("毎ターン記憶を取得し、採用IDと本文を保存するがsystemへは混ぜない", async () => {
     const store = createMemoryTurnStore();
-    const retrieveMemories = jest
+    const retrieveMemories = vi
       .fn()
       .mockResolvedValue([{ id: "fact-tea", content: "紅茶が好きです。" }]);
     const graph = createTurnGraph({
@@ -114,10 +114,10 @@ describe("createTurnGraph", () => {
 
   test("記憶と資料が食い違う時、資料は記憶の後ろに優先ルール付きで渡る (RIT-117)", async () => {
     const store = createMemoryTurnStore();
-    const retrieveMemories = jest
+    const retrieveMemories = vi
       .fn()
       .mockResolvedValue([{ id: "fact-drink", content: "紅茶は嫌いです。" }]);
-    const retrieveDocuments = jest
+    const retrieveDocuments = vi
       .fn()
       .mockResolvedValue([{ id: "doc-setting", content: "【設定資料】紅茶が好きです。" }]);
     const graph = createTurnGraph({
@@ -151,7 +151,7 @@ describe("createTurnGraph", () => {
 
   test("資料が無い時は資料ブロックのメッセージ自体を出さない", async () => {
     const store = createMemoryTurnStore();
-    const retrieveDocuments = jest.fn().mockResolvedValue([]);
+    const retrieveDocuments = vi.fn().mockResolvedValue([]);
     const graph = createTurnGraph({
       model: new FakeListChatModel({ responses: [VALID_XML, VALID_XML_SECOND] }),
       store,
@@ -166,9 +166,7 @@ describe("createTurnGraph", () => {
       ),
     );
     const request = generationAt(store, 0).request;
-    expect(request.some((message) => String(message.content).includes("設定資料"))).toBe(
-      false,
-    );
+    expect(request.some((message) => String(message.content).includes("設定資料"))).toBe(false);
   });
 
   test("token* → chunk+ → done の順でイベントが流れ、store に1ターン保存される", async () => {
@@ -283,7 +281,7 @@ describe("createTurnGraph", () => {
     const model = new FakeListChatModel({
       responses: [ng, repeated, ngSecond, repeatedSecond],
     });
-    const invokeSpy = jest.spyOn(model, "invoke");
+    const invokeSpy = vi.spyOn(model, "invoke");
     const graph = createTurnGraph({ model, store, extendBelowRatio: 0 });
 
     for (const userText of ["一回目", "二回目"]) {
@@ -302,7 +300,7 @@ describe("createTurnGraph", () => {
     const model = new FakeListChatModel({
       responses: [raw, replacementForFirst, replacementForSecond],
     });
-    const invokeSpy = jest.spyOn(model, "invoke");
+    const invokeSpy = vi.spyOn(model, "invoke");
     const graph = createTurnGraph({ model, store, extendBelowRatio: 0 });
 
     const stream = await graph.stream(
@@ -359,7 +357,7 @@ describe("createTurnGraph", () => {
       "<action>奥の奥にどくどくと注がれる熱が止まらない。子宮が精液で満たされていく重さが下腹にずしりと広がる。</action>";
     const fresh = "窓の外で雨が強くなり、部屋の灯りが一度だけ揺れた。";
     const model = new FakeListChatModel({ responses: [copied, fresh] });
-    const invokeSpy = jest.spyOn(model, "invoke");
+    const invokeSpy = vi.spyOn(model, "invoke");
     const graph = createTurnGraph({ model, store, extendBelowRatio: 0 });
 
     const events: TurnEvent[] = [];
@@ -383,7 +381,7 @@ describe("createTurnGraph", () => {
       "<action>奥の奥にどくどくと注がれる熱が止まらない。子宮が精液で満たされていく重さが下腹にずしりと広がる。</action>";
     const fresh = "窓の外で雨が強くなり、部屋の灯りが一度だけ揺れた。";
     const model = new FakeListChatModel({ responses: [copied, fresh] });
-    const invokeSpy = jest.spyOn(model, "invoke");
+    const invokeSpy = vi.spyOn(model, "invoke");
     const graph = createTurnGraph({ model, store, extendBelowRatio: 0 });
 
     for await (const event of runTurn(
@@ -431,8 +429,8 @@ describe("createTurnGraph", () => {
     const repeated = "とてもよく似た言い回しをそのまま繰り返す一節がここに置かれている";
     const ng = `<action>${repeated}</action><action>${repeated}</action>`;
     const model = new FakeListChatModel({ responses: [ng, "別の場面へ進む一文がここに来る。"] });
-    const streamSpy = jest.spyOn(model, "stream");
-    const invokeSpy = jest.spyOn(model, "invoke");
+    const streamSpy = vi.spyOn(model, "stream");
+    const invokeSpy = vi.spyOn(model, "invoke");
     const graph = createTurnGraph({ model, store, extendBelowRatio: 0 });
 
     await drain(
@@ -457,7 +455,7 @@ describe("createTurnGraph", () => {
     const extension =
       "<action>立ち上がって窓を閉め、濡れた肩にタオルを掛ける。指先が触れた首筋が思ったより熱い。</action><dialogue>「風邪ひくよ。そこ、座って」</dialogue>";
     const model = new FakeListChatModel({ responses: [short, extension] });
-    const invokeSpy = jest.spyOn(model, "invoke");
+    const invokeSpy = vi.spyOn(model, "invoke");
     const graph = createTurnGraph({ model, store });
 
     const events: TurnEvent[] = [];
@@ -524,7 +522,7 @@ describe("createTurnGraph", () => {
     // conversation の目安 220 字 × 0.8 = 176 字を超える本文。
     const long = `<response><action>${"雨音が窓を叩く音を聞きながら、濡れた髪を拭く手を止めてあなたを見る。".repeat(6)}</action><dialogue>「……そんなに見ないでよ。恥ずかしいんだから」</dialogue></response>`;
     const model = new FakeListChatModel({ responses: [long] });
-    const invokeSpy = jest.spyOn(model, "invoke");
+    const invokeSpy = vi.spyOn(model, "invoke");
     const graph = createTurnGraph({ model, store });
     await drain(
       runTurn(graph, { conversationId: "conv-i", userText: "ただいま", character }, "conv-i"),

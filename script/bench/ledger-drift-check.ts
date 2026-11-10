@@ -83,9 +83,7 @@ const lexemeIn = (text: string, lexicon: readonly [string, string][]): Set<strin
   return found;
 };
 
-const readTurn = (
-  path: string,
-): { character: string; turn: number; body: string } => {
+const readTurn = (path: string): { character: string; turn: number; body: string } => {
   const lines = readFileSync(path, "utf8").split("\n");
   const bodyStart = lines.indexOf(BODY_MARKER) + 1;
   if (bodyStart <= 0) throw new Error(`本文マーカーが無い: ${path}`);
@@ -139,9 +137,7 @@ export const scanTurn = (body: string, ledger: LedgerRow | null): DriftRow["drif
   }
   const textNude = NUDE_PATTERN.test(body);
   const textDressed = DRESSED_PATTERN.test(body);
-  const ledgerSaysNude = Object.values(ledger.clothing).some((state) =>
-    NUDE_PATTERN.test(state),
-  );
+  const ledgerSaysNude = Object.values(ledger.clothing).some((state) => NUDE_PATTERN.test(state));
   const ledgerSaysDressed = Object.values(ledger.clothing).some((state) =>
     DRESSED_PATTERN.test(state),
   );
@@ -189,9 +185,7 @@ const main = (): void => {
       clothing: rows.reduce((sum, row) => sum + row.drift.clothing, 0),
       turns: rows.filter((row) => row.hitCount > 0).length,
     };
-    console.log(
-      JSON.stringify({ dir: basename(dir), scanned: rows.length, noLedger, totals }),
-    );
+    console.log(JSON.stringify({ dir: basename(dir), scanned: rows.length, noLedger, totals }));
   }
 };
 

@@ -81,8 +81,7 @@ const computeJudgeMonotonicViolation = (
 ): boolean => {
   if (previousDetected === null) return false;
   const rawViolation =
-    detected !== "conversation" &&
-    PHASE_ORDER[previousDetected] > PHASE_ORDER[detected];
+    detected !== "conversation" && PHASE_ORDER[previousDetected] > PHASE_ORDER[detected];
   return rawViolation && !isLegitimateSceneDrop(previousDetected, detected);
 };
 

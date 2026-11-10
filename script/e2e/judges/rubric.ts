@@ -29,7 +29,9 @@ export function scoreScenario(scenario: ScenarioResult, images: ImageResult[]): 
   ).length;
   const sceneAlignment = totalTurns === 0 ? 0 : (alignedTurns / totalTurns) * 25;
 
-  const eroticTurns = scenario.turns.filter((turn) => isEroticOrClimax(effectiveScenePhase(turn))).length;
+  const eroticTurns = scenario.turns.filter((turn) =>
+    isEroticOrClimax(effectiveScenePhase(turn)),
+  ).length;
   const expectedEroticTurns = scenario.turns.filter((turn) =>
     isEroticOrClimax(turn.expectedPhase),
   ).length;

@@ -118,9 +118,12 @@ describe("read-chat-sse", () => {
   // 作り直しの境界は event 行そのもので閉じる。data 行が付かん形で届いても
   // 不採用の試行が採用本文の頭に残ったらあかん。
   it("resets on a regenerating event that carries no data line", () => {
-    const body = [delta("不採用"), "event: regenerating\n\n", delta("採用"), "data: [DONE]\n\n"].join(
-      "",
-    );
+    const body = [
+      delta("不採用"),
+      "event: regenerating\n\n",
+      delta("採用"),
+      "data: [DONE]\n\n",
+    ].join("");
 
     const snapshot = parseChatSseBody(body);
 

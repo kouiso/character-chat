@@ -27,10 +27,7 @@ const storeOpts = (characterId: string) => ({
   promptVersion: PROMPT_VERSION,
 });
 
-export const handleLedgerGet = async (
-  characterId: string,
-  request: Request,
-): Promise<Response> => {
+export const handleLedgerGet = async (characterId: string, request: Request): Promise<Response> => {
   const conversationId = new URL(request.url).searchParams.get("conversationId");
   if (!conversationId || conversationId.length > 120) {
     return json(422, { message: "conversationId が必要です。" });

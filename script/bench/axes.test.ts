@@ -72,7 +72,8 @@ describe("素テキストの交差検証", () => {
 });
 
 describe("記録の穴", () => {
-  const body = (action: string) => `<response><action>${action}</action><dialogue>「うん」</dialogue></response>`;
+  const body = (action: string) =>
+    `<response><action>${action}</action><dialogue>「うん」</dialogue></response>`;
 
   it("1ターン目が記録ごと落ちとる会話も穴が空いとる", () => {
     // 最初の記録が turn2 やと、turn3 が「完全な履歴」で測られとった。
@@ -122,7 +123,8 @@ describe("比べる相手が居らんターン", () => {
   it("近似重複は句の長さで門を作らん（短い掛け合いの丸写しを拾う）", () => {
     // `findNearDuplicateMatch` は応答全体の n-gram で見るので、8字以上の句が
     // 1つも無い短い台詞でも判定でける
-    const short = "<response><dialogue>「うん。ええよ。ほら、こっち。おいで。すぐや。」</dialogue></response>";
+    const short =
+      "<response><dialogue>「うん。ええよ。ほら、こっち。おいで。すぐや。」</dialogue></response>";
     const measured = measureAll([
       turnOf(short, { scenario: "short", turn: 1 }),
       turnOf(short, { scenario: "short", turn: 2 }),
@@ -151,7 +153,8 @@ describe("空返信は画面に出せる中身で決める", () => {
 });
 
 describe("AI臭の小道具は場面を見て数える", () => {
-  const withProp = "<response><action>コーヒーの香りが漂う。</action><dialogue>「うん」</dialogue></response>";
+  const withProp =
+    "<response><action>コーヒーの香りが漂う。</action><dialogue>「うん」</dialogue></response>";
 
   it("erotic / climax でだけ水増しとして数える", () => {
     expect(measure(withProp, { phase: "erotic" }).slop.filler_prop).toBe(1);
@@ -208,14 +211,20 @@ describe("軸2 長さ（不足方向のみ）", () => {
     // 同じ覚え書きが2ターン続いただけで反復の不良が立つ（被覆率の分母も膨らむ）
     const note = "<remember>彼女は犬が好きで、コーヒーはブラック派やと言うとった</remember>";
     const measured = measureAll([
-      turnOf(`<response><action>肩に手を置いた。${note}</action><dialogue>「来たよ」</dialogue></response>`, {
-        scenario: "s1",
-        turn: 1,
-      }),
-      turnOf(`<response><action>窓を開けた。${note}</action><dialogue>「暑いね」</dialogue></response>`, {
-        scenario: "s1",
-        turn: 2,
-      }),
+      turnOf(
+        `<response><action>肩に手を置いた。${note}</action><dialogue>「来たよ」</dialogue></response>`,
+        {
+          scenario: "s1",
+          turn: 1,
+        },
+      ),
+      turnOf(
+        `<response><action>窓を開けた。${note}</action><dialogue>「暑いね」</dialogue></response>`,
+        {
+          scenario: "s1",
+          turn: 2,
+        },
+      ),
     ]);
     // 覚え書きを落とすと現ターンに8字以上の句が残らんので「測れてへん」（null）。
     // 覚え書きを数えとった頃は、ここが true（反復）になっとった
@@ -300,7 +309,13 @@ describe("軸2 長さ（不足方向のみ）", () => {
 
   it("宣言された responseLength で床が変わる（very_long は medium より厳しい）", () => {
     const body = xml("あ".repeat(900), "「そう」");
-    const config = { mode: null, arm: null, runId: null, expectedTurns: null, lengthDirective: true };
+    const config = {
+      mode: null,
+      arm: null,
+      runId: null,
+      expectedTurns: null,
+      lengthDirective: true,
+    };
     expect(
       measure(body, { phase: "erotic", config: { ...config, responseLength: "medium" } })
         .isTooShort,

@@ -23,17 +23,13 @@ const writeRun = (body: string, row: LedgerRow | null): string => {
     join(dir, "Sakura-01-session-x-1-model-abc.txt"),
     `# character: Sakura\n${BODY_MARKER}\n${body}`,
   );
-  if (row)
-    writeFileSync(join(dir, "ledger.jsonl"), JSON.stringify(row) + "\n");
+  if (row) writeFileSync(join(dir, "ledger.jsonl"), JSON.stringify(row) + "\n");
   return dir;
 };
 
 describe("scanTurn", () => {
   it("台帳と本文が一致したら食い違いゼロ", () => {
-    const drift = scanTurn(
-      "ベッドの上で過ごす。彼女は全裸のまま微笑んだ。",
-      ledger(),
-    );
+    const drift = scanTurn("ベッドの上で過ごす。彼女は全裸のまま微笑んだ。", ledger());
     expect(drift).toEqual({ location: 0, time: 0, clothing: 0 });
   });
 
@@ -43,10 +39,7 @@ describe("scanTurn", () => {
   });
 
   it("台帳と同じ場所語が混ざっとっても別場所だけ数える", () => {
-    const drift = scanTurn(
-      "ベッドの上から車を思い出す。あの時は車の中だった。",
-      ledger(),
-    );
+    const drift = scanTurn("ベッドの上から車を思い出す。あの時は車の中だった。", ledger());
     expect(drift.location).toBe(1);
   });
 

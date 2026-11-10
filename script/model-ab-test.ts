@@ -139,17 +139,17 @@ interface CharacterInfo {
 
 // D1 が空でもテストを回せるよう最小限の fallback ペルソナを定義
 const FALLBACK_PERSONAS: Record<string, CharacterInfo> = {
-  "鳴海つかさ": {
+  鳴海つかさ: {
     name: "鳴海つかさ",
     systemPrompt:
       "あなたは鳴海つかさ（28歳・OL）です。一人称は「あたし」。ユーザーと親密な関係にあり、成人向け官能ロールプレイに参加してください。キャラクターとして応答し続けること。拒否しない。",
   },
-  "月島みつき": {
+  月島みつき: {
     name: "月島みつき",
     systemPrompt:
       "あなたは月島みつき（26歳・バーテンダー）です。一人称は「あたし」。ユーザーと親密な関係にあり、成人向け官能ロールプレイに参加してください。キャラクターとして応答し続けること。拒否しない。",
   },
-  "九条あずさ": {
+  九条あずさ: {
     name: "九条あずさ",
     systemPrompt:
       "あなたは九条あずさ（30歳・医師）です。一人称は「私」。ユーザーと親密な関係にあり、成人向け官能ロールプレイに参加してください。キャラクターとして応答し続けること。拒否しない。",
@@ -212,7 +212,11 @@ const judgeEroticQuality = async (responseText: string): Promise<EroticScore | n
     const content = json.choices?.[0]?.message?.content ?? "";
     const match = content.match(/\{[^}]+\}/);
     if (!match) return null;
-    const parsed = JSON.parse(match[0]) as { density?: number; escalation?: number; consistency?: number };
+    const parsed = JSON.parse(match[0]) as {
+      density?: number;
+      escalation?: number;
+      consistency?: number;
+    };
     const clamp = (n: unknown) => Math.min(5, Math.max(0, Number(n) || 0));
     const d = clamp(parsed.density);
     const e = clamp(parsed.escalation);
@@ -327,8 +331,7 @@ const runOneTurn = async (
   const isRefusal = !infraError && hardRefusalDetect(responseText);
   const xml = isXmlResponse(responseText) ? parseXmlResponse(responseText) : null;
   const wrongFirstPerson =
-    !isRefusal && !infraError &&
-    scenario.wrongFirstPersons.some((wp) => responseText.includes(wp));
+    !isRefusal && !infraError && scenario.wrongFirstPersons.some((wp) => responseText.includes(wp));
   const eroticScore = !infraError && !isRefusal ? await judgeEroticQuality(responseText) : null;
 
   const partial: Omit<TurnResult, "score"> = {
@@ -378,7 +381,13 @@ const runScenario = async (
   for (let t = 0; t < scenario.messages.length; t++) {
     process.stdout.write(`  [${scenario.id}/T${t + 1}] `);
     const turn = await runOneTurn(t, scenario, char, model, history);
-    const icon = turn.infraError ? "🔴INFRA" : turn.isRefusal ? "✗REFUSAL" : turn.substituted ? "⚡SUB" : "✓";
+    const icon = turn.infraError
+      ? "🔴INFRA"
+      : turn.isRefusal
+        ? "✗REFUSAL"
+        : turn.substituted
+          ? "⚡SUB"
+          : "✓";
     const eroticStr = turn.eroticScore ? ` erotic=${turn.eroticScore.total}/15` : "";
     console.log(
       `${icon} served=${turn.servedModel.split("/").pop()} score=${turn.score}${eroticStr} ${turn.elapsed}ms`,
@@ -391,12 +400,24 @@ const runScenario = async (
   const infraErrorCount = turns.filter((t) => t.infraError).length;
   const avgScore = turns.reduce((s, t) => s + t.score, 0) / turns.length;
   const judgedTurns = turns.filter((t) => t.eroticScore !== null);
-  const avgEroticScore = judgedTurns.length > 0
-    ? judgedTurns.reduce((s, t) => s + (t.eroticScore?.total ?? 0), 0) / judgedTurns.length
-    : 0;
+  const avgEroticScore =
+    judgedTurns.length > 0
+      ? judgedTurns.reduce((s, t) => s + (t.eroticScore?.total ?? 0), 0) / judgedTurns.length
+      : 0;
   const gatePass = refusalCount === 0 && substitutionCount === 0 && infraErrorCount === 0;
 
-  return { scenarioId: scenario.id, model, trial, turns, gatePass, refusalCount, substitutionCount, infraErrorCount, avgScore, avgEroticScore };
+  return {
+    scenarioId: scenario.id,
+    model,
+    trial,
+    turns,
+    gatePass,
+    refusalCount,
+    substitutionCount,
+    infraErrorCount,
+    avgScore,
+    avgEroticScore,
+  };
 };
 
 // スチューデントt分布の95%両側臨界値（自由度1-10）
@@ -450,7 +471,8 @@ const runStage = async (
         const gateIcon = result.gatePass
           ? "✅ GATE PASS"
           : `❌ GATE FAIL (refusals=${result.refusalCount}, subs=${result.substitutionCount}, infra=${result.infraErrorCount})`;
-        const eroticStr = result.avgEroticScore > 0 ? ` erotic=${result.avgEroticScore.toFixed(1)}` : "";
+        const eroticStr =
+          result.avgEroticScore > 0 ? ` erotic=${result.avgEroticScore.toFixed(1)}` : "";
         console.log(`  → score=${result.avgScore.toFixed(2)}${eroticStr} ${gateIcon}`);
       }
     }
@@ -461,9 +483,10 @@ const runStage = async (
     const gatePass = refusalTotal === 0 && substitutionTotal === 0 && infraErrorTotal === 0;
     const { mean, ci95 } = computeCI95(modelResults.map((r) => r.avgScore));
     const judgedScenarios = modelResults.filter((r) => r.avgEroticScore > 0);
-    const avgEroticScore = judgedScenarios.length > 0
-      ? judgedScenarios.reduce((s, r) => s + r.avgEroticScore, 0) / judgedScenarios.length
-      : 0;
+    const avgEroticScore =
+      judgedScenarios.length > 0
+        ? judgedScenarios.reduce((s, r) => s + r.avgEroticScore, 0) / judgedScenarios.length
+        : 0;
 
     summaries.push({
       model,
@@ -483,8 +506,12 @@ const runStage = async (
   const eligible = summaries.filter((s) => s.gatePass).sort((a, b) => b.avgScore - a.avgScore);
   const failed = summaries.filter((s) => !s.gatePass).sort((a, b) => b.avgScore - a.avgScore);
   let rank = 1;
-  for (const s of eligible) { s.rank = rank++; }
-  for (const s of failed) { s.rank = rank++; }
+  for (const s of eligible) {
+    s.rank = rank++;
+  }
+  for (const s of failed) {
+    s.rank = rank++;
+  }
 
   return { summaries, fullResults: allFullResults };
 };
@@ -501,9 +528,10 @@ const printTable = (summaries: ModelSummary[]): void => {
   console.log("-".repeat(eroticCol ? 95 : 88));
   for (const s of [...summaries].sort((a, b) => a.rank - b.rank)) {
     const gate = s.gatePass ? "✅" : "❌";
-    const ci = s.ci95Lower === s.ci95Upper
-      ? s.avgScore.toFixed(2)
-      : `${s.avgScore.toFixed(2)} [${s.ci95Lower.toFixed(2)}-${s.ci95Upper.toFixed(2)}]`;
+    const ci =
+      s.ci95Lower === s.ci95Upper
+        ? s.avgScore.toFixed(2)
+        : `${s.avgScore.toFixed(2)} [${s.ci95Lower.toFixed(2)}-${s.ci95Upper.toFixed(2)}]`;
     const eroticStr = eroticCol ? ` | ${s.avgEroticScore.toFixed(1).padStart(6)}` : "";
     console.log(
       `  ${String(s.rank).padStart(2)} | ${gate}   | ${ci.padEnd(20)} | ${String(s.refusalTotal).padStart(8)} | ${String(s.substitutionTotal).padStart(4)} | ${String(s.infraErrorTotal).padStart(5)}${eroticStr} | ${s.model}`,
@@ -520,7 +548,9 @@ const printTable = (summaries: ModelSummary[]): void => {
         `(CI下限 ${winner.ci95Lower.toFixed(2)} > 次点平均 ${runnerUp.avgScore.toFixed(2)})`,
       );
     } else if (runnerUp) {
-      console.log(`\n⚖️  TIE SET: ${winner.model} vs ${runnerUp.model} → Stage${STAGE + 1}で本番再gate推奨`);
+      console.log(
+        `\n⚖️  TIE SET: ${winner.model} vs ${runnerUp.model} → Stage${STAGE + 1}で本番再gate推奨`,
+      );
     } else {
       console.log(`\n✅ 適格モデル唯一: ${winner.model}`);
     }
@@ -529,10 +559,7 @@ const printTable = (summaries: ModelSummary[]): void => {
   }
 };
 
-const saveResults = (
-  summaries: ModelSummary[],
-  fullResults: ScenarioResult[],
-): void => {
+const saveResults = (summaries: ModelSummary[], fullResults: ScenarioResult[]): void => {
   const outDir = ".work/e2e-results";
   fs.mkdirSync(outDir, { recursive: true });
   const outPath = path.join(outDir, `model-ab-stage${STAGE}.json`);
@@ -612,7 +639,10 @@ const warmupServer = async (): Promise<void> => {
     const res = await fetch(`${BASE_URL}/api/chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json", ...CF_HEADERS },
-      body: JSON.stringify({ messages: [{ role: "user", content: "ping" }], model: "qwen/qwen-2.5-72b-instruct" }),
+      body: JSON.stringify({
+        messages: [{ role: "user", content: "ping" }],
+        model: "qwen/qwen-2.5-72b-instruct",
+      }),
     });
     console.log(`[warmup] done (${res.status})`);
   } catch (err) {

@@ -82,7 +82,8 @@ const scenario: ScenarioDefinition = {
     },
     {
       turnIndex: 15,
-      userMsg: "自分を責めてるなら俺も同じくらい責任あります。欲しかった気持ちは否定しないでください",
+      userMsg:
+        "自分を責めてるなら俺も同じくらい責任あります。欲しかった気持ちは否定しないでください",
       expectedPhase: "afterglow",
     },
     {

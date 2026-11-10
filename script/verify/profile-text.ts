@@ -45,5 +45,7 @@ for (const [index, sample] of samples.entries()) {
   console.log(`INPUT: ${sample.replace(/\n/g, "\\n")}`);
   console.log(`BEFORE: ${before}`);
   console.log(`AFTER: ${after}`);
-  console.log(`CHECK: adultBoilerplate=${hasAdultBoilerplate ? "FAIL" : "PASS"}, asciiSeam=${hasAsciiSeam ? "FAIL" : "PASS"}`);
+  console.log(
+    `CHECK: adultBoilerplate=${hasAdultBoilerplate ? "FAIL" : "PASS"}, asciiSeam=${hasAsciiSeam ? "FAIL" : "PASS"}`,
+  );
 }

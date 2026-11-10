@@ -4,11 +4,7 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-import {
-  characterTable,
-  createD1TurnStore,
-  userTable,
-} from "@v2/db";
+import { characterTable, createD1TurnStore, userTable } from "@v2/db";
 import { emptyLedger } from "@v2/prompt";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
@@ -194,7 +190,10 @@ describe("memories API", () => {
     const { memory } = (await created.json()) as { memory: { id: string } };
 
     // 別キャラ id 経路はそのキャラの記憶が無いので 404
-    const other = await handleMemoriesRequest("other-char", request("DELETE", { memoryId: memory.id }));
+    const other = await handleMemoriesRequest(
+      "other-char",
+      request("DELETE", { memoryId: memory.id }),
+    );
     expect(other.status).toBe(404);
 
     expect((await call("DELETE", { memoryId: memory.id })).status).toBe(200);
@@ -204,12 +203,8 @@ describe("memories API", () => {
 
   it("空・長すぎる記憶は 422、4000字は通る", async () => {
     const conversationId = await talk();
-    expect(
-      (await call("POST", { conversationId, content: "" })).status,
-    ).toBe(422);
-    expect(
-      (await call("POST", { conversationId, content: "x".repeat(4001) })).status,
-    ).toBe(422);
+    expect((await call("POST", { conversationId, content: "" })).status).toBe(422);
+    expect((await call("POST", { conversationId, content: "x".repeat(4001) })).status).toBe(422);
     const ok = await call("POST", { conversationId, content: "あ".repeat(4000) });
     expect(ok.status).toBe(201);
   });

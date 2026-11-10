@@ -2,12 +2,7 @@
 // v1 `functions/api/[[route]].ts` + lib の確立ロジックを v2 の台帳フェーズから動かす。
 // 値・表は v1 実測の正典（局長採点済み）をそのまま継承し、重みや語を勝手に変えない。
 
-export type ImagePhase =
-  | "conversation"
-  | "intimate"
-  | "erotic"
-  | "climax"
-  | "afterglow";
+export type ImagePhase = "conversation" | "intimate" | "erotic" | "climax" | "afterglow";
 
 export type PhaseGuardrails = {
   readonly negativeExtra: string;
@@ -29,8 +24,7 @@ export const PHASE_GUARDRAILS: Record<ImagePhase, PhaseGuardrails> = {
   intimate: {
     negativeExtra:
       "sex, penetration, spread_legs, explicit, cum, cumshot, creampie, ejaculation, semen, bukkake, orgasm, ahegao, (fully_clothed:1.4), (dressed:1.3), (clothes:1.3), (shirt:1.3), (panties:1.3), (bra:1.3), (underwear:1.4), (lingerie:1.3)",
-    positiveHint:
-      "(partially_undressed:1.2), (undressing:1.2), (lingerie:1.2), foreplay",
+    positiveHint: "(partially_undressed:1.2), (undressing:1.2), (lingerie:1.2), foreplay",
     allowClimaxTags: false,
   },
   erotic: {
@@ -50,8 +44,7 @@ export const PHASE_GUARDRAILS: Record<ImagePhase, PhaseGuardrails> = {
   afterglow: {
     negativeExtra:
       "penetration, orgasm, active_intercourse, thrusting, cum_on_face, facial, cum_in_hair, cum_on_hair, bukkake, (fully_clothed:1.4), (dressed:1.4), (clothes:1.4), (shirt:1.4), (panties:1.4), (bra:1.4), (underwear:1.5), (lingerie:1.4)",
-    positiveHint:
-      "(completely_nude:1.3), (nude:1.2), post-coital aftermath, calm, cum_drip",
+    positiveHint: "(completely_nude:1.3), (nude:1.2), post-coital aftermath, calm, cum_drip",
     allowClimaxTags: true,
   },
 };
@@ -172,8 +165,7 @@ const SKIN_TONE_ANCHOR_TAGS = [
   "dark skin",
 ] as const;
 
-export const NOVITA_HAIR_COLOR_NEGATIVE_TAGS =
-  "pink_hair, magenta_hair, dyed_hair, rainbow_hair";
+export const NOVITA_HAIR_COLOR_NEGATIVE_TAGS = "pink_hair, magenta_hair, dyed_hair, rainbow_hair";
 export const VISUAL_ANCHOR_WEIGHT = 1.6;
 // 会話フェーズだけは正典より弱く当てる（v1 据え置き実測値）。
 export const CONVERSATION_VISUAL_ANCHOR_WEIGHT = 1.5;
@@ -184,10 +176,7 @@ export const resolveVisualAnchorWeight = (phase: ImagePhase): number =>
 export const hasUsableIdentityAnchor = (visualAnchors: string): boolean =>
   visualAnchors.split(",").some((tag) => tag.trim().length > 0);
 
-export const buildVisualAnchorPrompt = (
-  visualAnchors: string,
-  weight: number,
-): string => {
+export const buildVisualAnchorPrompt = (visualAnchors: string, weight: number): string => {
   const trimmedAnchors = visualAnchors
     .split(",")
     .map((tag) => tag.trim())
@@ -198,9 +187,7 @@ export const buildVisualAnchorPrompt = (
   const normalized = trimmedAnchors.map((tag) => tag.toLowerCase());
   const skinToneIndices = new Set(
     normalized
-      .map((tag, i) =>
-        (SKIN_TONE_ANCHOR_TAGS as readonly string[]).includes(tag) ? i : -1,
-      )
+      .map((tag, i) => ((SKIN_TONE_ANCHOR_TAGS as readonly string[]).includes(tag) ? i : -1))
       .filter((i) => i !== -1),
   );
   const skinToneTags = trimmedAnchors.filter((_, i) => skinToneIndices.has(i));
@@ -244,20 +231,62 @@ const normalizeTagWords = (raw: string): string[] => {
 };
 
 const CONVERSATION_FORBIDDEN_TAG_WORDS: ReadonlySet<string> = new Set([
-  "nude", "naked", "topless", "bottomless", "bare", "decolletage", "cleavage",
-  "lingerie", "underwear", "panties", "bra", "swimsuit", "bikini", "exposed",
-  "nipples", "areola", "pussy", "anus", "clitoris", "penis", "vaginal", "sex",
-  "penetration", "intercourse", "blowjob", "handjob", "masturbation",
-  "fingering", "ahegao", "undressed", "undressing", "nobra", "nopanties",
-  "noclothes", "seethrough", "sheer", "downblouse", "upskirt",
+  "nude",
+  "naked",
+  "topless",
+  "bottomless",
+  "bare",
+  "decolletage",
+  "cleavage",
+  "lingerie",
+  "underwear",
+  "panties",
+  "bra",
+  "swimsuit",
+  "bikini",
+  "exposed",
+  "nipples",
+  "areola",
+  "pussy",
+  "anus",
+  "clitoris",
+  "penis",
+  "vaginal",
+  "sex",
+  "penetration",
+  "intercourse",
+  "blowjob",
+  "handjob",
+  "masturbation",
+  "fingering",
+  "ahegao",
+  "undressed",
+  "undressing",
+  "nobra",
+  "nopanties",
+  "noclothes",
+  "seethrough",
+  "sheer",
+  "downblouse",
+  "upskirt",
 ]);
 
 const CONVERSATION_FORBIDDEN_TAG_PHRASES: readonly string[][] = [
-  ["bare", "shoulders"], ["bare", "arms"], ["bare", "legs"], ["bare", "chest"],
-  ["bare", "breasts"], ["off", "shoulder"], ["off", "shoulders"],
-  ["no", "bra"], ["no", "panties"], ["no", "clothes"],
-  ["partially", "undressed"], ["partially", "undressing"],
-  ["see", "through"], ["see", "thru"], ["wardrobe", "malfunction"],
+  ["bare", "shoulders"],
+  ["bare", "arms"],
+  ["bare", "legs"],
+  ["bare", "chest"],
+  ["bare", "breasts"],
+  ["off", "shoulder"],
+  ["off", "shoulders"],
+  ["no", "bra"],
+  ["no", "panties"],
+  ["no", "clothes"],
+  ["partially", "undressed"],
+  ["partially", "undressing"],
+  ["see", "through"],
+  ["see", "thru"],
+  ["wardrobe", "malfunction"],
 ];
 
 const isConversationForbiddenTag = (raw: string): boolean => {
@@ -287,13 +316,22 @@ export const sanitizeImageTagsForPhase = (phase: ImagePhase, tags: string): stri
 // --- 日本語シーン文からの明示コンテンツ検知（v1 image-explicit-tags 移植） ---
 // 台帳フェーズが pre-climax に留まっていても、本文が射精系を含むなら
 // 対応タグを足してシーンへの忠実度を守る。
-const normalize = (text: string): string =>
-  text.normalize("NFKC").replace(/\s+/g, "");
+const normalize = (text: string): string => text.normalize("NFKC").replace(/\s+/g, "");
 
 const EXPLICIT_TAG_RULES: readonly { tags: readonly string[]; keywords: readonly string[] }[] = [
   {
     tags: ["creampie", "cum_in_pussy", "cum_inside", "ejaculation"],
-    keywords: ["中出し", "中だし", "中に出", "中にだ", "中で出", "中でいく", "中でいき", "中でイ", "なかだし"],
+    keywords: [
+      "中出し",
+      "中だし",
+      "中に出",
+      "中にだ",
+      "中で出",
+      "中でいく",
+      "中でいき",
+      "中でイ",
+      "なかだし",
+    ],
   },
   {
     tags: ["stomach_bulge", "cum_inflation"],
@@ -305,9 +343,7 @@ const EXPLICIT_TAG_RULES: readonly { tags: readonly string[]; keywords: readonly
   },
 ];
 
-export const detectExplicitContent = (
-  text: string,
-): { detected: boolean; tags: string[] } => {
+export const detectExplicitContent = (text: string): { detected: boolean; tags: string[] } => {
   const scan = normalize(text);
   const tagSet = new Set<string>();
   for (const rule of EXPLICIT_TAG_RULES) {
@@ -343,10 +379,8 @@ const PHASE_EXPRESSION_TAGS: Record<ImagePhase, readonly string[]> = {
 const PHASE_FORBIDDEN_EXPRESSIONS: Record<ImagePhase, string> = {
   conversation: "",
   intimate: "angry, annoyed, disinterest, bored",
-  erotic:
-    "angry, annoyed, disinterest, bored, calm, neutral_expression, frown, fully_clothed",
-  climax:
-    "angry, annoyed, calm, neutral_expression, fully_clothed, standing, bored, frown",
+  erotic: "angry, annoyed, disinterest, bored, calm, neutral_expression, frown, fully_clothed",
+  climax: "angry, annoyed, calm, neutral_expression, fully_clothed, standing, bored, frown",
   afterglow: "angry, annoyed, penetration",
 };
 

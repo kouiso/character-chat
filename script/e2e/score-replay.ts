@@ -168,26 +168,28 @@ if (totalTurns < MIN_SCENARIO_TURNS) {
   process.exit(0);
 }
 
-const perScenario = await Promise.all(files.map(async (file) => {
-  const rubric = scoreScenario(await toScenarioResult(file), []);
-  const okTurns = file.results.filter((t) => t.error === null);
-  const refusals = okTurns.filter((t) => t.refusal).length;
-  const nearDups = okTurns.filter((t) => t.nearDuplicate).length;
-  const ttfbs = okTurns.map((t) => t.ttfbMs).filter((v): v is number => v !== null);
-  const totals = okTurns.map((t) => t.totalMs).filter((v): v is number => v !== null);
-  return {
-    scenario: file.scenario,
-    score: rubric.eventWeightedTotal,
-    rawTotal: rubric.rawTotal,
-    turns: okTurns.length,
-    errorTurns: file.results.length - okTurns.length,
-    refusals,
-    nearDupRate: okTurns.length > 0 ? nearDups / okTurns.length : 0,
-    avgTtfbMs:
-      ttfbs.length > 0 ? Math.round(ttfbs.reduce((a, b) => a + b, 0) / ttfbs.length) : null,
-    p95TotalMs: percentile(totals, 95),
-  };
-}));
+const perScenario = await Promise.all(
+  files.map(async (file) => {
+    const rubric = scoreScenario(await toScenarioResult(file), []);
+    const okTurns = file.results.filter((t) => t.error === null);
+    const refusals = okTurns.filter((t) => t.refusal).length;
+    const nearDups = okTurns.filter((t) => t.nearDuplicate).length;
+    const ttfbs = okTurns.map((t) => t.ttfbMs).filter((v): v is number => v !== null);
+    const totals = okTurns.map((t) => t.totalMs).filter((v): v is number => v !== null);
+    return {
+      scenario: file.scenario,
+      score: rubric.eventWeightedTotal,
+      rawTotal: rubric.rawTotal,
+      turns: okTurns.length,
+      errorTurns: file.results.length - okTurns.length,
+      refusals,
+      nearDupRate: okTurns.length > 0 ? nearDups / okTurns.length : 0,
+      avgTtfbMs:
+        ttfbs.length > 0 ? Math.round(ttfbs.reduce((a, b) => a + b, 0) / ttfbs.length) : null,
+      p95TotalMs: percentile(totals, 95),
+    };
+  }),
+);
 
 // fujisoft_automate の堅牢性チェック: 全シナリオが死んでる(有効ターン0 or 0点)ランは
 // 品質シグナルやなくインフラ故障。rubric は有効ターン0でも基礎点(40前後)を付けるため、
