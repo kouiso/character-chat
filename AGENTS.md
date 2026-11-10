@@ -85,6 +85,13 @@ GitHub Copilot にはシンボリックリンクで配信する。
 - `--force`（`--force-with-lease` 以外）禁止
 - `git reset --hard/--soft/--mixed` 禁止
 
+## Issue / タスク管理
+
+- **GitHub Issue**: アダルト内容・秘匿情報（競合逆解析の調査詳細等）を含まないもの
+- **Linear（RIT-）**: アダルト内容・秘匿情報を含むもの全般
+
+命名: リポジトリは character-chat。v1 = 従来 adult-ai-app（ルート app、adult-ai-chat.pages.dev）、v2 = `apps/v2`（新 character-chat、adult-ai-v2.kouiso.workers.dev）。
+
 ## レビュー観点（よくある失敗パターン）
 
 > このセクションは CodeRabbit（REVIEW.md）と共有する失敗パターン corpus の圧縮版です。
