@@ -113,9 +113,19 @@ body {
   border-bottom: 1px solid #2a2a34;
   font-weight: 600;
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
   gap: 8px;
+}
+
+/* キャラ名は潰さず一行で。残り幅を操作用に残す */
+.v2-chat-header > :first-child {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .v2-ledger {
@@ -523,12 +533,28 @@ body {
 }
 
 .v2-chat-form input {
+  order: 1;
   flex: 1;
+  min-width: 0;
   padding: 10px 12px;
   border-radius: 10px;
   border: 1px solid #2a2a34;
   background: var(--panel);
   color: var(--text);
+}
+
+/* 1行目は 入力+送信、2行目は おすすめ+画像（LINE 型）。
+   旧 wrap 任せでは送信ボタンが入力行から落ちていた */
+.v2-chat-form > button[type="submit"] {
+  order: 2;
+}
+
+.v2-chat-form > button[type="button"] {
+  order: 3;
+}
+
+.v2-suggestions {
+  order: 4;
 }
 
 .v2-chat-form button {
@@ -981,8 +1007,120 @@ body {
 }
 
 /* キャラ一覧の名前リンクに顔アイコンを並べる（公式キャラの avatars/ 静的配信） */
-.v2-char-link {
-  display: inline-flex;
+.v2-char-list li {
+  display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.v2-char-link {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+}
+
+.v2-char-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.v2-char-edit {
+  padding: 6px 10px;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+/* トップの導線はチップ化。旧デザインの巨大ブロック縦積みは
+   キャラ一覧を3画面下へ押しやる崩壊の主因だった */
+.v2-nav-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 12px;
+}
+
+.v2-nav-grid a {
+  padding: 6px 12px;
+  font-size: 0.82rem;
+  border-radius: 999px;
+  border: 1px solid #2a2a34;
+}
+
+/* 設定群は折りたたみ。常時展開すると主要コンテンツを埋没させる */
+.v2-settings {
+  margin-top: 20px;
+  border-top: 1px solid #2a2a34;
+  padding-top: 8px;
+}
+
+.v2-settings summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 0.85rem;
+  padding: 6px 0;
+}
+
+.v2-conversation-preview {
+  display: block;
+}
+
+/* 公開カタログ: v2-list と同じシェル。未指定だと素の ul/リンク色のまま崩れる */
+.v2-catalog {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.v2-catalog h1 {
+  font-size: 1.1rem;
+  margin: 0 0 12px;
+}
+
+.v2-catalog > a {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.v2-catalog ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.v2-catalog li {
+  padding: 12px 14px;
+  background: var(--panel);
+  border-radius: 10px;
+}
+
+.v2-catalog li > strong {
+  display: inline-block;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+.v2-catalog li p {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.v2-catalog li button {
+  margin-top: 10px;
+}
+
+/* 雑談広場・収益も同じシェルに揃える（コンテナ未指定で素のまま出ていた） */
+.v2-board,
+.v2-revenue {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 16px;
 }
