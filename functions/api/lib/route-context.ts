@@ -2095,8 +2095,13 @@ export const getUserEmail = async (c: {
     BASIC_AUTH_USER?: string;
     BASIC_AUTH_PASS?: string;
     LOCAL_AUTH_BYPASS?: string;
+    V1_CF_ACCESS?: string;
   };
 }): Promise<string | null> => {
+  // Cloudflare Access が入口で Google 認証を済ませた環境では、ここへ届く時点で本人確定。
+  // preview デプロイは Access の外なので、flag を立てん限り Basic 認証のままにする。
+  if (c.env.V1_CF_ACCESS === "1") return LOCAL_USER_EMAIL;
+
   const authorization = c.req.header("Authorization");
   // Bearer を付与できない初回ログインだけ Cookie を補助にし、通常APIはBearerで通す。
   const appJwtEmail = await verifyAppJwt(authorization, c.env.AUTH_SIGNING_KEY);
