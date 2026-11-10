@@ -1013,7 +1013,9 @@ body {
   gap: 8px;
 }
 
-.v2-char-link {
+/* .v2-list a（display:block, 詳細度 0-1-1）より強く指定しないと
+   flex が効かずアバターと名前が縦積みになる */
+.v2-list a.v2-char-link {
   display: flex;
   flex: 1;
   min-width: 0;
@@ -1029,7 +1031,8 @@ body {
   white-space: nowrap;
 }
 
-.v2-char-edit {
+.v2-list a.v2-char-edit {
+  flex-shrink: 0;
   padding: 6px 10px;
   font-size: 0.8rem;
   color: var(--muted);
