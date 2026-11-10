@@ -9,7 +9,8 @@ describe("prod reachable policy", () => {
     expect(isPublicAppShell({ status: 401, body: "<html></html>" })).toBe(false);
   });
 
-  it("保護APIの401と403を認証ガードとして扱う", () => {
+  it("保護APIの 302/401/403 を認証ガードとして扱う", () => {
+    expect(isProtectedApiGuarded(302)).toBe(true);
     expect(isProtectedApiGuarded(401)).toBe(true);
     expect(isProtectedApiGuarded(403)).toBe(true);
     expect(isProtectedApiGuarded(200)).toBe(false);

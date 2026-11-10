@@ -49,8 +49,19 @@ const BASE_URL = vars["PROD_BASE_URL"] ?? "https://adult-ai-chat.pages.dev";
 const BASIC_USER = vars["BASIC_AUTH_USER"] ?? "";
 const BASIC_PASS = vars["BASIC_AUTH_PASS"] ?? "";
 let AUTH_TOKEN = vars["AUTH_TOKEN"] ?? "";
+const CF_ACCESS_CLIENT_ID = vars["CF_ACCESS_CLIENT_ID"] ?? "";
+const CF_ACCESS_CLIENT_SECRET = vars["CF_ACCESS_CLIENT_SECRET"] ?? "";
 const MODE = process.env["PROD_VERIFY_MODE"] ?? "functional";
 const EXPECT_MODEL = process.env["EXPECT_MODEL"] ?? "";
+
+// 入口は Cloudflare Access（Google 認証）。自動検証はサービストークンで通す。
+const cfAccessHeaders = (): Record<string, string> =>
+  CF_ACCESS_CLIENT_ID && CF_ACCESS_CLIENT_SECRET
+    ? {
+        "CF-Access-Client-Id": CF_ACCESS_CLIENT_ID,
+        "CF-Access-Client-Secret": CF_ACCESS_CLIENT_SECRET,
+      }
+    : {};
 
 // ── HTTP ヘルパー ─────────────────────────────────────────────────────────
 
@@ -72,6 +83,7 @@ const cfFetch = async (
   const url = new URL(path, BASE_URL);
   const headers: Record<string, string> = {
     "User-Agent": "Mozilla/5.0 adult-ai-prod-smoke/2.0",
+    ...cfAccessHeaders(),
   };
   if (!opts.skipAuth && AUTH_TOKEN) {
     headers["Authorization"] = `Bearer ${AUTH_TOKEN}`;
@@ -126,13 +138,24 @@ const info = (msg: string): void => console.log(`  → ${msg}`);
 const section = (name: string): void => console.log(`\n[${name}]`);
 
 const testGuard = async (): Promise<void> => {
-  section("PUBLIC SHELL — no credentials must get non-empty HTML");
+  section("PUBLIC SHELL — service-token request must get non-empty HTML");
   const r = await cfFetch("/", { skipAuth: true });
   const hasHtml = r.body.trim().length > 0 && /<(?:!doctype\s+html|html)\b/i.test(r.body);
   if (r.status === 200 && hasHtml) {
     pass(`public app shell OK (200, ${r.rawBody.length} bytes)`);
   } else {
     fail(`expected 200 with non-empty HTML, got ${r.status} (${r.rawBody.length} bytes)`);
+  }
+
+  // 入口は Cloudflare Access なので、資格情報ゼロのリクエストは login へ 302 を期待する。
+  const res = await fetch(new URL("/api/me", BASE_URL).toString(), {
+    redirect: "manual",
+    headers: { "User-Agent": "Mozilla/5.0 adult-ai-prod-smoke/2.0" },
+  });
+  if (res.status === 302 || res.status === 403) {
+    pass(`Access guard OK — unauthenticated /api/me returned ${res.status}`);
+  } else {
+    fail(`expected 302/403 for unauthenticated request, got ${res.status}`);
   }
 };
 
@@ -492,6 +515,7 @@ const resolveAuthToken = async (): Promise<string> => {
     headers: {
       Accept: "application/json",
       "Content-Type": "application/x-www-form-urlencoded",
+      ...cfAccessHeaders(),
     },
     body: fd.toString(),
   });

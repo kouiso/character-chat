@@ -5,7 +5,7 @@ import path from "node:path";
 
 import type { Page, Route } from "playwright";
 
-import { isProtectedApiGuarded, isPublicAppShell } from "./prod-reachable-policy";
+import { isProtectedApiGuarded } from "./prod-reachable-policy";
 
 // ── vars ──────────────────────────────────────────────────────────────────────
 
@@ -78,32 +78,33 @@ function httpsGet(
 
 // ── reachable pre-check ────────────────────────────────────────────────────────
 
-function basicAuthHeader(user: string, pass: string): string {
-  return `Basic ${Buffer.from(`${user}:${pass}`).toString("base64")}`;
+function cfAccessHeaders(vars: Record<string, string>): Record<string, string> {
+  const id = vars["CF_ACCESS_CLIENT_ID"] ?? "";
+  const secret = vars["CF_ACCESS_CLIENT_SECRET"] ?? "";
+  return id && secret ? { "CF-Access-Client-Id": id, "CF-Access-Client-Secret": secret } : {};
 }
 
 async function runReachableCheck(vars: Record<string, string>): Promise<boolean> {
   const base = vars["PROD_BASE_URL"]!;
-  const user = vars["BASIC_AUTH_USER"] ?? "";
-  const pass = vars["BASIC_AUTH_PASS"] ?? "";
-  const basicHeaders = { Authorization: basicAuthHeader(user, pass) };
+  const cfHeaders = cfAccessHeaders(vars);
 
-  const edgeRes = await httpsGet(base + "/", basicHeaders);
+  const edgeRes = await httpsGet(base + "/", cfHeaders);
   const edgePass = edgeRes.status === 200;
   console.log(
-    `[${edgePass ? "GREEN" : "RED  "}] エッジ通過(Basic): ${edgeRes.status} (expect 200)`,
+    `[${edgePass ? "GREEN" : "RED  "}] エッジ通過(CF Access service token): ${edgeRes.status} (expect 200)`,
   );
 
+  // 入口は Cloudflare Access: 資格情報ゼロの document リクエストも login へ 302 を期待する。
   const publicShellRes = await httpsGet(base + "/", {});
-  const publicShellPass = isPublicAppShell(publicShellRes);
+  const publicShellPass = isProtectedApiGuarded(publicShellRes.status);
   console.log(
-    `[${publicShellPass ? "GREEN" : "RED  "}] 公開シェル: ${publicShellRes.status} (expect HTML 200)`,
+    `[${publicShellPass ? "GREEN" : "RED  "}] シェルガード: ${publicShellRes.status} (expect 302)`,
   );
 
   const apiGuardRes = await httpsGet(base + "/api/me", {});
   const apiGuardPass = isProtectedApiGuarded(apiGuardRes.status);
   console.log(
-    `[${apiGuardPass ? "GREEN" : "RED  "}] API認証ガード: ${apiGuardRes.status} (expect 401/403)`,
+    `[${apiGuardPass ? "GREEN" : "RED  "}] API認証ガード: ${apiGuardRes.status} (expect 302/401/403)`,
   );
 
   return edgePass && publicShellPass && apiGuardPass;
@@ -112,13 +113,16 @@ async function runReachableCheck(vars: Record<string, string>): Promise<boolean>
 // ── browser mode ──────────────────────────────────────────────────────────────
 
 /**
- * Basic 認証ヘッダを prodOrigin 限定で注入する。
+ * CF Access サービストークンを prodOrigin の全リクエストへ注入する。
  * novita/R2 等の外部 origin にはヘッダを送らない。
- * /api/* はアプリ認証(Bearer)経路。エッジ Basic を被せると Bearer を潰し
- * /api/auth/session が 401 になるため、prodOrigin でも /api/* は素通しする
- * (prod-smoke の testAuth が /api/me を Bearer のみで 200 取得できる事実と一致)。
+ * /api/* も含めて全経路が Access の内側なので除外しない
+ * （Authorization Bearer とは別ヘッダなのでアプリ認証と衝突しない）。
  */
-async function installProdAuth(page: Page, prodOrigin: string, authHeader: string): Promise<void> {
+async function installProdAuth(
+  page: Page,
+  prodOrigin: string,
+  cfHeaders: Record<string, string>,
+): Promise<void> {
   await page.route("**/*", async (route: Route) => {
     const url = route.request().url();
     let parsed: URL;
@@ -128,12 +132,12 @@ async function installProdAuth(page: Page, prodOrigin: string, authHeader: strin
       await route.continue();
       return;
     }
-    if (parsed.origin !== prodOrigin || parsed.pathname.startsWith("/api/")) {
+    if (parsed.origin !== prodOrigin) {
       await route.continue();
       return;
     }
     await route.continue({
-      headers: { ...route.request().headers(), Authorization: authHeader },
+      headers: { ...route.request().headers(), ...cfHeaders },
     });
   });
 }
@@ -332,7 +336,7 @@ async function runBrowser(
   const prodOrigin = new URL(base).origin;
   const basicUser = vars["BASIC_AUTH_USER"] ?? "";
   const basicPass = vars["BASIC_AUTH_PASS"] ?? "";
-  const edgeAuthHeader = basicAuthHeader(basicUser, basicPass);
+  const cfHeaders = cfAccessHeaders(vars);
 
   const screenshotDir = path.resolve(".work", "e2e-results");
   if (!existsSync(screenshotDir)) mkdirSync(screenshotDir, { recursive: true });
@@ -344,7 +348,7 @@ async function runBrowser(
 
   let passed = false;
   try {
-    await installProdAuth(page, prodOrigin, edgeAuthHeader);
+    await installProdAuth(page, prodOrigin, cfHeaders);
     await page.goto(base, { waitUntil: "domcontentloaded", timeout: 30_000 });
 
     const appJwt = await bootstrapAppAuth(page, base, basicUser, basicPass);
