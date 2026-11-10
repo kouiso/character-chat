@@ -1,7 +1,6 @@
 // クリップ API（RIT-30 ギャップ）。POST /api/clips で生成登録、GET /api/clips/:id で
 // ポーリング、POST /api/clips/:id/play で再生数を加算。一覧・素材画像の読み出しは
 // ページの server fn からも同じ関数を引く。
-import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { ImageGenerationError } from "./image-generation";
@@ -144,17 +143,5 @@ export const readClipVideoKey = async (db: D1Database, clipId: string): Promise<
   return row?.videoKey ?? null;
 };
 
-// ページ loader 用の server fn。REST 経由にせんのは型をそのまま往復させるため。
-export const listClips = createServerFn({ method: "GET" }).handler(
-  async (): Promise<ClipListItem[]> => {
-    const { env } = await getPlatform();
-    return listClipRows(env.DB, LOCAL_USER_ID);
-  },
-);
-
-export const listClipImages = createServerFn({ method: "GET" })
-  .validator((characterId: string) => characterId)
-  .handler(async ({ data: characterId }): Promise<ClippableImage[]> => {
-    const { env } = await getPlatform();
-    return listClippableImages(env.DB, characterId);
-  });
+// ページ loader 用の server fn は ./clips へ分けてある（api-* は REST 専用。route
+// コンポーネントがこれを import すると platform までクライアントバンドルへ混ざる）。

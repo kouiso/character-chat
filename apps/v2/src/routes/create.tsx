@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { createFileRoute, getRouteApi, Link } from "@tanstack/react-router";
 
-import { listClipImages } from "../server/api-clips";
+import { listClipImages } from "../server/clips";
 import { listCharacters } from "../server/characters";
 
 import type { CharacterListItem } from "../server/characters";
