@@ -40,11 +40,12 @@ export const OPENROUTER_PROVIDER_POLICY: {
 // V2_MODEL=sao10k/l3.3-euryale-70b（CI は件名の [v2model:...]）。
 const DEFAULT_MODEL = "deepseek/deepseek-v4.1-flash-1017";
 
-// RIT-104: 既定が使えん時に順に落ちる逃げ道。逃げ道 1 は Venice へ固定、
-// 逃げ道 2 は Venice 版の dolphin。Venice との直契約・直の鍵は作らん（局長裁定）。
+// RIT-104: 既定が使えん時に順に落ちる逃げ道。Venice との直契約・直の鍵は作らん（局長裁定）。
+// RIT-200 実測（2026-11-10）で deepseek-v4.1-flash は Venice 経由でも性的応答を拒否するため、
+// 耐性確認済みの dolphin を先に置く（先の候補が拒否で返るとユーザーへ拒否文が届く）。
 const ESCAPE_MODELS: { model: string; providerOnly?: string[] }[] = [
-  { model: "deepseek/deepseek-v4.1-flash", providerOnly: ["Venice"] },
   { model: "cognitivecomputations/dolphin-mistral-24b-venice-edition" },
+  { model: "deepseek/deepseek-v4.1-flash", providerOnly: ["Venice"] },
 ];
 
 // RIT-199: セーフモードの既定チェーン。アダルト応答をモデル自身が拒否する側へ倒す
@@ -54,10 +55,13 @@ const SAFE_DEFAULT_MODELS: ChainSpec[] = [
   { model: "google/gemini-2.5-flash" },
 ];
 
-// RIT-205 チャットモード。quality は評価で文体が勝った euryale 系を筆頭に、
+// RIT-205 チャットモード。quality は評価で文体が勝った euryale 系を筆頭にしていたが、
+// sao10k/l3.3-euryale-70b は OpenRouter から配信停止済み（RIT-200 実測 2026-11-10 で 404。
+// 後継の l3.1-euryale-70b は出力が劣化し実用に耐えんかった）。NSFW 耐性を実測済みの
+// deepseek-v4.1-flash-1017 を筆頭にして、あとは耐性確認済み順の逃げ道を引く。
 // light は安くて規制の緩い Venice 版 dolphin だけに絞る（逃げ道は付けん）。
 const QUALITY_DEFAULT_MODELS: ChainSpec[] = [
-  { model: "sao10k/l3.3-euryale-70b" },
+  { model: "deepseek/deepseek-v4.1-flash-1017" },
   ...ESCAPE_MODELS,
 ];
 const LIGHT_DEFAULT_MODELS: ChainSpec[] = [

@@ -43,12 +43,12 @@ describe("createOpenRouterModel の provider ポリシー", () => {
 
 // RIT-104: チェーンの順序・env 上書き・全候補への provider 制約の試験。
 describe("createModelChain（RIT-104）", () => {
-  test("既定は deepseek-v4.1-flash-1017 → Venice 固定 flash → dolphin の順", () => {
+  test("既定は deepseek-v4.1-flash-1017 → dolphin → Venice 固定 flash の順", () => {
     const chain = createModelChain({ OPENROUTER_API_KEY: "test-key" });
     expect(chain.map((c) => c.name)).toEqual([
       "deepseek/deepseek-v4.1-flash-1017",
-      "deepseek/deepseek-v4.1-flash",
       "cognitivecomputations/dolphin-mistral-24b-venice-edition",
+      "deepseek/deepseek-v4.1-flash",
     ]);
   });
 
@@ -60,11 +60,11 @@ describe("createModelChain（RIT-104）", () => {
     }
   });
 
-  test("逃げ道 1 だけ実行先を Venice へ固定する", () => {
+  test("逃げ道 2 だけ実行先を Venice へ固定する", () => {
     const chain = createModelChain({ OPENROUTER_API_KEY: "test-key" });
     expect(providerOf(chain[0])?.only).toBeUndefined();
-    expect(providerOf(chain[1])?.only).toEqual(["Venice"]);
-    expect(providerOf(chain[2])?.only).toBeUndefined();
+    expect(providerOf(chain[1])?.only).toBeUndefined();
+    expect(providerOf(chain[2])?.only).toEqual(["Venice"]);
   });
 
   test("V2_MODEL は単モデル指定として 1 本だけの列になる", () => {
@@ -104,8 +104,8 @@ describe("createModelChain セーフモード（RIT-199）", () => {
       const chain = createModelChain({ OPENROUTER_API_KEY: "test-key" }, options);
       expect(chain.map((c) => c.name)).toEqual([
         "deepseek/deepseek-v4.1-flash-1017",
-        "deepseek/deepseek-v4.1-flash",
         "cognitivecomputations/dolphin-mistral-24b-venice-edition",
+        "deepseek/deepseek-v4.1-flash",
       ]);
     }
   });
@@ -141,12 +141,12 @@ describe("createModelChain セーフモード（RIT-199）", () => {
 });
 
 describe("createModelChain チャットモード（RIT-205）", () => {
-  test("quality は重い筆頭モデル＋逃げ道、light は軽い単モデルになる", () => {
+  test("quality は NSFW 耐性実測済み筆頭＋逃げ道、light は軽い単モデルになる", () => {
     const quality = createModelChain({ OPENROUTER_API_KEY: "test-key" }, { chatMode: "quality" });
     expect(quality.map((c) => c.name)).toEqual([
-      "sao10k/l3.3-euryale-70b",
-      "deepseek/deepseek-v4.1-flash",
+      "deepseek/deepseek-v4.1-flash-1017",
       "cognitivecomputations/dolphin-mistral-24b-venice-edition",
+      "deepseek/deepseek-v4.1-flash",
     ]);
     const light = createModelChain({ OPENROUTER_API_KEY: "test-key" }, { chatMode: "light" });
     expect(light.map((c) => c.name)).toEqual([
@@ -159,8 +159,8 @@ describe("createModelChain チャットモード（RIT-205）", () => {
       const chain = createModelChain({ OPENROUTER_API_KEY: "test-key" }, options);
       expect(chain.map((c) => c.name)).toEqual([
         "deepseek/deepseek-v4.1-flash-1017",
-        "deepseek/deepseek-v4.1-flash",
         "cognitivecomputations/dolphin-mistral-24b-venice-edition",
+        "deepseek/deepseek-v4.1-flash",
       ]);
     }
   });
