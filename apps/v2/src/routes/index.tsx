@@ -13,6 +13,7 @@ import { SafeModeToggle } from "../component/safe-mode-toggle";
 import { StyleSelect } from "../component/style-select";
 import { UserPersonaInput } from "../component/user-persona-input";
 import { VoiceAutoplayToggle } from "../component/voice-autoplay-toggle";
+import { avatarUrl } from "../lib/avatar-url";
 import { listCharacters, listSavedConversations } from "../server/characters";
 
 const routeApi = getRouteApi("/");
@@ -84,7 +85,7 @@ const CharacterListPage = () => {
                     {c.name.slice(0, 1)}
                     {c.avatar && (
                       <img
-                        src={`/avatars/${encodeURIComponent(c.avatar)}`}
+                        src={avatarUrl(c.avatar) ?? undefined}
                         alt=""
                         loading="lazy"
                         onError={(e) => e.currentTarget.remove()}

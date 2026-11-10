@@ -5,6 +5,7 @@ import { createFileRoute, getRouteApi, Link, useNavigate } from "@tanstack/react
 
 import { ReactionPanel } from "../component/reaction-panel";
 import { TipPanel } from "../component/tip-panel";
+import { avatarUrl } from "../lib/avatar-url";
 import { forkCatalogItem } from "../lib/catalog";
 import { listCatalogItems } from "../server/catalog";
 
@@ -34,7 +35,7 @@ const CatalogCard = ({ item }: { item: CatalogItem }) => {
         {item.name.slice(0, 1)}
         {item.avatar && (
           <img
-            src={`/avatars/${encodeURIComponent(item.avatar)}`}
+            src={avatarUrl(item.avatar) ?? undefined}
             alt=""
             loading="lazy"
             onError={(e) => e.currentTarget.remove()}

@@ -9,6 +9,7 @@ import {
 } from "../../component/chat-route-state";
 import { ChatView } from "../../component/chat-view";
 import { ProactiveToggle } from "../../component/proactive-toggle";
+import { avatarUrl } from "../../lib/avatar-url";
 import { getCharacter } from "../../server/characters";
 
 const routeApi = getRouteApi("/chat/$id");
@@ -24,9 +25,7 @@ const ChatPage = () => {
         key={`${character.id}:${conversationId ?? newChat ?? "saved"}`}
         characterId={character.id}
         characterName={character.name}
-        characterAvatar={
-          character.avatar ? `/avatars/${encodeURIComponent(character.avatar)}` : null
-        }
+        characterAvatar={avatarUrl(character.avatar)}
         initialConversationId={conversationId}
         newConversationKey={newChat}
       />
