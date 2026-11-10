@@ -979,3 +979,10 @@ body {
   aspect-ratio: 1;
   object-fit: cover;
 }
+
+/* キャラ一覧の名前リンクに顔アイコンを並べる（公式キャラの avatars/ 静的配信） */
+.v2-char-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}

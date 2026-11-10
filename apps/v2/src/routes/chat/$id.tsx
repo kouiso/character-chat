@@ -24,7 +24,9 @@ const ChatPage = () => {
         key={`${character.id}:${conversationId ?? newChat ?? "saved"}`}
         characterId={character.id}
         characterName={character.name}
-        characterAvatar={character.avatar}
+        characterAvatar={
+          character.avatar ? `/avatars/${encodeURIComponent(character.avatar)}` : null
+        }
         initialConversationId={conversationId}
         newConversationKey={newChat}
       />

@@ -30,6 +30,17 @@ const CatalogCard = ({ item }: { item: CatalogItem }) => {
 
   return (
     <li>
+      <span className="v2-avatar" aria-hidden>
+        {item.name.slice(0, 1)}
+        {item.avatar && (
+          <img
+            src={`/avatars/${encodeURIComponent(item.avatar)}`}
+            alt=""
+            loading="lazy"
+            onError={(e) => e.currentTarget.remove()}
+          />
+        )}
+      </span>
       <strong>{item.name}</strong>
       {item.playCount > 0 && <span className="v2-play-count">▶ {item.playCount}</span>}
       {item.summary && <p>{item.summary}</p>}
