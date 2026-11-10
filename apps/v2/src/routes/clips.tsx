@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 
 import { createFileRoute, getRouteApi, Link } from "@tanstack/react-router";
 
-import { listClips } from "../server/api-clips";
+import { listClips } from "../server/clips";
 
 import type { ClipListItem } from "../server/api-clips";
 
