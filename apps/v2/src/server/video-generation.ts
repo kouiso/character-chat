@@ -29,6 +29,7 @@ export type VideoEnv = {
   BUCKET: R2Bucket;
   RUNWARE_API_KEY?: string;
   RUNWARE_API_BASE?: string;
+  V2_UNLIMITED?: string;
 };
 
 const withTimeout = (timeoutMs: number): AbortController => {
@@ -146,7 +147,7 @@ type GenerationRow = {
 // 生成課金（RIT-188）。上流へ投げる前に spend。残高不足は 409 で登録自体をしない。
 const chargeOrThrow = async (env: VideoEnv, generationId: string): Promise<void> => {
   try {
-    await chargeGeneration(env.DB, { userId: "local", generationId, kind: "video" });
+    await chargeGeneration(env.DB, { userId: "local", generationId, kind: "video" }, env);
   } catch (error) {
     if (error instanceof CurrencyError) {
       throw new ImageGenerationError(error.message, error.status);

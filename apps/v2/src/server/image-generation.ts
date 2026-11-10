@@ -101,6 +101,7 @@ export type ImageEnv = {
   BUCKET: R2Bucket;
   NOVITA_API_KEY?: string;
   MOCK_API_BASE?: string;
+  V2_UNLIMITED?: string;
 };
 
 type CharacterVisual = {
@@ -529,7 +530,7 @@ const persistSuccess = async (input: {
 // 残高不足は 409 で生成自体を始めない（課金も失敗行も残らない）。
 const chargeOrThrow = async (env: ImageEnv, generationId: string): Promise<void> => {
   try {
-    await chargeGeneration(env.DB, { userId: "local", generationId, kind: "image" });
+    await chargeGeneration(env.DB, { userId: "local", generationId, kind: "image" }, env);
   } catch (error) {
     if (error instanceof CurrencyError) {
       throw new ImageGenerationError(error.message, error.status);

@@ -79,6 +79,28 @@ describe("checkDailyTurnLimit", () => {
     expect(after.allowed).toBe(false);
   });
 
+  it("V2_UNLIMITED=1 なら上限到達後も通す", async () => {
+    const env = { V2_DAILY_TURN_LIMIT: "1", V2_UNLIMITED: "1" };
+    const userId = `limit-user-${crypto.randomUUID()}`;
+    const convId = `limit-${crypto.randomUUID()}`;
+    const now = Date.now();
+    await local.d1
+      .prepare(
+        "INSERT INTO v2_conversation (id, user_id, character_id, thread_id, prompt_version, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      )
+      .bind(convId, userId, characterId, "main", "test", now, now)
+      .run();
+    await local.d1
+      .prepare(
+        "INSERT INTO v2_message (id, conversation_id, turn, role, content, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+      )
+      .bind(crypto.randomUUID(), convId, 1, "user", "発言", now)
+      .run();
+    const result = await checkDailyTurnLimit(local.db, env, now, userId);
+    expect(result.allowed).toBe(true);
+    expect(result.used).toBeGreaterThanOrEqual(1);
+  });
+
   it("昨日の発言は今日の回数に入らん", async () => {
     const env = { V2_DAILY_TURN_LIMIT: "1" };
     const userId = `limit-user-${crypto.randomUUID()}`;

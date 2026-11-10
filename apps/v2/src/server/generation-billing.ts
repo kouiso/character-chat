@@ -24,10 +24,13 @@ export const ensureSeedBalance = (db: D1Database, userId: string): Promise<unkno
 
 // 生成開始時の課金。残高不足は CurrencyError(409) が上がり、呼び出し側で 409 応答へ写す。
 // 成功すれば charge:{generationId} の spend 行が残り、以後の失敗は refund で返す。
+// 本人専用運用の V2_UNLIMITED=1 では課金そのものを行わない。
 export const chargeGeneration = async (
   db: D1Database,
   input: { userId: string; generationId: string; kind: BillableGenerationKind },
+  env?: { V2_UNLIMITED?: string },
 ): Promise<void> => {
+  if (env?.V2_UNLIMITED === "1") return;
   await ensureSeedBalance(db, input.userId);
   const label = input.kind === "video" ? "動画生成" : "画像生成";
   await spendCurrency(db, {
