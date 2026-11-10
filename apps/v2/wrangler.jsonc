@@ -26,6 +26,9 @@
       "name": "adult-ai-v2",
       "vars": {
         "APP_ENV": "production",
+        // Access アプリ（adult-ai-v2 Worker destination）が入口の Google 認証を担うので、
+        // 二重になる Basic 認証は worker.ts 側でこの印を見て外す。
+        "V2_CF_ACCESS": "1",
         "V2_FAKE_MODEL": "0",
         "V2_RAG_ENABLED": "1",
         "V2_MODEL_CHAIN": "[{\"model\":\"deepseek/deepseek-v4.1-flash-1017\"},{\"model\":\"deepseek/deepseek-v4.1-flash\",\"providerOnly\":[\"Venice\"]},{\"model\":\"cognitivecomputations/dolphin-mistral-24b-venice-edition\"}]",

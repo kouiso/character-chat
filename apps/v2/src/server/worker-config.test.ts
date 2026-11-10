@@ -145,6 +145,12 @@ describe("本番と試し用の分離", () => {
     expect(production.r2_buckets[0]?.bucket_name).toBe("adult-ai-images");
   });
 
+  it("本番だけ V2_CF_ACCESS で入口認証を Access へ委譲する", () => {
+    // 本番は Access アプリが Google 認証を担う。staging は Access が無いので Basic 認証を残す。
+    expect(production.vars.V2_CF_ACCESS).toBe("1");
+    expect(staging.vars.V2_CF_ACCESS).toBeUndefined();
+  });
+
   it("staging は本番と別の資源だけを指す", () => {
     const resources = (config: ResolvedConfig) => [
       ...config.d1_databases.map((db) => `d1:${db.database_id}`),

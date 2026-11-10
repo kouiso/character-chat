@@ -9,6 +9,8 @@ interface __BaseEnv_Env {
   APP_ENV: string;
   V2_FAKE_MODEL: string;
   V2_RAG_ENABLED: string;
+  // 入口を Cloudflare Access へ委譲する環境だけ立てる印。無い環境は Basic 認証のまま。
+  V2_CF_ACCESS?: string;
   V2_MODEL?: string;
   V2_MODEL_CHAIN: string;
   V2_SAFE_MODEL_CHAIN: string;
@@ -46,6 +48,7 @@ declare namespace Cloudflare {
     AI: Ai;
     ASSETS: Fetcher;
     APP_ENV: string;
+    V2_CF_ACCESS: string;
     V2_FAKE_MODEL: string;
     V2_RAG_ENABLED: string;
     V2_MODEL?: string;
