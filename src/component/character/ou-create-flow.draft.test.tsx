@@ -257,7 +257,8 @@ describe("キャラ作成下書き", () => {
     fireEvent.click(screen.getByText("おまかせでつくる"));
     fireEvent.click(screen.getByRole("button", { name: "もう作って" }));
     await screen.findByText("できあがり");
-    expect(readCharacterDraft()?.result?.avatar).toBe(asset);
+    // 下書きへの反映は描画後の effect なので、表示が出た直後に読むと古い値を拾うことがある
+    await waitFor(() => expect(readCharacterDraft()?.result?.avatar).toBe(asset));
   });
 
   it("生成済みのプレビューは、確かめずに下書きを破棄しない", async () => {
