@@ -339,6 +339,35 @@ describe("MessageBubble", () => {
     fireEvent.click(screen.getByRole("button", { name: "スキップ" }));
     expect(onFeedback).toHaveBeenCalledWith("feedback-target", "bad", undefined);
   });
+
+  it("メニューの場面を保存で onSaveScene を呼びメニューを閉じる", () => {
+    const onSaveScene = vi.fn();
+
+    render(
+      <MessageBubble
+        id="scene-target"
+        role="assistant"
+        content="保存したい場面"
+        characterName="燈子"
+        onSaveScene={onSaveScene}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "メッセージメニュー" }));
+    fireEvent.click(screen.getByRole("button", { name: "場面を保存" }));
+
+    expect(onSaveScene).toHaveBeenCalledWith("scene-target");
+    // メニューは閉じる（項目が残らない）
+    expect(screen.queryByRole("button", { name: "コピー" })).not.toBeInTheDocument();
+  });
+
+  it("ユーザーの発言メニューには場面を保存を出さない", () => {
+    render(<MessageBubble id="user-msg" role="user" content="自分の発言" onSaveScene={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "メッセージメニュー" }));
+
+    expect(screen.queryByRole("button", { name: "場面を保存" })).not.toBeInTheDocument();
+  });
 });
 
 // プロフィールアバターと会話生成画像のパス分離検証 (#323)

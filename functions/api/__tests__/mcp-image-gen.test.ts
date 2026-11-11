@@ -5,10 +5,7 @@ import type {
   ImageGenProvider,
   ImageGenTaskResult,
 } from "../../../src/lib/image-gen/provider";
-import {
-  checkMcpAuth,
-  createMcpImageGenHandler,
-} from "../../mcp/_shared";
+import { checkMcpAuth, createMcpImageGenHandler } from "../../mcp/_shared";
 
 const succeedResult = (taskId: string): ImageGenTaskResult => ({
   task: {
@@ -94,12 +91,14 @@ describe("createMcpImageGenHandler", () => {
   });
 
   it("上流タスクが失敗したら 502", async () => {
-    const handler = createMcpImageGenHandler("novita", () =>
-      makeProvider({
-        getTaskResult: async (taskId) => ({
-          task: { task_id: taskId, status: "TASK_STATUS_FAILED", progress_percent: 100 },
+    const handler = createMcpImageGenHandler(
+      "novita",
+      () =>
+        makeProvider({
+          getTaskResult: async (taskId) => ({
+            task: { task_id: taskId, status: "TASK_STATUS_FAILED", progress_percent: 100 },
+          }),
         }),
-      }),
       timing,
     );
     const res = await handler({ request: makeRequest("secret"), env: { MCP_TOKEN: "secret" } });

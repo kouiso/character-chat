@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { ChatMessage } from "@/store/chat-store";
@@ -41,6 +41,46 @@ describe("HerMessage 本文の表示順", () => {
 
 // good / イマイチ / コピー / リンク / 読み上げは 2026-08-19 に局長判断で YAGNI 撤去した。
 // 撮り直し（再生成）だけが残っとる。撤去した分を見とったテストはここから消えとる。
+// 場面ブックマークの保存導線。確定済みの返事にだけ出す（生成中・送信失敗は D1 に
+// その発言行が無いので保存しても 404 になる）。
+describe("HerMessage の場面を保存", () => {
+  afterEach(cleanup);
+
+  it("確定した返事に場面を保存ボタンを出して onSaveScene を呼ぶ", () => {
+    const onSaveScene = vi.fn();
+
+    render(<HerMessage message={baseMessage} isStreaming={false} onSaveScene={onSaveScene} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "場面を保存" }));
+
+    expect(onSaveScene).toHaveBeenCalled();
+  });
+
+  it("ストリーミング中は場面を保存を出さない", () => {
+    render(
+      <HerMessage
+        message={{ ...baseMessage, isStreaming: true }}
+        isStreaming={true}
+        onSaveScene={vi.fn()}
+      />,
+    );
+
+    expect(screen.queryByRole("button", { name: "場面を保存" })).toBeNull();
+  });
+
+  it("送信失敗した返事には場面を保存を出さない", () => {
+    render(
+      <HerMessage
+        message={{ ...baseMessage, error: true }}
+        isStreaming={false}
+        onSaveScene={vi.fn()}
+      />,
+    );
+
+    expect(screen.queryByRole("button", { name: "場面を保存" })).toBeNull();
+  });
+});
+
 describe("HerMessage の当たり判定", () => {
   it("送信失敗の再試行は 44px の当たりを持つ(見た目の文字サイズは据え置き)", () => {
     render(

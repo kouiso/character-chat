@@ -17,6 +17,7 @@ interface OuseMessageListProps {
   visibleMessages: ChatMessage[];
   handleFeedback: (messageId: string, rating: "good" | "bad", reason?: string) => Promise<void>;
   handleRegenerate: (messageId: string) => Promise<void>;
+  handleSaveScene: (messageId: string) => Promise<void>;
   handleRetrySend: (messageId: string) => void;
   handleImageClick: (messageId: string) => void;
   imageGeneratingMessageIds: Set<string>;
@@ -144,6 +145,7 @@ export const OuseMessageList = ({
   visibleMessages,
   handleFeedback,
   handleRegenerate,
+  handleSaveScene,
   handleRetrySend,
   handleImageClick,
   imageGeneratingMessageIds,
@@ -222,6 +224,7 @@ export const OuseMessageList = ({
                 character={bubbleCharacter}
                 onFeedback={(rating, reason) => void handleFeedback(msg.id, rating, reason)}
                 onRegenerate={() => void handleRegenerate(msg.id)}
+                onSaveScene={() => void handleSaveScene(msg.id)}
                 feedbackRating={msg.feedbackRating}
                 isImageGenerating={imageGeneratingMessageIds.has(msg.id)}
                 onImageClick={() => handleImageClick(msg.id)}

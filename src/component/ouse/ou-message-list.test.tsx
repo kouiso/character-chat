@@ -27,6 +27,7 @@ const renderList = (messages: ChatMessage[], imageGenerating: string[] = []) => 
         bubbleCharacter={undefined}
         visibleMessages={messages}
         handleFeedback={asyncNoop}
+        handleSaveScene={asyncNoop}
         handleRegenerate={asyncNoop}
         handleRetrySend={noop}
         handleImageClick={noop}
