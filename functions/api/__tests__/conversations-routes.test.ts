@@ -816,6 +816,149 @@ describe.skipIf(!DatabaseSyncCtor)("GET /api/conversations/:id/branches (実SQLi
   });
 });
 
+describe.skipIf(!DatabaseSyncCtor)("POST /api/conversations/:id/branch (実SQLite)", () => {
+  const postBranch = (DB: Env, conversationId: string, body: unknown) =>
+    authed(DB, `/api/conversations/${conversationId}/branch`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+
+  const seedBranchSource = (db: DatabaseSync) => {
+    seedCharacter(db, { name: "さくら" });
+    seedConversation(db, { id: "conv-parent", title: "雨宿りの夜" });
+    seedMessage(db, { id: "msg-1", conversationId: "conv-parent", createdAt: 100 });
+    seedMessage(db, {
+      id: "msg-pivot",
+      conversationId: "conv-parent",
+      content: "<dialogue>「ねえ、まだ帰らないで」</dialogue>",
+      createdAt: 200,
+    });
+    seedMessage(db, { id: "msg-after", conversationId: "conv-parent", createdAt: 300 });
+  };
+
+  it("認証ヘッダが無ければ 401 unauthorized", async () => {
+    const { DB } = makeRealD1();
+
+    const response = await anonymous(DB, "/api/conversations/conv-1/branch", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ messageId: "msg-1" }),
+    });
+
+    expect(response.status).toBe(401);
+    expect(await response.json()).toEqual({ error: "unauthorized" });
+  });
+
+  it("id が128文字を超えると 400 invalid conversation id", async () => {
+    const { DB } = makeRealD1();
+
+    const response = await postBranch(DB, TOO_LONG_ID, { messageId: "msg-1" });
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ error: "invalid conversation id" });
+  });
+
+  it("他人の会話からは分岐できず 404 で、行も作らん", async () => {
+    const { db, DB } = makeRealD1();
+    seedCharacter(db, { id: OTHER_CHARACTER_ID, userId: OTHER_ID, name: "他人キャラ" });
+    seedConversation(db, { id: "conv-theirs", userId: OTHER_ID, characterId: OTHER_CHARACTER_ID });
+    seedMessage(db, {
+      id: "msg-theirs",
+      userId: OTHER_ID,
+      conversationId: "conv-theirs",
+      characterId: OTHER_CHARACTER_ID,
+      createdAt: 100,
+    });
+    const before = count(db, "SELECT COUNT(*) AS n FROM conversation");
+
+    const response = await postBranch(DB, "conv-theirs", { messageId: "msg-theirs" });
+
+    expect(response.status).toBe(404);
+    expect(await response.json()).toEqual({ error: "conversation not found" });
+    expect(count(db, "SELECT COUNT(*) AS n FROM conversation")).toBe(before);
+  });
+
+  it("pivot に指定したメッセージが無い（他人の・別会話の・存在しない）と 404 message not found", async () => {
+    const { db, DB } = makeRealD1();
+    seedBranchSource(db);
+    seedMessage(db, {
+      id: "msg-other-conv",
+      conversationId: "conv-unrelated",
+      createdAt: 100,
+    });
+    seedConversation(db, { id: "conv-unrelated" });
+
+    for (const missingId of ["msg-not-exists", "msg-other-conv"]) {
+      const response = await postBranch(DB, "conv-parent", { messageId: missingId });
+      expect(response.status).toBe(404);
+      expect(await response.json()).toEqual({ error: "message not found" });
+    }
+  });
+
+  it("pivot までの発言だけをコピーした分岐会話を親リンクつきで作る", async () => {
+    const { db, DB } = makeRealD1();
+    seedBranchSource(db);
+
+    const response = await postBranch(DB, "conv-parent", {
+      messageId: "msg-pivot",
+      title: "あの場面のもうひとつの夜",
+    });
+
+    expect(response.status).toBe(201);
+    const { conversation } = await readCreated(response);
+    expect(conversation.parentConversationId).toBe("conv-parent");
+    expect(conversation.branchedFromMessageId).toBe("msg-pivot");
+    expect(conversation.parentTitle).toBe("雨宿りの夜");
+    expect(conversation.title).toBe("あの場面のもうひとつの夜");
+
+    // 分岐先には pivot までの2件だけが入り、msg-after はコピーされん
+    const rows = db
+      .prepare(
+        "SELECT role, content FROM message WHERE conversation_id = ? ORDER BY created_at ASC",
+      )
+      .all(conversation.id) as { role: string; content: string }[];
+    expect(rows.map((r) => r.content)).toEqual([
+      "content-msg-1",
+      "<dialogue>「ねえ、まだ帰らないで」</dialogue>",
+    ]);
+    // 親側の発言は消えん
+    expect(countMessages(db, "conv-parent")).toBe(3);
+  });
+
+  it("title 省略時はキャラ名・分岐点の抜粋・日付入りの既定タイトルになる", async () => {
+    const { db, DB } = makeRealD1();
+    seedBranchSource(db);
+
+    const response = await postBranch(DB, "conv-parent", { messageId: "msg-pivot" });
+
+    expect(response.status).toBe(201);
+    const { conversation } = await readCreated(response);
+    // XML タグは抜粋から剥がす。日付部分は実行日なので形だけ見る。
+    expect(conversation.title).toMatch(/^さくら・「.+」・\d{1,2}\/\d{1,2}$/);
+    expect(conversation.title).toContain("「ねえ、まだ帰らないで」");
+    expect(readConversation(db, conversation.id)?.title).toBe(conversation.title);
+  });
+
+  it("既定タイトルの抜粋は20字で切り詰められる", async () => {
+    const { db, DB } = makeRealD1();
+    seedCharacter(db, { name: "さくら" });
+    seedConversation(db, { id: "conv-parent", title: "親" });
+    seedMessage(db, {
+      id: "msg-pivot",
+      conversationId: "conv-parent",
+      role: "user",
+      content: "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほ",
+      createdAt: 100,
+    });
+
+    const response = await postBranch(DB, "conv-parent", { messageId: "msg-pivot" });
+
+    const { conversation } = await readCreated(response);
+    expect(conversation.title).toContain("「あいうえおかきくけこさしすせそたちつてと」");
+    expect(conversation.title).not.toContain("なにぬねの");
+  });
+});
+
 describe.skipIf(!DatabaseSyncCtor)("DELETE /api/conversations（一括） (実SQLite)", () => {
   const seedBothUsers = (db: DatabaseSync) => {
     seedCharacter(db);

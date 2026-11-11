@@ -1,8 +1,12 @@
-import { useQuery } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
+import { useState, type CSSProperties } from "react";
+
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Loader2, Pencil } from "lucide-react";
+import { toast } from "sonner";
 
 import type { ConversationSummary } from "@/lib/api";
-import { listBranches } from "@/lib/api";
+import { listBranches, updateConversationTitle } from "@/lib/api";
+import { queryKey } from "@/lib/query-key";
 
 import { OU2 } from "./ouse-tokens";
 
@@ -27,61 +31,230 @@ const ellipsis = {
   whiteSpace: "nowrap" as const,
 };
 
+const cardStyle: CSSProperties = {
+  borderRadius: 14,
+  border: `1px solid ${OU2.hairline}`,
+  background: NODE_BG,
+  padding: "11px 13px",
+  marginBottom: 9,
+};
+
+const rowButtonStyle: CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: 4,
+  minWidth: 44,
+  minHeight: 44,
+  padding: "0 4px",
+  background: "none",
+  border: "none",
+  fontFamily: OU2.round,
+  fontSize: 11,
+  cursor: "pointer",
+};
+
 const BranchCard = ({
   branch,
+  editing,
+  draft,
+  renamePending,
+  onDraftChange,
+  onBeginEdit,
+  onCommitEdit,
+  onCancelEdit,
   onOpen,
 }: {
   branch: ConversationSummary;
+  editing: boolean;
+  draft: string;
+  renamePending: boolean;
+  onDraftChange: (value: string) => void;
+  onBeginEdit: () => void;
+  onCommitEdit: () => void;
+  onCancelEdit: () => void;
   onOpen: (id: string, characterId?: string) => void;
-}) => (
-  <button
-    type="button"
-    onClick={() => onOpen(branch.id, branch.characterId)}
-    style={{
-      display: "block",
-      width: "100%",
-      textAlign: "left",
-      borderRadius: 14,
-      border: `1px solid ${OU2.hairline}`,
-      background: NODE_BG,
-      padding: "11px 13px",
-      marginBottom: 9,
-      cursor: "pointer",
-    }}
-  >
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-      <span style={{ fontSize: 11, color: OU2.dim, ...ellipsis }}>
-        {formatBranchLabel(branch.createdAt)}
-      </span>
-      <span style={{ fontSize: 10, color: OU2.faint, flexShrink: 0 }}>このルートへ →</span>
-    </div>
-    <div
-      style={{
-        fontFamily: OU2.serif,
-        fontSize: 12,
-        color: OU2.dim,
-        marginTop: 5,
-        ...ellipsis,
-      }}
-    >
-      {branch.title}
-    </div>
-    {branch.lastAssistantMessage ? (
-      <div
-        style={{ fontFamily: OU2.round, fontSize: 11, color: OU2.faint, marginTop: 3, ...ellipsis }}
-      >
-        {branch.lastAssistantMessage}
+}) => {
+  if (editing) {
+    return (
+      <div style={cardStyle}>
+        <input
+          value={draft}
+          onChange={(event) => onDraftChange(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") onCommitEdit();
+            if (event.key === "Escape") onCancelEdit();
+          }}
+          autoFocus
+          maxLength={200}
+          aria-label="分岐のなまえ"
+          style={{
+            width: "100%",
+            borderRadius: 10,
+            background: "rgba(20,15,13,.7)",
+            border: `1px solid ${OU2.lampDim}`,
+            padding: "8px 11px",
+            fontFamily: OU2.round,
+            fontSize: 12.5,
+            color: OU2.text,
+            outline: "none",
+          }}
+        />
+        <div style={{ display: "flex", gap: 9, marginTop: 8 }}>
+          <button
+            type="button"
+            onClick={onCommitEdit}
+            disabled={renamePending || !draft.trim()}
+            style={{
+              minWidth: 44,
+              minHeight: 44,
+              padding: "7px 16px",
+              borderRadius: 13,
+              border: "none",
+              background: OU2.lampGrad,
+              color: OU2.onLamp,
+              fontFamily: OU2.round,
+              fontSize: 11.5,
+              fontWeight: 700,
+              cursor: "pointer",
+            }}
+          >
+            このなまえにする
+          </button>
+          <button
+            type="button"
+            onClick={onCancelEdit}
+            style={{
+              minWidth: 44,
+              minHeight: 44,
+              padding: "7px 14px",
+              borderRadius: 13,
+              border: `1px solid ${OU2.hairline}`,
+              background: "none",
+              color: OU2.dim,
+              fontFamily: OU2.round,
+              fontSize: 11.5,
+              cursor: "pointer",
+            }}
+          >
+            やめる
+          </button>
+        </div>
       </div>
-    ) : null}
-  </button>
-);
+    );
+  }
+
+  return (
+    <div style={cardStyle}>
+      <button
+        type="button"
+        onClick={() => onOpen(branch.id, branch.characterId)}
+        style={{
+          display: "block",
+          width: "100%",
+          textAlign: "left",
+          background: "none",
+          border: "none",
+          padding: 0,
+          cursor: "pointer",
+        }}
+      >
+        <div
+          style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}
+        >
+          <span style={{ fontSize: 11, color: OU2.dim, ...ellipsis }}>
+            {formatBranchLabel(branch.createdAt)}
+          </span>
+          <span style={{ fontSize: 10, color: OU2.faint, flexShrink: 0 }}>このルートへ →</span>
+        </div>
+        <div
+          style={{
+            fontFamily: OU2.serif,
+            fontSize: 12,
+            color: OU2.dim,
+            marginTop: 5,
+            ...ellipsis,
+          }}
+        >
+          {branch.title}
+        </div>
+        {branch.parentTitle ? (
+          <div
+            style={{
+              fontFamily: OU2.round,
+              fontSize: 10.5,
+              color: OU2.ghost,
+              marginTop: 2,
+              ...ellipsis,
+            }}
+          >
+            from: {branch.parentTitle}
+          </div>
+        ) : null}
+        {branch.lastAssistantMessage ? (
+          <div
+            style={{
+              fontFamily: OU2.round,
+              fontSize: 11,
+              color: OU2.faint,
+              marginTop: 3,
+              ...ellipsis,
+            }}
+          >
+            {branch.lastAssistantMessage}
+          </div>
+        ) : null}
+      </button>
+      <div style={{ display: "flex", gap: 10, marginTop: 2 }}>
+        <button
+          type="button"
+          onClick={onBeginEdit}
+          aria-label="なまえを変える"
+          style={{ ...rowButtonStyle, color: OU2.faint }}
+        >
+          <Pencil size={12} />
+          なまえ
+        </button>
+      </div>
+    </div>
+  );
+};
 
 export const OuBranchTree = ({ conversationId, onOpen }: OuBranchTreeProps) => {
+  const queryClient = useQueryClient();
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [draft, setDraft] = useState("");
+
   const { data: branches = [], isPending } = useQuery({
-    queryKey: ["branches", conversationId ?? null],
+    queryKey: queryKey.branchList(conversationId ?? null),
     queryFn: () => listBranches(conversationId!),
     enabled: !!conversationId,
   });
+
+  const renameMutation = useMutation({
+    mutationFn: ({ id, title }: { id: string; title: string }) =>
+      updateConversationTitle(id, title),
+    onSuccess: () => {
+      // 分岐ツリーと、同じ title を見せとる会話一覧の両方を取り直す
+      void queryClient.invalidateQueries({ queryKey: queryKey.branchListRoot });
+      void queryClient.invalidateQueries({ queryKey: queryKey.conversationList });
+    },
+    onError: () => toast.error("なまえを変えられませんでした"),
+  });
+
+  const commitRename = () => {
+    const title = draft.trim();
+    if (!editingId || !title) return;
+    renameMutation.mutate(
+      { id: editingId, title },
+      {
+        onSuccess: () => {
+          setEditingId(null);
+          setDraft("");
+        },
+      },
+    );
+  };
 
   const centerStyle = {
     flex: 1,
@@ -178,7 +351,26 @@ export const OuBranchTree = ({ conversationId, onOpen }: OuBranchTreeProps) => {
               まだ分岐はありません
             </div>
           ) : (
-            branches.map((branch) => <BranchCard key={branch.id} branch={branch} onOpen={onOpen} />)
+            branches.map((branch) => (
+              <BranchCard
+                key={branch.id}
+                branch={branch}
+                editing={editingId === branch.id}
+                draft={draft}
+                renamePending={renameMutation.isPending}
+                onDraftChange={setDraft}
+                onBeginEdit={() => {
+                  setEditingId(branch.id);
+                  setDraft(branch.title);
+                }}
+                onCommitEdit={commitRename}
+                onCancelEdit={() => {
+                  setEditingId(null);
+                  setDraft("");
+                }}
+                onOpen={onOpen}
+              />
+            ))
           )}
           {/* 分岐作成はこの場ではなく発言の長押しメニューから行う。ボタンに見えないよう控えめな案内にする */}
           <div

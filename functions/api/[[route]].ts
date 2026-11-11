@@ -30,6 +30,7 @@ import {
   hasSustainedForeplay,
   SUSTAINED_FOREPLAY_TURNS,
 } from "../../src/lib/scene-phase";
+import { stripInlineEmphasisMarkers } from "../../src/lib/xml-response-parser";
 import { characterTable, conversationTable, memoryNoteTable, messageTable } from "../../src/schema";
 
 import {
@@ -225,6 +226,10 @@ const TARGET_VERY_LONG_CHARACTER_IDS = new Set([
   "char-koharu-ex",
   "import-charap-ダウナーお姉さんに拾われる話",
 ]);
+
+// 分岐タイトルの既定値に載せる本文抜粋の上限。「どの場面からの if か」が
+// 一覧で読み取れる最低限だけ切る（題名に長文はいらん）。
+const BRANCH_TITLE_SNIPPET_LENGTH = 20;
 
 // <remember> 由来のノートを、既に保存済みの分を除いてから入れる。
 // fetchRecentMemoryNotes は直近 20 行しか引かんので、重複が入ると本物の古い事実が
@@ -606,15 +611,21 @@ export const app = new Hono<{ Bindings: Bindings }>()
         .select({
           title: conversationTable.title,
           characterId: conversationTable.characterId,
+          characterName: characterTable.name,
         })
         .from(conversationTable)
+        .leftJoin(characterTable, eq(conversationTable.characterId, characterTable.id))
         .where(and(eq(conversationTable.id, conversationId), eq(conversationTable.userId, userId)))
         .limit(1);
       const sourceConversation = conversationRows[0];
       if (!sourceConversation) return c.json({ error: "conversation not found" }, 404);
 
       const pivotRows = await database
-        .select({ createdAt: messageTable.createdAt, rowid: sql<number>`rowid` })
+        .select({
+          createdAt: messageTable.createdAt,
+          content: messageTable.content,
+          rowid: sql<number>`rowid`,
+        })
         .from(messageTable)
         .where(
           and(
@@ -628,12 +639,31 @@ export const app = new Hono<{ Bindings: Bindings }>()
       if (!pivot) return c.json({ error: "message not found" }, 404);
 
       const now = Date.now();
+      // 既定タイトル。「分岐: <親題>」はどの枝か見分けが付かんので、キャラ名＋分岐点の
+      // 本文抜粋＋日付にして「いつ・どの場面からの if か」が一覧で分かるようにする。
+      const defaultTitle = (() => {
+        const snippet = stripInlineEmphasisMarkers(pivot.content)
+          .replace(/<[^>]+>/g, " ")
+          .replace(/\s+/g, " ")
+          .trim()
+          .slice(0, BRANCH_TITLE_SNIPPET_LENGTH)
+          // 外側で「」を付けるので、抜粋が既に括弧で始まり/終わると二重になる
+          .replace(/^[「『(“"']+|[」』)”"']+$/g, "");
+        const branchedAt = new Date(now);
+        const dateLabel = `${branchedAt.getMonth() + 1}/${branchedAt.getDate()}`;
+        const name = sourceConversation.characterName ?? "AI";
+        return (snippet ? `${name}・「${snippet}」・${dateLabel}` : `${name}・${dateLabel}`).slice(
+          0,
+          200,
+        );
+      })();
+      const resolvedTitle = title ?? defaultTitle;
       const newConversationId = crypto.randomUUID();
       await database.insert(conversationTable).values({
         id: newConversationId,
         userId,
         characterId: sourceConversation.characterId,
-        title: title ?? `分岐: ${sourceConversation.title}`.slice(0, 200),
+        title: resolvedTitle,
         parentConversationId: conversationId,
         branchedFromMessageId: messageId,
         createdAt: now,
@@ -705,7 +735,7 @@ export const app = new Hono<{ Bindings: Bindings }>()
         database,
         userId,
         newConversationId,
-        title ?? `分岐: ${sourceConversation.title}`.slice(0, 200),
+        resolvedTitle,
         now,
         sourceConversation.characterId,
         {

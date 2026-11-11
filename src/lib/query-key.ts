@@ -9,6 +9,9 @@ export const queryKey = {
   memoryNotes: (characterId?: string | null) => ["memory-notes", characterId ?? "all"] as const,
   // 場面ブックマーク一覧キーの接頭辞。キャラ絞り込み・検索語は呼び出し側が後ろへ足す。
   sceneBookmarkListRoot: ["scene-bookmarks"] as const,
+  // 分岐ツリー一覧キー。rename 後は接頭辞でまとめて無効化する。
+  branchListRoot: ["branches"] as const,
+  branchList: (conversationId: string | null) => ["branches", conversationId ?? null] as const,
   imageGallery: ["image-gallery"] as const,
   characterList: ["character-list"] as const,
   groupList: ["group-list"] as const,
