@@ -233,24 +233,26 @@ const BookmarkRow = ({
 
 const SceneListFooter = ({
   hasNextPage,
-  isFetchingNextPage,
+  fetching,
+  fetchNextPageError,
   onLoadMore,
 }: {
   hasNextPage: boolean;
-  isFetchingNextPage: boolean;
+  fetching: boolean;
+  fetchNextPageError: boolean;
   onLoadMore: () => void;
 }) =>
   hasNextPage ? (
     <button
       type="button"
       onClick={onLoadMore}
-      disabled={isFetchingNextPage}
+      disabled={fetching}
       style={{
         minHeight: 44,
         borderRadius: 13,
         border: `1px solid ${OU2.hairline}`,
         background: "none",
-        color: OU2.faint,
+        color: fetchNextPageError ? OU2.lamp : OU2.faint,
         fontFamily: OU2.round,
         fontSize: 11.5,
         cursor: "pointer",
@@ -260,8 +262,8 @@ const SceneListFooter = ({
         gap: 6,
       }}
     >
-      {isFetchingNextPage ? <Loader2 size={12} className="animate-spin" /> : null}
-      さらに読む
+      {fetching ? <Loader2 size={12} className="animate-spin" /> : null}
+      {fetchNextPageError ? "読み込めませんでした。もう一度" : "さらに読む"}
     </button>
   ) : null;
 
@@ -304,7 +306,7 @@ export const OuSceneBookmarkList = ({ characterId, onOpen }: OuSceneBookmarkList
   }, [query]);
 
   const filterCharacterId = onlyThisChar ? characterId : null;
-  const { data, isPending, isError, hasNextPage, isFetchingNextPage, fetchNextPage } =
+  const { data, isPending, isError, hasNextPage, isFetching, isFetchNextPageError, fetchNextPage } =
     useInfiniteQuery({
       queryKey: [...queryKey.sceneBookmarkListRoot, filterCharacterId ?? "all", debouncedQuery],
       queryFn: ({ pageParam }) =>
@@ -410,20 +412,23 @@ export const OuSceneBookmarkList = ({ characterId, onOpen }: OuSceneBookmarkList
         <div style={{ display: "flex", justifyContent: "center", paddingTop: 24 }}>
           <Loader2 size={16} className="animate-spin" style={{ color: OU2.faint }} />
         </div>
-      ) : isError ? (
-        <div
-          style={{
-            paddingTop: 24,
-            textAlign: "center",
-            color: OU2.faint,
-            fontFamily: OU2.round,
-            fontSize: 12,
-          }}
-        >
-          場面を読み込めませんでした
-        </div>
       ) : items.length === 0 ? (
-        <SceneEmptyState searching={debouncedQuery !== ""} />
+        // 続き取得の失敗では取り込み済みの一覧を隠さんよう、失敗表示は初回取得の全滅だけに畳む
+        isError ? (
+          <div
+            style={{
+              paddingTop: 24,
+              textAlign: "center",
+              color: OU2.faint,
+              fontFamily: OU2.round,
+              fontSize: 12,
+            }}
+          >
+            場面を読み込めませんでした
+          </div>
+        ) : (
+          <SceneEmptyState searching={debouncedQuery !== ""} />
+        )
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
           {items.map((bookmark) => (
@@ -463,7 +468,8 @@ export const OuSceneBookmarkList = ({ characterId, onOpen }: OuSceneBookmarkList
           ))}
           <SceneListFooter
             hasNextPage={Boolean(hasNextPage)}
-            isFetchingNextPage={isFetchingNextPage}
+            fetching={isFetching}
+            fetchNextPageError={isFetchNextPageError}
             onLoadMore={() => void fetchNextPage()}
           />
         </div>

@@ -179,4 +179,21 @@ describe("OuSceneBookmarkList", () => {
     );
     expect(screen.queryByRole("button", { name: "さらに読む" })).toBeNull();
   });
+
+  it("続き取得が失敗しても取得済みの一覧を残して再試行できる", async () => {
+    vi.mocked(listSceneBookmarks)
+      .mockResolvedValueOnce({ items: [BOOKMARK], nextCursor: "MTc2OTY0MTYwMDAwMDpibS0x" })
+      .mockRejectedValueOnce(new Error("network"));
+
+    renderList("char-1");
+
+    expect(await screen.findByText("旅館の縁側で")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "さらに読む" }));
+
+    expect(
+      await screen.findByRole("button", { name: "読み込めませんでした。もう一度" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("旅館の縁側で")).toBeInTheDocument();
+    expect(screen.queryByText("場面を読み込めませんでした")).toBeNull();
+  });
 });
