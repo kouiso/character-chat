@@ -1,9 +1,11 @@
 import { z } from "zod/v4";
 
 import {
+  imageGenTaskResultSchema,
   ImageGenProviderError,
   type ImageGenProvider,
   type ImageGenRequest,
+  type TaskStore,
 } from "../../src/lib/image-gen/provider";
 import { NovitaImageGenProvider } from "../../src/lib/image-gen/novita-provider";
 import { RunwareImageGenProvider } from "../../src/lib/image-gen/runware-provider";
@@ -15,7 +17,27 @@ export type McpEnv = {
   NOVITA_API_KEY?: string;
   RUNWARE_API_KEY?: string;
   MOCK_API_BASE?: string;
+  // Runware は async delivery のため taskStore 必須。main router と同じ R2 スキームを使う。
+  BUCKET?: R2Bucket;
 };
+
+// route-context.createR2ImageGenTaskStore と同一キー形式。重い route-context を
+// mcp 束ねに引き込まないようここに複製する（片方だけ変わると片方のタスクが見えん）。
+const createR2TaskStore = (bucket: R2Bucket): TaskStore => ({
+  async get(id) {
+    const object = await bucket.get(`image-gen-task/${id}.json`);
+    if (!object) return null;
+    return imageGenTaskResultSchema.parse(await object.json());
+  },
+  async set(id, result) {
+    await bucket.put(`image-gen-task/${id}.json`, JSON.stringify(result), {
+      httpMetadata: { contentType: "application/json" },
+    });
+  },
+  async delete(id) {
+    await bucket.delete(`image-gen-task/${id}.json`);
+  },
+});
 
 // Pages Functions の壁時計上限(約60s)に収めるため、上流生成の待ちはこれより内側に収める。
 const MCP_RESULT_POLL_INTERVAL_MS = 2_000;
@@ -97,6 +119,7 @@ const createProvider = (name: "novita" | "runware", env: McpEnv): ImageGenProvid
     : new RunwareImageGenProvider({
         runwareApiKey: env.RUNWARE_API_KEY,
         runwareApiBase: env.MOCK_API_BASE,
+        taskStore: env.BUCKET ? createR2TaskStore(env.BUCKET) : undefined,
       });
 
 type McpFunctionContext = { request: Request; env: McpEnv };
@@ -115,6 +138,11 @@ export const createMcpImageGenHandler =
     const parsed = mcpImageGenBodySchema.safeParse(body);
     if (!parsed.success) {
       return json({ error: "invalid request", issues: parsed.error.issues }, 400);
+    }
+    // Runware は negativePrompt に 2 文字以上を要求する。省略時の空文字は
+    // 上流 400 になるので、最小の既定値へ置き換える（Novita は空を受け付ける）。
+    if (name === "runware" && parsed.data.negativePrompt.trim().length < 2) {
+      parsed.data.negativePrompt = "lowres";
     }
 
     try {
