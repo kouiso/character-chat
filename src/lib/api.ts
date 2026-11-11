@@ -892,7 +892,7 @@ export const sceneBookmarkSchema = z.object({
 
 const sceneBookmarksSchema = z.object({
   items: z.array(sceneBookmarkSchema),
-  nextCursor: z.number().nullable(),
+  nextCursor: z.string().nullable(),
 });
 
 const sceneBookmarkResponseSchema = z.object({
@@ -1288,13 +1288,13 @@ export const listSceneBookmarks = async (params: {
   characterId?: string;
   q?: string;
   limit?: number;
-  cursor?: number;
-}): Promise<{ items: SceneBookmark[]; nextCursor: number | null }> => {
+  cursor?: string;
+}): Promise<{ items: SceneBookmark[]; nextCursor: string | null }> => {
   const searchParams = new URLSearchParams();
   if (params.characterId) searchParams.set("characterId", params.characterId);
   if (params.q?.trim()) searchParams.set("q", params.q.trim());
   if (params.limit !== undefined) searchParams.set("limit", String(params.limit));
-  if (params.cursor !== undefined) searchParams.set("cursor", String(params.cursor));
+  if (params.cursor !== undefined) searchParams.set("cursor", params.cursor);
   const suffix = searchParams.toString() ? `?${searchParams.toString()}` : "";
   const response = await apiFetch(`/api/scene-bookmarks${suffix}`);
   ensureOk(response, "list scene bookmarks failed");

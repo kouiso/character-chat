@@ -1,6 +1,6 @@
 import { useEffect, useState, type CSSProperties } from "react";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -14,9 +14,8 @@ import { queryKey } from "@/lib/query-key";
 
 import { OU2 } from "./ouse-tokens";
 
-// サーバ側の limit 上限。nextCursor はサーバが複合カーソル文字列を返すのにクライアント側の
-// スキーマが数値を期待していて parse に失敗するため、ページングにはまだ使えない。
-const SCENE_LIST_LIMIT = 200;
+// 1 ページあたりの件数。サーバ上限は 200 だが、描画と往復回数のバランスで小さめに区切る
+const SCENE_LIST_PAGE_SIZE = 50;
 const SEARCH_DEBOUNCE_MS = 300;
 
 interface OuSceneBookmarkListProps {
@@ -232,6 +231,42 @@ const BookmarkRow = ({
   );
 };
 
+const SceneListFooter = ({
+  hasNextPage,
+  fetching,
+  fetchNextPageError,
+  onLoadMore,
+}: {
+  hasNextPage: boolean;
+  fetching: boolean;
+  fetchNextPageError: boolean;
+  onLoadMore: () => void;
+}) =>
+  hasNextPage ? (
+    <button
+      type="button"
+      onClick={onLoadMore}
+      disabled={fetching}
+      style={{
+        minHeight: 44,
+        borderRadius: 13,
+        border: `1px solid ${OU2.hairline}`,
+        background: "none",
+        color: fetchNextPageError ? OU2.lamp : OU2.faint,
+        fontFamily: OU2.round,
+        fontSize: 11.5,
+        cursor: "pointer",
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 6,
+      }}
+    >
+      {fetching ? <Loader2 size={12} className="animate-spin" /> : null}
+      {fetchNextPageError ? "読み込めませんでした。もう一度" : "さらに読む"}
+    </button>
+  ) : null;
+
 const SceneEmptyState = ({ searching }: { searching: boolean }) => (
   <div
     style={{
@@ -271,16 +306,20 @@ export const OuSceneBookmarkList = ({ characterId, onOpen }: OuSceneBookmarkList
   }, [query]);
 
   const filterCharacterId = onlyThisChar ? characterId : null;
-  const { data, isPending, isError } = useQuery({
-    queryKey: [...queryKey.sceneBookmarkListRoot, filterCharacterId ?? "all", debouncedQuery],
-    queryFn: () =>
-      listSceneBookmarks({
-        ...(filterCharacterId ? { characterId: filterCharacterId } : {}),
-        ...(debouncedQuery ? { q: debouncedQuery } : {}),
-        limit: SCENE_LIST_LIMIT,
-      }),
-  });
-  const items = data?.items ?? [];
+  const { data, isPending, isError, hasNextPage, isFetching, isFetchNextPageError, fetchNextPage } =
+    useInfiniteQuery({
+      queryKey: [...queryKey.sceneBookmarkListRoot, filterCharacterId ?? "all", debouncedQuery],
+      queryFn: ({ pageParam }) =>
+        listSceneBookmarks({
+          ...(filterCharacterId ? { characterId: filterCharacterId } : {}),
+          ...(debouncedQuery ? { q: debouncedQuery } : {}),
+          ...(pageParam ? { cursor: pageParam } : {}),
+          limit: SCENE_LIST_PAGE_SIZE,
+        }),
+      initialPageParam: null as string | null,
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+    });
+  const items = data?.pages.flatMap((page) => page.items) ?? [];
 
   const invalidate = () =>
     void queryClient.invalidateQueries({ queryKey: queryKey.sceneBookmarkListRoot });
@@ -373,20 +412,23 @@ export const OuSceneBookmarkList = ({ characterId, onOpen }: OuSceneBookmarkList
         <div style={{ display: "flex", justifyContent: "center", paddingTop: 24 }}>
           <Loader2 size={16} className="animate-spin" style={{ color: OU2.faint }} />
         </div>
-      ) : isError ? (
-        <div
-          style={{
-            paddingTop: 24,
-            textAlign: "center",
-            color: OU2.faint,
-            fontFamily: OU2.round,
-            fontSize: 12,
-          }}
-        >
-          場面を読み込めませんでした
-        </div>
       ) : items.length === 0 ? (
-        <SceneEmptyState searching={debouncedQuery !== ""} />
+        // 続き取得の失敗では取り込み済みの一覧を隠さんよう、失敗表示は初回取得の全滅だけに畳む
+        isError ? (
+          <div
+            style={{
+              paddingTop: 24,
+              textAlign: "center",
+              color: OU2.faint,
+              fontFamily: OU2.round,
+              fontSize: 12,
+            }}
+          >
+            場面を読み込めませんでした
+          </div>
+        ) : (
+          <SceneEmptyState searching={debouncedQuery !== ""} />
+        )
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
           {items.map((bookmark) => (
@@ -424,6 +466,12 @@ export const OuSceneBookmarkList = ({ characterId, onOpen }: OuSceneBookmarkList
               }
             />
           ))}
+          <SceneListFooter
+            hasNextPage={Boolean(hasNextPage)}
+            fetching={isFetching}
+            fetchNextPageError={isFetchNextPageError}
+            onLoadMore={() => void fetchNextPage()}
+          />
         </div>
       )}
     </div>
