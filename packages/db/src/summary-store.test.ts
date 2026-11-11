@@ -58,6 +58,7 @@ const LEDGER: SceneLedger = {
   clothing: {},
   position: null,
   lastEvents: [],
+  items: {},
 };
 
 describe("createD1SummaryStore", () => {

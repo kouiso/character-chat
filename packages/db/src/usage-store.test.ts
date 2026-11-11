@@ -47,6 +47,7 @@ const LEDGER: SceneLedger = {
   clothing: {},
   position: null,
   lastEvents: [],
+  items: {},
 };
 
 describe("countUserTurnsSince", () => {
