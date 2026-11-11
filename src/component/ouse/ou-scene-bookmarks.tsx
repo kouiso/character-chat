@@ -1,6 +1,6 @@
 import { useEffect, useState, type CSSProperties } from "react";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -14,9 +14,8 @@ import { queryKey } from "@/lib/query-key";
 
 import { OU2 } from "./ouse-tokens";
 
-// サーバ側の limit 上限。nextCursor はサーバが複合カーソル文字列を返すのにクライアント側の
-// スキーマが数値を期待していて parse に失敗するため、ページングにはまだ使えない。
-const SCENE_LIST_LIMIT = 200;
+// 1 ページあたりの件数。サーバ上限は 200 だが、描画と往復回数のバランスで小さめに区切る
+const SCENE_LIST_PAGE_SIZE = 50;
 const SEARCH_DEBOUNCE_MS = 300;
 
 interface OuSceneBookmarkListProps {
@@ -232,6 +231,40 @@ const BookmarkRow = ({
   );
 };
 
+const SceneListFooter = ({
+  hasNextPage,
+  isFetchingNextPage,
+  onLoadMore,
+}: {
+  hasNextPage: boolean;
+  isFetchingNextPage: boolean;
+  onLoadMore: () => void;
+}) =>
+  hasNextPage ? (
+    <button
+      type="button"
+      onClick={onLoadMore}
+      disabled={isFetchingNextPage}
+      style={{
+        minHeight: 44,
+        borderRadius: 13,
+        border: `1px solid ${OU2.hairline}`,
+        background: "none",
+        color: OU2.faint,
+        fontFamily: OU2.round,
+        fontSize: 11.5,
+        cursor: "pointer",
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 6,
+      }}
+    >
+      {isFetchingNextPage ? <Loader2 size={12} className="animate-spin" /> : null}
+      さらに読む
+    </button>
+  ) : null;
+
 const SceneEmptyState = ({ searching }: { searching: boolean }) => (
   <div
     style={{
@@ -271,16 +304,20 @@ export const OuSceneBookmarkList = ({ characterId, onOpen }: OuSceneBookmarkList
   }, [query]);
 
   const filterCharacterId = onlyThisChar ? characterId : null;
-  const { data, isPending, isError } = useQuery({
-    queryKey: [...queryKey.sceneBookmarkListRoot, filterCharacterId ?? "all", debouncedQuery],
-    queryFn: () =>
-      listSceneBookmarks({
-        ...(filterCharacterId ? { characterId: filterCharacterId } : {}),
-        ...(debouncedQuery ? { q: debouncedQuery } : {}),
-        limit: SCENE_LIST_LIMIT,
-      }),
-  });
-  const items = data?.items ?? [];
+  const { data, isPending, isError, hasNextPage, isFetchingNextPage, fetchNextPage } =
+    useInfiniteQuery({
+      queryKey: [...queryKey.sceneBookmarkListRoot, filterCharacterId ?? "all", debouncedQuery],
+      queryFn: ({ pageParam }) =>
+        listSceneBookmarks({
+          ...(filterCharacterId ? { characterId: filterCharacterId } : {}),
+          ...(debouncedQuery ? { q: debouncedQuery } : {}),
+          ...(pageParam ? { cursor: pageParam } : {}),
+          limit: SCENE_LIST_PAGE_SIZE,
+        }),
+      initialPageParam: null as string | null,
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+    });
+  const items = data?.pages.flatMap((page) => page.items) ?? [];
 
   const invalidate = () =>
     void queryClient.invalidateQueries({ queryKey: queryKey.sceneBookmarkListRoot });
@@ -424,6 +461,11 @@ export const OuSceneBookmarkList = ({ characterId, onOpen }: OuSceneBookmarkList
               }
             />
           ))}
+          <SceneListFooter
+            hasNextPage={Boolean(hasNextPage)}
+            isFetchingNextPage={isFetchingNextPage}
+            onLoadMore={() => void fetchNextPage()}
+          />
         </div>
       )}
     </div>
