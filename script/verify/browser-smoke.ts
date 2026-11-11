@@ -7,6 +7,18 @@ import type { Page, Route } from "playwright";
 
 import { isProtectedApiGuarded } from "./prod-reachable-policy";
 
+// WSL ではシステムの nss ライブラリが無く headless Chromium が起動できない。
+// sudo 不要で ~/.local/pw-libs に apt 展開済みのものがあれば差し込む。
+const localPwLibs = path.join(
+  process.env.HOME ?? "",
+  ".local/pw-libs/root/usr/lib/x86_64-linux-gnu",
+);
+if (existsSync(localPwLibs)) {
+  process.env.LD_LIBRARY_PATH = process.env.LD_LIBRARY_PATH
+    ? `${localPwLibs}:${process.env.LD_LIBRARY_PATH}`
+    : localPwLibs;
+}
+
 // ── vars ──────────────────────────────────────────────────────────────────────
 
 function loadProdVars(): Record<string, string> {
