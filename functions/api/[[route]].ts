@@ -1072,27 +1072,34 @@ export const app = new Hono<{ Bindings: Bindings }>()
           : { rememberNotes: [], visibleContent: payload.content };
 
       try {
-        await database.insert(messageTable).values({
-          id: payload.id,
-          userId,
-          conversationId,
-          characterId: currentConversation.characterId,
-          role: payload.role,
-          content: assistantContent.visibleContent,
-          imageUrl: payload.imageUrl,
-          imageKey: payload.imageKey,
-          imagePrompt: payload.imagePrompt,
-          imageSeed: payload.imageSeed,
-          imageLoraModel: payload.imageLoraModel ?? null,
-          imageLoraWeight: payload.imageLoraWeight ?? null,
-          imageLoraTriggerPrompt: payload.imageLoraTriggerPrompt ?? null,
-          retryCount: payload.retryCount ?? null,
-          refusalDetected:
-            payload.refusalDetected !== null ? (payload.refusalDetected ? 1 : 0) : null,
-          generationModel: payload.generationModel ?? null,
-          generationPhase: payload.generationPhase ?? null,
-          createdAt: now,
-        });
+        const inserted = await database
+          .insert(messageTable)
+          .values({
+            id: payload.id,
+            userId,
+            conversationId,
+            characterId: currentConversation.characterId,
+            role: payload.role,
+            content: assistantContent.visibleContent,
+            imageUrl: payload.imageUrl,
+            imageKey: payload.imageKey,
+            imagePrompt: payload.imagePrompt,
+            imageSeed: payload.imageSeed,
+            imageLoraModel: payload.imageLoraModel ?? null,
+            imageLoraWeight: payload.imageLoraWeight ?? null,
+            imageLoraTriggerPrompt: payload.imageLoraTriggerPrompt ?? null,
+            retryCount: payload.retryCount ?? null,
+            refusalDetected:
+              payload.refusalDetected !== null ? (payload.refusalDetected ? 1 : 0) : null,
+            generationModel: payload.generationModel ?? null,
+            generationPhase: payload.generationPhase ?? null,
+            createdAt: now,
+          })
+          .onConflictDoNothing()
+          .returning({ id: messageTable.id });
+
+        // stream/SSE 側が先に同じ id を永続化済み。記憶・場面・updatedAt も向こうが済ませとる。
+        if (inserted.length === 0) return c.json({ ok: true }, 201);
 
         await insertUnsavedRememberNotes({
           database,
