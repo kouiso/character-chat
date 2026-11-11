@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from "react";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import { NotFoundView } from "@/component/route/not-found-view";
@@ -12,6 +12,7 @@ import { useNetworkStatus } from "@/hook/use-network-status";
 import { useOuRouting } from "@/hook/use-ou-routing";
 import {
   ApiResponseError,
+  createSceneBookmark,
   extractMemoryNotes,
   fetchCurrentUser,
   generateImage,
@@ -56,7 +57,7 @@ import {
   saveStreamProgress,
 } from "@/lib/stream-session-storage";
 import { randomUUID } from "@/lib/uuid";
-import { parseXmlResponse } from "@/lib/xml-response-parser";
+import { parseXmlResponse, stripXmlTags } from "@/lib/xml-response-parser";
 import { shouldAttachAutoPhoto, useReplySettings } from "@/store/character-settings-store";
 import {
   markImageGenerationActive,
@@ -330,6 +331,7 @@ interface StageBodyProps {
   handleImageGenerate: () => Promise<void>;
   handleFeedback: (messageId: string, rating: "good" | "bad", reason?: string) => Promise<void>;
   handleRegenerate: (messageId: string) => Promise<void>;
+  handleSaveScene: (messageId: string) => Promise<void>;
   handleRetrySend: (messageId: string) => void;
   isOnline: boolean;
   imageGeneratingMessageIds: Set<string>;
@@ -415,6 +417,7 @@ type CenterScreenContentProps = Pick<
   | "handleImageGenerate"
   | "handleFeedback"
   | "handleRegenerate"
+  | "handleSaveScene"
   | "handleRetrySend"
   | "isOnline"
   | "imageGeneratingMessageIds"
@@ -449,6 +452,7 @@ const CenterScreenContent = ({
   handleImageGenerate,
   handleFeedback,
   handleRegenerate,
+  handleSaveScene,
   handleRetrySend,
   handleImageClick,
   isOnline,
@@ -582,6 +586,7 @@ const CenterScreenContent = ({
           visibleMessages={visibleMessages}
           handleFeedback={handleFeedback}
           handleRegenerate={handleRegenerate}
+          handleSaveScene={handleSaveScene}
           handleRetrySend={handleRetrySend}
           handleImageClick={handleImageClick}
           imageGeneratingMessageIds={imageGeneratingMessageIds}
@@ -641,6 +646,7 @@ const StageBody = ({
   handleImageGenerate,
   handleFeedback,
   handleRegenerate,
+  handleSaveScene,
   handleRetrySend,
   isOnline,
   imageGeneratingMessageIds,
@@ -764,6 +770,7 @@ const StageBody = ({
           handleImageGenerate={handleImageGenerate}
           handleFeedback={handleFeedback}
           handleRegenerate={handleRegenerate}
+          handleSaveScene={handleSaveScene}
           handleRetrySend={handleRetrySend}
           handleImageClick={handleImageClick}
           isOnline={isOnline}
@@ -922,6 +929,7 @@ const PcRight = ({
 };
 
 export const OuApp = ({ route }: { route: AppRoute }) => {
+  const queryClient = useQueryClient();
   const {
     data: characters = [],
     isPending: charactersPending,
@@ -1876,6 +1884,39 @@ export const OuApp = ({ route }: { route: AppRoute }) => {
     [setMessageFeedback],
   );
 
+  const handleSaveScene = useCallback(
+    async (messageId: string) => {
+      const message = useChatStore.getState().messages.find((m) => m.id === messageId);
+      if (!message || message.role !== "assistant") return;
+      if (!currentConversationId) {
+        // 発言の紐づく会話が D1 に無いとブックマーク行を作れない（外部キー制約）。
+        toast.error("場面を保存できませんでした。もう一度お願いします");
+        return;
+      }
+      // XMLタグのまま保存するとタイトル・抜粋が `<response>...` 始まりで読めない。
+      const plain = stripXmlTags(message.content).replace(/\s+/g, " ").trim();
+      const now = new Date();
+      const fallbackTitle = `場面 ${now.getMonth() + 1}/${now.getDate()}`;
+      const title = plain ? (plain.length > 20 ? `${plain.slice(0, 20)}…` : plain) : fallbackTitle;
+      try {
+        await createSceneBookmark({
+          conversationId: currentConversationId,
+          messageId,
+          title,
+          snippet: plain.slice(0, 80),
+          characterName: activeCharacter?.name ?? "",
+          ...(activeCharId ? { characterId: activeCharId } : {}),
+        });
+        toast.success("場面を保存しました");
+        void queryClient.invalidateQueries({ queryKey: queryKey.sceneBookmarkListRoot });
+      } catch (err) {
+        logger.error("save scene failed", { err, messageId });
+        toast.error("場面を保存できませんでした。もう一度お願いします");
+      }
+    },
+    [currentConversationId, activeCharacter, activeCharId, queryClient],
+  );
+
   const handleRegenerate = useCallback(
     async (messageId: string) => {
       if (isLoading) return;
@@ -2064,6 +2105,7 @@ export const OuApp = ({ route }: { route: AppRoute }) => {
     handleImageGenerate,
     handleFeedback,
     handleRegenerate,
+    handleSaveScene,
     handleRetrySend,
     isOnline,
     imageGeneratingMessageIds,

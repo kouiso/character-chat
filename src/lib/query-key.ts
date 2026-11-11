@@ -7,6 +7,8 @@ export const queryKey = {
     ["conversation-message-list", conversationId] as const,
   messageSearch: (query: string, limit: number) => ["message-search", query, limit] as const,
   memoryNotes: (characterId?: string | null) => ["memory-notes", characterId ?? "all"] as const,
+  // 場面ブックマーク一覧キーの接頭辞。キャラ絞り込み・検索語は呼び出し側が後ろへ足す。
+  sceneBookmarkListRoot: ["scene-bookmarks"] as const,
   imageGallery: ["image-gallery"] as const,
   characterList: ["character-list"] as const,
   groupList: ["group-list"] as const,

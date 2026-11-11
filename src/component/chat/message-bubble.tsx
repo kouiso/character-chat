@@ -66,6 +66,7 @@ interface MessageBubbleProps {
   onEdit?: (messageId: string, newContent: string) => void;
   onRetry?: (messageId: string) => void;
   onBookmark?: (messageId: string) => void;
+  onSaveScene?: (messageId: string) => void;
   onBranch?: (messageId: string) => void;
   onShareMessage?: (messageId: string) => void;
   onDeleteMessage?: (messageId: string) => void;
@@ -574,6 +575,7 @@ interface MessageActionsProps {
   onStopSpeaking?: () => void;
   onRegenerate?: (messageId: string) => void;
   onBookmark?: (messageId: string) => void;
+  onSaveScene?: (messageId: string) => void;
   onBranch?: (messageId: string) => void;
   onShareMessage?: (messageId: string) => void;
   onDeleteMessage?: (messageId: string) => void;
@@ -676,6 +678,7 @@ const MessageActions = ({
   onStopSpeaking,
   onRegenerate,
   onBookmark,
+  onSaveScene,
   onBranch,
   onShareMessage,
   onDeleteMessage,
@@ -786,6 +789,21 @@ const MessageActions = ({
         feedbackRating={feedbackRating}
         onDelete={onDeleteMessage ? () => onDeleteMessage(id) : undefined}
         className="md:opacity-0 md:group-hover/message:opacity-100"
+        extraItems={
+          !isUser && onSaveScene && content ? (
+            <button
+              type="button"
+              className="flex w-full items-center rounded px-2 py-1.5 text-left hover:bg-accent"
+              onClick={() => {
+                onSaveScene(id);
+                onMenuOpenChange(false);
+              }}
+            >
+              <BookmarkPlus className="mr-2 h-4 w-4" />
+              場面を保存
+            </button>
+          ) : undefined
+        }
       />
     )}
   </div>
@@ -892,6 +910,7 @@ interface BubbleFooterProps {
   onRegenerate?: (messageId: string) => void;
   onRetry?: (messageId: string) => void;
   onBookmark?: (messageId: string) => void;
+  onSaveScene?: (messageId: string) => void;
   onBranch?: (messageId: string) => void;
   onShareMessage?: (messageId: string) => void;
   onDeleteMessage?: (messageId: string) => void;
@@ -923,6 +942,7 @@ const BubbleFooter = ({
   onRegenerate,
   onRetry,
   onBookmark,
+  onSaveScene,
   onBranch,
   onShareMessage,
   onDeleteMessage,
@@ -954,6 +974,7 @@ const BubbleFooter = ({
         onStopSpeaking={onStopSpeaking}
         onRegenerate={onRegenerate}
         onBookmark={onBookmark}
+        onSaveScene={onSaveScene}
         onBranch={onBranch}
         onShareMessage={onShareMessage}
         onDeleteMessage={onDeleteMessage}
@@ -1029,6 +1050,7 @@ export const MessageBubble = memo((rawProps: MessageBubbleProps) => {
     onEdit,
     onRetry,
     onBookmark,
+    onSaveScene,
     onBranch,
     onShareMessage,
     onDeleteMessage,
@@ -1142,6 +1164,7 @@ export const MessageBubble = memo((rawProps: MessageBubbleProps) => {
           onRegenerate={onRegenerate}
           onRetry={onRetry}
           onBookmark={onBookmark}
+          onSaveScene={onSaveScene}
           onBranch={onBranch}
           onShareMessage={onShareMessage}
           onDeleteMessage={onDeleteMessage}

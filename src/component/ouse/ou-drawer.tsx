@@ -17,6 +17,7 @@ import type { ChatMessage } from "@/store/chat-store";
 
 import { OuBranchTree } from "./ou-branch-tree";
 import { OuPhotoScreen } from "./ou-photo-screen";
+import { OuSceneBookmarkList } from "./ou-scene-bookmarks";
 import { OU2 } from "./ouse-tokens";
 
 type DrawerTab = "memory" | "scene" | "photo" | "branch";
@@ -41,7 +42,12 @@ interface OuDrawerProps {
   characterId: string | null;
   characterName: string;
   conversationId?: string | null;
-  onOpenConversation?: (conversationId: string, characterId?: string) => void;
+  // focusMessageId は保存した場面から飛ぶ時だけ入る。発言位置までセンタリングする。
+  onOpenConversation?: (
+    conversationId: string,
+    characterId?: string,
+    focusMessageId?: string,
+  ) => void;
 }
 
 // ずっと「まだ記憶はありません」を静的に固定表示しており、実データの有無に関わらず
@@ -139,7 +145,15 @@ const MemoryTab = ({
   );
 };
 
-const SceneTab = ({ messages }: { messages: ChatMessage[] }) => {
+const SceneTab = ({
+  messages,
+  characterId,
+  onOpenScene,
+}: {
+  messages: ChatMessage[];
+  characterId: string | null;
+  onOpenScene?: (conversationId: string, characterId: string | null, messageId: string) => void;
+}) => {
   const lastAssistant = [...messages].reverse().find((m) => m.role === "assistant");
   return (
     <div
@@ -177,7 +191,7 @@ const SceneTab = ({ messages }: { messages: ChatMessage[] }) => {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            paddingTop: 32,
+            paddingTop: 24,
             color: OU2.faint,
             fontSize: 12,
             fontFamily: OU2.round,
@@ -186,6 +200,7 @@ const SceneTab = ({ messages }: { messages: ChatMessage[] }) => {
           場面はまだ始まっていません
         </div>
       )}
+      <OuSceneBookmarkList characterId={characterId} onOpen={onOpenScene} />
     </div>
   );
 };
@@ -301,7 +316,16 @@ export const OuDrawer = ({
           {activeTab === "memory" && (
             <MemoryTab characterId={characterId} characterName={characterName} />
           )}
-          {activeTab === "scene" && <SceneTab messages={messages} />}
+          {activeTab === "scene" && (
+            <SceneTab
+              messages={messages}
+              characterId={characterId}
+              onOpenScene={(convId, charId, messageId) => {
+                onOpenConversation?.(convId, charId ?? undefined, messageId);
+                onOpenChange(false);
+              }}
+            />
+          )}
           {activeTab === "photo" && (
             <OuPhotoScreen messages={messages} characterName={characterName} />
           )}

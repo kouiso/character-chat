@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect, type CSSProperties } from "react";
 
-import { AlertCircle, Loader2, ThumbsDown, ThumbsUp } from "lucide-react";
+import { AlertCircle, BookmarkPlus, Loader2, ThumbsDown, ThumbsUp } from "lucide-react";
 
 import { AuthenticatedImage } from "@/component/ui/authenticated-image";
 import { usePacedReveal } from "@/hook/use-paced-reveal";
@@ -26,6 +26,8 @@ interface HerMessageProps {
   character?: Character;
   onFeedback?: (rating: "good" | "bad", reason?: string) => void;
   onRegenerate?: () => void;
+  // この返事を場面ブックマークとして保存する
+  onSaveScene?: () => void;
   isImageGenerating?: boolean;
   feedbackRating?: "good" | "bad";
   variation?: VariationInfo;
@@ -446,8 +448,10 @@ export interface VariationInfo {
 
 interface HerActionRowProps {
   isStreaming: boolean;
+  hasError?: boolean;
   onFeedback?: (rating: "good" | "bad", reason?: string) => void;
   onRegenerate?: () => void;
+  onSaveScene?: () => void;
   feedbackRating?: "good" | "bad";
   variation?: VariationInfo;
   // ▽（イマイチ）押下でフィードバックシートを開く
@@ -548,10 +552,43 @@ const VariationSwitcher = ({ index, total, onPrev, onNext }: VariationInfo) => (
   </span>
 );
 
+const SaveSceneButton = ({
+  isStreaming,
+  hasError,
+  onSaveScene,
+}: {
+  isStreaming: boolean;
+  hasError?: boolean;
+  onSaveScene?: () => void;
+}) => {
+  // 送信失敗した返事は D1 に残っとらんので、保存しても 404 になる。出さない。
+  if (isStreaming || hasError || !onSaveScene) return null;
+  return (
+    <button
+      type="button"
+      onClick={onSaveScene}
+      aria-label="場面を保存"
+      style={{
+        ...glyphButtonStyle,
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 5,
+        fontSize: 12,
+        color: OU2.label,
+      }}
+    >
+      <BookmarkPlus size={14} />
+      場面を保存
+    </button>
+  );
+};
+
 const HerActionRow = ({
   isStreaming,
+  hasError,
   onFeedback,
   onRegenerate,
+  onSaveScene,
   feedbackRating,
   variation,
   onBad,
@@ -591,6 +628,7 @@ const HerActionRow = ({
           </button>
         ) : null}
         {showVariation ? <VariationSwitcher {...variation} /> : null}
+        <SaveSceneButton isStreaming={isStreaming} hasError={hasError} onSaveScene={onSaveScene} />
         {trailingSlot}
       </div>
       {showFeedback ? (
@@ -719,6 +757,7 @@ export const HerMessage = ({
   character,
   onFeedback,
   onRegenerate,
+  onSaveScene,
   isImageGenerating = false,
   feedbackRating,
   variation,
@@ -850,7 +889,9 @@ export const HerMessage = ({
             HerCopyButton・HerMessageTrailingActions）は残してあるので、要る時に戻せる。 */}
         <HerActionRow
           isStreaming={isStreaming}
+          hasError={message.error}
           onRegenerate={onRegenerate}
+          onSaveScene={onSaveScene}
           feedbackRating={feedbackRating}
           variation={variation}
           onBad={() => setFeedbackSheetOpen(true)}

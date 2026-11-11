@@ -2,24 +2,36 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { listMemoryNotes } from "@/lib/api";
+import { listMemoryNotes, listSceneBookmarks } from "@/lib/api";
 
 import { OuDrawer } from "./ou-drawer";
 
 vi.mock("@/lib/api", () => ({
   listMemoryNotes: vi.fn(),
+  listSceneBookmarks: vi.fn(),
 }));
 
-const renderDrawer = (characterId: string | null) => {
+const renderDrawer = (
+  characterId: string | null,
+  options?: {
+    onOpenConversation?: (
+      conversationId: string,
+      characterId?: string,
+      focusMessageId?: string,
+    ) => void;
+    onOpenChange?: (open: boolean) => void;
+  },
+) => {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <QueryClientProvider client={client}>
       <OuDrawer
         open
-        onOpenChange={() => {}}
+        onOpenChange={options?.onOpenChange ?? (() => {})}
         messages={[]}
         characterId={characterId}
         characterName="燈子"
+        onOpenConversation={options?.onOpenConversation}
       />
     </QueryClientProvider>,
   );
@@ -31,6 +43,7 @@ describe("OuDrawer の記憶タブ", () => {
   afterEach(() => {
     cleanup();
     vi.clearAllMocks();
+    vi.mocked(listSceneBookmarks).mockResolvedValue({ items: [], nextCursor: null });
   });
 
   it("保存済みの記憶があれば内容を表示する", async () => {
@@ -76,6 +89,7 @@ describe("OuDrawer のタブ", () => {
   afterEach(() => {
     cleanup();
     vi.clearAllMocks();
+    vi.mocked(listSceneBookmarks).mockResolvedValue({ items: [], nextCursor: null });
   });
 
   it("選択中のタブを aria-selected で伝える", () => {
@@ -93,11 +107,49 @@ describe("OuDrawer のタブ", () => {
 
   it("tablist を名乗る以上、左右キーでもタブを移動できる", () => {
     vi.mocked(listMemoryNotes).mockResolvedValue([]);
+    vi.mocked(listSceneBookmarks).mockResolvedValue({ items: [], nextCursor: null });
     renderDrawer("c1");
 
     fireEvent.keyDown(screen.getByRole("tab", { name: "記憶" }), { key: "ArrowRight" });
 
     expect(screen.getByRole("tab", { name: "場面" })).toHaveAttribute("aria-selected", "true");
     expect(screen.getByRole("tab", { name: "場面" })).toHaveFocus();
+  });
+});
+
+// 場面タブの保存済み一覧。タップした場面はその発言位置へ戻れるよう、
+// messageId まで onOpenConversation へ渡す（?m= の直リンクがセンタリングする）。
+describe("OuDrawer の場面タブ", () => {
+  afterEach(() => {
+    cleanup();
+    vi.clearAllMocks();
+  });
+
+  it("保存した場面をタップすると発言位置つきで会話を開き、ドロワーを閉じる", async () => {
+    vi.mocked(listSceneBookmarks).mockResolvedValue({
+      items: [
+        {
+          id: "bm-1",
+          conversationId: "conv-9",
+          messageId: "msg-42",
+          title: "旅館の縁側で",
+          snippet: "「ここ、静かでいいね」",
+          characterName: "燈子",
+          characterId: "char-9",
+          createdAt: 1000,
+        },
+      ],
+      nextCursor: null,
+    });
+    const onOpenConversation = vi.fn();
+    const onOpenChange = vi.fn();
+
+    renderDrawer("c1", { onOpenConversation, onOpenChange });
+    fireEvent.click(screen.getByRole("tab", { name: "場面" }));
+
+    fireEvent.click(await screen.findByText("旅館の縁側で"));
+
+    expect(onOpenConversation).toHaveBeenCalledWith("conv-9", "char-9", "msg-42");
+    expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 });
