@@ -90,6 +90,27 @@ describe("createMcpImageGenHandler", () => {
     expect(res.status).toBe(400);
   });
 
+  it("runware で negativePrompt 省略時は上流 400 を避ける既定値を入れる", async () => {
+    let captured = "";
+    const handler = createMcpImageGenHandler(
+      "runware",
+      () =>
+        makeProvider({
+          generate: async (req) => {
+            captured = req.negativePrompt;
+            return { taskId: "x", provider: "runware", costEstimateUSD: 0, latencyMs: 0 };
+          },
+        }),
+      timing,
+    );
+    const res = await handler({
+      request: makeRequest("secret", { prompt: "1girl" }),
+      env: { MCP_TOKEN: "secret" },
+    });
+    expect(res.status).toBe(200);
+    expect(captured).toBe("lowres");
+  });
+
   it("上流タスクが失敗したら 502", async () => {
     const handler = createMcpImageGenHandler(
       "novita",
