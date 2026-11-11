@@ -167,6 +167,8 @@ export type Bindings = {
   OPENROUTER_API_KEY: string;
   NOVITA_API_KEY: string;
   RUNWARE_API_KEY?: string;
+  // /mcp/novita・/mcp/runware の Bearer トークン。未設定時は窓口が 503 を返す。
+  MCP_TOKEN?: string;
   IMAGE_PROVIDER?: string;
   ATLASCLOUD_API_KEY?: string;
   // Claude 直送チャット(requestRoutedChat)とサジェスト生成(requestContextualSuggestions)専用。
