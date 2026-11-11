@@ -139,6 +139,11 @@ export const createMcpImageGenHandler =
     if (!parsed.success) {
       return json({ error: "invalid request", issues: parsed.error.issues }, 400);
     }
+    // Runware は negativePrompt に 2 文字以上を要求する。省略時の空文字は
+    // 上流 400 になるので、最小の既定値へ置き換える（Novita は空を受け付ける）。
+    if (name === "runware" && parsed.data.negativePrompt.trim().length < 2) {
+      parsed.data.negativePrompt = "lowres";
+    }
 
     try {
       return await runMcpGeneration(providerFactory(env), parsed.data, timing);
