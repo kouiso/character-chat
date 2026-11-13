@@ -10,7 +10,7 @@ AI キャラクターチャット＆画像生成 PWA。Cloudflare Pages + Hono �
 
 ## プロジェクトの存在理由
 
-月額課金のエロアプリにお金をかけずに抜きたい。Claude で無料で抜ける質のものを自分で作る。
+月額課金のサービスにお金をかけずに、自分用のキャラクターチャットアプリを自分で作る。
 まず自分で使い、ポートフォリオにもなり、良ければ商用化する。
 
 AI chat application with character personas, speech synthesis, and local-first storage.
@@ -18,8 +18,8 @@ AI chat application with character personas, speech synthesis, and local-first s
 ## 運用ルール
 
 **画像生成は Novita API 直・モデル固定（局長指示 2026-07-12・旧「$imagegen を Cloud で」運用は廃止）**:
-キャラ画像の生成は Novita API を直接叩く。モデルは `waiNSFWIllustrious_v90_1187991.safetensors`
-**以外使わない**。codex（Cloud / bg-MCP）経由の画像生成・macmini `$imagegen` はどちらも禁止。
+キャラ画像の生成は Novita API を直接叩く。モデルは固定で、指定モデル以外は使わない
+（モデル名は公開リポの外の設定を正とする）。codex（Cloud / bg-MCP）経由の画像生成・macmini `$imagegen` はどちらも禁止。
 生成前に枚数と概算コストを局長に提示する。手順詳細: `prompt/commands/add-char-photo.md`。
 
 ## 技術スタック
@@ -45,6 +45,7 @@ pnpm build           # tsc -b && vite build
 pnpm lint            # oxlint + oxfmt
 pnpm test            # Vitest
 pnpm dev:worker      # Cloudflare Pages ローカル開発
+task setup           # プロジェクト一括セットアップ（Taskfile）
 task ci              # CI チェック（lint + build）
 task deploy          # デプロイ（D1 migration auto-apply ゲートあり）
 ```
@@ -66,7 +67,7 @@ node .codex/mock-server.mjs   # 外部 LLM/画像 API のモック（no network 
 - ローカル D1 は `wrangler d1 ... --local`（miniflare・認証不要・オフライン）。
 - 新規スキーマ変更は **autogenerate 優先**: `pnpm db:generate`（drizzle-kit）で生成し、D1 が未対応の箇所だけ手当てする。フル手書き migration は禁止。
 - placeholder secret は `.codex/dev-vars.example` → `.dev.vars`（gitignore 済み・実鍵なし。既存の本物は上書きしない）。
-- `codex cloud exec --env <ENV_ID> "<task>"` でクラウドへ委譲可能。ENV_ID は秘密値なのでリポジトリへは転記しない（別途管理）。
+- `codex cloud exec --env <ENV_ID> "<task>"` でクラウドへ委譲可能。ENV_ID は公開リポジトリへ転記しない（別途管理）。
 
 ## アーキテクチャ
 
