@@ -1,4 +1,5 @@
 // @vitest-environment node
+import type * as V2Db from "@v2/db";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -9,7 +10,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@v2/db", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@v2/db")>()),
+  ...(await importOriginal<typeof V2Db>()),
   createDb: mocks.createDb,
   loadLatestLedger: mocks.loadLatestLedger,
   updateLatestLedger: mocks.updateLatestLedger,

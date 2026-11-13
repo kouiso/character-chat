@@ -144,6 +144,91 @@ const handleError = (error: unknown): Response => {
   return message(503, "保存先を利用できません。再試行してください。");
 };
 
+type MemoryDb = Awaited<ReturnType<typeof createDb>>;
+type MemoryScope = { userId: string; characterId: string };
+type MemoryContext = { database: MemoryDb; env: MemoryVectorBindings; scope: MemoryScope };
+
+const NOT_FOUND_MESSAGE = "会話または記憶が見つかりません。";
+
+const handlePost = async (
+  { database, env, scope }: MemoryContext,
+  request: Request,
+): Promise<Response> => {
+  const payload = await readBody(request, postSchema);
+  if (payload instanceof Response) return payload;
+  // 会話の指定が無ければ直近の会話に紐付ける（記憶の検索は会話単位なので）
+  const conversationId =
+    payload.conversationId ?? (await findLatestConversationId(database, scope));
+  if (!conversationId) {
+    return message(409, "会話が始まってから記憶を追加できます。");
+  }
+  const memory = await insertManualMemory(database, { ...scope, conversationId }, payload);
+  if (!memory) {
+    return message(409, "会話が始まってから記憶を追加できます。");
+  }
+  await indexMemoryContent(database, env, scope, memory);
+  return privateJson({ memory }, 201);
+};
+
+// 本文を差し替えたら古い vector を捨て、差し替え後の本文で索引し直す。
+// 対象が無ければ false（呼び出し側が 404 を返す）。
+const replaceMemoryContent = async (
+  { database, env, scope }: MemoryContext,
+  memoryId: string,
+  content: string,
+): Promise<boolean> => {
+  const previous = await updateMemoryContent(database, scope, memoryId, content);
+  if (previous === null) return false;
+  await dropMemoryVector(env, memoryId, previous);
+  const current = await loadOwnedMemory(database, scope, memoryId);
+  if (current) await indexMemoryContent(database, env, scope, current);
+  return true;
+};
+
+const handlePatch = async (context: MemoryContext, request: Request): Promise<Response> => {
+  const { database, scope } = context;
+  const payload = await readBody(request, patchSchema);
+  if (payload instanceof Response) return payload;
+  if (
+    payload.content !== undefined &&
+    !(await replaceMemoryContent(context, payload.memoryId, payload.content))
+  ) {
+    return message(404, NOT_FOUND_MESSAGE);
+  }
+  if (
+    payload.pinned !== undefined &&
+    !(await setMemoryPinned(database, scope, payload.memoryId, payload.pinned))
+  ) {
+    return message(404, NOT_FOUND_MESSAGE);
+  }
+  const memory = await loadOwnedMemory(database, scope, payload.memoryId);
+  return memory ? privateJson({ memory }) : message(404, NOT_FOUND_MESSAGE);
+};
+
+const handleDelete = async (
+  { database, env, scope }: MemoryContext,
+  request: Request,
+): Promise<Response> => {
+  const payload = await readBody(request, deleteSchema);
+  if (payload instanceof Response) return payload;
+  const deleted = await deleteMemory(database, scope, payload.memoryId);
+  if (deleted === null) return message(404, NOT_FOUND_MESSAGE);
+  // 本体に加えて掃討された要約の vector も消す（RIT-94 の3か所）
+  for (const row of deleted) {
+    await dropMemoryVector(env, row.id, row.content);
+  }
+  return privateJson({ ok: true });
+};
+
+const MUTATION_HANDLERS = new Map<
+  string,
+  (context: MemoryContext, request: Request) => Promise<Response>
+>([
+  ["POST", handlePost],
+  ["PATCH", handlePatch],
+  ["DELETE", handleDelete],
+]);
+
 export const handleMemoriesRequest = async (
   characterId: string,
   request: Request,
@@ -163,59 +248,9 @@ export const handleMemoriesRequest = async (
     const requestError = mutationRequestError(request);
     if (requestError) return requestError;
 
-    if (request.method === "POST") {
-      const payload = await readBody(request, postSchema);
-      if (payload instanceof Response) return payload;
-      // 会話の指定が無ければ直近の会話に紐付ける（記憶の検索は会話単位なので）
-      const conversationId =
-        payload.conversationId ?? (await findLatestConversationId(database, scope));
-      if (!conversationId) {
-        return message(409, "会話が始まってから記憶を追加できます。");
-      }
-      const memory = await insertManualMemory(database, { ...scope, conversationId }, payload);
-      if (!memory) {
-        return message(409, "会話が始まってから記憶を追加できます。");
-      }
-      await indexMemoryContent(database, env, scope, memory);
-      return privateJson({ memory }, 201);
-    }
-
-    if (request.method === "PATCH") {
-      const payload = await readBody(request, patchSchema);
-      if (payload instanceof Response) return payload;
-      if (payload.content !== undefined) {
-        const previous = await updateMemoryContent(
-          database,
-          scope,
-          payload.memoryId,
-          payload.content,
-        );
-        if (previous === null) return message(404, "会話または記憶が見つかりません。");
-        await dropMemoryVector(env, payload.memoryId, previous);
-        const current = await loadOwnedMemory(database, scope, payload.memoryId);
-        if (current) await indexMemoryContent(database, env, scope, current);
-      }
-      if (payload.pinned !== undefined) {
-        const ok = await setMemoryPinned(database, scope, payload.memoryId, payload.pinned);
-        if (!ok) return message(404, "会話または記憶が見つかりません。");
-      }
-      const memory = await loadOwnedMemory(database, scope, payload.memoryId);
-      return memory ? privateJson({ memory }) : message(404, "会話または記憶が見つかりません。");
-    }
-
-    if (request.method === "DELETE") {
-      const payload = await readBody(request, deleteSchema);
-      if (payload instanceof Response) return payload;
-      const deleted = await deleteMemory(database, scope, payload.memoryId);
-      if (deleted === null) return message(404, "会話または記憶が見つかりません。");
-      // 本体に加えて掃討された要約の vector も消す（RIT-94 の3か所）
-      for (const row of deleted) {
-        await dropMemoryVector(env, row.id, row.content);
-      }
-      return privateJson({ ok: true });
-    }
-
-    return message(405, "この操作には対応していません。");
+    const handler = MUTATION_HANDLERS.get(request.method);
+    if (!handler) return message(405, "この操作には対応していません。");
+    return await handler({ database, env, scope }, request);
   } catch (error) {
     return handleError(error);
   }

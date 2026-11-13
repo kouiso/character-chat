@@ -190,6 +190,16 @@ const resolveConversationCharacter = async (
   return { character: applyCharacterVersion(sheet, version.content), versionId };
 };
 
+// D1 が無い環境（単体の起動）では既定の設定で回す。
+const readTurnSettings = async (database: D1Database | undefined) =>
+  database
+    ? {
+        safeMode: await readSafeMode(database, LOCAL_USER_ID),
+        chatMode: await readChatMode(database, LOCAL_USER_ID),
+        chatStyle: await readChatStyle(database, LOCAL_USER_ID),
+      }
+    : { safeMode: false, chatMode: "standard" as const, chatStyle: "balanced" as const };
+
 // キー未設定・character 不在はストリームを開く前に throw して、呼び出し側が
 // ステータスコード（503/404/422）を確定できるようにする。
 export const startTurn = async (
@@ -197,9 +207,7 @@ export const startTurn = async (
 ): Promise<{ conversationId: string; events: AsyncGenerator<TurnEvent> }> => {
   // セーフモードはターン開始時の設定で決める（切替は次ターンから効く・RIT-199）。
   const { env: modelEnv } = await getPlatform();
-  const safeMode = modelEnv.DB ? await readSafeMode(modelEnv.DB, LOCAL_USER_ID) : false;
-  const chatMode = modelEnv.DB ? await readChatMode(modelEnv.DB, LOCAL_USER_ID) : "standard";
-  const chatStyle = modelEnv.DB ? await readChatStyle(modelEnv.DB, LOCAL_USER_ID) : "balanced";
+  const { safeMode, chatMode, chatStyle } = await readTurnSettings(modelEnv.DB);
   const userPersona = await readUserPersonaForPrompt(modelEnv.DB, LOCAL_USER_ID);
   const models = await getModels(safeMode, chatMode);
   const db = await getDb();

@@ -1,6 +1,6 @@
 // 場面台帳の表示・手直しパネル（RIT-118）。
 // 直した値は PATCH /api/chat/:id/ledger で最新台帳行を上書きし、次のターンの指示文へ入る。
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 
 import { ledgerSchema, loadLedger, saveLedger, type LedgerData } from "../lib/ledger";
 
@@ -42,6 +42,138 @@ const describe = (ledger: LedgerData): [string, string][] => [
   ["直前の行為", ledger.lastEvents.at(-1) ?? "-"],
 ];
 
+type LedgerFields = { present: string; clothing: string; items: string; lastEvents: string };
+
+type LedgerFormProps = {
+  draft: LedgerData;
+  fields: LedgerFields;
+  saving: boolean;
+  setDraft: (draft: LedgerData) => void;
+  setField: (key: keyof LedgerFields) => (value: string) => void;
+  onSave: () => void;
+  onCancel: () => void;
+};
+
+const LedgerForm = ({
+  draft,
+  fields,
+  saving,
+  setDraft,
+  setField,
+  onSave,
+  onCancel,
+}: LedgerFormProps) => (
+  <div className="v2-ledger-form">
+    <label>
+      段
+      <select
+        value={draft.phase}
+        onChange={(event) =>
+          setDraft({
+            ...draft,
+            phase: event.target.value as LedgerData["phase"],
+          })
+        }
+      >
+        {PHASES.map((phase) => (
+          <option key={phase} value={phase}>
+            {phase}
+          </option>
+        ))}
+      </select>
+    </label>
+    <label>
+      場所
+      <input
+        value={draft.location ?? ""}
+        onChange={(event) => setDraft({ ...draft, location: event.target.value || null })}
+      />
+    </label>
+    <label>
+      時刻
+      <input
+        value={draft.time ?? ""}
+        onChange={(event) => setDraft({ ...draft, time: event.target.value || null })}
+      />
+    </label>
+    <label>
+      居る人（「、」区切り）
+      <input value={fields.present} onChange={(event) => setField("present")(event.target.value)} />
+    </label>
+    <label>
+      服（1行に「名前:状態」）
+      <textarea
+        value={fields.clothing}
+        onChange={(event) => setField("clothing")(event.target.value)}
+        rows={3}
+      />
+    </label>
+    <label>
+      持ち物（1行に「物:所在」）
+      <textarea
+        value={fields.items}
+        onChange={(event) => setField("items")(event.target.value)}
+        rows={3}
+      />
+    </label>
+    <label>
+      体位
+      <input
+        value={draft.position ?? ""}
+        onChange={(event) => setDraft({ ...draft, position: event.target.value || null })}
+      />
+    </label>
+    <label>
+      出来事（1行1件、新しい順は末尾）
+      <textarea
+        value={fields.lastEvents}
+        onChange={(event) => setField("lastEvents")(event.target.value)}
+        rows={3}
+      />
+    </label>
+    <div className="v2-ledger-actions">
+      <button type="button" onClick={onSave} disabled={saving}>
+        {saving ? "保存中…" : "保存する"}
+      </button>
+      <button type="button" onClick={onCancel} disabled={saving}>
+        やめる
+      </button>
+    </div>
+  </div>
+);
+
+type LedgerBodyProps = {
+  ledger: LedgerData | null | undefined;
+  hasError: boolean;
+  editing: boolean;
+  onStartEdit: () => void;
+  form: ReactNode;
+};
+
+// 読込中・台帳なし・表示・手直しのどれか一つだけを出す。
+const LedgerBody = ({ ledger, hasError, editing, onStartEdit, form }: LedgerBodyProps) => {
+  if (ledger === undefined) return <p>読み込み中…</p>;
+  if (ledger === null) {
+    return hasError ? null : <p>まだ台帳がありません。最初の返信が届くと記録が始まります。</p>;
+  }
+  if (editing) return form;
+  return (
+    <>
+      <dl className="v2-ledger-list">
+        {describe(ledger).map(([label, value]) => (
+          <div key={label} className="v2-ledger-row">
+            <dt>{label}</dt>
+            <dd>{value}</dd>
+          </div>
+        ))}
+      </dl>
+      <button type="button" onClick={onStartEdit}>
+        直す
+      </button>
+    </>
+  );
+};
+
 type LedgerPanelProps = {
   characterId: string;
   getConversationId: () => string | null;
@@ -51,7 +183,12 @@ export const LedgerPanel = ({ characterId, getConversationId }: LedgerPanelProps
   const [open, setOpen] = useState(false);
   const [ledger, setLedger] = useState<LedgerData | null | undefined>(undefined);
   const [draft, setDraft] = useState<LedgerData | null>(null);
-  const [fields, setFields] = useState({ present: "", clothing: "", items: "", lastEvents: "" });
+  const [fields, setFields] = useState<LedgerFields>({
+    present: "",
+    clothing: "",
+    items: "",
+    lastEvents: "",
+  });
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -144,107 +281,25 @@ export const LedgerPanel = ({ characterId, getConversationId }: LedgerPanelProps
             </div>
           )}
           {notice && <div className="v2-ledger-notice">{notice}</div>}
-          {ledger === undefined && <p>読み込み中…</p>}
-          {ledger === null && !error && (
-            <p>まだ台帳がありません。最初の返信が届くと記録が始まります。</p>
-          )}
-          {ledger && !editing && (
-            <>
-              <dl className="v2-ledger-list">
-                {describe(ledger).map(([label, value]) => (
-                  <div key={label} className="v2-ledger-row">
-                    <dt>{label}</dt>
-                    <dd>{value}</dd>
-                  </div>
-                ))}
-              </dl>
-              <button type="button" onClick={startEdit}>
-                直す
-              </button>
-            </>
-          )}
-          {ledger && editing && draft && (
-            <div className="v2-ledger-form">
-              <label>
-                段
-                <select
-                  value={draft.phase}
-                  onChange={(event) =>
-                    setDraft({
-                      ...draft,
-                      phase: event.target.value as LedgerData["phase"],
-                    })
-                  }
-                >
-                  {PHASES.map((phase) => (
-                    <option key={phase} value={phase}>
-                      {phase}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                場所
-                <input
-                  value={draft.location ?? ""}
-                  onChange={(event) => setDraft({ ...draft, location: event.target.value || null })}
+          <LedgerBody
+            ledger={ledger}
+            hasError={error !== null}
+            editing={editing}
+            onStartEdit={startEdit}
+            form={
+              draft && (
+                <LedgerForm
+                  draft={draft}
+                  fields={fields}
+                  saving={saving}
+                  setDraft={setDraft}
+                  setField={setField}
+                  onSave={() => void save()}
+                  onCancel={() => setEditing(false)}
                 />
-              </label>
-              <label>
-                時刻
-                <input
-                  value={draft.time ?? ""}
-                  onChange={(event) => setDraft({ ...draft, time: event.target.value || null })}
-                />
-              </label>
-              <label>
-                居る人（「、」区切り）
-                <input
-                  value={fields.present}
-                  onChange={(event) => setField("present")(event.target.value)}
-                />
-              </label>
-              <label>
-                服（1行に「名前:状態」）
-                <textarea
-                  value={fields.clothing}
-                  onChange={(event) => setField("clothing")(event.target.value)}
-                  rows={3}
-                />
-              </label>
-              <label>
-                持ち物（1行に「物:所在」）
-                <textarea
-                  value={fields.items}
-                  onChange={(event) => setField("items")(event.target.value)}
-                  rows={3}
-                />
-              </label>
-              <label>
-                体位
-                <input
-                  value={draft.position ?? ""}
-                  onChange={(event) => setDraft({ ...draft, position: event.target.value || null })}
-                />
-              </label>
-              <label>
-                出来事（1行1件、新しい順は末尾）
-                <textarea
-                  value={fields.lastEvents}
-                  onChange={(event) => setField("lastEvents")(event.target.value)}
-                  rows={3}
-                />
-              </label>
-              <div className="v2-ledger-actions">
-                <button type="button" onClick={() => void save()} disabled={saving}>
-                  {saving ? "保存中…" : "保存する"}
-                </button>
-                <button type="button" onClick={() => setEditing(false)} disabled={saving}>
-                  やめる
-                </button>
-              </div>
-            </div>
-          )}
+              )
+            }
+          />
         </div>
       )}
     </div>
