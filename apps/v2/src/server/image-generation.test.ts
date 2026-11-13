@@ -11,6 +11,7 @@ import { characterTable } from "../../../../src/schema/character";
 
 import {
   buildImagePrompt,
+  COMIC_PANEL_FRAMING,
   generateConversationComic,
   generateConversationImage,
 } from "./image-generation";
@@ -491,25 +492,42 @@ describe("generateConversationComic", () => {
       }>();
 
   // コマ番号で成否を分ける模擬 fetch。init の N 回目だけ失敗させる。
-  const novitaFetchFailPanel = (failInitCall: number): typeof fetch => {
+  // 4コマは並列に投げるので、上流へ届く順番は D1 の待ちしだいで入れ替わる。何番目の起動を
+  // 落とすかで決めると落ちるコマが走るたびに変わる（CI で再生成の試験が 409 になった）。
+  // プロンプトに入る構図指示からコマを特定し、指定したコマだけを落とす。
+  const panelOfPrompt = (prompt: string): number | undefined =>
+    COMIC_PANEL_FRAMING.map((framing, index) => ({ framing, index }))
+      .filter(({ framing }) => prompt.includes(framing))
+      .sort((left, right) => right.framing.length - left.framing.length)[0]?.index;
+
+  const urlOf = (input: RequestInfo | URL): string =>
+    typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
+
+  const taskResult = (taskId: string, failed: boolean): Response =>
+    Response.json({
+      task: {
+        task_id: taskId,
+        status: failed ? "TASK_STATUS_FAILED" : "TASK_STATUS_SUCCEED",
+        progress_percent: 100,
+      },
+      ...(failed ? {} : { images: [{ image_url: "https://example.com/rit189.png", seed: 7 }] }),
+    });
+
+  const novitaFetchFailPanel = (failPanelIndex: number): typeof fetch => {
     let initCount = 0;
-    const impl = vi.fn(async (input: RequestInfo | URL) => {
-      const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
+    const failedTasks = new Set<string>();
+    const impl = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = urlOf(input);
       if (url.endsWith("/txt2img") || url.endsWith("/img2img")) {
         initCount += 1;
-        return Response.json({ task_id: `rit189-task-${initCount}` });
+        const taskId = `rit189-task-${initCount}`;
+        const body = JSON.parse(String(init?.body)) as { request: { prompt: string } };
+        if (panelOfPrompt(body.request.prompt) === failPanelIndex) failedTasks.add(taskId);
+        return Response.json({ task_id: taskId });
       }
       if (url.includes("/task-result")) {
         const taskId = new URL(url).searchParams.get("task_id") ?? "";
-        const failed = taskId === `rit189-task-${failInitCall}`;
-        return Response.json({
-          task: {
-            task_id: taskId,
-            status: failed ? "TASK_STATUS_FAILED" : "TASK_STATUS_SUCCEED",
-            progress_percent: 100,
-          },
-          ...(failed ? {} : { images: [{ image_url: "https://example.com/rit189.png", seed: 7 }] }),
-        });
+        return taskResult(taskId, failedTasks.has(taskId));
       }
       if (url === "https://example.com/rit189.png") {
         return new Response(PNG_HEAD, { headers: { "content-type": "image/png" } });
@@ -617,7 +635,7 @@ describe("generateConversationComic", () => {
       env: env(bucketOf()),
       characterId: charId,
       conversationId: "rit189-conv",
-      fetchImpl: novitaFetchFailPanel(2),
+      fetchImpl: novitaFetchFailPanel(1),
     });
     expect(result.ok).toBe(true);
     expect(result.panels.filter((panel) => panel.ok)).toHaveLength(3);
@@ -636,7 +654,7 @@ describe("generateConversationComic", () => {
       env: env(bucketOf()),
       characterId: charId,
       conversationId: "rit189-conv",
-      fetchImpl: novitaFetchFailPanel(2),
+      fetchImpl: novitaFetchFailPanel(1),
     });
     const retry = await generateConversationComic({
       env: env(bucketOf()),
