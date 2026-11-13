@@ -120,7 +120,7 @@
     "oxfmt": "^0.78.0",
     "oxlint": "^1.93.0",
     "pixelmatch": "^7.1.0",
-    "playwright": "^1.59.1",
+    "playwright": "^1.61.0",
     "pngjs": "^7.0.0",
     "sharp": "^0.35.0",
     "tsx": "^4.21.0",
