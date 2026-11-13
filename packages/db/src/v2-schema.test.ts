@@ -10,7 +10,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { characterTable } from "../../../src/schema/character";
 import { groupMessageTable } from "../../../src/schema/group";
 
-import { openLocalD1, type LocalD1 } from "./test/local-d1";
+import { FRESH_LOCAL_D1_TIMEOUT_MS, openLocalD1, type LocalD1 } from "./test/local-d1";
 import {
   characterRevisionTable,
   characterVersionTable,
@@ -32,7 +32,7 @@ describe("v2_ tables: SQL DDL と drizzle 宣言の一致", () => {
     // 他branchで適用済みのmigrationを混ぜず、このcheckoutのDDLを照合する。
     persistRoot = await mkdtemp(join(tmpdir(), "v2-schema-"));
     local = await openLocalD1({ persistRoot });
-  });
+  }, FRESH_LOCAL_D1_TIMEOUT_MS);
 
   afterAll(async () => {
     await local?.dispose();
@@ -58,22 +58,43 @@ describe("v2_ tables: SQL DDL と drizzle 宣言の一致", () => {
       .all<{ name: string }>();
     expect(results.map((table) => table.name).sort()).toEqual(
       [
+        "v2_board_post",
+        "v2_catalog_comment",
+        "v2_catalog_like",
+        "v2_chapter",
         "v2_character_document",
         "v2_character_document_chunk",
+        "v2_character_publish",
+        "v2_character_voice",
         "v2_chunk",
+        "v2_clip",
         "v2_conversation",
+        "v2_creator_revenue",
+        "v2_currency_balance",
+        "v2_currency_ledger",
+        "v2_feature_pass",
+        "v2_follow",
         "v2_generation",
         "v2_group",
         "v2_group_member",
         "v2_group_memory",
         "v2_group_message",
+        "v2_image_generation",
         "v2_ledger",
+        "v2_login_bonus",
         "v2_memory",
         "v2_memory_job",
         "v2_memory_source",
+        "v2_memory_tombstone",
         "v2_message",
+        "v2_message_mark",
         "v2_push_subscription",
+        "v2_story",
+        "v2_subscription",
         "v2_summary",
+        "v2_user_settings",
+        "v2_video_generation",
+        "v2_voice_call_usage",
       ].sort(),
     );
   });
