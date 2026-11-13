@@ -291,7 +291,7 @@ describe("ChatRoom", () => {
     expect(retried.events.at(-1)?.event).toMatchObject({ type: "done", turn: 1 });
     const saved = await loadHistory({ characterId, conversationId });
     expect(saved.turn).toBe(2);
-    expect(saved.history[0]).toEqual({ role: "user", content: "ただいま" });
+    expect(saved.history[0]).toMatchObject({ turn: 1, role: "user", content: "ただいま" });
     expect(saved.history[1]?.content).toContain("おかえり");
   });
 
@@ -385,7 +385,7 @@ describe("ChatRoom", () => {
     expect(room.readEvents("req-5b", 0).status).toBe("succeeded");
     expect(room.readEvents("req-5a", 0).status).toBe("failed");
     const history = await loadHistory({ characterId, conversationId });
-    expect(history.history[0]).toEqual({ role: "user", content: "別のタブから" });
+    expect(history.history[0]).toMatchObject({ turn: 1, role: "user", content: "別のタブから" });
   });
 
   it("Queueなしで最後のjobが完了したら記憶回復用alarmを予約しない", async () => {
@@ -563,9 +563,9 @@ describe("ChatRoom", () => {
     expect(done.status).toBe("succeeded");
     expect(done.events.at(-1)?.event).toMatchObject({ type: "done", turn: 2 });
     const history = await loadHistory({ characterId, conversationId });
-    expect(history.history.filter((message) => message.role === "user")).toEqual([
-      { role: "user", content: "先の送信" },
-      { role: "user", content: "後の送信" },
+    expect(history.history.filter((message) => message.role === "user")).toMatchObject([
+      { turn: 1, role: "user", content: "先の送信" },
+      { turn: 2, role: "user", content: "後の送信" },
     ]);
   });
 

@@ -483,6 +483,19 @@ const runModelCandidates = async (
   return failed;
 };
 
+// 実行先の引き取りに失敗しても返事は残す。"unknown" で残った行は照合クエリで洗える。
+// 未解決の時だけ onProviderUnresolved へ渡して遅延の引き直しに繋ぐ（RIT-100 の振る舞いを
+// 複数候補の採用試行へも引き継ぐ）。
+const resolveWinnerProvider = async (
+  deps: Pick<TurnGraphDeps, "providerLookup" | "onProviderUnresolved">,
+  generationId: string,
+  upstreamId: string,
+): Promise<string> => {
+  const resolved = (await deps.providerLookup?.(upstreamId).catch(() => null)) ?? null;
+  if (!resolved) deps.onProviderUnresolved?.(generationId, upstreamId);
+  return resolved ?? "unknown";
+};
+
 // 試行の結果から保存用の生成レコードを組み立てる。全滅時は error イベントをここで流す。
 const settleGeneration = async (
   deps: Pick<TurnGraphDeps, "providerLookup" | "onProviderUnresolved">,
@@ -502,16 +515,9 @@ const settleGeneration = async (
     error = `全モデルで生成に失敗した: ${outcome.attempts.map((a) => `${a.model}=${a.outcome}`).join(" → ")}`;
     args.emitError(error);
   }
-  // 実行先の引き取りに失敗しても返事は残す。"unknown" で残った行は照合クエリで洗える。
-  // 未解決の時だけ onProviderUnresolved へ渡して遅延の引き直しに繋ぐ（RIT-100 の振る舞いを
-  // 複数候補の採用試行へも引き継ぐ）。
-  let provider: string | null = null;
-  if (outcome.winnerUpstreamId) {
-    const resolved =
-      (await deps.providerLookup?.(outcome.winnerUpstreamId).catch(() => null)) ?? null;
-    if (!resolved) deps.onProviderUnresolved?.(args.generationId, outcome.winnerUpstreamId);
-    provider = resolved ?? "unknown";
-  }
+  const provider = outcome.winnerUpstreamId
+    ? await resolveWinnerProvider(deps, args.generationId, outcome.winnerUpstreamId)
+    : null;
   return {
     generationId: args.generationId,
     model: args.candidates[Math.max(0, outcome.winnerIndex)].name,
