@@ -79,3 +79,5 @@ MANAGER rulings 2 (2026-11-14T13:50Z):
 for main session (add):
 - Codex review route: chatgpt-codex-connector[bot] on this repo reports usage limit reached; repo rule needs Codex adversarial review before any merge -> every lane PR waits for Codex quota or owner's merge/waiver. Please tell the owner / reset quota.
 - trufflehog.yml (secret scan) is disabled_manually: nothing scans merges for secrets; lane runs secrets:check per PR meanwhile
+DECIDED | heavy commands (pnpm v2:ci, pnpm test, git push with pre-push hook) run through `flock /tmp/claude-0/heavy.lock` | reason container has 4 cores, load avg ~30 with 8 members; parallel v2:ci collided on local D1 (#179 @v2/db UNIQUE constraint failures, untouched package) | revert: drop lock when members <= 2
+narrowest point: machine CPU (4 cores) -> parallel members limited by test runs, not by people; #179 d66230b committed, push pending, UI screenshot not done (needs worker+D1+mock seed)
