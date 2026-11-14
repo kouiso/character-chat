@@ -34,3 +34,26 @@ for main session:
 - Codex MCP (repo rule adversarial-review-with-codex.md) not available in this container; lane uses a separately spawned Fable reviewer as the adversarial pass
 - gh CLI token invalid in container; connector used
 - Q86 card check (packet sec.9 BLOCKED): main session verifies which card the 「Yes」 thread is on
+RIT-222 comment posted 2026-11-14T12:19Z (CC-26 rewrite-only start)
+CYCLE 1 T=2026-11-14T12:40Z | PRs 0 (excluding NOTES #211) | issues 73 (snapshot by member, cycle-1-issues.tsv pending) | ledger rows 18 open
+members running: issue triage (sonnet), CC-27 recount (sonnet, read-only), CC-25 inventory (sonnet, read-only), CC-26 rewrite (sonnet, branch docs/cc-26-neutral-wording)
+LEDGER (open rows; the 21 done rows are unchanged from the packet's status.tsv and not repeated)
+id	state	who	depends_on	text
+CC-13	done	agent		closed by 統括 ruling LINEAR-QUOTA (DECIDED above)
+CC-25	doing	agent	CC-16,CC-Q12,CC-Q11,CC-31	inventory now; PR after Q86 ASK
+CC-26	doing	agent	CC-16,CC-Q11,CC-3,CC-31	rewrite only
+CC-27	doing	agent		recount; PR; merge=owner
+CC-J3	todo	agent	CC-26,CC-27,CC-25	J3 cleanup scan, report only
+CC-7	blocked	owner		Mac mini slot + prod D1 write answer
+CC-17	blocked	owner	CC-26	code part after CC-26; prod D1 write = owner
+CC-19	blocked	owner		drop 3 v1-only fixes needs owner words
+CC-8	blocked	agent	CC-7
+CC-28	blocked	agent	CC-17
+CC-29	blocked	agent	CC-17,CC-28
+CC-30	blocked	agent	CC-25,CC-26,CC-27,CC-17,CC-28,CC-29
+CC-V2	blocked	agent	CC-7
+CC-V3	blocked	agent	CC-7,CC-8
+CC-V4	blocked	agent	CC-V2,CC-V3
+CC-V5	blocked	agent	CC-V4
+CC-V6	blocked	agent	CC-V5,CC-19
+CC-V7	blocked	agent	CC-V6,CC-13,CC-30
