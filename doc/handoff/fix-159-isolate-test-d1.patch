@@ -1,0 +1,188 @@
+From 201c3e2d52c17a4bf474a8fcb308d88675aa67c2 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Sat, 14 Nov 2026 13:33:54 +0000
+Subject: [PATCH 1/2] fix(v2): give tests their own local D1 state (#159)
+
+Tests defaulted to the dev .wrangler/state, so they collided with the dev
+server (SQLITE_BUSY) and left rows in the dev store. A vitest globalSetup now
+points WRANGLER_PERSIST_DIR at a per-run temp dir for apps/v2 and packages/db.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01Cv4a6DRnNXdGwnDbUv9bT3
+---
+ apps/v2/src/server/persist-root.test.ts   | 12 ++++++++++++
+ apps/v2/vitest.config.ts                  |  1 +
+ packages/db/src/test/global-setup.ts      | 14 ++++++++++++++
+ packages/db/src/test/local-d1.ts          | 13 ++++++++-----
+ packages/db/src/test/persist-root.test.ts | 11 +++++++++++
+ packages/db/vitest.config.ts              |  3 ++-
+ 6 files changed, 48 insertions(+), 6 deletions(-)
+ create mode 100644 apps/v2/src/server/persist-root.test.ts
+ create mode 100644 packages/db/src/test/global-setup.ts
+ create mode 100644 packages/db/src/test/persist-root.test.ts
+
+diff --git a/apps/v2/src/server/persist-root.test.ts b/apps/v2/src/server/persist-root.test.ts
+new file mode 100644
+index 0000000..ed06ece
+--- /dev/null
++++ b/apps/v2/src/server/persist-root.test.ts
+@@ -0,0 +1,12 @@
++// @vitest-environment node
++import { describe, expect, it } from "vitest";
++
++import { DEV_PERSIST_ROOT, resolvePersistRoot } from "../../../../packages/db/src/test/local-d1";
++
++describe("テストのローカル D1 置き場", () => {
++  it("dev サーバーの .wrangler/state を指さない", () => {
++    const root = resolvePersistRoot();
++    expect(root).not.toBe(DEV_PERSIST_ROOT);
++    expect(root.startsWith(`${DEV_PERSIST_ROOT}/`)).toBe(false);
++  });
++});
+diff --git a/apps/v2/vitest.config.ts b/apps/v2/vitest.config.ts
+index a0c6537..26916e7 100644
+--- a/apps/v2/vitest.config.ts
++++ b/apps/v2/vitest.config.ts
+@@ -13,6 +13,7 @@ export default defineConfig({
+     // server のテストは同じローカル D1（.wrangler/state）へ migration を当てて開く。ファイルを
+     // 並列に回すと複数の Miniflare が同じ sqlite を掴み SQLITE_BUSY や migration 失敗で落ちる
+     //（packages/db の vitest.config.ts と同じ理由）。
++    globalSetup: ["../../packages/db/src/test/global-setup.ts"],
+     fileParallelism: false,
+   },
+ });
+diff --git a/packages/db/src/test/global-setup.ts b/packages/db/src/test/global-setup.ts
+new file mode 100644
+index 0000000..0889f4d
+--- /dev/null
++++ b/packages/db/src/test/global-setup.ts
+@@ -0,0 +1,14 @@
++import { mkdtemp, rm } from "node:fs/promises";
++import { tmpdir } from "node:os";
++import { join } from "node:path";
++
++// テストが dev の .wrangler/state を共用すると、dev サーバーと SQLITE_BUSY で衝突し、
++// テストの行が dev の会話一覧へ残る（#159）。実行ごとの一時 store を worker 起動前に差し込む。
++// 同時に走る別の実行は別ディレクトリになるので互いに掴み合わない。
++export default async function setup(): Promise<() => Promise<void>> {
++  const root = await mkdtemp(join(tmpdir(), "v2-test-d1-"));
++  process.env.WRANGLER_PERSIST_DIR = root;
++  return async () => {
++    await rm(root, { recursive: true, force: true });
++  };
++}
+diff --git a/packages/db/src/test/local-d1.ts b/packages/db/src/test/local-d1.ts
+index 52eddd7..09665d3 100644
+--- a/packages/db/src/test/local-d1.ts
++++ b/packages/db/src/test/local-d1.ts
+@@ -1,4 +1,4 @@
+-// テスト用: ローカル D1（.wrangler/state/v3、root の pnpm db:migrate:local と同じ store）に
++// テスト用: ローカル D1（既定は実行ごとの一時 store、dev store は使わない）に
+ // migration を当ててから getPlatformProxy で束縛する。
+ // @v2/cf に同じ処理があるが、cf は check.ts で @v2/db に依存しとるので db 側から cf を使うと
+ // ワークスペースの依存が循環する。wrangler を直接使って db 側で閉じる。
+@@ -15,9 +15,12 @@ const REPO_ROOT = path.resolve(PACKAGE_ROOT, "../..");
+ const WRANGLER_CONFIG = path.join(REPO_ROOT, "packages/cf/wrangler.local.jsonc");
+ // getPlatformProxy の persist.path は v3 ディレクトリそのもの、wrangler CLI の --persist-to は
+ // その親（CLI が自分で /v3 を足す）。@v2/cf と同じ非対称の吸収。
+-const PERSIST_ROOT = path.resolve(
+-  process.env.WRANGLER_PERSIST_DIR ?? path.join(REPO_ROOT, ".wrangler/state"),
+-);
++// dev サーバーと root の pnpm db:migrate:local が使う store。テストは globalSetup が
++// WRANGLER_PERSIST_DIR を一時ディレクトリへ向けるので、ここを直接開くのは dev 側だけ。
++export const DEV_PERSIST_ROOT = path.join(REPO_ROOT, ".wrangler/state");
++// 環境変数は呼び出し時に読む（globalSetup が worker 起動前に差し込む値を拾うため）。
++export const resolvePersistRoot = (): string =>
++  path.resolve(process.env.WRANGLER_PERSIST_DIR ?? DEV_PERSIST_ROOT);
+ const WRANGLER_BIN = path.join(PACKAGE_ROOT, "node_modules/.bin/wrangler");
+ 
+ type LocalEnv = { DB: D1Database };
+@@ -30,7 +33,7 @@ export type LocalD1 = { db: V2Db; d1: D1Database; dispose: () => Promise<void> }
+ export type OpenLocalD1Options = { persistRoot?: string };
+ 
+ export const openLocalD1 = async ({
+-  persistRoot = PERSIST_ROOT,
++  persistRoot = resolvePersistRoot(),
+ }: OpenLocalD1Options = {}): Promise<LocalD1> => {
+   const resolvedPersistRoot = path.resolve(persistRoot);
+   execFileSync(
+diff --git a/packages/db/src/test/persist-root.test.ts b/packages/db/src/test/persist-root.test.ts
+new file mode 100644
+index 0000000..52d8552
+--- /dev/null
++++ b/packages/db/src/test/persist-root.test.ts
+@@ -0,0 +1,11 @@
++import { describe, expect, it } from "vitest";
++
++import { DEV_PERSIST_ROOT, resolvePersistRoot } from "./local-d1";
++
++describe("テストのローカル D1 置き場", () => {
++  it("dev サーバーの .wrangler/state を指さない", () => {
++    const root = resolvePersistRoot();
++    expect(root).not.toBe(DEV_PERSIST_ROOT);
++    expect(root.startsWith(`${DEV_PERSIST_ROOT}/`)).toBe(false);
++  });
++});
+diff --git a/packages/db/vitest.config.ts b/packages/db/vitest.config.ts
+index 2829dc1..09a68e6 100644
+--- a/packages/db/vitest.config.ts
++++ b/packages/db/vitest.config.ts
+@@ -3,11 +3,12 @@ import { defineConfig } from "vitest/config";
+ // root の vitest.config.ts は packages/** を include から外しとる（意図的）ので、
+ // @v2/db 自身のテストは自分専用の config で回す。
+ // D1 を使うテストは wrangler migrations apply + getPlatformProxy の起動に数秒かかるので timeout を延ばす。
+-// 同じ sqlite（.wrangler/state/v3）を複数の Miniflare が同時に開かんよう、ファイル並列は切る。
++// 同じ sqlite を複数の Miniflare が同時に開かんよう、ファイル並列は切る。
+ export default defineConfig({
+   test: {
+     environment: "node",
+     include: ["src/**/*.test.ts"],
++    globalSetup: ["./src/test/global-setup.ts"],
+     fileParallelism: false,
+     hookTimeout: 60_000,
+     testTimeout: 60_000,
+-- 
+2.43.0
+
+
+From 08aad899726172ae7f3ebce6bfce679657d7a6f3 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Sat, 14 Nov 2026 14:04:22 +0000
+Subject: [PATCH 2/2] fix(v2): use named exports for test global setup (#159)
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01Cv4a6DRnNXdGwnDbUv9bT3
+---
+ packages/db/src/test/global-setup.ts | 15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
+
+diff --git a/packages/db/src/test/global-setup.ts b/packages/db/src/test/global-setup.ts
+index 0889f4d..46991e8 100644
+--- a/packages/db/src/test/global-setup.ts
++++ b/packages/db/src/test/global-setup.ts
+@@ -2,13 +2,16 @@ import { mkdtemp, rm } from "node:fs/promises";
+ import { tmpdir } from "node:os";
+ import { join } from "node:path";
+ 
++let root: string | undefined;
++
+ // テストが dev の .wrangler/state を共用すると、dev サーバーと SQLITE_BUSY で衝突し、
+ // テストの行が dev の会話一覧へ残る（#159）。実行ごとの一時 store を worker 起動前に差し込む。
+ // 同時に走る別の実行は別ディレクトリになるので互いに掴み合わない。
+-export default async function setup(): Promise<() => Promise<void>> {
+-  const root = await mkdtemp(join(tmpdir(), "v2-test-d1-"));
++export const setup = async (): Promise<void> => {
++  root = await mkdtemp(join(tmpdir(), "v2-test-d1-"));
+   process.env.WRANGLER_PERSIST_DIR = root;
+-  return async () => {
+-    await rm(root, { recursive: true, force: true });
+-  };
+-}
++};
++
++export const teardown = async (): Promise<void> => {
++  if (root) await rm(root, { recursive: true, force: true });
++};
+-- 
+2.43.0
+
