@@ -1,6 +1,15 @@
 {
+  ".claude/agents/scenario-writer.md": {
+    "中出し": 1
+  },
   ".claude/commands/evals.md": {
-    "creampie": 1
+    "creampie": 3
+  },
+  ".github/agents/scenario-writer.agent.md": {
+    "中出し": 1
+  },
+  ".github/instructions/char-approval-process.instructions.md": {
+    "loli": 1
   },
   ".gitignore": {
     "rape": 1
@@ -257,8 +266,17 @@
     "精液": 1,
     "膣": 2
   },
+  "prompt/agents/scenario-writer.md": {
+    "中出し": 1
+  },
   "prompt/commands/evals.md": {
-    "creampie": 1
+    "creampie": 3
+  },
+  "prompt/instructions/avatar-image-gen.md": {
+    "hentai": 1
+  },
+  "prompt/instructions/char-approval-process.md": {
+    "loli": 1
   },
   "prompt/skills/image-prompt-ssot/SKILL.md": {
     "creampie": 1
