@@ -1,0 +1,60 @@
+.v2-tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  display: flex;
+  height: var(--tab-bar-total);
+  padding: 0 8px var(--safe-bottom);
+  background: var(--color-bar);
+  box-shadow: var(--edge-top);
+  font-family: var(--font-body);
+}
+
+.v2-tabbar-item {
+  flex: 1;
+  min-width: 0;
+  height: var(--tab-bar-height);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  text-decoration: none;
+  color: var(--color-text-sub);
+  font-size: var(--text-tab-size);
+  line-height: var(--text-tab-line);
+  font-weight: 500;
+  letter-spacing: var(--text-tracking-strong);
+}
+
+.v2-tabbar-item[aria-current="page"] {
+  color: var(--color-peach);
+  font-weight: 700;
+}
+
+.v2-tabbar-pill {
+  width: var(--tab-pill-width);
+  height: var(--tab-pill-height);
+  border-radius: var(--radius-pill);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.v2-tabbar-item[aria-current="page"] .v2-tabbar-pill {
+  background: var(--color-tab-active);
+}
+
+.v2-tabbar-pill svg {
+  width: var(--tab-icon-size);
+  height: var(--tab-icon-size);
+  flex: none;
+  display: block;
+}
+
+/* 固定の下帯に本文が潜らんよう、帯のある画面だけ下を空ける */
+body:has(.v2-tabbar) #root {
+  padding-bottom: var(--tab-bar-total);
+}

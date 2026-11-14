@@ -1,0 +1,115 @@
+/*
+ * デザイン見本帳（Kit.dc.html・Sizes.dc.html、案D「隣」）の値を移した唯一のトークン源。
+ * 画面の色・面・文字・角丸・影・安全域はここの変数だけを参照し、直書きの色を足さない。
+ */
+:root {
+  /* 文字 */
+  --color-text: #fbf6f1;
+  --color-text-sub: #dcd3ce;
+  --color-peach: #ffc9ac;
+  --color-on-peach: #1a0b08;
+  --color-danger: #ffa69a;
+  /* 灯は居る印の点だけ。文字には使わない */
+  --color-lamp: #f5d58c;
+
+  /* 地 */
+  --color-ground-top: #0e1425;
+  --color-ground-mid: #10162a;
+  --color-ground-low: #191826;
+  --color-ground-bottom: #231b20;
+  --color-ground-flat: #10162a;
+  --color-ground-dusk: #131729;
+  --color-ground-dusk-low: #1b1925;
+
+  /* 面の階層 */
+  --color-surface-from: #212941;
+  --color-surface-to: #1d253b;
+  --color-press-from: #262e49;
+  --color-press-to: #212943;
+  --color-own-from: #3c2428;
+  --color-own-to: #352024;
+  --color-plate: #0f1528;
+  --color-bar: #1c171f;
+  --color-well: #0b0f1a;
+  --color-well-border: #8c8497;
+  --color-tab-active: #3a292d;
+  --color-peach-from: #ffcdb2;
+  --color-peach-to: #ffc4a4;
+
+  --gradient-ground: linear-gradient(
+    180deg,
+    var(--color-ground-top) 0%,
+    var(--color-ground-mid) 46%,
+    var(--color-ground-low) 78%,
+    var(--color-ground-bottom) 100%
+  );
+  --gradient-sheet: linear-gradient(
+    180deg,
+    var(--color-ground-mid) 0%,
+    var(--color-ground-dusk) 40%,
+    var(--color-ground-dusk-low) 74%,
+    var(--color-ground-bottom) 100%
+  );
+  --gradient-surface: linear-gradient(
+    180deg,
+    var(--color-surface-from) 0%,
+    var(--color-surface-to) 100%
+  );
+  --gradient-press: linear-gradient(180deg, var(--color-press-from) 0%, var(--color-press-to) 100%);
+  --gradient-own: linear-gradient(180deg, var(--color-own-from) 0%, var(--color-own-to) 100%);
+  --gradient-peach: linear-gradient(180deg, var(--color-peach-from) 0%, var(--color-peach-to) 100%);
+
+  /* 影と縁 */
+  --edge-top: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  --edge-top-surface: inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  --edge-top-press: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  --edge-ring: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+  --shadow-press: var(--edge-top-press), 0 4px 12px rgba(4, 6, 14, 0.28);
+  --shadow-surface: var(--edge-top-surface), 0 6px 16px rgba(4, 6, 14, 0.3);
+  --shadow-plate: var(--edge-ring), 0 6px 16px rgba(4, 6, 14, 0.4);
+  --shadow-peach:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55), 0 10px 28px rgba(255, 150, 100, 0.3),
+    0 2px 6px rgba(255, 150, 100, 0.22);
+  --shadow-sheet: var(--edge-top-press), 0 -12px 32px rgba(4, 6, 14, 0.55);
+
+  /* 角丸 */
+  --radius-pill: 999px;
+  --radius-card: 20px;
+  --radius-control: 12px;
+  --radius-tail: 8px;
+  --radius-bubble-other: 20px 20px 20px 8px;
+  --radius-bubble-own: 20px 20px 8px 20px;
+  --radius-sheet: 28px 28px 0 0;
+
+  /* 文字 */
+  --font-body:
+    "Zen Kaku Gothic New", -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic",
+    sans-serif;
+  --font-display: "Zen Maru Gothic", var(--font-body);
+  --text-tracking: 0.02em;
+  --text-tracking-strong: 0.04em;
+  --text-tracking-title: 0.06em;
+  --text-screen-title-size: 22px;
+  --text-screen-title-line: 30px;
+  --text-title-size: 16px;
+  --text-title-line: 24px;
+  --text-body-size: 16px;
+  --text-body-line: 28px;
+  --text-row-size: 15px;
+  --text-row-line: 20px;
+  --text-note-size: 13px;
+  --text-note-line: 20px;
+  --text-tab-size: 12px;
+  --text-tab-line: 16px;
+
+  /* 寸法。Sizes: 360x740 は上24・下16、430x932 は上59・下34 */
+  --space-gutter: 20px;
+  --space-edge: 16px;
+  --tab-bar-height: 64px;
+  --tab-pill-width: 48px;
+  --tab-pill-height: 28px;
+  --tab-icon-size: 22px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --tab-bar-total: calc(var(--tab-bar-height) + var(--safe-bottom));
+}
