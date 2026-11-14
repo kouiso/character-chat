@@ -77,6 +77,20 @@ const withoutPending = (history: ChatBubble[], pending: PendingTurn): ChatBubble
     : history;
 };
 
+// 並びの位置を key にすると、前の発言が消えた時に開いた操作欄が次の発言へ付け替わる。
+// 保存済みは発言の id、送信中の仮発言は役割ごとの固定名、id を持たない確定済みの断片は
+// 同じ役割の中での出現順で区別する（仮発言は常に末尾の 1 組なので出現順が動かない）。
+const bubbleKeys = (bubbles: ChatBubble[]): string[] => {
+  const localCount = { user: 0, assistant: 0 };
+  return bubbles.map((bubble) => {
+    if (bubble.id !== undefined) return bubble.id;
+    if (bubble.pending) return `pending-${bubble.role}`;
+    const key = `local-${bubble.role}-${localCount[bubble.role]}`;
+    localCount[bubble.role] += 1;
+    return key;
+  });
+};
+
 const failureMessage = (cause: unknown): string =>
   cause instanceof Error ? cause.message : "返信を確認できませんでした。";
 
@@ -737,6 +751,8 @@ export const ChatView = ({
     target?.scrollIntoView({ block: "center" });
   };
 
+  const keys = bubbleKeys(bubbles);
+
   return (
     <div className="v2-chat" data-hide-inner={!showInner} ref={rootRef}>
       <div className="v2-chat-header">
@@ -765,7 +781,7 @@ export const ChatView = ({
       <ChatMessageLog key={characterId} busy={busy}>
         {bubbles.map((bubble, index) => (
           // LINE 型の見た目に寄せるため、相手の発言はアイコン付きの行にする（本人専用の顔出し）。
-          <div key={index} className={`v2-turn-row ${bubble.role}`}>
+          <div key={keys[index]} className={`v2-turn-row ${bubble.role}`}>
             {bubble.role === "assistant" && (
               <span className="v2-avatar" aria-hidden>
                 {characterName.slice(0, 1)}
