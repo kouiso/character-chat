@@ -1,0 +1,118 @@
+From 67fc3e7bfaf0c383c4f7b864be4a3d3f3cc416b9 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Sat, 14 Nov 2026 13:18:35 +0000
+Subject: [PATCH] fix(v2): remove voice reference field and keep saved value
+ (#200)
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01Cv4a6DRnNXdGwnDbUv9bT3
+---
+ apps/v2/src/component/character-form.test.tsx | 16 ++++++++++++++
+ apps/v2/src/component/character-form.tsx      | 10 ++++-----
+ .../db/src/character-version-store.test.ts    | 21 +++++++++++++++++++
+ 3 files changed, 41 insertions(+), 6 deletions(-)
+
+diff --git a/apps/v2/src/component/character-form.test.tsx b/apps/v2/src/component/character-form.test.tsx
+index 82af3f0..00093d5 100644
+--- a/apps/v2/src/component/character-form.test.tsx
++++ b/apps/v2/src/component/character-form.test.tsx
+@@ -73,4 +73,20 @@ describe("CharacterForm", () => {
+     expect(save).not.toHaveBeenCalled();
+     expect(screen.getByLabelText("タグ")).toHaveValue("1,2,3,4,5,6");
+   });
++
++  it("音声の参照IDの入力欄を出さず、保存済みの値は編集保存でも引き継ぐ", async () => {
++    const saved = characterContentSchema.parse({ ...content, voiceRef: "voice-ref-123" });
++    const save = vi.fn().mockResolvedValue(true);
++    render(<CharacterForm initial={saved} revision={1} draftKey="draft" onSubmit={save} />);
++    expect(screen.queryByLabelText("音声の参照ID")).toBeNull();
++    expect(screen.queryByText(/音声の参照ID/)).toBeNull();
++    fireEvent.change(screen.getByLabelText("名前"), { target: { value: "改名" } });
++    fireEvent.click(screen.getByRole("button", { name: submitName }));
++    await waitFor(() =>
++      expect(save).toHaveBeenCalledWith(
++        expect.objectContaining({ name: "改名", voiceRef: "voice-ref-123" }),
++        1,
++      ),
++    );
++  });
+ });
+diff --git a/apps/v2/src/component/character-form.tsx b/apps/v2/src/component/character-form.tsx
+index 31387c7..afbda94 100644
+--- a/apps/v2/src/component/character-form.tsx
++++ b/apps/v2/src/component/character-form.tsx
+@@ -25,9 +25,10 @@ const EMPTY: CharacterFormValue = {
+   visibility: "private",
+ };
+ 
++// voiceRef は入力欄を持たないが、draft.content の展開で保存済みの値が新しい版へ引き継がれる。
+ type TextKey = Exclude<
+   keyof CharacterFormValue,
+-  "tags" | "visibility" | "legacyReconstructed" | "memoryKinds"
++  "tags" | "visibility" | "legacyReconstructed" | "memoryKinds" | "voiceRef"
+ >;
+ type Field = { key: TextKey; label: string; max: number; required?: boolean; multiline?: boolean };
+ const FIELDS: Field[] = [
+@@ -52,7 +53,6 @@ const FIELDS: Field[] = [
+     max: 2000,
+     multiline: true,
+   },
+-  { key: "voiceRef", label: "音声の参照ID", max: 200 },
+   { key: "avatarRef", label: "アバターの参照", max: 500 },
+ ];
+ 
+@@ -178,9 +178,7 @@ export const CharacterForm = ({
+                 value={draft.content[field.key] ?? ""}
+                 onChange={(event) =>
+                   change({
+-                    [field.key]:
+-                      event.target.value ||
+-                      (field.key === "voiceRef" || field.key === "avatarRef" ? null : ""),
++                    [field.key]: event.target.value || (field.key === "avatarRef" ? null : ""),
+                   })
+                 }
+               />
+@@ -240,7 +238,7 @@ export const CharacterForm = ({
+           </select>
+         </label>
+         <p className="v2-editor-note">
+-          公開設定と音声の参照は保存のみです。この操作で外部へ公開したり音声を生成したりはしません。
++          公開設定は保存のみです。この操作で外部へ公開したりはしません。
+         </p>
+         <button type="submit">{busy ? "保存中…" : "保存して新しい会話を始める"}</button>
+       </fieldset>
+diff --git a/packages/db/src/character-version-store.test.ts b/packages/db/src/character-version-store.test.ts
+index 044f4fe..771d469 100644
+--- a/packages/db/src/character-version-store.test.ts
++++ b/packages/db/src/character-version-store.test.ts
+@@ -350,6 +350,27 @@ describe("immutable character version store", () => {
+     expect(histories.map(({ versionId }) => versionId)).toContain(parent.currentVersionId);
+   });
+ 
++  it("keeps a saved voiceRef in the new version when the form saves it back", async () => {
++    const saved = characterContentSchema.parse({
++      ...content("音声あり"),
++      voiceRef: "voice-ref-123",
++    });
++    const created = await createCharacterWithVersion(local.db, "local", saved);
++    characterIds.push(created.id);
++    const updated = await updateCharacterWithVersion(local.db, {
++      id: created.id,
++      userId: "local",
++      expectedRevision: 1,
++      content: { ...saved, name: "改名" },
++    });
++    expect(updated?.changed).toBe(true);
++    const [version] = await local.db
++      .select()
++      .from(characterVersionTable)
++      .where(eq(characterVersionTable.id, updated?.versionId ?? ""));
++    expect(JSON.stringify(version)).toContain("voice-ref-123");
++  });
++
+   it("restores an existing immutable version and records history", async () => {
+     const created = await createCharacterWithVersion(local.db, "local", content("初期"));
+     characterIds.push(created.id);
+-- 
+2.43.0
+

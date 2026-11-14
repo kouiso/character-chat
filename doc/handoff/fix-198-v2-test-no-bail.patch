@@ -1,0 +1,31 @@
+From 40fa9b3b499fe0b0388ff02eb55a20b1fe575487 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Sat, 14 Nov 2026 14:06:26 +0000
+Subject: [PATCH] fix(ci): run every v2 workspace test even after a failure
+ (#198)
+
+pnpm -r stops at the first failing workspace, hiding later results.
+Add --no-bail so all workspaces run and the exit code is still non-zero.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01Cv4a6DRnNXdGwnDbUv9bT3
+---
+ package.json | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/package.json b/package.json
+index fa13f9b..0aa1ac6 100644
+--- a/package.json
++++ b/package.json
+@@ -58,7 +58,7 @@
+     "ab:promote:remote": "tsx script/ab-promote.ts --remote",
+     "v2:dev": "pnpm --filter @v2/app dev",
+     "v2:typecheck": "pnpm -r --filter \"@v2/*\" run typecheck",
+-    "v2:test": "pnpm -r --workspace-concurrency=1 --filter \"@v2/*\" run test",
++    "v2:test": "pnpm -r --no-bail --workspace-concurrency=1 --filter \"@v2/*\" run test",
+     "v2:lint": "pnpm -r --filter \"@v2/*\" run lint",
+     "v2:ci": "pnpm v2:lint && pnpm v2:typecheck && pnpm v2:test",
+     "v2:db:check": "pnpm --filter @v2/cf run check",
+-- 
+2.43.0
+
