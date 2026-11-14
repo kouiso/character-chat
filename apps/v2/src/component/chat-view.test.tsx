@@ -83,7 +83,7 @@ describe("ChatView", () => {
     await screen.findByRole("alert");
     const saved = readChatSession("a");
     expect(saved.pending?.text).toBe("こんにちは");
-    expect(screen.queryByRole("button", { name: "入力に戻す" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "入力に戻す" })).toBeInTheDocument();
     first.unmount();
     render(<ChatView characterId="a" characterName="案内役" />);
     await screen.findByText("こんにちは、お元気ですか。");
@@ -706,15 +706,51 @@ describe("ChatView", () => {
     writeChatSession("a", { version: 1, conversationId: "conversation-a", pending });
     vi.stubGlobal(
       "fetch",
-      vi.fn(async (_url: RequestInfo | URL, init?: RequestInit) =>
+      vi.fn(async (url: RequestInfo | URL, init?: RequestInit) =>
         init?.method === "POST"
           ? Response.json({ code: "busy", message: "作成中" }, { status: 409 })
-          : Response.json({ turn: 1, history: [] }),
+          : String(url).includes("requestId=")
+            ? Response.json({ code: "busy", message: "作成中" }, { status: 409 })
+            : Response.json({ turn: 1, history: [] }),
       ),
     );
     render(<ChatView characterId="a" characterName="案内役" />);
     await screen.findByRole("button", { name: "再接続・再試行" });
-    expect(screen.queryByRole("button", { name: "入力に戻す" })).not.toBeInTheDocument();
+    // 並べて出すが、作成中はサーバーが取り下げを断るので文は戻らん（二重保存を防ぐ）。
+    fireEvent.click(screen.getByRole("button", { name: "入力に戻す" }));
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "再接続・再試行" })).toBeEnabled(),
+    );
+    expect(screen.getByRole("textbox", { name: "メッセージ" })).toHaveValue("");
     expect(readChatSession("a").pending?.requestId).toBe("request-old");
+  });
+
+  it("エンジン側の失敗が 1 回目でも、再試行と並べて入力に戻すが出て、押すと文が戻る", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (_url: RequestInfo | URL, init?: RequestInit) =>
+        init?.method === "POST"
+          ? new Response(
+              'event: error\ndata: {"message":"返信を完了できませんでした。再試行してください。","terminal":false}\n\n',
+            )
+          : Response.json({
+              turn: 1,
+              history: [],
+              storedTurn: { turn: 1, user: "届かん質問", answered: false },
+            }),
+      ),
+    );
+    render(<ChatView characterId="a" characterName="案内役" />);
+    fireEvent.change(screen.getByRole("textbox", { name: "メッセージ" }), {
+      target: { value: "届かん質問" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "送信" }));
+    expect(await screen.findByRole("button", { name: "再接続・再試行" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "入力に戻す" }));
+    await waitFor(() =>
+      expect(screen.getByRole("textbox", { name: "メッセージ" })).toHaveValue("届かん質問"),
+    );
+    expect(screen.getByRole("textbox", { name: "メッセージ" })).toBeEnabled();
+    expect(readChatSession("a").pending).toBeNull();
   });
 });

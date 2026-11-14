@@ -460,15 +460,15 @@ describe("ChatRoom", () => {
       answered: false,
     });
 
+    // 問い合わせで取り下げ済みになるので、同じ文は新しい受付番号で送る。
     replies.queue.push([VALID_REPLY]);
     await submitAndRun(room, {
-      requestId: "req-8a",
+      requestId: "req-8c",
       conversationId,
       text: "届かん質問",
-      retry: true,
     });
     const saved = await historyBody(
-      await handleHistoryRequest(characterId, new Request(url("req-8a"))),
+      await handleHistoryRequest(characterId, new Request(url("req-8c"))),
     );
     expect(saved.storedTurn).toEqual({
       turn: 1,
@@ -525,6 +525,59 @@ describe("ChatRoom", () => {
       status: "failed",
     });
     expect(replies.calls).toBe(2);
+  });
+
+  it("1 回失敗しただけの送信も取り下げられ、取り下げた後は同じ受付番号で生成し直さん", async () => {
+    const room = newRoom();
+    const conversationId = newConversation();
+    const input = { requestId: "req-w1", conversationId, text: "取り下げる質問" };
+    replies.queue.push([""]);
+    const failed = await submitAndRun(room, input);
+    expect(failed.events.map((item) => item.event)).toEqual([
+      {
+        type: "error",
+        message: "返信を完了できませんでした。再試行してください。",
+        terminal: false,
+      },
+    ]);
+
+    expect(room.withdraw("req-w1")).toEqual({ turn: 1, active: false });
+    // 古いタブからの再試行は、戻した文を二重に生成させず、入力へ戻す失敗を返すだけ。
+    await room.submit({ ...input, retry: true, characterId });
+    await room.alarm();
+    const after = room.readEvents("req-w1", 0);
+    expect(after.status).toBe("failed");
+    expect(after.events.map((item) => item.event)).toEqual([
+      {
+        type: "error",
+        message: "返信を完了できませんでした。入力に戻してください。",
+        terminal: true,
+      },
+    ]);
+    expect(replies.calls).toBe(1);
+
+    // 戻した後に同じ文を新しい受付番号で送っても、返信は 1 つだけ保存される。
+    replies.queue.push([VALID_REPLY]);
+    const resent = await submitAndRun(room, { ...input, requestId: "req-w2" });
+    expect(resent.status).toBe("succeeded");
+    const saved = await loadHistory({ characterId, conversationId });
+    expect(saved.turn).toBe(2);
+    expect(saved.history.filter((item) => item.role === "user")).toHaveLength(1);
+    expect(saved.history.filter((item) => item.role === "assistant")).toHaveLength(1);
+  });
+
+  it("作成中の送信は取り下げられず、状態も変えん", async () => {
+    const room = newRoom();
+    const conversationId = newConversation();
+    await room.submit({ requestId: "req-w3", conversationId, text: "作成中", characterId });
+    expect(room.withdraw("req-w3")).toEqual({ turn: 1, active: true });
+    expect(
+      state.sqlite.prepare("SELECT status, attempts FROM jobs WHERE id = 'req-w3'").get(),
+    ).toEqual({
+      status: "queued",
+      attempts: 0,
+    });
+    expect(room.withdraw("req-never-sent")).toBeNull();
   });
 
   it("履歴を読む間に別の job が終わっても、古いターン番号で受け付けず読み直す", async () => {

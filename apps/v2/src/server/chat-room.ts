@@ -22,6 +22,7 @@ const parseStoredEvent = (raw: string): ChatSseEvent => {
 const CHAT_TURN_FAILURE_EVENT = "chat_turn_failed";
 const CHAT_TURN_FAILURE_CATEGORY = "turn_processing_failure";
 const MAX_ATTEMPTS = 3;
+const WITHDRAWN_MESSAGE = "返信を完了できませんでした。入力に戻してください。";
 // 受付・alarm の拾い上げ・予約・状態の問い合わせが、同じ「処理中」の定義を使う。
 const ACTIVE_STATUS_SQL = "status IN ('queued','running')";
 // 1 回に返す事象の上限。readEvents は続きがあるかを hasMore で返すので、呼び出し側はこの数を知らん。
@@ -207,11 +208,17 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
   }
 
   // 「入力に戻す」が、その送信が実際に割り当てられたターンを確かめる口。画面が覚えとる番号は、
-  // 別のタブが会話を進めとるとずれる。
-  jobTurn(requestId: string): { turn: number; active: boolean } | null {
+  // 別のタブが会話を進めとるとずれる。作成中でない失敗済みの送信は、ここで取り下げ済みにする。
+  withdraw(requestId: string): { turn: number; active: boolean } | null {
     const job = this.job(requestId);
     if (!job) return null;
-    return { turn: job.turn, active: isActive(job.status) };
+    if (isActive(job.status)) return { turn: job.turn, active: true };
+    if (job.status === "failed" && job.attempts < MAX_ATTEMPTS) {
+      // 取り下げた後に古いタブの再試行で同じ送信が生成し直されると、入力へ戻した文と二重になる。
+      this.ctx.storage.sql.exec("UPDATE jobs SET attempts = ? WHERE id = ?", MAX_ATTEMPTS, job.id);
+      this.finish(job, [{ type: "error", message: WITHDRAWN_MESSAGE, terminal: true }], "failed");
+    }
+    return { turn: job.turn, active: false };
   }
 
   readEvents(requestId: string, after: number): EventPage {
@@ -405,7 +412,7 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
         {
           type: "error",
           message: terminal
-            ? "返信を完了できませんでした。入力に戻してください。"
+            ? WITHDRAWN_MESSAGE
             : "返信を完了できませんでした。再試行してください。",
           terminal,
         },
