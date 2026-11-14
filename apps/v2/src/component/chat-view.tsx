@@ -136,7 +136,6 @@ const messageIdOfImage = (imageUrl: string | undefined): string | null => {
   return id ? decodeURIComponent(id) : null;
 };
 
-// バブルのメディア。動画（RIT-190）は video 要素、画像は従来どおり img。
 type ChatErrorBarProps = {
   error: string;
   canResume: boolean;
@@ -166,6 +165,7 @@ const ChatErrorBar = ({
   </div>
 );
 
+// バブルのメディア。動画（RIT-190）は video 要素、画像は従来どおり img。
 const BubbleMedia = ({ bubble }: { bubble: ChatBubble }) => {
   if (!bubble.imageUrl) return null;
   if (bubble.mediaKind === "video") {
