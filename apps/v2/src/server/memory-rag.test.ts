@@ -276,6 +276,17 @@ describe("memory RAG with local D1", () => {
     ).toEqual([fixture.memoryId, greenId]);
   });
 
+  it("有効期限は JST の日付で切れる（UTC で 9 時間遅れない）", async () => {
+    const fixture = await seed([{ ...preference, validUntil: "2026-11-10" }]);
+    const env = bindings();
+    await indexMemoryJob(local.db, env, fixture.jobId);
+    const ids = async (at: number) =>
+      (await retrieveMemories(local.db, env, fixture.scope, "好み", at)).map((item) => item.id);
+    // JST 11/10 23:59 はまだ有効、JST 11/11 0:00（UTC 11/10 15:00）で切れる。
+    expect(await ids(Date.UTC(2026, 10, 10, 14, 59))).toEqual([fixture.memoryId]);
+    expect(await ids(Date.UTC(2026, 10, 10, 15, 0))).toEqual([]);
+  });
+
   it("ranking中の例外は空の結果として扱う", async () => {
     const fixture = await seed();
     const env = bindings();
