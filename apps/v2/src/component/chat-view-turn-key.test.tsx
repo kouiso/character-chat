@@ -52,46 +52,52 @@ const historyOf = (state: BackendState) => {
   return state.replied ? [...rows, ...NEW_ROWS] : rows;
 };
 
+const imagesResponse = (state: BackendState, init?: RequestInit) => {
+  if (init?.method === "DELETE") {
+    state.removed = true;
+    return Response.json({ deleted: true });
+  }
+  return Response.json({ images: state.removed ? [] : [GALLERY_ENTRY] });
+};
+
+const siblingsOf = (state: BackendState, url: string) =>
+  url.includes("role=assistant")
+    ? [
+        { id: "m-reply", branchNo: 1, active: !state.switched, content: "その返事" },
+        { id: "m-reply-b", branchNo: 2, active: state.switched, content: "別の枝の返事" },
+      ]
+    : [{ id: "s", branchNo: 1, active: true, content: "二番目の発言" }];
+
+const branchResponse = (state: BackendState, url: string, init?: RequestInit) => {
+  if (init?.method !== "POST") return Response.json({ siblings: siblingsOf(state, url) });
+  const body = JSON.parse(String(init.body)) as { action: string };
+  if (body.action === "activate") state.switched = true;
+  else state.truncated.push(body);
+  return Response.json({ ok: true });
+};
+
+const sendResponse = (state: BackendState) => {
+  state.replied = true;
+  return new Response(
+    'id: 1\nevent: done\ndata: {"conversationId":"conv","turn":4,"generationId":null}\n\n',
+  );
+};
+
+const respond = (state: BackendState, url: string, init?: RequestInit): Response => {
+  if (url.includes("/images")) return imagesResponse(state, init);
+  if (url.includes("/branch")) return branchResponse(state, url, init);
+  if (url.includes("/history")) {
+    return Response.json({ turn: state.replied ? 5 : 4, history: historyOf(state) });
+  }
+  return init?.method === "POST" ? sendResponse(state) : Response.json({});
+};
+
 const stubBackend = (state: BackendState) =>
   vi.stubGlobal(
     "fetch",
-    vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
-      const url = String(input);
-      if (url.includes("/images")) {
-        if (init?.method === "DELETE") {
-          state.removed = true;
-          return Response.json({ deleted: true });
-        }
-        return Response.json({ images: state.removed ? [] : [GALLERY_ENTRY] });
-      }
-      if (url.includes("/branch")) {
-        if (init?.method === "POST") {
-          const body = JSON.parse(String(init.body)) as { action: string };
-          if (body.action === "activate") state.switched = true;
-          else state.truncated.push(body);
-          return Response.json({ ok: true });
-        }
-        const isAssistant = url.includes("role=assistant");
-        return Response.json({
-          siblings: isAssistant
-            ? [
-                { id: "m-reply", branchNo: 1, active: !state.switched, content: "その返事" },
-                { id: "m-reply-b", branchNo: 2, active: state.switched, content: "別の枝の返事" },
-              ]
-            : [{ id: "s", branchNo: 1, active: true, content: "二番目の発言" }],
-        });
-      }
-      if (url.includes("/history")) {
-        return Response.json({ turn: state.replied ? 5 : 4, history: historyOf(state) });
-      }
-      if (init?.method === "POST") {
-        state.replied = true;
-        return new Response(
-          'id: 1\nevent: done\ndata: {"conversationId":"conv","turn":4,"generationId":null}\n\n',
-        );
-      }
-      return Response.json({});
-    }),
+    vi.fn(async (input: RequestInfo | URL, init?: RequestInit) =>
+      respond(state, String(input), init),
+    ),
   );
 
 const openRewrite = async () => {
