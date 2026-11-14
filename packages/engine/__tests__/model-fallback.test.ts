@@ -28,8 +28,9 @@ const xmlChunk = (text: string) =>
 // 5xx・ネットワーク障害を起こすモデル。
 class ThrowingModel extends FakeListChatModel {
   async *_streamResponseChunks(): AsyncGenerator<ChatGenerationChunk> {
+    // 1 塊も返さず最初の next で落ちる上流を再現する（空の yield* でジェネレータの形だけ保つ）。
+    yield* [];
     throw new Error("503 upstream unavailable");
-    yield xmlChunk("届かん");
   }
 }
 

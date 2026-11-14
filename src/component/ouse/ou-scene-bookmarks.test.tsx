@@ -157,4 +157,43 @@ describe("OuSceneBookmarkList", () => {
     expect(await screen.findByText("場面を読み込めませんでした")).toBeInTheDocument();
     expect(screen.queryByText("保存した場面はまだありません")).toBeNull();
   });
+
+  it("nextCursor が返ると「さらに読む」でカーソル付きの次ページを取得して末尾に足す", async () => {
+    const second: SceneBookmark = {
+      ...BOOKMARK,
+      id: "bm-2",
+      title: "深夜のコンビニ",
+    };
+    vi.mocked(listSceneBookmarks)
+      .mockResolvedValueOnce({ items: [BOOKMARK], nextCursor: "MTc2OTY0MTYwMDAwMDpibS0x" })
+      .mockResolvedValueOnce({ items: [second], nextCursor: null });
+
+    renderList("char-1");
+
+    expect(await screen.findByText("旅館の縁側で")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "さらに読む" }));
+
+    expect(await screen.findByText("深夜のコンビニ")).toBeInTheDocument();
+    expect(listSceneBookmarks).toHaveBeenLastCalledWith(
+      expect.objectContaining({ cursor: "MTc2OTY0MTYwMDAwMDpibS0x" }),
+    );
+    expect(screen.queryByRole("button", { name: "さらに読む" })).toBeNull();
+  });
+
+  it("続き取得が失敗しても取得済みの一覧を残して再試行できる", async () => {
+    vi.mocked(listSceneBookmarks)
+      .mockResolvedValueOnce({ items: [BOOKMARK], nextCursor: "MTc2OTY0MTYwMDAwMDpibS0x" })
+      .mockRejectedValueOnce(new Error("network"));
+
+    renderList("char-1");
+
+    expect(await screen.findByText("旅館の縁側で")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "さらに読む" }));
+
+    expect(
+      await screen.findByRole("button", { name: "読み込めませんでした。もう一度" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("旅館の縁側で")).toBeInTheDocument();
+    expect(screen.queryByText("場面を読み込めませんでした")).toBeNull();
+  });
 });

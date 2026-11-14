@@ -27,7 +27,7 @@ import {
   updateCharacterWithVersion,
 } from "./character-version-store";
 import { ensureLocalUser } from "./local-user";
-import { openLocalD1, type LocalD1 } from "./test/local-d1";
+import { FRESH_LOCAL_D1_TIMEOUT_MS, openLocalD1, type LocalD1 } from "./test/local-d1";
 import { ensureConversationVersion } from "./turn-store";
 import {
   characterRevisionTable,
@@ -136,43 +136,54 @@ describe("immutable character version store", () => {
     });
   });
 
-  it("recreates a missing local owner without overwriting an existing email", async () => {
-    const persistRoot = await mkdtemp(join(tmpdir(), "character-version-store-"));
-    let isolated: LocalD1 | undefined;
-    try {
-      isolated = await openLocalD1({ persistRoot });
-      const isolatedDb = isolated.db;
-      const [before] = await isolatedDb.select().from(userTable).where(eq(userTable.id, "local"));
-      if (before) await isolatedDb.delete(userTable).where(eq(userTable.id, "local"));
-      await ensureLocalUser(isolatedDb);
-      const [created] = await isolatedDb.select().from(userTable).where(eq(userTable.id, "local"));
-      expect(created?.email).toBe("local@example.invalid");
-      const result = await createCharacterWithVersion(isolatedDb, "local", content("local owner"));
-
-      const [character] = await isolatedDb
-        .select({ userId: characterTable.userId })
-        .from(characterTable)
-        .where(eq(characterTable.id, result.id));
-      expect(character?.userId).toBe("local");
-
-      await isolatedDb
-        .update(userTable)
-        .set({ email: "preserved@example.invalid" })
-        .where(eq(userTable.id, "local"));
-      await ensureLocalUser(isolatedDb);
-      const [preserved] = await isolatedDb
-        .select()
-        .from(userTable)
-        .where(eq(userTable.id, "local"));
-      expect(preserved?.email).toBe("preserved@example.invalid");
-    } finally {
+  it(
+    "recreates a missing local owner without overwriting an existing email",
+    { timeout: FRESH_LOCAL_D1_TIMEOUT_MS },
+    async () => {
+      const persistRoot = await mkdtemp(join(tmpdir(), "character-version-store-"));
+      let isolated: LocalD1 | undefined;
       try {
-        await isolated?.dispose();
+        isolated = await openLocalD1({ persistRoot });
+        const isolatedDb = isolated.db;
+        const [before] = await isolatedDb.select().from(userTable).where(eq(userTable.id, "local"));
+        if (before) await isolatedDb.delete(userTable).where(eq(userTable.id, "local"));
+        await ensureLocalUser(isolatedDb);
+        const [created] = await isolatedDb
+          .select()
+          .from(userTable)
+          .where(eq(userTable.id, "local"));
+        expect(created?.email).toBe("local@example.invalid");
+        const result = await createCharacterWithVersion(
+          isolatedDb,
+          "local",
+          content("local owner"),
+        );
+
+        const [character] = await isolatedDb
+          .select({ userId: characterTable.userId })
+          .from(characterTable)
+          .where(eq(characterTable.id, result.id));
+        expect(character?.userId).toBe("local");
+
+        await isolatedDb
+          .update(userTable)
+          .set({ email: "preserved@example.invalid" })
+          .where(eq(userTable.id, "local"));
+        await ensureLocalUser(isolatedDb);
+        const [preserved] = await isolatedDb
+          .select()
+          .from(userTable)
+          .where(eq(userTable.id, "local"));
+        expect(preserved?.email).toBe("preserved@example.invalid");
       } finally {
-        await rm(persistRoot, { recursive: true, force: true });
+        try {
+          await isolated?.dispose();
+        } finally {
+          await rm(persistRoot, { recursive: true, force: true });
+        }
       }
-    }
-  });
+    },
+  );
 
   it("keeps the in-use result if a conversation disappears after the guarded batch", async () => {
     const created = await createCharacterWithVersion(local.db, "local", content("会話中"));

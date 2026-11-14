@@ -154,6 +154,40 @@ describe("資格情報検査の出力", () => {
     expect(status).toBe(0);
   });
 
+  // Web Push の公開鍵（RFC 8292）だけは名前と値の形の両方が揃った時に通す。値は実行時に組み立てる。
+  const bytesFrom = (length: number, seed: number) =>
+    Buffer.from(Array.from({ length }, (_, index) => (index * 37 + seed) % 256));
+  const vapidPublicKey = Buffer.concat([Buffer.from([0x04]), bytesFrom(64, 11)]).toString(
+    "base64url",
+  );
+
+  it("VAPID_PUBLIC_KEY に非圧縮 P-256 公開鍵の形の値なら通す", () => {
+    const { status, output } = runIn({
+      "apps/v2/wrangler.jsonc": `{ "VAPID_PUBLIC_KEY": "${vapidPublicKey}" }\n`,
+    });
+    expect(output).toContain("資格情報検査: OK");
+    expect(status).toBe(0);
+  });
+
+  it("VAPID_PUBLIC_KEY でも公開鍵の形でない値は失敗させる", () => {
+    const value = bytesFrom(32, 5).toString("base64url");
+    const { status, output } = runIn({
+      "apps/v2/wrangler.jsonc": `{ "VAPID_PUBLIC_KEY": "${value}" }\n`,
+    });
+    expect(status).not.toBe(0);
+    expect(output).toContain("VAPID_PUBLIC_KEY");
+    expectNoPartOf(output, value);
+  });
+
+  it("公開鍵の形でも VAPID_PUBLIC_KEY 以外の名前は失敗させる", () => {
+    const { status, output } = runIn({
+      "apps/v2/wrangler.jsonc": `{ "FOO_PUBLIC_KEY": "${vapidPublicKey}" }\n`,
+    });
+    expect(status).not.toBe(0);
+    expect(output).toContain("FOO_PUBLIC_KEY");
+    expectNoPartOf(output, vapidPublicKey);
+  });
+
   it("形の決まった鍵も値を出さずに行で示す", () => {
     const value = `sk-or-v1-${"a1b2c3d4".repeat(8)}`;
     const { status, output } = runIn({ "src/leak.ts": `\nconst k = "${value}";\n` });

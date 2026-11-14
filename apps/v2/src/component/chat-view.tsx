@@ -136,6 +136,35 @@ const messageIdOfImage = (imageUrl: string | undefined): string | null => {
   return id ? decodeURIComponent(id) : null;
 };
 
+type ChatErrorBarProps = {
+  error: string;
+  canResume: boolean;
+  terminalFailure: boolean;
+  busy: boolean;
+  onRecover: () => void;
+  onRetry: () => void;
+};
+
+// 最終失敗なら入力へ戻す、途中で切れただけなら同じ受付番号で再接続する。
+const ChatErrorBar = ({
+  error,
+  canResume,
+  terminalFailure,
+  busy,
+  onRecover,
+  onRetry,
+}: ChatErrorBarProps) => (
+  <div className="v2-error" role="alert">
+    {error}
+    {canResume && (
+      <button type="button" onClick={terminalFailure ? onRecover : onRetry} disabled={busy}>
+        {terminalFailure ? "入力に戻す" : "再接続・再試行"}
+      </button>
+    )}
+    <a href="/">会話一覧へ戻る</a>
+  </div>
+);
+
 // バブルのメディア。動画（RIT-190）は video 要素、画像は従来どおり img。
 const BubbleMedia = ({ bubble }: { bubble: ChatBubble }) => {
   if (!bubble.imageUrl) return null;
@@ -810,19 +839,14 @@ export const ChatView = ({
         </div>
       )}
       {error && (
-        <div className="v2-error" role="alert">
-          {error}
-          {pending && (
-            <button
-              type="button"
-              onClick={terminalFailure ? recoverPending : retry}
-              disabled={busy}
-            >
-              {terminalFailure ? "入力に戻す" : "再接続・再試行"}
-            </button>
-          )}
-          <a href="/">会話一覧へ戻る</a>
-        </div>
+        <ChatErrorBar
+          error={error}
+          canResume={pending !== null}
+          terminalFailure={terminalFailure}
+          busy={busy}
+          onRecover={recoverPending}
+          onRetry={retry}
+        />
       )}
       <details className="v2-image-params">
         <summary>画像設定</summary>

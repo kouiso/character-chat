@@ -63,8 +63,13 @@ describe("ChatView", () => {
         turn: succeeded ? 2 : 1,
         history: succeeded
           ? [
-              { role: "user", content: "こんにちは" },
-              { role: "assistant", content: "こんにちは、お元気ですか。" },
+              { id: "m-hello-user", turn: 1, role: "user", content: "こんにちは" },
+              {
+                id: "m-hello-assistant",
+                turn: 1,
+                role: "assistant",
+                content: "こんにちは、お元気ですか。",
+              },
             ]
           : [],
       });
@@ -100,10 +105,10 @@ describe("ChatView", () => {
         return Response.json({
           turn: 8,
           history: [
-            { role: "assistant", content: "最初の挨拶" },
-            { role: "user", content: "以前の質問" },
-            { role: "assistant", content: "以前の応答" },
-            { role: "assistant", content: "追加の応答" },
+            { id: "m-greeting", turn: 1, role: "assistant", content: "最初の挨拶" },
+            { id: "m-prior-user", turn: 6, role: "user", content: "以前の質問" },
+            { id: "m-prior-assistant", turn: 6, role: "assistant", content: "以前の応答" },
+            { id: "m-extra-assistant", turn: 7, role: "assistant", content: "追加の応答" },
           ],
         });
       }),
@@ -151,8 +156,8 @@ describe("ChatView", () => {
         return Response.json({
           turn: 2,
           history: [
-            { role: "user", content: "新しい質問" },
-            { role: "assistant", content: "新しい応答" },
+            { id: "m-new-user", turn: 1, role: "user", content: "新しい質問" },
+            { id: "m-new-assistant", turn: 1, role: "assistant", content: "新しい応答" },
           ],
         });
       }),
@@ -311,8 +316,8 @@ describe("ChatView", () => {
           return Response.json({
             turn: 2,
             history: [
-              { role: "user", content: "Aの保留" },
-              { role: "assistant", content: "Aの応答" },
+              { id: "m-a-user", turn: 1, role: "user", content: "Aの保留" },
+              { id: "m-a-assistant", turn: 1, role: "assistant", content: "Aの応答" },
             ],
           });
         return Response.json({ turn: 1, history: [] });
@@ -343,8 +348,8 @@ describe("ChatView", () => {
   const TERMINAL_ERROR =
     'event: error\ndata: {"message":"返信を完了できませんでした。入力に戻してください。","terminal":true}\n\n';
   const PRIOR = [
-    { role: "user", content: "前の質問" },
-    { role: "assistant", content: "前の応答" },
+    { id: "m-before-user", turn: 1, role: "user", content: "前の質問" },
+    { id: "m-before-assistant", turn: 1, role: "assistant", content: "前の応答" },
   ];
   const renderTerminalFailure = (
     history: () => Response | Promise<Response>,
@@ -360,9 +365,12 @@ describe("ChatView", () => {
     writeChatSession("a", { version: 1, conversationId: "conversation-a", pending });
     vi.stubGlobal(
       "fetch",
-      vi.fn(async (_url: RequestInfo | URL, init?: RequestInit) =>
-        init?.method === "POST" ? new Response(TERMINAL_ERROR) : history(),
-      ),
+      vi.fn(async (url: RequestInfo | URL, init?: RequestInit) => {
+        if (init?.method === "POST") return new Response(TERMINAL_ERROR);
+        // 履歴の読込後に印（RIT-204）も読みに来る。履歴の呼び出し回数を数える試験があるので分けて返す。
+        if (String(url).includes("/marks")) return Response.json({ marks: [] });
+        return history();
+      }),
     );
     render(<ChatView characterId="a" characterName="案内役" />);
   };
@@ -385,8 +393,8 @@ describe("ChatView", () => {
         turn: 3,
         history: [
           ...PRIOR,
-          { role: "user", content: "失敗した質問" },
-          { role: "assistant", content: "届いていた応答" },
+          { id: "m-failed-user", turn: 2, role: "user", content: "失敗した質問" },
+          { id: "m-failed-assistant", turn: 2, role: "assistant", content: "届いていた応答" },
         ],
         storedTurn: { turn: 2, user: "失敗した質問", answered: true },
       }),
@@ -424,8 +432,8 @@ describe("ChatView", () => {
         turn: 3,
         history: [
           ...PRIOR,
-          { role: "user", content: "別のタブの質問" },
-          { role: "assistant", content: "別のタブへの応答" },
+          { id: "m-other-tab-user", turn: 2, role: "user", content: "別のタブの質問" },
+          { id: "m-other-tab-assistant", turn: 2, role: "assistant", content: "別のタブへの応答" },
         ],
         storedTurn: { turn: 2, user: "別のタブの質問", answered: true },
       }),
@@ -538,8 +546,8 @@ describe("ChatView", () => {
         return Response.json({
           turn: 2,
           history: [
-            { role: "user", content: "こちらの質問" },
-            { role: "assistant", content: "こちらへの応答" },
+            { id: "m-here-user", turn: 1, role: "user", content: "こちらの質問" },
+            { id: "m-here-assistant", turn: 1, role: "assistant", content: "こちらへの応答" },
           ],
         });
       }),

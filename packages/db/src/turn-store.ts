@@ -333,6 +333,27 @@ const tryParseLedger = (ledgerJson: string): SceneLedger | null => {
   }
 };
 
+// 壊れた台帳は捨てて手前へ遡る。台帳が全滅しても会話は止めん（RIT-118）。
+// 遡った事実は運用で追えるよう構造化ログに残す（apps/v2 の document.ts と同じ出し方）。
+const pickLedger = (
+  rows: { turn: number; ledgerJson: string }[],
+  conversationId: string,
+): SceneLedger => {
+  const skippedTurns: number[] = [];
+  let ledger: SceneLedger | null = null;
+  for (const row of rows) {
+    ledger = tryParseLedger(row.ledgerJson);
+    if (ledger) break;
+    skippedTurns.push(row.turn);
+  }
+  if (skippedTurns.length > 0) {
+    globalThis.console.warn(
+      JSON.stringify({ event: "ledger_fallback", conversationId, skippedTurns }),
+    );
+  }
+  return ledger ?? emptyLedger();
+};
+
 // role の並びは 'assistant' < 'user' の辞書順やと逆になるので、明示的に user を先にする。
 const userFirst = sql`case ${v2MessageTable.role} when 'user' then 0 else 1 end`;
 
@@ -382,19 +403,7 @@ export const loadLatestLedger = async (
     .orderBy(desc(v2LedgerTable.turn))
     .limit(3);
   if (rows.length === 0) return null;
-  const skippedTurns: number[] = [];
-  for (const row of rows) {
-    const ledger = tryParseLedger(row.ledgerJson);
-    if (ledger) {
-      if (skippedTurns.length > 0) {
-        console.warn(JSON.stringify({ event: "ledger_fallback", conversationId, skippedTurns }));
-      }
-      return ledger;
-    }
-    skippedTurns.push(row.turn);
-  }
-  console.warn(JSON.stringify({ event: "ledger_fallback", conversationId, skippedTurns }));
-  return emptyLedger();
+  return pickLedger(rows, conversationId);
 };
 
 // engine の persist は本文ゼロで終わった生成（締切で 1 字も来ん・全塊が判定で落ちた・空の返事）も
@@ -776,18 +785,7 @@ export const createD1TurnStore = (db: V2Db, opts: D1TurnStoreOptions): TurnStore
             .orderBy(desc(v2LedgerTable.turn))
             .limit(3)
         : ledgerRows;
-    // 壊れた台帳は捨てて手前へ遡る。台帳が全滅しても会話は止めん（RIT-118）。
-    let ledger: SceneLedger | null = null;
-    const skippedTurns: number[] = [];
-    for (const row of ledgerRowsResolved) {
-      ledger = tryParseLedger(row.ledgerJson);
-      if (ledger) break;
-      skippedTurns.push(row.turn);
-    }
-    if (skippedTurns.length > 0) {
-      console.warn(JSON.stringify({ event: "ledger_fallback", conversationId, skippedTurns }));
-    }
-    ledger ??= emptyLedger();
+    const ledger = pickLedger(ledgerRowsResolved, conversationId);
     // beforeTurn は呼び出し側（ChatRoom の job）が演じる番号を決めた後の読込。窓の中の末尾が
     // 失敗ターンでも番号を下げると、job と別の turn へ保存してしまう。
     return { history, ledger, turn: opts.beforeTurn ?? nextTurn };

@@ -22,6 +22,10 @@ const WRANGLER_BIN = path.join(PACKAGE_ROOT, "node_modules/.bin/wrangler");
 
 type LocalEnv = { DB: D1Database };
 
+// 空の persistRoot へ全 migration（2026-11 時点で 134 本）を当てる経路は、migration が増えるほど
+// 長くなり既定の 60 秒を超える（CI の fresh 適用だけで約 35 秒、負荷の高い手元では 200 秒超）。
+export const FRESH_LOCAL_D1_TIMEOUT_MS = 300_000;
+
 export type LocalD1 = { db: V2Db; d1: D1Database; dispose: () => Promise<void> };
 export type OpenLocalD1Options = { persistRoot?: string };
 

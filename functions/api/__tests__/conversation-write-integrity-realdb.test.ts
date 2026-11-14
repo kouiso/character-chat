@@ -238,3 +238,37 @@ describe.skipIf(!DatabaseSyncCtor)("POST /api/conversations (実SQLite)", () => 
     expect(greetings.n).toBe(1);
   });
 });
+
+describe.skipIf(!DatabaseSyncCtor)(
+  "POST /api/conversations/:conversationId/messages (実SQLite)",
+  () => {
+    it("同じ id を二度 POST しても 500 にならず冪等に 201 を返す（RIT-220）", async () => {
+      const { db, d1: DB } = makeRealD1("おかえり");
+      insertConversation(db, "conv-1");
+      const payload = {
+        id: "msg-dup-1",
+        role: "assistant",
+        content: "……うん、そっか。",
+      };
+      const req = () =>
+        app.request(
+          "/api/conversations/conv-1/messages",
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${AUTH_TOKEN}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+          },
+          { AUTH_TOKEN, DB },
+        );
+
+      const first = await req();
+      expect(first.status).toBe(201);
+      const second = await req();
+      expect(second.status).toBe(201);
+      expect(countMessages(db, "conv-1")).toBe(1);
+    });
+  },
+);

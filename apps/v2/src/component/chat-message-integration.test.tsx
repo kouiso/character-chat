@@ -22,8 +22,8 @@ describe("ChatView message 表示接続", () => {
         return Response.json({
           turn: 2,
           history: [
-            { role: "user", content: "合成の公園へ行こう🙂" },
-            { role: "assistant", content: reply },
+            { id: "m-park-user", turn: 1, role: "user", content: "合成の公園へ行こう🙂" },
+            { id: "m-park-assistant", turn: 1, role: "assistant", content: reply },
           ],
         });
       return new Response(

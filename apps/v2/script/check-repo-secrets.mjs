@@ -100,6 +100,15 @@ const looksLikePassword = (value) =>
   !PLACEHOLDER.test(value) && /[A-Za-z]/.test(value) && (/[0-9]/.test(value) || value.length >= 16);
 const PRIVATE_KEY = /-----BEGIN [A-Z ]*PRIVATE KEY-----([\s\S]*?)-----END/m;
 
+// Web Push の applicationServerKey は仕様上ブラウザへ配る公開鍵（RFC 8292）で、秘密やない。
+// 名前だけで通すと秘密を同じ名前で置かれた時に素通りするので、VAPID_PUBLIC_KEY という名前で、
+// かつ値が非圧縮 P-256 公開鍵（base64url で 65 バイト・先頭 0x04）の形の時だけ外す。
+const isVapidPublicKey = (name, value) => {
+  if (name !== "VAPID_PUBLIC_KEY" || !/^[A-Za-z0-9_-]+$/.test(value)) return false;
+  const bytes = Buffer.from(value, "base64url");
+  return bytes.length === 65 && bytes[0] === 0x04;
+};
+
 // 検査結果は CI の公開ログに出るので、見つけた値は一文字も出さず「どこの何」だけを示す。
 const lineOf = (text, index) => text.slice(0, index).split("\n").length;
 
@@ -117,6 +126,7 @@ const scan = (path, text) => {
       !PLACEHOLDER.test(value) &&
       !NOT_SECRET_VALUE.test(value) &&
       !UUID_LIKE.test(value) &&
+      !isVapidPublicKey(match[1], value) &&
       looksTokenLike(value)
     ) {
       fail(`秘密変数への代入らしき行: ${path}:${lineOf(text, match.index)} (${match[1]})`);
