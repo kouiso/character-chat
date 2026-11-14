@@ -20,7 +20,7 @@ IF eval/シナリオテストを作成・実行する THEN 全シナリオは `e
 
 測定基準はシナリオごとの真偽値として固定する。シナリオは以下を両方満たす場合のみ最終到達点完走 PASS とする。
 
-1. `expectedPhase: "climax"` のターンで、期待される応答がクライマックス判定用マーカー（応答側の語彙は `script/e2e/judges/outcome-detection.ts` の `CREAMPIE_ASSISTANT_CUES` を正とする）を含むように、`isCreampie: true` を付けるか、ユーザー発言が次の2つのパターンのどちらかに合致する形で誘導している。シナリオ側の対象ターン抽出は `script/e2e/judges/rubric.ts` の `userMsg` 正規表現、応答検出側は `outcome-detection.ts` の `CREAMPIE_USER_PATTERN` で、語彙が異なるため両方を正とする。ユーザー入力だけでは足りず、応答が長さ・フェーズ（climax）・マーカーの条件も満たす必要がある。
+1. `expectedPhase: "climax"` のターンで、期待される応答がクライマックス判定用マーカー（応答側の語彙は `script/e2e/judges/outcome-detection.ts` の `CREAMPIE_ASSISTANT_CUES` を正とする）を含むように、`isCreampie: true` を付ける（確実な経路）。ユーザー発言だけで誘導する場合は `script/e2e/judges/rubric.ts` の `userMsg` 正規表現に合致する語を含める。応答検出側の `outcome-detection.ts` の `CREAMPIE_USER_PATTERN` には rubric 側に無い語（`出して` など）があり、その語だけのターンは rubric の対象ターンに数えられず -10 になるため、両方を正として突き合わせる。ユーザー入力だけでは足りず、応答が長さ・フェーズ（climax）・マーカーの条件も満たす必要がある。
 2. その後続ターンで `expectedPhase: "afterglow"` を期待し、`afterglowDetected === true` が採点上の必須条件になる。
 
 最終到達点完走を欠いた eval 結果は、会話品質やキャラクター維持が良くても rubric 上で明示的に減点する。ライブ eval は OpenRouter credits を消費するため、定義変更のゲートはシナリオ定義メタテストで確認する。
