@@ -25,6 +25,6 @@
 | 手段 | 理由 |
 |------|------|
 | codex `$imagegen` / OpenAI 画像モデル | 廃止（局長裁定 2026-07-13）。タッチが waiNSFW と混ざり統一を壊す |
-| waiNSFW 以外の Novita モデル（darkSushi/meinahentai等） | モデル固定の局長裁定（2026-07-12） |
+| waiNSFW 以外の Novita モデル（darkSushi 等） | モデル固定の局長裁定（2026-07-12） |
 | Codex Cloud / bg-MCP 経由の画像生成 | 廃止済み |
 | 生成前のコスト提示なしの大量生成 | 枚数と概算コストを提示してから |

@@ -1,19 +1,6 @@
 {
-  ".claude/agents/scenario-writer.md": {
-    "中出し": 4
-  },
   ".claude/commands/evals.md": {
-    "中出し": 7,
-    "精液": 1,
-    "膣": 2,
     "creampie": 1
-  },
-  ".github/agents/scenario-writer.agent.md": {
-    "中出し": 4
-  },
-  ".github/instructions/char-approval-process.instructions.md": {
-    "中出し": 1,
-    "loli": 1
   },
   ".gitignore": {
     "rape": 1
@@ -270,30 +257,11 @@
     "精液": 1,
     "膣": 2
   },
-  "prompt/agents/scenario-writer.md": {
-    "中出し": 4
-  },
   "prompt/commands/evals.md": {
-    "中出し": 7,
-    "精液": 1,
-    "膣": 2,
     "creampie": 1
-  },
-  "prompt/instructions/avatar-image-gen.md": {
-    "hentai": 1
-  },
-  "prompt/instructions/char-approval-process.md": {
-    "中出し": 1,
-    "loli": 1
-  },
-  "prompt/skills/image-frame-consistency/SKILL.md": {
-    "精液": 1
   },
   "prompt/skills/image-prompt-ssot/SKILL.md": {
     "creampie": 1
-  },
-  "prompt/skills/sensory-depiction/SKILL.md": {
-    "レイプ": 1
   },
   "script/build-score-index.ts": {
     "creampie": 2
