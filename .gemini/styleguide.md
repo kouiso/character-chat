@@ -28,6 +28,20 @@ AI キャラクターチャット＆画像生成 PWA。Cloudflare Pages + Hono �
 > ⚠️ `.gemini/styleguide.md` と `.github/copilot-instructions.md` はこのファイルから
 > `scripts/sync-ai-rules.sh` で自動生成される。直接編集禁止。
 
+## プロジェクトの存在理由
+
+月額課金のサービスにお金をかけずに、自分用のキャラクターチャットアプリを自分で作る。
+まず自分で使い、ポートフォリオにもなり、良ければ商用化する。
+
+AI chat application with character personas, speech synthesis, and local-first storage.
+
+## 運用ルール
+
+**画像生成は Novita API 直・モデル固定（局長指示 2026-07-12・旧「$imagegen を Cloud で」運用は廃止）**:
+キャラ画像の生成は Novita API を直接叩く。モデルは固定で、指定モデル以外は使わない
+（モデル名は公開リポの外の設定を正とする）。codex（Cloud / bg-MCP）経由の画像生成・macmini `$imagegen` はどちらも禁止。
+生成前に枚数と概算コストを局長に提示する。手順詳細: `prompt/commands/add-char-photo.md`。
+
 ## 技術スタック
 
 | カテゴリ | 技術 |
@@ -51,6 +65,7 @@ pnpm build           # tsc -b && vite build
 pnpm lint            # oxlint + oxfmt
 pnpm test            # Vitest
 pnpm dev:worker      # Cloudflare Pages ローカル開発
+task setup           # プロジェクト一括セットアップ（Taskfile）
 task ci              # CI チェック（lint + build）
 task deploy          # デプロイ（D1 migration auto-apply ゲートあり）
 ```
@@ -72,6 +87,7 @@ node .codex/mock-server.mjs   # 外部 LLM/画像 API のモック（no network 
 - ローカル D1 は `wrangler d1 ... --local`（miniflare・認証不要・オフライン）。
 - 新規スキーマ変更は **autogenerate 優先**: `pnpm db:generate`（drizzle-kit）で生成し、D1 が未対応の箇所だけ手当てする。フル手書き migration は禁止。
 - placeholder secret は `.codex/dev-vars.example` → `.dev.vars`（gitignore 済み・実鍵なし。既存の本物は上書きしない）。
+- `codex cloud exec --env <ENV_ID> "<task>"` でクラウドへ委譲可能。ENV_ID は公開リポジトリへ転記しない（別途管理）。
 
 ## アーキテクチャ
 
@@ -87,13 +103,70 @@ GitHub Copilot にはシンボリックリンクで配信する。
 
 `.claude/rules/` には routing、path-scoped rules、常時適用が必要な最小ルールだけを置く。
 
+### 指示ファイル一覧
+
+| ファイル | 内容 |
+|---|---|
+| `prompt/instructions/core.md` | コア使命、命名規約、クリティカルチェックリスト |
+| `prompt/instructions/persona.md` | 中立エンジニアリングアシスタントのコミュニケーション規則 |
+| `prompt/skills/autonomous-execution/SKILL.md` | 自己検証・ユーザー負荷ゼロ |
+| `prompt/instructions/prohibitions.md` | 包括的禁止ルール |
+| `prompt/skills/typescript/SKILL.md` | TypeScript 型安全ルール |
+| `prompt/skills/no-obvious-comments/SKILL.md` | コメント品質基準 |
+| `prompt/instructions/no-injected-ai-filter.md` | キャラ設定に無い枠（合意・禁止語など）をプロンプトへ足さん |
+| `prompt/skills/character-sheet-design/SKILL.md` | キャラシートの書き方。演者の層と出来事の層を分ける／症状をシート・プロンプト・コードへ当てる |
+| `prompt/instructions/adversarial-review-with-codex.md` | 品質チェックは Codex に反証させてから結論を出す |
+
+### スラッシュコマンド
+
+| コマンド | 説明 |
+|---|---|
+| `/bad` | 禁止事項として悪い振る舞いを登録 |
+| `/good` | 良い振る舞いをルールとして登録 |
+| `/plan` | 二案併記の計画 |
+| `/debug` | デバッグワークフロー |
+| `/e2e` | E2E テスト実行 |
+| `/tdd` | テスト駆動開発 |
+| `/review-pr` | PR レビュー |
+| `/refactor-clean` | リファクタリングワークフロー |
+| `/security-check` | セキュリティ監査 |
+
+### エージェント
+
+| エージェント | 説明 |
+|---|---|
+| code-reviewer | コードレビュー専任 |
+| e2e-runner | E2E テスト実行 |
+| planner | 計画立案専任 |
+| security-reviewer | セキュリティレビュー専任 |
+
+## プロジェクト構造
+
+```
+src/
+  app.tsx              # Main app component
+  main.tsx             # Entry point
+  component/
+    ui/                # shadcn/ui components
+    chat/              # Chat UI (chat-view, message-bubble, chat-input)
+    settings/          # Settings panel
+  schema/              # Zod schemas (character, message, conversation, user)
+  lib/                 # Utilities (api, db, tts-constants, utils)
+  hook/                # Custom hooks (use-speech-synthesis)
+  store/               # Zustand stores (chat-store, settings-store)
+functions/             # Cloudflare Pages Functions (Hono)
+drizzle/               # D1 migrations
+```
+
 ## コーディング規約
 
 - **ファイル名・ディレクトリ名**: 英語小文字単数形ケバブケース（例: `chat-input.tsx`）
 - **コンポーネント**: PascalCase
 - **変数・関数**: camelCase
 - **定数**: UPPER_SNAKE_CASE
+- **型**: PascalCase（`ChatInputProps` など具体的な名前）
 - **コメント**: 日本語、「なぜ」のみ
+- **ドキュメント**: 日本語
 - **コミットメッセージ**: 英語 Conventional Commits（`feat:`, `fix:`, `chore:` 等）
 - `any` 型禁止・`@ts-ignore` 禁止
 - `eslint-disable` コメント禁止（根本解決する）
