@@ -26,7 +26,8 @@ needs owner:
 - ASK Q86: does the 「Yes」 (owner-answers-20261114.md 47) mean CC-25 "delete the v1 copy from main", and is adult-ai-chat.pages.dev (wrangler.toml Pages project) retired by it? yes/no/don't know | on don't know: CC-25 stays inventory-only
 - CC-19: may v2 drop the 3 v1-only fixes #130, #131, RIT-219? (recommend: yes, drop)
 - CC-7/CC-17: may the lane write to the shared production D1 (one chat turn for CC-7; text rows for CC-17), with backup + revert SQL prepared first? (recommend: yes with backup)
-- CC-27: merge of the drizzle wording PR (DB file change) once reviewed
+- CC-27: merge of the drizzle comment PR (DB file change) once reviewed
+- Codex waiver: may lane PRs merge on a Fable substitute adversarial review while Codex review quota is exhausted? (recommend: yes for docs and small fixes; else PRs wait for quota)
 for main session:
 - no advisor tool visible in this lane; /advisor fable not confirmed
 - no goal text visible to this lane (owner rule 4: goal must be set)
@@ -68,3 +69,13 @@ note: protect-main.yml is disabled_manually and its allowed prefixes exclude not
 second review identity: CodeRabbit check ran on #210 (success) without an approving review; coderabbit-bot-review.yml disabled_manually -> no second approval identity required (G1)
 Codex route: chatgpt-codex-connector[bot] auto-reviews PRs on open, but on #212 it failed: "You have reached your Codex usage limits for code reviews" (2026-11-14T12:34Z) -> for main session: Codex review quota exhausted; repo rule adversarial-review-with-codex.md cannot be met by Codex until it resets; substitute ruling asked of manager
 CodeRabbit (coderabbitai[bot]) reviews non-draft PRs (ASSERTIVE profile) -> lane reads its findings as part of G4b (unresolved threads 0)
+MANAGER rulings 2 (2026-11-14T13:50Z):
+- deploy map accepted (GitHub side checked by manager; Cloudflare side = lead's read)
+- Codex substitute: a separately spawned Fable 5.2 adversarial reviewer may be used for REVIEW/FIX, labelled "substitute review, Codex not run"; it does NOT unlock a lane merge or a 直った/合格 claim (adversarial-review-with-codex.md is owner's permanent rule; 結果保証行為 includes merge). After substitute review, code AND wording PRs wait for a real Codex pass (GitHub chatgpt-codex-connector: comment "@codex review" once quota resets) or the owner's merge. Waiving needs owner's words.
+- pass line (b) amended: adversarial pass required too (incl. IMG-3 English SD-tag anchors intact); scripts/sync-ai-rules.sh by hand when AGENTS.md changes (sync-ai-rules.yml disabled)
+- pass line (a)(c) amended: protect-main/merge-quality-gate disabled -> record green ci.yml run for the head SHA on every PR before merge; every PR runs `pnpm --filter @v2/app secrets:check` (trufflehog.yml disabled entirely)
+- CC-25 owner question: drop "retires adult-ai-chat.pages.dev" (Pages builds from ritmo-inc); wrangler.toml not an owner blocker; Q86 hold + guard condition stand
+- CC-27 PR body: no migrate-d1 trigger line (disabled); merge owner-only (DB file)
+for main session (add):
+- Codex review route: chatgpt-codex-connector[bot] on this repo reports usage limit reached; repo rule needs Codex adversarial review before any merge -> every lane PR waits for Codex quota or owner's merge/waiver. Please tell the owner / reset quota.
+- trufflehog.yml (secret scan) is disabled_manually: nothing scans merges for secrets; lane runs secrets:check per PR meanwhile
