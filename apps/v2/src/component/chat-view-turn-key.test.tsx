@@ -65,6 +65,7 @@ const siblingsOf = (state: BackendState, url: string) =>
     ? [
         { id: "m-reply", branchNo: 1, active: !state.switched, content: "その返事" },
         { id: "m-reply-b", branchNo: 2, active: state.switched, content: "別の枝の返事" },
+        { id: "m-reply-c", branchNo: 3, active: false, content: "三つ目の枝の返事" },
       ]
     : [{ id: "s", branchNo: 1, active: true, content: "二番目の発言" }];
 
@@ -201,5 +202,18 @@ describe("ChatView の発言の識別子", () => {
     const after = screen.getByRole("textbox", { name: "メッセージの書き直し" });
     expect(after).toHaveValue("書きかけの下書き");
     expect(turnRowOf(after)).toHaveTextContent("二番目の発言");
+  });
+
+  it("枝を切り替えた発言自身の枝操作欄は、切り替え後も開いたまま次の枝を押せる", async () => {
+    const state = newState();
+    stubBackend(state);
+    render(<ChatView characterId="a" characterName="案内役" initialConversationId="conv" />);
+    const toggles = await screen.findAllByRole("button", { name: "枝操作" });
+    fireEvent.click(toggles[toggles.length - 2]);
+    fireEvent.click(await screen.findByRole("button", { name: "次の枝" }));
+    await screen.findByText("別の枝の返事");
+
+    expect(screen.getByRole("button", { name: "次の枝" })).toBeInTheDocument();
+    expect(screen.getByText("2/3")).toBeInTheDocument();
   });
 });
