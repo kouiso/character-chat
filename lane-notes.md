@@ -1,7 +1,7 @@
 STATE RUNNING 2026-11-14T12:25Z | counts pending
 mission: それぞれのプロジェクトに書いてあるプランに書いてある作業をやること / どのプロジェクトもまず既存のPRを本質的に対処することを作業を優先してください。そうしないと溜まってばっかりなので
 model claude-opus-5-5 (lead) | advisor unknown (no advisor tool visible) | github via connector (gh token invalid) | push via git | png ok
-goal: unknown (no goal text visible to the lane) | DONE-WAITING satisfies it: unknown
+goal: work plan character-chat under SECOND EDITION until cycle DONE or DONE-WAITING, then write the list and stop (set 2026-11-14 by /goal) | DONE-WAITING satisfies it: yes
 rules read: CLAUDE.md->AGENTS.md, .claude/rules/domain-routing.md, prompt/instructions/no-injected-ai-filter.md, adversarial-review-with-codex.md (Codex MCP not in this container -> listed for main session), REVIEW.md, .github/pull_request_template.md, ISSUE_TEMPLATE. Stricter: pnpm test GREEN before done; no --no-verify; no git reset; Japanese why-only comments; English Conventional Commits; PR body lists image impact (PHIL-3); UI needs screenshots (PHIL-4).
 DEPLOY | merge to main -> production (treated) | evidence .github/workflows/migrate-d1.yml:3 "Cloudflare Pages native git deploy はビルド/デプロイだけ担当" + migrate-d1.yml:8-12 (push main, drizzle/**.sql -> d1 migrations apply --remote; workflow disabled_manually per packet) + wrangler.toml:1 Pages project adult-ai-chat; counter-signal: PR #210 checks have no Cloudflare Pages entry (git integration may point at ritmo-inc/adult-ai-app) -> ASK below
 DEPLOY | merge/push to claude/** -> nothing deployed, but paid bench runs when commit subject has [arm]/[v2arm] | evidence .github/workflows/dogfood-arm.yml:21-25,30 and v2-arm.yml:20-23,33 -> lane never uses those tags
@@ -57,3 +57,7 @@ CC-V4	blocked	agent	CC-V2,CC-V3
 CC-V5	blocked	agent	CC-V4
 CC-V6	blocked	agent	CC-V5,CC-19
 CC-V7	blocked	agent	CC-V6,CC-13,CC-30
+owner sent design artifact https://claude.ai/artifact/HDt85J2hKCrNpNUtXEgguo (「さっきのはデザインです」) 2026-11-14 -> recorded; no design review for this project (sec.9); used as UI reference for UI issues
+members: CC-26 (sonnet), verify #156-159/#160 on main (sonnet), #183 (sonnet, fix/183-jst-date-key), #178 (sonnet, fix/178-story-select-width)
+JUDGE bundle 1 sent to manager: CC-25 blockers, CC-27 1-line PR, parent PBIs via SBIs, #184/185/190/191 hold, close #156-159 if verified, design link reading
+HOUR 2026-11-14T13:05Z | merged 0 | closed 0 (CC-13 ledger done) | output 0 | open PR 0->0 (+NOTES #211) | open issues 73->73 | ledger open 18->17 | owner 5 | device 0 | stuck at gate-owner: main treated as production so every merge needs owner; 4 items in work | rule 1(a) moved 0 (no scrum board) | rule 1(b) moved 31 non-claude-cloud B issues ahead of 20 labelled | skipped (-ux) 0
