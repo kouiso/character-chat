@@ -350,6 +350,27 @@ describe("immutable character version store", () => {
     expect(histories.map(({ versionId }) => versionId)).toContain(parent.currentVersionId);
   });
 
+  it("keeps a saved voiceRef in the new version when the form saves it back", async () => {
+    const saved = characterContentSchema.parse({
+      ...content("音声あり"),
+      voiceRef: "voice-ref-123",
+    });
+    const created = await createCharacterWithVersion(local.db, "local", saved);
+    characterIds.push(created.id);
+    const updated = await updateCharacterWithVersion(local.db, {
+      id: created.id,
+      userId: "local",
+      expectedRevision: 1,
+      content: { ...saved, name: "改名" },
+    });
+    expect(updated?.changed).toBe(true);
+    const [version] = await local.db
+      .select()
+      .from(characterVersionTable)
+      .where(eq(characterVersionTable.id, updated?.versionId ?? ""));
+    expect(JSON.stringify(version)).toContain("voice-ref-123");
+  });
+
   it("restores an existing immutable version and records history", async () => {
     const created = await createCharacterWithVersion(local.db, "local", content("初期"));
     characterIds.push(created.id);

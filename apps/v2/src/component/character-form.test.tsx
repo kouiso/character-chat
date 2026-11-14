@@ -73,4 +73,20 @@ describe("CharacterForm", () => {
     expect(save).not.toHaveBeenCalled();
     expect(screen.getByLabelText("タグ")).toHaveValue("1,2,3,4,5,6");
   });
+
+  it("音声の参照IDの入力欄を出さず、保存済みの値は編集保存でも引き継ぐ", async () => {
+    const saved = characterContentSchema.parse({ ...content, voiceRef: "voice-ref-123" });
+    const save = vi.fn().mockResolvedValue(true);
+    render(<CharacterForm initial={saved} revision={1} draftKey="draft" onSubmit={save} />);
+    expect(screen.queryByLabelText("音声の参照ID")).toBeNull();
+    expect(screen.queryByText(/音声の参照ID/)).toBeNull();
+    fireEvent.change(screen.getByLabelText("名前"), { target: { value: "改名" } });
+    fireEvent.click(screen.getByRole("button", { name: submitName }));
+    await waitFor(() =>
+      expect(save).toHaveBeenCalledWith(
+        expect.objectContaining({ name: "改名", voiceRef: "voice-ref-123" }),
+        1,
+      ),
+    );
+  });
 });

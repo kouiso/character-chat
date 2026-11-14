@@ -25,9 +25,10 @@ const EMPTY: CharacterFormValue = {
   visibility: "private",
 };
 
+// voiceRef は入力欄を持たないが、draft.content の展開で保存済みの値が新しい版へ引き継がれる。
 type TextKey = Exclude<
   keyof CharacterFormValue,
-  "tags" | "visibility" | "legacyReconstructed" | "memoryKinds"
+  "tags" | "visibility" | "legacyReconstructed" | "memoryKinds" | "voiceRef"
 >;
 type Field = { key: TextKey; label: string; max: number; required?: boolean; multiline?: boolean };
 const FIELDS: Field[] = [
@@ -52,7 +53,6 @@ const FIELDS: Field[] = [
     max: 2000,
     multiline: true,
   },
-  { key: "voiceRef", label: "音声の参照ID", max: 200 },
   { key: "avatarRef", label: "アバターの参照", max: 500 },
 ];
 
@@ -178,9 +178,7 @@ export const CharacterForm = ({
                 value={draft.content[field.key] ?? ""}
                 onChange={(event) =>
                   change({
-                    [field.key]:
-                      event.target.value ||
-                      (field.key === "voiceRef" || field.key === "avatarRef" ? null : ""),
+                    [field.key]: event.target.value || (field.key === "avatarRef" ? null : ""),
                   })
                 }
               />
@@ -240,7 +238,7 @@ export const CharacterForm = ({
           </select>
         </label>
         <p className="v2-editor-note">
-          公開設定と音声の参照は保存のみです。この操作で外部へ公開したり音声を生成したりはしません。
+          公開設定は保存のみです。この操作で外部へ公開したりはしません。
         </p>
         <button type="submit">{busy ? "保存中…" : "保存して新しい会話を始める"}</button>
       </fieldset>
