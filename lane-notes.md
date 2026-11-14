@@ -1,6 +1,6 @@
 STATE RUNNING 2026-11-14T12:25Z | counts pending
 mission: それぞれのプロジェクトに書いてあるプランに書いてある作業をやること / どのプロジェクトもまず既存のPRを本質的に対処することを作業を優先してください。そうしないと溜まってばっかりなので
-model claude-opus-5-5 (lead) | advisor unknown (no advisor tool visible) | github via connector (gh token invalid) | push via git | png ok
+model claude-opus-5-5 (lead) | advisor present (Fable 5.2 set; this conversation keeps Opus 5.5 until /clear) | github via connector (gh token invalid) | push via git | png ok
 goal: work plan character-chat under SECOND EDITION until cycle DONE or DONE-WAITING, then write the list and stop (set 2026-11-14 by /goal) | DONE-WAITING satisfies it: yes
 rules read: CLAUDE.md->AGENTS.md, .claude/rules/domain-routing.md, prompt/instructions/no-injected-ai-filter.md, adversarial-review-with-codex.md (Codex MCP not in this container -> listed for main session), REVIEW.md, .github/pull_request_template.md, ISSUE_TEMPLATE. Stricter: pnpm test GREEN before done; no --no-verify; no git reset; Japanese why-only comments; English Conventional Commits; PR body lists image impact (PHIL-3); UI needs screenshots (PHIL-4).
 DEPLOY | merge to main -> production (treated) | evidence .github/workflows/migrate-d1.yml:3 "Cloudflare Pages native git deploy はビルド/デプロイだけ担当" + migrate-d1.yml:8-12 (push main, drizzle/**.sql -> d1 migrations apply --remote; workflow disabled_manually per packet) + wrangler.toml:1 Pages project adult-ai-chat; counter-signal: PR #210 checks have no Cloudflare Pages entry (git integration may point at ritmo-inc/adult-ai-app) -> ASK below
