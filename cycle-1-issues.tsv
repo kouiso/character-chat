@@ -1,0 +1,74 @@
+kind	number	state	queue	head	bucket	cloud	assignee	title	reason
+issue	133	open	B	-	B	n	-	[PBI][modify] v2 の検査（lint・型・テスト）が main で通る	v2/shared change doable in container; parent PBI, work via its SBIs
+issue	134	open	C	-	C	n	-	[PBI][infra] CI を止めたままにするかを決め、main を何で守るかを文書にする	CI/main-protection is an owner decision
+issue	135	open	B	-	B	n	-	[PBI][modify] 返信を待つ間、作成中である事と経過が分かる	v2/shared change doable in container; parent PBI, work via its SBIs
+issue	136	open	B	-	B	y	-	[PBI][modify] 返信に失敗した送信を、再試行を重ねずに入力へ戻せる	v2/shared change doable in container; parent PBI, work via its SBIs
+issue	137	open	B	-	B	n	-	[PBI][modify] 新しい会話の先頭に「初回のひとこと」が出て、返信にも反映される	v2/shared change doable in container; parent PBI, work via its SBIs
+issue	138	open	B	-	B	n	-	[PBI][modify] 最初の画面から、続きの会話と新しい会話をすぐ始められる	v2/shared change doable in container; parent PBI, work via its SBIs
+issue	139	open	B	-	B	n	-	[PBI][modify] 保存した会話を見分けて、消す・改名できる	v2/shared change doable in container; parent PBI, work via its SBIs
+issue	140	open	B	-	B	n	-	[PBI][modify] 会話の入力欄で改行と長文が打てる	v2/shared change doable in container; parent PBI, work via its SBIs
+issue	141	open	B	-	B	n	-	[PBI][modify] 自作キャラクターのアイコンを画面から設定できる	v2/shared change doable in container; parent PBI, work via its SBIs
+issue	142	open	B	-	B	y	-	[PBI][bug] ストーリーの作成欄がスマホ幅で画面の外にはみ出す	v2/shared change doable in container; parent PBI, work via its SBIs
+issue	143	open	B	-	B	y	-	[PBI][bug] 発言の並びが変わると、開いている操作欄が別のターンに付け替わる	v2/shared change doable in container; parent PBI, work via its SBIs
+issue	144	open	B	-	B	y	-	[PBI][modify] 会話が長くなっても、1 回の送信で読む量が増えない	v2/shared change doable in container; parent PBI, work via its SBIs
+issue	145	open	B	-	B	y	-	[PBI][bug] ログイン特典と記憶の有効期限の「日」が日本時間 0 時で切り替わらない	v2/shared change doable in container; parent PBI, work via its SBIs
+issue	146	open	C	-	C	n	-	[PBI][modify] スキーマ変更の手順が 1 つに決まり、その通りに実行できる	schema-change procedure decision touches DB migration policy
+issue	147	open	B	-	B	y	-	[PBI][modify] 鍵なしで 2 ターン以上の会話を確かめられる	v2/shared change doable in container; parent PBI, work via its SBIs
+issue	148	open	B	-	B	y	-	[PBI][modify] 会話の部屋に、終わった送信の入力と返信が残り続けない	v2/shared change doable in container; parent PBI, work via its SBIs
+issue	149	open	C	-	C	n	-	[PBI][modify] v1 に足してよい変更の範囲と v1 を止める切替条件が計画書にある	v1 cut-over policy is an owner decision
+issue	150	open	C	-	C	n	-	[PBI][modify] 課題の起票先の決まりが、実際の運用と合っている	issue-routing policy is an owner decision
+issue	151	open	B	-	B	y	-	[PBI][modify] アプリから呼ぶ時は、途中で切れた返信でも次のモデルが試される	v2/shared change doable in container; parent PBI, work via its SBIs
+issue	152	open	B	-	B	n	-	[PBI][modify] でき上がった返信が、順序どおりに出て、いつでも全部表示できる	v2/shared change doable in container; parent PBI, work via its SBIs
+issue	153	open	B	-	B	y	-	[PBI][modify] v2 の検査に落ちる変更が、push の前に手元で止まる	v2/shared change doable in container; parent PBI, work via its SBIs
+issue	154	open	B	-	B	y	-	[PBI][modify] キャラ作成・編集の画面から、使われていない音声の参照ID欄が無くなる	v2/shared change doable in container; parent PBI, work via its SBIs
+issue	155	open	B	-	B	n	-	[PBI][feature] 場面の段が会話に合わせて自動で進む	v2/shared change doable in container; parent PBI, work via its SBIs
+issue	156	open	DONE?	-	DONE?	y	-	[SBI][modify] v2 の lint の失敗 4 件を直す	commits 167c05..c5e17b8/a0c1bbd (lint fixes) on main (not run: no node_modules)
+issue	157	open	DONE?	-	DONE?	y	-	[SBI][modify] 履歴の形の変更に追いついていない v2 のテストを直す	commits 574fd00, 7e5c6c7 (history contract test updates) (not run: no node_modules)
+issue	158	open	DONE?	-	DONE?	y	-	[SBI][modify] 並列の呼び出し順に依存する画像のテストを順序に依らない形にする	commit 0bc6db3 (image-generation.test.ts order-independent) (not run: no node_modules)
+issue	159	open	DONE?	-	DONE?	y	-	[SBI][modify] v2 のテストが開発用のローカル DB を共用しないようにする	commit f0ad706 (vitest.config.ts serial files, shared local D1) (not run: no node_modules)
+issue	160	open	B	-	B	y	-	[SBI][modify] 通しのコマンドで v2 の lint・型検査・テストが最後まで通る事を確かめる	v2/shared change doable in container
+issue	161	open	C	-	C	n	-	[SBI][infra] 決まった方針（CI・main の守り方）を AGENTS.md に書く	writes decision not yet made (#134)
+issue	162	open	C	-	C	n	-	[SBI][infra] 判断の結果どおりに、workflow の有効・無効を設定する	workflow enable/disable settings need owner
+issue	163	open	B	-	B	y	-	[SBI][modify] 待っている間に「作成中」と経過を出す	v2/shared change doable in container
+issue	164	open	C	-	C	n	-	[SBI][modify] 実モデルで待ち時間と「作成中」の表示を確かめる	needs real model (money)
+issue	165	open	B	-	B	y	-	[SBI][modify] 新しい会話を開いた時に「初回のひとこと」を先頭の発言として表示する	v2/shared change doable in container
+issue	166	open	B	-	B	y	-	[SBI][modify] 「初回のひとこと」を 1 ターン目の履歴としてモデルに渡す	v2/shared change doable in container
+issue	167	open	C	-	C	n	-	[SBI][modify] 実モデルで、返信が「初回のひとこと」を踏まえているか確かめる	needs real model (money)
+issue	168	open	B	-	B	y	-	[SBI][modify] 一覧と会話画面に「新しい会話」を置く	v2/shared change doable in container
+issue	169	open	B	-	B	y	-	[SBI][modify] 「保存した会話」をキャラ一覧より上に置き、設定を上部から開けるようにする	v2/shared change doable in container
+issue	170	open	B	-	B	y	-	[SBI][modify] 保存した会話の一覧に、キャラ名と最終更新日を出す	v2/shared change doable in container
+issue	171	open	B	-	B	y	-	[SBI][modify] 保存した会話を削除できるようにする（API と画面）	v2/shared change doable in container
+issue	172	open	B	-	B	y	-	[SBI][modify] 会話に題を付けられる・変えられるようにする	v2/shared change doable in container
+issue	173	open	B	-	B	y	-	[SBI][modify] 入力欄を複数行にし、スマホ幅では全幅にする	v2/shared change doable in container
+issue	174	open	C	-	C	n	-	[SBI][modify] 送信のキーを、判断の結果どおりにする	depends on owner decision
+issue	175	open	C	-	C	n	-	[SBI][modify] スマホの実機のキーボードで入力と送信を確かめる	needs physical phone
+issue	176	open	B	-	B	n	-	[SBI][modify] アイコンを、画像アップロードか会話で作った画像から選べるようにする	v2/shared change doable in container
+issue	177	open	C	-	C	n	-	[SBI][modify] 本番の保存先でアイコンが配信される事を確かめる	needs production storage
+issue	178	open	B	-	B	n	-	[SBI][bug] ストーリーの作成欄の選択欄に幅の上限を付ける	v2/shared change doable in container
+issue	179	open	B	-	B	n	-	[SBI][bug] 発言の識別子を発言の id にし、並びが変わっても操作欄が動かない事をテストする	v2/shared change doable in container
+issue	180	open	B	-	B	n	-	[SBI][modify] ターン番号と存在確認を、本文を全件は読まない問い合わせにする	v2/shared change doable in container
+issue	181	open	B	-	B	n	-	[SBI][modify] エンジンが読む履歴を、文脈に入れる窓と要約の範囲に限る	v2/shared change doable in container
+issue	182	open	B	-	B	n	-	[SBI][modify] 画面は直近の分だけ読み、さかのぼる時に追加で読む	v2/shared change doable in container
+issue	183	open	B	-	B	n	-	[SBI][bug] 日付の鍵を作る関数を日本時間で 1 つにまとめ、3 箇所で共有する	v2/shared change doable in container
+issue	184	open	C	-	C	n	-	[SBI][modify] 決まった方針に合わせて AGENTS.md と設計書の記述を揃える	depends on owner decision
+issue	185	open	C	-	C	n	-	[SBI][modify] 決まった手順が今の main で通る状態にする	depends on owner decision (#134/#146)
+issue	186	open	B	-	B	n	-	[SBI][modify] 固定モデルの応答をターンごとに変える	v2/shared change doable in container
+issue	187	open	B	-	B	n	-	[SBI][modify] 検証スクリプトに 2〜3 ターンの送信を足す	v2/shared change doable in container
+issue	188	open	B	-	B	n	-	[SBI][modify] 終わった送信の入力と返信の本文を、一定時間後に部屋の保存領域から消す	v2/shared change doable in container
+issue	189	open	B	-	B	n	-	[SBI][modify] 会話を削除する時に、その会話の部屋の保存領域も消す	v2/shared change doable in container
+issue	190	open	C	-	C	n	-	[SBI][modify] 判断の結果を計画書と AGENTS.md に書く	depends on owner decision
+issue	191	open	C	-	C	n	-	[SBI][modify] 判断どおりに issue 前提の workflow を揃え、AGENTS.md の起票先の…	depends on owner decision
+issue	192	open	C	-	C	n	-	[SBI][modify] テンプレートが指定するラベルがリポジトリに在り、issue に付く状態にする	repo label admin needs owner
+issue	193	open	B	-	B	n	-	[SBI][modify] 逐次配信を受け取らない呼び出しでは、途中で切れた返信でも次のモデルを試す	v2/shared change doable in container
+issue	194	open	B	-	B	n	-	[SBI][modify] 小出しの途中で「全部表示」できるようにする	v2/shared change doable in container
+issue	195	open	B	-	B	n	-	[SBI][modify] 小出しの予定時刻を、生成時間を差し引き端末の時計に依らない形にする	v2/shared change doable in container
+issue	196	open	B	-	B	n	-	[SBI][modify] 小出しの最中に次を送っても、前の返信の残りが混ざらないようにする	v2/shared change doable in container
+issue	197	open	C	-	C	n	-	[SBI][modify] 実モデルで小出しの出方を確かめる	needs real model (money)
+issue	198	open	B	-	B	n	-	[SBI][modify] v2 のテストを、1 つ落ちても残りを実行して全部の結果が出る形にする	v2/shared change doable in container
+issue	199	open	B	-	B	n	-	[SBI][modify] push の前の検査に v2 の lint・型検査・テストを足す	v2/shared change doable in container
+issue	200	open	B	-	B	n	-	[SBI][modify] 「音声の参照ID」の入力欄を外し、保存済みの値は引き継ぐ	v2/shared change doable in container
+issue	201	open	B	-	B	n	-	[SBI][feature] 段と台帳を会話から更新する工程をエンジンに入れる	v2/shared change doable in container
+issue	202	open	B	-	B	n	-	[SBI][feature] 手で直した値を自動判定より優先する	v2/shared change doable in container
+issue	203	open	B	-	B	n	-	[SBI][feature] 計測に、アプリと同じ経路で測る条件を足す	v2/shared change doable in container
+issue	204	open	C	-	C	n	-	[SBI][feature] 実モデルの通しで段が進む事を確かめる	needs real model (money)
+issue	205	open	B	-	B	n	-	[SBI][modify] 失敗した時に「入力に戻す」を常に出し、失敗済みの送信を取り下げられるようにする	v2/shared change doable in container
