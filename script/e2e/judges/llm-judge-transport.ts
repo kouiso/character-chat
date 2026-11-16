@@ -69,7 +69,10 @@ const openAiShape = (text: string): string =>
 
 // OpenAI chat/completions 形で来た要求を Anthropic /v1/messages 形に訳す橋。
 // classifySubtextEscalation は OpenAI 形しか話せんので ここで形を揃える（SSOT）
-const anthropicFetchImpl = (apiKey: string, header: "x-api-key" | "authorization"): typeof fetch => {
+const anthropicFetchImpl = (
+  apiKey: string,
+  header: "x-api-key" | "authorization",
+): typeof fetch => {
   return (input: Parameters<typeof fetch>[0], init?: Parameters<typeof fetch>[1]) => {
     const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
     const { model, messages } = readChatBody(init?.body);
@@ -189,15 +192,30 @@ export const resolveJudgeTransport = (env: NodeJS.ProcessEnv): JudgeTransport =>
   const freeKey = firstNonEmpty(env, ["ANTHROPIC_API_KEY_FOR_EVAL"]);
   if (explicit === "anthropic" || (explicit === null && freeKey !== null)) {
     if (freeKey !== null) {
-      return pickAnthropic(freeKey, "x-api-key", env, "ANTHROPIC_API_KEY_FOR_EVAL（Claude 無料API鍵）");
+      return pickAnthropic(
+        freeKey,
+        "x-api-key",
+        env,
+        "ANTHROPIC_API_KEY_FOR_EVAL（Claude 無料API鍵）",
+      );
     }
     const oauth = firstNonEmpty(env, ["CLAUDE_OAUTH_TOKEN", "CLAUDE_SESSION_TOKEN"]);
     if (oauth !== null) {
-      return pickAnthropic(oauth, "authorization", env, "CLAUDE_OAUTH_TOKEN / CLAUDE_SESSION_TOKEN（Claude 月額認証）");
+      return pickAnthropic(
+        oauth,
+        "authorization",
+        env,
+        "CLAUDE_OAUTH_TOKEN / CLAUDE_SESSION_TOKEN（Claude 月額認証）",
+      );
     }
     const keychain = readClaudeTokenFromKeychain(env);
     if (keychain !== null) {
-      return pickAnthropic(keychain, "authorization", env, "macOS Keychain の Claude Code 認証（月額）");
+      return pickAnthropic(
+        keychain,
+        "authorization",
+        env,
+        "macOS Keychain の Claude Code 認証（月額）",
+      );
     }
     if (explicit === "anthropic") {
       throw new Error(
@@ -208,7 +226,10 @@ export const resolveJudgeTransport = (env: NodeJS.ProcessEnv): JudgeTransport =>
 
   if (explicit === "codex" || (explicit === null && commandExists("codex") && freeKey === null)) {
     // codex だけを選ぶ明示か 他に鍵が無い時の自動選択
-    if (explicit === "codex" || firstNonEmpty(env, ["CLAUDE_OAUTH_TOKEN", "CLAUDE_SESSION_TOKEN"]) === null) {
+    if (
+      explicit === "codex" ||
+      firstNonEmpty(env, ["CLAUDE_OAUTH_TOKEN", "CLAUDE_SESSION_TOKEN"]) === null
+    ) {
       return {
         kind: "codex",
         apiKey: "codex-cli",
@@ -221,12 +242,22 @@ export const resolveJudgeTransport = (env: NodeJS.ProcessEnv): JudgeTransport =>
 
   const oauth = firstNonEmpty(env, ["CLAUDE_OAUTH_TOKEN", "CLAUDE_SESSION_TOKEN"]);
   if (explicit === null && oauth !== null) {
-    return pickAnthropic(oauth, "authorization", env, "CLAUDE_OAUTH_TOKEN / CLAUDE_SESSION_TOKEN（Claude 月額認証）");
+    return pickAnthropic(
+      oauth,
+      "authorization",
+      env,
+      "CLAUDE_OAUTH_TOKEN / CLAUDE_SESSION_TOKEN（Claude 月額認証）",
+    );
   }
   if (explicit === null) {
     const keychain = readClaudeTokenFromKeychain(env);
     if (keychain !== null) {
-      return pickAnthropic(keychain, "authorization", env, "macOS Keychain の Claude Code 認証（月額）");
+      return pickAnthropic(
+        keychain,
+        "authorization",
+        env,
+        "macOS Keychain の Claude Code 認証（月額）",
+      );
     }
   }
 

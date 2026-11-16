@@ -7,7 +7,9 @@ const env = (over: Record<string, string>): NodeJS.ProcessEnv =>
 
 describe("resolveJudgeTransport", () => {
   it("無料API鍵がある時は anthropic + x-api-key 形を選ぶ", () => {
-    const t = resolveJudgeTransport(env({ ANTHROPIC_API_KEY_FOR_EVAL: "sk-ant-key", AIQ_JUDGE: "" }));
+    const t = resolveJudgeTransport(
+      env({ ANTHROPIC_API_KEY_FOR_EVAL: "sk-ant-key", AIQ_JUDGE: "" }),
+    );
     expect(t.kind).toBe("anthropic");
     expect(t.apiKey).toBe("sk-ant-key");
     expect(t.model).toBe("claude-haiku-4-5-20251001");
