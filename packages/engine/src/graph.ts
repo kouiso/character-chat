@@ -304,6 +304,18 @@ export type TurnGraphDeps = {
   checkpointer?: BaseCheckpointSaver;
   now?: () => number;
   id?: () => string;
+  // RIT-83 「止める」の合図。立ったら呼び出し中のモデル要求を中断する（各所の締切器と連結）。
+  signal?: AbortSignal;
+};
+
+// 止めの合図を各呼び出しの締切 controller へ連結する。合図は 1 方向なので片側だけ。
+const linkAbort = (controller: AbortController, signal?: AbortSignal): void => {
+  if (!signal) return;
+  if (signal.aborted) {
+    controller.abort(signal.reason);
+    return;
+  }
+  signal.addEventListener("abort", () => controller.abort(signal.reason), { once: true });
 };
 
 type CappedStreamResult = {
@@ -330,6 +342,7 @@ const collectCappedStream = async (
     timeoutMs: number;
     sampling: SamplingOptions;
     writer: (event: TurnEvent) => void;
+    signal?: AbortSignal;
   },
 ): Promise<CappedStreamResult> => {
   let raw = "";
@@ -338,6 +351,7 @@ const collectCappedStream = async (
   let error: string | undefined;
   let upstreamId: string | undefined;
   const controller = new AbortController();
+  linkAbort(controller, opts.signal);
   const deadline = setTimeout(() => {
     truncated = "deadline";
     controller.abort(new Error(`1 ターンの締切 ${opts.timeoutMs}ms を超えた`));
@@ -432,6 +446,7 @@ const runModelCandidates = async (
     timeoutMs: number;
     sampling: SamplingOptions;
     writer: (event: TurnEvent) => void;
+    signal?: AbortSignal;
   },
 ): Promise<CandidateOutcome> => {
   const attempts: ModelAttempt[] = [];
@@ -452,6 +467,7 @@ const runModelCandidates = async (
         timeoutMs: opts.timeoutMs,
         sampling: opts.sampling,
         writer: guard.writer,
+        signal: opts.signal,
       });
     } catch (thrown) {
       caught = thrown;
@@ -564,9 +580,10 @@ const invokeForSummary = async (
   model: TurnModel,
   instruction: string,
   body: string,
-  state: { timeoutMs?: number | null },
+  state: { timeoutMs?: number | null; signal?: AbortSignal },
 ): Promise<string> => {
   const controller = new AbortController();
+  linkAbort(controller, state.signal);
   const deadline = setTimeout(
     () =>
       controller.abort(
@@ -587,10 +604,10 @@ const invokeForSummary = async (
 // 未集約の level 1 が閾値に届いたら「前の level 2 + 新しい level 1」でまとめ直す。
 // 新しい分だけを畳むと古い出来事が最新の level 2 から落ちて、巻き取りの意味が無くなる。
 const rollUpLevel2 = async (
-  deps: Pick<TurnGraphDeps, "model" | "models">,
+  deps: Pick<TurnGraphDeps, "model" | "models" | "signal">,
   summaries: StoredSummary[],
   maxLevel1: number,
-  state: { timeoutMs?: number | null; activeModelIndex: number },
+  state: { timeoutMs?: number | null; activeModelIndex: number; signal?: AbortSignal },
   forgotten: string[],
 ): Promise<string> => {
   const level2Covered = Math.max(
@@ -606,16 +623,17 @@ const rollUpLevel2 = async (
     modelForTurn(deps, state),
     appendForgottenInstruction(SUMMARIZE_LEVEL2_INSTRUCTION, forgotten),
     [...(previous2 ? [previous2.text] : []), ...uncovered.map((entry) => entry.text)].join("\n"),
-    state,
+    { ...state, signal: deps.signal ?? state.signal },
   );
 };
 
 const regenerateWithDeadline = async (
   model: TurnModel,
   lcMessages: BaseMessage[],
-  opts: { maxTokens: number; timeoutMs: number; sampling: SamplingOptions },
+  opts: { maxTokens: number; timeoutMs: number; sampling: SamplingOptions; signal?: AbortSignal },
 ): Promise<string> => {
   const controller = new AbortController();
+  linkAbort(controller, opts.signal);
   const deadline = setTimeout(
     () => controller.abort(new Error(`書き直しの締切 ${opts.timeoutMs}ms を超えた`)),
     opts.timeoutMs,
@@ -768,6 +786,7 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
           timeoutMs,
           sampling,
           writer: (event) => runtime.writer(event),
+          signal: deps.signal,
         });
         const generation = await settleGeneration(deps, {
           generationId,
@@ -806,6 +825,7 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
           maxTokens: maxTokensForTarget(targetChars),
           timeoutMs: state.timeoutMs ?? DEFAULT_TURN_TIMEOUT_MS,
           sampling: samplingForPhase(mechanics(state)),
+          signal: deps.signal,
         });
         const raw = extension.trim().length > 0 ? `${state.raw}\n${extension.trim()}` : state.raw;
         // 続きも同じ生成の一部として v2_generation に残す（latency は 2 回分の合計）。
@@ -907,6 +927,7 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
           maxTokens: maxTokensForTarget(scaledTargetChars(mechanics(state))),
           timeoutMs: state.timeoutMs ?? DEFAULT_TURN_TIMEOUT_MS,
           sampling: samplingForPhase(mechanics(state)),
+          signal: deps.signal,
         });
         const pendingChunks = [...state.pendingChunks];
         pendingChunks[state.cursor] = text;
@@ -1030,7 +1051,7 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
           modelForTurn(deps, state),
           appendForgottenInstruction(SUMMARIZE_LEVEL1_INSTRUCTION, forgotten),
           body,
-          state,
+          { ...state, signal: deps.signal },
         );
         if (level1.length === 0) return {};
         await deps.summaryStore.save({

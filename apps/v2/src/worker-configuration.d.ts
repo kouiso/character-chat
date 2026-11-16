@@ -18,6 +18,8 @@ interface __BaseEnv_Env {
   V2_LIGHT_MODEL_CHAIN: string;
   V2_TURN_TIMEOUT_MS: string;
   V2_TEST_FAULT: string;
+  V2_TEST_FAULT_MS?: string;
+  V2_FAKE_RESPONSE: string;
   V2_HISTORY_CHARACTERS: number;
   V2_HISTORY_MESSAGES: number;
   V2_DAILY_TURN_LIMIT: string;
@@ -60,6 +62,7 @@ declare namespace Cloudflare {
     V2_LIGHT_MODEL_CHAIN: string;
     V2_TURN_TIMEOUT_MS: string;
     V2_TEST_FAULT: string;
+  V2_FAKE_RESPONSE: string;
     V2_HISTORY_CHARACTERS: number;
     V2_HISTORY_MESSAGES: number;
     V2_DAILY_TURN_LIMIT: string;
@@ -96,6 +99,7 @@ declare namespace Cloudflare {
     V2_LIGHT_MODEL_CHAIN: string;
     V2_TURN_TIMEOUT_MS: string;
     V2_TEST_FAULT: string;
+  V2_FAKE_RESPONSE: string;
     V2_HISTORY_CHARACTERS: number;
     V2_HISTORY_MESSAGES: number;
     V2_DAILY_TURN_LIMIT: string;
@@ -134,7 +138,7 @@ declare namespace NodeJS {
       | "V2_QUALITY_MODEL_CHAIN"
       | "V2_LIGHT_MODEL_CHAIN"
       | "V2_TURN_TIMEOUT_MS"
-      | "V2_TEST_FAULT"
+      | "V2_FAKE_RESPONSE" | "V2_TEST_FAULT"
       | "V2_HISTORY_CHARACTERS"
       | "V2_HISTORY_MESSAGES"
       | "V2_DAILY_TURN_LIMIT"

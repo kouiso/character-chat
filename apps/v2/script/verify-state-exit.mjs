@@ -54,9 +54,6 @@ export const getCharacter = async ({ data: id }) => {
 };
 `;
 
-let apiMode = "none";
-let syntheticResponse;
-
 const server = await createServer({
   configFile: false,
   root: appRoot,
@@ -87,46 +84,6 @@ const server = await createServer({
             res.end(JSON.stringify({ history: [], turn: 1 }));
             return;
           }
-          if (req.method === "POST" && req.url === "/api/chat/ready") {
-            if (apiMode === "wait") {
-              syntheticResponse = res;
-            } else if (apiMode === "http-error") {
-              res.writeHead(503, { "content-type": "application/json" });
-              res.end(JSON.stringify({ message: "合成の生成失敗" }));
-            } else if (apiMode === "empty") {
-              res.writeHead(204);
-              res.end();
-            } else {
-              res.writeHead(200, { "content-type": "text/event-stream" });
-              if (apiMode === "sse-error") {
-                res.end('event: error\ndata: {"message":"合成の生成失敗"}\n\n');
-              } else {
-                // parseSseEvent が chunk 判定に judge/attempt/preExtend まで要求するので完全形で出す
-                const syntheticChunk = JSON.stringify({
-                  seq: 1,
-                  text: "合成の途中応答",
-                  attempt: 1,
-                  preExtend: false,
-                  judge: {
-                    ok: true,
-                    reasons: [],
-                    warnings: [],
-                    checks: {
-                      ngram: { ok: true, ratio: 0, matchedPhrases: [], exactRepeat: false },
-                      nearDuplicate: { ok: true, matches: [] },
-                      voice: { ok: true },
-                      format: { ok: true },
-                      empty: { ok: true },
-                    },
-                  },
-                });
-                res.write(`event: chunk\ndata: ${syntheticChunk}\n\n`);
-                if (apiMode === "eof") res.end();
-                else syntheticResponse = res;
-              }
-            }
-            return;
-          }
           if (!req.headers.accept?.includes("text/html")) return next();
           const html = await vite.transformIndexHtml(
             req.url ?? "/",
@@ -147,11 +104,7 @@ const externalRequests = [];
 const posts = [];
 try {
   await server.listen();
-  browser = await chromium.launch({
-    executablePath: "/usr/bin/chromium",
-    headless: true,
-    args: ["--no-sandbox", "--disable-dev-shm-usage"],
-  });
+  browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
   await context.addInitScript(() => localStorage.clear());
   await context.route("**/*", (route) => {
@@ -167,11 +120,7 @@ try {
   page.setDefaultTimeout(10_000);
   page.on("pageerror", (error) => errors.push(error.message));
   page.on("console", (message) => {
-    if (
-      message.type() === "error" &&
-      !message.text().includes("RIT85_SYNTHETIC_FAILURE") &&
-      !(apiMode === "http-error" && message.text().includes("503"))
-    )
+    if (message.type() === "error" && !message.text().includes("RIT85_SYNTHETIC_FAILURE"))
       errors.push(message.text());
   });
   const snapshot = async (name) => {
@@ -263,48 +212,11 @@ try {
   await snapshot("06-offline-chat-back");
   results.push("offline chat: draft survives reconnect, no auto POST, back works offline");
 
+  // オフライン中の下書き保持の確かめでは POST は 1 件も出ていないはず。
+  // （生成の出口の確かめは実 workerd の verify-turn-exit.mjs へ移した。ここは
+  // 画面遷移・読み込み・オフライン表示の出口だけを見る。）
   assert.deepEqual(posts, []);
   await context.setOffline(false);
-  const sendSynthetic = async (mode) => {
-    apiMode = mode;
-    await visit("ready");
-    await page.getByPlaceholder("メッセージを入力").fill("合成の質問");
-    await page.getByRole("button", { name: "送信", exact: true }).click();
-  };
-
-  await sendSynthetic("wait");
-  assert.equal(await page.getByPlaceholder("メッセージを入力").isDisabled(), true);
-  await snapshot("07-generation-wait");
-  await home();
-  syntheticResponse?.end();
-  await snapshot("07-generation-wait-back");
-  results.push("generation wait: back works while POST response is pending");
-
-  await sendSynthetic("stream");
-  await page.getByText("合成の途中応答", { exact: true }).waitFor();
-  assert.equal(await page.getByPlaceholder("メッセージを入力").isDisabled(), true);
-  await snapshot("08-generation-stream");
-  await home();
-  syntheticResponse?.end();
-  results.push("generation streaming: back works while stream is open");
-
-  for (const mode of ["http-error", "sse-error", "empty"]) {
-    await sendSynthetic(mode);
-    await page.getByRole("alert").waitFor();
-    await snapshot(`09-generation-${mode}`);
-    await home();
-    results.push(`generation ${mode}: back works after synthetic failure`);
-  }
-
-  await sendSynthetic("eof");
-  await page.getByText("合成の途中応答", { exact: true }).waitFor();
-  await page.getByRole("alert").waitFor();
-  await snapshot("10-generation-interrupted");
-  await home();
-  await snapshot("10-generation-interrupted-back");
-  results.push("generation incomplete EOF: back works with partial pending bubble");
-
-  assert.equal(posts.length, 6);
   const retryRead = () => page.getByRole("button", { name: "読み込みをやり直す" }).click();
   const listReady = () => page.getByRole("link", { name: "ready", exact: true }).waitFor();
   for (const [mode, title] of [
@@ -401,19 +313,18 @@ try {
   await retryRead();
   await listReady();
   results.push("root render error: reset and retry recover actual list");
-  assert.equal(posts.length, 6);
+  // 送信の出口は verify-turn-exit.mjs の実 workerd 確かめに移したので、ここでは
+  // チャットの POST は 1 件も起きん。
+  assert.deepEqual(posts, []);
   assert.deepEqual(externalRequests, []);
   assert.deepEqual(errors, []);
   console.log(
     JSON.stringify(
       {
+        checks: results.length,
         results,
-        routeStateKinds: 5,
-        presentations: 23,
-        deadEnds: 0,
         errors,
-        syntheticPosts: posts.length,
-        automaticPosts: 0,
+        posts: posts.length,
         externalRequests,
         output,
       },
@@ -422,7 +333,6 @@ try {
     ),
   );
 } finally {
-  syntheticResponse?.end();
   if (errors.length) console.error(JSON.stringify({ errors }));
   await browser?.close();
   await server.close();

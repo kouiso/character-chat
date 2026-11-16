@@ -3,6 +3,8 @@
 export type LogEventName =
   | "worker_request_failed"
   | "chat_turn_failed"
+  | "chat_stop_truncate_failed"
+  | "legacy_migration_failed"
   | "context_budget_config_invalid"
   | "memory_queue_publish_failed"
   | "memory_queue_invalid_message"

@@ -10,11 +10,13 @@ import { truncateFromTurn } from "./branch-store";
 import { CHUNK_MS_PER_CHAR } from "./chunk-schedule";
 import { openLocalD1, type LocalD1 } from "./test/local-d1";
 import {
+  ConversationAccessError,
   createD1TurnStore,
   ensureConversationVersion,
   loadLatestLedger,
   readD1StoredTurn,
   readDisplayHistory,
+  truncateAssistantReply,
   updateGenerationProvider,
   updateLatestLedger,
   type TurnEvent,
@@ -25,6 +27,9 @@ import {
   v2ConversationTable,
   v2GenerationTable,
   v2LedgerTable,
+  v2MemoryJobTable,
+  v2MemorySourceTable,
+  v2MemoryTable,
   v2MessageTable,
 } from "./v2-schema";
 
@@ -131,6 +136,23 @@ describe("createD1TurnStore", () => {
         .from(v2MessageTable)
         .where(inArray(v2MessageTable.conversationId, createdConversationIds));
       await local.db.batch([
+        local.db
+          .delete(v2MemorySourceTable)
+          .where(
+            inArray(
+              v2MemorySourceTable.memoryId,
+              local.db
+                .select({ id: v2MemoryTable.id })
+                .from(v2MemoryTable)
+                .where(inArray(v2MemoryTable.conversationId, createdConversationIds)),
+            ),
+          ),
+        local.db
+          .delete(v2MemoryJobTable)
+          .where(inArray(v2MemoryJobTable.conversationId, createdConversationIds)),
+        local.db
+          .delete(v2MemoryTable)
+          .where(inArray(v2MemoryTable.conversationId, createdConversationIds)),
         local.db.delete(v2ChunkTable).where(inArray(v2ChunkTable.messageId, messageIds)),
         local.db
           .delete(v2MessageTable)
@@ -1047,5 +1069,335 @@ describe("createD1TurnStore", () => {
         7,
       ),
     ).rejects.toThrow("会話が見つかりません");
+  });
+
+  // 「止める」（RIT-65）で保存済みの返事を画面に出た塊まで切り詰める。
+  // 3 塊の返事を用意し、keepThroughSeq の境で残る塊と消える塊を確かめる。
+  const threeChunkEvents = (): TurnEvent[] => [
+    {
+      type: "generation",
+      generationId: crypto.randomUUID(),
+      model: "fake-list",
+      promptVersion: "v0001",
+      systemPrompt: "system",
+      request: [{ role: "user", content: "user 1" }],
+      rawOutput: "raw 1",
+      usage: null,
+      latencyMs: 5,
+      status: "ok",
+    },
+    {
+      type: "chunk",
+      seq: 0,
+      text: "<action>近づく</action>",
+      judge: OK_JUDGE,
+      attempt: 1,
+      preExtend: true,
+    },
+    {
+      type: "chunk",
+      seq: 1,
+      text: "<dialogue>こっち</dialogue>",
+      judge: OK_JUDGE,
+      attempt: 1,
+      preExtend: true,
+    },
+    {
+      type: "chunk",
+      seq: 2,
+      text: "<inner>まだ言えない</inner>",
+      judge: OK_JUDGE,
+      attempt: 1,
+      preExtend: true,
+    },
+  ];
+
+  const savedTurn = async (): Promise<string> => {
+    const conversationId = newConversationId();
+    await store.saveTurn({
+      conversationId,
+      turn: 1,
+      userText: "止める前の質問",
+      events: threeChunkEvents(),
+      ledger: ledgerAt(1),
+    });
+    return conversationId;
+  };
+
+  const assistantRow = async (conversationId: string) => {
+    const [row] = await local.db
+      .select()
+      .from(v2MessageTable)
+      .where(
+        and(
+          eq(v2MessageTable.conversationId, conversationId),
+          eq(v2MessageTable.role, "assistant"),
+          eq(v2MessageTable.active, 1),
+        ),
+      );
+    return row;
+  };
+
+  const chunkTexts = async (messageId: string) => {
+    const rows = await local.db
+      .select({ seq: v2ChunkTable.seq, text: v2ChunkTable.text })
+      .from(v2ChunkTable)
+      .where(and(eq(v2ChunkTable.messageId, messageId), eq(v2ChunkTable.dropped, 0)))
+      .orderBy(asc(v2ChunkTable.seq));
+    return rows.map((row) => row.text);
+  };
+
+  it("T-4: keepThroughSeq までの塊だけ残して本文を組み直し、そのターンの台帳を消す", async () => {
+    const conversationId = newConversationId();
+    // 判定で落ちた塊（dropped=1）は配る本文に混ざらん記録。切り詰めても消さん。
+    const droppedJudge: JudgeResult = {
+      ...OK_JUDGE,
+      ok: false,
+      reasons: ["repetition"],
+      checks: {
+        ...OK_JUDGE.checks,
+        ngram: { ok: false, ratio: 0.9, matchedPhrases: ["同じ文"], exactRepeat: true },
+      },
+    };
+    await store.saveTurn({
+      conversationId,
+      turn: 1,
+      userText: "止める前の質問",
+      events: [
+        ...threeChunkEvents(),
+        {
+          type: "dropped",
+          seq: 3,
+          reasons: ["repetition"],
+          attempt: 1,
+          text: "<dialogue>同じ文</dialogue>",
+          judge: droppedJudge,
+        },
+      ],
+      ledger: ledgerAt(1),
+    });
+    const before = await assistantRow(conversationId);
+
+    const result = await truncateAssistantReply(local.db, storeOpts(), {
+      conversationId,
+      turn: 1,
+      keepThroughSeq: 1,
+    });
+
+    expect(result.truncated).toBe(true);
+    const after = await assistantRow(conversationId);
+    expect(after.id).toBe(before.id);
+    expect(after.content).toBe("<action>近づく</action>\n\n<dialogue>こっち</dialogue>");
+    expect([after.action, after.dialogue, after.inner]).toEqual(["近づく", "こっち", null]);
+    expect(await chunkTexts(after.id)).toEqual([
+      "<action>近づく</action>",
+      "<dialogue>こっち</dialogue>",
+    ]);
+    // dropped=1 の行は生成の記録として残る。
+    const droppedRows = await local.db
+      .select({ seq: v2ChunkTable.seq })
+      .from(v2ChunkTable)
+      .where(and(eq(v2ChunkTable.messageId, after.id), eq(v2ChunkTable.dropped, 1)));
+    expect(droppedRows).toEqual([{ seq: 3 }]);
+    // 台帳は止めた位置を境に信じられんので消す。生成記録は出処として残す。
+    const ledgers = await local.db
+      .select()
+      .from(v2LedgerTable)
+      .where(eq(v2LedgerTable.conversationId, conversationId));
+    expect(ledgers).toHaveLength(0);
+    const generations = await local.db
+      .select()
+      .from(v2GenerationTable)
+      .where(eq(v2GenerationTable.conversationId, conversationId));
+    expect(generations).toHaveLength(1);
+  });
+
+  it.each([[null], [-1]])(
+    "T-5: 1 塊も画面に出ていなければ（keepThroughSeq=%s）先頭の 1 塊だけ残す",
+    async (keepThroughSeq) => {
+      const conversationId = await savedTurn();
+
+      const result = await truncateAssistantReply(local.db, storeOpts(), {
+        conversationId,
+        turn: 1,
+        keepThroughSeq,
+      });
+
+      expect(result.truncated).toBe(true);
+      const after = await assistantRow(conversationId);
+      expect(after.content).toBe("<action>近づく</action>");
+      expect(await chunkTexts(after.id)).toEqual(["<action>近づく</action>"]);
+    },
+  );
+
+  it("T-5: 全部の塊が画面に出ていれば切らん（truncated=false）。返事の無いターンも同じ", async () => {
+    const conversationId = await savedTurn();
+
+    const full = await truncateAssistantReply(local.db, storeOpts(), {
+      conversationId,
+      turn: 1,
+      keepThroughSeq: 2,
+    });
+    expect(full.truncated).toBe(false);
+    const after = await assistantRow(conversationId);
+    expect(await chunkTexts(after.id)).toHaveLength(3);
+
+    const missing = await truncateAssistantReply(local.db, storeOpts(), {
+      conversationId,
+      turn: 9,
+      keepThroughSeq: 0,
+    });
+    expect(missing).toEqual({ truncated: false, removedMemories: [] });
+  });
+
+  it("T-6: そのターンが出どころの記憶とベクトル消去対象を返し、記憶 job は pending に戻す", async () => {
+    const conversationId = await savedTurn();
+    const assistant = await assistantRow(conversationId);
+    const user = (
+      await local.db
+        .select()
+        .from(v2MessageTable)
+        .where(
+          and(
+            eq(v2MessageTable.conversationId, conversationId),
+            eq(v2MessageTable.role, "user"),
+            eq(v2MessageTable.active, 1),
+          ),
+        )
+    )[0];
+    const now = Date.now();
+    await local.db.insert(v2MemoryTable).values({
+      id: "mem-truncate-1",
+      conversationId,
+      kind: "fact",
+      content: "止めたターンの記憶",
+      sourceTurn: 1,
+      createdAt: now,
+    });
+    await local.db.insert(v2MemorySourceTable).values({
+      memoryId: "mem-truncate-1",
+      sourceMessageId: assistant.id,
+      sourceContentHash: "hash",
+      importance: 1,
+    });
+    await local.db.insert(v2MemoryJobTable).values({
+      id: "job-truncate-1",
+      conversationId,
+      userId: "vitest",
+      characterId,
+      sourceMessageId: user.id,
+      sourceTurn: 1,
+      state: "completed",
+      publishAttempts: 2,
+      errorCode: "done",
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    // 別のターンを出どころにする記憶・配送・台帳は残さなあかん。
+    await store.saveTurn({
+      conversationId,
+      turn: 2,
+      userText: "次の質問",
+      events: threeChunkEvents(),
+      ledger: ledgerAt(2),
+    });
+    const [assistant2] = await local.db
+      .select()
+      .from(v2MessageTable)
+      .where(
+        and(
+          eq(v2MessageTable.conversationId, conversationId),
+          eq(v2MessageTable.turn, 2),
+          eq(v2MessageTable.role, "assistant"),
+          eq(v2MessageTable.active, 1),
+        ),
+      );
+    await local.db.insert(v2MemoryTable).values({
+      id: "mem-truncate-2",
+      conversationId,
+      kind: "fact",
+      content: "次のターンの記憶",
+      sourceTurn: 2,
+      createdAt: now,
+    });
+    await local.db.insert(v2MemorySourceTable).values({
+      memoryId: "mem-truncate-2",
+      sourceMessageId: assistant2.id,
+      sourceContentHash: "hash2",
+      importance: 1,
+    });
+    const [user2] = await local.db
+      .select()
+      .from(v2MessageTable)
+      .where(
+        and(
+          eq(v2MessageTable.conversationId, conversationId),
+          eq(v2MessageTable.turn, 2),
+          eq(v2MessageTable.role, "user"),
+        ),
+      );
+    await local.db.insert(v2MemoryJobTable).values({
+      id: "job-truncate-2",
+      conversationId,
+      userId: "vitest",
+      characterId,
+      sourceMessageId: user2.id,
+      sourceTurn: 2,
+      state: "completed",
+      publishAttempts: 1,
+      errorCode: null,
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    const result = await truncateAssistantReply(local.db, storeOpts(), {
+      conversationId,
+      turn: 1,
+      keepThroughSeq: 0,
+    });
+
+    expect(result.truncated).toBe(true);
+    // 返した removedMemories の id で呼び出し側がベクトル消しを回す。
+    expect(result.removedMemories).toEqual([
+      { id: "mem-truncate-1", content: "止めたターンの記憶" },
+    ]);
+    const memories = await local.db
+      .select()
+      .from(v2MemoryTable)
+      .where(inArray(v2MemoryTable.id, ["mem-truncate-1", "mem-truncate-2"]));
+    expect(memories.map((row) => row.id)).toEqual(["mem-truncate-2"]);
+    const sources = await local.db
+      .select()
+      .from(v2MemorySourceTable)
+      .where(inArray(v2MemorySourceTable.memoryId, ["mem-truncate-1", "mem-truncate-2"]));
+    expect(sources.map((row) => row.memoryId)).toEqual(["mem-truncate-2"]);
+    const jobs = await local.db
+      .select()
+      .from(v2MemoryJobTable)
+      .where(inArray(v2MemoryJobTable.id, ["job-truncate-1", "job-truncate-2"]))
+      .orderBy(asc(v2MemoryJobTable.id));
+    expect(jobs[0]).toMatchObject({ state: "pending", publishAttempts: 0, errorCode: null });
+    // 別のターンの配送は済んだまま（仕切り直しは止めたターンだけ）。
+    expect(jobs[1]).toMatchObject({ state: "completed", publishAttempts: 1 });
+    const ledgerTurns = await local.db
+      .select({ turn: v2LedgerTable.turn })
+      .from(v2LedgerTable)
+      .where(eq(v2LedgerTable.conversationId, conversationId));
+    expect(ledgerTurns.map((row) => row.turn)).toEqual([2]);
+  });
+
+  it("T-6: 別ユーザーの会話は所有の確かめで断る（ConversationAccessError）", async () => {
+    const conversationId = await savedTurn();
+    await expect(
+      truncateAssistantReply(
+        local.db,
+        { userId: "other", characterId, promptVersion: "v0001" },
+        { conversationId, turn: 1, keepThroughSeq: 0 },
+      ),
+    ).rejects.toBeInstanceOf(ConversationAccessError);
+    // 触っとらんので塊も本文もそのまま。
+    const after = await assistantRow(conversationId);
+    expect(await chunkTexts(after.id)).toHaveLength(3);
   });
 });

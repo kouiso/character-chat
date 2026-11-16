@@ -7,21 +7,30 @@ import { runBranchAction } from "../lib/branch";
 import { MAX_MESSAGE_LENGTH } from "../lib/chat-limits";
 import {
   ChatConnectionError,
+  ChatDailyLimitError,
   ChatRequestRejectedError,
+  ChatRoomBusyError,
   ChatTurnActiveError,
   clearPendingTurn,
-  connectChatTurn,
   isPendingSaved,
   loadChatHistory,
-  readChatEvents,
   readChatSession,
+  readChatTurnState,
   requestChatImage,
+  stopChatTurn,
+  withdrawChatTurn,
   writeChatSession,
+  writePendingTurn,
   type ChatBubble,
   type ChatImageParams,
   type PendingTurn,
+  type StoredTurn,
+  type TurnStateRequest,
 } from "../lib/chat-session";
 import { revealChunk, scheduleReveal } from "../lib/chunk-reveal";
+import { useChatOnline } from "../lib/chat-online";
+import { isFailurePhase, isWaitingPhase, markerText, type TurnPhase } from "../lib/turn-phase";
+import { followTurn } from "../lib/turn-stream";
 import { playVoiceText, readVoiceAutoplay, type VoicePlayback } from "../lib/tts";
 
 import { BranchControls } from "./branch-controls";
@@ -34,6 +43,17 @@ import { GalleryPanel } from "./gallery-panel";
 import { LedgerPanel } from "./ledger-panel";
 import { MessageActions } from "./message-actions";
 import { SuggestionChips } from "./suggestion-chips";
+import {
+  StoppedMarker,
+  TurnFailureBox,
+  TurnMarker,
+  TurnMessageAction,
+  TurnStopButton,
+  failureActionsFor,
+  failureCopy,
+  type FailureAction,
+} from "./chat-turn-failure";
+import { ChatWaiting } from "./chat-waiting";
 import { VoiceButton } from "./voice-button";
 import { VoiceCallButton } from "./voice-call-button";
 
@@ -165,6 +185,50 @@ const messageIdOfImage = (imageUrl: string | undefined): string | null => {
   return id ? decodeURIComponent(id) : null;
 };
 
+// 「もう一度」が効かん失敗の code（部屋が書く failure_code と同じ集合）。
+// 開き直しと出来事の受けの両方で同じ分け方を使う。
+const REJECT_FAILURE_CODES: ReadonlySet<string> = new Set([
+  "withdrawn",
+  "conflict",
+  "conversation_advanced",
+  "conversation_rewound",
+  // 試行回数を使い切った送信は「もう一度」が無い（板 TalkError 5）。
+  "attempt_limit",
+]);
+
+// 開き直しの受付の調べ結果から、続き方を決める。
+// "attach" は部屋へつなぎ直し。それ以外はその失敗の状態の枠へ進む。
+const resumeActionFor = (request: TurnStateRequest | null): "attach" | "stopped" | TurnPhase => {
+  if (request === null) return "send_failed";
+  if (
+    request.status === "queued" ||
+    request.status === "running" ||
+    request.status === "succeeded"
+  ) {
+    return "attach";
+  }
+  if (request.status === "stopped") return "stopped";
+  if (request.status !== "failed") return "send_failed";
+  // 確定的な拒否は「入力に戻す」の枠、それ以外は「返事が届かなかった」枠へ。
+  return request.failureCode !== null &&
+    request.failureCode !== undefined &&
+    REJECT_FAILURE_CODES.has(request.failureCode)
+    ? "rejected"
+    : "no_reply";
+};
+
+// 部品 C（発言の左の操作）を出す行の番号。「送れなかった」系の時、
+// pending と文が一致する本人の発言の行だけ。-1 は「出さん」。
+const actionIndexFor = (
+  phase: TurnPhase,
+  pending: PendingTurn | null,
+  bubbles: ChatBubble[],
+): number => {
+  if (pending === null) return -1;
+  if (phase !== "send_failed" && phase !== "resending" && phase !== "rejected") return -1;
+  return bubbles.findIndex((bubble) => bubble.role === "user" && bubble.text === pending.text);
+};
+
 type ChatErrorBarProps = {
   error: string;
   canResume: boolean;
@@ -209,6 +273,178 @@ const BubbleMedia = ({ bubble }: { bubble: ChatBubble }) => {
   }
   return <ChatImage src={bubble.imageUrl} />;
 };
+
+// 画像バブルの「表情変更」（i2i）の入口と入力欄。対象の画像で無い時はボタンだけ。
+const I2iSlot = ({
+  bubble,
+  open,
+  instruction,
+  disabled,
+  onOpen,
+  onInstruction,
+  onSubmit,
+}: {
+  bubble: ChatBubble;
+  open: string | null;
+  instruction: string;
+  disabled: boolean;
+  onOpen: (target: string | null) => void;
+  onInstruction: (value: string) => void;
+  onSubmit: () => void;
+}) => {
+  const messageId = bubble.mediaKind === "video" ? null : messageIdOfImage(bubble.imageUrl);
+  if (messageId === null) return null;
+  if (open !== messageId) {
+    return (
+      <div className="v2-i2i">
+        <button type="button" onClick={() => onOpen(messageId)} disabled={disabled}>
+          表情変更
+        </button>
+      </div>
+    );
+  }
+  return (
+    <div className="v2-i2i">
+      <input
+        value={instruction}
+        onChange={(event) => onInstruction(event.target.value)}
+        placeholder="例: 怒った顔"
+        aria-label="表情変更の依頼"
+      />
+      <button type="button" onClick={onSubmit} disabled={disabled || !instruction.trim()}>
+        生成
+      </button>
+      <button type="button" onClick={() => onOpen(null)}>
+        やめる
+      </button>
+    </div>
+  );
+};
+
+type ChatFooterProps = {
+  busy: boolean;
+  imageBusy: boolean;
+  pending: PendingTurn | null;
+  phase: TurnPhase;
+  error: string | null;
+  failure: { primary: string; secondary?: string } | null;
+  failureActions: FailureAction[];
+  rewoundFrom: number | null;
+  onRestoreRewound: () => Promise<void>;
+  onWithdraw: () => void;
+  onRetry: () => void;
+  stopping: boolean;
+  onStop: () => void;
+  input: string;
+  onInput: Dispatch<SetStateAction<string>>;
+  onSubmit: (event: React.FormEvent) => Promise<void>;
+  onPick: (text: string) => Promise<void>;
+  onImage: () => void;
+  characterId: string;
+  getConversationId: () => string | null;
+  onError: Dispatch<SetStateAction<string | null>>;
+  paramField: (
+    key: keyof ImageParamFields,
+    label: string,
+    placeholder: string,
+    type?: "number" | "text",
+    step?: string,
+  ) => React.ReactNode;
+};
+
+// 入力の行とその上の通知。待っている間は送信ボタンを「止める」と入れ替える（部品 D）。
+const ChatFooter = ({
+  busy,
+  imageBusy,
+  pending,
+  phase,
+  error,
+  failure,
+  failureActions,
+  rewoundFrom,
+  onRestoreRewound,
+  onWithdraw,
+  onRetry,
+  stopping,
+  onStop,
+  input,
+  onInput,
+  onSubmit,
+  onPick,
+  onImage,
+  characterId,
+  getConversationId,
+  onError,
+  paramField,
+}: ChatFooterProps) => (
+  <>
+    {rewoundFrom !== null && (
+      <div className="v2-branch-restore">
+        <button type="button" onClick={() => void onRestoreRewound()} disabled={busy}>
+          戻した会話を進む（復元）
+        </button>
+      </div>
+    )}
+    {error && (
+      <ChatErrorBar
+        error={error}
+        canResume={pending !== null && !isFailurePhase(phase)}
+        terminalFailure={phase === "rejected"}
+        busy={busy}
+        onRecover={onWithdraw}
+        onRetry={onRetry}
+      />
+    )}
+    {failure !== null && <TurnFailureBox {...failure} actions={failureActions} />}
+    <details className="v2-image-params">
+      <summary>画像設定</summary>
+      <div className="v2-image-params-grid">
+        {paramField("cfg", "CFG", "5", "number", "0.5")}
+        {paramField("seed", "seed", "ランダム")}
+        {paramField("width", "幅", "832", "number", "8")}
+        {paramField("height", "高さ", "1216", "number", "8")}
+        {paramField("strength", "i2i強度", "0.45", "number", "0.05")}
+        {paramField("negativePrompt", "ネガティブプロンプト", "既定", "text")}
+      </div>
+    </details>
+    <form
+      className="v2-chat-form"
+      onSubmit={(event) => {
+        void onSubmit(event);
+      }}
+    >
+      <input
+        value={input}
+        onChange={(event) => onInput(event.target.value)}
+        placeholder="メッセージを入力"
+        aria-label="メッセージ"
+        disabled={imageBusy}
+      />
+      <SuggestionChips
+        characterId={characterId}
+        getConversationId={getConversationId}
+        disabled={busy || pending !== null}
+        onPick={(text) => void onPick(text)}
+        onError={onError}
+      />
+      <button
+        type="button"
+        onClick={onImage}
+        disabled={[busy, imageBusy, pending !== null].some(Boolean)}
+      >
+        {imageBusy ? "生成中…" : "画像"}
+      </button>
+      {isWaitingPhase(phase) ? (
+        // 部品 D: 待っている間は送信ボタンと入れ替わる（FR-6）。
+        <TurnStopButton disabled={stopping} onClick={onStop} />
+      ) : (
+        <button type="submit" disabled={busy || pending !== null || input.trim().length === 0}>
+          送信
+        </button>
+      )}
+    </form>
+  </>
+);
 
 const runImageRequest = async (deps: {
   characterId: string;
@@ -278,38 +514,6 @@ const resolveInitialConversation = (
   }
 };
 
-type ChatErrorEvent = Extract<ChatSseEvent, { type: "error" }>;
-
-const isTerminalPendingRejection = (pending: PendingTurn | null, cause: unknown): boolean =>
-  pending !== null && cause instanceof ChatRequestRejectedError;
-
-const consumeEvents = async (
-  stream: ReadableStream<Uint8Array>,
-  signal: AbortSignal,
-  onError: (event: ChatErrorEvent) => void,
-): Promise<{ completed: boolean; texts: string[]; sendAt?: number[] }> => {
-  const chunks = new Map<number, string>();
-  let completed = false;
-  let sendAt: number[] | undefined;
-  for await (const event of readChatEvents(stream)) {
-    if (signal.aborted) return { completed: false, texts: [] };
-    if (event.type === "chunk") chunks.set(event.seq, event.text);
-    if (event.type === "error") {
-      onError(event);
-      throw new Error(event.message);
-    }
-    if (event.type === "done") {
-      completed = true;
-      sendAt = event.sendAt;
-    }
-  }
-  return {
-    completed,
-    sendAt,
-    texts: [...chunks.entries()].sort(([a], [b]) => a - b).map(([, value]) => value),
-  };
-};
-
 // 完了だけ届いた再接続は塊が無いので、空の作成中枠を外して履歴の読み直しで埋める。
 const dropPendingAssistant = (setBubbles: Dispatch<SetStateAction<ChatBubble[]>>) =>
   setBubbles((previous) =>
@@ -318,27 +522,29 @@ const dropPendingAssistant = (setBubbles: Dispatch<SetStateAction<ChatBubble[]>>
       .map((bubble) => ({ ...bubble, pending: false })),
   );
 
-const reportConsumeFailure = (
-  cause: unknown,
-  signal: AbortSignal,
-  setError: Dispatch<SetStateAction<string | null>>,
-  setTerminalFailure: Dispatch<SetStateAction<boolean>>,
-) => {
-  if (signal.aborted) return;
-  if (cause instanceof ChatRequestRejectedError) setTerminalFailure(true);
-  setError(failureMessage(cause));
-};
+// 「もう一度」の再送は、最後の失敗が「失敗の出来事を受けた」か「つながらなかった」かで
+// 中身が違う（板 TalkError 3・4 は retry: true、それ以外はつなぎ直し）。
+type LastFailure = "event" | "connect" | null;
+
+// ここを超えて返事が来ん時は「少し時間がかかっています」の副の文を足す（板 TalkWaiting-3）。
+// 部屋側の ping 間隔（15 秒）と揃えた。出来事が流れ続けても長いなら出る。
+const WAIT_SLOW_MS = 15_000;
 
 const startScheduledReveal = (
   revealCancel: RefObject<(() => void) | null>,
   setBubbles: Dispatch<SetStateAction<ChatBubble[]>>,
   texts: string[],
   sendAt: number[] | undefined,
+  onShown?: (index: number, more: boolean) => void,
 ) => {
   revealCancel.current?.();
-  revealCancel.current = scheduleReveal(texts, sendAt, (text, more) =>
-    setBubbles((previous) => revealChunk(previous, text, more)),
-  );
+  let index = 0;
+  revealCancel.current = scheduleReveal(texts, sendAt, (text, more) => {
+    const shown = index;
+    index += 1;
+    setBubbles((previous) => revealChunk(previous, text, more));
+    onShown?.(shown, more);
+  });
 };
 
 // 「初回のひとこと」の冒頭バブル。履歴に無い表示専用なので id/turn・枝操作は付けん。
@@ -385,12 +591,27 @@ export const ChatView = ({
   const [i2iInstruction, setI2iInstruction] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState<PendingTurn | null>(null);
-  const [terminalFailure, setTerminalFailure] = useState(false);
+  // RIT-65: 送信状態。出口の表はこの状態から描く。
+  const [phase, setPhase] = useState<TurnPhase>("idle");
+  // 「ここで止めました」の行は、止めた画面を開いている間だけ出す（次の送信で消える）。
+  const [stoppedNotice, setStoppedNotice] = useState(false);
+  // 1 日の上限（429）の時だけ、部品 B の副の文をサーバの文へ差し替える。
+  const [dailyLimitMessage, setDailyLimitMessage] = useState<string | null>(null);
+  const [stopping, setStopping] = useState(false);
+  const [withdrawing, setWithdrawing] = useState(false);
   // RIT-202: 「ここから戻る」で眠らせた末尾を「進む」で起こせるよう、戻したターンを覚える。
   const [rewoundFrom, setRewoundFrom] = useState<number | null>(null);
   const conversationId = useRef<string | null>(null);
   const nextTurn = useRef(1);
   const controller = useRef<AbortController | null>(null);
+  // 最後の失敗の形（「もう一度」の中身を決める）。
+  const lastFailure = useRef<LastFailure>(null);
+  // 届いた塊の seq（止めるの shownSeq に使う）と、画面に出た数。
+  const chunkSeqs = useRef<number[]>([]);
+  const shownCount = useRef(0);
+  // done の後に保留を片付けるので、小出しの途中の「止める」用に受付を覚えておく。
+  const activeTurn = useRef<PendingTurn | null>(null);
+  const revealTexts = useRef<string[] | null>(null);
   const revealCancel = useRef<(() => void) | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   // RIT-211/212: 音声再生。レイヤ連続再生のハンドルを持ち、再生中キーでボタンを切替える。
@@ -425,38 +646,292 @@ export const ChatView = ({
     playVoice(last.id ?? `t${last.turn ?? 0}`, last.text);
   };
 
-  const consume = useCallback(async (turn: PendingTurn, signal: AbortSignal, retry = false) => {
-    if (signal.aborted) return;
-    setBusy(true);
-    setError(null);
-    setTerminalFailure(false);
-    try {
-      const stream = await connectChatTurn(turn, signal, retry);
-      const result = await consumeEvents(stream, signal, (event) =>
-        setTerminalFailure(event.terminal === true),
-      );
-      if (!result.completed) throw new ChatConnectionError();
-      // サーバーが完了を確かめた時点で保留を片付ける。履歴の読み直しで失敗しても、
-      // 保存済みの送信を「入力に戻す」で戻して二重に送らせんため。
-      clearPendingTurn(turn.characterId, turn);
-      setPending(null);
-      // 塊が取れたターンは予定時刻で順に出す（RIT-69）。完了だけ届いた再接続は
-      // 塊が無いので、従来どおり履歴の読み直しで埋める。
-      const reveal = result.texts.length > 0;
-      if (!reveal) dropPendingAssistant(setBubbles);
-      nextTurn.current = turn.baseTurn + 1;
-      const history = await loadChatHistory(turn.characterId, turn.conversationId, signal);
-      if (signal.aborted) return;
-      nextTurn.current = history.nextTurn;
-      bubblesRef.current = history.bubbles;
-      if (reveal) startScheduledReveal(revealCancel, setBubbles, result.texts, result.sendAt);
-      else setBubbles(history.bubbles);
-    } catch (cause) {
-      reportConsumeFailure(cause, signal, setError, setTerminalFailure);
-    } finally {
-      if (!signal.aborted) setBusy(false);
-    }
+  const online = useChatOnline();
+
+  // 失敗の状態へ移す時の共通処理。画面に残す情報だけここで揃える。
+  const enterPhase = useCallback((next: TurnPhase, failure: LastFailure) => {
+    lastFailure.current = failure;
+    setPhase(next);
   }, []);
+
+  // 送信文を入力欄へ戻し、保留・吹き出し・枠を消す（板 TalkError 6）。
+  // 打ちかけの文が在る時は「送信文・半角空白・打ちかけの文」の順につなぐ（FR-3）。
+  const restoreSentText = useCallback((turn: PendingTurn, bubbles: ChatBubble[]) => {
+    clearPendingTurn(turn.characterId, turn);
+    setPending(null);
+    setBubbles(bubbles);
+    setInput((previous) => (previous.trim() ? `${turn.text} ${previous}` : turn.text));
+    setPhase("idle");
+    setDailyLimitMessage(null);
+  }, []);
+
+  const consume = useCallback(
+    async (
+      turn: PendingTurn,
+      signal: AbortSignal,
+      options: { attach?: boolean; retry?: boolean } = {},
+    ) => {
+      // done のあとの仕上げ: 保留を片付け、履歴を読み直し、塊は予定時刻で順に出す（RIT-69）。
+      const finishDone = async (chunks: Map<number, string>, sendAt: number[] | undefined) => {
+        // サーバーが完了を確かめた時点で保留を片付ける。履歴の読み直しで失敗しても、
+        // 保存済みの送信を「入力に戻す」で戻して二重に送らせんため。
+        clearPendingTurn(turn.characterId, turn);
+        setPending(null);
+        const texts = [...chunks.entries()].sort(([a], [b]) => a - b).map(([, value]) => value);
+        const reveal = texts.length > 0;
+        if (!reveal) dropPendingAssistant(setBubbles);
+        nextTurn.current = turn.baseTurn + 1;
+        const history = await loadChatHistory(turn.characterId, turn.conversationId, signal).catch(
+          () => null,
+        );
+        if (signal.aborted) return;
+        if (history === null) {
+          // done は確かめ済み。読み直しだけ失敗した時は失敗の枠へ戻さず、
+          // 届いた塊は出したまま、読み直しの失敗だけを知らせる（保留は片付け済み）。
+          if (reveal) {
+            revealTexts.current = texts;
+            startScheduledReveal(revealCancel, setBubbles, texts, sendAt, (index, more) => {
+              shownCount.current = index + 1;
+              if (!more) {
+                revealTexts.current = null;
+                activeTurn.current = null;
+                setPhase("idle");
+              }
+            });
+          } else {
+            activeTurn.current = null;
+            setPhase("idle");
+          }
+          setError("返事の保存を確かめられませんでした。会話を読み直してください。");
+          return;
+        }
+        nextTurn.current = history.nextTurn;
+        bubblesRef.current = history.bubbles;
+        if (!reveal) {
+          revealTexts.current = null;
+          activeTurn.current = null;
+          setBubbles(history.bubbles);
+          setPhase("idle");
+          return;
+        }
+        revealTexts.current = texts;
+        startScheduledReveal(revealCancel, setBubbles, texts, sendAt, (index, more) => {
+          shownCount.current = index + 1;
+          if (!more) {
+            revealTexts.current = null;
+            activeTurn.current = null;
+            setPhase("idle");
+          }
+        });
+      };
+
+      // 別の画面から止められた時の仕上げ。保存結果は履歴の読み直しで確かめて通常へ戻す。
+      const finishStopped = async () => {
+        clearPendingTurn(turn.characterId, turn);
+        setPending(null);
+        activeTurn.current = null;
+        const stopped = await loadChatHistory(turn.characterId, turn.conversationId, signal).catch(
+          () => null,
+        );
+        if (stopped !== null) {
+          nextTurn.current = stopped.nextTurn;
+          bubblesRef.current = stopped.bubbles;
+          setBubbles(stopped.bubbles);
+        }
+        setPhase("idle");
+      };
+
+      // 出来事が流れ始めたら受付は確実に在る。開き直しの自動再接続に使う印を書く。
+      const markAccepted = () => {
+        if (turn.accepted === true) return;
+        turn.accepted = true;
+        // 別のタブが同じ会話へ入れ直した保留を消さんよう、枠が空か自分の受付の時だけ書き戻す。
+        const stored = readChatSession(turn.characterId, turn.conversationId).pending;
+        if (stored === null || stored.requestId === turn.requestId) {
+          writePendingTurn(turn.characterId, turn.conversationId, turn);
+        }
+        setPending((previous) => (previous?.requestId === turn.requestId ? { ...turn } : previous));
+      };
+
+      // 部屋の失敗の出来事は流れの終わりを意味する（配信は error の後に閉じる）。
+      // 再試行が効く・効かんは code で分け、効かん物は「入力に戻す」の枠へ。
+      const failurePhaseFor = (event: Extract<ChatSseEvent, { type: "error" }>, chunks: number) =>
+        event.code !== undefined && REJECT_FAILURE_CODES.has(event.code)
+          ? ("rejected" as const)
+          : chunks > 0
+            ? ("cut_off" as const)
+            : ("no_reply" as const);
+
+      // 確定的に終わった出来事の仕上げ。"exit" を返したら追いかけを終わる。
+      const applyTerminalEvent = async (
+        chunks: Map<number, string>,
+        event: ChatSseEvent,
+      ): Promise<"exit" | { done: true; sendAt?: number[] } | null> => {
+        if (event.type === "done") return { done: true, sendAt: event.sendAt };
+        if (event.type === "stopped") {
+          await finishStopped();
+          return "exit";
+        }
+        if (event.type === "error") {
+          lastFailure.current = "event";
+          setPhase(failurePhaseFor(event, chunks.size));
+          return "exit";
+        }
+        return null;
+      };
+
+      // 出来事 1 件の処理。"exit" を返したら追いかけを終わる。
+      const applyTurnEvent = async (
+        chunks: Map<number, string>,
+        event: ChatSseEvent,
+      ): Promise<"exit" | { done: true; sendAt?: number[] } | null> => {
+        markAccepted();
+        // 部屋が次の試行を始めたら、前の試行で出ていた塊の控えを捨て直す（S-13b）。
+        // 受付が確実に部屋へ届き生成が動き出した印なので、送信待ちは「書いています」へ進む。
+        if (event.type === "attempt") {
+          chunks.clear();
+          shownCount.current = 0;
+          setPhase((previous) =>
+            previous === "sending" || previous === "resending" ? "writing" : previous,
+          );
+          return null;
+        }
+        if (event.type === "chunk") {
+          chunks.set(event.seq, event.text);
+          chunkSeqs.current = [...chunks.keys()].sort((a, b) => a - b);
+          setPhase("arriving");
+          return null;
+        }
+        if (event.type === "token" || event.type === "turn-meta") {
+          setPhase((previous) =>
+            previous === "sending" || previous === "resending" ? "writing" : previous,
+          );
+          return null;
+        }
+        return applyTerminalEvent(chunks, event);
+      };
+
+      // follow の例外を失敗の状態へ写す。
+      const applyConsumeError = (cause: unknown) => {
+        if (cause instanceof ChatDailyLimitError) {
+          setDailyLimitMessage(cause.message);
+          enterPhase("rejected", "event");
+          return;
+        }
+        if (cause instanceof ChatRequestRejectedError) {
+          enterPhase("rejected", "event");
+          return;
+        }
+        if (cause instanceof ChatRoomBusyError) {
+          // 別の受付が走っとる。この送信は受理されてへんので、文を入力へ戻して静かに戻す。
+          clearPendingTurn(turn.characterId, turn);
+          setPending(null);
+          setBubbles((previous) => withoutPending(previous, turn));
+          setInput((previous) => (previous.trim() ? `${turn.text} ${previous}` : turn.text));
+          setPhase("idle");
+          return;
+        }
+        // つながらなかった（POST が届かん・開き直しの GET が切れた）は「送れなかった」へ。
+        enterPhase("send_failed", "connect");
+      };
+
+      // 出来事の流れを最後まで追いかける。"done" を確かめたら仕上げへ。
+      const followLoop = async (chunks: Map<number, string>) => {
+        let sendAt: number[] | undefined;
+        let done = false;
+        // 待ちが長引いている印。繋ぎ直し・長い生成のどちらでも「少し時間がかかっています」へ。
+        const slowTimer = setTimeout(() => {
+          setPhase((previous) => (isWaitingPhase(previous) ? "slow" : previous));
+        }, WAIT_SLOW_MS);
+        try {
+          for await (const item of followTurn(turn, {
+            attach: options.attach ?? turn.accepted === true,
+            retry: options.retry === true,
+            signal,
+          })) {
+            if (item.type === "gave_up") {
+              enterPhase("no_reply", "connect");
+              return;
+            }
+            if (item.type === "reconnecting") {
+              setPhase((previous) => (isWaitingPhase(previous) ? "slow" : previous));
+              continue;
+            }
+            if (item.type !== "event") continue;
+            const action = await applyTurnEvent(chunks, item.event);
+            if (action === "exit") return;
+            if (action !== null) {
+              done = true;
+              sendAt = action.sendAt;
+            }
+          }
+        } finally {
+          clearTimeout(slowTimer);
+        }
+        if (signal.aborted) return;
+        if (!done) {
+          enterPhase("no_reply", "connect");
+          return;
+        }
+        await finishDone(chunks, sendAt);
+      };
+
+      if (signal.aborted) return;
+      setBusy(true);
+      setError(null);
+      setDailyLimitMessage(null);
+      lastFailure.current = null;
+      activeTurn.current = turn;
+      chunkSeqs.current = [];
+      shownCount.current = 0;
+      const chunks = new Map<number, string>();
+      try {
+        await followLoop(chunks);
+      } catch (cause) {
+        if (signal.aborted) return;
+        applyConsumeError(cause);
+      } finally {
+        if (!signal.aborted) setBusy(false);
+      }
+    },
+    // 補助はこの関数の中で作るので、依存は enterPhase（安定）だけ。
+    [enterPhase],
+  );
+
+  // 開き直した保留の続け方を、部屋の受付の調べで決める。
+  // accepted の印が在る（=受付が確実に在った）時はそのままつなぎ直す。印が無い時は
+  // 受付の有無を確かめて、無ければ「送れなかった」の枠からやり直す。
+  const resumeSavedPending = useCallback(
+    async (turn: PendingTurn, abort: AbortController) => {
+      setPhase("sending");
+      if (turn.accepted === true) {
+        await consume(turn, abort.signal, { attach: true });
+        return;
+      }
+      const state = await readChatTurnState(
+        characterId,
+        turn.conversationId,
+        abort.signal,
+        turn.requestId,
+      ).catch(() => null);
+      if (abort.signal.aborted) return;
+      const action = resumeActionFor(state?.request ?? null);
+      if (action === "attach") {
+        await consume(turn, abort.signal, { attach: true });
+        return;
+      }
+      if (action === "stopped") {
+        // 以前に止めた受付。文を入力へ戻して終わる。
+        restoreSentText(turn, withoutPending(bubblesRef.current, turn));
+        setBusy(false);
+        return;
+      }
+      // request が無い・調べが読めん時は、受付が届かんかった扱いで「送れなかった」へ。
+      enterPhase(action, action === "send_failed" ? "connect" : "event");
+      setBusy(false);
+    },
+    [characterId, consume, enterPhase, restoreSentText],
+  );
 
   // RIT-204: メッセージへの印（ブックマーク・いいね）。履歴読み込みのたび会話の印も追従する。
   const {
@@ -550,60 +1025,184 @@ export const ChatView = ({
     }
   };
 
-  const restoreLocally = (turn: PendingTurn) => {
-    clearPendingTurn(turn.characterId, turn);
-    setBubbles((previous) => withoutPending(previous, turn));
-    setInput(turn.text);
-    setPending(null);
-    setTerminalFailure(false);
-    setError("会話を読み込めませんでした。送信内容は入力欄に戻しました。");
-  };
-
-  const recoverPending = () => {
-    if (!pending || busy) return;
+  // 「入力に戻す」（部品 C・失敗の枠のどちらからもここへ）。受付の取り下げは部屋へ送り、
+  // 作成中で断られた時は入力に戻さずその受付へつなぎ直す（FR-4）。
+  const withdrawPending = () => {
+    // resending の間も部品 C から呼べるように、follow の busy とは別の印で守る。
+    if (!pending || withdrawing) return;
+    const turn = pending;
+    setWithdrawing(true);
     controller.current?.abort();
     const abort = new AbortController();
     controller.current = abort;
+
+    // 取り下げの応答の画面移し。「保存済み」の時は入力に戻さず返事を出す（FR-4）。
+    const finishWithdraw = (result: {
+      bubbles: ChatBubble[];
+      nextTurn: number;
+      storedTurn: StoredTurn | null;
+    }) => {
+      if (isPendingSaved(turn, result.storedTurn)) {
+        clearPendingTurn(turn.characterId, turn);
+        setPending(null);
+        nextTurn.current = result.nextTurn;
+        setBubbles(result.bubbles);
+        setPhase("idle");
+        return;
+      }
+      restoreSentText(turn, result.bubbles);
+      nextTurn.current = result.nextTurn;
+    };
+
     void (async () => {
       setBusy(true);
-      setError(null);
       try {
-        const history = await loadChatHistory(
-          pending.characterId,
-          pending.conversationId,
+        const result = await withdrawChatTurn(
+          turn.characterId,
+          turn.conversationId,
+          turn.requestId,
           abort.signal,
-          pending.requestId,
         );
         if (abort.signal.aborted) return;
-        // 番号が進んだだけでは、別の送信が会話を進めた場合と区別できん。そのターンの中身で決める。
-        const restoreInput = !isPendingSaved(pending, history.storedTurn);
-        clearPendingTurn(pending.characterId, pending);
-        if (abort.signal.aborted) return;
-        nextTurn.current = history.nextTurn;
-        setBubbles(history.bubbles);
-        setInput(restoreInput ? pending.text : "");
-        setPending(null);
-        setTerminalFailure(false);
-        setError(null);
+        finishWithdraw(result);
       } catch (cause) {
         if (abort.signal.aborted) return;
-        // まだ作成中の送信を戻すと、返信が後から保存されて二重になる。再接続へ戻す。
         if (cause instanceof ChatTurnActiveError) {
-          setTerminalFailure(false);
-          setError(cause.message);
+          // まだ作成中: 戻すと返事が後から保存されて二重になる。待ちの表示に戻ってつなぎ直す。
+          setPhase("writing");
+          void consume(turn, abort.signal, { attach: true });
           return;
         }
         if (cause instanceof ChatRequestRejectedError) {
-          // 会話もキャラも読めんので、保存されたかは確かめようがない。送信文を手元へ戻して止まらんようにする。
-          restoreLocally(pending);
+          // 会話もキャラも読めんので、保存されたかは確かめようがない。手元の情報だけで戻す。
+          restoreSentText(turn, withoutPending(bubblesRef.current, turn));
           return;
         }
-        setError("入力を戻せませんでした。再試行してください。");
+        // 通信切れは取り下げが届いとらん。失敗の枠のままにして出口を残す。
+        if (!(cause instanceof ChatConnectionError))
+          setError("入力を戻せませんでした。再試行してください。");
       } finally {
+        setWithdrawing(false);
         if (!abort.signal.aborted) setBusy(false);
       }
     })();
   };
+
+  // 「もう一度」。失敗の形で中身を変える（FR-2）:
+  // - send_failed・つなぎ直し系の no_reply: 同じ受付番号で POST を送り直す。
+  // - 失敗の出来事を受けた no_reply・cut_off: 同じ受付番号で retry: true の作り直し。
+  // - offline: 入力欄の文で送信をやり直す（オフラインのままなら変わらん）。
+  const retryTurn = () => {
+    if (phase === "offline") {
+      void sendText(input.trim());
+      return;
+    }
+    if (!pending || busy) return;
+    const turn = pending;
+    controller.current?.abort();
+    const abort = new AbortController();
+    controller.current = abort;
+    const regenerate =
+      lastFailure.current === "event" && (phase === "no_reply" || phase === "cut_off");
+    setPhase("resending");
+    void consume(turn, abort.signal, { attach: false, retry: regenerate });
+  };
+
+  // 「止める」（部品 D）。止めるの結果は押した時の状態で変わる（FR-9）。
+  // 小出しの途中は保留が片付け済みなので、覚えておいた受付を使う。
+  const stopTurn = () => {
+    const turn = pending ?? activeTurn.current;
+    if (!turn || stopping) return;
+    const targetConversationId = conversationId.current;
+    if (!targetConversationId) return;
+
+    // 保存済み・切り詰めの時の画面移し（履歴を読み直して確かめる）。
+    const finishSavedStop = async (outcome: "truncated" | "saved" | "failed") => {
+      clearPendingTurn(turn.characterId, turn);
+      setPending(null);
+      activeTurn.current = null;
+      revealTexts.current = null;
+      const history = await loadChatHistory(
+        turn.characterId,
+        targetConversationId,
+        new AbortController().signal,
+      );
+      nextTurn.current = history.nextTurn;
+      bubblesRef.current = history.bubbles;
+      setBubbles(history.bubbles);
+      if (outcome === "truncated") {
+        setStoppedNotice(true);
+        setPhase("stopped");
+      } else if (outcome === "saved") {
+        setPhase("idle");
+      } else {
+        // outcome failed: 届いていた失敗の出来事のとおり（no_reply か rejected）。
+        setPhase(dailyLimitMessage !== null ? "rejected" : "no_reply");
+      }
+    };
+
+    // 小出しの途中で止めの POST が届かんかった時: 残りを直ちに全部出して通常へ（FR-9）。
+    const flushReveal = () => {
+      const texts = revealTexts.current;
+      if (texts === null) return;
+      revealCancel.current?.();
+      revealCancel.current = null;
+      revealTexts.current = null;
+      activeTurn.current = null;
+      // setBubbles の更新は遅れて走る。中で shownCount.current を読むと、後続の
+      // 代入（texts.length）が先に見えて残りの塊が全部落ちるので、ここで確定させる。
+      const shown = shownCount.current;
+      setBubbles((previous) => {
+        let next = previous;
+        for (let index = shown; index < texts.length; index += 1) {
+          next = revealChunk(next, texts[index], index + 1 < texts.length);
+        }
+        return next;
+      });
+      shownCount.current = texts.length;
+      setPhase("idle");
+    };
+
+    setStopping(true);
+    const abort = new AbortController();
+    void (async () => {
+      try {
+        const shownSeq =
+          shownCount.current > 0 ? (chunkSeqs.current[shownCount.current - 1] ?? null) : null;
+        const result = await stopChatTurn(
+          turn.characterId,
+          targetConversationId,
+          turn.requestId,
+          shownSeq,
+          abort.signal,
+        );
+        // 追いかけと小出しを止めてから、結果どおりの画面へ移す。
+        controller.current?.abort();
+        revealCancel.current?.();
+        revealCancel.current = null;
+        if (result.outcome === "stopped") {
+          // 保存される前（受付が部屋に無い 404 missing も同じ扱い）: 吹き出しを外し文を入力へ。
+          restoreSentText(turn, withoutPending(bubblesRef.current, turn));
+          return;
+        }
+        await finishSavedStop(result.outcome);
+      } catch (cause) {
+        // 止めるの POST が通信で失敗: 待ちの表示のまま「止める」を押せる状態に戻す（FR-9）。
+        if (cause instanceof ChatConnectionError) {
+          flushReveal();
+          return;
+        }
+        setError(failureMessage(cause));
+      } finally {
+        setStopping(false);
+      }
+    })();
+  };
+
+  // オフラインの枠は、つながり直した時点で消す（自動では送らない・板 TalkError 7）。
+  useEffect(() => {
+    if (online && phase === "offline") setPhase("idle");
+  }, [online, phase]);
 
   useEffect(() => {
     const abort = new AbortController();
@@ -631,18 +1230,20 @@ export const ChatView = ({
         nextTurn.current = history.nextTurn;
         // 確定済みの発言が残る会話へ「初回のひとこと」を足すと、あとから挨拶が混ざる。
         setGreeting((previous) => (history.bubbles.length === 0 ? previous : null));
+        bubblesRef.current = history.bubbles;
         setBubbles(
           saved.pending
             ? withPending(history.bubbles, history.nextTurn, saved.pending)
             : history.bubbles,
         );
-        if (saved.pending) await consume(saved.pending, abort.signal);
-        else setBusy(false);
+        if (saved.pending) await resumeSavedPending(saved.pending, abort);
+        else {
+          setBusy(false);
+          setPhase("idle");
+        }
         void reloadMarks();
-      } catch (cause) {
+      } catch {
         if (!abort.signal.aborted) {
-          // 確定的な拒否なら再試行しても直らんので、保留は「入力に戻す」で抜けられるようにする。
-          if (isTerminalPendingRejection(saved.pending, cause)) setTerminalFailure(true);
           setError("会話を再開できませんでした。再試行してください。");
           setBusy(false);
         }
@@ -655,7 +1256,14 @@ export const ChatView = ({
       revealCancel.current?.();
       revealCancel.current = null;
     };
-  }, [characterId, consume, initialConversationId, newConversationKey, reloadMarks]);
+  }, [
+    characterId,
+    consume,
+    initialConversationId,
+    newConversationKey,
+    reloadMarks,
+    resumeSavedPending,
+  ]);
 
   // RIT-203: 候補チップからも同じ送信経路を使えるよう本文だけ受ける形に分ける。
   const sendText = async (text: string) => {
@@ -664,12 +1272,19 @@ export const ChatView = ({
       setError(`${MAX_MESSAGE_LENGTH}字以内で送信してください。入力は保持されています。`);
       return;
     }
+    // 板 TalkError 7: オフラインで送信を押した時は POST を出さん。文は入力欄に残す。
+    if (!navigator.onLine) {
+      setPhase("offline");
+      return;
+    }
+    setStoppedNotice(false);
     const turn: PendingTurn = {
       characterId,
       conversationId: conversationId.current ?? crypto.randomUUID(),
       requestId: crypto.randomUUID(),
       text,
       baseTurn: nextTurn.current,
+      accepted: false,
     };
     try {
       if (newConversationKey) {
@@ -690,12 +1305,16 @@ export const ChatView = ({
     conversationId.current = turn.conversationId;
     setPending(turn);
     setInput("");
+    setPhase("sending");
     setBubbles((previous) => withPending(previous, nextTurn.current, turn));
     controller.current?.abort();
     const abort = new AbortController();
     controller.current = abort;
-    await consume(turn, abort.signal);
-    void maybeAutoplay();
+    // HTTP 200 が返った時点で部屋の受付が確実に在る。開き直しの自動再接続に使う印。
+    void (async () => {
+      await consume(turn, abort.signal);
+      void maybeAutoplay();
+    })();
   };
 
   // RIT-213: STT→送信→TTS の通話ループ。再生終了は callEndRef 経由で listen へ戻る。
@@ -767,14 +1386,6 @@ export const ChatView = ({
     </label>
   );
 
-  const retry = () => {
-    if (!pending || busy) return;
-    controller.current?.abort();
-    const abort = new AbortController();
-    controller.current = abort;
-    void consume(pending, abort.signal, true);
-  };
-
   // ギャラリー（RIT-185）からの「会話へ」。バブルの data-image-src（=/api/media/<messageId>）で
   // 該当メッセージを見つけてスクロールする。属性値の照合なのでエスケープ問題を避ける。
   const jumpToMessage = (imageUrl: string) => {
@@ -807,10 +1418,19 @@ export const ChatView = ({
   };
 
   const keys = bubbleKeys(bubbles);
+  // 失敗の状態では空の「作成中」吹き出しは出さん（返事は来てへん）。
+  const visibleBubbles = isFailurePhase(phase)
+    ? bubbles.filter((bubble) => !(bubble.pending && bubble.role === "assistant"))
+    : bubbles;
+  const marker = markerText(phase);
+  const failure = failureCopy(phase, dailyLimitMessage);
+  const failureActions = failureActionsFor(phase, retryTurn, withdrawPending);
+  const actionBubbleIndex = actionIndexFor(phase, pending, visibleBubbles);
+  const i2iDisabled = busy || imageBusy || pending !== null;
   // 「覚えた：…」は直近の確定した返事の下にだけ出す（RIT-92）。送信中・枝の
   // 古い行・pending 泡には付けん。key に会話+ターンを入れて、返事が進んだ時は
-  // リンクごと作り直して問い直させる。
-  const lastAssistantIndex = bubbles.reduce(
+  // リンクごと作り直して問い直させる。index は描画に使う visibleBubbles の番号。
+  const lastAssistantIndex = visibleBubbles.reduce(
     (last, bubble, index) =>
       bubble.role === "assistant" && !bubble.pending && bubble.turn !== undefined ? index : last,
     -1,
@@ -857,7 +1477,7 @@ export const ChatView = ({
       </div>
       <ChatMessageLog key={characterId} busy={busy}>
         <GreetingRow name={characterName} avatar={characterAvatar} text={greeting} />
-        {bubbles.map((bubble, index) => (
+        {visibleBubbles.map((bubble, index) => (
           // LINE 型の見た目に寄せるため、相手の発言はアイコン付きの行にする（本人専用の顔出し）。
           <div key={keys[index]} className={`v2-turn-row ${bubble.role}`}>
             {bubble.role === "assistant" && (
@@ -869,50 +1489,24 @@ export const ChatView = ({
                 )}
               </span>
             )}
+            {index === actionBubbleIndex && (
+              // 部品 C: 発言の左の操作ボタン。押すと「入力に戻す」と同じ動き。
+              <TurnMessageAction onWithdraw={withdrawPending} />
+            )}
             <div
               className={`v2-bubble v2-message-turn ${bubble.role} ${bubble.pending ? "pending" : ""}`}
               {...bubbleDataAttrs(bubble)}
             >
               <BubbleMedia bubble={bubble} />
-              {bubble.imageUrl &&
-                bubble.mediaKind !== "video" &&
-                messageIdOfImage(bubble.imageUrl) && (
-                  <div className="v2-i2i">
-                    {i2iTarget === messageIdOfImage(bubble.imageUrl) ? (
-                      <>
-                        <input
-                          value={i2iInstruction}
-                          onChange={(event) => setI2iInstruction(event.target.value)}
-                          placeholder="例: 怒った顔"
-                          aria-label="表情変更の依頼"
-                        />
-                        <button
-                          type="button"
-                          onClick={requestI2i}
-                          disabled={[
-                            busy,
-                            imageBusy,
-                            pending !== null,
-                            !i2iInstruction.trim(),
-                          ].some(Boolean)}
-                        >
-                          生成
-                        </button>
-                        <button type="button" onClick={() => setI2iTarget(null)}>
-                          やめる
-                        </button>
-                      </>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => setI2iTarget(messageIdOfImage(bubble.imageUrl))}
-                        disabled={[busy, imageBusy, pending !== null].some(Boolean)}
-                      >
-                        表情変更
-                      </button>
-                    )}
-                  </div>
-                )}
+              <I2iSlot
+                bubble={bubble}
+                open={i2iTarget}
+                instruction={i2iInstruction}
+                disabled={i2iDisabled}
+                onOpen={setI2iTarget}
+                onInstruction={setI2iInstruction}
+                onSubmit={requestI2i}
+              />
               <ChatMessage
                 role={bubble.role}
                 text={bubble.text || (bubble.pending ? "…" : "")}
@@ -925,66 +1519,34 @@ export const ChatView = ({
             </div>
           </div>
         ))}
+        {marker !== null && <TurnMarker text={marker} icon={phase !== "resending"} />}
+        {isWaitingPhase(phase) && <ChatWaiting phase={phase} />}
+        {stoppedNotice && <StoppedMarker />}
       </ChatMessageLog>
-      {rewoundFrom !== null && (
-        <div className="v2-branch-restore">
-          <button type="button" onClick={() => void restoreRewound()} disabled={busy}>
-            戻した会話を進む（復元）
-          </button>
-        </div>
-      )}
-      {error && (
-        <ChatErrorBar
-          error={error}
-          canResume={pending !== null}
-          terminalFailure={terminalFailure}
-          busy={busy}
-          onRecover={recoverPending}
-          onRetry={retry}
-        />
-      )}
-      <details className="v2-image-params">
-        <summary>画像設定</summary>
-        <div className="v2-image-params-grid">
-          {paramField("cfg", "CFG", "5", "number", "0.5")}
-          {paramField("seed", "seed", "ランダム")}
-          {paramField("width", "幅", "832", "number", "8")}
-          {paramField("height", "高さ", "1216", "number", "8")}
-          {paramField("strength", "i2i強度", "0.45", "number", "0.05")}
-          {paramField("negativePrompt", "ネガティブプロンプト", "既定", "text")}
-        </div>
-      </details>
-      <form
-        className="v2-chat-form"
-        onSubmit={(event) => {
-          void send(event);
-        }}
-      >
-        <input
-          value={input}
-          onChange={(event) => setInput(event.target.value)}
-          placeholder="メッセージを入力"
-          aria-label="メッセージ"
-          disabled={busy || pending !== null}
-        />
-        <SuggestionChips
-          characterId={characterId}
-          getConversationId={() => conversationId.current}
-          disabled={busy || pending !== null}
-          onPick={(text) => void sendText(text)}
-          onError={setError}
-        />
-        <button
-          type="button"
-          onClick={() => void requestImage()}
-          disabled={[busy, imageBusy, pending !== null].some(Boolean)}
-        >
-          {imageBusy ? "生成中…" : "画像"}
-        </button>
-        <button type="submit" disabled={busy || pending !== null || input.trim().length === 0}>
-          送信
-        </button>
-      </form>
+      <ChatFooter
+        busy={busy}
+        imageBusy={imageBusy}
+        pending={pending}
+        phase={phase}
+        error={error}
+        failure={failure}
+        failureActions={failureActions}
+        rewoundFrom={rewoundFrom}
+        onRestoreRewound={restoreRewound}
+        onWithdraw={withdrawPending}
+        onRetry={retryTurn}
+        stopping={stopping}
+        onStop={stopTurn}
+        input={input}
+        onInput={setInput}
+        onSubmit={send}
+        onPick={sendText}
+        onImage={requestImage}
+        characterId={characterId}
+        getConversationId={() => conversationId.current}
+        onError={setError}
+        paramField={paramField}
+      />
     </div>
   );
 };

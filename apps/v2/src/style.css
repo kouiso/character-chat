@@ -480,6 +480,194 @@ body {
   font-size: 0.85rem;
 }
 
+/* RIT-65 部品 A: 発言の下の印の行（板 TalkError「まだ送れていません」「送り直しています」） */
+.v2-turn-marker {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--color-text-sub);
+}
+.v2-turn-marker-icon {
+  color: var(--color-danger);
+  flex: 0 0 auto;
+}
+.v2-turn-marker-icon circle,
+.v2-turn-marker-icon line {
+  stroke: currentColor;
+}
+
+/* RIT-65 部品 C: 発言の左の操作ボタン */
+.v2-turn-message-action {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: none;
+  background: none;
+  color: var(--color-text-sub);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  margin-right: 4px;
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+
+/* RIT-65 部品 B: 失敗の枠 */
+.v2-turn-failure {
+  margin: 12px 12px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 20px;
+  background: var(--gradient-surface);
+  box-shadow: var(--shadow-surface);
+}
+.v2-turn-failure-head {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+.v2-turn-failure-icon {
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  color: var(--color-danger);
+  flex: 0 0 auto;
+}
+.v2-turn-failure-icon circle,
+.v2-turn-failure-icon line {
+  stroke: currentColor;
+}
+.v2-turn-failure-primary {
+  font-size: 16px;
+  line-height: 28px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--color-text);
+}
+.v2-turn-failure-secondary {
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--color-text-sub);
+  white-space: pre-line;
+}
+.v2-turn-failure-actions {
+  display: flex;
+  gap: 8px;
+}
+.v2-turn-retry {
+  height: 44px;
+  padding: 0 16px 0 12px;
+  border-radius: 999px;
+  border: none;
+  background: var(--gradient-press);
+  box-shadow: var(--shadow-press);
+  color: var(--color-text);
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+.v2-turn-retry svg * {
+  stroke: currentColor;
+}
+.v2-turn-withdraw {
+  height: 44px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: none;
+  background: none;
+  color: var(--color-text);
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+
+/* RIT-65 部品 D: 「止める」ボタン */
+.v2-turn-stop {
+  height: 48px;
+  padding: 0 16px 0 12px;
+  border-radius: 999px;
+  border: none;
+  background: var(--gradient-press);
+  box-shadow: var(--shadow-press);
+  color: var(--color-text);
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+.v2-turn-stop svg rect {
+  stroke: currentColor;
+}
+.v2-turn-stop:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* RIT-65: 待ちの知らせ（板 TalkWaiting の [div:返事を書いています]） */
+.v2-turn-waiting {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 8px;
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--color-text-sub);
+  animation: v2-waiting-pulse 2.4s ease-in-out infinite;
+}
+.v2-turn-waiting-sub {
+  font-size: 13px;
+  color: var(--color-text-sub);
+}
+@keyframes v2-waiting-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .v2-turn-waiting {
+    animation: none;
+  }
+}
+
+/* RIT-65: 「ここで止めました」（板 TalkWaiting 6） */
+.v2-turn-stopped {
+  margin-top: 8px;
+  height: 20px;
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--color-text-sub);
+}
+
 .v2-image-params {
   flex-shrink: 0;
   border-top: 1px solid #2a2a34;

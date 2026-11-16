@@ -1,9 +1,11 @@
 import type { ChatSseEvent } from "../lib/sse-events";
 
 export type SequencedSseEvent = { id: number; event: ChatSseEvent };
-type StreamEvent = ChatSseEvent | SequencedSseEvent;
+// SSE のつなぎ行（`: ping`）。長い待ちで中継が切らんよう、出来事の無い間に挟む。
+type StreamEvent = ChatSseEvent | SequencedSseEvent | { comment: string };
 
 const encodeEvent = (value: StreamEvent): string => {
+  if ("comment" in value) return `: ${value.comment}\n\n`;
   const event = "event" in value ? value.event : value;
   const prefix = "event" in value ? `id: ${value.id}\n` : "";
   const { type, ...rest } = event;

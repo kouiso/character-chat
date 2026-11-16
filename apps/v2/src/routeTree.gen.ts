@@ -76,13 +76,17 @@ import { Route as ApiCharactersIdVersionsRouteImport } from './routes/api/charac
 import { Route as ApiCharactersIdVoiceRouteImport } from './routes/api/characters/$id_/voice'
 import { Route as ApiChatIdBranchRouteImport } from './routes/api/chat/$id_/branch'
 import { Route as ApiChatIdComicRouteImport } from './routes/api/chat/$id_/comic'
+import { Route as ApiChatIdEventsRouteImport } from './routes/api/chat/$id_/events'
 import { Route as ApiChatIdHistoryRouteImport } from './routes/api/chat/$id_/history'
 import { Route as ApiChatIdImagesRouteImport } from './routes/api/chat/$id_/images'
 import { Route as ApiChatIdLedgerRouteImport } from './routes/api/chat/$id_/ledger'
 import { Route as ApiChatIdMarksRouteImport } from './routes/api/chat/$id_/marks'
 import { Route as ApiChatIdMemoryRouteImport } from './routes/api/chat/$id_/memory'
+import { Route as ApiChatIdStopRouteImport } from './routes/api/chat/$id_/stop'
 import { Route as ApiChatIdSuggestRouteImport } from './routes/api/chat/$id_/suggest'
+import { Route as ApiChatIdTurnRouteImport } from './routes/api/chat/$id_/turn'
 import { Route as ApiChatIdVideoRouteImport } from './routes/api/chat/$id_/video'
+import { Route as ApiChatIdWithdrawRouteImport } from './routes/api/chat/$id_/withdraw'
 import { Route as ApiClipsIdPlayRouteImport } from './routes/api/clips/$id_/play'
 import { Route as ApiGroupsIdMessagesRouteImport } from './routes/api/groups/$id_/messages'
 import { Route as ApiStoriesIdChaptersRouteImport } from './routes/api/stories/$id_/chapters'
@@ -434,6 +438,11 @@ const ApiChatIdComicRoute = ApiChatIdComicRouteImport.update({
   path: '/api/chat/$id/comic',
   getParentRoute: () => rootRouteImport,
 })
+const ApiChatIdEventsRoute = ApiChatIdEventsRouteImport.update({
+  id: '/api/chat/$id_/events',
+  path: '/api/chat/$id/events',
+  getParentRoute: () => rootRouteImport,
+})
 const ApiChatIdHistoryRoute = ApiChatIdHistoryRouteImport.update({
   id: '/api/chat/$id_/history',
   path: '/api/chat/$id/history',
@@ -459,14 +468,29 @@ const ApiChatIdMemoryRoute = ApiChatIdMemoryRouteImport.update({
   path: '/api/chat/$id/memory',
   getParentRoute: () => rootRouteImport,
 })
+const ApiChatIdStopRoute = ApiChatIdStopRouteImport.update({
+  id: '/api/chat/$id_/stop',
+  path: '/api/chat/$id/stop',
+  getParentRoute: () => rootRouteImport,
+})
 const ApiChatIdSuggestRoute = ApiChatIdSuggestRouteImport.update({
   id: '/api/chat/$id_/suggest',
   path: '/api/chat/$id/suggest',
   getParentRoute: () => rootRouteImport,
 })
+const ApiChatIdTurnRoute = ApiChatIdTurnRouteImport.update({
+  id: '/api/chat/$id_/turn',
+  path: '/api/chat/$id/turn',
+  getParentRoute: () => rootRouteImport,
+})
 const ApiChatIdVideoRoute = ApiChatIdVideoRouteImport.update({
   id: '/api/chat/$id_/video',
   path: '/api/chat/$id/video',
+  getParentRoute: () => rootRouteImport,
+})
+const ApiChatIdWithdrawRoute = ApiChatIdWithdrawRouteImport.update({
+  id: '/api/chat/$id_/withdraw',
+  path: '/api/chat/$id/withdraw',
   getParentRoute: () => rootRouteImport,
 })
 const ApiClipsIdPlayRoute = ApiClipsIdPlayRouteImport.update({
@@ -617,13 +641,17 @@ export interface FileRoutesByFullPath {
   '/api/characters/$id/voice': typeof ApiCharactersIdVoiceRoute
   '/api/chat/$id/branch': typeof ApiChatIdBranchRoute
   '/api/chat/$id/comic': typeof ApiChatIdComicRoute
+  '/api/chat/$id/events': typeof ApiChatIdEventsRoute
   '/api/chat/$id/history': typeof ApiChatIdHistoryRoute
   '/api/chat/$id/images': typeof ApiChatIdImagesRoute
   '/api/chat/$id/ledger': typeof ApiChatIdLedgerRoute
   '/api/chat/$id/marks': typeof ApiChatIdMarksRoute
   '/api/chat/$id/memory': typeof ApiChatIdMemoryRoute
+  '/api/chat/$id/stop': typeof ApiChatIdStopRoute
   '/api/chat/$id/suggest': typeof ApiChatIdSuggestRoute
+  '/api/chat/$id/turn': typeof ApiChatIdTurnRoute
   '/api/chat/$id/video': typeof ApiChatIdVideoRoute
+  '/api/chat/$id/withdraw': typeof ApiChatIdWithdrawRoute
   '/api/clips/$id/play': typeof ApiClipsIdPlayRoute
   '/api/groups/$id/messages': typeof ApiGroupsIdMessagesRoute
   '/api/stories/$id/chapters': typeof ApiStoriesIdChaptersRouteWithChildren
@@ -707,13 +735,17 @@ export interface FileRoutesByTo {
   '/api/characters/$id/voice': typeof ApiCharactersIdVoiceRoute
   '/api/chat/$id/branch': typeof ApiChatIdBranchRoute
   '/api/chat/$id/comic': typeof ApiChatIdComicRoute
+  '/api/chat/$id/events': typeof ApiChatIdEventsRoute
   '/api/chat/$id/history': typeof ApiChatIdHistoryRoute
   '/api/chat/$id/images': typeof ApiChatIdImagesRoute
   '/api/chat/$id/ledger': typeof ApiChatIdLedgerRoute
   '/api/chat/$id/marks': typeof ApiChatIdMarksRoute
   '/api/chat/$id/memory': typeof ApiChatIdMemoryRoute
+  '/api/chat/$id/stop': typeof ApiChatIdStopRoute
   '/api/chat/$id/suggest': typeof ApiChatIdSuggestRoute
+  '/api/chat/$id/turn': typeof ApiChatIdTurnRoute
   '/api/chat/$id/video': typeof ApiChatIdVideoRoute
+  '/api/chat/$id/withdraw': typeof ApiChatIdWithdrawRoute
   '/api/clips/$id/play': typeof ApiClipsIdPlayRoute
   '/api/groups/$id/messages': typeof ApiGroupsIdMessagesRoute
   '/api/stories/$id/chapters': typeof ApiStoriesIdChaptersRouteWithChildren
@@ -798,13 +830,17 @@ export interface FileRoutesById {
   '/api/characters/$id_/voice': typeof ApiCharactersIdVoiceRoute
   '/api/chat/$id_/branch': typeof ApiChatIdBranchRoute
   '/api/chat/$id_/comic': typeof ApiChatIdComicRoute
+  '/api/chat/$id_/events': typeof ApiChatIdEventsRoute
   '/api/chat/$id_/history': typeof ApiChatIdHistoryRoute
   '/api/chat/$id_/images': typeof ApiChatIdImagesRoute
   '/api/chat/$id_/ledger': typeof ApiChatIdLedgerRoute
   '/api/chat/$id_/marks': typeof ApiChatIdMarksRoute
   '/api/chat/$id_/memory': typeof ApiChatIdMemoryRoute
+  '/api/chat/$id_/stop': typeof ApiChatIdStopRoute
   '/api/chat/$id_/suggest': typeof ApiChatIdSuggestRoute
+  '/api/chat/$id_/turn': typeof ApiChatIdTurnRoute
   '/api/chat/$id_/video': typeof ApiChatIdVideoRoute
+  '/api/chat/$id_/withdraw': typeof ApiChatIdWithdrawRoute
   '/api/clips/$id_/play': typeof ApiClipsIdPlayRoute
   '/api/groups/$id_/messages': typeof ApiGroupsIdMessagesRoute
   '/api/stories/$id_/chapters': typeof ApiStoriesIdChaptersRouteWithChildren
@@ -890,13 +926,17 @@ export interface FileRouteTypes {
     | '/api/characters/$id/voice'
     | '/api/chat/$id/branch'
     | '/api/chat/$id/comic'
+    | '/api/chat/$id/events'
     | '/api/chat/$id/history'
     | '/api/chat/$id/images'
     | '/api/chat/$id/ledger'
     | '/api/chat/$id/marks'
     | '/api/chat/$id/memory'
+    | '/api/chat/$id/stop'
     | '/api/chat/$id/suggest'
+    | '/api/chat/$id/turn'
     | '/api/chat/$id/video'
+    | '/api/chat/$id/withdraw'
     | '/api/clips/$id/play'
     | '/api/groups/$id/messages'
     | '/api/stories/$id/chapters'
@@ -980,13 +1020,17 @@ export interface FileRouteTypes {
     | '/api/characters/$id/voice'
     | '/api/chat/$id/branch'
     | '/api/chat/$id/comic'
+    | '/api/chat/$id/events'
     | '/api/chat/$id/history'
     | '/api/chat/$id/images'
     | '/api/chat/$id/ledger'
     | '/api/chat/$id/marks'
     | '/api/chat/$id/memory'
+    | '/api/chat/$id/stop'
     | '/api/chat/$id/suggest'
+    | '/api/chat/$id/turn'
     | '/api/chat/$id/video'
+    | '/api/chat/$id/withdraw'
     | '/api/clips/$id/play'
     | '/api/groups/$id/messages'
     | '/api/stories/$id/chapters'
@@ -1070,13 +1114,17 @@ export interface FileRouteTypes {
     | '/api/characters/$id_/voice'
     | '/api/chat/$id_/branch'
     | '/api/chat/$id_/comic'
+    | '/api/chat/$id_/events'
     | '/api/chat/$id_/history'
     | '/api/chat/$id_/images'
     | '/api/chat/$id_/ledger'
     | '/api/chat/$id_/marks'
     | '/api/chat/$id_/memory'
+    | '/api/chat/$id_/stop'
     | '/api/chat/$id_/suggest'
+    | '/api/chat/$id_/turn'
     | '/api/chat/$id_/video'
+    | '/api/chat/$id_/withdraw'
     | '/api/clips/$id_/play'
     | '/api/groups/$id_/messages'
     | '/api/stories/$id_/chapters'
@@ -1138,13 +1186,17 @@ export interface RootRouteChildren {
   ChatIdMemoryRoute: typeof ChatIdMemoryRoute
   ApiChatIdBranchRoute: typeof ApiChatIdBranchRoute
   ApiChatIdComicRoute: typeof ApiChatIdComicRoute
+  ApiChatIdEventsRoute: typeof ApiChatIdEventsRoute
   ApiChatIdHistoryRoute: typeof ApiChatIdHistoryRoute
   ApiChatIdImagesRoute: typeof ApiChatIdImagesRoute
   ApiChatIdLedgerRoute: typeof ApiChatIdLedgerRoute
   ApiChatIdMarksRoute: typeof ApiChatIdMarksRoute
   ApiChatIdMemoryRoute: typeof ApiChatIdMemoryRoute
+  ApiChatIdStopRoute: typeof ApiChatIdStopRoute
   ApiChatIdSuggestRoute: typeof ApiChatIdSuggestRoute
+  ApiChatIdTurnRoute: typeof ApiChatIdTurnRoute
   ApiChatIdVideoRoute: typeof ApiChatIdVideoRoute
+  ApiChatIdWithdrawRoute: typeof ApiChatIdWithdrawRoute
   ApiProactiveCharactersIdSettingsRoute: typeof ApiProactiveCharactersIdSettingsRoute
 }
 
@@ -1619,6 +1671,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiChatIdComicRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/chat/$id_/events': {
+      id: '/api/chat/$id_/events'
+      path: '/api/chat/$id/events'
+      fullPath: '/api/chat/$id/events'
+      preLoaderRoute: typeof ApiChatIdEventsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/chat/$id_/history': {
       id: '/api/chat/$id_/history'
       path: '/api/chat/$id/history'
@@ -1654,6 +1713,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiChatIdMemoryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/chat/$id_/stop': {
+      id: '/api/chat/$id_/stop'
+      path: '/api/chat/$id/stop'
+      fullPath: '/api/chat/$id/stop'
+      preLoaderRoute: typeof ApiChatIdStopRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/chat/$id_/suggest': {
       id: '/api/chat/$id_/suggest'
       path: '/api/chat/$id/suggest'
@@ -1661,11 +1727,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiChatIdSuggestRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/chat/$id_/turn': {
+      id: '/api/chat/$id_/turn'
+      path: '/api/chat/$id/turn'
+      fullPath: '/api/chat/$id/turn'
+      preLoaderRoute: typeof ApiChatIdTurnRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/chat/$id_/video': {
       id: '/api/chat/$id_/video'
       path: '/api/chat/$id/video'
       fullPath: '/api/chat/$id/video'
       preLoaderRoute: typeof ApiChatIdVideoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/chat/$id_/withdraw': {
+      id: '/api/chat/$id_/withdraw'
+      path: '/api/chat/$id/withdraw'
+      fullPath: '/api/chat/$id/withdraw'
+      preLoaderRoute: typeof ApiChatIdWithdrawRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/clips/$id_/play': {
@@ -2030,13 +2110,17 @@ const rootRouteChildren: RootRouteChildren = {
   ChatIdMemoryRoute: ChatIdMemoryRoute,
   ApiChatIdBranchRoute: ApiChatIdBranchRoute,
   ApiChatIdComicRoute: ApiChatIdComicRoute,
+  ApiChatIdEventsRoute: ApiChatIdEventsRoute,
   ApiChatIdHistoryRoute: ApiChatIdHistoryRoute,
   ApiChatIdImagesRoute: ApiChatIdImagesRoute,
   ApiChatIdLedgerRoute: ApiChatIdLedgerRoute,
   ApiChatIdMarksRoute: ApiChatIdMarksRoute,
   ApiChatIdMemoryRoute: ApiChatIdMemoryRoute,
+  ApiChatIdStopRoute: ApiChatIdStopRoute,
   ApiChatIdSuggestRoute: ApiChatIdSuggestRoute,
+  ApiChatIdTurnRoute: ApiChatIdTurnRoute,
   ApiChatIdVideoRoute: ApiChatIdVideoRoute,
+  ApiChatIdWithdrawRoute: ApiChatIdWithdrawRoute,
   ApiProactiveCharactersIdSettingsRoute: ApiProactiveCharactersIdSettingsRoute,
 }
 export const routeTree = rootRouteImport

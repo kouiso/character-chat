@@ -66,6 +66,26 @@ export class CharacterInvalidError extends Error {
 const FAKE_RESPONSE =
   "<response><action>小さく笑って、こちらへ一歩近づく。</action><dialogue>ねえ、こっち向いて。</dialogue><inner>ちょっとドキドキしてる。</inner></response>";
 
+// 試験で塊が複数要る時（届きかけの待ち・止めた時の切り詰め）だけ差し替える口。
+// APP_ENV=test 以外では効かせない（値が漏れても本番の応答は変わらん）。
+// 値が "[" で始まる時は JSON の文字列配列として読み、連続するターンへ順に返す
+// （FakeListChatModel の responses にそのまま渡る）。壊れた JSON は 1 本文として扱う。
+const fakeResponsesFromEnv = (env: { V2_FAKE_RESPONSE?: string }): string[] => {
+  const raw = env.V2_FAKE_RESPONSE?.trim();
+  if (!raw) return [FAKE_RESPONSE];
+  if (raw.startsWith("[")) {
+    try {
+      const parsed: unknown = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.every((item) => typeof item === "string")) {
+        return parsed as string[];
+      }
+    } catch {
+      // 単一本文として扱う
+    }
+  }
+  return [raw];
+};
+
 // RIT-102/104: 拒否・時間切れ・障害で順に落ちる逃げ道チェーン。
 // 単モデル指定（V2_MODEL・V2_FAKE_MODEL）の時は 1 本だけの列になる。
 const createModels = async (safeMode: boolean, chatMode: ChatMode): Promise<ModelCandidate[]> => {
@@ -73,7 +93,10 @@ const createModels = async (safeMode: boolean, chatMode: ChatMode): Promise<Mode
   const { env } = await getPlatform();
   if (env.APP_ENV === "test" && env.V2_FAKE_MODEL === "1") {
     return [
-      { name: "fake", model: new FakeListChatModel({ responses: [FAKE_RESPONSE], sleep: 5 }) },
+      {
+        name: "fake",
+        model: new FakeListChatModel({ responses: fakeResponsesFromEnv(env), sleep: 5 }),
+      },
     ];
   }
   return createModelChain(
@@ -141,7 +164,30 @@ export type StartTurnInput = {
   // RIT-202 再生成: true の時 assistant 行を同じターンの新しい枝として保存する。
   // expectedTurn は必須（再生成するターン）。
   branch?: boolean;
+  // RIT-83 「止める」の合図。立った後は D1 へ何も書かん（保存の口が例外を投げる）。
+  signal?: AbortSignal;
 };
+
+// 止めの合図が立った後に saveTurn へ来た保存を弾く例外。job の終わり方（stopped）に写る。
+export class TurnStoppedError extends Error {
+  constructor() {
+    super("止められたターンの保存を断りました。");
+    this.name = "TurnStoppedError";
+  }
+}
+
+// 「止める」の後は D1 に何も書かせん（RIT-83 FR-10）。保存の呼び出し前にだけ見る。
+// 呼んだ後に合図が来た分は batch が確定して返るので、その場合は already_saved 側へ写る。
+const guardStopped = (store: TurnStore, signal?: AbortSignal): TurnStore =>
+  signal
+    ? {
+        ...store,
+        saveTurn: async (input) => {
+          if (signal.aborted) throw new TurnStoppedError();
+          return store.saveTurn(input);
+        },
+      }
+    : store;
 
 const loadValidCharacter = async (characterId: string) => {
   const { ok, failures } = await readCharacter(characterId);
@@ -259,14 +305,19 @@ export const startTurn = async (
             })),
           )
       : undefined,
-    store: createStore(
-      db,
-      input.characterId,
-      input.expectedTurn,
-      versionId ?? undefined,
-      Boolean(env.MEMORY_QUEUE),
-      input.branch === true,
+    store: guardStopped(
+      createStore(
+        db,
+        input.characterId,
+        input.expectedTurn,
+        versionId ?? undefined,
+        Boolean(env.MEMORY_QUEUE),
+        input.branch === true,
+      ),
+      input.signal,
     ),
+    // 止めの合図をモデルの呼び出し中の HTTP 要求まで届ける（graph 内の締切器と連結）。
+    signal: input.signal,
     summaryStore: createD1SummaryStore(db),
     providerLookup: createProviderLookup(env),
     // 索引待ちの引き直しはターン完了の後ろへ。引けたら generation 行を UPDATE する。

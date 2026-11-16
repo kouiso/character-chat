@@ -266,13 +266,21 @@ describe("GET /api/admin/character-check", () => {
 
   it("R2 の偽物が例外を投げても、その 1 件を missing にせず 502 を返す", async () => {
     // bundled に当たらん avatar を持つ local キャラ（bucketHead が例外を投げる経路）。
-    mocks.bucketHead.mockRejectedValueOnce(new Error("R2 down"));
-    mocks.assetsFetch.mockResolvedValueOnce(new Response(null, { status: 404 }));
-    const response = await handleCharacterCheck(request("?limit=1"));
-    expect(response.status).toBe(502);
-    const body = (await response.json()) as { code: string; id: string };
-    expect(body.code).toBe("storage_failed");
-    expect(body.id).toBeTruthy();
+    // ローカル D1 は実行内の全ファイルで共有で、他の試験が残した行が id 順の先頭に
+    // 紛れうる。'!' 始まりの id は必ず先頭に来るので、専用の 1 件を挿して確実に当てる。
+    const firstId = `!${prefix}-first`;
+    await insertCharacter(local, firstId, "local", { avatar: "check-first.png" });
+    try {
+      mocks.bucketHead.mockRejectedValueOnce(new Error("R2 down"));
+      mocks.assetsFetch.mockResolvedValueOnce(new Response(null, { status: 404 }));
+      const response = await handleCharacterCheck(request("?limit=1"));
+      expect(response.status).toBe(502);
+      const body = (await response.json()) as { code: string; id: string };
+      expect(body.code).toBe("storage_failed");
+      expect(body.id).toBe(firstId);
+    } finally {
+      await local.d1.prepare("DELETE FROM character WHERE id = ?").bind(firstId).run();
+    }
   });
 
   it("D1・R2 の偽物は書き込みの呼び出しを 1 回も受けない", async () => {

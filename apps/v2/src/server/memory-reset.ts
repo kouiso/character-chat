@@ -34,7 +34,8 @@ const resolveConversations = async (
 };
 
 // Vectorize 側のベクトルを消す。バインド無し・deleteByIds 未対応なら何もしない。
-const deleteMemoryVectors = async (
+// 「止める」の切り詰めで消えたターンの記憶にも同じ手順を使う（RIT-65）。
+export const deleteMemoryVectors = async (
   env: MemoryVectorBindings,
   memories: { id: string; content: string }[],
 ): Promise<number> => {
