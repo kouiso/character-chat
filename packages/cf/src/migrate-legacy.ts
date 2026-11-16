@@ -1,11 +1,6 @@
 import { parseArgs } from "node:util";
 
-import {
-  createDb,
-  conversationTable,
-  LegacyMigrationError,
-  migrateLegacyConversations,
-} from "@v2/db";
+import { createDb, conversationTable, migrateLegacyConversations } from "@v2/db";
 
 import { assertLocalOnly } from "./assert-local";
 
@@ -32,22 +27,15 @@ try {
     );
   }
   // 確認（--apply なし）も本番と同じ照合を通し、書き込みだけを飛ばす。「確認は通ったのに適用で失敗」を無くす。
+  // 手元のコピーは全件を1回で回すので limit を付けず、要確認は failures に集めて出口コードで返す。
   const mode = values.apply ? "local-apply" : "inspect";
-  const outcome = await migrateLegacyConversations(db, {
+  const report = await migrateLegacyConversations(db, {
     sourceUserId,
     targetUserId: values["target-user"],
-    dryRun: !values.apply,
-  }).catch((error: unknown) => {
-    if (error instanceof LegacyMigrationError) return error;
-    throw error;
+    apply: values.apply,
   });
-  // 移行できた会話の件数と、確認が要る会話の一覧を両方残して失敗で終える。
-  const report =
-    outcome instanceof LegacyMigrationError
-      ? { ...outcome.result, failures: outcome.failures }
-      : outcome;
   process.stdout.write(`${JSON.stringify({ mode, owners: users.length, ...report })}\n`);
-  if (outcome instanceof LegacyMigrationError) process.exitCode = 1;
+  if (report.failures.length > 0) process.exitCode = 1;
 } finally {
   await platform.dispose();
 }

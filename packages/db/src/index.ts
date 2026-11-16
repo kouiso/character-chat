@@ -10,6 +10,7 @@ export * from "./character-version";
 export * from "./character-version-store";
 export * from "./chunk-schedule";
 export * from "./summary-store";
+export * from "./legacy-import-store";
 export * from "./legacy-migration";
 export * from "./legacy-memory-migration";
 export * from "./local-user";

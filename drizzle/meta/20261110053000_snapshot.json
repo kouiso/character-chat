@@ -4891,8 +4891,7 @@
         }
       },
       "uniqueConstraints": {},
-      "checkConstraints": {},
-      "primaryKeys": {}
+      "checkConstraints": {}
     },
     "v2_catalog_comment": {
       "name": "v2_catalog_comment",
@@ -4943,8 +4942,7 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
-      "checkConstraints": {},
-      "primaryKeys": {}
+      "checkConstraints": {}
     },
     "v2_follow": {
       "name": "v2_follow",
@@ -4993,8 +4991,7 @@
         }
       },
       "uniqueConstraints": {},
-      "checkConstraints": {},
-      "primaryKeys": {}
+      "checkConstraints": {}
     },
     "v2_board_post": {
       "name": "v2_board_post",
@@ -5038,8 +5035,7 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
-      "checkConstraints": {},
-      "primaryKeys": {}
+      "checkConstraints": {}
     },
     "v2_creator_revenue": {
       "name": "v2_creator_revenue",
@@ -5116,8 +5112,7 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
-      "checkConstraints": {},
-      "primaryKeys": {}
+      "checkConstraints": {}
     }
   },
   "views": {},

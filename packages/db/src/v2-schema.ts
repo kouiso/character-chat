@@ -769,6 +769,37 @@ export const v2ChapterTable = sqliteTable(
   (table) => [index("idx_v2_chapter_story").on(table.storyId, table.ord)],
 );
 
+// RIT-77 台帳: 旧表のどの行を、どの v2 の行へ、いつ写したかを 1 行ずつ残す。
+// v2 の行が消えても台帳が残る事で「v2 で消した」と「まだ移していない」を見分けるため、
+// v2_conversation / v2_message への外部キーは付けない（消す側も台帳は残す約束）。
+export const v2LegacyImportTable = sqliteTable(
+  "v2_legacy_import",
+  {
+    // 写した元の表。memory_note は RIT-78 が使う枠。
+    legacyTable: text("legacy_table", {
+      enum: ["conversation", "message", "memory_note"],
+    }).notNull(),
+    legacyId: text("legacy_id").notNull(),
+    // 写した先の v2 の行の id（会話と発言は旧と同じ id）。
+    v2Id: text("v2_id").notNull(),
+    // 写した先の行が属する v2_conversation.id（検索用。外部キーではない）。
+    conversationId: text("conversation_id").notNull(),
+    sourceUserId: text("source_user_id").notNull(),
+    targetUserId: text("target_user_id").notNull(),
+    // 会話は [character_id, created_at]、発言は [role, created_at, content] の SHA-256。
+    contentHash: text("content_hash").notNull(),
+    importedAt: integer("imported_at").notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.legacyTable, table.legacyId] }),
+    index("v2_legacy_import_conversation_idx").on(table.conversationId, table.legacyTable),
+    check(
+      "v2_legacy_import_table_check",
+      sql`${table.legacyTable} in ('conversation','message','memory_note')`,
+    ),
+  ],
+);
+
 // RIT-213: 音声通話の日次無料枠（秒）。日次区切りは usage-limit と同じ JST 0 時。
 export const v2VoiceCallUsageTable = sqliteTable(
   "v2_voice_call_usage",

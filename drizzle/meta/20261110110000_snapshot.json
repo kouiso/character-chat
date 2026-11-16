@@ -4899,8 +4899,7 @@
         }
       },
       "uniqueConstraints": {},
-      "checkConstraints": {},
-      "primaryKeys": {}
+      "checkConstraints": {}
     },
     "v2_catalog_comment": {
       "name": "v2_catalog_comment",
@@ -4951,8 +4950,7 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
-      "checkConstraints": {},
-      "primaryKeys": {}
+      "checkConstraints": {}
     },
     "v2_follow": {
       "name": "v2_follow",
@@ -5001,8 +4999,7 @@
         }
       },
       "uniqueConstraints": {},
-      "checkConstraints": {},
-      "primaryKeys": {}
+      "checkConstraints": {}
     },
     "v2_board_post": {
       "name": "v2_board_post",
@@ -5046,8 +5043,7 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
-      "checkConstraints": {},
-      "primaryKeys": {}
+      "checkConstraints": {}
     },
     "v2_creator_revenue": {
       "name": "v2_creator_revenue",
@@ -5124,8 +5120,7 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
-      "checkConstraints": {},
-      "primaryKeys": {}
+      "checkConstraints": {}
     },
     "v2_character_voice": {
       "name": "v2_character_voice",
@@ -5184,8 +5179,7 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
-      "checkConstraints": {},
-      "primaryKeys": {}
+      "checkConstraints": {}
     },
     "v2_voice_call_usage": {
       "name": "v2_voice_call_usage",
@@ -5222,8 +5216,7 @@
         }
       },
       "uniqueConstraints": {},
-      "checkConstraints": {},
-      "primaryKeys": {}
+      "checkConstraints": {}
     },
     "v2_story": {
       "name": "v2_story",
@@ -5283,22 +5276,13 @@
         "idx_v2_story_user": {
           "name": "idx_v2_story_user",
           "columns": [
-            {
-              "expression": "user_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
+            "user_id"
           ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
+          "isUnique": false
         }
       },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "primaryKeys": {},
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
@@ -5393,23 +5377,10 @@
         "idx_v2_chapter_story": {
           "name": "idx_v2_chapter_story",
           "columns": [
-            {
-              "expression": "story_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "ord",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
+            "story_id",
+            "ord"
           ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
+          "isUnique": false
         }
       },
       "foreignKeys": {
@@ -5424,7 +5395,6 @@
         }
       },
       "compositePrimaryKeys": {},
-      "primaryKeys": {},
       "uniqueConstraints": {},
       "checkConstraints": {}
     }
@@ -5438,6 +5408,5 @@
   },
   "internal": {
     "indexes": {}
-  },
-  "idx": 101
+  }
 }
