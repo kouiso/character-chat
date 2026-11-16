@@ -153,8 +153,20 @@ describe("voiceCheck", () => {
     expect(result.forbiddenPronoun).toBe("俺");
   });
 
-  it("dialogue内は判定対象外（呼び方を変えることがあるため）", () => {
+  it("dialogue 内の別一人称も ng（自分を呼ぶ一人称はシート固定なので場面で揺れん）", () => {
     const text = "<dialogue>私、待ってたの</dialogue>";
+    const result = voiceCheck(text, voice);
+    expect(result.ok).toBe(false);
+    expect(result.forbiddenPronoun).toBe("私");
+  });
+
+  it("dialogue 内でもシート通りの一人称なら通る", () => {
+    const text = "<dialogue>わたし、待ってたの</dialogue>";
+    expect(voiceCheck(text, voice)).toEqual({ ok: true });
+  });
+
+  it("dialogue 内の「自分」は再帰用法が普通に出るので見ん", () => {
+    const text = "<dialogue>わたし、自分でも止まらないの</dialogue>";
     expect(voiceCheck(text, voice)).toEqual({ ok: true });
   });
 

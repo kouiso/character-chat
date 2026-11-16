@@ -847,6 +847,10 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
           voice: extractVoice(state.character.systemPrompt),
           selfName: state.character.name,
           userText: state.userText,
+          // 受理済みの塊だけ数える。落とされた inner の前科で正規の 1 個目を塞がんよう。
+          priorInnerCount: state.chunks.filter(
+            (chunkItem) => chunkItem.judge.ok && /<inner>/.test(chunkItem.text),
+          ).length,
         });
         const attempt = state.attempts[state.cursor] ?? 1;
         const chunks = [...state.chunks];
