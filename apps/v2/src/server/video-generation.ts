@@ -2,16 +2,11 @@
 // 渡し、出来た mp4 を R2 へ保存して v2_message + v2_video_generation に記録する。
 // 動画は数分掛かるので POST は依頼の登録だけを済ませ、GET で getResponse を逐次ポーリングして
 // 完了・失敗へ終端化する。失敗行は理由を残す（将来の返金 RIT-188・課金台帳 RIT-135 の突合基）。
-import {
-  createDb,
-  listLegacySourceUserIds,
-  loadCharacter,
-  readDisplayHistory,
-  v2VideoGenerationTable,
-} from "@v2/db";
+import { createDb, loadCharacter, readDisplayHistory, v2VideoGenerationTable } from "@v2/db";
 import { PROMPT_VERSION } from "@v2/prompt";
 
 import { CurrencyError } from "./currency";
+import { listOwnerIds } from "./identity";
 import { chargeGeneration, refundGenerationBestEffort } from "./generation-billing";
 import { ImageGenerationError } from "./image-generation";
 
@@ -199,7 +194,7 @@ export const startVideoGeneration = async (input: {
   // キー未設定は設定欠陥なので、記録行を残さず先に 503 を返す。
   requireApiKey(env);
   const db = createDb(env.DB);
-  const owners = ["local", ...(await listLegacySourceUserIds(db))];
+  const owners = await listOwnerIds(db);
   const loaded = await loadCharacter(db, input.characterId, owners);
   if (!loaded.ok) {
     throw new ImageGenerationError("会話またはキャラクターが見つかりません。", 404);

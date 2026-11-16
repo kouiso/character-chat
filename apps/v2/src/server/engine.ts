@@ -7,7 +7,6 @@ import {
   createDb,
   ensureConversationVersion,
   ensureCurrentVersion,
-  listLegacySourceUserIds,
   loadVersionedCharacter,
   readDisplayHistory,
   readD1StoredTurn,
@@ -30,7 +29,7 @@ import { PROMPT_VERSION } from "@v2/prompt";
 
 import { readCharacter } from "./character-data.server";
 import { retrieveDocumentChunks } from "./document-rag";
-import { LOCAL_USER_ID } from "./identity";
+import { listOwnerIds, LOCAL_USER_ID } from "./identity";
 import { retrieveMemories } from "./memory-rag";
 import { memoryVectorReady } from "./memory-vector";
 import { createProviderLookup, retryProviderLookup } from "./openrouter-lookup";
@@ -173,7 +172,7 @@ const resolveConversationCharacter = async (
   const sheet = await loadValidCharacter(input.characterId);
   // キャラの名義は v1 移行の旧ユーザーのまま残る（会話名義は常に local）。
   // 一覧と同じ名義集合で読まんと、見えてるキャラでターンだけ落ちる。
-  const characterOwners = [LOCAL_USER_ID, ...(await listLegacySourceUserIds(db))];
+  const characterOwners = await listOwnerIds(db);
   const ensured = await ensureCurrentVersion(db, input.characterId, characterOwners);
   if (!ensured) throw new CharacterNotFoundError(input.characterId);
   const versionId = input.conversationId

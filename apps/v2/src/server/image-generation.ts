@@ -3,7 +3,6 @@
 // までを1回の POST で同期的に済ませる。失敗は記録に理由を残して画面へ返す。
 import {
   createDb,
-  listLegacySourceUserIds,
   loadCharacter,
   loadLatestLedger,
   logEvent,
@@ -14,6 +13,7 @@ import {
 import { PROMPT_VERSION } from "@v2/prompt";
 
 import { CurrencyError } from "./currency";
+import { listOwnerIds } from "./identity";
 import { chargeGeneration, refundGenerationBestEffort } from "./generation-billing";
 import {
   createNovitaClient,
@@ -658,7 +658,7 @@ export const generateConversationImage = async (input: {
 }): Promise<ConversationImageResult> => {
   const { env } = input;
   const db = createDb(env.DB);
-  const owners = ["local", ...(await listLegacySourceUserIds(db))];
+  const owners = await listOwnerIds(db);
   const loaded = await loadCharacter(db, input.characterId, owners);
   if (!loaded.ok) {
     throw new ImageGenerationError("会話またはキャラクターが見つかりません。", 404);
@@ -806,7 +806,7 @@ export const generateConversationComic = async (input: {
 }): Promise<ConversationComicResult> => {
   const { env } = input;
   const db = createDb(env.DB);
-  const owners = ["local", ...(await listLegacySourceUserIds(db))];
+  const owners = await listOwnerIds(db);
   const loaded = await loadCharacter(db, input.characterId, owners);
   if (!loaded.ok) {
     throw new ImageGenerationError("会話またはキャラクターが見つかりません。", 404);

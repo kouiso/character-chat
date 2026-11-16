@@ -11,6 +11,10 @@ const VIDEO_KEY = "videos/0f8fad5b-d9cb-469f-a165-70867728950e.mp4";
 const PNG_BYTES = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 13]);
 const JPEG_BYTES = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 0, 16, 0x4a, 0x46, 0x49, 0x46]);
 const MP4_BYTES = new Uint8Array([0, 0, 0, 24, 0x66, 0x74, 0x79, 0x70, 0x69, 0x73, 0x6f, 0x6d]);
+const GIF_BYTES = new Uint8Array([0x47, 0x49, 0x46, 0x38, 0x39, 0x61, 1, 0, 1, 0]);
+const WEBP_BYTES = new Uint8Array([
+  0x52, 0x49, 0x46, 0x46, 0x1a, 0, 0, 0, 0x57, 0x45, 0x42, 0x50, 0x56, 0x50, 0x38, 0x20,
+]);
 const HTML_BYTES = new TextEncoder().encode("<!doctype html><script>alert(1)</script>");
 
 const bucketWith = (
@@ -129,6 +133,25 @@ describe("旧メッセージ画像の配信", () => {
     [null, new Uint8Array([])],
   ])("型が %j で中身も画像でなければ415にする", async (contentType, bytes) => {
     const { bucket } = bucketWith(contentType, bytes);
+    expect((await serveOwnedImage(IMAGE_KEY, bucket)).status).toBe(415);
+  });
+
+  // 顔の絵の検査でも同じ判定を使うので GIF・WebP は型名乗りが無い実体からも拾う。
+  it.each([
+    [GIF_BYTES, "image/gif"],
+    [WEBP_BYTES, "image/webp"],
+  ])("型が無い実体でも先頭バイトが %s なら配信する", async (bytes, expected) => {
+    const { bucket } = bucketWith(null, bytes);
+    const response = await serveOwnedImage(IMAGE_KEY, bucket);
+    expect(response.status).toBe(200);
+    expect(response.headers.get("content-type")).toBe(expected);
+  });
+
+  it("RIFF で始まるが WEBP でない実体は配信しない（WAV 等を画像扱いしない）", async () => {
+    const wav = new Uint8Array([
+      0x52, 0x49, 0x46, 0x46, 0x24, 0, 0, 0, 0x57, 0x41, 0x56, 0x45, 0x66, 0x6d, 0x74, 0x20,
+    ]);
+    const { bucket } = bucketWith(null, wav);
     expect((await serveOwnedImage(IMAGE_KEY, bucket)).status).toBe(415);
   });
 

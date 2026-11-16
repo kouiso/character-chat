@@ -6,24 +6,36 @@
 export const R2_KEY_PATTERN =
   /^(images\/[\da-f-]+\.(jpg|png)|sub\/[\w-]+\/[\w.-]+\.(jpg|png)|videos\/[\da-f-]+\.mp4)$/;
 const MEDIA_TYPES = /^image\/(png|jpeg|webp|gif|avif)$|^video\/mp4$/;
+// 顔の絵は動画を配らんので image/ だけを許す（avatar.ts が同じ判定を使う）。
+export const AVATAR_MEDIA_TYPES = /^image\/(png|jpeg|webp|gif|avif)$/;
 // 旧アプリの ALLOWED_IMAGE_TYPES は送り元が名乗った image/jpg をそのまま保存しとる。
-const TYPE_ALIASES: Record<string, string> = { "image/jpg": "image/jpeg" };
+export const TYPE_ALIASES: Record<string, string> = { "image/jpg": "image/jpeg" };
 // 型の無い・汎用型の実体は先頭のバイトで決める。拡張子を信用すると、画像の名前で置かれた
 // HTML をメディア型で配ることになる。mp4 は先頭4バイトのサイズ後に "ftyp" が来る。
-const SIGNATURES: { type: string; bytes: number[]; offset?: number }[] = [
+// prefix は 0 バイト目からの一致（WebP は "RIFF" で始まり 8 バイト目が "WEBP" の形だけ拾う）。
+export const SIGNATURES: { type: string; bytes: number[]; offset?: number; prefix?: number[] }[] = [
   { type: "image/png", bytes: [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a] },
   { type: "image/jpeg", bytes: [0xff, 0xd8, 0xff] },
+  { type: "image/gif", bytes: [0x47, 0x49, 0x46, 0x38] },
+  {
+    type: "image/webp",
+    prefix: [0x52, 0x49, 0x46, 0x46],
+    bytes: [0x57, 0x45, 0x42, 0x50],
+    offset: 8,
+  },
   { type: "video/mp4", bytes: [0x66, 0x74, 0x79, 0x70], offset: 4 },
 ];
 
-const normalizeType = (raw: string | undefined): string => {
+export const normalizeType = (raw: string | undefined): string => {
   const type = (raw ?? "").split(";")[0].trim().toLowerCase();
   return TYPE_ALIASES[type] ?? type;
 };
 
-const sniffMediaType = (head: Uint8Array): string | null =>
-  SIGNATURES.find(({ bytes, offset = 0 }) =>
-    bytes.every((byte, index) => head[offset + index] === byte),
+export const sniffMediaType = (head: Uint8Array): string | null =>
+  SIGNATURES.find(
+    ({ bytes, offset = 0, prefix }) =>
+      (prefix ?? []).every((byte, index) => head[index] === byte) &&
+      bytes.every((byte, index) => head[offset + index] === byte),
   )?.type ?? null;
 
 const mediaResponse = (body: BodyInit, type: string): Response =>
