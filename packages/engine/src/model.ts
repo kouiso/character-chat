@@ -80,7 +80,11 @@ export class OpenRouterKeyMissingError extends Error {
   }
 }
 
-const isReasoningModel = (model: string): boolean => /^openai\/(gpt-5|o[1-9])/.test(model);
+// 推論系のモデル。reasoning が max_tokens を食って本文が途中切れになるのを防ぐため、
+// 推論する可能性のある系は effort=minimal に倒す（非対応モデルでは OpenRouter が無視する）。
+// deepseek-v4.1-flash も推論モデルで、本文 396 字欠落の実害が出た（2026-11-16 本番実測）。
+const isReasoningModel = (model: string): boolean =>
+  /(^openai\/(gpt-5|o[1-9])|deepseek\/|google\/gemini-2\.5)/.test(model);
 
 type ChainSpec = { model: string; providerOnly?: string[] };
 
