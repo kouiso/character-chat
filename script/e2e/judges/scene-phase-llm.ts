@@ -121,10 +121,9 @@ export async function judgePhaseWithLlm(args: {
         // 未設定時は本番 openrouter.ai を向く。オフライン smoke は .dev.vars に
         // MOCK_API_BASE=http://127.0.0.1:8790 を設定する。
         apiBase: process.env.MOCK_API_BASE ?? "",
-        // 判定役が OpenRouter 以外の時は model 名が通らんので transport 側の model を使う
-        ...(transport.kind === "openrouter"
-          ? {}
-          : { routerModel: transport.model, fallbackModels: [] }),
+        // transport 側が採点モデルを持つ時（EVAL_JUDGE_MODEL や Claude/codex の既定）は
+        // それを routerModel として渡す。未指定だけの OpenRouter 既定は製品既定に委ねる
+        ...(transport.model !== "" ? { routerModel: transport.model, fallbackModels: [] } : {}),
         fetchImpl: transport.fetchImpl,
         // e2e judgeが評価したいのは「アシスタントの実際の返信が昇格したか」であり、
         // 「ユーザーの発言が誘いだったか」ではない(本番の既定=user_invitationのままだと
