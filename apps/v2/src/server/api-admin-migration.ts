@@ -141,7 +141,8 @@ export const handleLegacyMigration = async (request: Request): Promise<Response>
       case "verify-conversations":
         return await runVerify(db, parsed.data);
     }
-  } catch {
+  } catch (e) {
+    console.error("legacy-migration failed", e);
     return errorJson("internal", 500);
   }
 };
