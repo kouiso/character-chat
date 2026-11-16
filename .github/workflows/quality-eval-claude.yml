@@ -1,0 +1,109 @@
+# Claude 判定役の手動採点 (quality-eval と同じ replay→score、judge だけ Anthropic を使う)
+# 手動実行のみ。Public repo なので CI 費用は AI の呼び出しだけ。
+# 必要な repo secrets:
+#   OPENROUTER_API_KEY          (生成側・必須)
+#   ANTHROPIC_API_KEY_FOR_EVAL  (判定役・Claude 無料API。月額認証は期限切れの再認証がだるいので使わん)
+name: Quality Eval (Claude judge)
+
+concurrency:
+  group: quality-eval-claude
+  cancel-in-progress: false
+
+on:
+  workflow_dispatch:
+    inputs:
+      note:
+        description: "履歴TSVに残す備考"
+        required: false
+        default: ""
+      scenarios:
+        description: "流すシナリオ (カンマ区切り)"
+        required: false
+        default: "s1-midnight-meeting,s6-rinka-lab,s7-saya-rain"
+
+permissions:
+  contents: read
+
+jobs:
+  quality-eval:
+    runs-on: ${{ vars.RUNNER_LINUX_4VCPU || 'ubuntu-latest' }}
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "22"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Guard (key present)
+        run: |
+          if [ -z "${ANTHROPIC_KEY}" ]; then
+            echo "repo secret ANTHROPIC_API_KEY_FOR_EVAL が無い。Claude 無料API鍵を仕込んでから回す" >&2
+            exit 1
+          fi
+        env:
+          ANTHROPIC_KEY: ${{ secrets.ANTHROPIC_API_KEY_FOR_EVAL }}
+
+      - name: Build app (wrangler pages dev は dist を配信する)
+        run: pnpm build
+
+      - name: Write .dev.vars
+        run: |
+          cat > .dev.vars <<EOF
+          OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY }}
+          DEFAULT_MODEL=qwen/qwen-2.5-72b-instruct
+          TEST_NO_FALLBACK=
+          TEST_DISABLE_REFUSAL_RECOVERY=
+          EOF
+
+      - name: Migrate + seed local D1
+        run: |
+          pnpm db:migrate:local
+          pnpm db:seed
+
+      - name: Start dev worker
+        run: |
+          nohup pnpm dev:worker > /tmp/dev-worker.log 2>&1 &
+          for i in $(seq 1 60); do
+            if curl -sf -o /dev/null http://127.0.0.1:8788; then echo "worker up"; break; fi
+            sleep 2
+          done
+          curl -sf -o /dev/null http://127.0.0.1:8788 || { echo "worker failed to start"; tail -50 /tmp/dev-worker.log; exit 1; }
+
+      - name: Run replay scenarios (Claude judge)
+        env:
+          AIQ_JUDGE: anthropic
+          ANTHROPIC_API_KEY_FOR_EVAL: ${{ secrets.ANTHROPIC_API_KEY_FOR_EVAL }}
+        run: |
+          OUT_DIR=.work/e2e-results/quality-eval-claude-${{ github.run_id }} \
+          SCENARIOS=${{ inputs.scenarios }} \
+          pnpm exec tsx script/e2e/replay-chat.ts
+
+      - name: Score + regression gate (履歴には触れん・判定確認用)
+        id: score
+        env:
+          AIQ_JUDGE: anthropic
+          ANTHROPIC_API_KEY_FOR_EVAL: ${{ secrets.ANTHROPIC_API_KEY_FOR_EVAL }}
+        run: |
+          set +e
+          pnpm exec tsx script/e2e/score-replay.ts \
+            --dir=.work/e2e-results/quality-eval-claude-${{ github.run_id }} \
+            --gate \
+            --note="claude-judge ${{ github.event_name }} ${{ inputs.note }}"
+          echo "gate_exit=$?" >> "$GITHUB_OUTPUT"
+
+      - name: Upload replay artifacts
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: quality-eval-claude-${{ github.run_id }}
+          path: .work/e2e-results/quality-eval-claude-${{ github.run_id }}
+          retention-days: 7

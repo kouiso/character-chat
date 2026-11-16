@@ -4,6 +4,7 @@ import path from "node:path";
 import { classifySubtextEscalation } from "../../../functions/api/lib/subtext-escalation-classifier";
 import { detectScenePhase, type ScenePhase } from "../../../src/lib/scene-phase";
 
+import { resolveJudgeTransport } from "./llm-judge-transport";
 import { type PhaseJudgment } from "./scene-phase";
 
 import type { Phase } from "../types";
@@ -101,7 +102,10 @@ export async function judgePhaseWithLlm(args: {
 
   if (detected === "conversation") {
     try {
-      const apiKey = readOpenRouterApiKey();
+      // AIQ_JUDGE/EVAL_JUDGE_TRANSPORT や鍵の有無で Claude/codex を判定役に切り替える。
+      // 何も指定が無ければ従来どおり OpenRouter（CI の既定経路は変わらん）
+      const transport = resolveJudgeTransport(process.env);
+      const apiKey = transport.kind === "openrouter" ? readOpenRouterApiKey() : transport.apiKey;
       const result = await classifySubtextEscalation({
         messages: args.recentTurnsForClassifier,
         apiKey,
@@ -111,6 +115,11 @@ export async function judgePhaseWithLlm(args: {
         // 未設定時は本番 openrouter.ai を向く。オフライン smoke は .dev.vars に
         // MOCK_API_BASE=http://127.0.0.1:8790 を設定する。
         apiBase: process.env.MOCK_API_BASE ?? "",
+        // 判定役が OpenRouter 以外の時は model 名が通らんので transport 側の model を使う
+        ...(transport.kind === "openrouter"
+          ? {}
+          : { routerModel: transport.model, fallbackModels: [] }),
+        fetchImpl: transport.fetchImpl,
         // e2e judgeが評価したいのは「アシスタントの実際の返信が昇格したか」であり、
         // 「ユーザーの発言が誘いだったか」ではない(本番の既定=user_invitationのままだと
         // モデルが誘いを無視して凡庸に返しても intimate 誤判定になり、退行を見逃す)。
