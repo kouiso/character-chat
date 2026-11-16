@@ -11,11 +11,14 @@ const state = vi.hoisted(() => ({
   fetchCalls: [] as string[],
   synthBodies: [] as Record<string, unknown>[],
   fetchResult: "ok" as "ok" | "query_fail" | "synth_fail" | "throw",
+  ttsConfigured: true,
 }));
 
 vi.mock("./platform", () => ({
   getPlatform: vi.fn(async () => ({
     env: {
+      V2_TTS_VOICEVOX_URL: state.ttsConfigured ? "http://localhost:50021" : undefined,
+      V2_TTS_AIVIS_URL: state.ttsConfigured ? "http://localhost:10101" : undefined,
       DB: {
         prepare: (sql: string) => ({
           bind: (...args: unknown[]) => ({
@@ -74,6 +77,7 @@ beforeEach(() => {
   state.fetchCalls.length = 0;
   state.synthBodies.length = 0;
   state.fetchResult = "ok";
+  state.ttsConfigured = true;
   state.characters.set("c1", { user_id: "local" });
   state.characters.set("c2", { user_id: "other" });
 });
@@ -130,6 +134,14 @@ describe("api-tts", () => {
     expect((await handleTtsRequest(post({ characterId: "c2", text: "x" }))).status).toBe(404);
     state.fetchResult = "throw";
     expect((await handleTtsRequest(post({ characterId: "c1", text: "x" }))).status).toBe(503);
+  });
+
+  it("エンジンURL未設定は501・エンジンには届かない（本番の定常状態）", async () => {
+    state.ttsConfigured = false;
+    const res = await handleTtsRequest(post({ characterId: "c1", text: "x" }));
+    expect(res.status).toBe(501);
+    expect(await res.json()).toMatchObject({ error: "tts_not_configured" });
+    expect(state.fetchCalls.some((u) => u.includes("audio_query"))).toBe(false);
   });
 
   it("エンジン側エラーは503・本文不正は400", async () => {
