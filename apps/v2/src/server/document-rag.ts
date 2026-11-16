@@ -1,7 +1,8 @@
 // RIT-115: 設定資料の検索。会話の記憶と同じ検索箱を kind=doc_chunk で分けて使う。
 // 資料はキャラごと（会話を跨ぐ）なので memory の conversation_id 絞りは掛けん。
-import { loadActiveDocumentChunks, type V2Db } from "@v2/db";
+import { describeError, loadActiveDocumentChunks, type V2Db } from "@v2/db";
 
+import { reportFailure } from "./log";
 import {
   embedMemoryText,
   memoryNamespace,
@@ -54,9 +55,11 @@ export const retrieveDocumentChunks = async (
       })
       .slice(0, DOC_MAX_CHUNKS);
   } catch (error) {
-    globalThis.console.error(
-      JSON.stringify({ event: "document_retrieval_failed", error: String(error) }),
-    );
+    reportFailure(env, {
+      event: "document_retrieval_failed",
+      level: "error",
+      reason: describeError(error),
+    });
     return [];
   }
 };

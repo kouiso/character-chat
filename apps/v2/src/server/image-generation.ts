@@ -6,6 +6,7 @@ import {
   listLegacySourceUserIds,
   loadCharacter,
   loadLatestLedger,
+  logEvent,
   readDisplayHistory,
   v2ImageGenerationTable,
   v2MessageTable,
@@ -198,9 +199,7 @@ const resolveLoraGate = (
   if (weight <= 0) return null;
   if (!visual.loraTriggerPrompt) {
     // trigger 無しでも LoRA は効くが身元タグが薄くなる。運用ミス検知用に一次証拠を残す。
-    globalThis.console.warn("lora gate active without trigger prompt", {
-      loraModel: visual.loraModel,
-    });
+    logEvent({ event: "image_lora_trigger_missing", level: "warn" });
   }
   return {
     model: visual.loraModel,

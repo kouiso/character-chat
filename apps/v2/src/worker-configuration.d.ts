@@ -33,6 +33,7 @@ interface __BaseEnv_Env {
   VAPID_PRIVATE_KEY: string;
   NOVITA_API_KEY?: string;
   RUNWARE_API_KEY?: string;
+  SLACK_ERROR_WEBHOOK_URL: string;
   CHAT_ROOMS: DurableObjectNamespace<import("./worker").ChatRoom>;
   PROACTIVE_SCHEDULERS: DurableObjectNamespace<import("./worker").ProactiveScheduler>;
 }
@@ -74,6 +75,7 @@ declare namespace Cloudflare {
     VAPID_PRIVATE_KEY: string;
     NOVITA_API_KEY: string;
     RUNWARE_API_KEY?: string;
+    SLACK_ERROR_WEBHOOK_URL: string;
     CHAT_ROOMS: DurableObjectNamespace<import("./worker").ChatRoom>;
     PROACTIVE_SCHEDULERS: DurableObjectNamespace<import("./worker").ProactiveScheduler>;
   }
@@ -109,6 +111,7 @@ declare namespace Cloudflare {
     VAPID_PRIVATE_KEY: string;
     NOVITA_API_KEY: string;
     RUNWARE_API_KEY?: string;
+    SLACK_ERROR_WEBHOOK_URL: string;
     CHAT_ROOMS: DurableObjectNamespace<import("./worker").ChatRoom>;
     PROACTIVE_SCHEDULERS: DurableObjectNamespace<import("./worker").ProactiveScheduler>;
   }
@@ -147,6 +150,7 @@ declare namespace NodeJS {
       | "VAPID_PRIVATE_KEY"
       | "NOVITA_API_KEY"
       | "RUNWARE_API_KEY"
+      | "SLACK_ERROR_WEBHOOK_URL"
     >
   > {}
 }

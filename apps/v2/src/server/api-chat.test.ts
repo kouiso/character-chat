@@ -49,7 +49,13 @@ describe("POST /api/chat の履歴予算設定", () => {
       const response = await post();
       expect(response.status).toBe(500);
       expect(submit).not.toHaveBeenCalled();
-      expect(error.mock.calls.flat().join(" ")).toContain("V2_HISTORY_MESSAGES");
+      // 記録は出来事と例外クラス名だけ。設定の誤りを説明する例外の message は出さん。
+      const logged = error.mock.calls.flat().join(" ");
+      expect(JSON.parse(String(error.mock.calls[0]?.[0]))).toMatchObject({
+        event: "context_budget_config_invalid",
+        reason: "unexpected:ContextBudgetConfigError",
+      });
+      expect(logged).not.toContain("V2_HISTORY_MESSAGES");
       error.mockRestore();
     },
   );

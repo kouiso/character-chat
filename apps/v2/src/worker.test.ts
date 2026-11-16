@@ -77,6 +77,7 @@ const UNAUTHENTICATED_PROBES = [
   ["GET", "/api/groups/example/messages"],
   ["POST", "/api/groups/example/messages"],
   ["POST", "/api/admin/legacy-migration"],
+  ["POST", "/api/admin/failure-drill"],
   ["GET", "/api/settings"],
   ["PUT", "/api/settings"],
   ["GET", "/api/chat/example/branch?conversationId=c1"],
@@ -338,7 +339,7 @@ describe("Worker 入口の BASIC 認証", () => {
     expect(await response.text()).toBe("");
     expect(response.headers.get("cache-control")).toBe("private, no-store");
     expect(errors.mock.calls.map((args) => JSON.parse(String(args[0])))).toEqual([
-      { event: "worker_request_failed", method: "GET", errorName: "Error" },
+      { event: "worker_request_failed", level: "error", method: "GET", reason: "unexpected:Error" },
     ]);
     expect(JSON.stringify(errors.mock.calls)).not.toContain("secret detail");
     errors.mockRestore();

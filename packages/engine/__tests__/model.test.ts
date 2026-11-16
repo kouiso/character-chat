@@ -1,4 +1,9 @@
-import { createModelChain, createOpenRouterModel, OPENROUTER_PROVIDER_POLICY } from "../src/model";
+import {
+  aiGatewayHeaders,
+  createModelChain,
+  createOpenRouterModel,
+  OPENROUTER_PROVIDER_POLICY,
+} from "../src/model";
 
 // RIT-100 の「壊しにいく確かめ」: DeepSeek 本家の除外・data_collection=deny が
 // 外れた時に検査が止まること。provider フィールドはリクエストの provider プリファレンスへ
@@ -38,6 +43,55 @@ describe("createOpenRouterModel の provider ポリシー", () => {
   test("baseURL 未設定は OpenRouter 既定のまま", () => {
     const model = createOpenRouterModel({ OPENROUTER_API_KEY: "test-key" });
     expect(fieldOf(model, "baseURL")).toBe("https://openrouter.ai/api/v1");
+  });
+});
+
+// RIT-66 FR-9: 接続先が AI Gateway の時だけ cf-aig-collect-log-payload: false を
+// 全要求のヘッダに付ける。OpenRouter 直・壊れた URL・素性の違うホストでは付かん。
+describe("aiGatewayHeaders（RIT-66）", () => {
+  const headersOf = (model: object): Record<string, string> =>
+    (fieldOf(model, "buildHeaders") as () => Record<string, string>).call(model);
+
+  test("gateway.ai.cloudflare.com のホストならヘッダを返す", () => {
+    expect(aiGatewayHeaders("https://gateway.ai.cloudflare.com/v1/acct/gw/openrouter")).toEqual({
+      "cf-aig-collect-log-payload": "false",
+    });
+  });
+
+  test.each([
+    ["https://openrouter.ai/api/v1"],
+    ["https://not-gateway.ai.cloudflare.com.evil.example/v1"],
+    ["gateway.ai.cloudflare.com"],
+    [""],
+    [undefined],
+  ])("Gateway でない/読めない接続先 %s では空", (baseUrl) => {
+    expect(aiGatewayHeaders(baseUrl)).toEqual({});
+  });
+
+  test("Gateway 経由のモデルは要求ヘッダへ載る（既存ヘッダは残る）", () => {
+    const model = createOpenRouterModel({
+      OPENROUTER_API_KEY: "test-key",
+      V2_OPENROUTER_BASE_URL: "https://gateway.ai.cloudflare.com/v1/acct/gw/openrouter",
+    });
+    const headers = headersOf(model);
+    expect(headers["cf-aig-collect-log-payload"]).toBe("false");
+    expect(headers.Authorization).toBe("Bearer test-key");
+    expect(headers["Content-Type"]).toBe("application/json");
+  });
+
+  test("OpenRouter 直のモデルはヘッダを載せん", () => {
+    const model = createOpenRouterModel({ OPENROUTER_API_KEY: "test-key" });
+    expect(headersOf(model)["cf-aig-collect-log-payload"]).toBeUndefined();
+  });
+
+  test("チェーンの全候補にヘッダが載る", () => {
+    const chain = createModelChain({
+      OPENROUTER_API_KEY: "test-key",
+      V2_OPENROUTER_BASE_URL: "https://gateway.ai.cloudflare.com/v1/acct/gw/openrouter",
+    });
+    for (const candidate of chain) {
+      expect(headersOf(candidate.model as object)["cf-aig-collect-log-payload"]).toBe("false");
+    }
   });
 });
 

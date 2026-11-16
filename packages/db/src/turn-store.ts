@@ -8,6 +8,7 @@ import { z } from "zod";
 import { messageTable } from "../../../src/schema/message";
 
 import { chunkSendTimes } from "./chunk-schedule";
+import { logEvent } from "./log";
 import {
   v2ChunkTable,
   v2ConversationTable,
@@ -347,9 +348,13 @@ const pickLedger = (
     skippedTurns.push(row.turn);
   }
   if (skippedTurns.length > 0) {
-    globalThis.console.warn(
-      JSON.stringify({ event: "ledger_fallback", conversationId, skippedTurns }),
-    );
+    // 飛ばした番号そのものではなく個数だけ残す（RIT-66 NFR-1 の項目に合わせる）。
+    logEvent({
+      event: "ledger_fallback",
+      level: "warn",
+      conversationId,
+      count: skippedTurns.length,
+    });
   }
   return ledger ?? emptyLedger();
 };

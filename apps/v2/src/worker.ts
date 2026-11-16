@@ -1,6 +1,9 @@
 import handler from "@tanstack/react-start/server-entry";
 
+import { describeError } from "@v2/db";
+
 import { preventSharedCaching, requireBasicAuth, type BasicAuthConfig } from "./server/basic-auth";
+import { reportFailure } from "./server/log";
 import { consumeMemoryJobs } from "./server/memory-queue";
 
 export { ChatRoom } from "./server/chat-room";
@@ -49,13 +52,12 @@ const fetchEntry = async (request: Request, env: WorkerEntryEnv): Promise<Respon
     return preventSharedCaching(await handler.fetch(request));
   } catch (error) {
     // 例外の本文は会話や接続先の詳細を含みうるので、名前だけを残す。
-    console.error(
-      JSON.stringify({
-        event: "worker_request_failed",
-        method: request.method,
-        errorName: error instanceof Error ? error.name : typeof error,
-      }),
-    );
+    reportFailure(env, {
+      event: "worker_request_failed",
+      level: "error",
+      method: request.method,
+      reason: describeError(error),
+    });
     return new Response(null, { status: 500, headers: { "cache-control": "private, no-store" } });
   }
 };

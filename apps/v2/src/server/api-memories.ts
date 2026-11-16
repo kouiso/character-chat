@@ -4,6 +4,7 @@
 import {
   createDb,
   deleteMemory,
+  describeError,
   findLatestConversationId,
   hashMemorySource,
   insertManualMemory,
@@ -25,6 +26,7 @@ import {
   memoryVectorReady,
   type MemoryVectorBindings,
 } from "./memory-vector";
+import { reportFailure } from "./log";
 import { getPlatform } from "./platform";
 
 const idSchema = z.string().min(1).max(120);
@@ -118,8 +120,12 @@ const indexMemoryContent = async (
       },
     ]);
     await storeEditedEmbedding(db, memory.id, memory.content, values);
-  } catch {
-    globalThis.console.error(JSON.stringify({ event: "memory_manual_index_failed" }));
+  } catch (error) {
+    reportFailure(env, {
+      event: "memory_manual_index_failed",
+      level: "error",
+      reason: describeError(error),
+    });
   }
 };
 
@@ -132,8 +138,12 @@ const dropMemoryVector = async (
   try {
     const hash = await hashMemorySource(content);
     await env.MEMORY_INDEX.deleteByIds?.([await memoryVectorId(memoryId, hash)]);
-  } catch {
-    globalThis.console.error(JSON.stringify({ event: "memory_vector_drop_failed" }));
+  } catch (error) {
+    reportFailure(env, {
+      event: "memory_vector_drop_failed",
+      level: "error",
+      reason: describeError(error),
+    });
   }
 };
 

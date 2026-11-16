@@ -45,6 +45,13 @@ const resolvedSchema = z.object({
     }),
   ),
   limits: z.object({ cpu_ms: z.number().optional() }).optional(),
+  observability: z
+    .object({
+      enabled: z.boolean().optional(),
+      head_sampling_rate: z.number().optional(),
+      logs: z.object({ invocation_logs: z.boolean().optional() }).optional(),
+    })
+    .optional(),
 });
 type ResolvedConfig = z.infer<typeof resolvedSchema>;
 const resolve = (env?: string): ResolvedConfig =>
@@ -58,6 +65,7 @@ const REQUIRED_SECRETS = [
   "NOVITA_API_KEY",
   "OPENROUTER_API_KEY",
   "RUNWARE_API_KEY",
+  "SLACK_ERROR_WEBHOOK_URL",
   "VAPID_PRIVATE_KEY",
 ];
 const DEPLOYED = [
@@ -92,6 +100,13 @@ describe.each(DEPLOYED)("出す環境 env.$env の束ね", ({ env, name, appEnv 
   // secrets.required は env へ継承されん。書き忘れると secret 未設定のまま deploy が通る。
   it("入口検査に必要な secret が deploy 時必須として宣言されとる", () => {
     expect([...(config.secrets?.required ?? [])].sort()).toEqual(REQUIRED_SECRETS);
+  });
+
+  // RIT-66: 出す環境は Workers Logs を有効にするが、要求ごとの自動記録は URL に
+  // キャラ id が乗るので切る。後から logs 節を消すと記録自体も止まるので形まで確かめる。
+  it("Workers Logs は有効で、要求ごとの自動記録は切ってある", () => {
+    expect(config.observability?.enabled).toBe(true);
+    expect(config.observability?.logs?.invocation_logs).toBe(false);
   });
 
   it("D1・R2・Vectorize・Workers AI・Queue が全部束ねられとる", () => {
@@ -191,5 +206,10 @@ describe("手元用の top-level", () => {
       "utf8",
     );
     expect(source).toContain('remoteBindings: process.env.V2_REMOTE_BINDINGS === "1"');
+  });
+
+  // RIT-66: 手元は記録を出さん（会話が残る置き場を増やさん）。
+  it("Workers Logs は無効のまま", () => {
+    expect(local.observability?.enabled).toBe(false);
   });
 });

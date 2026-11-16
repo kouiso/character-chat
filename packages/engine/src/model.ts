@@ -121,12 +121,38 @@ const chainSpecFromEnv = (env: ModelEnv, safeMode: boolean, chatMode: ChatMode):
   return parseChain(env.V2_MODEL_CHAIN) ?? defaultChain();
 };
 
+// RIT-66 FR-9: 接続先が Cloudflare AI Gateway の時だけ、要求に本文を記録せんよう
+// 印すヘッダを返す。ホストの照合だけ見る（パスに書かれたアカウント・ゲート名は不問）。
+export const aiGatewayHeaders = (baseUrl: string | undefined): Record<string, string> => {
+  if (!baseUrl) return {};
+  try {
+    return new URL(baseUrl).hostname === "gateway.ai.cloudflare.com"
+      ? { "cf-aig-collect-log-payload": "false" }
+      : {};
+  } catch {
+    return {};
+  }
+};
+
+// @langchain/openrouter@0.4.11 は追加ヘッダを受ける口が無い。buildHeaders が
+// this 経由で毎要求に呼ばれる設計なので、Gateway 経由の時だけインスタンスの
+// メソッドを包んで既定ヘッダに上乗せする。型上は private なので構造の型へ移して触る。
+type HeaderBuilder = { buildHeaders(): Record<string, string> };
+
+const attachAiGatewayHeaders = (model: ChatOpenRouter, headers: Record<string, string>): void => {
+  const target = model as unknown as HeaderBuilder;
+  const original = target.buildHeaders;
+  target.buildHeaders = function (this: HeaderBuilder) {
+    return { ...original.call(this), ...headers };
+  };
+};
+
 // 各候補へ共通の ChatOpenRouter 設定。モデル名と provider.only だけ候補ごとに変わる。
 const buildModel = (
   env: ModelEnv & { OPENROUTER_API_KEY: string },
   spec: ChainSpec,
-): ChatOpenRouter =>
-  new ChatOpenRouter({
+): ChatOpenRouter => {
+  const model = new ChatOpenRouter({
     model: spec.model,
     apiKey: env.OPENROUTER_API_KEY,
     baseURL: env.V2_OPENROUTER_BASE_URL || undefined,
@@ -139,6 +165,10 @@ const buildModel = (
     // OpenRouter の reasoning パラメータは対応せんモデルでは無視される。
     modelKwargs: isReasoningModel(spec.model) ? { reasoning: { effort: "minimal" } } : undefined,
   });
+  const gatewayHeaders = aiGatewayHeaders(env.V2_OPENROUTER_BASE_URL);
+  if (Object.keys(gatewayHeaders).length > 0) attachAiGatewayHeaders(model, gatewayHeaders);
+  return model;
+};
 
 const toCandidate =
   (env: ModelEnv & { OPENROUTER_API_KEY: string }) =>

@@ -58,8 +58,15 @@
           "OPENROUTER_API_KEY",
           "VAPID_PRIVATE_KEY",
           "NOVITA_API_KEY",
-          "RUNWARE_API_KEY"
+          "RUNWARE_API_KEY",
+          "SLACK_ERROR_WEBHOOK_URL"
         ]
+      },
+      // Workers Logs を有効にするが、要求ごとの自動記録は切る（URL にキャラ id が乗る）。
+      "observability": {
+        "enabled": true,
+        "head_sampling_rate": 1,
+        "logs": { "invocation_logs": false }
       },
       "ai": { "binding": "AI", "remote": true },
       "vectorize": [
@@ -127,8 +134,15 @@
           "OPENROUTER_API_KEY",
           "VAPID_PRIVATE_KEY",
           "NOVITA_API_KEY",
-          "RUNWARE_API_KEY"
+          "RUNWARE_API_KEY",
+          "SLACK_ERROR_WEBHOOK_URL"
         ]
+      },
+      // Workers Logs を有効にするが、要求ごとの自動記録は切る（URL にキャラ id が乗る）。
+      "observability": {
+        "enabled": true,
+        "head_sampling_rate": 1,
+        "logs": { "invocation_logs": false }
       },
       "ai": { "binding": "AI", "remote": true },
       "vectorize": [
@@ -207,7 +221,8 @@
       "OPENROUTER_API_KEY",
       "VAPID_PRIVATE_KEY",
       "NOVITA_API_KEY",
-      "RUNWARE_API_KEY"
+      "RUNWARE_API_KEY",
+      "SLACK_ERROR_WEBHOOK_URL"
     ]
   },
   "durable_objects": {

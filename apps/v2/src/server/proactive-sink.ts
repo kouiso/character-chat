@@ -1,5 +1,6 @@
 import {
   createDb,
+  describeError,
   createD1SummaryStore,
   ensureProactiveConversation,
   loadRecentMemories,
@@ -13,6 +14,7 @@ import { readCharacter } from "./character-data.server";
 import { LOCAL_USER_ID } from "./identity";
 import { createProviderLookup, resolveProvider, retryProviderLookup } from "./openrouter-lookup";
 import { findRecallCue, recallCueLead, type RecallCue } from "./proactive-recall";
+import { reportFailure } from "./log";
 import { sendProactivePush } from "./push";
 
 import type { ProactiveNotificationSink } from "./proactive-notification-store";
@@ -37,6 +39,8 @@ export type ProactiveSinkDeps = {
     text: string;
     conversationId: string;
   }) => Promise<void>;
+  // 失敗の記録と知らせの束ね（RIT-66）。試験が deps だけで組む時は省略される。
+  env?: unknown;
   // 実行先の記録用（RIT-100）。invoke の応答 id（gen-…）から provider を引く。
   providerLookup?: (upstreamId: string) => Promise<string | null>;
 };
@@ -149,13 +153,13 @@ export const createProactiveSink = (deps: ProactiveSinkDeps): ProactiveNotificat
     });
 
     // 通知は保存が済んでから。失敗しても本文は消えんので投げっぱでOK。
-    deps
-      .push?.({ characterId, characterName: ok.name, text, conversationId })
-      .catch((error) =>
-        globalThis.console.error(
-          JSON.stringify({ event: "proactive_push_failed", errorName: String(error) }),
-        ),
-      );
+    deps.push?.({ characterId, characterName: ok.name, text, conversationId }).catch((error) =>
+      reportFailure(deps.env, {
+        event: "proactive_push_failed",
+        level: "error",
+        reason: describeError(error),
+      }),
+    );
   },
 });
 
@@ -173,6 +177,7 @@ export const createEnvProactiveSink = async (env: {
   // 乗るまでその場で粘ってから 1 行で保存する（即時 lookup だとほぼ必ず unknown になる）。
   const lookup = createProviderLookup(env);
   return createProactiveSink({
+    env,
     db,
     d1: env.DB,
     model: createOpenRouterModel({
