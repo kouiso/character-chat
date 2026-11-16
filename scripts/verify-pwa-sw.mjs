@@ -1,37 +1,38 @@
 import { readFileSync } from "node:fs";
 
-const swPath = new URL("../dist/sw.js", import.meta.url);
-const sw = readFileSync(swPath, "utf8");
+// v1 凍結の引き継ぎ: /sw.js は意図的な自害 SW（public/sw.js）で、
+// Workbox 生成物は dist/sw-workbox.js に逃がしてある。
+// ここでは両者がその役割どおりに出力されているかを確認する。
+const read = (name) => readFileSync(new URL(`../dist/${name}`, import.meta.url), "utf8");
+
+const kill = read("sw.js");
+if (!kill.includes("self.registration.unregister()") || !kill.includes("caches.delete")) {
+  throw new Error("dist/sw.js is not the intended self-destroying handoff worker.");
+}
+
+const sw = read("sw-workbox.js");
 
 const MIN_SIZE_BYTES = 1_000;
 
 if (sw.length < MIN_SIZE_BYTES) {
   throw new Error(
-    `dist/sw.js is too small (${sw.length} bytes). selfDestroying may still be enabled.`,
+    `dist/sw-workbox.js is too small (${sw.length} bytes). selfDestroying may still be enabled.`,
   );
 }
 
-if (!sw.includes("precacheAndRoute")) {
-  throw new Error("dist/sw.js does not contain precacheAndRoute.");
-}
-
 if (sw.includes("self.registration.unregister()")) {
-  throw new Error("dist/sw.js is still a self-destroying service worker.");
+  throw new Error("dist/sw-workbox.js is still a self-destroying service worker.");
 }
 
-const manifestMatch = sw.match(/precacheAndRoute\(([\s\S]*?)\)/);
-if (!manifestMatch) {
-  throw new Error("Could not extract precache manifest from dist/sw.js.");
-}
-
-const manifestText = manifestMatch[1];
-const entryCount = (manifestText.match(/\{url:/g) ?? []).length;
+// Workbox の生成コードは minify されるので、precache manifest の {url:...}
+// エントリと runtime caching の設定値そのものを検査する。
+const entryCount = (sw.match(/\{url:/g) ?? []).length;
 if (entryCount === 0) {
-  throw new Error("dist/sw.js precache manifest is empty.");
+  throw new Error("dist/sw-workbox.js precache manifest is empty.");
 }
 
-if (!sw.includes("NetworkFirst") || !sw.includes("PrecacheFallbackPlugin")) {
-  throw new Error("dist/sw.js is missing NetworkFirst navigation route or precacheFallback.");
+if (!sw.includes("navigate") || !sw.includes("maxAgeSeconds:604800")) {
+  throw new Error("dist/sw-workbox.js is missing the NetworkFirst navigation route.");
 }
 
 console.log(`PWA SW verified: ${entryCount} precache entries, ${sw.length} bytes.`);

@@ -11,6 +11,11 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: "autoUpdate",
+      // v1 凍結の引き継ぎ: Workbox 生成物を sw.js 以外の名前へ逃がし、
+      // public/sw.js（自害 SW = キャッシュ全削除＋unregister＋v2 誘導）を
+      // 静的資産として /sw.js に置く。Pages は静的資産を _redirects より
+      // 優先するため、例外ルールではなく実ファイルで差し替える必要がある。
+      filename: "sw-workbox.js",
       manifest: {
         name: "AI Chat",
         short_name: "AIChat",
