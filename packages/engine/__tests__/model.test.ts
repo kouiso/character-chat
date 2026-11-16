@@ -200,3 +200,27 @@ describe("createModelChain チャットモード（RIT-205）", () => {
     expect(chain.map((c) => c.name)).toEqual(["pinned/model"]);
   });
 });
+
+describe("推論モデルの effort 指定", () => {
+  const kwargsOf = (candidate: { model: unknown }): Record<string, unknown> | undefined =>
+    (candidate.model as { modelKwargs?: Record<string, unknown> }).modelKwargs;
+
+  it("deepseek 系は reasoning effort=minimal を付ける（推論が max_tokens を食う欠落防止）", () => {
+    const [candidate] = createModelChain({
+      OPENROUTER_API_KEY: "test-key",
+      V2_MODEL_CHAIN: JSON.stringify([{ model: "deepseek/deepseek-v4.1-flash-1017" }]),
+    });
+    expect(kwargsOf(candidate)).toEqual({ reasoning: { effort: "minimal" } });
+  });
+
+  it.each(["cognitivecomputations/dolphin-mistral-24b-venice-edition", "sao10k/l3.3-euryale-70b"])(
+    "非推論モデル %s には reasoning を付けない",
+    (model) => {
+      const [candidate] = createModelChain({
+        OPENROUTER_API_KEY: "test-key",
+        V2_MODEL_CHAIN: JSON.stringify([{ model }]),
+      });
+      expect(kwargsOf(candidate)).toBeUndefined();
+    },
+  );
+});
