@@ -73,8 +73,8 @@ const anthropicFetchImpl = (
   apiKey: string,
   header: "x-api-key" | "authorization",
 ): typeof fetch => {
-  return (input: Parameters<typeof fetch>[0], init?: Parameters<typeof fetch>[1]) => {
-    const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
+  return (_input: Parameters<typeof fetch>[0], init?: Parameters<typeof fetch>[1]) => {
+    void _input;
     const { model, messages } = readChatBody(init?.body);
     const system = messages
       .filter((m) => m.role === "system")
