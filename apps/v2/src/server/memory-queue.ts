@@ -11,6 +11,7 @@ import {
   markMemoryPublishFailure,
   memoryQueueBodySchema,
   type ExtractionScope,
+  type MemoryExtractionSource,
   type MemoryQueueBody,
   type V2Db,
 } from "@v2/db";
@@ -80,6 +81,29 @@ export const createMemoryExtractionModel = (env: MemoryModelEnv, source: string)
   return createOpenRouterModel(env);
 };
 
+const runMemoryExtraction = async (
+  db: V2Db,
+  env: MemoryModelEnv,
+  source: MemoryExtractionSource,
+): Promise<void> => {
+  const policy = await loadMemoryExtractionPolicy(db, source.conversationId);
+  // 種類を全部切った版では呼んでも全て捨てるだけなので、モデルを呼ばず完了にする。
+  if (policy && policy.memoryKinds.length === 0) {
+    await completeMemoryExtraction(db, source, []);
+    return;
+  }
+  const extracted = await extractMemories(
+    createMemoryExtractionModel(env, source.content),
+    source.content,
+    policy?.memoryInstruction,
+  );
+  // 指示どおりの種類だけ残す契約。方針を読めん会話は全種類を通す。
+  const memories = policy
+    ? extracted.filter((memory) => policy.memoryKinds.includes(memory.kind))
+    : extracted;
+  await completeMemoryExtraction(db, source, memories);
+};
+
 export const consumeMemoryJobs = async (
   batch: MessageBatch<unknown>,
   env: MemoryModelEnv & Pick<Cloudflare.Env, "DB"> & MemoryVectorBindings,
@@ -96,19 +120,7 @@ export const consumeMemoryJobs = async (
     let indexing = false;
     try {
       const source = await loadMemoryExtractionSource(db, jobId);
-      if (source) {
-        const policy = await loadMemoryExtractionPolicy(db, source.conversationId);
-        const extracted = await extractMemories(
-          createMemoryExtractionModel(env, source.content),
-          source.content,
-          policy?.memoryInstruction,
-        );
-        // 指示どおりの種類だけ残す契約。方針を読めん会話は全種類を通す。
-        const memories = policy
-          ? extracted.filter((memory) => policy.memoryKinds.includes(memory.kind))
-          : extracted;
-        await completeMemoryExtraction(db, source, memories);
-      }
+      if (source) await runMemoryExtraction(db, env, source);
       if (memoryVectorReady(env)) {
         indexing = true;
         await indexMemoryJob(db, env, jobId);

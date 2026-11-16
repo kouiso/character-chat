@@ -35,6 +35,9 @@
   --color-tab-active: #3a292d;
   --color-peach-from: #ffcdb2;
   --color-peach-to: #ffc4a4;
+  /* 選ばれた面（見本帳「選ばれた札・選ばれた子」） */
+  --color-selected-from: #3d2b2f;
+  --color-selected-to: #36262a;
 
   --gradient-ground: linear-gradient(
     180deg,
@@ -58,12 +61,19 @@
   --gradient-press: linear-gradient(180deg, var(--color-press-from) 0%, var(--color-press-to) 100%);
   --gradient-own: linear-gradient(180deg, var(--color-own-from) 0%, var(--color-own-to) 100%);
   --gradient-peach: linear-gradient(180deg, var(--color-peach-from) 0%, var(--color-peach-to) 100%);
+  --gradient-selected: linear-gradient(
+    180deg,
+    var(--color-selected-from) 0%,
+    var(--color-selected-to) 100%
+  );
 
   /* 影と縁 */
   --edge-top: inset 0 1px 0 rgba(255, 255, 255, 0.08);
   --edge-top-surface: inset 0 1px 0 rgba(255, 255, 255, 0.07);
   --edge-top-press: inset 0 1px 0 rgba(255, 255, 255, 0.1);
   --edge-ring: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+  /* 選ばれた面の枠 */
+  --edge-selected: inset 0 0 0 1.5px var(--color-peach);
   --shadow-press: var(--edge-top-press), 0 4px 12px rgba(4, 6, 14, 0.28);
   --shadow-surface: var(--edge-top-surface), 0 6px 16px rgba(4, 6, 14, 0.3);
   --shadow-plate: var(--edge-ring), 0 6px 16px rgba(4, 6, 14, 0.4);

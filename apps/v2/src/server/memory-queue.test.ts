@@ -1,4 +1,5 @@
 // @vitest-environment node
+import { FakeListChatModel } from "@langchain/core/utils/testing";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -266,6 +267,118 @@ describe("memory queue publisher", () => {
       await local.d1
         .prepare("DELETE FROM v2_conversation WHERE id = ?")
         .bind(policyConversationId)
+        .run();
+      await local.d1
+        .prepare("DELETE FROM character_revision WHERE character_id = ?")
+        .bind(created.id)
+        .run();
+      await local.d1
+        .prepare("DELETE FROM character_version WHERE character_id = ?")
+        .bind(created.id)
+        .run();
+      await local.d1.prepare("DELETE FROM character WHERE id = ?").bind(created.id).run();
+    }
+  });
+
+  it("覚える種類が空の版ではモデルを 1 回も呼ばず、記憶 0 件で仕事を完了にする", async () => {
+    const content = characterContentSchema.parse({
+      name: "無記憶役",
+      personality: "案内役",
+      speechStyle: "丁寧",
+      greeting: "こんにちは。",
+      memoryInstruction: "何でも覚えてよい",
+      memoryKinds: [],
+    });
+    const created = await createCharacterWithVersion(local.db, userId, content);
+    const emptyConversationId = crypto.randomUUID();
+    const emptyJobId = crypto.randomUUID();
+    const invoke = vi.spyOn(FakeListChatModel.prototype, "invoke");
+    try {
+      await local.db.batch([
+        local.db.insert(v2ConversationTable).values({
+          id: emptyConversationId,
+          userId,
+          characterId: created.id,
+          threadId: emptyConversationId,
+          promptVersion: "test",
+          characterVersionId: created.versionId,
+          createdAt: now,
+          updatedAt: now,
+        }),
+        local.db.insert(v2MessageTable).values({
+          id: emptyJobId,
+          conversationId: emptyConversationId,
+          turn: 1,
+          role: "user",
+          content: "私は紅茶が好きです。",
+          createdAt: now,
+        }),
+        local.db.insert(v2MemoryJobTable).values({
+          id: emptyJobId,
+          sourceMessageId: emptyJobId,
+          sourceTurn: 1,
+          conversationId: emptyConversationId,
+          userId,
+          characterId: created.id,
+          createdAt: now,
+          updatedAt: now,
+        }),
+      ]);
+      const ack = vi.fn();
+      const batch: MessageBatch<unknown> = {
+        queue: "local-memory",
+        ackAll: vi.fn(),
+        retryAll: vi.fn(),
+        metadata: { metrics: { backlogCount: 0, backlogBytes: 0 } },
+        messages: [
+          {
+            id: "empty-kinds-delivery",
+            timestamp: new Date(),
+            body: { jobId: emptyJobId },
+            attempts: 1,
+            ack,
+            retry: vi.fn(),
+          },
+        ],
+      };
+      await consumeMemoryJobs(batch, {
+        DB: local.d1,
+        APP_ENV: "test",
+        V2_FAKE_MODEL: "1",
+        V2_MODEL: "unused",
+        OPENROUTER_API_KEY: "",
+        V2_RAG_ENABLED: "0",
+      });
+      expect(ack).toHaveBeenCalledOnce();
+      // 種類が空なら抜き出しのモデルは 0 回（お金を使わん契約）
+      expect(invoke).not.toHaveBeenCalled();
+      const memories = await local.d1
+        .prepare("SELECT id FROM v2_memory WHERE conversation_id = ?")
+        .bind(emptyConversationId)
+        .all();
+      expect(memories.results).toEqual([]);
+      const job = await local.d1
+        .prepare("SELECT state FROM v2_memory_job WHERE id = ?")
+        .bind(emptyJobId)
+        .first<{ state: string }>();
+      expect(job?.state).toBe("completed");
+    } finally {
+      invoke.mockRestore();
+      await local.d1
+        .prepare("DELETE FROM v2_memory WHERE conversation_id = ?")
+        .bind(emptyConversationId)
+        .run();
+      await local.d1
+        .prepare("DELETE FROM v2_memory_job WHERE conversation_id = ?")
+        .bind(emptyConversationId)
+        .run();
+      await local.d1
+        .prepare("DELETE FROM v2_message WHERE conversation_id = ?")
+        .bind(emptyConversationId)
+        .run();
+      await local.d1
+        .prepare("DELETE FROM v2_conversation WHERE id = ?")
+        .bind(emptyConversationId)
         .run();
       await local.d1
         .prepare("DELETE FROM character_revision WHERE character_id = ?")
