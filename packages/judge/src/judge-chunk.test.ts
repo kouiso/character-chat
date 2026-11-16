@@ -107,3 +107,47 @@ describe("judgeChunk: 相手の発言の書き写し", () => {
     expect(judgeChunk(text, { previousChunks: [], voice, userText }).ok).toBe(true);
   });
 });
+
+describe("judgeChunk: inner の出力契約（1応答に1回・120字以内）", () => {
+  const voice = { firstPerson: [], secondPerson: [], endings: [], tics: [] };
+  const inner = (body: string) => `<inner>${body}</inner>`;
+
+  it("このターン最初の inner で 120 字以内なら通る", () => {
+    const result = judgeChunk(inner("わたし、もうだめ……"), {
+      previousChunks: [],
+      voice,
+      priorInnerCount: 0,
+    });
+    expect(result.ok).toBe(true);
+  });
+
+  it("ターン内 2 個目の inner は format で ng（priorInnerCount=1）", () => {
+    const result = judgeChunk(inner("（また頭の中が真っ白になる……）"), {
+      previousChunks: [],
+      voice,
+      priorInnerCount: 1,
+    });
+    expect(result.ok).toBe(false);
+    expect(result.reasons).toEqual(["format"]);
+    expect(result.checks.format.reason).toContain("1 応答に 1 回");
+  });
+
+  it("120 字を超える inner は format で ng", () => {
+    const result = judgeChunk(inner("あ".repeat(121)), {
+      previousChunks: [],
+      voice,
+    });
+    expect(result.ok).toBe(false);
+    expect(result.reasons).toEqual(["format"]);
+    expect(result.checks.format.reason).toContain("上限");
+  });
+
+  it("inner を含まん塊は priorInnerCount に関係なく通る", () => {
+    const result = judgeChunk("<action>彼女が小さく頷いた。</action>", {
+      previousChunks: [],
+      voice,
+      priorInnerCount: 1,
+    });
+    expect(result.ok).toBe(true);
+  });
+});

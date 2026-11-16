@@ -127,15 +127,23 @@ const hasEndingsMismatch = (dialogue: string, endings: string[]): boolean | unde
 };
 
 // voice の判定対象:
-// - 一人称: <inner> とタグ外のナレーション（<action> を含む）。<dialogue> は場面や相手によって
-//   呼び方を変えることがあるため対象外。
+// - 一人称: <inner>・タグ外ナレーション（<action> を含む）に加えて <dialogue> も見る。
+//   相手・場面で呼び方が揺れるのは二人称の方だけで、自分を呼ぶ一人称はシート固定なので、
+//   台詞の中の別一人称（「あたし」キャラが「私…」と言う等）は逸脱。ただし「自分」は
+//   台詞でも再帰用法（「自分の気持ち」）が普通に出るので台詞では見ん。
 // - 二人称: 逆に <dialogue> こそが相手を呼ぶ場面なので、そこだけ見る。
 // - 語尾: <dialogue> の中身を、シートの speech_endings と突き合わせる（warning のみ）。
-const findForbiddenPronoun = (narration: string, voice: Voice): string | undefined => {
+const findForbiddenPronoun = (
+  narration: string,
+  dialogue: string,
+  voice: Voice,
+): string | undefined => {
   if (voice.firstPerson.length === 0) return undefined;
-  return FIRST_PERSON_PRONOUNS.find(
-    (pronoun) => !voice.firstPerson.includes(pronoun) && narration.includes(pronoun),
-  );
+  return FIRST_PERSON_PRONOUNS.find((pronoun) => {
+    if (voice.firstPerson.includes(pronoun)) return false;
+    if (narration.includes(pronoun)) return true;
+    return pronoun !== "自分" && dialogue.includes(pronoun);
+  });
 };
 
 const findForbiddenAddress = (dialogue: string, voice: Voice): string | undefined => {
@@ -148,7 +156,7 @@ const findForbiddenAddress = (dialogue: string, voice: Voice): string | undefine
 export const voiceCheck = (text: string, voice: Voice, selfName?: string): VoiceResult => {
   const narration = stripDialogue(text);
   const dialogue = extractDialogue(text);
-  const forbiddenPronoun = findForbiddenPronoun(narration, voice);
+  const forbiddenPronoun = findForbiddenPronoun(narration, dialogue, voice);
   const forbiddenAddress = findForbiddenAddress(dialogue, voice);
   const thirdPersonSelf = findThirdPersonSelf(narration, selfName);
   const endingsMismatch = hasEndingsMismatch(dialogue, voice.endings);
