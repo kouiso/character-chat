@@ -67,35 +67,44 @@ const fetchBundled = async (
   return null;
 };
 
-const resolveR2 = async (
+// check は状態だけ。名乗った型が画像でない（or 無い）時は先頭 12 バイトで判断する。
+const resolveR2Check = async (
+  env: AvatarEnv,
+  key: string,
+  metaType: string,
+): Promise<AvatarResolution> => {
+  if (AVATAR_MEDIA_TYPES.test(metaType)) return { status: "r2", body: null, type: metaType };
+  const head12 = await env.BUCKET.get(key, { range: { offset: 0, length: 12 } });
+  if (!head12) return { status: "missing" };
+  const sniffed = sniffMediaType(new Uint8Array(await head12.arrayBuffer()));
+  return sniffed?.startsWith("image/")
+    ? { status: "r2", body: null, type: sniffed }
+    : { status: "not_image" };
+};
+
+// serve は結局本体を返すので全部読む。
+const resolveR2Serve = async (
+  env: AvatarEnv,
+  key: string,
+  metaType: string,
+): Promise<AvatarResolution> => {
+  const object = await env.BUCKET.get(key);
+  if (!object) return { status: "missing" };
+  if (AVATAR_MEDIA_TYPES.test(metaType)) return { status: "r2", body: object.body, type: metaType };
+  const bytes = new Uint8Array(await object.arrayBuffer());
+  const sniffed = sniffMediaType(bytes.subarray(0, 12));
+  if (!sniffed?.startsWith("image/")) return { status: "not_image" };
+  return { status: "r2", body: bytes, type: sniffed };
+};
+
+const resolveR2 = (
   env: AvatarEnv,
   key: string,
   head: R2Object,
   mode: "serve" | "check",
 ): Promise<AvatarResolution> => {
   const metaType = normalizeType(head.httpMetadata?.contentType);
-  if (AVATAR_MEDIA_TYPES.test(metaType)) {
-    if (mode === "check") return { status: "r2", body: null, type: metaType };
-    const object = await env.BUCKET.get(key);
-    if (!object) return { status: "missing" };
-    return { status: "r2", body: object.body, type: metaType };
-  }
-  // 名乗った型が画像でない（or 無い）時は実体の先頭だけで判断する。
-  // check は先頭 12 バイトだけ読む。serve は結局本体を返すので全部読む。
-  if (mode === "check") {
-    const head12 = await env.BUCKET.get(key, { range: { offset: 0, length: 12 } });
-    if (!head12) return { status: "missing" };
-    const sniffed = sniffMediaType(new Uint8Array(await head12.arrayBuffer()));
-    return sniffed?.startsWith("image/")
-      ? { status: "r2", body: null, type: sniffed }
-      : { status: "not_image" };
-  }
-  const object = await env.BUCKET.get(key);
-  if (!object) return { status: "missing" };
-  const bytes = new Uint8Array(await object.arrayBuffer());
-  const sniffed = sniffMediaType(bytes.subarray(0, 12));
-  if (!sniffed?.startsWith("image/")) return { status: "not_image" };
-  return { status: "r2", body: bytes, type: sniffed };
+  return mode === "check" ? resolveR2Check(env, key, metaType) : resolveR2Serve(env, key, metaType);
 };
 
 // avatar 列の値から実体を引く。serve は本体を返し、check は状態だけを返す。

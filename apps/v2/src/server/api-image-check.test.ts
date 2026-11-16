@@ -8,7 +8,7 @@ import {
   v2ConversationTable,
   v2MessageTable,
 } from "@v2/db";
-import { eq } from "drizzle-orm";
+// テストの掃除は drizzle を直接 import せず raw D1 で行う（別バージョン drizzle の型衝突回避）。
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import { handleImageCheck } from "./api-image-check";
@@ -16,7 +16,7 @@ import { handleImageCheck } from "./api-image-check";
 import { openLocalD1, type LocalD1 } from "../../../../packages/db/src/test/local-d1";
 
 const mocks = vi.hoisted(() => ({
-  bucketHead: vi.fn(async (_key: string) => null),
+  bucketHead: vi.fn<(key: string) => Promise<unknown>>(async () => null),
   d1: { current: null as D1Database | null },
 }));
 
@@ -140,17 +140,20 @@ describe("GET /api/admin/image-check", () => {
   }, 180_000);
 
   afterAll(async () => {
-    await local.db.delete(messageTable).where(eq(messageTable.id, msg("legacy")));
-    await local.db
-      .delete(conversationTable)
-      .where(eq(conversationTable.id, `${prefix}-legacy-conv`));
+    await local.d1.prepare("DELETE FROM message WHERE id = ?").bind(msg("legacy")).run();
+    await local.d1
+      .prepare("DELETE FROM conversation WHERE id = ?")
+      .bind(`${prefix}-legacy-conv`)
+      .run();
     for (const id of ["created", "legacy", "badkey", "missing", "empty", "other"].map(msg)) {
-      await local.db.delete(v2MessageTable).where(eq(v2MessageTable.id, id));
+      await local.d1.prepare("DELETE FROM v2_message WHERE id = ?").bind(id).run();
     }
-    await local.db.delete(v2ConversationTable).where(eq(v2ConversationTable.id, convId));
-    await local.db.delete(v2ConversationTable).where(eq(v2ConversationTable.id, otherConv));
-    await local.db.delete(characterTable).where(eq(characterTable.id, charId));
-    await local.db.delete(userTable).where(eq(userTable.id, otherUser));
+    await local.d1
+      .prepare("DELETE FROM v2_conversation WHERE id IN (?, ?)")
+      .bind(convId, otherConv)
+      .run();
+    await local.d1.prepare("DELETE FROM character WHERE id = ?").bind(charId).run();
+    await local.d1.prepare("DELETE FROM user WHERE id = ?").bind(otherUser).run();
     // 'local' 利用者はほかの検査とも共有する土台なので消さん。
     await local.dispose();
   });

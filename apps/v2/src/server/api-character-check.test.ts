@@ -1,8 +1,8 @@
 // @vitest-environment node
 // GET /api/admin/character-check — 全件検査の結合確かめ。D1 は手元ローカル、
 // ASSETS・BUCKET は偽物。書き込み呼び出しを受けない事もここで見る。
-import { characterTable, userTable, v2ConversationTable } from "@v2/db";
-import { eq } from "drizzle-orm";
+import { userTable, v2ConversationTable } from "@v2/db";
+// テストの掃除は drizzle を直接 import せず raw D1 で行う（別バージョン drizzle の型衝突回避）。
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { handleCharacterCheck } from "./api-character-check";
@@ -13,8 +13,8 @@ const PNG_BYTES = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a
 
 const mocks = vi.hoisted(() => ({
   assetsFetch: vi.fn(async () => new Response(null, { status: 404 })),
-  bucketHead: vi.fn(async (_key: string) => null),
-  bucketGet: vi.fn(async () => null),
+  bucketHead: vi.fn<(key: string) => Promise<unknown>>(async () => null),
+  bucketGet: vi.fn<(key: string, options?: unknown) => Promise<unknown>>(async () => null),
   d1: { current: null as D1Database | null },
   statements: [] as string[],
 }));
@@ -129,12 +129,12 @@ describe("GET /api/admin/character-check", () => {
   }, 180_000);
 
   afterAll(async () => {
-    await local.db.delete(v2ConversationTable).where(eq(v2ConversationTable.id, convId));
+    await local.d1.prepare("DELETE FROM v2_conversation WHERE id = ?").bind(convId).run();
     for (const id of Object.values(ids)) {
-      await local.db.delete(characterTable).where(eq(characterTable.id, id));
+      await local.d1.prepare("DELETE FROM character WHERE id = ?").bind(id).run();
     }
     for (const owner of [legacyOwner, devOwner]) {
-      await local.db.delete(userTable).where(eq(userTable.id, owner));
+      await local.d1.prepare("DELETE FROM user WHERE id = ?").bind(owner).run();
     }
     await local.dispose();
   });
@@ -320,8 +320,8 @@ describe("GET /api/admin/character-check", () => {
       const html = (await findItem(htmlChar)).item as { avatar: { status: string } } | null;
       expect(html?.avatar.status).toBe("not_image");
     } finally {
-      await local.db.delete(characterTable).where(eq(characterTable.id, r2Char));
-      await local.db.delete(characterTable).where(eq(characterTable.id, htmlChar));
+      await local.d1.prepare("DELETE FROM character WHERE id = ?").bind(r2Char).run();
+      await local.d1.prepare("DELETE FROM character WHERE id = ?").bind(htmlChar).run();
       mocks.bucketHead.mockImplementation(async () => null);
       mocks.bucketGet.mockImplementation(async () => null);
     }

@@ -91,6 +91,8 @@ const db = async () => {
   return createDb(env.DB);
 };
 
+const d1 = async () => (await getPlatform()).env.DB;
+
 export const handleCharactersRequest = async (request: Request): Promise<Response> => {
   if (request.method !== "POST") return message(405, "この操作には対応していません。");
   const requestError = mutationRequestError(request);
@@ -117,7 +119,7 @@ export const handleCharacterRequest = async (id: string, request: Request): Prom
       const result = await readCharacterDetail(
         database,
         parsedId.data,
-        await resolveEditorUserId(database, parsedId.data),
+        await resolveEditorUserId(await d1(), database, parsedId.data),
       );
       return result
         ? privateJson(result)
@@ -132,7 +134,7 @@ export const handleCharacterRequest = async (id: string, request: Request): Prom
       if (!content.success) return message(422, "入力内容を確認してください。");
       const result = await updateCharacterWithVersion(database, {
         id: parsedId.data,
-        userId: await resolveEditorUserId(database, parsedId.data),
+        userId: await resolveEditorUserId(await d1(), database, parsedId.data),
         expectedRevision: payload.expectedRevision,
         content: content.data,
       });
@@ -158,7 +160,7 @@ export const handleCharacterVersionsRequest = async (
     const result = await listCharacterVersions(
       database,
       parsedId.data,
-      await resolveEditorUserId(database, parsedId.data),
+      await resolveEditorUserId(await d1(), database, parsedId.data),
     );
     return result
       ? privateJson(result)
@@ -181,7 +183,7 @@ export const handleCharacterVersionRequest = async (
     const result = await readCharacterVersion(database, {
       characterId: parsed.data.id,
       versionId: parsed.data.versionId,
-      userId: await resolveEditorUserId(database, parsed.data.id),
+      userId: await resolveEditorUserId(await d1(), database, parsed.data.id),
     });
     return result
       ? privateJson(result)
@@ -206,7 +208,7 @@ export const handleCharacterRestoreRequest = async (
     const database = await db();
     const result = await restoreCharacterVersion(database, {
       id: parsedId.data,
-      userId: await resolveEditorUserId(database, parsedId.data),
+      userId: await resolveEditorUserId(await d1(), database, parsedId.data),
       ...payload,
     });
     return privateJson({ id: parsedId.data, ...result });

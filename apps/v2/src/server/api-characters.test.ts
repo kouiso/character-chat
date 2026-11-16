@@ -12,6 +12,7 @@ import {
 import { toCharacterDisplay } from "./characters";
 
 import type * as Db from "@v2/db";
+import type * as Identity from "./identity";
 
 const validContent = (name = "入力") => ({
   name,
@@ -47,7 +48,7 @@ vi.mock("@v2/db", async (importOriginal) => ({
 }));
 
 vi.mock("./identity", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("./identity")>()),
+  ...(await importOriginal<typeof Identity>()),
   resolveEditorUserId: mocks.resolveEditorUserId,
 }));
 
@@ -324,7 +325,7 @@ describe("character REST handlers", () => {
         expectedRevision: 2,
       }),
     );
-    expect(mocks.resolveEditorUserId).toHaveBeenCalledWith(db, "character-9");
+    expect(mocks.resolveEditorUserId).toHaveBeenCalledWith({}, db, "character-9");
   });
 });
 

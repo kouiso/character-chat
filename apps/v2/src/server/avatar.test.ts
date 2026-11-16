@@ -38,7 +38,7 @@ const bucketWith = (
     const object = objects[key];
     if (!object) return null;
     const bytes = object.bytes ?? PNG_BYTES;
-    const blob = new Blob([bytes]);
+    const blob = new Blob([bytes as Uint8Array<ArrayBuffer>]);
     return {
       body: blob.stream(),
       arrayBuffer: () => blob.arrayBuffer(),

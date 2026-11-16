@@ -1,10 +1,9 @@
 // GET /api/admin/character-check — キャラ全件を 1 件ずつ検査し、ページに分けて返す。
 // 何も書き換えない（D1 へは SELECT、R2 へは head と先頭 12 バイトの get だけ）。
 // 結果には本文（system_prompt・greeting）と名義の生の値を入れない。
-import { asc, count, eq, gt, sql } from "drizzle-orm";
 import { z } from "zod";
 
-import { characterTable, checkCharacterRow, createDb, v2CharacterPublishTable } from "@v2/db";
+import { checkCharacterRow, createDb } from "@v2/db";
 
 import { resolveAvatar, type AvatarEnv, type AvatarStatus } from "./avatar";
 import { listOwnerIds, LOCAL_USER_ID } from "./identity";
@@ -43,21 +42,133 @@ export type CharacterCheckItem = {
 
 const json = (body: unknown, status = 200): Response => Response.json(body, { status });
 
-const readLegacyLinked = async (db: D1Database) => {
-  const linked: { table: string; rows: number | null; missing: boolean }[] = [];
-  for (const table of LEGACY_LINKED_TABLES) {
-    const found = await db
-      .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?")
-      .bind(table)
-      .first<{ name: string }>();
-    if (!found) {
-      linked.push({ table, rows: null, missing: true });
-      continue;
+// apps/v2 から drizzle を直接 import すると @v2/db 側と別インスタンスの型が衝突するので、
+// ここも canServeAvatar と同じく生 D1 で読む。
+type CharacterPageRow = {
+  id: string;
+  user_id: string;
+  name: string;
+  system_prompt: string;
+  greeting: string;
+  tags: string;
+  avatar: string | null;
+  gender: string | null;
+  slug: string | null;
+  is_official: number;
+  display_order: number;
+  created_at: number;
+  published: number;
+};
+
+const listCharacterPage = (db: D1Database, cursor: string | undefined, limit: number) =>
+  db
+    .prepare(
+      `SELECT c.id, c.user_id, c.name, c.system_prompt, c.greeting, c.tags, c.avatar,
+              c.gender, c.slug, c.is_official, c.display_order, c.created_at,
+              p.character_id IS NOT NULL AS published
+       FROM character c
+       LEFT JOIN v2_character_publish p ON p.character_id = c.id
+       ${cursor ? "WHERE c.id > ?" : ""}
+       ORDER BY c.id ASC LIMIT ?`,
+    )
+    .bind(...(cursor ? [cursor] : []), limit + 1)
+    .all<CharacterPageRow>();
+
+// 1 件の検査項目を組み立てる。R2・資産の読み失敗は呼び出し側へ投げる（「無い」と混ぜない）。
+const toCheckItem = async (
+  env: AvatarEnv,
+  requestUrl: string,
+  owners: readonly string[],
+  row: CharacterPageRow,
+): Promise<CharacterCheckItem> => {
+  const owned = owners.includes(row.user_id);
+  const official = row.is_official === 1;
+  const avatar = await resolveAvatar(env, requestUrl, row.avatar, "check");
+  return {
+    id: row.id,
+    zod: checkCharacterRow({
+      id: row.id,
+      name: row.name,
+      systemPrompt: row.system_prompt,
+      greeting: row.greeting,
+      tags: row.tags,
+      avatar: row.avatar,
+      gender: row.gender,
+      slug: row.slug,
+      isOfficial: official,
+      displayOrder: row.display_order,
+      createdAt: row.created_at,
+    }),
+    visible: owned || official,
+    published: row.published === 1,
+    canEdit: owned,
+    owner: row.user_id === LOCAL_USER_ID ? "local" : owned ? "legacy" : "other",
+    official,
+    avatar: { status: avatar.status },
+  };
+};
+
+// R2/資産が読めなかった = 「無い」ではないので、その 1 件を missing にせず失敗した id で返す。
+const checkCharacterItems = async (
+  env: AvatarEnv,
+  requestUrl: string,
+  owners: readonly string[],
+  page: CharacterPageRow[],
+): Promise<{ ok: true; items: CharacterCheckItem[] } | { ok: false; failedId: string }> => {
+  const items: CharacterCheckItem[] = [];
+  for (const row of page) {
+    try {
+      items.push(await toCheckItem(env, requestUrl, owners, row));
+    } catch {
+      return { ok: false, failedId: row.id };
     }
-    const counted = await db.prepare(`SELECT count(*) AS n FROM "${table}"`).first<{ n: number }>();
-    linked.push({ table, rows: counted?.n ?? 0, missing: false });
   }
-  return linked;
+  return { ok: true, items };
+};
+
+const countLegacyTable = async (db: D1Database, table: string) => {
+  const found = await db
+    .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?")
+    .bind(table)
+    .first<{ name: string }>();
+  if (!found) return { table, rows: null, missing: true };
+  const counted = await db.prepare(`SELECT count(*) AS n FROM "${table}"`).first<{ n: number }>();
+  return { table, rows: counted?.n ?? 0, missing: false };
+};
+
+const readLegacyLinked = (db: D1Database) =>
+  Promise.all(LEGACY_LINKED_TABLES.map((table) => countLegacyTable(db, table)));
+
+// 最初のページだけに旧表の集計を足す。
+const firstPageExtras = async (env: { DB: D1Database }, isFirst: boolean) =>
+  isFirst ? { legacyLinked: await readLegacyLinked(env.DB) } : {};
+
+const runCharacterCheck = async (
+  env: AvatarEnv & { DB: D1Database },
+  requestUrl: string,
+  cursor: string | undefined,
+  limit: number,
+): Promise<Response> => {
+  try {
+    const owners = await listOwnerIds(createDb(env.DB));
+    const total = await env.DB.prepare("SELECT count(*) AS n FROM character").first<{
+      n: number;
+    }>();
+    const { results: rows } = await listCharacterPage(env.DB, cursor, limit);
+
+    const page = rows.slice(0, limit);
+    const checked = await checkCharacterItems(env, requestUrl, owners, page);
+    if (!checked.ok) return json({ code: "storage_failed", id: checked.failedId }, 502);
+
+    return json({
+      total: total?.n ?? 0,
+      items: checked.items,
+      nextCursor: rows.length > limit ? (page.at(-1)?.id ?? null) : null,
+      ...(await firstPageExtras(env, cursor === undefined)),
+    });
+  } catch {
+    return json({ code: "db_failed" }, 500);
+  }
 };
 
 export const handleCharacterCheck = async (request: Request): Promise<Response> => {
@@ -66,70 +177,12 @@ export const handleCharacterCheck = async (request: Request): Promise<Response> 
     Object.fromEntries(new URL(request.url).searchParams.entries()),
   );
   if (!parsed.success) return json({ code: "bad_request" }, 400);
-  const { cursor } = parsed.data;
-  const limit = parsed.data.limit ?? DEFAULT_LIMIT;
 
   const { env } = await getPlatform();
-  const checkEnv = env as AvatarEnv & { DB: D1Database };
-  try {
-    const db = createDb(checkEnv.DB);
-    const owners = await listOwnerIds(db);
-    const [total] = await db.select({ n: count() }).from(characterTable);
-    const rows = await db
-      .select({
-        id: characterTable.id,
-        userId: characterTable.userId,
-        name: characterTable.name,
-        systemPrompt: characterTable.systemPrompt,
-        greeting: characterTable.greeting,
-        tags: sql<string>`${characterTable.tags}`,
-        avatar: characterTable.avatar,
-        gender: characterTable.gender,
-        slug: characterTable.slug,
-        isOfficial: characterTable.isOfficial,
-        displayOrder: characterTable.displayOrder,
-        createdAt: characterTable.createdAt,
-        published: sql<boolean>`${v2CharacterPublishTable.characterId} is not null`.mapWith(
-          Boolean,
-        ),
-      })
-      .from(characterTable)
-      .leftJoin(v2CharacterPublishTable, eq(v2CharacterPublishTable.characterId, characterTable.id))
-      .where(cursor ? gt(characterTable.id, cursor) : undefined)
-      .orderBy(asc(characterTable.id))
-      .limit(limit + 1);
-
-    const page = rows.slice(0, limit);
-    const items: CharacterCheckItem[] = [];
-    let currentId = "";
-    try {
-      for (const row of page) {
-        currentId = row.id;
-        const owned = owners.includes(row.userId);
-        const avatar = await resolveAvatar(checkEnv, request.url, row.avatar, "check");
-        items.push({
-          id: row.id,
-          zod: checkCharacterRow(row),
-          visible: owned || row.isOfficial,
-          published: row.published,
-          canEdit: owned,
-          owner: row.userId === LOCAL_USER_ID ? "local" : owned ? "legacy" : "other",
-          official: row.isOfficial,
-          avatar: { status: avatar.status },
-        });
-      }
-    } catch {
-      // R2/資産が読めなかった = 「無い」ではないので、その 1 件を missing にせず全体を 502 にする。
-      return json({ code: "storage_failed", id: currentId }, 502);
-    }
-
-    return json({
-      total: total.n,
-      items,
-      nextCursor: rows.length > limit ? (page.at(-1)?.id ?? null) : null,
-      ...(cursor === undefined ? { legacyLinked: await readLegacyLinked(checkEnv.DB) } : {}),
-    });
-  } catch {
-    return json({ code: "db_failed" }, 500);
-  }
+  return runCharacterCheck(
+    env as AvatarEnv & { DB: D1Database },
+    request.url,
+    parsed.data.cursor,
+    parsed.data.limit ?? DEFAULT_LIMIT,
+  );
 };

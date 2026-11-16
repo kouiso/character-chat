@@ -1,6 +1,5 @@
 // 個人用BASIC認証の所有者IDは資格情報の更新では変えない。
-import { characterTable, listLegacySourceUserIds } from "@v2/db";
-import { eq } from "drizzle-orm";
+import { listLegacySourceUserIds } from "@v2/db";
 
 import type { V2Db } from "@v2/db";
 
@@ -15,11 +14,17 @@ export const listOwnerIds = async (db: V2Db): Promise<string[]> => [
 
 // 編集APIに渡す所有名義。行の名義が持ち主の集合に入ればその名義（旧名義のキャラを
 // 本人が直せる）、入らなければ local（所有確認が今までどおり拒否する形）。
-export const resolveEditorUserId = async (db: V2Db, characterId: string): Promise<string> => {
-  const [row] = await db
-    .select({ userId: characterTable.userId })
-    .from(characterTable)
-    .where(eq(characterTable.id, characterId));
+// apps/v2 から drizzle を直接 import すると @v2/db 側と別インスタンスの型が衝突するので
+// 行の読み取りは生 D1 で行う。
+export const resolveEditorUserId = async (
+  d1: D1Database,
+  db: V2Db,
+  characterId: string,
+): Promise<string> => {
+  const row = await d1
+    .prepare("SELECT user_id FROM character WHERE id = ?")
+    .bind(characterId)
+    .first<{ user_id: string }>();
   if (!row) return LOCAL_USER_ID;
-  return (await listOwnerIds(db)).includes(row.userId) ? row.userId : LOCAL_USER_ID;
+  return (await listOwnerIds(db)).includes(row.user_id) ? row.user_id : LOCAL_USER_ID;
 };

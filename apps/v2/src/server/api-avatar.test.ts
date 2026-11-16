@@ -2,7 +2,6 @@
 // GET /api/characters/:id/avatar（routes/api/characters/$id_/avatar.ts）の結合確かめ。
 // D1 は手元のローカル、ASSETS・BUCKET は偽物。
 import { characterTable, userTable } from "@v2/db";
-import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import { handleAvatarRequest } from "../routes/api/characters/$id_/avatar";
@@ -11,8 +10,8 @@ import { openLocalD1, type LocalD1 } from "../../../../packages/db/src/test/loca
 
 const mocks = vi.hoisted(() => ({
   assetsFetch: vi.fn(async () => new Response(null, { status: 404 })),
-  bucketHead: vi.fn(async () => null),
-  bucketGet: vi.fn(async () => null),
+  bucketHead: vi.fn<(key: string) => Promise<unknown>>(async () => null),
+  bucketGet: vi.fn<(key: string, options?: unknown) => Promise<unknown>>(async () => null),
   d1: { current: null as D1Database | null },
 }));
 
@@ -69,9 +68,11 @@ describe("GET /api/characters/:id/avatar", () => {
   }, 180_000);
 
   afterAll(async () => {
-    await local.db.delete(characterTable).where(eq(characterTable.id, privateChar));
-    await local.db.delete(characterTable).where(eq(characterTable.id, publishedChar));
-    await local.db.delete(userTable).where(eq(userTable.id, stranger));
+    await local.d1
+      .prepare("DELETE FROM character WHERE id IN (?, ?)")
+      .bind(privateChar, publishedChar)
+      .run();
+    await local.d1.prepare("DELETE FROM user WHERE id = ?").bind(stranger).run();
     await local.d1
       .prepare("DELETE FROM v2_character_publish WHERE character_id = ?")
       .bind(publishedChar)
@@ -118,7 +119,7 @@ describe("GET /api/characters/:id/avatar", () => {
       expect(response.status).toBe(404);
       expect(await response.json()).toEqual({ code: "avatar_unset" });
     } finally {
-      await local.db.delete(characterTable).where(eq(characterTable.id, emptyChar));
+      await local.d1.prepare("DELETE FROM character WHERE id = ?").bind(emptyChar).run();
     }
   });
 
@@ -135,7 +136,7 @@ describe("GET /api/characters/:id/avatar", () => {
       expect(failed.status).toBe(502);
       expect(await failed.json()).toEqual({ code: "avatar_storage_failed" });
     } finally {
-      await local.db.delete(characterTable).where(eq(characterTable.id, missingChar));
+      await local.d1.prepare("DELETE FROM character WHERE id = ?").bind(missingChar).run();
     }
   });
 });

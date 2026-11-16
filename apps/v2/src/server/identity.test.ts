@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { characterTable, userTable, v2ConversationTable } from "@v2/db";
-import { eq } from "drizzle-orm";
+// 掃除は drizzle を直接 import せず raw D1 で行う（別バージョン drizzle の型衝突回避）。
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { listOwnerIds, LOCAL_USER_ID, resolveEditorUserId } from "./identity";
@@ -43,9 +43,9 @@ describe("listOwnerIds / resolveEditorUserId", () => {
   });
 
   afterAll(async () => {
-    await local.db.delete(v2ConversationTable).where(eq(v2ConversationTable.id, convId));
-    await local.db.delete(characterTable).where(eq(characterTable.id, legacyCharId));
-    await local.db.delete(userTable).where(eq(userTable.id, legacyOwner));
+    await local.d1.prepare("DELETE FROM v2_conversation WHERE id = ?").bind(convId).run();
+    await local.d1.prepare("DELETE FROM character WHERE id = ?").bind(legacyCharId).run();
+    await local.d1.prepare("DELETE FROM user WHERE id = ?").bind(legacyOwner).run();
     await local.dispose();
   });
 
@@ -57,7 +57,7 @@ describe("listOwnerIds / resolveEditorUserId", () => {
   });
 
   it("集合に入る名義のキャラはその名義を返す（旧名義のキャラを本人が直せる）", async () => {
-    await expect(resolveEditorUserId(local.db, legacyCharId)).resolves.toBe(legacyOwner);
+    await expect(resolveEditorUserId(local.d1, local.db, legacyCharId)).resolves.toBe(legacyOwner);
   });
 
   it("集合に無い名義のキャラ・無い行は local に倒す", async () => {
@@ -78,11 +78,15 @@ describe("listOwnerIds / resolveEditorUserId", () => {
       createdAt: Date.now(),
     });
     try {
-      await expect(resolveEditorUserId(local.db, strangerCharId)).resolves.toBe(LOCAL_USER_ID);
-      await expect(resolveEditorUserId(local.db, "char-not-exists")).resolves.toBe(LOCAL_USER_ID);
+      await expect(resolveEditorUserId(local.d1, local.db, strangerCharId)).resolves.toBe(
+        LOCAL_USER_ID,
+      );
+      await expect(resolveEditorUserId(local.d1, local.db, "char-not-exists")).resolves.toBe(
+        LOCAL_USER_ID,
+      );
     } finally {
-      await local.db.delete(characterTable).where(eq(characterTable.id, strangerCharId));
-      await local.db.delete(userTable).where(eq(userTable.id, strangerOwner));
+      await local.d1.prepare("DELETE FROM character WHERE id = ?").bind(strangerCharId).run();
+      await local.d1.prepare("DELETE FROM user WHERE id = ?").bind(strangerOwner).run();
     }
   });
 });
