@@ -14,7 +14,8 @@ const state = vi.hoisted(() => ({
       updated_at: number;
     }
   >(),
-  characters: new Map<string, { user_id: string }>(),
+  characters: new Map<string, { user_id: string; is_official?: number }>(),
+  legacyOwners: new Set<string>(),
 }));
 
 vi.mock("./platform", () => ({
@@ -24,9 +25,12 @@ vi.mock("./platform", () => ({
         prepare: (sql: string) => ({
           bind: (...args: unknown[]) => ({
             first: async () => {
-              if (sql.includes("SELECT user_id FROM character WHERE id")) {
+              if (sql.includes("FROM character WHERE id")) {
                 const c = state.characters.get(args[0] as string);
-                return c ? { user_id: c.user_id } : null;
+                if (!c) return null;
+                const visible =
+                  c.user_id === args[1] || c.is_official === 1 || state.legacyOwners.has(c.user_id);
+                return visible ? { ok: 1 } : null;
               }
               if (sql.includes("FROM v2_character_voice")) {
                 return state.voices.get(args[0] as string) ?? null;
@@ -71,6 +75,7 @@ beforeEach(() => {
   state.characters.clear();
   state.characters.set("c1", { user_id: "local" });
   state.characters.set("c2", { user_id: "other-user" });
+  state.legacyOwners.clear();
 });
 
 describe("api-voice", () => {

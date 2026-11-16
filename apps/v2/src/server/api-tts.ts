@@ -2,7 +2,7 @@
 // エンジン未起動は 503、エンジン側エラーは 502、他人のキャラは 404。
 import { z } from "zod";
 
-import { LOCAL_USER_ID } from "./identity";
+import { canAccessCharacter } from "./character-access";
 import { getPlatform } from "./platform";
 import {
   defaultVoiceSettings,
@@ -22,13 +22,7 @@ const ttsBodySchema = z.object({
   layer: z.enum(TTS_LAYERS).optional(),
 });
 
-const ownsCharacter = async (db: D1Database, characterId: string): Promise<boolean> => {
-  const row = await db
-    .prepare("SELECT user_id FROM character WHERE id = ?")
-    .bind(characterId)
-    .first<{ user_id: string }>();
-  return row?.user_id === LOCAL_USER_ID;
-};
+const ownsCharacter = canAccessCharacter;
 
 const readVoiceSettings = async (db: D1Database, characterId: string): Promise<VoiceSettings> => {
   const row = await db

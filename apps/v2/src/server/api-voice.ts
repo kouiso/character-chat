@@ -1,7 +1,7 @@
 // キャラ別ボイス設定 API（RIT-210）。v2_character_voice に1行、未設定は既定値へ倒す。
 import { z } from "zod";
 
-import { LOCAL_USER_ID } from "./identity";
+import { canAccessCharacter } from "./character-access";
 import { getPlatform } from "./platform";
 import { VOICE_ENGINES, defaultVoiceSettings } from "./tts";
 
@@ -16,13 +16,7 @@ const voiceBodySchema = z.object({
   intonation: z.number().min(0.0).max(2.0),
 });
 
-const ownsCharacter = async (db: D1Database, characterId: string): Promise<boolean> => {
-  const row = await db
-    .prepare("SELECT user_id FROM character WHERE id = ?")
-    .bind(characterId)
-    .first<{ user_id: string }>();
-  return row?.user_id === LOCAL_USER_ID;
-};
+const ownsCharacter = canAccessCharacter;
 
 const readVoice = async (db: D1Database, characterId: string) => {
   const row = await db

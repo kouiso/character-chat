@@ -5,7 +5,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const state = vi.hoisted(() => ({
   stories: new Map<string, Record<string, unknown>>(),
   chapters: new Map<string, Record<string, unknown>>(),
-  characters: new Map<string, { user_id: string }>(),
+  characters: new Map<string, { user_id: string; is_official?: number }>(),
+  legacyOwners: new Set<string>(),
 }));
 
 const firstMaxOrd = (storyId: unknown): { m: number | null } => {
@@ -19,8 +20,15 @@ const firstChapterJoin = (args: unknown[]): { user_id: unknown } | null => {
   return { user_id: state.stories.get(`${ch.story_id}`)?.user_id };
 };
 
+const visibleCharacter = (id: unknown, userId: unknown) => {
+  const c = state.characters.get(`${id}`);
+  if (!c) return null;
+  const visible = c.user_id === userId || c.is_official === 1 || state.legacyOwners.has(c.user_id);
+  return visible ? { ok: 1 } : null;
+};
+
 const firstRow = (sql: string, args: unknown[]): unknown => {
-  if (sql.includes("FROM character")) return state.characters.get(`${args[0]}`) ?? null;
+  if (sql.includes("FROM character")) return visibleCharacter(args[0], args[1]);
   if (sql.includes("FROM v2_story")) return state.stories.get(`${args[0]}`) ?? null;
   if (sql.includes("MAX(ord)")) return firstMaxOrd(args[0]);
   if (sql.includes("JOIN v2_story")) return firstChapterJoin(args);
@@ -150,6 +158,7 @@ beforeEach(() => {
   state.chapters.clear();
   state.characters.set("c1", { user_id: "local" });
   state.characters.set("other", { user_id: "someone" });
+  state.legacyOwners.clear();
 });
 
 describe("api-stories", () => {
