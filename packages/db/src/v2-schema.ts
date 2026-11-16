@@ -157,6 +157,9 @@ export const v2SummaryTable = sqliteTable(
     level: integer("level").notNull(),
     coveredTo: integer("covered_to").notNull(),
     text: text("text").notNull(),
+    // 記憶の削除・書き換えで触れた文が残っとる可能性があるので、伏せ直しが済むまで
+    // 指示文から外す印（RIT-94）。1 = 伏せ直し待ち。
+    redactPending: integer("redact_pending").notNull().default(0),
     createdAt: integer("created_at").notNull(),
   },
   (table) => [
@@ -226,6 +229,11 @@ export const v2MemoryTable = sqliteTable(
     // 抽出が付ける主題ラベル。同じ主題の新しい記憶に置き換わった印が supersededBy（RIT-86）。
     subject: text("subject").notNull().default(""),
     supersededBy: text("superseded_by"),
+    // 論理削除（RIT-94）。30 秒の復元窓が過ぎたら物理削除する。読む道は全部
+    // deleted_at is null で除くので、窓の中でも指示文には入らん。
+    deletedAt: integer("deleted_at"),
+    // 手直しの世代。論理削除・復元・書き換えで +1（楽観排他・並び替えの拠り所）。
+    revision: integer("revision").notNull().default(1),
   },
   (table) => [
     index("v2_memory_conv_kind_idx").on(table.conversationId, table.kind),
@@ -477,6 +485,9 @@ export const v2MemoryTombstoneTable = sqliteTable(
       .notNull()
       .references(() => v2ConversationTable.id),
     contentHash: text("content_hash").notNull(),
+    // 消した本文。伏せ直し・新しい要約の「書かない事柄」として渡す（RIT-94）。
+    // 本文を持たん旧行は null。Queue の体には入れず D1 にだけ置く（NFR-2）。
+    content: text("content"),
     createdAt: integer("created_at").notNull(),
   },
   (table) => [primaryKey({ columns: [table.conversationId, table.contentHash] })],

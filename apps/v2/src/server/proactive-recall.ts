@@ -62,7 +62,7 @@ export const findRecallCue = async (
 
   const memoryRows = await db
     .prepare(
-      `SELECT content, created_at FROM v2_memory WHERE conversation_id IN (${marks}) ORDER BY created_at DESC LIMIT ${MEMORY_SCAN_LIMIT}`,
+      `SELECT content, created_at FROM v2_memory WHERE conversation_id IN (${marks}) AND deleted_at IS NULL ORDER BY created_at DESC LIMIT ${MEMORY_SCAN_LIMIT}`,
     )
     .bind(...conversationIds)
     .all<{ content: string; created_at: number }>();

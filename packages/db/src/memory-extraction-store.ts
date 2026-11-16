@@ -42,8 +42,9 @@ export const listPendingMemoryJobs = async (
           includeUnindexed
             ? and(
                 eq(v2MemoryJobTable.state, "completed"),
+                // 論理削除済みの未索引行は埋め込みを再配送せん（RIT-94）
                 sql`exists (select 1 from v2_memory m join v2_memory_source s on s.memory_id = m.id
-            where s.source_message_id = ${v2MemoryJobTable.sourceMessageId} and m.embedding is null)`,
+            where s.source_message_id = ${v2MemoryJobTable.sourceMessageId} and m.embedding is null and m.deleted_at is null)`,
               )
             : undefined,
         ),
@@ -223,6 +224,8 @@ export const completeMemoryExtraction = async (
                 createdAt: sql<number>`${now}`.as("created_at"),
                 subject: sql<string>`${memory.subject}`.as("subject"),
                 supersededBy: sql<string | null>`null`.as("superseded_by"),
+                deletedAt: sql<number | null>`null`.as("deleted_at"),
+                revision: sql<number>`1`.as("revision"),
               })
               .from(v2MemoryJobTable)
               .where(and(eq(v2MemoryJobTable.id, source.id), notTombstoned)),

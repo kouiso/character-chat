@@ -84,6 +84,7 @@ import { Route as ApiGroupsIdMessagesRouteImport } from './routes/api/groups/$id
 import { Route as ApiStoriesIdChaptersRouteImport } from './routes/api/stories/$id_/chapters'
 import { Route as ApiCatalogIdCommentsCidRouteImport } from './routes/api/catalog/$id_/comments/$cid'
 import { Route as ApiCharactersIdDocumentsDocRouteImport } from './routes/api/characters/$id_/documents/$doc'
+import { Route as ApiCharactersIdMemoriesRestoreRouteImport } from './routes/api/characters/$id_/memories_/restore'
 import { Route as ApiCharactersIdVersionsVersionRouteImport } from './routes/api/characters/$id_/versions/$version'
 import { Route as ApiProactiveCharactersIdSettingsRouteImport } from './routes/api/proactive/characters/$id_/settings'
 import { Route as ApiStoriesIdChaptersCidRouteImport } from './routes/api/stories/$id_/chapters/$cid'
@@ -469,6 +470,12 @@ const ApiCharactersIdDocumentsDocRoute =
     path: '/$doc',
     getParentRoute: () => ApiCharactersIdDocumentsRoute,
   })
+const ApiCharactersIdMemoriesRestoreRoute =
+  ApiCharactersIdMemoriesRestoreRouteImport.update({
+    id: '/$id_/memories_/restore',
+    path: '/$id/memories/restore',
+    getParentRoute: () => ApiCharactersRoute,
+  })
 const ApiCharactersIdVersionsVersionRoute =
   ApiCharactersIdVersionsVersionRouteImport.update({
     id: '/$version',
@@ -587,6 +594,7 @@ export interface FileRoutesByFullPath {
   '/api/stories/$id/chapters': typeof ApiStoriesIdChaptersRouteWithChildren
   '/api/catalog/$id/comments/$cid': typeof ApiCatalogIdCommentsCidRoute
   '/api/characters/$id/documents/$doc': typeof ApiCharactersIdDocumentsDocRoute
+  '/api/characters/$id/memories/restore': typeof ApiCharactersIdMemoriesRestoreRoute
   '/api/characters/$id/versions/$version': typeof ApiCharactersIdVersionsVersionRoute
   '/api/proactive/characters/$id/settings': typeof ApiProactiveCharactersIdSettingsRoute
   '/api/stories/$id/chapters/$cid': typeof ApiStoriesIdChaptersCidRoute
@@ -671,6 +679,7 @@ export interface FileRoutesByTo {
   '/api/stories/$id/chapters': typeof ApiStoriesIdChaptersRouteWithChildren
   '/api/catalog/$id/comments/$cid': typeof ApiCatalogIdCommentsCidRoute
   '/api/characters/$id/documents/$doc': typeof ApiCharactersIdDocumentsDocRoute
+  '/api/characters/$id/memories/restore': typeof ApiCharactersIdMemoriesRestoreRoute
   '/api/characters/$id/versions/$version': typeof ApiCharactersIdVersionsVersionRoute
   '/api/proactive/characters/$id/settings': typeof ApiProactiveCharactersIdSettingsRoute
   '/api/stories/$id/chapters/$cid': typeof ApiStoriesIdChaptersCidRoute
@@ -756,6 +765,7 @@ export interface FileRoutesById {
   '/api/stories/$id_/chapters': typeof ApiStoriesIdChaptersRouteWithChildren
   '/api/catalog/$id_/comments/$cid': typeof ApiCatalogIdCommentsCidRoute
   '/api/characters/$id_/documents/$doc': typeof ApiCharactersIdDocumentsDocRoute
+  '/api/characters/$id_/memories_/restore': typeof ApiCharactersIdMemoriesRestoreRoute
   '/api/characters/$id_/versions/$version': typeof ApiCharactersIdVersionsVersionRoute
   '/api/proactive/characters/$id_/settings': typeof ApiProactiveCharactersIdSettingsRoute
   '/api/stories/$id_/chapters/$cid': typeof ApiStoriesIdChaptersCidRoute
@@ -842,6 +852,7 @@ export interface FileRouteTypes {
     | '/api/stories/$id/chapters'
     | '/api/catalog/$id/comments/$cid'
     | '/api/characters/$id/documents/$doc'
+    | '/api/characters/$id/memories/restore'
     | '/api/characters/$id/versions/$version'
     | '/api/proactive/characters/$id/settings'
     | '/api/stories/$id/chapters/$cid'
@@ -926,6 +937,7 @@ export interface FileRouteTypes {
     | '/api/stories/$id/chapters'
     | '/api/catalog/$id/comments/$cid'
     | '/api/characters/$id/documents/$doc'
+    | '/api/characters/$id/memories/restore'
     | '/api/characters/$id/versions/$version'
     | '/api/proactive/characters/$id/settings'
     | '/api/stories/$id/chapters/$cid'
@@ -1010,6 +1022,7 @@ export interface FileRouteTypes {
     | '/api/stories/$id_/chapters'
     | '/api/catalog/$id_/comments/$cid'
     | '/api/characters/$id_/documents/$doc'
+    | '/api/characters/$id_/memories_/restore'
     | '/api/characters/$id_/versions/$version'
     | '/api/proactive/characters/$id_/settings'
     | '/api/stories/$id_/chapters/$cid'
@@ -1598,6 +1611,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCharactersIdDocumentsDocRouteImport
       parentRoute: typeof ApiCharactersIdDocumentsRoute
     }
+    '/api/characters/$id_/memories_/restore': {
+      id: '/api/characters/$id_/memories_/restore'
+      path: '/$id/memories/restore'
+      fullPath: '/api/characters/$id/memories/restore'
+      preLoaderRoute: typeof ApiCharactersIdMemoriesRestoreRouteImport
+      parentRoute: typeof ApiCharactersRoute
+    }
     '/api/characters/$id_/versions/$version': {
       id: '/api/characters/$id_/versions/$version'
       path: '/$version'
@@ -1733,6 +1753,7 @@ interface ApiCharactersRouteChildren {
   ApiCharactersIdRestoreRoute: typeof ApiCharactersIdRestoreRoute
   ApiCharactersIdVersionsRoute: typeof ApiCharactersIdVersionsRouteWithChildren
   ApiCharactersIdVoiceRoute: typeof ApiCharactersIdVoiceRoute
+  ApiCharactersIdMemoriesRestoreRoute: typeof ApiCharactersIdMemoriesRestoreRoute
 }
 
 const ApiCharactersRouteChildren: ApiCharactersRouteChildren = {
@@ -1743,6 +1764,7 @@ const ApiCharactersRouteChildren: ApiCharactersRouteChildren = {
   ApiCharactersIdRestoreRoute: ApiCharactersIdRestoreRoute,
   ApiCharactersIdVersionsRoute: ApiCharactersIdVersionsRouteWithChildren,
   ApiCharactersIdVoiceRoute: ApiCharactersIdVoiceRoute,
+  ApiCharactersIdMemoriesRestoreRoute: ApiCharactersIdMemoriesRestoreRoute,
 }
 
 const ApiCharactersRouteWithChildren = ApiCharactersRoute._addFileChildren(
@@ -1902,12 +1924,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}

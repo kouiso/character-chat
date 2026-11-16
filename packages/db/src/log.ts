@@ -9,6 +9,8 @@ export type LogEventName =
   | "memory_extraction_failed"
   | "memory_manual_index_failed"
   | "memory_vector_drop_failed"
+  | "memory_purge_failed"
+  | "summary_redact_publish_failed"
   | "memory_pinned_load_failed"
   | "memory_retrieval_failed"
   | "document_vector_delete_failed"

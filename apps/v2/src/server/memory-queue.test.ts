@@ -8,17 +8,21 @@ import {
   characterContentSchema,
   characterTable,
   createCharacterWithVersion,
+  listRedactPendingSummaries,
   loadMemoryExtractionSource,
   userTable,
   v2ConversationTable,
   v2MemoryJobTable,
+  v2MemoryTombstoneTable,
   v2MessageTable,
+  v2SummaryTable,
+  hashMemorySource,
 } from "@v2/db";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import { openLocalD1, type LocalD1 } from "../../../../packages/db/src/test/local-d1";
 
-import { consumeMemoryJobs, publishMemoryJobs } from "./memory-queue";
+import { consumeMemoryJobs, publishMemoryJobs, runSummaryRedact } from "./memory-queue";
 
 const userId = `memory-queue-test-${crypto.randomUUID()}`;
 const characterId = crypto.randomUUID();
@@ -85,6 +89,14 @@ describe("memory queue publisher", () => {
       await local.d1.exec(`DROP TRIGGER IF EXISTS ${triggerName}`);
       await local.d1
         .prepare("DELETE FROM v2_memory WHERE conversation_id = ?")
+        .bind(conversationId)
+        .run();
+      await local.d1
+        .prepare("DELETE FROM v2_summary WHERE conversation_id = ?")
+        .bind(conversationId)
+        .run();
+      await local.d1
+        .prepare("DELETE FROM v2_memory_tombstone WHERE conversation_id = ?")
         .bind(conversationId)
         .run();
       await local.d1
@@ -390,5 +402,115 @@ describe("memory queue publisher", () => {
         .run();
       await local.d1.prepare("DELETE FROM character WHERE id = ?").bind(created.id).run();
     }
+  });
+
+  it("summary_redact の配送は待ちの要約を墓標の本文で伏せ直して ack する（RIT-94）", async () => {
+    // 消した記憶が残った体の要約を植える
+    const summaryId = `sum-${crypto.randomUUID()}`;
+    await local.db.insert(v2SummaryTable).values({
+      id: summaryId,
+      conversationId,
+      level: 1,
+      coveredTo: 1,
+      text: "相手は紅茶が好き。他の出来事。",
+      redactPending: 1,
+      createdAt: Date.now(),
+    });
+    await local.db.insert(v2MemoryTombstoneTable).values({
+      conversationId,
+      contentHash: await hashMemorySource("紅茶が好き"),
+      content: "紅茶が好き",
+      createdAt: Date.now(),
+    });
+
+    const ack = vi.fn();
+    const batch: MessageBatch<unknown> = {
+      queue: "local-memory",
+      ackAll: vi.fn(),
+      retryAll: vi.fn(),
+      metadata: { metrics: { backlogCount: 0, backlogBytes: 0 } },
+      messages: [
+        {
+          id: "redact-delivery",
+          timestamp: new Date(),
+          // 体は type と conversationId だけ — 本文は D1 の墓標から読む（NFR-2）
+          body: { type: "summary_redact", conversationId },
+          attempts: 1,
+          ack,
+          retry: vi.fn(),
+        },
+      ],
+    };
+    await consumeMemoryJobs(batch, {
+      DB: local.d1,
+      APP_ENV: "test",
+      V2_FAKE_MODEL: "1",
+      V2_MODEL: "unused",
+      OPENROUTER_API_KEY: "",
+      V2_RAG_ENABLED: "0",
+    });
+    expect(ack).toHaveBeenCalledOnce();
+    const summary = await local.d1
+      .prepare("SELECT text, redact_pending AS pending FROM v2_summary WHERE id = ?")
+      .bind(summaryId)
+      .first<{ text: string; pending: number }>();
+    expect(summary?.pending).toBe(0);
+    expect(summary?.text).not.toContain("紅茶が好き");
+    expect(await listRedactPendingSummaries(local.db, conversationId)).toEqual([]);
+  });
+
+  it("伏せ直しが失敗したら retry、4 回目の失敗で要約の行を消して ack（FR-4）", async () => {
+    const keepId = `keep-${crypto.randomUUID()}`;
+    const doomedId = `doomed-${crypto.randomUUID()}`;
+    await local.db.insert(v2SummaryTable).values({
+      id: keepId,
+      conversationId,
+      level: 1,
+      coveredTo: 2,
+      text: "残る要約",
+      redactPending: 1,
+      createdAt: Date.now(),
+    });
+    await local.db.insert(v2SummaryTable).values({
+      id: doomedId,
+      conversationId,
+      level: 1,
+      coveredTo: 3,
+      text: "消える要約",
+      redactPending: 1,
+      createdAt: Date.now(),
+    });
+
+    // 失敗するモデル → retry（要約は待ちのまま）
+    const retry = vi.fn();
+    const ackEarly = vi.fn();
+    const throwing = new FakeListChatModel({ responses: [] });
+    await runSummaryRedact(
+      local.db,
+      throwing,
+      { attempts: 2, ack: ackEarly, retry },
+      conversationId,
+    );
+    expect(retry).toHaveBeenCalledOnce();
+    expect(ackEarly).not.toHaveBeenCalled();
+    expect(await listRedactPendingSummaries(local.db, conversationId)).toHaveLength(2);
+
+    // 4 回目の失敗: 待ちの行を 1 行ずつ消して ack（要約は次の summarize で作り直される）
+    const ackLate = vi.fn();
+    const retryLate = vi.fn();
+    await runSummaryRedact(
+      local.db,
+      new FakeListChatModel({ responses: [] }),
+      { attempts: 4, ack: ackLate, retry: retryLate },
+      conversationId,
+    );
+    expect(ackLate).toHaveBeenCalledOnce();
+    expect(retryLate).not.toHaveBeenCalled();
+    const remaining = await local.d1
+      .prepare("SELECT id FROM v2_summary WHERE id IN (?, ?)")
+      .bind(keepId, doomedId)
+      .all();
+    expect(remaining.results).toEqual([]);
+    expect(await listRedactPendingSummaries(local.db, conversationId)).toEqual([]);
   });
 });

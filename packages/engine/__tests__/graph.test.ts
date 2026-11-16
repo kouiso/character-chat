@@ -686,12 +686,13 @@ describe("createTurnGraph", () => {
       expect(rows.filter((row) => row.level === 1)).toHaveLength(1);
     });
 
-    test("visibleSummaries は最新の level 2 とその後ろの level 1 を時系列で返す", () => {
-      const row = (level: 1 | 2, coveredTo: number, text: string) => ({
+    test("visibleSummaries は最新の level 2 とその後ろの level 1 を時系列で返し、伏せ直し待ちは出さん", () => {
+      const row = (level: 1 | 2, coveredTo: number, text: string, redactPending = false) => ({
         id: `s-${level}-${coveredTo}`,
         level,
         coveredTo,
         text,
+        redactPending,
       });
       expect(
         visibleSummaries([row(1, 10, "a"), row(1, 20, "b"), row(2, 20, "ab"), row(1, 30, "c")]).map(
@@ -703,6 +704,12 @@ describe("createTurnGraph", () => {
         "b",
       ]);
       expect(visibleSummaries([])).toEqual([]);
+      // redact_pending = 1 の行は伏せ直しが済むまで指示文に出さん（RIT-94）
+      expect(
+        visibleSummaries([row(1, 10, "a", true), row(1, 20, "b"), row(2, 20, "ab", true)]).map(
+          (entry) => entry.text,
+        ),
+      ).toEqual(["b"]);
     });
   });
 });

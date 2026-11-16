@@ -10,6 +10,7 @@ import {
   createCharacterWithVersion,
   createD1TurnStore,
   userTable,
+  v2SummaryTable,
 } from "@v2/db";
 import { emptyLedger } from "@v2/prompt";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
@@ -22,7 +23,7 @@ const platform = vi.hoisted(() => ({ env: {} as Record<string, unknown> }));
 
 vi.mock("./platform", () => ({ getPlatform: async () => platform }));
 
-const { handleMemoriesRequest } = await import("./api-memories");
+const { handleMemoriesRequest, handleMemoriesRestoreRequest } = await import("./api-memories");
 
 const url = "https://example.com/api/characters/c1/memories";
 const request = (method: string, body?: unknown) =>
@@ -120,6 +121,7 @@ describe("memories API", () => {
       for (const table of [
         "v2_memory",
         "v2_memory_tombstone",
+        "v2_summary",
         "v2_message",
         "v2_ledger",
         "v2_generation",
@@ -277,6 +279,83 @@ describe("memories API", () => {
         .run();
       await local.d1.prepare("DELETE FROM character WHERE id = ?").bind(created.id).run();
     }
+  });
+
+  it("DELETE は deletedAt を返し、墓標に本文・要約を伏せ直し待ち・Queue へ仕事を送る（RIT-94）", async () => {
+    const sent: { body: unknown }[] = [];
+    const MEMORY_QUEUE = {
+      send: async (body: unknown) => {
+        sent.push({ body });
+      },
+    };
+    platform.env = { DB: local.d1, V2_RAG_ENABLED: "0", MEMORY_QUEUE };
+
+    const conversationId = await talk();
+    await local.db.insert(v2SummaryTable).values({
+      id: crypto.randomUUID(),
+      conversationId,
+      level: 1,
+      coveredTo: 1,
+      text: "紅茶が好きな人と話した",
+      createdAt: Date.now(),
+    });
+    const created = await call("POST", { conversationId, content: "消す記憶" });
+    const { memory } = (await created.json()) as { memory: { id: string } };
+
+    const response = await call("DELETE", { memoryId: memory.id });
+    expect(response.status).toBe(200);
+    const body = (await response.json()) as { ok: boolean; deletedAt: number };
+    expect(body.ok).toBe(true);
+    expect(typeof body.deletedAt).toBe("number");
+
+    // 墓標には本文が入る（伏せ直しの「書かない事柄」に使う）
+    const tombstones = await local.d1
+      .prepare("SELECT content FROM v2_memory_tombstone WHERE conversation_id = ?")
+      .bind(conversationId)
+      .all<{ content: string }>();
+    expect(tombstones.results).toHaveLength(1);
+    expect(tombstones.results?.[0]?.content).toBe("消す記憶");
+
+    // その会話の要約は伏せ直し待ち
+    const summaries = await local.d1
+      .prepare("SELECT redact_pending AS pending FROM v2_summary WHERE conversation_id = ?")
+      .bind(conversationId)
+      .all<{ pending: number }>();
+    expect(summaries.results).toEqual([{ pending: 1 }]);
+
+    // Queue には体として type と conversationId だけ（本文は D1 の墓標が持つ）
+    expect(sent).toEqual([{ body: { type: "summary_redact", conversationId } }]);
+    platform.env = { DB: local.d1, V2_RAG_ENABLED: "0" };
+  });
+
+  it("復元は 30 秒以内なら記憶を戻し、窓切れは 410（RIT-94）", async () => {
+    const restore = (body: unknown) =>
+      handleMemoriesRestoreRequest(characterId, request("POST", body));
+    const conversationId = await talk();
+    const created = await call("POST", { conversationId, content: "戻す記憶" });
+    const { memory } = (await created.json()) as { memory: { id: string } };
+    expect((await call("DELETE", { memoryId: memory.id })).status).toBe(200);
+
+    const restored = await restore({ memoryId: memory.id });
+    expect(restored.status).toBe(200);
+    const { memories } = await list();
+    expect(memories.find((row) => row.id === memory.id)?.content).toBe("戻す記憶");
+
+    // 削除されとらん記憶の復元は 404
+    const ghost = await restore({ memoryId: "no-such" });
+    expect(ghost.status).toBe(404);
+
+    // 窓切れ: deleted_at を 31 秒前に戻してから復元すると 410
+    expect((await call("DELETE", { memoryId: memory.id })).status).toBe(200);
+    await local.d1
+      .prepare("UPDATE v2_memory SET deleted_at = ? WHERE id = ?")
+      .bind(Date.now() - 31_000, memory.id)
+      .run();
+    const expired = await restore({ memoryId: memory.id });
+    expect(expired.status).toBe(410);
+    // 410 と同時に物理削除されるので次は 404
+    const gone = await restore({ memoryId: memory.id });
+    expect(gone.status).toBe(404);
   });
 
   it("空・長すぎる記憶は 422、4000字は通る", async () => {
