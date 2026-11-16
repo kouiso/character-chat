@@ -487,6 +487,7 @@ describe("memory queue publisher", () => {
     const throwing = new FakeListChatModel({ responses: [] });
     await runSummaryRedact(
       local.db,
+      {},
       throwing,
       { attempts: 2, ack: ackEarly, retry },
       conversationId,
@@ -500,6 +501,7 @@ describe("memory queue publisher", () => {
     const retryLate = vi.fn();
     await runSummaryRedact(
       local.db,
+      {},
       new FakeListChatModel({ responses: [] }),
       { attempts: 4, ack: ackLate, retry: retryLate },
       conversationId,

@@ -11,6 +11,8 @@ export type LogEventName =
   | "memory_vector_drop_failed"
   | "memory_purge_failed"
   | "summary_redact_publish_failed"
+  | "summary_redact_failed"
+  | "summary_redact_dropped"
   | "memory_pinned_load_failed"
   | "memory_retrieval_failed"
   | "document_vector_delete_failed"

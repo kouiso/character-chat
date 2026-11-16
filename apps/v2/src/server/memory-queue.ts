@@ -144,6 +144,7 @@ const contentToText = (content: BaseMessage["content"]): string => {
 // message は Queue の配送そのもの（attempts/ack/retry）をテストから差し替えられる形。
 export const runSummaryRedact = async (
   db: V2Db,
+  env: unknown,
   model: BaseChatModel,
   message: Pick<Message, "attempts" | "ack" | "retry">,
   conversationId: string,
@@ -166,15 +167,16 @@ export const runSummaryRedact = async (
       // 4 回失敗したらその要約の行を消す（あらすじは次の summarize で作り直される）。
       if (message.attempts >= SUMMARY_REDACT_ATTEMPTS) {
         await dropSummary(db, summary.id);
-        reportMemoryEvent({
+        reportFailure(env, {
           event: "summary_redact_dropped",
+          level: "error",
           conversationId,
-          summaryId: summary.id,
         });
         continue;
       }
-      reportMemoryEvent({
+      reportFailure(env, {
         event: "summary_redact_failed",
+        level: "error",
         conversationId,
         attempt: message.attempts,
       });
@@ -196,9 +198,22 @@ const consumeSummaryRedact = async (
   try {
     await purgeExpiredMemories(db, env, { conversationId });
   } catch {
-    reportMemoryEvent({ event: "memory_purge_failed" });
+    reportFailure(env, { event: "memory_purge_failed", level: "error" });
   }
-  await runSummaryRedact(db, createSummaryRedactModel(env), message, conversationId);
+  await runSummaryRedact(db, env, createSummaryRedactModel(env), message, conversationId);
+};
+
+// 受け手の始めの物理削除（FR-7）。失敗は抜き出し自体を止めん。
+const tryPurgeExpiredMemories = async (
+  db: V2Db,
+  env: MemoryVectorBindings,
+  conversationId: string,
+): Promise<void> => {
+  try {
+    await purgeExpiredMemories(db, env, { conversationId });
+  } catch {
+    reportFailure(env, { event: "memory_purge_failed", level: "error" });
+  }
 };
 
 export const consumeMemoryJobs = async (
@@ -224,12 +239,7 @@ export const consumeMemoryJobs = async (
     try {
       const source = await loadMemoryExtractionSource(db, jobId);
       if (source) {
-        // 受け手の始めの物理削除（FR-7）。失敗は抜き出し自体を止めん。
-        try {
-          await purgeExpiredMemories(db, env, { conversationId: source.conversationId });
-        } catch {
-          reportMemoryEvent({ event: "memory_purge_failed" });
-        }
+        await tryPurgeExpiredMemories(db, env, source.conversationId);
         await runMemoryExtraction(db, env, source);
       }
       if (memoryVectorReady(env)) {
