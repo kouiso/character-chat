@@ -771,8 +771,16 @@ body {
   gap: 0.4rem;
   margin: 0.6rem 0;
 }
+/* select は既定で最長の option 幅になり、狭い画面で題と作成ボタンを画面外へ押し出す。
+   flex 子の min-width:auto を 0 にして縮められるようにする */
+.v2-story-create select {
+  flex: 0 1 12rem;
+  min-width: 0;
+  max-width: 100%;
+}
 .v2-story-create input {
   flex: 1;
+  min-width: 0;
 }
 .v2-story-meta {
   font-size: 0.78rem;

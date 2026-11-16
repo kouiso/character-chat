@@ -13,3 +13,11 @@ node apps/v2/test/chat-message.browser.mjs
 実物の ChatView と専用 CSS を一時 harness へ読み込み、ブラウザで送信操作を行い、API応答を合成SSEと確定履歴JSONに置換する。PR #27の既存送信復旧経路は保持する。外部 origin は遮断する。専用 context と localhost サーバーを終了時に閉じる。character loader・実DB・SSR全体の通し試験は含まない。
 
 対象アプリの単体試験・型・Lint・build は `apps/v2` で `pnpm test --maxWorkers=1`、`pnpm typecheck`、`pnpm lint`、`pnpm build` を実行する。pnpm が自動依存確認を始める環境では `--config.verifyDepsBeforeRun=false` を使用する。
+
+#178 ストーリー作成欄の幅は、ローカルで起動した v2（`vite dev`、`V2_FAKE_MODEL=1`、migration と `seed:local` 済み）に最長名のキャラを足して実測する。
+
+```bash
+V2_URL=http://127.0.0.1:3111 V2_USER=... V2_PASS=... V2_LONGEST_CHARACTER_ID=<最長名のキャラ id> node apps/v2/test/story-create.browser.mjs
+```
+
+375 / 390 / 320px でページ幅と 3 部品が画面内に収まること、1280px では横一列のままであることを検査する。Chromium の場所は `CHROMIUM_PATH`、スクリーンショットは `SHOT_PATH`（375px）。
