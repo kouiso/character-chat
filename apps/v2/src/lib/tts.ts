@@ -31,13 +31,16 @@ export interface VoicePlayback {
 }
 
 // RIT-212: レイヤ毎に /api/tts へ layer を渡し、セグメントを連続再生する。
-// 途中で stop() されたら次の合成へ進まない。合成失敗はその場で終了。
+// 読み上げるのは台詞だけ（描写・心の声は音声にしない）。途中で stop() されたら次の合成へ
+// 進まない。合成失敗はその場で終了。
 export const playVoiceText = (
   characterId: string,
   text: string,
   onEnded: () => void,
 ): VoicePlayback => {
-  const layers = messageLayers(text, false).filter((layer) => layer.text.trim().length > 0);
+  const layers = messageLayers(text, false).filter(
+    (layer) => layer.kind === "dialogue" && layer.text.trim().length > 0,
+  );
   let stopped = false;
   let current: HTMLAudioElement | null = null;
   const finish = () => {

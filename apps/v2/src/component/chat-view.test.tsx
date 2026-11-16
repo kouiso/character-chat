@@ -83,6 +83,40 @@ describe("ChatView", () => {
     expect(screen.queryByText("はじめまして、案内役です")).toBeNull();
   });
 
+  it("音声ボタンは台詞レイヤにだけ出て、描写・心の声には出ない", async () => {
+    writeChatSession("a", {
+      version: 1,
+      conversationId: "conversation-a",
+      pending: null,
+    });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        Response.json({
+          turn: 2,
+          history: [
+            { id: "m1", turn: 1, role: "user", content: "ねえ" },
+            {
+              id: "m2",
+              turn: 1,
+              role: "assistant",
+              content:
+                "<action>小さく笑って近づく。</action><dialogue>こっち向いて。</dialogue><inner>ドキドキする。</inner>",
+            },
+          ],
+        }),
+      ),
+    );
+    render(<ChatView characterId="a" characterName="案内役" />);
+    await screen.findByText("こっち向いて。");
+    const dialogue = screen.getByRole("group", { name: "台詞" });
+    expect(dialogue.querySelector('[aria-label="音声で再生"]')).not.toBeNull();
+    const narration = screen.getByRole("group", { name: "描写" });
+    const inner = screen.getByRole("group", { name: "心の声" });
+    expect(narration.querySelector('[aria-label="音声で再生"]')).toBeNull();
+    expect(inner.querySelector('[aria-label="音声で再生"]')).toBeNull();
+  });
+
   it("新規会話の入口では前の会話を再開せず、再読込時は新しい保留を復元する", async () => {
     writeChatSession("a", { version: 1, conversationId: "old", pending: null });
     const fetchMock = vi.fn(async (_url: RequestInfo | URL, init?: RequestInit) => {

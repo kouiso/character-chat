@@ -514,18 +514,22 @@ export const ChatView = ({
     );
   };
 
-  // RIT-211: キャラ応答は自動再生設定に関わらず手動再生できる。
-  const voiceButtonOf = (bubble: ChatBubble) => {
-    if (bubble.role !== "assistant" || !bubble.text || bubble.pending) return null;
-    const key = bubble.id ?? `t${bubble.turn ?? 0}`;
-    return (
-      <VoiceButton
-        playing={voiceKey === key}
-        busy={false}
-        onPlay={() => void playVoice(key, bubble.text)}
-        onStop={stopVoice}
-      />
-    );
+  // RIT-211: キャラ応答は自動再生設定に関わらず手動再生できる。スイッチは台詞レイヤにだけ
+  // 載せ、押したらその台詞だけが読み上がる（描写・心の声は読ませない）。
+  const voiceSlotOf = (bubble: ChatBubble) => {
+    if (bubble.role !== "assistant" || !bubble.text || bubble.pending) return undefined;
+    const bubbleKey = bubble.id ?? `t${bubble.turn ?? 0}`;
+    return (layerText: string, layerIndex: number) => {
+      const key = `${bubbleKey}:l${layerIndex}`;
+      return (
+        <VoiceButton
+          playing={voiceKey === key}
+          busy={false}
+          onPlay={() => void playVoice(key, layerText)}
+          onStop={stopVoice}
+        />
+      );
+    };
   };
 
   const restoreRewound = async () => {
@@ -891,9 +895,9 @@ export const ChatView = ({
                 text={bubble.text || (bubble.pending ? "…" : "")}
                 characterName={characterName}
                 streaming={bubble.pending}
+                voiceSlot={voiceSlotOf(bubble)}
               />
               {bubbleControls(bubble)}
-              {voiceButtonOf(bubble)}
             </div>
           </div>
         ))}
