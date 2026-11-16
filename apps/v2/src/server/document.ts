@@ -3,6 +3,7 @@
 import {
   countCharacterDocuments,
   deleteCharacterDocument,
+  describeError,
   DOCUMENT_MAX_PER_CHARACTER,
   hashMemorySource,
   insertCharacterDocument,
@@ -20,6 +21,7 @@ import {
   memoryVectorReady,
   type MemoryVectorBindings,
 } from "./memory-vector";
+import { reportFailure } from "./log";
 
 export const DOCUMENT_CHUNK_SIZE = 1_200;
 export const DOCUMENT_CHUNK_OVERLAP = 200;
@@ -207,18 +209,26 @@ export const deleteCharacterDocumentById = async (
   if (env.MEMORY_INDEX?.deleteByIds && chunks.length > 0) {
     try {
       await env.MEMORY_INDEX.deleteByIds(chunks.map((chunk) => chunk.vectorId));
-    } catch {
-      globalThis.console.error(
-        JSON.stringify({ event: "document_vector_delete_failed", documentId }),
-      );
+    } catch (error) {
+      reportFailure(env, {
+        event: "document_vector_delete_failed",
+        level: "error",
+        documentId,
+        reason: describeError(error),
+      });
     }
   }
   await deleteCharacterDocument(db, documentId, userId);
   if (env.BUCKET) {
     try {
       await env.BUCKET.delete(document.r2Key);
-    } catch {
-      globalThis.console.error(JSON.stringify({ event: "document_r2_delete_failed", documentId }));
+    } catch (error) {
+      reportFailure(env, {
+        event: "document_r2_delete_failed",
+        level: "error",
+        documentId,
+        reason: describeError(error),
+      });
     }
   }
 };

@@ -2,6 +2,7 @@ import { FakeListChatModel } from "@langchain/core/utils/testing";
 import {
   completeMemoryExtraction,
   createDb,
+  describeError,
   failMemoryExtraction,
   failMemoryIndex,
   listPendingMemoryJobs,
@@ -19,15 +20,12 @@ import { createOpenRouterModel, extractMemories } from "@v2/engine";
 
 import { indexMemoryJob } from "./memory-rag";
 import { memoryVectorReady, type MemoryVectorBindings } from "./memory-vector";
+import { reportFailure } from "./log";
 
 import type { BaseChatModel } from "@langchain/core/language_models/chat_models";
 
 export const MEMORY_RETRY_DELAY_MS = 30_000;
 export const MEMORY_CONSUMER_ATTEMPTS = 5;
-
-const reportMemoryEvent = (event: Record<string, unknown>): void => {
-  globalThis.console.error(JSON.stringify(event));
-};
 
 type QueuePublisher = Pick<Queue<MemoryQueueBody>, "sendBatch">;
 
@@ -37,6 +35,7 @@ export const publishMemoryJobs = async (
   scope: ExtractionScope,
   beforeSend: () => Promise<void>,
   includeUnindexed = false,
+  env: unknown = {},
 ): Promise<boolean> => {
   const jobs = await listPendingMemoryJobs(db, scope, includeUnindexed);
   if (jobs.length === 0) return false;
@@ -46,7 +45,11 @@ export const publishMemoryJobs = async (
     await queue.sendBatch(ids.map((jobId) => ({ body: { jobId } })));
   } catch {
     await markMemoryPublishFailure(db, ids);
-    reportMemoryEvent({ event: "memory_queue_publish_failed", jobs: ids.length });
+    reportFailure(env, {
+      event: "memory_queue_publish_failed",
+      level: "error",
+      count: ids.length,
+    });
     return (await listPendingMemoryJobs(db, scope, includeUnindexed)).length > 0;
   }
   await markMemoryJobsQueued(db, ids);
@@ -106,13 +109,14 @@ const runMemoryExtraction = async (
 
 export const consumeMemoryJobs = async (
   batch: MessageBatch<unknown>,
-  env: MemoryModelEnv & Pick<Cloudflare.Env, "DB"> & MemoryVectorBindings,
+  env: MemoryModelEnv &
+    Pick<Cloudflare.Env, "DB"> & { SLACK_ERROR_WEBHOOK_URL?: string } & MemoryVectorBindings,
 ): Promise<void> => {
   const db = createDb(env.DB);
   for (const message of batch.messages) {
     const parsed = memoryQueueBodySchema.safeParse(message.body);
     if (!parsed.success) {
-      reportMemoryEvent({ event: "memory_queue_invalid_message" });
+      reportFailure(env, { event: "memory_queue_invalid_message", level: "error" });
       message.ack();
       continue;
     }
@@ -126,13 +130,15 @@ export const consumeMemoryJobs = async (
         await indexMemoryJob(db, env, jobId);
       }
       message.ack();
-    } catch {
+    } catch (error) {
       const terminal = message.attempts >= MEMORY_CONSUMER_ATTEMPTS;
-      reportMemoryEvent({
+      reportFailure(env, {
         event: "memory_extraction_failed",
+        level: "error",
         jobId,
         attempt: message.attempts,
         terminal,
+        reason: describeError(error),
       });
       if (terminal) {
         await (indexing ? failMemoryIndex(db, jobId) : failMemoryExtraction(db, jobId));

@@ -1,4 +1,4 @@
-import { ConversationAccessError, createDb } from "@v2/db";
+import { ConversationAccessError, createDb, describeError } from "@v2/db";
 import { ContextBudgetConfigError, contextBudgetFromEnv } from "@v2/engine";
 import { z } from "zod";
 
@@ -12,6 +12,7 @@ import {
   loadStoredTurn,
   LOCAL_USER_ID,
 } from "./engine";
+import { reportFailure } from "./log";
 import { getPlatform } from "./platform";
 import { SSE_HEADERS, toSseStream, type SequencedSseEvent } from "./sse";
 import { checkDailyTurnLimit } from "./usage-limit";
@@ -28,7 +29,7 @@ const BodySchema = z.object({
 const json = (status: number, body: Record<string, unknown>): Response =>
   Response.json(body, { status });
 
-const toErrorResponse = (error: unknown): Response => {
+const toErrorResponse = (error: unknown, env: unknown, route: string): Response => {
   if (error instanceof CharacterNotFoundError || error instanceof ConversationAccessError) {
     return json(404, { message: "会話またはキャラクターが見つかりません。" });
   }
@@ -36,9 +37,13 @@ const toErrorResponse = (error: unknown): Response => {
     return json(422, { message: "キャラクターの設定を確認してください。" });
   }
   if (error instanceof ContextBudgetConfigError) {
-    console.error(
-      JSON.stringify({ event: "context_budget_config_invalid", message: error.message }),
-    );
+    reportFailure(env, {
+      event: "context_budget_config_invalid",
+      level: "error",
+      status: 500,
+      route,
+      reason: describeError(error),
+    });
     return json(500, { message: "サーバー設定に誤りがあります。" });
   }
   return json(503, { message: "処理を開始できませんでした。再試行してください。" });
@@ -83,9 +88,11 @@ export const handleChatRequest = async (id: string, request: Request): Promise<R
   if (!parsed.success || !Number.isSafeInteger(after) || after < 0) {
     return json(400, { message: "送信内容を確認してください。" });
   }
+  // getPlatform が落ちた時も設定エラーの記録と知らせは出したいので、env は失敗しうる値として持つ。
+  let env: Cloudflare.Env | undefined;
   try {
     await loadHistory({ characterId: id, conversationId: parsed.data.conversationId });
-    const { env } = await getPlatform();
+    ({ env } = await getPlatform());
     // 設定ミスを ChatRoom の3回リトライまで持ち込まず、受付前に1回で落とす。
     contextBudgetFromEnv(env);
     // 使いすぎ止め（RIT-103）。n 回目までは通し、n+1 回目は理由を添えて止める。
@@ -115,7 +122,7 @@ export const handleChatRequest = async (id: string, request: Request): Promise<R
       headers: SSE_HEADERS,
     });
   } catch (error) {
-    return toErrorResponse(error);
+    return toErrorResponse(error, env, "/api/chat/:id");
   }
 };
 
@@ -142,9 +149,10 @@ export const handleHistoryRequest = async (id: string, request: Request): Promis
   const requestId = requestIdParam === null ? null : RequestIdParamSchema.safeParse(requestIdParam);
   if (requestId && !requestId.success)
     return json(400, { message: "requestIdを確認してください。" });
+  let env: Cloudflare.Env | undefined;
   try {
     if (!requestId) return json(200, await loadHistory({ characterId: id, conversationId }));
-    const { env } = await getPlatform();
+    ({ env } = await getPlatform());
     const room = chatRoomFor(env, conversationId);
     const job = await room.withdraw(requestId.data);
     // 作成中の送信は、キャラが読めん（404/422）時でも「戻してよい」と答えたらあかん。履歴より先に見る。
@@ -157,6 +165,6 @@ export const handleHistoryRequest = async (id: string, request: Request): Promis
       storedTurn: job === null ? null : await readStoredTurn(id, conversationId, job.turn),
     });
   } catch (error) {
-    return toErrorResponse(error);
+    return toErrorResponse(error, env, "/api/chat/:id/history");
   }
 };

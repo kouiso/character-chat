@@ -1,4 +1,5 @@
 import {
+  describeError,
   failMemoryIndex,
   hashMemorySource,
   loadMemoryCandidates,
@@ -10,6 +11,7 @@ import {
 } from "@v2/db";
 
 import { jstDateKey } from "./jst-date";
+import { reportFailure } from "./log";
 import {
   embedMemoryText,
   memoryNamespace,
@@ -98,8 +100,12 @@ export const retrieveMemories = async (
   // 記憶の深さはプランの機能差（RIT-193）。未指定は従来どおり20。
   const topK = scope.topK ?? 20;
   // 固定済みは類似度を必要とせんので vector 非依存で必ず先に返す（手で足した記憶の既定経路）。
-  const pinned = await loadPinnedMemories(db, scope).catch(() => {
-    globalThis.console.error(JSON.stringify({ event: "memory_pinned_load_failed" }));
+  const pinned = await loadPinnedMemories(db, scope).catch((error: unknown) => {
+    reportFailure(env, {
+      event: "memory_pinned_load_failed",
+      level: "error",
+      reason: describeError(error),
+    });
     return [];
   });
   const pinnedEntries = pinned.map(({ id, content }) => ({ id, content }));
@@ -131,8 +137,12 @@ export const retrieveMemories = async (
     const ranked = await rankMemoryCandidates(rows, matches, now);
     const pinnedIds = new Set(pinnedEntries.map((entry) => entry.id));
     return [...pinnedEntries, ...ranked.filter((entry) => !pinnedIds.has(entry.id))];
-  } catch {
-    globalThis.console.error(JSON.stringify({ event: "memory_retrieval_failed" }));
+  } catch (error) {
+    reportFailure(env, {
+      event: "memory_retrieval_failed",
+      level: "error",
+      reason: describeError(error),
+    });
     return pinnedEntries;
   }
 };

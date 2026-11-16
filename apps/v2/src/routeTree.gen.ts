@@ -37,6 +37,7 @@ import { Route as GroupsIndexRouteImport } from './routes/groups/index'
 import { Route as GroupsIdRouteImport } from './routes/groups/$id'
 import { Route as StoriesIndexRouteImport } from './routes/stories/index'
 import { Route as StoriesIdRouteImport } from './routes/stories/$id'
+import { Route as ApiAdminFailureDrillRouteImport } from './routes/api/admin/failure-drill'
 import { Route as ApiAdminLegacyMigrationRouteImport } from './routes/api/admin/legacy-migration'
 import { Route as ApiBoardIdRouteImport } from './routes/api/board/$id'
 import { Route as ApiCatalogIdRouteImport } from './routes/api/catalog/$id'
@@ -229,6 +230,11 @@ const StoriesIndexRoute = StoriesIndexRouteImport.update({
 const StoriesIdRoute = StoriesIdRouteImport.update({
   id: '/stories/$id',
   path: '/stories/$id',
+  getParentRoute: () => rootRouteImport,
+})
+const ApiAdminFailureDrillRoute = ApiAdminFailureDrillRouteImport.update({
+  id: '/api/admin/failure-drill',
+  path: '/api/admin/failure-drill',
   getParentRoute: () => rootRouteImport,
 })
 const ApiAdminLegacyMigrationRoute = ApiAdminLegacyMigrationRouteImport.update({
@@ -534,6 +540,7 @@ export interface FileRoutesByFullPath {
   '/stories/$id': typeof StoriesIdRouteWithChildren
   '/groups/': typeof GroupsIndexRoute
   '/stories/': typeof StoriesIndexRoute
+  '/api/admin/failure-drill': typeof ApiAdminFailureDrillRoute
   '/api/admin/legacy-migration': typeof ApiAdminLegacyMigrationRoute
   '/api/board/$id': typeof ApiBoardIdRoute
   '/api/catalog/$id': typeof ApiCatalogIdRoute
@@ -617,6 +624,7 @@ export interface FileRoutesByTo {
   '/stories/$id': typeof StoriesIdRouteWithChildren
   '/groups': typeof GroupsIndexRoute
   '/stories': typeof StoriesIndexRoute
+  '/api/admin/failure-drill': typeof ApiAdminFailureDrillRoute
   '/api/admin/legacy-migration': typeof ApiAdminLegacyMigrationRoute
   '/api/board/$id': typeof ApiBoardIdRoute
   '/api/catalog/$id': typeof ApiCatalogIdRoute
@@ -701,6 +709,7 @@ export interface FileRoutesById {
   '/stories/$id': typeof StoriesIdRouteWithChildren
   '/groups/': typeof GroupsIndexRoute
   '/stories/': typeof StoriesIndexRoute
+  '/api/admin/failure-drill': typeof ApiAdminFailureDrillRoute
   '/api/admin/legacy-migration': typeof ApiAdminLegacyMigrationRoute
   '/api/board/$id': typeof ApiBoardIdRoute
   '/api/catalog/$id': typeof ApiCatalogIdRoute
@@ -786,6 +795,7 @@ export interface FileRouteTypes {
     | '/stories/$id'
     | '/groups/'
     | '/stories/'
+    | '/api/admin/failure-drill'
     | '/api/admin/legacy-migration'
     | '/api/board/$id'
     | '/api/catalog/$id'
@@ -869,6 +879,7 @@ export interface FileRouteTypes {
     | '/stories/$id'
     | '/groups'
     | '/stories'
+    | '/api/admin/failure-drill'
     | '/api/admin/legacy-migration'
     | '/api/board/$id'
     | '/api/catalog/$id'
@@ -952,6 +963,7 @@ export interface FileRouteTypes {
     | '/stories/$id'
     | '/groups/'
     | '/stories/'
+    | '/api/admin/failure-drill'
     | '/api/admin/legacy-migration'
     | '/api/board/$id'
     | '/api/catalog/$id'
@@ -1036,6 +1048,7 @@ export interface RootRouteChildren {
   StoriesIdRoute: typeof StoriesIdRouteWithChildren
   GroupsIndexRoute: typeof GroupsIndexRoute
   StoriesIndexRoute: typeof StoriesIndexRoute
+  ApiAdminFailureDrillRoute: typeof ApiAdminFailureDrillRoute
   ApiAdminLegacyMigrationRoute: typeof ApiAdminLegacyMigrationRoute
   ApiChapterMediaIdRoute: typeof ApiChapterMediaIdRoute
   ApiChapterVideoIdRoute: typeof ApiChapterVideoIdRoute
@@ -1254,6 +1267,13 @@ declare module '@tanstack/react-router' {
       path: '/stories/$id'
       fullPath: '/stories/$id'
       preLoaderRoute: typeof StoriesIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/failure-drill': {
+      id: '/api/admin/failure-drill'
+      path: '/api/admin/failure-drill'
+      fullPath: '/api/admin/failure-drill'
+      preLoaderRoute: typeof ApiAdminFailureDrillRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/admin/legacy-migration': {
@@ -1857,6 +1877,7 @@ const rootRouteChildren: RootRouteChildren = {
   StoriesIdRoute: StoriesIdRouteWithChildren,
   GroupsIndexRoute: GroupsIndexRoute,
   StoriesIndexRoute: StoriesIndexRoute,
+  ApiAdminFailureDrillRoute: ApiAdminFailureDrillRoute,
   ApiAdminLegacyMigrationRoute: ApiAdminLegacyMigrationRoute,
   ApiChapterMediaIdRoute: ApiChapterMediaIdRoute,
   ApiChapterVideoIdRoute: ApiChapterVideoIdRoute,

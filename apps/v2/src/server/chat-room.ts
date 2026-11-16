@@ -1,10 +1,11 @@
-import { createDb } from "@v2/db";
+import { createDb, describeError } from "@v2/db";
 import { DurableObject } from "cloudflare:workers";
 
 import { parseChatSseEvent, type ChatSseEvent } from "../lib/sse-events";
 
 import { loadHistory, loadStoredTurn, startTurn } from "./engine";
 import { LOCAL_USER_ID } from "./identity";
+import { reportFailure } from "./log";
 import { MEMORY_RETRY_DELAY_MS, publishMemoryJobs } from "./memory-queue";
 import { memoryVectorReady } from "./memory-vector";
 
@@ -20,7 +21,6 @@ const parseStoredEvent = (raw: string): ChatSseEvent => {
 };
 
 const CHAT_TURN_FAILURE_EVENT = "chat_turn_failed";
-const CHAT_TURN_FAILURE_CATEGORY = "turn_processing_failure";
 const MAX_ATTEMPTS = 3;
 const WITHDRAWN_MESSAGE = "返信を完了できませんでした。入力に戻してください。";
 // 受付・alarm の拾い上げ・予約・状態の問い合わせが、同じ「処理中」の定義を使う。
@@ -56,11 +56,7 @@ const isDeterministic = (error: unknown): boolean =>
   error instanceof TurnFailure && DETERMINISTIC_REASONS.has(error.reason);
 
 const describeFailure = (error: unknown): { reason: string } =>
-  error instanceof TurnFailure
-    ? { reason: error.reason }
-    : {
-        reason: error instanceof Error ? `unexpected:${error.name}` : `unexpected:${typeof error}`,
-      };
+  error instanceof TurnFailure ? { reason: error.reason } : { reason: describeError(error) };
 
 type JobStatus = "queued" | "running" | "succeeded" | "failed";
 type Job = {
@@ -290,6 +286,7 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
       },
       reserve,
       memoryVectorReady(this.env),
+      this.env,
     );
     if (pending) await reserve();
   }
@@ -396,16 +393,14 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
     if (deterministic) {
       this.ctx.storage.sql.exec("UPDATE jobs SET attempts = ? WHERE id = ?", MAX_ATTEMPTS, job.id);
     }
-    console.error(
-      JSON.stringify({
-        event: CHAT_TURN_FAILURE_EVENT,
-        category: CHAT_TURN_FAILURE_CATEGORY,
-        jobId: job.id,
-        attempt,
-        terminal,
-        ...describeFailure(error),
-      }),
-    );
+    reportFailure(this.env, {
+      event: CHAT_TURN_FAILURE_EVENT,
+      level: "error",
+      jobId: job.id,
+      attempt,
+      terminal,
+      ...describeFailure(error),
+    });
     this.finish(
       job,
       [

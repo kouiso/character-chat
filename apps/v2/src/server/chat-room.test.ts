@@ -25,6 +25,7 @@ const platform = vi.hoisted(() => ({ env: {} as Record<string, unknown> }));
 const replies = vi.hoisted(() => ({ queue: [] as string[][], calls: 0 }));
 
 vi.mock("cloudflare:workers", () => ({
+  waitUntil: (job: Promise<unknown>) => void job.catch(() => undefined),
   DurableObject: class {
     protected ctx: unknown;
     protected env: unknown;
@@ -432,7 +433,7 @@ describe("ChatRoom", () => {
       expect(logged).toHaveLength(1);
       expect(JSON.parse(logged[0] ?? "{}")).toEqual({
         event: "chat_turn_failed",
-        category: "turn_processing_failure",
+        level: "error",
         jobId: "req-7",
         attempt: 1,
         terminal: false,

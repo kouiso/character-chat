@@ -2,12 +2,14 @@ import {
   ConversationAccessError,
   createDb,
   deleteConversationImage,
+  describeError,
   listConversationImages,
 } from "@v2/db";
 import { PROMPT_VERSION } from "@v2/prompt";
 import { z } from "zod";
 
 import { LOCAL_USER_ID } from "./identity";
+import { reportFailure } from "./log";
 import {
   COMIC_PANEL_COUNT,
   generateConversationComic,
@@ -39,16 +41,20 @@ const json = (status: number, body: Record<string, unknown>): Response =>
 const isNotFound = (error: unknown): boolean =>
   error instanceof ImageGenerationError && error.status === 404;
 
-const imageErrorResponse = (error: unknown): Response => {
+const imageErrorResponse = (error: unknown, env: unknown, route: string): Response => {
   if (error instanceof ConversationAccessError || isNotFound(error)) {
     return json(404, { message: "会話またはキャラクターが見つかりません。" });
   }
   if (error instanceof ImageGenerationError) {
     return json(error.status, { message: error.message });
   }
-  globalThis.console.error(
-    JSON.stringify({ event: "image_generation_error", message: String(error) }),
-  );
+  reportFailure(env, {
+    event: "image_generation_error",
+    level: "error",
+    status: 500,
+    route,
+    reason: describeError(error),
+  });
   return json(500, { message: "画像を生成できませんでした。" });
 };
 
@@ -64,8 +70,10 @@ export const handleImageRequest = async (
   }
   const parsed = BodySchema.safeParse(payload);
   if (!parsed.success) return json(400, { message: "送信内容を確認してください。" });
+  // getPlatform が落ちた時も 500 の記録と知らせは出したいので、env は失敗しうる値として持つ。
+  let env: Cloudflare.Env | undefined;
   try {
-    const { env } = await getPlatform();
+    ({ env } = await getPlatform());
     const { conversationId, sourceMessageId, instruction, ...params } = parsed.data;
     const result = await generateConversationImage({
       env,
@@ -82,7 +90,7 @@ export const handleImageRequest = async (
       generationId: result.generationId,
     });
   } catch (error) {
-    return imageErrorResponse(error);
+    return imageErrorResponse(error, env, "/api/chat/:id/images");
   }
 };
 
@@ -116,8 +124,9 @@ export const handleComicRequest = async (
   if ((groupId === undefined) !== (panelIndex === undefined)) {
     return json(400, { message: "送信内容を確認してください。" });
   }
+  let env: Cloudflare.Env | undefined;
   try {
-    const { env } = await getPlatform();
+    ({ env } = await getPlatform());
     const result = await generateConversationComic({
       env,
       characterId,
@@ -139,7 +148,7 @@ export const handleComicRequest = async (
     if (!result.ok) return json(502, { message: "画像を生成できませんでした。", panels });
     return json(200, { groupId: result.groupId, panelCount: COMIC_PANEL_COUNT, panels });
   } catch (error) {
-    return imageErrorResponse(error);
+    return imageErrorResponse(error, env, "/api/chat/:id/comic");
   }
 };
 

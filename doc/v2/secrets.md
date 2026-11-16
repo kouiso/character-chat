@@ -12,10 +12,19 @@
 | `BASIC_AUTH_USERNAME` | 入口 BASIC 認証のユーザー名（コロン不可） | 全リクエスト 503 |
 | `BASIC_AUTH_PASSWORD` | 入口 BASIC 認証のパスワード | 全リクエスト 503 |
 | `OPENROUTER_API_KEY` | 返事生成のモデル呼び出し | チャット送信が 503 |
+| `SLACK_ERROR_WEBHOOK_URL` | 失敗の知らせの送り先（Slack 受け口） | 知らせは送られず記録だけ残る。訓練 API は 503 |
 
 `wrangler.jsonc` の `secrets.required` に同名を宣言してあるので、未設定のままでは
 `wrangler deploy` が止まる（出した後に開く状態にはならん）。`secrets.required` は
-`env` へ継承されんので、`env.rag` と `env.staging` の両方に同じ 3 つを書いてある。
+`env` へ継承されんので、`env.rag` と `env.staging` の両方に同じ一覧を書いてある。
+
+`SLACK_ERROR_WEBHOOK_URL` の値は、記録・知らせ・チケットのどこにも出さん（RIT-66 NFR-4）。
+知らせの経路が生きているかは `POST /api/admin/failure-drill` で確かめる。
+
+モデルの接続先を Cloudflare AI Gateway に変えた時（`V2_OPENROUTER_BASE_URL` のホストが
+`gateway.ai.cloudflare.com`）、コード側が全要求に `cf-aig-collect-log-payload: false` を
+付けるので本文は Gateway の記録に残らん。Gateway 側の記録保存を切る設定の確認は
+RIT-100 の受け入れで行う。
 
 ## 出す（本番・staging）
 

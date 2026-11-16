@@ -138,7 +138,8 @@
         "**/src/check.ts",
         "**/src/server/chat-room.ts",
         "**/src/server/api-chat.ts",
-        "**/src/worker.ts"
+        "**/src/worker.ts",
+        "**/packages/db/src/log.ts"
       ],
       "rules": {
         "no-console": "off"
