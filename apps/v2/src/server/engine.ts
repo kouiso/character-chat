@@ -229,22 +229,22 @@ export const startTurn = async (
     style: chatStyle === "balanced" ? undefined : chatStyle,
     userPersona,
     contextBudget: contextBudgetFromEnv(env),
-    retrieveMemories: memoryVectorReady(env)
-      ? async (targetConversationId, query) =>
-          retrieveMemories(
-            db,
-            env,
-            {
-              userId: LOCAL_USER_ID,
-              characterId: input.characterId,
-              conversationId: targetConversationId,
-              beforeTurn: input.expectedTurn,
-              // 記憶検索の深さは保有プランの機能差（RIT-193）。検索時点の段階を見る。
-              topK: (await readPlan(env.DB, LOCAL_USER_ID)).features.memoryTopK,
-            },
-            query,
-          )
-      : undefined,
+    // 固定の記憶は vector が無い環境でも指示文へ入れるため、常に渡す（RIT-92）。
+    // 中の retrieveMemories が検索箱の部分だけ memoryVectorReady で分ける。
+    retrieveMemories: async (targetConversationId, query) =>
+      retrieveMemories(
+        db,
+        env,
+        {
+          userId: LOCAL_USER_ID,
+          characterId: input.characterId,
+          conversationId: targetConversationId,
+          beforeTurn: input.expectedTurn,
+          // 記憶検索の深さは保有プランの機能差（RIT-193）。検索時点の段階を見る。
+          topK: (await readPlan(env.DB, LOCAL_USER_ID)).features.memoryTopK,
+        },
+        query,
+      ),
     retrieveDocuments: memoryVectorReady(env)
       ? (query) =>
           retrieveDocumentChunks(

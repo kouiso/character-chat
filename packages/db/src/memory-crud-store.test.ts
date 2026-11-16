@@ -13,7 +13,7 @@ import {
 import {
   deleteMemory,
   insertManualMemory,
-  listCharacterMemories,
+  listConversationMemories,
   loadExpiredMemories,
   loadPinnedMemories,
   MemoryAccessError,
@@ -21,7 +21,7 @@ import {
   removeMemories,
   restoreMemory,
   setMemoryPinned,
-  updateMemoryContent,
+  updateMemory,
 } from "./memory-crud-store";
 import { openLocalD1, type LocalD1 } from "./test/local-d1";
 import { createD1TurnStore } from "./turn-store";
@@ -149,10 +149,16 @@ describe("memory crud store", () => {
       .where(eq(v2MessageTable.id, source.messageId));
     expect(message.role).toBe("user");
 
-    const list = await listCharacterMemories(local.db, { ...scope, characterId });
+    const list = await listConversationMemories(local.db, {
+      ...scope,
+      characterId,
+      conversationId,
+    });
     expect(list.map((row) => row.id)).toContain(memory!.id);
-    // 別の利用者からは見えない
-    expect(await listCharacterMemories(local.db, { userId: "other", characterId })).toEqual([]);
+    // 別の利用者からは見えない（一覧自体が所有確認で弾かれる）
+    await expect(
+      listConversationMemories(local.db, { userId: "other", characterId, conversationId }),
+    ).rejects.toBeInstanceOf(MemoryAccessError);
   });
 
   it("発言の無い会話では足せず、他人の会話では拒否される", async () => {
@@ -181,14 +187,17 @@ describe("memory crud store", () => {
       { ...scope, characterId, conversationId },
       { content: "猫派", kind: "preference", pinned: false },
     );
-    const updated = await updateMemoryContent(
-      local.db,
-      { ...scope, characterId },
-      memory!.id,
-      "犬派に変わった",
-    );
-    expect(updated?.previous).toBe("猫派");
-    expect(updated?.conversationId).toBe(conversationId);
+    const updated = await updateMemory(local.db, { ...scope, characterId }, memory!.id, {
+      expectedRevision: 1,
+      content: "犬派に変わった",
+    });
+    expect(updated.type).toBe("updated");
+    if (updated.type !== "updated") throw new Error("not updated");
+    expect(updated.previous).toBe("猫派");
+    expect(updated.contentChanged).toBe(true);
+    expect(updated.memory.conversationId).toBe(conversationId);
+    expect(updated.memory.revision).toBe(2);
+    expect(updated.memory.editedAt).not.toBeNull();
     const [row] = await local.db
       .select({ content: v2MemoryTable.content, embedding: v2MemoryTable.embedding })
       .from(v2MemoryTable)
@@ -211,8 +220,18 @@ describe("memory crud store", () => {
 
     // 他人の記憶は直せない・固定も消せもしない
     expect(
-      await updateMemoryContent(local.db, { userId: "other", characterId }, memory!.id, "x"),
-    ).toBeNull();
+      await updateMemory(local.db, { userId: "other", characterId }, memory!.id, {
+        expectedRevision: 2,
+        content: "x",
+      }),
+    ).toEqual({ type: "not_found" });
+    // 版がずれる手直しは revision_conflict で現行の版を返す
+    expect(
+      await updateMemory(local.db, { ...scope, characterId }, memory!.id, {
+        expectedRevision: 1,
+        content: "x",
+      }),
+    ).toEqual({ type: "revision_conflict", currentRevision: 2 });
     expect(
       await setMemoryPinned(local.db, { userId: "other", characterId }, memory!.id, true),
     ).toBe(false);
@@ -237,7 +256,7 @@ describe("memory crud store", () => {
     expect(row.deletedAt).toBe(deleted?.deletedAt);
     expect(row.revision).toBe(2);
     expect(
-      (await listCharacterMemories(local.db, { ...scope, characterId })).find(
+      (await listConversationMemories(local.db, { ...scope, characterId, conversationId })).find(
         (entry) => entry.id === memory!.id,
       ),
     ).toBeUndefined();
@@ -276,6 +295,7 @@ describe("memory crud store", () => {
       kind: "preference" as const,
       content: "紅茶が好き",
       subject: "",
+      category: "long" as const,
       importance: 3,
       validFrom: null,
       validUntil: null,
@@ -391,7 +411,9 @@ describe("memory crud store", () => {
     expect(restored).not.toBeNull();
     expect(restored).not.toBe("expired");
     expect(
-      (await listCharacterMemories(local.db, { ...scope, characterId })).map((row) => row.id),
+      (await listConversationMemories(local.db, { ...scope, characterId, conversationId })).map(
+        (row) => row.id,
+      ),
     ).toContain(memory!.id);
     expect(
       await local.db
@@ -421,7 +443,11 @@ describe("memory crud store", () => {
       content: "紅茶が好き",
       kind: "preference",
     });
-    await updateMemoryContent(local.db, { ...scope, characterId }, memory!.id, "珈琲が好き");
+    const edited = await updateMemory(local.db, { ...scope, characterId }, memory!.id, {
+      expectedRevision: 1,
+      content: "珈琲が好き",
+    });
+    expect(edited.type).toBe("updated");
     const [job] = await listPendingMemoryJobs(local.db, scope3);
     const source = await loadMemoryExtractionSource(local.db, job.id);
     if (!source) throw new Error("source missing");
@@ -430,6 +456,7 @@ describe("memory crud store", () => {
         kind: "preference",
         content: "紅茶が好き",
         subject: "",
+        category: "long",
         importance: 3,
         validFrom: null,
         validUntil: null,
@@ -450,7 +477,11 @@ describe("memory crud store", () => {
       { ...scope, characterId, conversationId },
       { content: long, kind: "fact" },
     );
-    const list = await listCharacterMemories(local.db, { ...scope, characterId });
+    const list = await listConversationMemories(local.db, {
+      ...scope,
+      characterId,
+      conversationId,
+    });
     expect(list.find((row) => row.id === memory!.id)?.content).toBe(long);
   });
 });

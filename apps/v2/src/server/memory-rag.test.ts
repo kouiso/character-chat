@@ -32,6 +32,7 @@ const preference: ExtractedMemory = {
   kind: "preference",
   content: "紅茶が好き",
   subject: "",
+  category: "long",
   importance: 3,
   validFrom: null,
   validUntil: null,
@@ -305,7 +306,7 @@ describe("memory RAG with local D1", () => {
     // vector が無効でも空クエリでも固定分は返る
     expect(
       await retrieveMemories(local.db, { V2_RAG_ENABLED: "0" }, fixture.scope, "", now),
-    ).toEqual([{ id: fixture.memoryId, content: preference.content }]);
+    ).toEqual([{ id: fixture.memoryId, content: preference.content, pinned: true }]);
 
     // vector 側にも載る時は重複せず先頭になる
     const another = await seed([{ ...preference, content: "緑茶も好き", importance: 5 }]);
@@ -317,7 +318,7 @@ describe("memory RAG with local D1", () => {
       "好み",
       now,
     );
-    expect(merged[0]).toEqual({ id: fixture.memoryId, content: preference.content });
+    expect(merged[0]).toEqual({ id: fixture.memoryId, content: preference.content, pinned: true });
     expect(merged.filter((entry) => entry.id === fixture.memoryId)).toHaveLength(1);
 
     // 解除すれば vector 経路だけに戻る

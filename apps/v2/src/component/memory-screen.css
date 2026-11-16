@@ -1,0 +1,555 @@
+/* 記憶の画面（RIT-92・板 Memory / Memory-2 / Memory-3 / DeleteConfirm）。
+   色・寸法は doc/design/v2/tokens.md の値に揃える。 */
+.v2-memory-page {
+  min-height: 100dvh;
+  background: linear-gradient(180deg, #0e1425 0%, #10162a 46%, #191826 78%, #231b20 100%);
+  color: #fbf6f1;
+  font-size: 16px;
+  line-height: 28px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  display: flex;
+  flex-direction: column;
+}
+
+.v2-memory-header {
+  flex: none;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 8px;
+}
+
+.v2-memory-header .v2-memory-title {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.v2-memory-icon-button {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #fbf6f1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.v2-memory-icon-button.subtle {
+  color: #dcd3ce;
+}
+
+.v2-memory-body {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 20px 24px;
+}
+
+.v2-memory-lead {
+  flex: none;
+  color: #dcd3ce;
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  padding: 0 4px 4px;
+  margin: 0;
+}
+
+.v2-memory-section {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.v2-memory-section-title {
+  display: flex;
+  align-items: center;
+  height: 44px;
+  padding: 0 4px;
+  margin: 0;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.v2-memory-card {
+  border-radius: 20px;
+  overflow: hidden;
+  background: linear-gradient(180deg, #212941 0%, #1d253b 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    0 6px 16px rgba(4, 6, 14, 0.3);
+  display: flex;
+  flex-direction: column;
+}
+
+.v2-memory-row {
+  font: inherit;
+  letter-spacing: inherit;
+  margin: 0;
+  border: 0;
+  padding: 12px 8px 12px 16px;
+  background: transparent;
+  color: #fbf6f1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.v2-memory-row + .v2-memory-row {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.v2-memory-row-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.v2-memory-row-text {
+  color: #fbf6f1;
+  font-size: 16px;
+  line-height: 28px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.v2-memory-row-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #dcd3ce;
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.v2-memory-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #ffc9ac;
+}
+
+.v2-memory-badge .v2-memory-badge-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #f5d58c;
+}
+
+.v2-memory-more {
+  font: inherit;
+  border: 0;
+  height: 44px;
+  margin-top: 8px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #262e49 0%, #212943 100%);
+  color: #dcd3ce;
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+}
+
+.v2-memory-primary {
+  flex: none;
+  height: 56px;
+  margin-top: 16px;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #ffcdb2 0%, #ffc4a4 100%);
+  color: #1a0b08;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+
+.v2-memory-primary:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.v2-memory-secondary {
+  font: inherit;
+  border: 0;
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #262e49 0%, #212943 100%);
+  color: #dcd3ce;
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+/* 空・骨組み・読み込めなかった時 */
+.v2-memory-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.v2-memory-empty-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #212941 0%, #1d253b 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #dcd3ce;
+}
+
+.v2-memory-empty-title {
+  margin: 8px 0 0;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.v2-memory-empty-copy {
+  margin: 0;
+  color: #dcd3ce;
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.v2-memory-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.v2-memory-skeleton-line {
+  height: 20px;
+  border-radius: 8px;
+  background: #242c45;
+}
+
+.v2-memory-skeleton-line.alt {
+  background: #1d253b;
+}
+
+.v2-memory-error-card {
+  background: linear-gradient(180deg, #212941 0%, #1d253b 100%);
+  border-radius: 20px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  color: #fbf6f1;
+}
+
+.v2-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* 下からのシート（B・C・D・確かめ共通） */
+.v2-memory-sheet-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(6, 8, 16, 0.6);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.v2-memory-sheet {
+  background: #1c171f;
+  border-radius: 28px 28px 0 0;
+  padding: 8px 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 90dvh;
+  overflow-y: auto;
+}
+
+.v2-memory-sheet-grabber {
+  align-self: center;
+  width: 36px;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.24);
+}
+
+.v2-memory-sheet-header {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.v2-memory-sheet-title {
+  margin: 0;
+  flex: 1;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.v2-memory-sheet-caption {
+  margin: 0;
+  color: #dcd3ce;
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.v2-memory-label {
+  margin: 0;
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 500;
+  color: #dcd3ce;
+}
+
+.v2-memory-textarea {
+  width: 100%;
+  min-height: 96px;
+  box-sizing: border-box;
+  background: #0b0f1a;
+  border: 1px solid #8c8497;
+  border-radius: 12px;
+  color: #fbf6f1;
+  font: inherit;
+  font-size: 16px;
+  line-height: 28px;
+  padding: 10px 12px;
+  resize: vertical;
+}
+
+.v2-memory-textarea.error {
+  border-color: #ffa69a;
+}
+
+.v2-memory-pills {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.v2-memory-pill {
+  font: inherit;
+  border: 0;
+  height: 44px;
+  padding: 0 18px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #262e49 0%, #212943 100%);
+  color: #dcd3ce;
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.v2-memory-pill.selected {
+  background: linear-gradient(180deg, #3d2b2f 0%, #36262a 100%);
+  box-shadow: inset 0 0 0 1.5px #ffc9ac;
+  color: #fbf6f1;
+}
+
+.v2-memory-note {
+  margin: 0;
+  color: #dcd3ce;
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.v2-memory-error {
+  margin: 0;
+  color: #ffa69a;
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.v2-memory-delete-link {
+  font: inherit;
+  border: 0;
+  background: transparent;
+  color: #ffa69a;
+  font-size: 13px;
+  line-height: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 0;
+  cursor: pointer;
+}
+
+.v2-memory-toggle {
+  font: inherit;
+  border: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  color: #fbf6f1;
+  font-size: 16px;
+  line-height: 28px;
+  padding: 4px 0;
+  cursor: pointer;
+}
+
+.v2-memory-toggle-track {
+  width: 44px;
+  height: 24px;
+  border-radius: 999px;
+  background: #0b0f1a;
+  border: 1px solid #8c8497;
+  position: relative;
+  flex: none;
+}
+
+.v2-memory-toggle-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: #dcd3ce;
+  transition:
+    left 0.15s ease,
+    background 0.15s ease;
+}
+
+.v2-memory-toggle[aria-pressed="true"] .v2-memory-toggle-track {
+  background: linear-gradient(180deg, #ffcdb2 0%, #ffc4a4 100%);
+  border-color: transparent;
+}
+
+.v2-memory-toggle[aria-pressed="true"] .v2-memory-toggle-thumb {
+  left: 22px;
+  background: #1a0b08;
+}
+
+.v2-memory-danger {
+  font: inherit;
+  border: 0;
+  height: 44px;
+  padding: 0 16px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #4a2226 0%, #401c21 100%);
+  color: #ffa69a;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.v2-memory-sheet-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.v2-memory-sheet-actions > * {
+  flex: 1;
+}
+
+.v2-memory-quote {
+  margin: 0;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: #0b0f1a;
+  color: #fbf6f1;
+  font-size: 16px;
+  line-height: 28px;
+}
+
+.v2-memory-notice-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  border-radius: 20px;
+  background: linear-gradient(180deg, #212941 0%, #1d253b 100%);
+}
+
+/* 知らせ（画面の下から 16px・10 秒で消える） */
+.v2-memory-toast {
+  position: fixed;
+  left: 20px;
+  right: 20px;
+  bottom: 16px;
+  z-index: 70;
+  min-height: 52px;
+  border-radius: 999px;
+  background: #0f1528;
+  color: #fbf6f1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 8px 8px 20px;
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 500;
+}
+
+.v2-memory-toast-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.v2-memory-toast-action {
+  font: inherit;
+  border: 0;
+  background: transparent;
+  color: #ffc9ac;
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 700;
+  padding: 8px 4px;
+  cursor: pointer;
+  white-space: nowrap;
+}

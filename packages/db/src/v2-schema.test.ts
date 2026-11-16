@@ -22,6 +22,7 @@ import {
   v2MemoryTable,
   v2MemoryJobTable,
   v2MemorySourceTable,
+  v2MemoryUseTable,
   v2MessageTable,
 } from "./v2-schema";
 
@@ -47,6 +48,7 @@ describe("v2_ tables: SQL DDL と drizzle 宣言の一致", () => {
     v2LedgerTable,
     v2GenerationTable,
     v2MemoryTable,
+    v2MemoryUseTable,
     characterVersionTable,
     characterRevisionTable,
     v2MemoryJobTable,
@@ -89,6 +91,7 @@ describe("v2_ tables: SQL DDL と drizzle 宣言の一致", () => {
         "v2_memory_job",
         "v2_memory_source",
         "v2_memory_tombstone",
+        "v2_memory_use",
         "v2_message",
         "v2_message_mark",
         "v2_push_subscription",

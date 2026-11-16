@@ -30,6 +30,8 @@ export const TurnState = new StateSchema({
   history: z.array(z.custom<HistoryMessage>()).default(() => []),
   ledger: z.custom<SceneLedger>(),
   retrieved: z.array(z.string()).default(() => []),
+  // 指示文へ実際に入った記憶の id（packed 行から復元）。persist が v2_memory_use へ記録する（RIT-92）。
+  retrievedMemoryIds: z.array(z.string()).default(() => []),
   retrievedDocuments: z.array(z.string()).default(() => []),
   prompt: z.custom<ComposedPrompt>().nullable().default(null),
   raw: z.string().default(""),

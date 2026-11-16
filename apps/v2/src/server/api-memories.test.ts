@@ -23,7 +23,8 @@ const platform = vi.hoisted(() => ({ env: {} as Record<string, unknown> }));
 
 vi.mock("./platform", () => ({ getPlatform: async () => platform }));
 
-const { handleMemoriesRequest, handleMemoriesRestoreRequest } = await import("./api-memories");
+const { handleMemoriesRequest, handleMemoriesRestoreRequest, handleMemoriesLearnedRequest } =
+  await import("./api-memories");
 
 const url = "https://example.com/api/characters/c1/memories";
 const request = (method: string, body?: unknown) =>
@@ -84,11 +85,30 @@ describe("memories API", () => {
   const call = (method: string, body?: unknown) =>
     handleMemoriesRequest(characterId, request(method, body));
 
-  const list = async () => {
-    const response = await call("GET");
+  const list = async (conversationId?: string) => {
+    const response = await handleMemoriesRequest(
+      characterId,
+      new Request(
+        `https://example.com/api/characters/c1/memories${
+          conversationId ? `?conversationId=${conversationId}` : ""
+        }`,
+      ),
+    );
     expect(response.status).toBe(200);
     return (await response.json()) as {
-      memories: { id: string; content: string; pinned: boolean }[];
+      conversationId: string | null;
+      characterName: string;
+      memories: {
+        id: string;
+        content: string;
+        pinned: boolean;
+        revision: number;
+        category: string;
+        origin: string;
+        editedAt: number | null;
+        supersededBy: string | null;
+        usedInLastReply: boolean;
+      }[];
     };
   };
 
@@ -121,6 +141,8 @@ describe("memories API", () => {
       for (const table of [
         "v2_memory",
         "v2_memory_tombstone",
+        "v2_memory_use",
+        "v2_memory_job",
         "v2_summary",
         "v2_message",
         "v2_ledger",
@@ -140,17 +162,42 @@ describe("memories API", () => {
     if (persistRoot) await rm(persistRoot, { recursive: true, force: true });
   });
 
-  it("GET はキャラの記憶一覧を返す", async () => {
+  it("GET は会話の記憶一覧・キャラ名・新項目を返す", async () => {
     const conversationId = await talk();
     const created = await call("POST", {
       conversationId,
       content: "一覧テスト用の記憶",
       kind: "fact",
+      category: "relation",
     });
     expect(created.status).toBe(201);
-    const { memories } = await list();
-    expect(memories.map((row) => row.content)).toContain("一覧テスト用の記憶");
-    expect(memories.find((row) => row.content === "一覧テスト用の記憶")?.pinned).toBe(true);
+    const result = await list(conversationId);
+    expect(result.characterName).not.toBe("");
+    expect(result.conversationId).toBe(conversationId);
+    const memory = result.memories.find((row) => row.content === "一覧テスト用の記憶");
+    expect(memory).toMatchObject({
+      pinned: true,
+      origin: "manual",
+      category: "relation",
+      revision: 1,
+      editedAt: null,
+      usedInLastReply: false,
+    });
+    // 別の会話の一覧には出ない（会話ごとの一覧・RIT-92）
+    const other = await talk();
+    const otherList = await list(other);
+    expect(otherList.memories.find((row) => row.content === "一覧テスト用の記憶")).toBeUndefined();
+    // 存在しない・形式の悪い会話 id は 404 / 422
+    const notFound = await handleMemoriesRequest(
+      characterId,
+      new Request(`${url}?conversationId=no-such-conversation`),
+    );
+    expect(notFound.status).toBe(404);
+    const bad = await handleMemoriesRequest(
+      characterId,
+      new Request(`${url}?conversationId=${"x".repeat(200)}`),
+    );
+    expect(bad.status).toBe(422);
   });
 
   it("POST は会話の指定が無くても直近会話へ紐付き、会話ゼロでは 409", async () => {
@@ -168,28 +215,82 @@ describe("memories API", () => {
     expect(empty.status).toBe(409);
   });
 
-  it("PATCH で直すと GET に反映され、pin も切り替わる", async () => {
+  it("PATCH で直すと GET に反映され、pin も切り替わる。版ずれは 409 revision_conflict", async () => {
     const conversationId = await talk();
     const created = await call("POST", {
       conversationId,
       content: "直す前",
       kind: "preference",
     });
-    const { memory } = (await created.json()) as { memory: { id: string } };
+    const { memory } = (await created.json()) as { memory: { id: string; revision: number } };
 
-    const patched = await call("PATCH", { memoryId: memory.id, content: "直した後" });
+    // expectedRevision が要る（無し・違う値は 422 / 409）
+    expect((await call("PATCH", { memoryId: memory.id, content: "x" })).status).toBe(422);
+    const conflict = await call("PATCH", {
+      memoryId: memory.id,
+      expectedRevision: 9,
+      content: "x",
+    });
+    expect(conflict.status).toBe(409);
+    const conflictBody = (await conflict.json()) as {
+      code: string;
+      currentRevision: number;
+    };
+    expect(conflictBody.code).toBe("revision_conflict");
+    expect(conflictBody.currentRevision).toBe(1);
+
+    const patched = await call("PATCH", {
+      memoryId: memory.id,
+      expectedRevision: 1,
+      content: "直した後",
+      category: "recent",
+    });
     expect(patched.status).toBe(200);
-    let { memories } = await list();
+    const { memory: updated } = (await patched.json()) as {
+      memory: { revision: number; category: string; editedAt: number | null };
+    };
+    expect(updated.revision).toBe(2);
+    expect(updated.category).toBe("recent");
+    expect(updated.editedAt).not.toBeNull();
+    let { memories } = await list(conversationId);
     expect(memories.find((row) => row.id === memory.id)?.content).toBe("直した後");
 
-    const unpinned = await call("PATCH", { memoryId: memory.id, pinned: false });
+    const unpinned = await call("PATCH", {
+      memoryId: memory.id,
+      expectedRevision: 2,
+      pinned: false,
+    });
     expect(unpinned.status).toBe(200);
-    ({ memories } = await list());
+    ({ memories } = await list(conversationId));
     expect(memories.find((row) => row.id === memory.id)?.pinned).toBe(false);
 
     // content も pinned も無い PATCH は 422、存在しない記憶は 404
-    expect((await call("PATCH", { memoryId: memory.id })).status).toBe(422);
-    expect((await call("PATCH", { memoryId: "no-such", pinned: true })).status).toBe(404);
+    expect((await call("PATCH", { memoryId: memory.id, expectedRevision: 3 })).status).toBe(422);
+    expect(
+      (await call("PATCH", { memoryId: "no-such", expectedRevision: 1, pinned: true })).status,
+    ).toBe(404);
+  });
+
+  it("固定は 8 件まで。9 件目の固定は 409 pin_limit", async () => {
+    const conversationId = await talk();
+    // 手で足した記憶は既定で固定 → 8 件で満杯にする
+    for (let index = 0; index < 8; index += 1) {
+      const created = await call("POST", { conversationId, content: `固定${index}` });
+      expect(created.status).toBe(201);
+    }
+    const ninth = await call("POST", { conversationId, content: "9件目" });
+    const { memory } = (await ninth.json()) as { memory: { id: string } };
+    // 一度外してから固定し直すと上限に当たる
+    expect(
+      (await call("PATCH", { memoryId: memory.id, expectedRevision: 1, pinned: false })).status,
+    ).toBe(200);
+    const over = await call("PATCH", {
+      memoryId: memory.id,
+      expectedRevision: 2,
+      pinned: true,
+    });
+    expect(over.status).toBe(409);
+    expect(((await over.json()) as { code: string }).code).toBe("pin_limit");
   });
 
   it("DELETE で消すと一覧から消え、他人のキャラ経路では触れない", async () => {
@@ -205,7 +306,7 @@ describe("memories API", () => {
     expect(other.status).toBe(404);
 
     expect((await call("DELETE", { memoryId: memory.id })).status).toBe(200);
-    const { memories } = await list();
+    const { memories } = await list(conversationId);
     expect(memories.find((row) => row.id === memory.id)).toBeUndefined();
   });
 
@@ -240,7 +341,10 @@ describe("memories API", () => {
         request("POST", { conversationId, content: "手で足した記憶", kind: "preference" }),
       );
       expect(createdMemory.status).toBe(201);
-      const response = await handleMemoriesRequest(created.id, request("GET"));
+      const response = await handleMemoriesRequest(
+        created.id,
+        new Request(`${url}?conversationId=${conversationId}`),
+      );
       const { memories } = (await response.json()) as {
         memories: { content: string; kind: string }[];
       };
@@ -338,7 +442,7 @@ describe("memories API", () => {
 
     const restored = await restore({ memoryId: memory.id });
     expect(restored.status).toBe(200);
-    const { memories } = await list();
+    const { memories } = await list(conversationId);
     expect(memories.find((row) => row.id === memory.id)?.content).toBe("戻す記憶");
 
     // 削除されとらん記憶の復元は 404
@@ -358,11 +462,116 @@ describe("memories API", () => {
     expect(gone.status).toBe(404);
   });
 
-  it("空・長すぎる記憶は 422、4000字は通る", async () => {
+  it("空・長すぎる記憶は 422、500字までは通る", async () => {
     const conversationId = await talk();
     expect((await call("POST", { conversationId, content: "" })).status).toBe(422);
-    expect((await call("POST", { conversationId, content: "x".repeat(4001) })).status).toBe(422);
-    const ok = await call("POST", { conversationId, content: "あ".repeat(4000) });
+    expect((await call("POST", { conversationId, content: "x".repeat(501) })).status).toBe(422);
+    expect((await call("POST", { conversationId, content: "x", category: "bad" })).status).toBe(
+      422,
+    );
+    const ok = await call("POST", { conversationId, content: "あ".repeat(500) });
     expect(ok.status).toBe(201);
+  });
+
+  it("返事に使った記憶は usedInLastReply で返る（v2_memory_use・RIT-92）", async () => {
+    const conversationId = crypto.randomUUID();
+    conversations.push(conversationId);
+    const created = await call("POST", { conversationId, content: "使う記憶" });
+    // まだ会話が無いので先に 404 — 会話を作ってから足す
+    expect(created.status).toBe(404);
+    await createD1TurnStore(local.db, {
+      userId: LOCAL_USER_ID,
+      characterId,
+      promptVersion: "test",
+      extractMemory: false,
+    }).saveTurn({
+      conversationId,
+      turn: 1,
+      userText: "私は紅茶が好きです。",
+      ledger: emptyLedger(),
+      events: [reply],
+    });
+    const posted = await call("POST", { conversationId, content: "使う記憶" });
+    const { memory } = (await posted.json()) as { memory: { id: string } };
+    // 2ターン目の返事でこの記憶が指示文へ入った、と記録する
+    await createD1TurnStore(local.db, {
+      userId: LOCAL_USER_ID,
+      characterId,
+      promptVersion: "test",
+      extractMemory: false,
+    }).saveTurn({
+      conversationId,
+      turn: 2,
+      userText: "紅茶の話をもっと。",
+      ledger: emptyLedger(),
+      events: [reply],
+      usedMemoryIds: [memory.id],
+    });
+    const { memories } = await list(conversationId);
+    expect(memories.find((row) => row.id === memory.id)?.usedInLastReply).toBe(true);
+
+    // 同じ turn を保存し直すと使った記憶は入れ替わる（枝の切り替え・RIT-82）
+    await createD1TurnStore(local.db, {
+      userId: LOCAL_USER_ID,
+      characterId,
+      promptVersion: "test",
+      extractMemory: false,
+    }).saveTurn({
+      conversationId,
+      turn: 2,
+      userText: "紅茶の話をもっと。",
+      ledger: emptyLedger(),
+      events: [reply],
+      usedMemoryIds: [],
+    });
+    const after = await list(conversationId);
+    expect(after.memories.find((row) => row.id === memory.id)?.usedInLastReply).toBe(false);
+  });
+
+  it("learned は抽出ジョブの状態を返す。無ければ none、待機中は pending", async () => {
+    const learned = (conversationId: string, turn: number) =>
+      handleMemoriesLearnedRequest(
+        characterId,
+        new Request(`${url}/learned?conversationId=${conversationId}&turn=${turn}`),
+      );
+
+    // ジョブが無い会話では none
+    const quiet = await talk();
+    const none = await learned(quiet, 1);
+    expect(none.status).toBe(200);
+    expect(((await none.json()) as { state: string }).state).toBe("none");
+
+    // 抽出つきで保存すると pending のジョブが立つ
+    const conversationId = crypto.randomUUID();
+    conversations.push(conversationId);
+    await createD1TurnStore(local.db, {
+      userId: LOCAL_USER_ID,
+      characterId,
+      promptVersion: "test",
+      extractMemory: true,
+    }).saveTurn({
+      conversationId,
+      turn: 1,
+      userText: "私は紅茶が好きです。",
+      ledger: emptyLedger(),
+      events: [reply],
+    });
+    const pending = await learned(conversationId, 1);
+    expect(((await pending.json()) as { state: string }).state).toBe("pending");
+
+    // 他人の・存在しない会話は 404
+    const foreign = await handleMemoriesLearnedRequest(
+      "other-char",
+      new Request(`${url}/learned?conversationId=${conversationId}&turn=1`),
+    );
+    expect(foreign.status).toBe(404);
+    expect(
+      (
+        await handleMemoriesLearnedRequest(
+          characterId,
+          new Request(`${url}/learned?conversationId=${conversationId}`),
+        )
+      ).status,
+    ).toBe(422);
   });
 });

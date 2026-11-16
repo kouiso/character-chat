@@ -59,6 +59,7 @@ import { Route as ApiPushVapidKeyRouteImport } from './routes/api/push/vapid-key
 import { Route as ApiRevenueAggregateRouteImport } from './routes/api/revenue_/aggregate'
 import { Route as ApiStoriesIdRouteImport } from './routes/api/stories/$id'
 import { Route as ApiVoiceCallQuotaRouteImport } from './routes/api/voice-call/quota'
+import { Route as ChatIdMemoryRouteImport } from './routes/chat/$id_/memory'
 import { Route as StoriesIdReadRouteImport } from './routes/stories/$id/read'
 import { Route as ApiCatalogIdCommentsRouteImport } from './routes/api/catalog/$id_/comments'
 import { Route as ApiCatalogIdFollowRouteImport } from './routes/api/catalog/$id_/follow'
@@ -87,6 +88,7 @@ import { Route as ApiGroupsIdMessagesRouteImport } from './routes/api/groups/$id
 import { Route as ApiStoriesIdChaptersRouteImport } from './routes/api/stories/$id_/chapters'
 import { Route as ApiCatalogIdCommentsCidRouteImport } from './routes/api/catalog/$id_/comments/$cid'
 import { Route as ApiCharactersIdDocumentsDocRouteImport } from './routes/api/characters/$id_/documents/$doc'
+import { Route as ApiCharactersIdMemoriesLearnedRouteImport } from './routes/api/characters/$id_/memories/learned'
 import { Route as ApiCharactersIdMemoriesRestoreRouteImport } from './routes/api/characters/$id_/memories_/restore'
 import { Route as ApiCharactersIdVersionsVersionRouteImport } from './routes/api/characters/$id_/versions/$version'
 import { Route as ApiProactiveCharactersIdSettingsRouteImport } from './routes/api/proactive/characters/$id_/settings'
@@ -346,6 +348,11 @@ const ApiVoiceCallQuotaRoute = ApiVoiceCallQuotaRouteImport.update({
   path: '/api/voice-call/quota',
   getParentRoute: () => rootRouteImport,
 })
+const ChatIdMemoryRoute = ChatIdMemoryRouteImport.update({
+  id: '/chat/$id_/memory',
+  path: '/chat/$id/memory',
+  getParentRoute: () => rootRouteImport,
+})
 const StoriesIdReadRoute = StoriesIdReadRouteImport.update({
   id: '/read',
   path: '/read',
@@ -488,6 +495,12 @@ const ApiCharactersIdDocumentsDocRoute =
     path: '/$doc',
     getParentRoute: () => ApiCharactersIdDocumentsRoute,
   })
+const ApiCharactersIdMemoriesLearnedRoute =
+  ApiCharactersIdMemoriesLearnedRouteImport.update({
+    id: '/learned',
+    path: '/learned',
+    getParentRoute: () => ApiCharactersIdMemoriesRoute,
+  })
 const ApiCharactersIdMemoriesRestoreRoute =
   ApiCharactersIdMemoriesRestoreRouteImport.update({
     id: '/$id_/memories_/restore',
@@ -587,6 +600,7 @@ export interface FileRoutesByFullPath {
   '/api/revenue/aggregate': typeof ApiRevenueAggregateRoute
   '/api/stories/$id': typeof ApiStoriesIdRoute
   '/api/voice-call/quota': typeof ApiVoiceCallQuotaRoute
+  '/chat/$id/memory': typeof ChatIdMemoryRoute
   '/stories/$id/read': typeof StoriesIdReadRoute
   '/api/catalog/$id/comments': typeof ApiCatalogIdCommentsRouteWithChildren
   '/api/catalog/$id/follow': typeof ApiCatalogIdFollowRoute
@@ -596,7 +610,7 @@ export interface FileRoutesByFullPath {
   '/api/catalog/$id/tip': typeof ApiCatalogIdTipRoute
   '/api/characters/$id/avatar': typeof ApiCharactersIdAvatarRoute
   '/api/characters/$id/documents': typeof ApiCharactersIdDocumentsRouteWithChildren
-  '/api/characters/$id/memories': typeof ApiCharactersIdMemoriesRoute
+  '/api/characters/$id/memories': typeof ApiCharactersIdMemoriesRouteWithChildren
   '/api/characters/$id/publish': typeof ApiCharactersIdPublishRoute
   '/api/characters/$id/restore': typeof ApiCharactersIdRestoreRoute
   '/api/characters/$id/versions': typeof ApiCharactersIdVersionsRouteWithChildren
@@ -615,6 +629,7 @@ export interface FileRoutesByFullPath {
   '/api/stories/$id/chapters': typeof ApiStoriesIdChaptersRouteWithChildren
   '/api/catalog/$id/comments/$cid': typeof ApiCatalogIdCommentsCidRoute
   '/api/characters/$id/documents/$doc': typeof ApiCharactersIdDocumentsDocRoute
+  '/api/characters/$id/memories/learned': typeof ApiCharactersIdMemoriesLearnedRoute
   '/api/characters/$id/memories/restore': typeof ApiCharactersIdMemoriesRestoreRoute
   '/api/characters/$id/versions/$version': typeof ApiCharactersIdVersionsVersionRoute
   '/api/proactive/characters/$id/settings': typeof ApiProactiveCharactersIdSettingsRoute
@@ -675,6 +690,7 @@ export interface FileRoutesByTo {
   '/api/revenue/aggregate': typeof ApiRevenueAggregateRoute
   '/api/stories/$id': typeof ApiStoriesIdRoute
   '/api/voice-call/quota': typeof ApiVoiceCallQuotaRoute
+  '/chat/$id/memory': typeof ChatIdMemoryRoute
   '/stories/$id/read': typeof StoriesIdReadRoute
   '/api/catalog/$id/comments': typeof ApiCatalogIdCommentsRouteWithChildren
   '/api/catalog/$id/follow': typeof ApiCatalogIdFollowRoute
@@ -684,7 +700,7 @@ export interface FileRoutesByTo {
   '/api/catalog/$id/tip': typeof ApiCatalogIdTipRoute
   '/api/characters/$id/avatar': typeof ApiCharactersIdAvatarRoute
   '/api/characters/$id/documents': typeof ApiCharactersIdDocumentsRouteWithChildren
-  '/api/characters/$id/memories': typeof ApiCharactersIdMemoriesRoute
+  '/api/characters/$id/memories': typeof ApiCharactersIdMemoriesRouteWithChildren
   '/api/characters/$id/publish': typeof ApiCharactersIdPublishRoute
   '/api/characters/$id/restore': typeof ApiCharactersIdRestoreRoute
   '/api/characters/$id/versions': typeof ApiCharactersIdVersionsRouteWithChildren
@@ -703,6 +719,7 @@ export interface FileRoutesByTo {
   '/api/stories/$id/chapters': typeof ApiStoriesIdChaptersRouteWithChildren
   '/api/catalog/$id/comments/$cid': typeof ApiCatalogIdCommentsCidRoute
   '/api/characters/$id/documents/$doc': typeof ApiCharactersIdDocumentsDocRoute
+  '/api/characters/$id/memories/learned': typeof ApiCharactersIdMemoriesLearnedRoute
   '/api/characters/$id/memories/restore': typeof ApiCharactersIdMemoriesRestoreRoute
   '/api/characters/$id/versions/$version': typeof ApiCharactersIdVersionsVersionRoute
   '/api/proactive/characters/$id/settings': typeof ApiProactiveCharactersIdSettingsRoute
@@ -764,6 +781,7 @@ export interface FileRoutesById {
   '/api/revenue_/aggregate': typeof ApiRevenueAggregateRoute
   '/api/stories/$id': typeof ApiStoriesIdRoute
   '/api/voice-call/quota': typeof ApiVoiceCallQuotaRoute
+  '/chat/$id_/memory': typeof ChatIdMemoryRoute
   '/stories/$id/read': typeof StoriesIdReadRoute
   '/api/catalog/$id_/comments': typeof ApiCatalogIdCommentsRouteWithChildren
   '/api/catalog/$id_/follow': typeof ApiCatalogIdFollowRoute
@@ -773,7 +791,7 @@ export interface FileRoutesById {
   '/api/catalog/$id_/tip': typeof ApiCatalogIdTipRoute
   '/api/characters/$id_/avatar': typeof ApiCharactersIdAvatarRoute
   '/api/characters/$id_/documents': typeof ApiCharactersIdDocumentsRouteWithChildren
-  '/api/characters/$id_/memories': typeof ApiCharactersIdMemoriesRoute
+  '/api/characters/$id_/memories': typeof ApiCharactersIdMemoriesRouteWithChildren
   '/api/characters/$id_/publish': typeof ApiCharactersIdPublishRoute
   '/api/characters/$id_/restore': typeof ApiCharactersIdRestoreRoute
   '/api/characters/$id_/versions': typeof ApiCharactersIdVersionsRouteWithChildren
@@ -792,6 +810,7 @@ export interface FileRoutesById {
   '/api/stories/$id_/chapters': typeof ApiStoriesIdChaptersRouteWithChildren
   '/api/catalog/$id_/comments/$cid': typeof ApiCatalogIdCommentsCidRoute
   '/api/characters/$id_/documents/$doc': typeof ApiCharactersIdDocumentsDocRoute
+  '/api/characters/$id_/memories/learned': typeof ApiCharactersIdMemoriesLearnedRoute
   '/api/characters/$id_/memories_/restore': typeof ApiCharactersIdMemoriesRestoreRoute
   '/api/characters/$id_/versions/$version': typeof ApiCharactersIdVersionsVersionRoute
   '/api/proactive/characters/$id_/settings': typeof ApiProactiveCharactersIdSettingsRoute
@@ -854,6 +873,7 @@ export interface FileRouteTypes {
     | '/api/revenue/aggregate'
     | '/api/stories/$id'
     | '/api/voice-call/quota'
+    | '/chat/$id/memory'
     | '/stories/$id/read'
     | '/api/catalog/$id/comments'
     | '/api/catalog/$id/follow'
@@ -882,6 +902,7 @@ export interface FileRouteTypes {
     | '/api/stories/$id/chapters'
     | '/api/catalog/$id/comments/$cid'
     | '/api/characters/$id/documents/$doc'
+    | '/api/characters/$id/memories/learned'
     | '/api/characters/$id/memories/restore'
     | '/api/characters/$id/versions/$version'
     | '/api/proactive/characters/$id/settings'
@@ -942,6 +963,7 @@ export interface FileRouteTypes {
     | '/api/revenue/aggregate'
     | '/api/stories/$id'
     | '/api/voice-call/quota'
+    | '/chat/$id/memory'
     | '/stories/$id/read'
     | '/api/catalog/$id/comments'
     | '/api/catalog/$id/follow'
@@ -970,6 +992,7 @@ export interface FileRouteTypes {
     | '/api/stories/$id/chapters'
     | '/api/catalog/$id/comments/$cid'
     | '/api/characters/$id/documents/$doc'
+    | '/api/characters/$id/memories/learned'
     | '/api/characters/$id/memories/restore'
     | '/api/characters/$id/versions/$version'
     | '/api/proactive/characters/$id/settings'
@@ -1030,6 +1053,7 @@ export interface FileRouteTypes {
     | '/api/revenue_/aggregate'
     | '/api/stories/$id'
     | '/api/voice-call/quota'
+    | '/chat/$id_/memory'
     | '/stories/$id/read'
     | '/api/catalog/$id_/comments'
     | '/api/catalog/$id_/follow'
@@ -1058,6 +1082,7 @@ export interface FileRouteTypes {
     | '/api/stories/$id_/chapters'
     | '/api/catalog/$id_/comments/$cid'
     | '/api/characters/$id_/documents/$doc'
+    | '/api/characters/$id_/memories/learned'
     | '/api/characters/$id_/memories_/restore'
     | '/api/characters/$id_/versions/$version'
     | '/api/proactive/characters/$id_/settings'
@@ -1110,6 +1135,7 @@ export interface RootRouteChildren {
   ApiPushVapidKeyRoute: typeof ApiPushVapidKeyRoute
   ApiRevenueAggregateRoute: typeof ApiRevenueAggregateRoute
   ApiVoiceCallQuotaRoute: typeof ApiVoiceCallQuotaRoute
+  ChatIdMemoryRoute: typeof ChatIdMemoryRoute
   ApiChatIdBranchRoute: typeof ApiChatIdBranchRoute
   ApiChatIdComicRoute: typeof ApiChatIdComicRoute
   ApiChatIdHistoryRoute: typeof ApiChatIdHistoryRoute
@@ -1474,6 +1500,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiVoiceCallQuotaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/chat/$id_/memory': {
+      id: '/chat/$id_/memory'
+      path: '/chat/$id/memory'
+      fullPath: '/chat/$id/memory'
+      preLoaderRoute: typeof ChatIdMemoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/stories/$id/read': {
       id: '/stories/$id/read'
       path: '/read'
@@ -1670,6 +1703,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCharactersIdDocumentsDocRouteImport
       parentRoute: typeof ApiCharactersIdDocumentsRoute
     }
+    '/api/characters/$id_/memories/learned': {
+      id: '/api/characters/$id_/memories/learned'
+      path: '/learned'
+      fullPath: '/api/characters/$id/memories/learned'
+      preLoaderRoute: typeof ApiCharactersIdMemoriesLearnedRouteImport
+      parentRoute: typeof ApiCharactersIdMemoriesRoute
+    }
     '/api/characters/$id_/memories_/restore': {
       id: '/api/characters/$id_/memories_/restore'
       path: '/$id/memories/restore'
@@ -1790,6 +1830,20 @@ const ApiCharactersIdDocumentsRouteWithChildren =
     ApiCharactersIdDocumentsRouteChildren,
   )
 
+interface ApiCharactersIdMemoriesRouteChildren {
+  ApiCharactersIdMemoriesLearnedRoute: typeof ApiCharactersIdMemoriesLearnedRoute
+}
+
+const ApiCharactersIdMemoriesRouteChildren: ApiCharactersIdMemoriesRouteChildren =
+  {
+    ApiCharactersIdMemoriesLearnedRoute: ApiCharactersIdMemoriesLearnedRoute,
+  }
+
+const ApiCharactersIdMemoriesRouteWithChildren =
+  ApiCharactersIdMemoriesRoute._addFileChildren(
+    ApiCharactersIdMemoriesRouteChildren,
+  )
+
 interface ApiCharactersIdVersionsRouteChildren {
   ApiCharactersIdVersionsVersionRoute: typeof ApiCharactersIdVersionsVersionRoute
 }
@@ -1808,7 +1862,7 @@ interface ApiCharactersRouteChildren {
   ApiCharactersIdRoute: typeof ApiCharactersIdRoute
   ApiCharactersIdAvatarRoute: typeof ApiCharactersIdAvatarRoute
   ApiCharactersIdDocumentsRoute: typeof ApiCharactersIdDocumentsRouteWithChildren
-  ApiCharactersIdMemoriesRoute: typeof ApiCharactersIdMemoriesRoute
+  ApiCharactersIdMemoriesRoute: typeof ApiCharactersIdMemoriesRouteWithChildren
   ApiCharactersIdPublishRoute: typeof ApiCharactersIdPublishRoute
   ApiCharactersIdRestoreRoute: typeof ApiCharactersIdRestoreRoute
   ApiCharactersIdVersionsRoute: typeof ApiCharactersIdVersionsRouteWithChildren
@@ -1820,7 +1874,7 @@ const ApiCharactersRouteChildren: ApiCharactersRouteChildren = {
   ApiCharactersIdRoute: ApiCharactersIdRoute,
   ApiCharactersIdAvatarRoute: ApiCharactersIdAvatarRoute,
   ApiCharactersIdDocumentsRoute: ApiCharactersIdDocumentsRouteWithChildren,
-  ApiCharactersIdMemoriesRoute: ApiCharactersIdMemoriesRoute,
+  ApiCharactersIdMemoriesRoute: ApiCharactersIdMemoriesRouteWithChildren,
   ApiCharactersIdPublishRoute: ApiCharactersIdPublishRoute,
   ApiCharactersIdRestoreRoute: ApiCharactersIdRestoreRoute,
   ApiCharactersIdVersionsRoute: ApiCharactersIdVersionsRouteWithChildren,
@@ -1973,6 +2027,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPushVapidKeyRoute: ApiPushVapidKeyRoute,
   ApiRevenueAggregateRoute: ApiRevenueAggregateRoute,
   ApiVoiceCallQuotaRoute: ApiVoiceCallQuotaRoute,
+  ChatIdMemoryRoute: ChatIdMemoryRoute,
   ApiChatIdBranchRoute: ApiChatIdBranchRoute,
   ApiChatIdComicRoute: ApiChatIdComicRoute,
   ApiChatIdHistoryRoute: ApiChatIdHistoryRoute,
@@ -1987,3 +2042,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
