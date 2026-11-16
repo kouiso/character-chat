@@ -6,11 +6,11 @@
 import {
   characterTable,
   conversationTable,
-  createDb,
   legacyOwnerLabel,
   messageTable,
   userTable,
 } from "@v2/db";
+import type { createDb } from "@v2/db";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import {
