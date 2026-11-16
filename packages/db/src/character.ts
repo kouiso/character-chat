@@ -45,8 +45,8 @@ export const listCharacterSummaries = async (
       id: characterTable.id,
       name: characterTable.name,
       avatar: characterTable.avatar,
-      // 編集・削除は primary（先頭）名義のキャラだけに絞る。旧名義は閲覧・会話の対象。
-      canEdit: sql<boolean>`${characterTable.userId} = ${owners[0]}`.mapWith(Boolean),
+      // 編集・削除は持ち主の名義の集合に入るキャラ全部（旧名義も自分のキャラ）。
+      canEdit: sql<boolean>`${inArray(characterTable.userId, owners)}`.mapWith(Boolean),
       // drizzle は select 句の sql 片でテーブル修飾を落とすので、相関側はリテラル名で書く。
       playCount:
         sql<number>`(SELECT COALESCE(SUM(play_count), 0) FROM v2_clip WHERE v2_clip.character_id = character.id)`.mapWith(
@@ -100,6 +100,22 @@ const selectColumns = {
   isOfficial: characterTable.isOfficial,
   displayOrder: characterTable.displayOrder,
   createdAt: characterTable.createdAt,
+};
+
+// 検査受け口用の行ごとの採点。issues は {path, message} に潰す（ZodIssue 全体は内部表現を出す）。
+export const checkCharacterRow = (
+  row: Record<string, unknown>,
+): { ok: boolean; issues: { path: string; message: string }[] } => {
+  const parsed = characterRowSchema.safeParse(row);
+  return parsed.success
+    ? { ok: true, issues: [] }
+    : {
+        ok: false,
+        issues: parsed.error.issues.map((issue) => ({
+          path: issue.path.map(String).join("."),
+          message: issue.message,
+        })),
+      };
 };
 
 const parseRows = (rows: Record<string, unknown>[]): CharacterLoadResult => {

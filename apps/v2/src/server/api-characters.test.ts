@@ -12,6 +12,7 @@ import {
 import { toCharacterDisplay } from "./characters";
 
 import type * as Db from "@v2/db";
+import type * as Identity from "./identity";
 
 const validContent = (name = "入力") => ({
   name,
@@ -30,6 +31,7 @@ const mocks = vi.hoisted(() => ({
   readCharacterDetail: vi.fn(),
   readCharacterVersion: vi.fn(),
   listCharacterVersions: vi.fn(),
+  resolveEditorUserId: vi.fn(async () => "local"),
   getPlatform: vi.fn(async () => ({ env: { DB: {} } })),
 }));
 
@@ -43,6 +45,11 @@ vi.mock("@v2/db", async (importOriginal) => ({
   readCharacterDetail: mocks.readCharacterDetail,
   readCharacterVersion: mocks.readCharacterVersion,
   listCharacterVersions: mocks.listCharacterVersions,
+}));
+
+vi.mock("./identity", async (importOriginal) => ({
+  ...(await importOriginal<typeof Identity>()),
+  resolveEditorUserId: mocks.resolveEditorUserId,
 }));
 
 vi.mock("./platform", () => ({ getPlatform: mocks.getPlatform }));
@@ -259,6 +266,66 @@ describe("character REST handlers", () => {
         )
       ).status,
     ).toBe(404);
+  });
+
+  it("passes the resolved legacy owner to all five editor operations", async () => {
+    // 移したキャラは名義が旧ユーザーのまま。5 経路とも local 固定だと読み書きが
+    // 全部 404 になるので、解決した名義がそのまま渡るかを確かめる。
+    mocks.resolveEditorUserId.mockResolvedValue("legacy-owner-9");
+    mocks.readCharacterDetail.mockResolvedValue({
+      id: "character-9",
+      revision: 1,
+      currentVersionId: "v1",
+      ownerUserId: "legacy-owner-9",
+      content: validContent(),
+    });
+    mocks.updateCharacterWithVersion.mockResolvedValue({ revision: 2, versionId: "v2" });
+    mocks.listCharacterVersions.mockResolvedValue({ currentVersionId: "v2", versions: [] });
+    mocks.readCharacterVersion.mockResolvedValue({
+      id: "v2",
+      version: 2,
+      content: validContent(),
+      createdAt: 10,
+    });
+    mocks.restoreCharacterVersion.mockResolvedValue({ revision: 3, versionId: "v3" });
+
+    await handleCharacterRequest("character-9", new Request("https://x.test"));
+    await handleCharacterRequest(
+      "character-9",
+      jsonRequest("PUT", { expectedRevision: 1, content: validContent() }),
+    );
+    await handleCharacterVersionsRequest("character-9", new Request("https://x.test"));
+    await handleCharacterVersionRequest("character-9", "v2", new Request("https://x.test"));
+    await handleCharacterRestoreRequest(
+      "character-9",
+      jsonRequest("POST", { versionId: "v1", expectedRevision: 2 }),
+    );
+
+    const db = { database: true };
+    expect(mocks.readCharacterDetail).toHaveBeenCalledWith(db, "character-9", "legacy-owner-9");
+    expect(mocks.updateCharacterWithVersion).toHaveBeenCalledWith(
+      db,
+      expect.objectContaining({ id: "character-9", userId: "legacy-owner-9" }),
+    );
+    expect(mocks.listCharacterVersions).toHaveBeenCalledWith(db, "character-9", "legacy-owner-9");
+    expect(mocks.readCharacterVersion).toHaveBeenCalledWith(
+      db,
+      expect.objectContaining({
+        characterId: "character-9",
+        versionId: "v2",
+        userId: "legacy-owner-9",
+      }),
+    );
+    expect(mocks.restoreCharacterVersion).toHaveBeenCalledWith(
+      db,
+      expect.objectContaining({
+        id: "character-9",
+        userId: "legacy-owner-9",
+        versionId: "v1",
+        expectedRevision: 2,
+      }),
+    );
+    expect(mocks.resolveEditorUserId).toHaveBeenCalledWith({}, db, "character-9");
   });
 });
 

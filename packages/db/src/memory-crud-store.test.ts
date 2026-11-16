@@ -13,11 +13,15 @@ import {
 import {
   deleteMemory,
   insertManualMemory,
-  listCharacterMemories,
+  listConversationMemories,
+  loadExpiredMemories,
   loadPinnedMemories,
   MemoryAccessError,
+  MEMORY_RESTORE_WINDOW_MS,
+  removeMemories,
+  restoreMemory,
   setMemoryPinned,
-  updateMemoryContent,
+  updateMemory,
 } from "./memory-crud-store";
 import { openLocalD1, type LocalD1 } from "./test/local-d1";
 import { createD1TurnStore } from "./turn-store";
@@ -30,6 +34,7 @@ import {
   v2MemoryTable,
   v2MemoryTombstoneTable,
   v2MessageTable,
+  v2SummaryTable,
 } from "./v2-schema";
 
 import type { TurnEvent } from "./turn-store";
@@ -113,6 +118,7 @@ describe("memory crud store", () => {
         .delete(v2MemoryTombstoneTable)
         .where(inArray(v2MemoryTombstoneTable.conversationId, ids)),
       local.db.delete(v2MemoryTable).where(inArray(v2MemoryTable.conversationId, ids)),
+      local.db.delete(v2SummaryTable).where(inArray(v2SummaryTable.conversationId, ids)),
       local.db.delete(v2ChunkTable).where(inArray(v2ChunkTable.messageId, messages)),
       local.db.delete(v2MessageTable).where(inArray(v2MessageTable.conversationId, ids)),
       local.db.delete(v2LedgerTable).where(inArray(v2LedgerTable.conversationId, ids)),
@@ -143,10 +149,16 @@ describe("memory crud store", () => {
       .where(eq(v2MessageTable.id, source.messageId));
     expect(message.role).toBe("user");
 
-    const list = await listCharacterMemories(local.db, { ...scope, characterId });
+    const list = await listConversationMemories(local.db, {
+      ...scope,
+      characterId,
+      conversationId,
+    });
     expect(list.map((row) => row.id)).toContain(memory!.id);
-    // 別の利用者からは見えない
-    expect(await listCharacterMemories(local.db, { userId: "other", characterId })).toEqual([]);
+    // 別の利用者からは見えない（一覧自体が所有確認で弾かれる）
+    await expect(
+      listConversationMemories(local.db, { userId: "other", characterId, conversationId }),
+    ).rejects.toBeInstanceOf(MemoryAccessError);
   });
 
   it("発言の無い会話では足せず、他人の会話では拒否される", async () => {
@@ -175,13 +187,17 @@ describe("memory crud store", () => {
       { ...scope, characterId, conversationId },
       { content: "猫派", kind: "preference", pinned: false },
     );
-    const previous = await updateMemoryContent(
-      local.db,
-      { ...scope, characterId },
-      memory!.id,
-      "犬派に変わった",
-    );
-    expect(previous).toBe("猫派");
+    const updated = await updateMemory(local.db, { ...scope, characterId }, memory!.id, {
+      expectedRevision: 1,
+      content: "犬派に変わった",
+    });
+    expect(updated.type).toBe("updated");
+    if (updated.type !== "updated") throw new Error("not updated");
+    expect(updated.previous).toBe("猫派");
+    expect(updated.contentChanged).toBe(true);
+    expect(updated.memory.conversationId).toBe(conversationId);
+    expect(updated.memory.revision).toBe(2);
+    expect(updated.memory.editedAt).not.toBeNull();
     const [row] = await local.db
       .select({ content: v2MemoryTable.content, embedding: v2MemoryTable.embedding })
       .from(v2MemoryTable)
@@ -204,14 +220,24 @@ describe("memory crud store", () => {
 
     // 他人の記憶は直せない・固定も消せもしない
     expect(
-      await updateMemoryContent(local.db, { userId: "other", characterId }, memory!.id, "x"),
-    ).toBeNull();
+      await updateMemory(local.db, { userId: "other", characterId }, memory!.id, {
+        expectedRevision: 2,
+        content: "x",
+      }),
+    ).toEqual({ type: "not_found" });
+    // 版がずれる手直しは revision_conflict で現行の版を返す
+    expect(
+      await updateMemory(local.db, { ...scope, characterId }, memory!.id, {
+        expectedRevision: 1,
+        content: "x",
+      }),
+    ).toEqual({ type: "revision_conflict", currentRevision: 2 });
     expect(
       await setMemoryPinned(local.db, { userId: "other", characterId }, memory!.id, true),
     ).toBe(false);
   });
 
-  it("消すと記憶と出どころ行が両方消える。他人の記憶は消せない", async () => {
+  it("消すと論理削除になり、復元窓を過ぎると物理削除される。他人の記憶は消せない", async () => {
     const conversationId = await talk();
     const memory = await insertManualMemory(
       local.db,
@@ -220,7 +246,34 @@ describe("memory crud store", () => {
     );
     expect(await deleteMemory(local.db, { userId: "other", characterId }, memory!.id)).toBeNull();
     const deleted = await deleteMemory(local.db, { ...scope, characterId }, memory!.id);
-    expect(deleted?.[0].content).toBe("消す対象");
+    expect(deleted?.rows[0].content).toBe("消す対象");
+    expect(deleted?.conversationId).toBe(conversationId);
+    // 論理削除: 行は残り deleted_at + revision 繰り上げ。一覧からは消える。
+    const [row] = await local.db
+      .select({ deletedAt: v2MemoryTable.deletedAt, revision: v2MemoryTable.revision })
+      .from(v2MemoryTable)
+      .where(eq(v2MemoryTable.id, memory!.id));
+    expect(row.deletedAt).toBe(deleted?.deletedAt);
+    expect(row.revision).toBe(2);
+    expect(
+      (await listConversationMemories(local.db, { ...scope, characterId, conversationId })).find(
+        (entry) => entry.id === memory!.id,
+      ),
+    ).toBeUndefined();
+
+    // 復元窓を過ぎると物理削除（source も消える）
+    const expired = await loadExpiredMemories(
+      local.db,
+      { conversationId },
+      Date.now() - MEMORY_RESTORE_WINDOW_MS,
+    );
+    expect(expired).toEqual([]);
+    const stale = await loadExpiredMemories(local.db, { conversationId }, Date.now() + 1);
+    expect(stale.map((entry) => entry.id)).toEqual([memory!.id]);
+    await removeMemories(
+      local.db,
+      stale.map((entry) => entry.id),
+    );
     expect(
       await local.db.select().from(v2MemoryTable).where(eq(v2MemoryTable.id, memory!.id)),
     ).toEqual([]);
@@ -242,6 +295,7 @@ describe("memory crud store", () => {
       kind: "preference" as const,
       content: "紅茶が好き",
       subject: "",
+      category: "long" as const,
       importance: 3,
       validFrom: null,
       validUntil: null,
@@ -252,22 +306,25 @@ describe("memory crud store", () => {
       .from(v2MemoryTable)
       .where(eq(v2MemoryTable.conversationId, conversationId));
 
-    // 消す → tombstone に乗る
+    // 消す → tombstone に本文つきで乗る
     await deleteMemory(local.db, { ...scope, characterId }, memory.id);
     const tombstones = await local.db
       .select()
       .from(v2MemoryTombstoneTable)
       .where(eq(v2MemoryTombstoneTable.conversationId, conversationId));
     expect(tombstones).toHaveLength(1);
+    expect(tombstones[0].content).toBe("紅茶が好き");
 
-    // 同じ内容の再抽出は書き戻さん（Queue の再配送・ターン置換でも同じ）
+    // 同じ内容の再抽出は書き戻さん（Queue の再配送・ターン置換でも同じ）。
+    // 残るのは論理削除された元の行だけ。
     await completeMemoryExtraction(local.db, source, [fact]);
-    expect(
-      await local.db
-        .select()
-        .from(v2MemoryTable)
-        .where(eq(v2MemoryTable.conversationId, conversationId)),
-    ).toEqual([]);
+    const memories = await local.db
+      .select({ id: v2MemoryTable.id, deletedAt: v2MemoryTable.deletedAt })
+      .from(v2MemoryTable)
+      .where(eq(v2MemoryTable.conversationId, conversationId));
+    expect(memories).toHaveLength(1);
+    expect(memories[0].id).toBe(memory.id);
+    expect(memories[0].deletedAt).not.toBeNull();
 
     // 手で明示的に足し直すと帳から外れて普通に残る
     const readded = await insertManualMemory(local.db, scope3, {
@@ -283,7 +340,7 @@ describe("memory crud store", () => {
     ).toEqual([]);
   });
 
-  it("消すとその後の要約も一緒に消え、前の要約は残る（RIT-94）", async () => {
+  it("消すとその後の要約行も論理削除され、前の要約は残る。本物の要約は伏せ直し待ち（RIT-94）", async () => {
     const conversationId = await talk();
     const scope3 = { ...scope, characterId, conversationId };
     const fact = await insertManualMemory(local.db, scope3, {
@@ -306,14 +363,77 @@ describe("memory crud store", () => {
         createdAt: now,
       });
     }
+    // 本物のあらすじ（v2_summary）を1本植える
+    await local.db.insert(v2SummaryTable).values({
+      id: crypto.randomUUID(),
+      conversationId,
+      level: 1,
+      coveredTo: 2,
+      text: "あらすじ",
+      createdAt: now,
+    });
     const deleted = await deleteMemory(local.db, { ...scope, characterId }, fact!.id);
+    expect(deleted?.rows).toHaveLength(2); // 本体 + 後の要約
+
     const remaining = await local.db
-      .select({ kind: v2MemoryTable.kind, sourceTurn: v2MemoryTable.sourceTurn })
+      .select({
+        sourceTurn: v2MemoryTable.sourceTurn,
+        deletedAt: v2MemoryTable.deletedAt,
+      })
       .from(v2MemoryTable)
       .where(eq(v2MemoryTable.conversationId, conversationId));
-    expect(deleted).toHaveLength(2); // 本体 + 後の要約
-    expect(remaining.map((row) => row.kind)).toEqual(["summary"]);
-    expect(remaining[0].sourceTurn).toBe(0);
+    // 本体・後の要約は論理削除、前の要約は残る
+    const live = remaining.filter((row) => row.deletedAt === null);
+    const swept = remaining.filter((row) => row.deletedAt !== null);
+    expect(live.map((row) => row.sourceTurn)).toEqual([0]);
+    expect(swept).toHaveLength(2);
+
+    // 本物のあらすじは伏せ直し待ちになる
+    const summaries = await local.db
+      .select({ redactPending: v2SummaryTable.redactPending })
+      .from(v2SummaryTable)
+      .where(eq(v2SummaryTable.conversationId, conversationId));
+    expect(summaries).toEqual([{ redactPending: 1 }]);
+  });
+
+  it("消してから 30 秒以内なら戻せる。窓切れは戻せん（RIT-94）", async () => {
+    const conversationId = await talk();
+    const scope3 = { ...scope, characterId, conversationId };
+    const memory = await insertManualMemory(local.db, scope3, {
+      content: "戻す対象",
+      kind: "fact",
+    });
+    const deleted = await deleteMemory(local.db, { ...scope, characterId }, memory!.id);
+    expect(deleted).not.toBeNull();
+
+    // 窓の内側: 復元すると一覧に戻り、tombstone も消える
+    const restored = await restoreMemory(local.db, { ...scope, characterId }, memory!.id);
+    expect(restored).not.toBeNull();
+    expect(restored).not.toBe("expired");
+    expect(
+      (await listConversationMemories(local.db, { ...scope, characterId, conversationId })).map(
+        (row) => row.id,
+      ),
+    ).toContain(memory!.id);
+    expect(
+      await local.db
+        .select()
+        .from(v2MemoryTombstoneTable)
+        .where(eq(v2MemoryTombstoneTable.conversationId, conversationId)),
+    ).toEqual([]);
+
+    // 窓の外: deleted_at が古い行は "expired"
+    const again = await deleteMemory(local.db, { ...scope, characterId }, memory!.id);
+    expect(again).not.toBeNull();
+    const expired = await restoreMemory(
+      local.db,
+      { ...scope, characterId },
+      memory!.id,
+      Date.now() + MEMORY_RESTORE_WINDOW_MS + 1,
+    );
+    expect(expired).toBe("expired");
+    // 他人の記憶は復元も消去もできない
+    expect(await restoreMemory(local.db, { userId: "other", characterId }, memory!.id)).toBeNull();
   });
 
   it("直した記憶の旧内容も tombstone に乗り再抽出で蘇らん（RIT-94）", async () => {
@@ -323,7 +443,11 @@ describe("memory crud store", () => {
       content: "紅茶が好き",
       kind: "preference",
     });
-    await updateMemoryContent(local.db, { ...scope, characterId }, memory!.id, "珈琲が好き");
+    const edited = await updateMemory(local.db, { ...scope, characterId }, memory!.id, {
+      expectedRevision: 1,
+      content: "珈琲が好き",
+    });
+    expect(edited.type).toBe("updated");
     const [job] = await listPendingMemoryJobs(local.db, scope3);
     const source = await loadMemoryExtractionSource(local.db, job.id);
     if (!source) throw new Error("source missing");
@@ -332,6 +456,7 @@ describe("memory crud store", () => {
         kind: "preference",
         content: "紅茶が好き",
         subject: "",
+        category: "long",
         importance: 3,
         validFrom: null,
         validUntil: null,
@@ -352,7 +477,11 @@ describe("memory crud store", () => {
       { ...scope, characterId, conversationId },
       { content: long, kind: "fact" },
     );
-    const list = await listCharacterMemories(local.db, { ...scope, characterId });
+    const list = await listConversationMemories(local.db, {
+      ...scope,
+      characterId,
+      conversationId,
+    });
     expect(list.find((row) => row.id === memory!.id)?.content).toBe(long);
   });
 });

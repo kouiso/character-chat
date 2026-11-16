@@ -8,6 +8,7 @@ import { userTable } from "../../../src/schema/user";
 
 import {
   characterSheetSchema,
+  checkCharacterRow,
   listCharacterSummaries,
   loadCharacter,
   loadCharacters,
@@ -118,7 +119,7 @@ describe("loadCharacters / loadCharacter", () => {
     }
   });
 
-  it("複数 owner を渡すと旧名義のキャラも読め、canEdit は primary だけ", async () => {
+  it("複数 owner を渡すと旧名義のキャラも読め、canEdit は名義の集合全体で真", async () => {
     const id = crypto.randomUUID();
     const legacyOwner = `legacy-${crypto.randomUUID()}`;
     await local.db.insert(userTable).values({
@@ -141,8 +142,9 @@ describe("loadCharacters / loadCharacter", () => {
         ok: { id },
         failures: [],
       });
+      // 旧名義も持ち主の名義の集合に入るので、新アプリの編集画面で直せる（FR-8）。
       const summary = (await listCharacterSummaries(local.db, owners)).find((row) => row.id === id);
-      expect(summary).toMatchObject({ id, canEdit: false });
+      expect(summary).toMatchObject({ id, canEdit: true });
       // 他者名義は混ざらん。
       await expect(loadCharacter(local.db, id, ["local", "someone-else"])).resolves.toEqual({
         ok: null,
@@ -152,6 +154,26 @@ describe("loadCharacters / loadCharacter", () => {
       await local.db.delete(characterTable).where(eq(characterTable.id, id));
       await local.db.delete(userTable).where(eq(userTable.id, legacyOwner));
     }
+  });
+
+  it("checkCharacterRow は行ごとの合否と項目名を返す", () => {
+    const good = checkCharacterRow({
+      id: "x",
+      name: "名前",
+      systemPrompt: "s",
+      greeting: "g",
+      tags: "[]",
+      avatar: null,
+      gender: null,
+      slug: null,
+      isOfficial: false,
+      displayOrder: 0,
+      createdAt: 0,
+    });
+    expect(good).toEqual({ ok: true, issues: [] });
+    const bad = checkCharacterRow({ name: "", greeting: "g", tags: "{broken" });
+    expect(bad.ok).toBe(false);
+    expect(bad.issues.map((issue) => issue.path)).toContain("tags");
   });
 
   it("壊れた行は投げずに failures へ寄せる", () => {

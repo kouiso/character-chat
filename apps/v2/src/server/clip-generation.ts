@@ -3,9 +3,10 @@
 // R2 へ保存して v2_clip に記録する。会話に紐付かん単発生成なので
 // v2_video_generation（会話依存）ではなく専用テーブル。課金はしない
 // （個人利用・無制限運用。V2_UNLIMITED で既存経路も課金を抜けとる）。
-import { createDb, listLegacySourceUserIds, loadCharacter } from "@v2/db";
+import { createDb, loadCharacter } from "@v2/db";
 
 import { ImageGenerationError } from "./image-generation";
+import { listOwnerIds } from "./identity";
 import {
   findTaskItem,
   MOTION_HINT,
@@ -101,7 +102,7 @@ export const startClipGeneration = async (input: {
     throw new ImageGenerationError("動画生成が設定されていません。", 503);
   }
   const db = createDb(env.DB);
-  const owners = [input.userId, ...(await listLegacySourceUserIds(db))];
+  const owners = await listOwnerIds(db);
   const loaded = await loadCharacter(db, input.characterId, owners);
   if (!loaded.ok) {
     throw new ImageGenerationError("キャラクターが見つかりません。", 404);

@@ -1,26 +1,45 @@
+// 記憶 API の出入り口（RIT-92）。画面はここだけを叩き、失敗は code を持つ
+// MemoryRequestError で受ける（板の文で出し分けるため message は使わん）。
 import { z } from "zod";
 
+const categorySchema = z.enum(["long", "recent", "relation", "future"]);
 export const memorySchema = z.object({
   id: z.string(),
   conversationId: z.string(),
   kind: z.enum(["fact", "summary", "preference"]),
+  category: categorySchema,
   content: z.string(),
   pinned: z.boolean(),
-  sourceTurn: z.number().nullable(),
+  origin: z.enum(["extracted", "manual"]),
+  editedAt: z.number().nullable(),
   createdAt: z.number(),
-  // 食い違いの置き換え印（RIT-86）。supersededBy が指す先が今使われる記憶。
-  subject: z.string().default(""),
-  supersededBy: z.string().nullable().default(null),
+  supersededBy: z.string().nullable(),
+  usedInLastReply: z.boolean(),
+  revision: z.number().int().min(1),
 });
 export type Memory = z.infer<typeof memorySchema>;
+export type MemoryCategory = z.infer<typeof categorySchema>;
 
-const memoriesSchema = z.object({ memories: z.array(memorySchema) });
+const listSchema = z.object({
+  conversationId: z.string().nullable(),
+  characterName: z.string(),
+  memories: z.array(memorySchema),
+});
+export type MemoryList = z.infer<typeof listSchema>;
+
 const memoryResultSchema = z.object({ memory: memorySchema });
+const learnedSchema = z.object({
+  state: z.enum(["pending", "done", "failed", "none"]),
+  memories: z.array(z.object({ id: z.string(), content: z.string() })),
+});
+export type LearnedResult = z.infer<typeof learnedSchema>;
 
 export class MemoryRequestError extends Error {
   readonly status: number;
+  readonly code: string | null;
+  readonly currentRevision: number | null;
 
-  constructor(status: number) {
+  constructor(status: number, code: string | null, currentRevision: number | null = null) {
     super(
       status === 404
         ? "記憶が見つかりません。別の画面で消えた可能性があります。"
@@ -31,68 +50,109 @@ export class MemoryRequestError extends Error {
             : "保存先に接続できませんでした。再試行してください。",
     );
     this.status = status;
+    this.code = code;
+    this.currentRevision = currentRevision;
     this.name = "MemoryRequestError";
   }
 }
 
+// 失敗の体は { code, message }（または revision_conflict の { code, currentRevision }）。
+const readErrorDetail = async (
+  response: Response,
+): Promise<{ code: string | null; currentRevision: number | null }> => {
+  try {
+    const body: unknown = await response.json();
+    if (typeof body === "object" && body !== null) {
+      const code = (body as { code?: unknown }).code;
+      const revision = (body as { currentRevision?: unknown }).currentRevision;
+      return {
+        code: typeof code === "string" ? code : null,
+        currentRevision: typeof revision === "number" ? revision : null,
+      };
+    }
+    return { code: null, currentRevision: null };
+  } catch {
+    return { code: null, currentRevision: null };
+  }
+};
+
+const endpoint = (characterId: string, suffix = "") =>
+  `/api/characters/${encodeURIComponent(characterId)}/memories${suffix}`;
+
 const requestMemory = async <T>(
-  characterId: string,
+  url: string,
   schema: z.ZodType<T>,
   init?: RequestInit,
 ): Promise<T> => {
-  const response = await fetch(`/api/characters/${encodeURIComponent(characterId)}/memories`, {
+  const response = await fetch(url, {
     ...init,
     headers: { "Content-Type": "application/json", ...init?.headers },
     cache: "no-store",
   });
-  if (!response.ok) throw new MemoryRequestError(response.status);
+  if (!response.ok) {
+    const detail = await readErrorDetail(response);
+    throw new MemoryRequestError(response.status, detail.code, detail.currentRevision);
+  }
   return schema.parse(await response.json());
 };
 
-export const listMemories = (characterId: string): Promise<Memory[]> =>
-  requestMemory(characterId, memoriesSchema).then((result) => result.memories);
+export const listMemories = (
+  characterId: string,
+  conversationId?: string | null,
+): Promise<MemoryList> =>
+  requestMemory(
+    `${endpoint(characterId)}${conversationId ? `?conversationId=${encodeURIComponent(conversationId)}` : ""}`,
+    listSchema,
+  );
 
 export const addMemory = (
   characterId: string,
-  input: { content: string; kind: "fact" | "preference" },
+  input: {
+    conversationId?: string | null;
+    content: string;
+    category: MemoryCategory;
+    kind?: "fact" | "preference";
+  },
 ): Promise<Memory> =>
-  requestMemory(characterId, memoryResultSchema, {
+  requestMemory(endpoint(characterId), memoryResultSchema, {
     method: "POST",
-    body: JSON.stringify(input),
+    body: JSON.stringify({ kind: "fact", ...input }),
   }).then((result) => result.memory);
 
 export const updateMemory = (
   characterId: string,
-  memoryId: string,
-  input: { content?: string; pinned?: boolean },
+  input: {
+    memoryId: string;
+    expectedRevision: number;
+    content?: string;
+    category?: MemoryCategory;
+    pinned?: boolean;
+  },
 ): Promise<Memory> =>
-  requestMemory(characterId, memoryResultSchema, {
+  requestMemory(endpoint(characterId), memoryResultSchema, {
     method: "PATCH",
-    body: JSON.stringify({ memoryId, ...input }),
+    body: JSON.stringify(input),
   }).then((result) => result.memory);
 
 export const removeMemory = async (characterId: string, memoryId: string): Promise<void> => {
-  await requestMemory(characterId, z.object({ ok: z.literal(true) }), {
+  await requestMemory(endpoint(characterId), z.object({ ok: z.literal(true) }), {
     method: "DELETE",
     body: JSON.stringify({ memoryId }),
   });
 };
 
-const resetResultSchema = z.object({
-  conversations: z.number(),
-  memories: z.number(),
-  jobs: z.number(),
-  summaries: z.number(),
-  vectorsDeleted: z.number(),
-});
-export type MemoryResetResult = z.infer<typeof resetResultSchema>;
+export const restoreMemory = (characterId: string, memoryId: string): Promise<Memory> =>
+  requestMemory(endpoint(characterId, "/restore"), memoryResultSchema, {
+    method: "POST",
+    body: JSON.stringify({ memoryId }),
+  }).then((result) => result.memory);
 
-// 記憶リセット（RIT-196）。キャラの全会話の記憶3層を消す。メッセージ本文は残る。
-export const resetAllMemories = async (characterId: string): Promise<MemoryResetResult> => {
-  const response = await fetch(`/api/chat/${encodeURIComponent(characterId)}/memory`, {
-    method: "DELETE",
-    cache: "no-store",
-  });
-  if (!response.ok) throw new MemoryRequestError(response.status);
-  return resetResultSchema.parse(await response.json());
-};
+export const fetchLearnedMemories = (
+  characterId: string,
+  conversationId: string,
+  turn: number,
+): Promise<LearnedResult> =>
+  requestMemory(
+    `${endpoint(characterId, "/learned")}?conversationId=${encodeURIComponent(conversationId)}&turn=${turn}`,
+    learnedSchema,
+  );

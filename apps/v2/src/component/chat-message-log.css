@@ -12,3 +12,25 @@
   gap: inherit;
   min-inline-size: 0;
 }
+
+/* 「覚えた：…」リンク（RIT-92）。直近の返事の下だけ。44px・下線なし・はみ出し省略。 */
+.v2-learned-link {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 44px;
+  padding: 0 4px;
+  color: var(--v2-text-soft, #dcd3ce);
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+}
+
+.v2-learned-link-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

@@ -1,11 +1,16 @@
 import { FakeListChatModel } from "@langchain/core/utils/testing";
+import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import {
+  applySummaryRedaction,
   completeMemoryExtraction,
   createDb,
   describeError,
+  dropSummary,
   failMemoryExtraction,
   failMemoryIndex,
+  listForgottenContents,
   listPendingMemoryJobs,
+  listRedactPendingSummaries,
   loadMemoryExtractionPolicy,
   loadMemoryExtractionSource,
   markMemoryJobsQueued,
@@ -17,15 +22,20 @@ import {
   type V2Db,
 } from "@v2/db";
 import { createOpenRouterModel, extractMemories } from "@v2/engine";
+import { buildSummaryRedactInstruction } from "@v2/prompt";
 
+import { purgeExpiredMemories } from "./memory-purge";
 import { indexMemoryJob } from "./memory-rag";
 import { memoryVectorReady, type MemoryVectorBindings } from "./memory-vector";
 import { reportFailure } from "./log";
 
 import type { BaseChatModel } from "@langchain/core/language_models/chat_models";
+import type { BaseMessage } from "@langchain/core/messages";
 
 export const MEMORY_RETRY_DELAY_MS = 30_000;
 export const MEMORY_CONSUMER_ATTEMPTS = 5;
+// 伏せ直しは要約 1 行につきモデル 1 回。4 回失敗したらその要約の行を消す（FR-4）。
+export const SUMMARY_REDACT_ATTEMPTS = 4;
 
 type QueuePublisher = Pick<Queue<MemoryQueueBody>, "sendBatch">;
 
@@ -107,6 +117,105 @@ const runMemoryExtraction = async (
   await completeMemoryExtraction(db, source, memories);
 };
 
+// 伏せ直し用のモデル。試験環境では固定文を返す偽モデル（出力が消した事柄を含まん事を確かめる）。
+export const createSummaryRedactModel = (env: MemoryModelEnv): BaseChatModel => {
+  if (env.APP_ENV === "test" && env.V2_FAKE_MODEL === "1") {
+    return new FakeListChatModel({ responses: ["（伏せ直し済みのあらすじ）"] });
+  }
+  return createOpenRouterModel(env);
+};
+
+// OpenAI 系は content を {type:"text",text} のブロック配列で返す事がある。文字列だけ拾う。
+const contentToText = (content: BaseMessage["content"]): string => {
+  if (typeof content === "string") return content;
+  if (!Array.isArray(content)) return "";
+  return content
+    .map((block) => {
+      if (typeof block === "string") return block;
+      if (block.type === "text" && "text" in block && typeof block.text === "string")
+        return block.text;
+      return "";
+    })
+    .join("");
+};
+
+// 伏せ直し（FR-4）。待ちの要約を 1 行ずつ、墓標の本文を「書かない事柄」として書き直す。
+// モデルが空を返した時は失敗として扱い、要約を空で上書きせん。
+// message は Queue の配送そのもの（attempts/ack/retry）をテストから差し替えられる形。
+export const runSummaryRedact = async (
+  db: V2Db,
+  env: unknown,
+  model: BaseChatModel,
+  message: Pick<Message, "attempts" | "ack" | "retry">,
+  conversationId: string,
+): Promise<void> => {
+  const forgotten = await listForgottenContents(db, conversationId);
+  const pendings = await listRedactPendingSummaries(db, conversationId);
+  for (const summary of pendings) {
+    try {
+      const result = await model.invoke(
+        [
+          new SystemMessage(buildSummaryRedactInstruction(forgotten)),
+          new HumanMessage(JSON.stringify({ summary: summary.text })),
+        ],
+        { signal: AbortSignal.timeout(30_000) },
+      );
+      const text = contentToText(result.content).trim();
+      if (text.length === 0) throw new Error("redact returned empty");
+      await applySummaryRedaction(db, summary.id, text);
+    } catch {
+      // 4 回失敗したらその要約の行を消す（あらすじは次の summarize で作り直される）。
+      if (message.attempts >= SUMMARY_REDACT_ATTEMPTS) {
+        await dropSummary(db, summary.id);
+        reportFailure(env, {
+          event: "summary_redact_dropped",
+          level: "error",
+          conversationId,
+        });
+        continue;
+      }
+      reportFailure(env, {
+        event: "summary_redact_failed",
+        level: "error",
+        conversationId,
+        attempt: message.attempts,
+      });
+      message.retry({ delaySeconds: MEMORY_RETRY_DELAY_MS / 1_000 });
+      return;
+    }
+  }
+  message.ack();
+};
+
+const consumeSummaryRedact = async (
+  db: V2Db,
+  env: MemoryModelEnv & Pick<Cloudflare.Env, "DB"> & MemoryVectorBindings,
+  message: Message,
+  conversationId: string,
+): Promise<void> => {
+  // Queue 受け手の始めに復元窓切れの論理削除を物理削除する（RIT-94 FR-7）。
+  // 掃除の失敗で伏せ直し自体を止めん — 次の配送か API 要求でまた走る。
+  try {
+    await purgeExpiredMemories(db, env, { conversationId });
+  } catch {
+    reportFailure(env, { event: "memory_purge_failed", level: "error" });
+  }
+  await runSummaryRedact(db, env, createSummaryRedactModel(env), message, conversationId);
+};
+
+// 受け手の始めの物理削除（FR-7）。失敗は抜き出し自体を止めん。
+const tryPurgeExpiredMemories = async (
+  db: V2Db,
+  env: MemoryVectorBindings,
+  conversationId: string,
+): Promise<void> => {
+  try {
+    await purgeExpiredMemories(db, env, { conversationId });
+  } catch {
+    reportFailure(env, { event: "memory_purge_failed", level: "error" });
+  }
+};
+
 export const consumeMemoryJobs = async (
   batch: MessageBatch<unknown>,
   env: MemoryModelEnv &
@@ -120,11 +229,19 @@ export const consumeMemoryJobs = async (
       message.ack();
       continue;
     }
+    // 判別共用体: 伏せ直しの仕事は { type: "summary_redact", conversationId }（本文は D1 の墓標から読む）
+    if ("type" in parsed.data) {
+      await consumeSummaryRedact(db, env, message, parsed.data.conversationId);
+      continue;
+    }
     const { jobId } = parsed.data;
     let indexing = false;
     try {
       const source = await loadMemoryExtractionSource(db, jobId);
-      if (source) await runMemoryExtraction(db, env, source);
+      if (source) {
+        await tryPurgeExpiredMemories(db, env, source.conversationId);
+        await runMemoryExtraction(db, env, source);
+      }
       if (memoryVectorReady(env)) {
         indexing = true;
         await indexMemoryJob(db, env, jobId);

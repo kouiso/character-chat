@@ -157,6 +157,9 @@ export const v2SummaryTable = sqliteTable(
     level: integer("level").notNull(),
     coveredTo: integer("covered_to").notNull(),
     text: text("text").notNull(),
+    // 記憶の削除・書き換えで触れた文が残っとる可能性があるので、伏せ直しが済むまで
+    // 指示文から外す印（RIT-94）。1 = 伏せ直し待ち。
+    redactPending: integer("redact_pending").notNull().default(0),
     createdAt: integer("created_at").notNull(),
   },
   (table) => [
@@ -226,11 +229,49 @@ export const v2MemoryTable = sqliteTable(
     // 抽出が付ける主題ラベル。同じ主題の新しい記憶に置き換わった印が supersededBy（RIT-86）。
     subject: text("subject").notNull().default(""),
     supersededBy: text("superseded_by"),
+    // 論理削除（RIT-94）。30 秒の復元窓が過ぎたら物理削除する。読む道は全部
+    // deleted_at is null で除くので、窓の中でも指示文には入らん。
+    deletedAt: integer("deleted_at"),
+    // 手直しの世代。論理削除・復元・書き換えで +1（楽観排他・並び替えの拠り所）。
+    revision: integer("revision").notNull().default(1),
+    // 記憶の置き場（RIT-92）。画面の4節と同じ区分。自動抽出が付け、手では入力時に選ぶ。
+    // 既存行・抽出が分類を返さんかった行は 'long' へ倒す。
+    category: text("category", { enum: ["long", "recent", "relation", "future"] })
+      .notNull()
+      .default("long"),
+    // 出どころ（RIT-92）。'extracted' = 自動抽出、'manual' = 手で足した・旧来の手動行。
+    // 手動行の id は `jobId:index` 形ではないので移行は id の形で仕分ける。
+    origin: text("origin", { enum: ["extracted", "manual"] })
+      .notNull()
+      .default("extracted"),
+    // 手で内容を直した時刻。NULL = まだ一度も直していない（バッジの拠り所）。
+    editedAt: integer("edited_at"),
   },
   (table) => [
     index("v2_memory_conv_kind_idx").on(table.conversationId, table.kind),
+    index("v2_memory_conv_active_idx").on(table.conversationId, table.deletedAt, table.category),
+    // category/origin は ALTER TABLE で足したので既存の v2_memory には CHECK を
+    // 宣言できん（SQLite は ALTER で CHECK を足せない）。値の検査は API の zod と
+    // 抽出契約側が担う。enum 宣言は TS 側の型だけに効く。
     check("v2_memory_kind_check", sql`${table.kind} in ('fact','summary','preference')`),
   ],
+);
+
+// 最新の返事の指示文へ入った記憶（RIT-92）。「さっきの返事で使った」バッジの正本。
+// memory_id に外部キーは張らん: 記憶は論理削除→物理削除で行ごと消えるので、
+// 参照を張ると掃除ごと消える・残るのどちらでも不自然になる。読む側は常に
+// v2_memory と突き合わせるので、孤立行は単に無視される。
+export const v2MemoryUseTable = sqliteTable(
+  "v2_memory_use",
+  {
+    conversationId: text("conversation_id")
+      .notNull()
+      .references(() => v2ConversationTable.id, { onDelete: "cascade" }),
+    turn: integer("turn").notNull(),
+    memoryId: text("memory_id").notNull(),
+    createdAt: integer("created_at").notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.conversationId, table.turn, table.memoryId] })],
 );
 
 export const v2MemoryJobTable = sqliteTable(
@@ -477,6 +518,9 @@ export const v2MemoryTombstoneTable = sqliteTable(
       .notNull()
       .references(() => v2ConversationTable.id),
     contentHash: text("content_hash").notNull(),
+    // 消した本文。伏せ直し・新しい要約の「書かない事柄」として渡す（RIT-94）。
+    // 本文を持たん旧行は null。Queue の体には入れず D1 にだけ置く（NFR-2）。
+    content: text("content"),
     createdAt: integer("created_at").notNull(),
   },
   (table) => [primaryKey({ columns: [table.conversationId, table.contentHash] })],
@@ -756,6 +800,37 @@ export const v2ChapterTable = sqliteTable(
     updatedAt: integer("updated_at").notNull(),
   },
   (table) => [index("idx_v2_chapter_story").on(table.storyId, table.ord)],
+);
+
+// RIT-77 台帳: 旧表のどの行を、どの v2 の行へ、いつ写したかを 1 行ずつ残す。
+// v2 の行が消えても台帳が残る事で「v2 で消した」と「まだ移していない」を見分けるため、
+// v2_conversation / v2_message への外部キーは付けない（消す側も台帳は残す約束）。
+export const v2LegacyImportTable = sqliteTable(
+  "v2_legacy_import",
+  {
+    // 写した元の表。memory_note は RIT-78 が使う枠。
+    legacyTable: text("legacy_table", {
+      enum: ["conversation", "message", "memory_note"],
+    }).notNull(),
+    legacyId: text("legacy_id").notNull(),
+    // 写した先の v2 の行の id（会話と発言は旧と同じ id）。
+    v2Id: text("v2_id").notNull(),
+    // 写した先の行が属する v2_conversation.id（検索用。外部キーではない）。
+    conversationId: text("conversation_id").notNull(),
+    sourceUserId: text("source_user_id").notNull(),
+    targetUserId: text("target_user_id").notNull(),
+    // 会話は [character_id, created_at]、発言は [role, created_at, content] の SHA-256。
+    contentHash: text("content_hash").notNull(),
+    importedAt: integer("imported_at").notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.legacyTable, table.legacyId] }),
+    index("v2_legacy_import_conversation_idx").on(table.conversationId, table.legacyTable),
+    check(
+      "v2_legacy_import_table_check",
+      sql`${table.legacyTable} in ('conversation','message','memory_note')`,
+    ),
+  ],
 );
 
 // RIT-213: 音声通話の日次無料枠（秒）。日次区切りは usage-limit と同じ JST 0 時。

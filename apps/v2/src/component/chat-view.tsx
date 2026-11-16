@@ -29,6 +29,7 @@ import { ChatHeaderControls } from "./chat-header-controls";
 import { ChatImage } from "./chat-image";
 import { ChatMessage, ChatMessageText } from "./chat-message";
 import { ChatMessageLog } from "./chat-message-log";
+import { LearnedMemoryLink } from "./learned-memory-link";
 import { GalleryPanel } from "./gallery-panel";
 import { LedgerPanel } from "./ledger-panel";
 import { MessageActions } from "./message-actions";
@@ -806,6 +807,28 @@ export const ChatView = ({
   };
 
   const keys = bubbleKeys(bubbles);
+  // 「覚えた：…」は直近の確定した返事の下にだけ出す（RIT-92）。送信中・枝の
+  // 古い行・pending 泡には付けん。key に会話+ターンを入れて、返事が進んだ時は
+  // リンクごと作り直して問い直させる。
+  const lastAssistantIndex = bubbles.reduce(
+    (last, bubble, index) =>
+      bubble.role === "assistant" && !bubble.pending && bubble.turn !== undefined ? index : last,
+    -1,
+  );
+  const learnedLinkFor = (bubble: ChatBubble, index: number) => {
+    if (index !== lastAssistantIndex) return null;
+    if (pending !== null || bubble.turn === undefined || conversationId.current === null) {
+      return null;
+    }
+    return (
+      <LearnedMemoryLink
+        key={`learned:${conversationId.current}:${bubble.turn}`}
+        characterId={characterId}
+        conversationId={conversationId.current}
+        turn={bubble.turn}
+      />
+    );
+  };
 
   return (
     <div className="v2-chat" data-hide-inner={!showInner} ref={rootRef}>
@@ -897,6 +920,7 @@ export const ChatView = ({
                 streaming={bubble.pending}
                 voiceSlot={voiceSlotOf(bubble)}
               />
+              {learnedLinkFor(bubble, index)}
               {bubbleControls(bubble)}
             </div>
           </div>

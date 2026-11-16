@@ -61,7 +61,7 @@ const CharacterListPage = () => {
                     {c.name.slice(0, 1)}
                     {c.avatar && (
                       <img
-                        src={avatarUrl(c.avatar) ?? undefined}
+                        src={avatarUrl(c.id, c.avatar) ?? undefined}
                         alt=""
                         loading="lazy"
                         onError={(e) => e.currentTarget.remove()}

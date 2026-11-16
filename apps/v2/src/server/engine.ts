@@ -7,7 +7,6 @@ import {
   createDb,
   ensureConversationVersion,
   ensureCurrentVersion,
-  listLegacySourceUserIds,
   loadVersionedCharacter,
   readDisplayHistory,
   readD1StoredTurn,
@@ -30,7 +29,7 @@ import { PROMPT_VERSION } from "@v2/prompt";
 
 import { readCharacter } from "./character-data.server";
 import { retrieveDocumentChunks } from "./document-rag";
-import { LOCAL_USER_ID } from "./identity";
+import { listOwnerIds, LOCAL_USER_ID } from "./identity";
 import { retrieveMemories } from "./memory-rag";
 import { memoryVectorReady } from "./memory-vector";
 import { createProviderLookup, retryProviderLookup } from "./openrouter-lookup";
@@ -173,7 +172,7 @@ const resolveConversationCharacter = async (
   const sheet = await loadValidCharacter(input.characterId);
   // キャラの名義は v1 移行の旧ユーザーのまま残る（会話名義は常に local）。
   // 一覧と同じ名義集合で読まんと、見えてるキャラでターンだけ落ちる。
-  const characterOwners = [LOCAL_USER_ID, ...(await listLegacySourceUserIds(db))];
+  const characterOwners = await listOwnerIds(db);
   const ensured = await ensureCurrentVersion(db, input.characterId, characterOwners);
   if (!ensured) throw new CharacterNotFoundError(input.characterId);
   const versionId = input.conversationId
@@ -230,22 +229,22 @@ export const startTurn = async (
     style: chatStyle === "balanced" ? undefined : chatStyle,
     userPersona,
     contextBudget: contextBudgetFromEnv(env),
-    retrieveMemories: memoryVectorReady(env)
-      ? async (targetConversationId, query) =>
-          retrieveMemories(
-            db,
-            env,
-            {
-              userId: LOCAL_USER_ID,
-              characterId: input.characterId,
-              conversationId: targetConversationId,
-              beforeTurn: input.expectedTurn,
-              // 記憶検索の深さは保有プランの機能差（RIT-193）。検索時点の段階を見る。
-              topK: (await readPlan(env.DB, LOCAL_USER_ID)).features.memoryTopK,
-            },
-            query,
-          )
-      : undefined,
+    // 固定の記憶は vector が無い環境でも指示文へ入れるため、常に渡す（RIT-92）。
+    // 中の retrieveMemories が検索箱の部分だけ memoryVectorReady で分ける。
+    retrieveMemories: async (targetConversationId, query) =>
+      retrieveMemories(
+        db,
+        env,
+        {
+          userId: LOCAL_USER_ID,
+          characterId: input.characterId,
+          conversationId: targetConversationId,
+          beforeTurn: input.expectedTurn,
+          // 記憶検索の深さは保有プランの機能差（RIT-193）。検索時点の段階を見る。
+          topK: (await readPlan(env.DB, LOCAL_USER_ID)).features.memoryTopK,
+        },
+        query,
+      ),
     retrieveDocuments: memoryVectorReady(env)
       ? (query) =>
           retrieveDocumentChunks(
