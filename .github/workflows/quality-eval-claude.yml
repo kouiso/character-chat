@@ -89,19 +89,17 @@ jobs:
           SCENARIOS="$SCENARIOS" \
           pnpm exec tsx script/e2e/replay-chat.ts
 
-      - name: Score + regression gate (履歴には触れん・判定確認用)
-        id: score
+      # --tsv が無いと回帰判定は実行されんので、採点確認だけと分かる名前に揃える。
+      # 判定役が違う履歴と比較すると尺度が違って誤検知するので、ここでは履歴も触らん。
+      - name: Score（採点確認のみ・回帰判定なし）
         env:
           AIQ_JUDGE: anthropic
           ANTHROPIC_API_KEY_FOR_EVAL: ${{ secrets.ANTHROPIC_API_KEY_FOR_EVAL }}
           NOTE_INPUT: ${{ inputs.note }}
         run: |
-          set +e
           pnpm exec tsx script/e2e/score-replay.ts \
             --dir=.work/e2e-results/quality-eval-claude-${{ github.run_id }} \
-            --gate \
             --note="claude-judge $GITHUB_EVENT_NAME $NOTE_INPUT"
-          echo "gate_exit=$?" >> "$GITHUB_OUTPUT"
 
       - name: Upload replay artifacts
         if: always()
