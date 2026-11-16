@@ -27,7 +27,11 @@ export {
   OpenRouterKeyMissingError,
   type ModelEnv,
 } from "./model";
-export { hardRefusalDetect } from "./refusal-detect";
+export {
+  AI_DECLARATION_PATTERN_COUNT,
+  HARD_REFUSAL_PATTERNS,
+  hardRefusalDetect,
+} from "./refusal-detect";
 export { createMemoryTurnStore, type MemoryTurnStore } from "./memory-store";
 export { extractMemories } from "./memory-extractor";
 export {

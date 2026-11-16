@@ -10,7 +10,7 @@
 // 台本のドラフト文（実績済み・cue 無し）にフォールバックする。
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 
-import { hasUserDisengagementCue } from "../../../src/lib/scene-phase";
+import { hasUserDisengagementCue } from "./user-disengagement-cue";
 
 import type { BaseChatModel } from "@langchain/core/language_models/chat_models";
 import type { ScenePhase } from "@v2/prompt";

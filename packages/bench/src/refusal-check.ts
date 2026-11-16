@@ -1,6 +1,7 @@
 // Phase 1 解析（plan v21 work item 1）。transcript の本文を既存の拒否パターン
-// （functions/api/lib/refusal-detect.ts の HARD_REFUSAL_PATTERNS）で走査する読み取り専用
-// チェッカー。パターンを別実装で持つと漏れがズレるので、ランタイム側と同じ配列を import する。
+// （@v2/engine の HARD_REFUSAL_PATTERNS。v1 functions/api/lib/refusal-detect.ts から
+// 移植済み・配列は同一）で走査する読み取り専用チェッカー。
+// パターンを別実装で持つと漏れがズレるので、ランタイム側と同じ配列を import する。
 //
 // AI 人格キャラ向けゲート: --ai-persona <label,label,...> を付けると、そのキャラの
 // ターンでは末尾 AI_DECLARATION_PATTERN_COUNT 件（OOC AI 宣言系）を飛ばす。
@@ -12,10 +13,7 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
-import {
-  AI_DECLARATION_PATTERN_COUNT,
-  HARD_REFUSAL_PATTERNS,
-} from "../../../functions/api/lib/refusal-detect";
+import { AI_DECLARATION_PATTERN_COUNT, HARD_REFUSAL_PATTERNS } from "@v2/engine";
 
 const BODY_MARKER = "# --- ここから本文 ---";
 const TURN_FILE = /^([A-Za-z]+)-(\d+)-.*\.txt$/;
