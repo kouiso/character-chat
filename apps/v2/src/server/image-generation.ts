@@ -14,7 +14,13 @@ import { PROMPT_VERSION } from "@v2/prompt";
 
 import { CurrencyError } from "./currency";
 import { chargeGeneration, refundGenerationBestEffort } from "./generation-billing";
-import { createNovitaClient, NOVITA_TXT2IMG_MODEL } from "./image-novita";
+import {
+  createNovitaClient,
+  NOVITA_TXT2IMG_MODEL,
+  type NovitaClient,
+  type NovitaTxt2ImgInput,
+} from "./image-novita";
+import { createRunwareClient } from "./image-runware";
 import {
   buildVisualAnchorPrompt,
   dedupePromptTags,
@@ -100,6 +106,7 @@ export type ImageEnv = {
   DB: D1Database;
   BUCKET: R2Bucket;
   NOVITA_API_KEY?: string;
+  RUNWARE_API_KEY?: string;
   MOCK_API_BASE?: string;
   V2_UNLIMITED?: string;
 };
@@ -539,6 +546,37 @@ const chargeOrThrow = async (env: ImageEnv, generationId: string): Promise<void>
   }
 };
 
+// Novita init が落ちた時に Runware へ切り替える init 部。
+// taskClient は後段の poll がどちらの taskId を引くかを決める。
+const initTask = async (deps: {
+  novita: NovitaClient;
+  runware: NovitaClient | null;
+  i2i: Awaited<ReturnType<typeof prepareI2i>> | null;
+  input: NovitaTxt2ImgInput;
+}): Promise<{ taskId: string; taskClient: NovitaClient } | { error: string }> => {
+  const init = (client: NovitaClient) =>
+    deps.i2i
+      ? client.initImg2Img({
+          ...deps.input,
+          imageBase64: deps.i2i.base64,
+          strength: deps.i2i.strength,
+        })
+      : client.initTxt2Img(deps.input);
+  try {
+    return { taskId: await init(deps.novita), taskClient: deps.novita };
+  } catch (error) {
+    const primary = error instanceof Error ? error.message : String(error);
+    if (!deps.runware) return { error: primary };
+    try {
+      return { taskId: await init(deps.runware), taskClient: deps.runware };
+    } catch (fallbackError) {
+      const secondary =
+        fallbackError instanceof Error ? fallbackError.message : String(fallbackError);
+      return { error: `${primary} / runware: ${secondary}` };
+    }
+  }
+};
+
 // Novita への init → poll → R2・メッセージ永続化までの実行部。
 // i2i 入力があれば img2img へ、無ければ txt2img へ振る。
 const runGeneration = async (deps: {
@@ -557,35 +595,34 @@ const runGeneration = async (deps: {
     apiBase: env.MOCK_API_BASE,
     fetchImpl: deps.fetchImpl,
   });
+  // Novita が残高不足・障害で init に落ちた時の逃げ道（同じ固定モデルを Runware で）。
+  const runware = createRunwareClient({
+    apiKey: env.RUNWARE_API_KEY,
+    fetchImpl: deps.fetchImpl,
+  });
 
   // 生成課金（RIT-188）。上流へ投げる前に spend し、失敗は fail() 側で同額を返す。
   await chargeOrThrow(env, base.id);
 
-  const initInput = {
-    prompt: base.prompt,
-    negativePrompt: base.negativePrompt,
-    width: base.width,
-    height: base.height,
-    steps: base.steps,
-    guidanceScale: base.guidanceScale,
-    seed: base.seed,
-  };
-
-  let taskId: string;
-  try {
-    taskId = i2i
-      ? await client.initImg2Img({
-          ...initInput,
-          imageBase64: i2i.base64,
-          strength: i2i.strength,
-        })
-      : await client.initTxt2Img(initInput);
-  } catch (error) {
-    return fail(error instanceof Error ? error.message : String(error));
-  }
+  const initResult = await initTask({
+    novita: client,
+    runware: env.RUNWARE_API_KEY ? runware : null,
+    i2i,
+    input: {
+      prompt: base.prompt,
+      negativePrompt: base.negativePrompt,
+      width: base.width,
+      height: base.height,
+      steps: base.steps,
+      guidanceScale: base.guidanceScale,
+      seed: base.seed,
+    },
+  });
+  if ("error" in initResult) return fail(initResult.error);
+  const { taskId, taskClient } = initResult;
 
   try {
-    const result = await pollForImage(client, taskId);
+    const result = await pollForImage(taskClient, taskId);
     if ("failedReason" in result) return fail(result.failedReason, taskId);
     return await persistSuccess({
       db,

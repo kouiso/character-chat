@@ -224,6 +224,62 @@ describe("generateConversationImage", () => {
     ]);
   });
 
+  // Novita が残高不足等で init に落ちても、同じ固定モデルを Runware で引き継ぐ。
+  it("フォールバック: Novita init 失敗時に Runware で成功する", async () => {
+    const bucket = bucketOf();
+    const captured: { runwareBody?: unknown[] } = {};
+    const fetchImpl = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
+      if (url.includes("api.novita.ai")) {
+        return Response.json(
+          { code: 403, reason: "NOT_ENOUGH_BALANCE", message: "insufficient balance" },
+          { status: 403 },
+        );
+      }
+      if (url.includes("api.runware.ai")) {
+        const body = JSON.parse(String(init?.body)) as Record<string, unknown>[];
+        const inference = body.find((task) => task.taskType === "imageInference");
+        if (inference) captured.runwareBody = body;
+        const taskUUID = String(
+          (body.find((task) => task.taskType !== "authentication") ?? {}).taskUUID ?? "",
+        );
+        return Response.json({
+          data: [
+            {
+              taskType: "imageInference",
+              taskUUID,
+              imageURL: "https://example.com/rit182.png",
+              seed: 321,
+            },
+          ],
+        });
+      }
+      if (url === "https://example.com/rit182.png") {
+        return new Response(PNG_HEAD, { headers: { "content-type": "image/png" } });
+      }
+      return new Response("unexpected", { status: 500 });
+    }) as unknown as typeof fetch;
+
+    const result = await generateConversationImage({
+      env: { ...env(bucket), RUNWARE_API_KEY: "runware-test-key" },
+      characterId: charId,
+      conversationId: "rit182-conv",
+      fetchImpl,
+    });
+    expect(result.ok).toBe(true);
+    if (!captured.runwareBody) throw new Error("runware body not captured");
+    const tasks = captured.runwareBody as Record<string, unknown>[];
+    expect(tasks[0]).toEqual({ taskType: "authentication", apiKey: "runware-test-key" });
+    const inference = tasks[1];
+    expect(inference.taskType).toBe("imageInference");
+    expect(inference.model).toBe("aiadultapp:waiillustrious@9");
+    const rows = (await generationRows()).results;
+    const last = rows.at(-1);
+    expect(last?.status).toBe("ok");
+    expect(last?.task_id).toMatch(/^runware-/);
+    expect(last?.seed).toBe(321);
+  });
+
   it("他人の会話は弾く", async () => {
     await local.db.insert(v2ConversationTable).values({
       id: "rit182-foreign",
