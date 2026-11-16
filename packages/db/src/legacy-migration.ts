@@ -447,20 +447,7 @@ const planConversation = async (
   plan.hasV2 = inputs.v2 !== undefined;
   plan.existing = inputs.v2;
   plan.hasConversationLedger = inputs.ledger.some((row) => row.legacyTable === "conversation");
-  if (hasSourceOwnerMismatch(filtered, conversation)) {
-    fail(plan, "source_owner_mismatch");
-    return plan;
-  }
-  // 台帳に会話の行が在って v2 の行が無い = v2 で消した会話。戻さない。
-  if (plan.hasConversationLedger && !inputs.v2) {
-    plan.skippedDeletedConversations = 1;
-    plan.skippedDeletedMessages = filtered.length;
-    return plan;
-  }
-  if (inputs.v2 && hasDestinationConflict(inputs.v2, conversation, targetUserId)) {
-    fail(plan, "destination_conflict");
-    return plan;
-  }
+  if (guardPlan(plan, inputs, filtered, conversation, targetUserId)) return plan;
   const ctx: ClassificationCtx = {
     plan,
     conversation,
@@ -471,21 +458,48 @@ const planConversation = async (
       inputs.v2 && !plan.hasConversationLedger ? preLedgerLimit(inputs, filtered.length) : null,
     newSourceMessages: [],
   };
-  if (inputs.v2 && !plan.hasConversationLedger) {
-    // 台帳の無い頃に移した会話は、会話の台帳の行を後から足す。
-    plan.ledgerRows.push(await conversationLedgerRow(conversation, targetUserId, importedAt, true));
-    checkPreLedgerOrphans(ctx);
-  } else if (!inputs.v2) {
-    plan.insertConversation = true;
-    plan.ledgerRows.push(
-      await conversationLedgerRow(conversation, targetUserId, importedAt, false),
-    );
-  }
+  await seedConversationLedger(ctx, inputs.v2);
   for (const [index, message] of filtered.entries()) {
     await classifyMessage(message, index, ctx);
   }
   checkLedgerOrphans(ctx);
   await settleNewSourceMessages(ctx);
+  finalizePlan(plan, inputs, filtered, conversation);
+  return plan;
+};
+
+// 処理対象にしない会話をここで落とす。真なら plan は確定済み。
+const guardPlan = (
+  plan: ConversationPlan,
+  inputs: ConversationInputs,
+  filtered: ConversationInputs["messages"],
+  conversation: SourceConversation,
+  targetUserId: string,
+): boolean => {
+  if (hasSourceOwnerMismatch(filtered, conversation)) {
+    fail(plan, "source_owner_mismatch");
+    return true;
+  }
+  // 台帳に会話の行が在って v2 の行が無い = v2 で消した会話。戻さない。
+  if (plan.hasConversationLedger && !inputs.v2) {
+    plan.skippedDeletedConversations = 1;
+    plan.skippedDeletedMessages = filtered.length;
+    return true;
+  }
+  if (inputs.v2 && hasDestinationConflict(inputs.v2, conversation, targetUserId)) {
+    fail(plan, "destination_conflict");
+    return true;
+  }
+  return false;
+};
+
+// image_key の参照数を数え、失敗確定の計画は書き込み内容を空にする。
+const finalizePlan = (
+  plan: ConversationPlan,
+  inputs: ConversationInputs,
+  filtered: ConversationInputs["messages"],
+  conversation: SourceConversation,
+): void => {
   plan.imageRefs = {
     source: filtered.filter((message) => message.imageKey !== null).length,
     v2: filtered.filter(
@@ -501,7 +515,26 @@ const planConversation = async (
     plan.imageKeyFills = [];
     plan.updatedConversations = 0;
   }
-  return plan;
+};
+
+// 会話の台帳の行を決める: 台帳の無い頃の既移行は後から足し、未移行は新規として計画する。
+const seedConversationLedger = async (
+  ctx: ClassificationCtx,
+  v2: ConversationInputs["v2"],
+): Promise<void> => {
+  const { plan, conversation, targetUserId, importedAt } = ctx;
+  if (v2 !== undefined && !plan.hasConversationLedger) {
+    // 台帳の無い頃に移した会話は、会話の台帳の行を後から足す。
+    plan.ledgerRows.push(await conversationLedgerRow(conversation, targetUserId, importedAt, true));
+    checkPreLedgerOrphans(ctx);
+    return;
+  }
+  if (v2 === undefined) {
+    plan.insertConversation = true;
+    plan.ledgerRows.push(
+      await conversationLedgerRow(conversation, targetUserId, importedAt, false),
+    );
+  }
 };
 
 // 書く（apply の時だけ）。会話 1 件を 1 つの batch で: 会話の行（無い時）／発言の行／
@@ -660,39 +693,13 @@ export const migrateLegacyConversations = async (
       plan: await planConversation(db, conversation, options.targetUserId, importedAt),
     });
   }
-  const planned = plans.reduce((acc, { plan }) => {
-    addCounts(acc, planCounts(plan));
-    return acc;
-  }, emptyCounts());
-  if (
-    apply &&
-    options.expected !== undefined &&
-    (planned.insertedConversations !== options.expected.insertedConversations ||
-      planned.insertedMessages !== options.expected.insertedMessages)
-  ) {
-    throw new LegacyPlanChangedError({
-      insertedConversations: planned.insertedConversations,
-      insertedMessages: planned.insertedMessages,
-    });
-  }
+  assertExpected(plans, apply, options.expected);
   const counts = emptyCounts();
   const failures: LegacyMigrationFailure[] = options.cursor
     ? []
     : await findMissingConversations(db, options.sourceUserId, options.targetUserId);
   for (const [index, { conversation, plan }] of plans.entries()) {
-    if (plan.code !== null) {
-      failures.push({ conversationId: conversation.id, code: plan.code });
-    } else if (apply) {
-      try {
-        await writeConversationPlan(db, conversation, plan, options.targetUserId);
-        addCounts(counts, planCounts(plan));
-      } catch {
-        failures.push({ conversationId: conversation.id, code: "write_failed" });
-      }
-    } else {
-      addCounts(counts, planCounts(plan));
-    }
-    options.afterConversation?.(index + 1);
+    await settlePlan(db, conversation, plan, options, apply, counts, failures, index + 1);
   }
   return {
     conversations: conversations.length,
@@ -701,6 +708,54 @@ export const migrateLegacyConversations = async (
     failures,
     nextCursor,
   };
+};
+
+// apply の時は計画の件数が expected と一致する事。違えば何も書かずに落とす。
+const assertExpected = (
+  plans: { plan: ConversationPlan }[],
+  apply: boolean,
+  expected: LegacyMigrationOptions["expected"],
+): void => {
+  if (!apply || expected === undefined) return;
+  const planned = plans.reduce((acc, { plan }) => {
+    addCounts(acc, planCounts(plan));
+    return acc;
+  }, emptyCounts());
+  if (
+    planned.insertedConversations !== expected.insertedConversations ||
+    planned.insertedMessages !== expected.insertedMessages
+  ) {
+    throw new LegacyPlanChangedError({
+      insertedConversations: planned.insertedConversations,
+      insertedMessages: planned.insertedMessages,
+    });
+  }
+};
+
+// 計画 1 件の始末: 失敗符号は failures、apply は 1 batch で書き、件数を足す。
+const settlePlan = async (
+  db: V2Db,
+  conversation: SourceConversation,
+  plan: ConversationPlan,
+  options: LegacyMigrationOptions,
+  apply: boolean,
+  counts: ReturnType<typeof emptyCounts>,
+  failures: LegacyMigrationFailure[],
+  index: number,
+): Promise<void> => {
+  if (plan.code !== null) {
+    failures.push({ conversationId: conversation.id, code: plan.code });
+  } else if (apply) {
+    try {
+      await writeConversationPlan(db, conversation, plan, options.targetUserId);
+      addCounts(counts, planCounts(plan));
+    } catch {
+      failures.push({ conversationId: conversation.id, code: "write_failed" });
+    }
+  } else {
+    addCounts(counts, planCounts(plan));
+  }
+  options.afterConversation?.(index);
 };
 
 export type LegacyVerifyItem = {
@@ -739,26 +794,44 @@ export const verifyLegacyConversations = async (
   const imageRefs = { source: 0, v2: 0 };
   let messages = 0;
   for (const conversation of conversations) {
-    const plan = await planConversation(db, conversation, options.targetUserId, Date.now());
-    messages += plan.sourceMessages;
-    imageRefs.source += plan.imageRefs.source;
-    imageRefs.v2 += plan.imageRefs.v2;
-    let status: LegacyVerifyItem["status"];
-    if (!plan.hasV2 && plan.hasConversationLedger) status = "deleted_in_v2";
-    else if (!plan.hasV2) status = "not_imported";
-    else if (plan.code !== null) status = "mismatch";
-    else if (plan.insertMessages.length > 0) status = "not_imported";
-    else status = "match";
-    items.push({
+    const item = await verifyOneConversation(db, conversation, options.targetUserId);
+    messages += item.sourceMessages;
+    imageRefs.source += item.imageRefs.source;
+    imageRefs.v2 += item.imageRefs.v2;
+    items.push(item.item);
+  }
+  return { conversations: conversations.length, messages, items, imageRefs, nextCursor };
+};
+
+// 会話 1 件の状態を決めて返す。状態の根拠は plan が決めた物をそのまま写す。
+const verifyOneConversation = async (
+  db: V2Db,
+  conversation: SourceConversation,
+  targetUserId: string,
+): Promise<{
+  item: LegacyVerifyItem;
+  sourceMessages: number;
+  imageRefs: { source: number; v2: number };
+}> => {
+  const plan = await planConversation(db, conversation, targetUserId, Date.now());
+  let status: LegacyVerifyItem["status"];
+  if (!plan.hasV2 && plan.hasConversationLedger) status = "deleted_in_v2";
+  else if (!plan.hasV2) status = "not_imported";
+  else if (plan.code !== null) status = "mismatch";
+  else if (plan.insertMessages.length > 0) status = "not_imported";
+  else status = "match";
+  return {
+    item: {
       conversationId: conversation.id,
       status,
       ...(plan.code !== null ? { code: plan.code } : {}),
       matchedMessages: plan.matchedMessages,
       deletedMessagesInV2: plan.skippedDeletedMessages,
       skippedAfterV2Continue: plan.skippedAfterV2Continue,
-    });
-  }
-  return { conversations: conversations.length, messages, items, imageRefs, nextCursor };
+    },
+    sourceMessages: plan.sourceMessages,
+    imageRefs: plan.imageRefs,
+  };
 };
 
 export type ConversationSummaryRow = {

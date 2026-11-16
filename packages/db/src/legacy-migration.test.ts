@@ -72,6 +72,27 @@ type SeedResult = {
   options: { sourceUserId: string; targetUserId: string };
 };
 
+const seedMessages = async (
+  local: LocalD1,
+  characterId: string,
+  owner: string,
+  conversationId: string,
+  messages: SeedMessage[],
+): Promise<void> => {
+  for (const [index, message] of messages.entries()) {
+    await local.db.insert(messageTable).values({
+      id: `${conversationId}-m${index}`,
+      conversationId,
+      userId: message.userId ?? owner,
+      characterId: message.characterId ?? characterId,
+      role: message.role ?? (index % 2 === 0 ? "user" : "assistant"),
+      content: message.content ?? `発言 ${index + 1}`,
+      createdAt: index + 1,
+      imageKey: message.imageKey ?? null,
+    });
+  }
+};
+
 const seedOne = async (
   local: LocalD1,
   characterId: string,
@@ -98,18 +119,7 @@ const seedOne = async (
     createdAt: 1,
     updatedAt: conversationOverrides.updatedAt ?? 4,
   });
-  for (const [index, message] of messages.entries()) {
-    await local.db.insert(messageTable).values({
-      id: `${conversationId}-m${index}`,
-      conversationId,
-      userId: message.userId ?? owner,
-      characterId: message.characterId ?? characterId,
-      role: message.role ?? (index % 2 === 0 ? "user" : "assistant"),
-      content: message.content ?? `発言 ${index + 1}`,
-      createdAt: index + 1,
-      imageKey: message.imageKey ?? null,
-    });
-  }
+  await seedMessages(local, characterId, owner, conversationId, messages);
   return { owner, conversationId, options: { sourceUserId: owner, targetUserId: TARGET } };
 };
 
