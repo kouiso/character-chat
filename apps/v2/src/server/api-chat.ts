@@ -146,7 +146,7 @@ export const handleHistoryRequest = async (id: string, request: Request): Promis
     if (!requestId) return json(200, await loadHistory({ characterId: id, conversationId }));
     const { env } = await getPlatform();
     const room = chatRoomFor(env, conversationId);
-    const job = await room.jobTurn(requestId.data);
+    const job = await room.withdraw(requestId.data);
     // 作成中の送信は、キャラが読めん（404/422）時でも「戻してよい」と答えたらあかん。履歴より先に見る。
     if (job?.active) {
       return json(409, { code: "busy", message: "この会話の返信を作成中です。" });

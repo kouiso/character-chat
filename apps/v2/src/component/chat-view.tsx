@@ -171,7 +171,7 @@ type ChatErrorBarProps = {
   onRetry: () => void;
 };
 
-// 最終失敗なら入力へ戻す、途中で切れただけなら同じ受付番号で再接続する。
+// 再接続と入力へ戻す道を常に並べる。失敗の種類を画面が決めると、戻したい時に再試行を重ねさせる。
 const ChatErrorBar = ({
   error,
   canResume,
@@ -183,9 +183,16 @@ const ChatErrorBar = ({
   <div className="v2-error" role="alert">
     {error}
     {canResume && (
-      <button type="button" onClick={terminalFailure ? onRecover : onRetry} disabled={busy}>
-        {terminalFailure ? "入力に戻す" : "再接続・再試行"}
-      </button>
+      <>
+        {!terminalFailure && (
+          <button type="button" onClick={onRetry} disabled={busy}>
+            再接続・再試行
+          </button>
+        )}
+        <button type="button" onClick={onRecover} disabled={busy}>
+          入力に戻す
+        </button>
+      </>
     )}
     <a href="/">会話一覧へ戻る</a>
   </div>
@@ -519,7 +526,7 @@ export const ChatView = ({
   };
 
   const recoverPending = () => {
-    if (!pending || busy || !terminalFailure) return;
+    if (!pending || busy) return;
     controller.current?.abort();
     const abort = new AbortController();
     controller.current = abort;
