@@ -50,8 +50,15 @@ export const requireBasicAuth = async (
 
 export const preventSharedCaching = (response: Response): Response => {
   const secured = new Response(response.body, response);
-  secured.headers.set("cache-control", privateHeaders["cache-control"]);
-  secured.headers.set("pragma", privateHeaders.pragma);
+  const declared = secured.headers.get("cache-control");
+  if (declared) {
+    // ASSETS やハンドラが宣言した私用キャッシュ方針（immutable 等）は潰さず、
+    // 共有キャッシュへ載る余地だけ private へ倒す。
+    secured.headers.set("cache-control", declared.replace(/\bpublic\b/i, "private"));
+  } else {
+    secured.headers.set("cache-control", privateHeaders["cache-control"]);
+    secured.headers.set("pragma", privateHeaders.pragma);
+  }
   const vary = secured.headers.get("vary");
   secured.headers.set("vary", vary ? `${vary}, Authorization` : "Authorization");
   return secured;

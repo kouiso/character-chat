@@ -214,7 +214,7 @@ describe("Worker 入口の BASIC 認証", () => {
     expect(startFetch).not.toHaveBeenCalled();
   });
 
-  it("認証済みの静的ファイルは共有キャッシュさせずに返す", async () => {
+  it("認証済みのハッシュ資産は端末の長期キャッシュへ置かせる", async () => {
     const { env } = createEnv(200);
     const response = await call(
       new Request("https://example.com/assets/main.js", { headers: { authorization } }),
@@ -222,6 +222,17 @@ describe("Worker 入口の BASIC 認証", () => {
     );
     expect(response.status).toBe(200);
     expect(await response.text()).toBe("asset");
+    expect(response.headers.get("cache-control")).toBe("private, max-age=31536000, immutable");
+    expect(startFetch).not.toHaveBeenCalled();
+  });
+
+  it("ハッシュ付きでない静的ファイルは方針を付けず入口の no-store に委ねる", async () => {
+    const { env } = createEnv(200);
+    const response = await call(
+      new Request("https://example.com/sw.js", { headers: { authorization } }),
+      env,
+    );
+    expect(response.status).toBe(200);
     expect(response.headers.get("cache-control")).toBe("private, no-store");
     expect(startFetch).not.toHaveBeenCalled();
   });
@@ -233,7 +244,8 @@ describe("Worker 入口の BASIC 認証", () => {
       env,
     );
     expect(await response.text()).toBe("app");
-    expect(response.headers.get("cache-control")).toBe("private, no-store");
+    // ハンドラが cache-control を名乗った時は public を private へ倒した形で残る。
+    expect(response.headers.get("cache-control")).toBe("private");
     expect(startFetch).toHaveBeenCalledOnce();
   });
 

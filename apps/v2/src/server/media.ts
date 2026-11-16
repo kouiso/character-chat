@@ -28,7 +28,12 @@ const sniffMediaType = (head: Uint8Array): string | null =>
 
 const mediaResponse = (body: BodyInit, type: string): Response =>
   new Response(body, {
-    headers: { "content-type": type, "x-content-type-options": "nosniff" },
+    headers: {
+      "content-type": type,
+      "x-content-type-options": "nosniff",
+      // メディアの中身はメッセージID単位で不変。入口で共有キャッシュ化は防がれる前提の私用キャッシュ。
+      "cache-control": "private, max-age=86400, immutable",
+    },
   });
 
 export const serveOwnedImage = async (

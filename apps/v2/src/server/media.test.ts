@@ -58,6 +58,8 @@ describe("旧メッセージ画像の配信", () => {
       expect(response.status).toBe(200);
       expect(response.headers.get("content-type")).toBe("image/png");
       expect(response.headers.get("x-content-type-options")).toBe("nosniff");
+      // メディアはID単位で不変なので端末キャッシュへ置かせる（共有キャッシュ化は入口で防ぐ）。
+      expect(response.headers.get("cache-control")).toBe("private, max-age=86400, immutable");
       expect(get).toHaveBeenCalledWith(key);
     },
   );
