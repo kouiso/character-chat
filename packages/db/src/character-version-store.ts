@@ -1,5 +1,5 @@
 // character_version は不変の本文を持ち、character は互換ミラーと現在版ポインターだけを持つ。
-import { and, desc, eq, or, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, or, sql } from "drizzle-orm";
 
 import { characterTable } from "../../../src/schema/character";
 
@@ -12,6 +12,7 @@ import {
   CHARACTER_CONTENT_SCHEMA_VERSION,
   type CharacterContent,
 } from "./character-version";
+import { ownerList } from "./character";
 import { characterRevisionTable, characterVersionTable, v2ConversationTable } from "./v2-schema";
 
 import type { V2Db } from "./client";
@@ -80,7 +81,8 @@ const ownedCharacter = async (db: V2Db, id: string, userId: string) => {
   return row ?? null;
 };
 
-const accessibleCharacter = async (db: V2Db, id: string, userId: string) => {
+const accessibleCharacter = async (db: V2Db, id: string, ownerIds: string | readonly string[]) => {
+  const owners = ownerList(ownerIds);
   const [row] = await db
     .select({
       id: characterTable.id,
@@ -98,7 +100,7 @@ const accessibleCharacter = async (db: V2Db, id: string, userId: string) => {
     .where(
       and(
         eq(characterTable.id, id),
-        or(eq(characterTable.userId, userId), eq(characterTable.isOfficial, true)),
+        or(inArray(characterTable.userId, owners), eq(characterTable.isOfficial, true)),
       ),
     );
   return row ?? null;
@@ -222,9 +224,10 @@ const updateHistoryInsert = (
 export const ensureCurrentVersion = async (
   db: V2Db,
   characterId: string,
-  userId: string,
+  ownerIds: string | readonly string[],
 ): Promise<{ versionId: string; revision: number } | null> => {
-  const row = await accessibleCharacter(db, characterId, userId);
+  const owners = ownerList(ownerIds);
+  const row = await accessibleCharacter(db, characterId, owners);
   if (!row) return null;
   if (!row.currentVersionId) {
     const content = legacyContent(row);
@@ -253,7 +256,7 @@ export const ensureCurrentVersion = async (
             .where(
               and(
                 eq(characterTable.id, characterId),
-                or(eq(characterTable.userId, userId), eq(characterTable.isOfficial, true)),
+                or(inArray(characterTable.userId, owners), eq(characterTable.isOfficial, true)),
                 eq(characterTable.revision, row.revision),
                 sql`${characterTable.currentVersionId} is null`,
               ),
@@ -274,7 +277,7 @@ export const ensureCurrentVersion = async (
         .where(
           and(
             eq(characterTable.id, characterId),
-            or(eq(characterTable.userId, userId), eq(characterTable.isOfficial, true)),
+            or(inArray(characterTable.userId, owners), eq(characterTable.isOfficial, true)),
             eq(characterTable.revision, row.revision),
             sql`${characterTable.currentVersionId} is null`,
           ),
@@ -309,7 +312,7 @@ export const ensureCurrentVersion = async (
   } else {
     await db.batch([bindUnpinnedConversations(db, characterId)]);
   }
-  const current = await accessibleCharacter(db, characterId, userId);
+  const current = await accessibleCharacter(db, characterId, owners);
   return current?.currentVersionId
     ? { versionId: current.currentVersionId, revision: current.revision }
     : null;
@@ -721,7 +724,7 @@ export const readCharacterVersion = async (
 
 export const loadVersionedCharacter = async (
   db: V2Db,
-  input: { versionId: string; characterId: string; userId: string },
+  input: { versionId: string; characterId: string; userId: string | readonly string[] },
 ): Promise<{ characterId: string; content: CharacterContent } | null> => {
   const [row] = await db
     .select({
@@ -735,7 +738,10 @@ export const loadVersionedCharacter = async (
         eq(characterVersionTable.id, input.versionId),
         eq(characterVersionTable.characterId, input.characterId),
         eq(characterVersionTable.ownerUserId, characterTable.userId),
-        or(eq(characterTable.userId, input.userId), eq(characterTable.isOfficial, true)),
+        or(
+          inArray(characterTable.userId, ownerList(input.userId)),
+          eq(characterTable.isOfficial, true),
+        ),
       ),
     );
   if (!row) return null;

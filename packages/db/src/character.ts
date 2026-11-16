@@ -32,7 +32,7 @@ export type CharacterSummary = Pick<CharacterSheet, "id" | "name" | "avatar"> & 
 
 // 旧版から移した会話のキャラは旧ユーザー名義のまま。同一人物の名義の集合を
 // ownerIds で受け、どの名義のキャラも読める（編集可と見なす）ようにする。
-const ownerList = (ownerIds: string | readonly string[]) =>
+export const ownerList = (ownerIds: string | readonly string[]) =>
   Array.isArray(ownerIds) ? ownerIds : [ownerIds];
 
 export const listCharacterSummaries = async (

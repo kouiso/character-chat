@@ -7,6 +7,7 @@ import {
   createDb,
   ensureConversationVersion,
   ensureCurrentVersion,
+  listLegacySourceUserIds,
   loadVersionedCharacter,
   readDisplayHistory,
   readD1StoredTurn,
@@ -170,7 +171,10 @@ const resolveConversationCharacter = async (
   input: { characterId: string; conversationId: string | null },
 ): Promise<{ character: CharacterSheet; versionId: string | null }> => {
   const sheet = await loadValidCharacter(input.characterId);
-  const ensured = await ensureCurrentVersion(db, input.characterId, LOCAL_USER_ID);
+  // キャラの名義は v1 移行の旧ユーザーのまま残る（会話名義は常に local）。
+  // 一覧と同じ名義集合で読まんと、見えてるキャラでターンだけ落ちる。
+  const characterOwners = [LOCAL_USER_ID, ...(await listLegacySourceUserIds(db))];
+  const ensured = await ensureCurrentVersion(db, input.characterId, characterOwners);
   if (!ensured) throw new CharacterNotFoundError(input.characterId);
   const versionId = input.conversationId
     ? await ensureConversationVersion(db, {
@@ -184,7 +188,7 @@ const resolveConversationCharacter = async (
   const version = await loadVersionedCharacter(db, {
     versionId,
     characterId: input.characterId,
-    userId: LOCAL_USER_ID,
+    userId: characterOwners,
   });
   if (!version) throw new CharacterNotFoundError(input.characterId);
   return { character: applyCharacterVersion(sheet, version.content), versionId };
