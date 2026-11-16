@@ -119,21 +119,8 @@ jobs:
             echo "::endgroup::"
           done
 
-      # 実測の全文は必ずコミットする（issue #1495 §8。コンテナは使い捨て）。
-      - name: Commit transcripts
-        if: always()
-        run: |
-          # 独自の bot 名義で積むと、ブランチの全コミットに要求されとる committer
-          # （Claude / noreply@anthropic.com）から外れて GitHub が Unverified を出す。
-          # 中身はエージェントが回した実測なので、名義もそれに揃える。
-          git config user.name "Claude"
-          git config user.email "noreply@anthropic.com"
-          git add -f .work/e2e-results/vlong-dogfood || true
-          git diff --cached --quiet && { echo "no transcripts produced"; exit 0; }
-          git commit -m "chore(dogfood): keep the transcripts from CI run ${{ github.run_id }} [e2e: skipped — 実測そのもの]"
-          git pull --rebase origin "${GITHUB_REF_NAME}"
-          git push origin "HEAD:${GITHUB_REF_NAME}"
-
+      # 実測の全文は生成済みのアダルト本文を含むので公開 repo へは戻さん
+      # （RIT-222 判断4。証跡は artifact へ。コンテナは使い捨て）。
       - name: Upload transcripts
         if: always()
         continue-on-error: true

@@ -1,5 +1,7 @@
 pre-push:
   commands:
+    work-artifacts:
+      run: bash script/verify/check-work-artifacts-untracked.sh
     ci-fast:
       env:
         NODE_OPTIONS: "--experimental-sqlite"
