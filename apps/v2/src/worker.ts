@@ -15,10 +15,20 @@ export type WorkerEntryEnv = BasicAuthConfig & {
 // vite が内容ハッシュ付きで吐く /assets/* はURLごと不変なので長期キャッシュさせる。
 const HASHED_ASSET_PATH = /^\/assets\/.+/;
 const IMMUTABLE_ASSET_CACHE = "private, max-age=31536000, immutable";
+// public/ 直下の資産は中身が替わりうるので、ETag 再検証に委ねる。ASSETS が方針を
+// 宣言しとる時はそちらを優先する。
+const REVALIDATABLE_ASSET_CACHE = "private, no-cache";
 
 const markImmutableAsset = (response: Response): Response => {
   const marked = new Response(response.body, response);
   marked.headers.set("cache-control", IMMUTABLE_ASSET_CACHE);
+  return marked;
+};
+
+const revalidatableAsset = (response: Response): Response => {
+  if (response.headers.has("cache-control")) return response;
+  const marked = new Response(response.body, response);
+  marked.headers.set("cache-control", REVALIDATABLE_ASSET_CACHE);
   return marked;
 };
 
@@ -33,7 +43,7 @@ const fetchEntry = async (request: Request, env: WorkerEntryEnv): Promise<Respon
       const asset = await env.ASSETS.fetch(request);
       if (asset.status !== 404) {
         const hashed = HASHED_ASSET_PATH.test(new URL(request.url).pathname);
-        return preventSharedCaching(hashed ? markImmutableAsset(asset) : asset);
+        return preventSharedCaching(hashed ? markImmutableAsset(asset) : revalidatableAsset(asset));
       }
     }
     return preventSharedCaching(await handler.fetch(request));

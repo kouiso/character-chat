@@ -226,14 +226,14 @@ describe("Worker 入口の BASIC 認証", () => {
     expect(startFetch).not.toHaveBeenCalled();
   });
 
-  it("ハッシュ付きでない静的ファイルは方針を付けず入口の no-store に委ねる", async () => {
+  it("ハッシュ付きでない静的ファイルは ETag 再検証の no-cache にする", async () => {
     const { env } = createEnv(200);
     const response = await call(
       new Request("https://example.com/sw.js", { headers: { authorization } }),
       env,
     );
     expect(response.status).toBe(200);
-    expect(response.headers.get("cache-control")).toBe("private, no-store");
+    expect(response.headers.get("cache-control")).toBe("private, no-cache");
     expect(startFetch).not.toHaveBeenCalled();
   });
 
