@@ -44,7 +44,8 @@
    export OPENROUTER_API_KEY=$(grep OPENROUTER_API_KEY ../../apps/v2/.dev.vars | cut -d= -f2)
    pnpm script-run -- --arm script2 --run <N> --only Sakura
    ```
-   課金 API（OpenRouter/deepseek-v3.2）を叩くので Devin Cloud では実行せず、コード変更とテストまでに留めること。
+   課金 API（OpenRouter/deepseek-v3.2）を叩く。2026-11-16 に持ち主が Devin Cloud での実行を許可した（それまでは「Devin Cloud では実行せず、コード変更とテストまで」だった）。
+   実行する前に、呼ぶ回数の上限を票の「完成の定義」で確かめる。鍵（`OPENROUTER_API_KEY`）が環境に無い時は実行せず、「未確認」と票に書く。
 4. **採点**: `pnpm tsx src/fantasy-core-check.ts --dirs <run dir>` — 誤検知あり（issue #1 で修正予定）
 5. **レポート生成**: `python3 script/verify/build-conversation-html.py <run dir> <out.html>`
 
