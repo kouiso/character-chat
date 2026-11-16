@@ -1,13 +1,13 @@
 import { readFileSync } from "node:fs";
 
-// v1 凍結の引き継ぎ: /sw.js は意図的な自害 SW（public/sw.js）で、
+// v1 凍結の引き継ぎ: /sw.js は _redirects のリライトで sw-kill.js（自害 SW）を返す形で、
 // Workbox 生成物は dist/sw-workbox.js に逃がしてある。
 // ここでは両者がその役割どおりに出力されているかを確認する。
 const read = (name) => readFileSync(new URL(`../dist/${name}`, import.meta.url), "utf8");
 
-const kill = read("sw.js");
+const kill = read("sw-kill.js");
 if (!kill.includes("self.registration.unregister()") || !kill.includes("caches.delete")) {
-  throw new Error("dist/sw.js is not the intended self-destroying handoff worker.");
+  throw new Error("dist/sw-kill.js is not the intended self-destroying handoff worker.");
 }
 
 const sw = read("sw-workbox.js");
