@@ -32,6 +32,7 @@ interface __BaseEnv_Env {
   OPENROUTER_API_KEY: string;
   VAPID_PRIVATE_KEY: string;
   NOVITA_API_KEY?: string;
+  RUNWARE_API_KEY?: string;
   CHAT_ROOMS: DurableObjectNamespace<import("./worker").ChatRoom>;
   PROACTIVE_SCHEDULERS: DurableObjectNamespace<import("./worker").ProactiveScheduler>;
 }
@@ -72,6 +73,7 @@ declare namespace Cloudflare {
     OPENROUTER_API_KEY: string;
     VAPID_PRIVATE_KEY: string;
     NOVITA_API_KEY: string;
+    RUNWARE_API_KEY?: string;
     CHAT_ROOMS: DurableObjectNamespace<import("./worker").ChatRoom>;
     PROACTIVE_SCHEDULERS: DurableObjectNamespace<import("./worker").ProactiveScheduler>;
   }
@@ -106,6 +108,7 @@ declare namespace Cloudflare {
     OPENROUTER_API_KEY: string;
     VAPID_PRIVATE_KEY: string;
     NOVITA_API_KEY: string;
+    RUNWARE_API_KEY?: string;
     CHAT_ROOMS: DurableObjectNamespace<import("./worker").ChatRoom>;
     PROACTIVE_SCHEDULERS: DurableObjectNamespace<import("./worker").ProactiveScheduler>;
   }
@@ -143,6 +146,7 @@ declare namespace NodeJS {
       | "OPENROUTER_API_KEY"
       | "VAPID_PRIVATE_KEY"
       | "NOVITA_API_KEY"
+      | "RUNWARE_API_KEY"
     >
   > {}
 }
