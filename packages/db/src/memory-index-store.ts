@@ -56,6 +56,8 @@ export const loadUnindexedMemoryJob = async (db: V2Db, jobId: string) => {
         eq(v2ConversationTable.userId, job.userId),
         eq(v2ConversationTable.characterId, job.characterId),
         isNull(v2MemoryTable.embedding),
+        // 論理削除済みは埋め込みの対象にせん（RIT-94）
+        isNull(v2MemoryTable.deletedAt),
       ),
     )
     .limit(8);
@@ -79,6 +81,8 @@ export const loadMemoryCandidates = async (
         inArray(v2MemoryTable.id, ids.slice(0, 20)),
         // 食い違いは新しい方が勝つ（RIT-86）— 置き換わった記憶は指示文へ出さん
         isNull(v2MemoryTable.supersededBy),
+        // 論理削除済みは検索箱の点が残っとっても出さん（D1 が正、RIT-94）
+        isNull(v2MemoryTable.deletedAt),
         scope.beforeTurn === undefined ? undefined : lt(v2MemoryTable.sourceTurn, scope.beforeTurn),
       ),
     )

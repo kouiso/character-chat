@@ -6,10 +6,15 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { characterTable } from "../../../src/schema/character";
 
-import { createD1SummaryStore } from "./summary-store";
+import {
+  applySummaryRedaction,
+  createD1SummaryStore,
+  dropSummary,
+  listRedactPendingSummaries,
+} from "./summary-store";
 import { openLocalD1, type LocalD1 } from "./test/local-d1";
 import { createD1TurnStore, type TurnEvent } from "./turn-store";
-import { v2SummaryTable } from "./v2-schema";
+import { v2MemoryTombstoneTable, v2SummaryTable } from "./v2-schema";
 
 import type { JudgeResult } from "@v2/judge";
 import type { SceneLedger } from "@v2/prompt";
@@ -106,10 +111,63 @@ describe("createD1SummaryStore", () => {
     await store.save({ conversationId, level: 2, coveredTo: 20, text: "2段目" });
     await store.save({ conversationId, level: 1, coveredTo: 20, text: "1段目a" });
     expect(await store.list(conversationId)).toEqual([
-      { level: 1, coveredTo: 20, text: "1段目a" },
-      { level: 2, coveredTo: 20, text: "2段目" },
-      { level: 1, coveredTo: 40, text: "1段目b" },
+      { level: 1, coveredTo: 20, text: "1段目a", redactPending: false },
+      { level: 2, coveredTo: 20, text: "2段目", redactPending: false },
+      { level: 1, coveredTo: 40, text: "1段目b", redactPending: false },
     ]);
     expect(await store.list("conv-none")).toEqual([]);
+  });
+
+  it("伏せ直し待ち・墓標の本文・書き戻し・行消しが動く（RIT-94）", async () => {
+    const store = createD1SummaryStore(local.db);
+    await store.save({ conversationId, level: 1, coveredTo: 50, text: "古い文" });
+
+    // 削除が走った体でその会話の全要約を redact_pending に立てる
+    await local.db
+      .update(v2SummaryTable)
+      .set({ redactPending: 1 })
+      .where(inArray(v2SummaryTable.conversationId, [conversationId]));
+    const pendings = await listRedactPendingSummaries(local.db, conversationId);
+    expect(pendings.length).toBeGreaterThan(0);
+
+    // 1行ずつ書き戻すと redact_pending が下りる（Queue 消費側と同じ手順）
+    for (const row of pendings) {
+      await applySummaryRedaction(local.db, row.id, `伏せ直し:${row.id}`);
+    }
+    expect(await listRedactPendingSummaries(local.db, conversationId)).toEqual([]);
+    const listed = await store.list(conversationId);
+    expect(listed.every((row) => !row.redactPending)).toBe(true);
+    expect(listed.filter((row) => row.text.startsWith("伏せ直し:"))).toHaveLength(pendings.length);
+
+    // 墓標の本文は読める（件数・字数に上限）
+    await local.db.insert(v2MemoryTombstoneTable).values({
+      conversationId,
+      contentHash: `h-${crypto.randomUUID()}`,
+      content: "消した本文",
+      createdAt: Date.now(),
+    });
+    expect(await store.listForgotten(conversationId)).toContain("消した本文");
+
+    // 限度まで失敗した要約は行ごと消す
+    const doomed = `doomed-${crypto.randomUUID()}`;
+    await local.db.insert(v2SummaryTable).values({
+      id: doomed,
+      conversationId,
+      level: 1,
+      coveredTo: 60,
+      text: "消す要約",
+      createdAt: Date.now(),
+    });
+    await dropSummary(local.db, doomed);
+    expect(
+      await local.db
+        .select({ id: v2SummaryTable.id })
+        .from(v2SummaryTable)
+        .where(inArray(v2SummaryTable.id, [doomed])),
+    ).toEqual([]);
+
+    await local.db
+      .delete(v2MemoryTombstoneTable)
+      .where(inArray(v2MemoryTombstoneTable.conversationId, [conversationId]));
   });
 });

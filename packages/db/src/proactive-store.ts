@@ -1,4 +1,4 @@
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, isNull, sql } from "drizzle-orm";
 
 import { v2ConversationTable, v2MemoryTable, v2MessageTable } from "./v2-schema";
 
@@ -44,7 +44,7 @@ export const loadRecentMemories = async (
     await db
       .select({ content: v2MemoryTable.content })
       .from(v2MemoryTable)
-      .where(eq(v2MemoryTable.conversationId, conversationId))
+      .where(and(eq(v2MemoryTable.conversationId, conversationId), isNull(v2MemoryTable.deletedAt)))
       .orderBy(desc(v2MemoryTable.createdAt))
       .limit(limit)
   ).map((row) => row.content);

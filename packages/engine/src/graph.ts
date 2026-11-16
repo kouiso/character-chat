@@ -46,6 +46,7 @@ import type {
   BaseChatModelCallOptions,
 } from "@langchain/core/language_models/chat_models";
 import type { AIMessageChunk } from "@langchain/core/messages";
+import { appendForgottenInstruction } from "@v2/prompt";
 import type { StoredSummary, SummaryStore } from "@v2/db";
 import type { ScenePhase } from "@v2/prompt";
 
@@ -546,10 +547,15 @@ const SUMMARIZE_LEVEL2_INSTRUCTION =
   "これは会話の部分要約の集まり。全体の流れが分かる一段上の要約にまとめ直せ。書かれとらん事実や推測は足すな。";
 
 // 画面側へ戻す要約の選び方: 最新の level 2 と、それが届いとらん範囲の level 1 を時系列で。
+// 伏せ直し待ち（redact_pending）は出さん — 消した記憶が残っとる可能性がある（RIT-94）。
 export const visibleSummaries = (list: StoredSummary[]): StoredSummary[] => {
-  const level2Covered = Math.max(0, ...list.filter((s) => s.level === 2).map((s) => s.coveredTo));
-  const latest2 = list.filter((s) => s.level === 2 && s.coveredTo === level2Covered).at(-1);
-  const tail = list.filter((s) => s.level === 1 && s.coveredTo > level2Covered);
+  const visible = list.filter((entry) => !entry.redactPending);
+  const level2Covered = Math.max(
+    0,
+    ...visible.filter((s) => s.level === 2).map((s) => s.coveredTo),
+  );
+  const latest2 = visible.filter((s) => s.level === 2 && s.coveredTo === level2Covered).at(-1);
+  const tail = visible.filter((s) => s.level === 1 && s.coveredTo > level2Covered);
   return [...(latest2 ? [latest2] : []), ...tail];
 };
 
@@ -584,6 +590,7 @@ const rollUpLevel2 = async (
   summaries: StoredSummary[],
   maxLevel1: number,
   state: { timeoutMs?: number | null; activeModelIndex: number },
+  forgotten: string[],
 ): Promise<string> => {
   const level2Covered = Math.max(
     0,
@@ -596,7 +603,7 @@ const rollUpLevel2 = async (
   const previous2 = summaries.filter((entry) => entry.level === 2).at(-1);
   return invokeForSummary(
     modelForTurn(deps, state),
-    SUMMARIZE_LEVEL2_INSTRUCTION,
+    appendForgottenInstruction(SUMMARIZE_LEVEL2_INSTRUCTION, forgotten),
     [...(previous2 ? [previous2.text] : []), ...uncovered.map((entry) => entry.text)].join("\n"),
     state,
   );
@@ -1009,9 +1016,12 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
               `${message.role === "user" ? "相手" : state.character.name}: ${message.content}`,
           )
           .join("\n");
+        // 消した記憶は新しい要約にも書き戻さん（RIT-94）。墓標の本文を「書かない事柄」
+        // として指示に足す（要約を作る指示へのみ。返事の指示文には足さん）。
+        const forgotten = await deps.summaryStore.listForgotten(state.conversationId);
         const level1 = await invokeForSummary(
           modelForTurn(deps, state),
-          SUMMARIZE_LEVEL1_INSTRUCTION,
+          appendForgottenInstruction(SUMMARIZE_LEVEL1_INSTRUCTION, forgotten),
           body,
           state,
         );
@@ -1023,7 +1033,7 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
           text: level1,
         });
         const after = await deps.summaryStore.list(state.conversationId);
-        const level2Text = await rollUpLevel2(deps, after, maxLevel1, state);
+        const level2Text = await rollUpLevel2(deps, after, maxLevel1, state, forgotten);
         if (level2Text.length === 0) return {};
         const level2Covered = Math.max(
           0,

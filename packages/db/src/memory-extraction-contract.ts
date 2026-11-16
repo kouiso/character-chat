@@ -23,7 +23,15 @@ export const memoryExtractionSchema = z
   .object({ memories: z.array(extractedMemorySchema).max(MEMORY_EXTRACTION_LIMIT) })
   .strict();
 
-export const memoryQueueBodySchema = z.object({ jobId: z.string().uuid() }).strict();
+// 伏せ直しの仕事（RIT-94）。本文は Queue の体に入れん（NFR-2）— 受け手が D1 の墓標から読む。
+export const summaryRedactBodySchema = z
+  .object({ type: z.literal("summary_redact"), conversationId: z.string().min(1).max(120) })
+  .strict();
+
+export const memoryQueueBodySchema = z.union([
+  z.object({ jobId: z.string().uuid() }).strict(),
+  summaryRedactBodySchema,
+]);
 
 export type ExtractedMemory = z.infer<typeof extractedMemorySchema>;
 export type MemoryQueueBody = z.infer<typeof memoryQueueBodySchema>;
