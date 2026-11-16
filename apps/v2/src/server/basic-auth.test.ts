@@ -94,9 +94,17 @@ describe("Workers 入口の BASIC 認証", () => {
         },
       }),
     );
-    expect(response.headers.get("cache-control")).toBe("private, no-store");
+    // 宣言済みの方針は残し、共有キャッシュへ載る public だけ私用へ倒す。
+    expect(response.headers.get("cache-control")).toBe("private,max-age=3600");
     expect(response.headers.get("vary")).toBe("Accept, Authorization");
     expect(response.headers.get("content-type")).toBe("text/event-stream");
     expect(await response.text()).toBe("data: hello\n\n");
+  });
+
+  it("方針を宣言しとらん応答だけ no-store にする", async () => {
+    const response = preventSharedCaching(new Response("{}", { headers: {} }));
+    expect(response.headers.get("cache-control")).toBe("private, no-store");
+    expect(response.headers.get("pragma")).toBe("no-cache");
+    expect(response.headers.get("vary")).toBe("Authorization");
   });
 });

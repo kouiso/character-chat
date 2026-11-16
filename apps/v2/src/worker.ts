@@ -12,6 +12,16 @@ export type WorkerEntryEnv = BasicAuthConfig & {
   V2_CF_ACCESS?: string;
 };
 
+// vite が内容ハッシュ付きで吐く /assets/* はURLごと不変なので長期キャッシュさせる。
+const HASHED_ASSET_PATH = /^\/assets\/.+/;
+const IMMUTABLE_ASSET_CACHE = "private, max-age=31536000, immutable";
+
+const markImmutableAsset = (response: Response): Response => {
+  const marked = new Response(response.body, response);
+  marked.headers.set("cache-control", IMMUTABLE_ASSET_CACHE);
+  return marked;
+};
+
 const fetchEntry = async (request: Request, env: WorkerEntryEnv): Promise<Response> => {
   // Cloudflare Access が入口で認証済みの環境では Basic 認証は二重になり無用なので外す。
   if (env.V2_CF_ACCESS !== "1") {
@@ -21,7 +31,10 @@ const fetchEntry = async (request: Request, env: WorkerEntryEnv): Promise<Respon
   try {
     if (request.method === "GET" || request.method === "HEAD") {
       const asset = await env.ASSETS.fetch(request);
-      if (asset.status !== 404) return preventSharedCaching(asset);
+      if (asset.status !== 404) {
+        const hashed = HASHED_ASSET_PATH.test(new URL(request.url).pathname);
+        return preventSharedCaching(hashed ? markImmutableAsset(asset) : asset);
+      }
     }
     return preventSharedCaching(await handler.fetch(request));
   } catch (error) {
