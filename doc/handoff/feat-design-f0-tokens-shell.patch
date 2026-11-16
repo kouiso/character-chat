@@ -1,0 +1,819 @@
+From 0306ec76ee53df465eee1eefd9c330ecc39fb9d3 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Sat, 14 Nov 2026 14:03:15 +0000
+Subject: [PATCH] feat(v2): design tokens from Kit and 5-tab app shell (design
+ F0)
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Move the Kit/Sizes values into one token file (design-token.css), map the
+existing CSS variables onto it, and add the bottom tab bar
+ホーム/出会う/つくる/アルバム/マイ with safe-area handling. アルバム and マイ are
+placeholder routes so the tabs have a target; no existing route is removed.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01Cv4a6DRnNXdGwnDbUv9bT3
+---
+ apps/v2/src/component/app-tab-bar.css      |  60 +++++++++++
+ apps/v2/src/component/app-tab-bar.test.tsx |  89 +++++++++++++++
+ apps/v2/src/component/app-tab-bar.tsx      | 119 +++++++++++++++++++++
+ apps/v2/src/design-token.css               | 115 ++++++++++++++++++++
+ apps/v2/src/existing-routes.test.tsx       |  86 +++++++++++++++
+ apps/v2/src/routeTree.gen.ts               |  42 ++++++++
+ apps/v2/src/routes/__root.tsx              |  14 ++-
+ apps/v2/src/routes/album.tsx               |  10 ++
+ apps/v2/src/routes/my.tsx                  |  10 ++
+ apps/v2/src/style.css                      |  14 +--
+ 10 files changed, 551 insertions(+), 8 deletions(-)
+ create mode 100644 apps/v2/src/component/app-tab-bar.css
+ create mode 100644 apps/v2/src/component/app-tab-bar.test.tsx
+ create mode 100644 apps/v2/src/component/app-tab-bar.tsx
+ create mode 100644 apps/v2/src/design-token.css
+ create mode 100644 apps/v2/src/existing-routes.test.tsx
+ create mode 100644 apps/v2/src/routes/album.tsx
+ create mode 100644 apps/v2/src/routes/my.tsx
+
+diff --git a/apps/v2/src/component/app-tab-bar.css b/apps/v2/src/component/app-tab-bar.css
+new file mode 100644
+index 0000000..158cd63
+--- /dev/null
++++ b/apps/v2/src/component/app-tab-bar.css
+@@ -0,0 +1,60 @@
++.v2-tabbar {
++  position: fixed;
++  left: 0;
++  right: 0;
++  bottom: 0;
++  z-index: 40;
++  display: flex;
++  height: var(--tab-bar-total);
++  padding: 0 8px var(--safe-bottom);
++  background: var(--color-bar);
++  box-shadow: var(--edge-top);
++  font-family: var(--font-body);
++}
++
++.v2-tabbar-item {
++  flex: 1;
++  min-width: 0;
++  height: var(--tab-bar-height);
++  display: flex;
++  flex-direction: column;
++  align-items: center;
++  justify-content: center;
++  gap: 4px;
++  text-decoration: none;
++  color: var(--color-text-sub);
++  font-size: var(--text-tab-size);
++  line-height: var(--text-tab-line);
++  font-weight: 500;
++  letter-spacing: var(--text-tracking-strong);
++}
++
++.v2-tabbar-item[aria-current="page"] {
++  color: var(--color-peach);
++  font-weight: 700;
++}
++
++.v2-tabbar-pill {
++  width: var(--tab-pill-width);
++  height: var(--tab-pill-height);
++  border-radius: var(--radius-pill);
++  display: flex;
++  align-items: center;
++  justify-content: center;
++}
++
++.v2-tabbar-item[aria-current="page"] .v2-tabbar-pill {
++  background: var(--color-tab-active);
++}
++
++.v2-tabbar-pill svg {
++  width: var(--tab-icon-size);
++  height: var(--tab-icon-size);
++  flex: none;
++  display: block;
++}
++
++/* 固定の下帯に本文が潜らんよう、帯のある画面だけ下を空ける */
++body:has(.v2-tabbar) #root {
++  padding-bottom: var(--tab-bar-total);
++}
+diff --git a/apps/v2/src/component/app-tab-bar.test.tsx b/apps/v2/src/component/app-tab-bar.test.tsx
+new file mode 100644
+index 0000000..d14df2d
+--- /dev/null
++++ b/apps/v2/src/component/app-tab-bar.test.tsx
+@@ -0,0 +1,89 @@
++import {
++  createMemoryHistory,
++  createRootRoute,
++  createRoute,
++  createRouter,
++  Outlet,
++  RouterProvider,
++} from "@tanstack/react-router";
++import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
++import { afterEach, describe, expect, it } from "vitest";
++
++import { AppTabBar, TABS } from "./app-tab-bar";
++
++import type { AnyRootRoute } from "@tanstack/react-router";
++
++const EXPECTED_LABELS = ["ホーム", "出会う", "つくる", "アルバム", "マイ"];
++
++const renderShell = async (entry: string) => {
++  const root = createRootRoute({
++    component: () => (
++      <>
++        <div id="root">
++          <Outlet />
++        </div>
++        <AppTabBar />
++      </>
++    ),
++  });
++  const paths = ["/", "/catalog", "/characters/new", "/album", "/my", "/chat/$id", "/groups/$id"];
++  const children = paths.map((path) =>
++    createRoute({
++      getParentRoute: (): AnyRootRoute => root,
++      path,
++      component: () => <p data-testid="page">{path}</p>,
++    }),
++  );
++  const router = createRouter({
++    routeTree: root.addChildren(children),
++    history: createMemoryHistory({ initialEntries: [entry] }),
++  });
++  render(<RouterProvider router={router} />);
++  await waitFor(() => expect(screen.getByTestId("page")).toBeInTheDocument());
++  return router;
++};
++
++afterEach(cleanup);
++
++describe("AppTabBar", () => {
++  it("5 タブを見本どおりのラベルと順で出す", async () => {
++    await renderShell("/");
++    const nav = screen.getByRole("navigation", { name: "メイン" });
++    const labels = within(nav)
++      .getAllByRole("link")
++      .map((link) => link.textContent);
++    expect(labels).toEqual(EXPECTED_LABELS);
++    expect(TABS.map((tab) => tab.label)).toEqual(EXPECTED_LABELS);
++  });
++
++  it("各タブが対応する画面へ移る", async () => {
++    const router = await renderShell("/");
++    const expected: Record<string, string> = {
++      ホーム: "/",
++      出会う: "/catalog",
++      つくる: "/characters/new",
++      アルバム: "/album",
++      マイ: "/my",
++    };
++    for (const [label, path] of Object.entries(expected).reverse()) {
++      fireEvent.click(screen.getByRole("link", { name: label }));
++      await waitFor(() => expect(router.state.location.pathname).toBe(path));
++      await waitFor(() =>
++        expect(screen.getByRole("link", { name: label })).toHaveAttribute("aria-current", "page"),
++      );
++    }
++  });
++
++  it("開いている画面のタブだけ aria-current を持つ", async () => {
++    await renderShell("/catalog");
++    const current = screen
++      .getAllByRole("link")
++      .filter((link) => link.getAttribute("aria-current") === "page");
++    expect(current.map((link) => link.textContent)).toEqual(["出会う"]);
++  });
++
++  it("会話画面では帯を出さない（Talk ボードに帯は無い）", async () => {
++    await renderShell("/chat/abc");
++    expect(screen.queryByRole("navigation", { name: "メイン" })).toBeNull();
++  });
++});
+diff --git a/apps/v2/src/component/app-tab-bar.tsx b/apps/v2/src/component/app-tab-bar.tsx
+new file mode 100644
+index 0000000..221edb2
+--- /dev/null
++++ b/apps/v2/src/component/app-tab-bar.tsx
+@@ -0,0 +1,119 @@
++import { Link, useRouterState } from "@tanstack/react-router";
++
++import "./app-tab-bar.css";
++
++type TabIconProps = { children: React.ReactNode };
++
++// アイコンは Kit/Main の下タブの線画（24 グリッド・線幅 1.75）をそのまま写している
++const TabIcon = ({ children }: TabIconProps) => (
++  <svg
++    viewBox="0 0 24 24"
++    fill="none"
++    stroke="currentColor"
++    strokeWidth="1.75"
++    strokeLinecap="round"
++    strokeLinejoin="round"
++    aria-hidden="true"
++  >
++    {children}
++  </svg>
++);
++
++type TabDef = {
++  label: string;
++  to: "/" | "/catalog" | "/characters/new" | "/album" | "/my";
++  // 帯を出さん画面から戻ってきた時も、同じ系統の画面なら該当タブを点ける
++  owns: (path: string) => boolean;
++  icon: React.ReactNode;
++};
++
++const startsWithSegment = (path: string, base: string) =>
++  path === base || path.startsWith(`${base}/`);
++
++export const TABS: readonly TabDef[] = [
++  {
++    label: "ホーム",
++    to: "/",
++    owns: (path) => path === "/",
++    icon: (
++      <TabIcon>
++        <path d="M4 11l8-7 8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1v-8z" />
++      </TabIcon>
++    ),
++  },
++  {
++    label: "出会う",
++    to: "/catalog",
++    owns: (path) => startsWithSegment(path, "/catalog"),
++    icon: (
++      <TabIcon>
++        <circle cx="12" cy="12" r="8.5" />
++        <path d="M15.5 8.5l-2 5-5 2 2-5 5-2z" />
++      </TabIcon>
++    ),
++  },
++  {
++    label: "つくる",
++    to: "/characters/new",
++    owns: (path) =>
++      ["/characters", "/create", "/stories", "/clips"].some((base) =>
++        startsWithSegment(path, base),
++      ),
++    icon: (
++      <TabIcon>
++        <path d="M4 20l1-4L16 5l3 3L8 19l-4 1z" />
++        <path d="M14 7l3 3" />
++      </TabIcon>
++    ),
++  },
++  {
++    label: "アルバム",
++    to: "/album",
++    owns: (path) => startsWithSegment(path, "/album"),
++    icon: (
++      <TabIcon>
++        <rect x="3.5" y="7" width="14" height="12" rx="2.5" />
++        <path d="M7 7V5.5A1.5 1.5 0 0 1 8.5 4H19a1.5 1.5 0 0 1 1.5 1.5V14a1.5 1.5 0 0 1-1.5 1.5h-1.5" />
++        <path d="M4.5 16.5l3.5-3.5 3 3 2-2 4 4" />
++      </TabIcon>
++    ),
++  },
++  {
++    label: "マイ",
++    to: "/my",
++    owns: (path) => startsWithSegment(path, "/my"),
++    icon: (
++      <TabIcon>
++        <circle cx="12" cy="8.5" r="3.5" />
++        <path d="M5 20a7 7 0 0 1 14 0" />
++      </TabIcon>
++    ),
++  },
++];
++
++// Talk（会話・グループ会話）とリーダーは絵と入力欄が画面いっぱいなので、ボードどおり帯を出さない
++const isImmersive = (path: string) =>
++  startsWithSegment(path, "/chat") ||
++  /^\/groups\/[^/]+/.test(path) ||
++  /^\/stories\/[^/]+\/read/.test(path);
++
++export const AppTabBar = () => {
++  const path = useRouterState({ select: (state) => state.location.pathname });
++  if (isImmersive(path)) return null;
++
++  return (
++    <nav className="v2-tabbar" aria-label="メイン">
++      {TABS.map((tab) => (
++        <Link
++          key={tab.to}
++          to={tab.to}
++          className="v2-tabbar-item"
++          aria-current={tab.owns(path) ? "page" : undefined}
++        >
++          <span className="v2-tabbar-pill">{tab.icon}</span>
++          <span>{tab.label}</span>
++        </Link>
++      ))}
++    </nav>
++  );
++};
+diff --git a/apps/v2/src/design-token.css b/apps/v2/src/design-token.css
+new file mode 100644
+index 0000000..3db6adf
+--- /dev/null
++++ b/apps/v2/src/design-token.css
+@@ -0,0 +1,115 @@
++/*
++ * デザイン見本帳（Kit.dc.html・Sizes.dc.html、案D「隣」）の値を移した唯一のトークン源。
++ * 画面の色・面・文字・角丸・影・安全域はここの変数だけを参照し、直書きの色を足さない。
++ */
++:root {
++  /* 文字 */
++  --color-text: #fbf6f1;
++  --color-text-sub: #dcd3ce;
++  --color-peach: #ffc9ac;
++  --color-on-peach: #1a0b08;
++  --color-danger: #ffa69a;
++  /* 灯は居る印の点だけ。文字には使わない */
++  --color-lamp: #f5d58c;
++
++  /* 地 */
++  --color-ground-top: #0e1425;
++  --color-ground-mid: #10162a;
++  --color-ground-low: #191826;
++  --color-ground-bottom: #231b20;
++  --color-ground-flat: #10162a;
++  --color-ground-dusk: #131729;
++  --color-ground-dusk-low: #1b1925;
++
++  /* 面の階層 */
++  --color-surface-from: #212941;
++  --color-surface-to: #1d253b;
++  --color-press-from: #262e49;
++  --color-press-to: #212943;
++  --color-own-from: #3c2428;
++  --color-own-to: #352024;
++  --color-plate: #0f1528;
++  --color-bar: #1c171f;
++  --color-well: #0b0f1a;
++  --color-well-border: #8c8497;
++  --color-tab-active: #3a292d;
++  --color-peach-from: #ffcdb2;
++  --color-peach-to: #ffc4a4;
++
++  --gradient-ground: linear-gradient(
++    180deg,
++    var(--color-ground-top) 0%,
++    var(--color-ground-mid) 46%,
++    var(--color-ground-low) 78%,
++    var(--color-ground-bottom) 100%
++  );
++  --gradient-sheet: linear-gradient(
++    180deg,
++    var(--color-ground-mid) 0%,
++    var(--color-ground-dusk) 40%,
++    var(--color-ground-dusk-low) 74%,
++    var(--color-ground-bottom) 100%
++  );
++  --gradient-surface: linear-gradient(
++    180deg,
++    var(--color-surface-from) 0%,
++    var(--color-surface-to) 100%
++  );
++  --gradient-press: linear-gradient(180deg, var(--color-press-from) 0%, var(--color-press-to) 100%);
++  --gradient-own: linear-gradient(180deg, var(--color-own-from) 0%, var(--color-own-to) 100%);
++  --gradient-peach: linear-gradient(180deg, var(--color-peach-from) 0%, var(--color-peach-to) 100%);
++
++  /* 影と縁 */
++  --edge-top: inset 0 1px 0 rgba(255, 255, 255, 0.08);
++  --edge-top-surface: inset 0 1px 0 rgba(255, 255, 255, 0.07);
++  --edge-top-press: inset 0 1px 0 rgba(255, 255, 255, 0.1);
++  --edge-ring: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
++  --shadow-press: var(--edge-top-press), 0 4px 12px rgba(4, 6, 14, 0.28);
++  --shadow-surface: var(--edge-top-surface), 0 6px 16px rgba(4, 6, 14, 0.3);
++  --shadow-plate: var(--edge-ring), 0 6px 16px rgba(4, 6, 14, 0.4);
++  --shadow-peach:
++    inset 0 1px 0 rgba(255, 255, 255, 0.55), 0 10px 28px rgba(255, 150, 100, 0.3),
++    0 2px 6px rgba(255, 150, 100, 0.22);
++  --shadow-sheet: var(--edge-top-press), 0 -12px 32px rgba(4, 6, 14, 0.55);
++
++  /* 角丸 */
++  --radius-pill: 999px;
++  --radius-card: 20px;
++  --radius-control: 12px;
++  --radius-tail: 8px;
++  --radius-bubble-other: 20px 20px 20px 8px;
++  --radius-bubble-own: 20px 20px 8px 20px;
++  --radius-sheet: 28px 28px 0 0;
++
++  /* 文字 */
++  --font-body:
++    "Zen Kaku Gothic New", -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic",
++    sans-serif;
++  --font-display: "Zen Maru Gothic", var(--font-body);
++  --text-tracking: 0.02em;
++  --text-tracking-strong: 0.04em;
++  --text-tracking-title: 0.06em;
++  --text-screen-title-size: 22px;
++  --text-screen-title-line: 30px;
++  --text-title-size: 16px;
++  --text-title-line: 24px;
++  --text-body-size: 16px;
++  --text-body-line: 28px;
++  --text-row-size: 15px;
++  --text-row-line: 20px;
++  --text-note-size: 13px;
++  --text-note-line: 20px;
++  --text-tab-size: 12px;
++  --text-tab-line: 16px;
++
++  /* 寸法。Sizes: 360x740 は上24・下16、430x932 は上59・下34 */
++  --space-gutter: 20px;
++  --space-edge: 16px;
++  --tab-bar-height: 64px;
++  --tab-pill-width: 48px;
++  --tab-pill-height: 28px;
++  --tab-icon-size: 22px;
++  --safe-top: env(safe-area-inset-top, 0px);
++  --safe-bottom: env(safe-area-inset-bottom, 0px);
++  --tab-bar-total: calc(var(--tab-bar-height) + var(--safe-bottom));
++}
+diff --git a/apps/v2/src/existing-routes.test.tsx b/apps/v2/src/existing-routes.test.tsx
+new file mode 100644
+index 0000000..fdb3c1c
+--- /dev/null
++++ b/apps/v2/src/existing-routes.test.tsx
+@@ -0,0 +1,86 @@
++import { readFileSync } from "node:fs";
++import { resolve } from "node:path";
++
++import {
++  createMemoryHistory,
++  createRootRoute,
++  createRoute,
++  createRouter,
++  Outlet,
++  RouterProvider,
++} from "@tanstack/react-router";
++import { cleanup, render, screen, waitFor } from "@testing-library/react";
++import { afterEach, describe, expect, it, vi } from "vitest";
++
++import { AppTabBar } from "./component/app-tab-bar";
++import { Route as ListRoute } from "./routes/index";
++
++import type { AnyRootRoute } from "@tanstack/react-router";
++
++vi.mock("./server/characters", () => ({
++  listCharacters: async () => [{ id: "synthetic-character", name: "合成の一覧項目", avatar: null }],
++  listSavedConversations: async () => [],
++}));
++
++// 下タブを足しても、既存の URL を一つも消していないことを固定する。
++// routeTree.gen.ts を import すると server 側（cloudflare:workers）まで引くので本文で見る。
++const MUST_STAY = [
++  "/",
++  "/chat/$id",
++  "/characters/new",
++  "/characters/$id",
++  "/catalog",
++  "/clips",
++  "/create",
++  "/stories",
++  "/stories/$id",
++  "/stories/$id/read",
++  "/groups",
++  "/groups/$id",
++  "/board",
++  "/revenue",
++  "/album",
++  "/my",
++];
++
++afterEach(cleanup);
++
++describe("既存ルートの維持", () => {
++  it("既存の全ルートと新しいタブ先が routeTree に登録されたまま", () => {
++    const tree = readFileSync(resolve(__dirname, "routeTree.gen.ts"), "utf8");
++    const registered = new Set(
++      [...tree.matchAll(/^\s+fullPath: '([^']+)'/gm)].map((match) =>
++        match[1].length > 1 ? match[1].replace(/\/$/, "") : match[1],
++      ),
++    );
++    for (const path of MUST_STAY) {
++      expect(registered.has(path), `${path} が routeTree に無い`).toBe(true);
++    }
++  });
++
++  it("ホームの一覧は帯つきでも従来どおり描画される", async () => {
++    const root = createRootRoute({
++      component: () => (
++        <>
++          <div id="root">
++            <Outlet />
++          </div>
++          <AppTabBar />
++        </>
++      ),
++    });
++    const home = createRoute({
++      getParentRoute: (): AnyRootRoute => root,
++      path: "/",
++      loader: ListRoute.options.loader,
++      component: ListRoute.options.component,
++    });
++    const router = createRouter({
++      routeTree: root.addChildren([home]),
++      history: createMemoryHistory({ initialEntries: ["/"] }),
++    });
++    render(<RouterProvider router={router} />);
++    await waitFor(() => expect(screen.getByText("合成の一覧項目")).toBeInTheDocument());
++    expect(screen.getByRole("navigation", { name: "メイン" })).toBeInTheDocument();
++  });
++});
+diff --git a/apps/v2/src/routeTree.gen.ts b/apps/v2/src/routeTree.gen.ts
+index eed5c1d..f062560 100644
+--- a/apps/v2/src/routeTree.gen.ts
++++ b/apps/v2/src/routeTree.gen.ts
+@@ -10,10 +10,12 @@
+ 
+ import { Route as rootRouteImport } from './routes/__root'
+ import { Route as IndexRouteImport } from './routes/index'
++import { Route as AlbumRouteImport } from './routes/album'
+ import { Route as BoardRouteImport } from './routes/board'
+ import { Route as CatalogRouteImport } from './routes/catalog'
+ import { Route as ClipsRouteImport } from './routes/clips'
+ import { Route as CreateRouteImport } from './routes/create'
++import { Route as MyRouteImport } from './routes/my'
+ import { Route as RevenueRouteImport } from './routes/revenue'
+ import { Route as ApiBoardRouteImport } from './routes/api/board'
+ import { Route as ApiCatalogRouteImport } from './routes/api/catalog'
+@@ -94,6 +96,11 @@ const IndexRoute = IndexRouteImport.update({
+   path: '/',
+   getParentRoute: () => rootRouteImport,
+ })
++const AlbumRoute = AlbumRouteImport.update({
++  id: '/album',
++  path: '/album',
++  getParentRoute: () => rootRouteImport,
++})
+ const BoardRoute = BoardRouteImport.update({
+   id: '/board',
+   path: '/board',
+@@ -114,6 +121,11 @@ const CreateRoute = CreateRouteImport.update({
+   path: '/create',
+   getParentRoute: () => rootRouteImport,
+ })
++const MyRoute = MyRouteImport.update({
++  id: '/my',
++  path: '/my',
++  getParentRoute: () => rootRouteImport,
++})
+ const RevenueRoute = RevenueRouteImport.update({
+   id: '/revenue',
+   path: '/revenue',
+@@ -495,10 +507,12 @@ const ApiStoriesIdChaptersCidVideoRoute =
+ 
+ export interface FileRoutesByFullPath {
+   '/': typeof IndexRoute
++  '/album': typeof AlbumRoute
+   '/board': typeof BoardRoute
+   '/catalog': typeof CatalogRoute
+   '/clips': typeof ClipsRoute
+   '/create': typeof CreateRoute
++  '/my': typeof MyRoute
+   '/revenue': typeof RevenueRoute
+   '/api/board': typeof ApiBoardRouteWithChildren
+   '/api/catalog': typeof ApiCatalogRouteWithChildren
+@@ -576,10 +590,12 @@ export interface FileRoutesByFullPath {
+ }
+ export interface FileRoutesByTo {
+   '/': typeof IndexRoute
++  '/album': typeof AlbumRoute
+   '/board': typeof BoardRoute
+   '/catalog': typeof CatalogRoute
+   '/clips': typeof ClipsRoute
+   '/create': typeof CreateRoute
++  '/my': typeof MyRoute
+   '/revenue': typeof RevenueRoute
+   '/api/board': typeof ApiBoardRouteWithChildren
+   '/api/catalog': typeof ApiCatalogRouteWithChildren
+@@ -658,10 +674,12 @@ export interface FileRoutesByTo {
+ export interface FileRoutesById {
+   __root__: typeof rootRouteImport
+   '/': typeof IndexRoute
++  '/album': typeof AlbumRoute
+   '/board': typeof BoardRoute
+   '/catalog': typeof CatalogRoute
+   '/clips': typeof ClipsRoute
+   '/create': typeof CreateRoute
++  '/my': typeof MyRoute
+   '/revenue': typeof RevenueRoute
+   '/api/board': typeof ApiBoardRouteWithChildren
+   '/api/catalog': typeof ApiCatalogRouteWithChildren
+@@ -741,10 +759,12 @@ export interface FileRouteTypes {
+   fileRoutesByFullPath: FileRoutesByFullPath
+   fullPaths:
+     | '/'
++    | '/album'
+     | '/board'
+     | '/catalog'
+     | '/clips'
+     | '/create'
++    | '/my'
+     | '/revenue'
+     | '/api/board'
+     | '/api/catalog'
+@@ -822,10 +842,12 @@ export interface FileRouteTypes {
+   fileRoutesByTo: FileRoutesByTo
+   to:
+     | '/'
++    | '/album'
+     | '/board'
+     | '/catalog'
+     | '/clips'
+     | '/create'
++    | '/my'
+     | '/revenue'
+     | '/api/board'
+     | '/api/catalog'
+@@ -903,10 +925,12 @@ export interface FileRouteTypes {
+   id:
+     | '__root__'
+     | '/'
++    | '/album'
+     | '/board'
+     | '/catalog'
+     | '/clips'
+     | '/create'
++    | '/my'
+     | '/revenue'
+     | '/api/board'
+     | '/api/catalog'
+@@ -985,10 +1009,12 @@ export interface FileRouteTypes {
+ }
+ export interface RootRouteChildren {
+   IndexRoute: typeof IndexRoute
++  AlbumRoute: typeof AlbumRoute
+   BoardRoute: typeof BoardRoute
+   CatalogRoute: typeof CatalogRoute
+   ClipsRoute: typeof ClipsRoute
+   CreateRoute: typeof CreateRoute
++  MyRoute: typeof MyRoute
+   RevenueRoute: typeof RevenueRoute
+   ApiBoardRoute: typeof ApiBoardRouteWithChildren
+   ApiCatalogRoute: typeof ApiCatalogRouteWithChildren
+@@ -1041,6 +1067,13 @@ declare module '@tanstack/react-router' {
+       preLoaderRoute: typeof IndexRouteImport
+       parentRoute: typeof rootRouteImport
+     }
++    '/album': {
++      id: '/album'
++      path: '/album'
++      fullPath: '/album'
++      preLoaderRoute: typeof AlbumRouteImport
++      parentRoute: typeof rootRouteImport
++    }
+     '/board': {
+       id: '/board'
+       path: '/board'
+@@ -1069,6 +1102,13 @@ declare module '@tanstack/react-router' {
+       preLoaderRoute: typeof CreateRouteImport
+       parentRoute: typeof rootRouteImport
+     }
++    '/my': {
++      id: '/my'
++      path: '/my'
++      fullPath: '/my'
++      preLoaderRoute: typeof MyRouteImport
++      parentRoute: typeof rootRouteImport
++    }
+     '/revenue': {
+       id: '/revenue'
+       path: '/revenue'
+@@ -1790,10 +1830,12 @@ const StoriesIdRouteWithChildren = StoriesIdRoute._addFileChildren(
+ 
+ const rootRouteChildren: RootRouteChildren = {
+   IndexRoute: IndexRoute,
++  AlbumRoute: AlbumRoute,
+   BoardRoute: BoardRoute,
+   CatalogRoute: CatalogRoute,
+   ClipsRoute: ClipsRoute,
+   CreateRoute: CreateRoute,
++  MyRoute: MyRoute,
+   RevenueRoute: RevenueRoute,
+   ApiBoardRoute: ApiBoardRouteWithChildren,
+   ApiCatalogRoute: ApiCatalogRouteWithChildren,
+diff --git a/apps/v2/src/routes/__root.tsx b/apps/v2/src/routes/__root.tsx
+index e634f5a..7827805 100644
+--- a/apps/v2/src/routes/__root.tsx
++++ b/apps/v2/src/routes/__root.tsx
+@@ -1,7 +1,9 @@
+ import { createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
+ 
+ import { AppErrorState, AppLoadingState, AppNotFoundState } from "../component/app-route-state";
++import { AppTabBar } from "../component/app-tab-bar";
+ import appCss from "../style.css?url";
++import tokenCss from "../design-token.css?url";
+ 
+ const RootDocument = ({ children }: { children: React.ReactNode }) => (
+   <html lang="ja">
+@@ -10,6 +12,7 @@ const RootDocument = ({ children }: { children: React.ReactNode }) => (
+     </head>
+     <body>
+       <div id="root">{children}</div>
++      <AppTabBar />
+       <Scripts />
+     </body>
+   </html>
+@@ -22,13 +25,20 @@ export const Route = createRootRoute({
+   head: () => ({
+     meta: [
+       { charSet: "utf-8" },
+-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+-      { name: "theme-color", content: "#09090b" },
++      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
++      { name: "theme-color", content: "#10162a" },
+       { name: "apple-mobile-web-app-capable", content: "yes" },
+       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+       { title: "adult-ai v2" },
+     ],
+     links: [
++      { rel: "preconnect", href: "https://fonts.googleapis.com" },
++      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
++      {
++        rel: "stylesheet",
++        href: "https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700&family=Zen+Maru+Gothic:wght@900&display=swap",
++      },
++      { rel: "stylesheet", href: tokenCss },
+       { rel: "stylesheet", href: appCss },
+       { rel: "manifest", href: "/manifest.webmanifest" },
+       { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
+diff --git a/apps/v2/src/routes/album.tsx b/apps/v2/src/routes/album.tsx
+new file mode 100644
+index 0000000..472eba5
+--- /dev/null
++++ b/apps/v2/src/routes/album.tsx
+@@ -0,0 +1,10 @@
++import { createFileRoute } from "@tanstack/react-router";
++
++// 下タブ「アルバム」の行き先。画面本体（Album ボード）は別単位で作る
++const AlbumPage = () => (
++  <main className="v2-list">
++    <h1>アルバム</h1>
++  </main>
++);
++
++export const Route = createFileRoute("/album")({ component: AlbumPage });
+diff --git a/apps/v2/src/routes/my.tsx b/apps/v2/src/routes/my.tsx
+new file mode 100644
+index 0000000..92e0b08
+--- /dev/null
++++ b/apps/v2/src/routes/my.tsx
+@@ -0,0 +1,10 @@
++import { createFileRoute } from "@tanstack/react-router";
++
++// 下タブ「マイ」の行き先。画面本体（My ボード）は別単位で作る
++const MyPage = () => (
++  <main className="v2-list">
++    <h1>マイ</h1>
++  </main>
++);
++
++export const Route = createFileRoute("/my")({ component: MyPage });
+diff --git a/apps/v2/src/style.css b/apps/v2/src/style.css
+index 15bce47..9a7eb8d 100644
+--- a/apps/v2/src/style.css
++++ b/apps/v2/src/style.css
+@@ -1,10 +1,10 @@
+ :root {
+   color-scheme: dark;
+-  --bg: #0f0f14;
+-  --panel: #1a1a22;
+-  --text: #f0f0f5;
+-  --muted: #9494a6;
+-  --accent: #ff5f8f;
++  --bg: var(--color-ground-flat);
++  --panel: var(--color-surface-to);
++  --text: var(--color-text);
++  --muted: var(--color-text-sub);
++  --accent: var(--color-peach);
+ }
+ 
+ * {
+@@ -21,7 +21,9 @@ body {
+   margin: 0;
+   background: var(--bg);
+   color: var(--text);
+-  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
++  font-family: var(--font-body);
++  letter-spacing: var(--text-tracking);
++  padding-top: var(--safe-top);
+ }
+ 
+ .v2-group-messages {
+-- 
+2.43.0
+

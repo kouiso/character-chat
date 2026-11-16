@@ -1,0 +1,125 @@
+From fd5e10138d3fa8b5f4337d346ff74aba519d3ee9 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Sat, 14 Nov 2026 12:55:25 +0000
+Subject: [PATCH] fix(v2): cap story select width on narrow screens (#178)
+
+The character select inherited the width of its longest option, pushing the
+title input and submit button off-screen (page scrollWidth 954px at 375px).
+Let the select shrink (flex 0 1 12rem, min-width 0) and the input shrink too.
+Add a real-browser check at 375/390/320px and 1280px.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01Cv4a6DRnNXdGwnDbUv9bT3
+---
+ apps/v2/src/style.css                 |  8 ++++
+ apps/v2/test/README.md                |  8 ++++
+ apps/v2/test/story-create.browser.mjs | 60 +++++++++++++++++++++++++++
+ 3 files changed, 76 insertions(+)
+ create mode 100644 apps/v2/test/story-create.browser.mjs
+
+diff --git a/apps/v2/src/style.css b/apps/v2/src/style.css
+index 15bce47..d9c1a86 100644
+--- a/apps/v2/src/style.css
++++ b/apps/v2/src/style.css
+@@ -771,8 +771,16 @@ body {
+   gap: 0.4rem;
+   margin: 0.6rem 0;
+ }
++/* select は既定で最長の option 幅になり、狭い画面で題と作成ボタンを画面外へ押し出す。
++   flex 子の min-width:auto を 0 にして縮められるようにする */
++.v2-story-create select {
++  flex: 0 1 12rem;
++  min-width: 0;
++  max-width: 100%;
++}
+ .v2-story-create input {
+   flex: 1;
++  min-width: 0;
+ }
+ .v2-story-meta {
+   font-size: 0.78rem;
+diff --git a/apps/v2/test/README.md b/apps/v2/test/README.md
+index 11fd16d..08786fe 100644
+--- a/apps/v2/test/README.md
++++ b/apps/v2/test/README.md
+@@ -13,3 +13,11 @@ node apps/v2/test/chat-message.browser.mjs
+ 実物の ChatView と専用 CSS を一時 harness へ読み込み、ブラウザで送信操作を行い、API応答を合成SSEと確定履歴JSONに置換する。PR #27の既存送信復旧経路は保持する。外部 origin は遮断する。専用 context と localhost サーバーを終了時に閉じる。character loader・実DB・SSR全体の通し試験は含まない。
+ 
+ 対象アプリの単体試験・型・Lint・build は `apps/v2` で `pnpm test --maxWorkers=1`、`pnpm typecheck`、`pnpm lint`、`pnpm build` を実行する。pnpm が自動依存確認を始める環境では `--config.verifyDepsBeforeRun=false` を使用する。
++
++#178 ストーリー作成欄の幅は、ローカルで起動した v2（`vite dev`、`V2_FAKE_MODEL=1`、migration と `seed:local` 済み）に最長名のキャラを足して実測する。
++
++```bash
++V2_URL=http://127.0.0.1:3111 V2_USER=... V2_PASS=... V2_LONGEST_CHARACTER_ID=<最長名のキャラ id> node apps/v2/test/story-create.browser.mjs
++```
++
++375 / 390 / 320px でページ幅と 3 部品が画面内に収まること、1280px では横一列のままであることを検査する。Chromium の場所は `CHROMIUM_PATH`、スクリーンショットは `SHOT_PATH`（375px）。
+diff --git a/apps/v2/test/story-create.browser.mjs b/apps/v2/test/story-create.browser.mjs
+new file mode 100644
+index 0000000..b6954d5
+--- /dev/null
++++ b/apps/v2/test/story-create.browser.mjs
+@@ -0,0 +1,60 @@
++// ストーリー作成欄が狭い画面ではみ出さないことを、実ブラウザの実測で確かめる（#178）。
++// 事前に v2 をローカルで起動し、最長名のキャラを含むデータを入れておく（test/README.md）。
++import assert from "node:assert/strict";
++import { createRequire } from "node:module";
++import { fileURLToPath } from "node:url";
++
++const repo = fileURLToPath(new URL("../../../", import.meta.url)).replace(/\/$/, "");
++const { chromium } = createRequire(`${repo}/package.json`)("playwright");
++
++const base = process.env.V2_URL ?? "http://127.0.0.1:3111";
++const httpCredentials = {
++  username: process.env.V2_USER ?? "e2e",
++  password: process.env.V2_PASS ?? "e2e-local-pass",
++};
++const longestId = process.env.V2_LONGEST_CHARACTER_ID ?? "long-name";
++const shot = process.env.SHOT_PATH;
++
++const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH });
++try {
++  for (const width of [375, 390, 320]) {
++    const context = await browser.newContext({
++      viewport: { width, height: 812 },
++      deviceScaleFactor: 2,
++      httpCredentials,
++    });
++    const page = await context.newPage();
++    await page.goto(`${base}/stories`);
++    await page.locator("form.v2-story-create select").selectOption(longestId);
++    if (shot && width === 375) await page.screenshot({ path: shot });
++    const m = await page.evaluate(() => ({
++      scroll: document.documentElement.scrollWidth,
++      rects: [...document.querySelectorAll("form.v2-story-create > *")].map((el) => {
++        const r = el.getBoundingClientRect();
++        return { left: r.left, right: r.right };
++      }),
++    }));
++    assert.equal(m.rects.length, 3, "選択欄・題・作成ボタンの 3 部品");
++    assert.ok(m.scroll <= width, `${width}px: ページ幅 ${m.scroll} が画面幅を超えた`);
++    for (const r of m.rects) {
++      assert.ok(r.left >= 0 && r.right <= width, `${width}px: 部品が画面外 ${r.left}-${r.right}`);
++    }
++    await context.close();
++  }
++
++  const wide = await browser.newContext({
++    viewport: { width: 1280, height: 800 },
++    httpCredentials,
++  });
++  const page = await wide.newPage();
++  await page.goto(`${base}/stories`);
++  const tops = await page.evaluate(() =>
++    [...document.querySelectorAll("form.v2-story-create > *")].map((el) =>
++      Math.round(el.getBoundingClientRect().top),
++    ),
++  );
++  assert.equal(new Set(tops).size, 1, "広い画面では横一列のまま");
++  console.log("story-create layout OK");
++} finally {
++  await browser.close();
++}
+-- 
+2.43.0
+
