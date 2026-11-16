@@ -9,6 +9,8 @@ export const extractedMemorySchema = z
     content: z.string().trim().min(1).max(500),
     // 食い違い判定の主題ラベル（RIT-86）。同じ話題の事実を同じ短い語で名付ける。
     subject: z.string().trim().max(80).default(""),
+    // 記憶の置き場（RIT-92）。抽出が返さん・不正な値を返した時は long へ倒す。
+    category: z.enum(["long", "recent", "relation", "future"]).catch("long"),
     importance: z.number().int().min(1).max(5),
     validFrom: z.iso.date().nullable(),
     validUntil: z.iso.date().nullable(),

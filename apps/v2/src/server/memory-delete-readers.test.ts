@@ -8,7 +8,7 @@ import { join } from "node:path";
 import {
   characterTable,
   hashMemorySource,
-  listCharacterMemories,
+  listConversationMemories,
   loadMemoryCandidates,
   loadOwnedMemory,
   loadPinnedMemories,
@@ -161,10 +161,11 @@ describe("memory delete readers (RIT-94)", () => {
     if (persistRoot) await rm(persistRoot, { recursive: true, force: true });
   });
 
-  it("1. キャラの記憶一覧（listCharacterMemories）", async () => {
-    const list = await listCharacterMemories(local.db, scope);
-    expect(list.map((row) => row.id)).toContain(liveMemoryId);
-    expect(list.map((row) => row.id)).not.toContain(deadMemoryId);
+  it("1. 会話の記憶一覧（listConversationMemories・RIT-92 で会話単位へ）", async () => {
+    const list = await listConversationMemories(local.db, { ...scope, conversationId });
+    const ids = list.map((row) => row.id);
+    expect(ids).toContain(liveMemoryId);
+    expect(ids).not.toContain(deadMemoryId);
     expect(list.map((row) => row.content)).not.toContain("消した記憶");
   });
 

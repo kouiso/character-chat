@@ -108,7 +108,8 @@ export const retrieveMemories = async (
     });
     return [];
   });
-  const pinnedEntries = pinned.map(({ id, content }) => ({ id, content }));
+  // pinned 印は packMemoryContext が固定の別枠（最大8件・2000字）へ振り分ける印（RIT-92）。
+  const pinnedEntries = pinned.map(({ id, content }) => ({ id, content, pinned: true as const }));
   if (!memoryVectorReady(env) || !query.trim()) return pinnedEntries;
   try {
     const values = await embedMemoryText(env.AI, query);

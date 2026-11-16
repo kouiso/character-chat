@@ -141,6 +141,8 @@ const UNAUTHENTICATED_PROBES = [
   ["PATCH", "/api/characters/example/memories"],
   ["DELETE", "/api/characters/example/memories"],
   ["POST", "/api/characters/example/memories/restore"],
+  ["GET", "/api/characters/example/memories/learned"],
+  ["GET", "/chat/example/memory"],
   ["GET", "/api/characters/example/documents"],
   ["POST", "/api/characters/example/documents"],
   ["PATCH", "/api/characters/example/documents/doc-1"],

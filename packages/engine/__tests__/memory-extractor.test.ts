@@ -6,6 +6,7 @@ const memory = {
   kind: "preference",
   content: "紅茶が好き",
   subject: "好きな飲み物",
+  category: "long",
   importance: 3,
   validFrom: null,
   validUntil: null,

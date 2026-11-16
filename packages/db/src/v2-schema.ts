@@ -234,11 +234,44 @@ export const v2MemoryTable = sqliteTable(
     deletedAt: integer("deleted_at"),
     // 手直しの世代。論理削除・復元・書き換えで +1（楽観排他・並び替えの拠り所）。
     revision: integer("revision").notNull().default(1),
+    // 記憶の置き場（RIT-92）。画面の4節と同じ区分。自動抽出が付け、手では入力時に選ぶ。
+    // 既存行・抽出が分類を返さんかった行は 'long' へ倒す。
+    category: text("category", { enum: ["long", "recent", "relation", "future"] })
+      .notNull()
+      .default("long"),
+    // 出どころ（RIT-92）。'extracted' = 自動抽出、'manual' = 手で足した・旧来の手動行。
+    // 手動行の id は `jobId:index` 形ではないので移行は id の形で仕分ける。
+    origin: text("origin", { enum: ["extracted", "manual"] })
+      .notNull()
+      .default("extracted"),
+    // 手で内容を直した時刻。NULL = まだ一度も直していない（バッジの拠り所）。
+    editedAt: integer("edited_at"),
   },
   (table) => [
     index("v2_memory_conv_kind_idx").on(table.conversationId, table.kind),
+    index("v2_memory_conv_active_idx").on(table.conversationId, table.deletedAt, table.category),
+    // category/origin は ALTER TABLE で足したので既存の v2_memory には CHECK を
+    // 宣言できん（SQLite は ALTER で CHECK を足せない）。値の検査は API の zod と
+    // 抽出契約側が担う。enum 宣言は TS 側の型だけに効く。
     check("v2_memory_kind_check", sql`${table.kind} in ('fact','summary','preference')`),
   ],
+);
+
+// 最新の返事の指示文へ入った記憶（RIT-92）。「さっきの返事で使った」バッジの正本。
+// memory_id に外部キーは張らん: 記憶は論理削除→物理削除で行ごと消えるので、
+// 参照を張ると掃除ごと消える・残るのどちらでも不自然になる。読む側は常に
+// v2_memory と突き合わせるので、孤立行は単に無視される。
+export const v2MemoryUseTable = sqliteTable(
+  "v2_memory_use",
+  {
+    conversationId: text("conversation_id")
+      .notNull()
+      .references(() => v2ConversationTable.id, { onDelete: "cascade" }),
+    turn: integer("turn").notNull(),
+    memoryId: text("memory_id").notNull(),
+    createdAt: integer("created_at").notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.conversationId, table.turn, table.memoryId] })],
 );
 
 export const v2MemoryJobTable = sqliteTable(

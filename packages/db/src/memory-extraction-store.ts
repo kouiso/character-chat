@@ -226,6 +226,11 @@ export const completeMemoryExtraction = async (
                 supersededBy: sql<string | null>`null`.as("superseded_by"),
                 deletedAt: sql<number | null>`null`.as("deleted_at"),
                 revision: sql<number>`1`.as("revision"),
+                category: sql<"long" | "recent" | "relation" | "future">`${memory.category}`.as(
+                  "category",
+                ),
+                origin: sql<"extracted">`'extracted'`.as("origin"),
+                editedAt: sql<number | null>`null`.as("edited_at"),
               })
               .from(v2MemoryJobTable)
               .where(and(eq(v2MemoryJobTable.id, source.id), notTombstoned)),

@@ -9,6 +9,7 @@ import { messageTable } from "../../../src/schema/message";
 
 import { chunkSendTimes } from "./chunk-schedule";
 import { logEvent } from "./log";
+import { memoryUseStatements } from "./memory-use-store";
 import {
   v2ChunkTable,
   v2ConversationTable,
@@ -124,6 +125,9 @@ export type SaveTurnInput = {
   ledger: SceneLedger;
   // LangGraph の thread_id。engine が渡さん場合は conversationId と同じ値で保存する。
   threadId?: string;
+  // 返事を作る時に指示文へ入った記憶の id（RIT-92）。省略時は v2_memory_use を触らん。
+  // 渡された場合は同じ (conversationId, turn) の行を消してから入れ直す（再生成での入れ替え）。
+  usedMemoryIds?: string[];
 };
 
 // load() が返す turn は「次に演じるターン番号」（graph.ts の intake がそのまま state.turn に入れ、
@@ -731,6 +735,18 @@ const saveAssistantBranchTurn = async (args: {
       ledgerJson: JSON.stringify(input.ledger),
       createdAt: now,
     }),
+    // 記憶の使用記録も同じバッチで入れ替える（新しい枝で使った記憶が正本）。
+    ...(input.usedMemoryIds === undefined
+      ? []
+      : memoryUseStatements(
+          db,
+          {
+            conversationId: input.conversationId,
+            turn: input.turn,
+            memoryIds: input.usedMemoryIds,
+          },
+          now,
+        )),
   ]);
   return { chunkSendAt: sendTimes };
 };
@@ -945,6 +961,18 @@ export const createD1TurnStore = (db: V2Db, opts: D1TurnStoreOptions): TurnStore
             }),
           ]
         : []),
+      // 記憶の使用記録（RIT-92）。同じ turn の保存し直しでは消してから入れ直す。
+      ...(input.usedMemoryIds === undefined
+        ? []
+        : memoryUseStatements(
+            db,
+            {
+              conversationId: input.conversationId,
+              turn: input.turn,
+              memoryIds: input.usedMemoryIds,
+            },
+            now,
+          )),
     ]);
     return { chunkSendAt: sendTimes };
   },

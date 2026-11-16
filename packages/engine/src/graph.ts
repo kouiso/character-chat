@@ -24,6 +24,7 @@ import {
 import { buildConversationContext, type ContextBudget } from "./context-budget";
 import {
   packMemoryContext,
+  packedMemoryIds,
   MEMORY_CONTEXT_HEADER,
   packDocumentContext,
   DOCUMENT_CONTEXT_HEADER,
@@ -659,14 +660,19 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
         const phase = state.phase ?? state.ledger.phase;
         return { ledger: { ...state.ledger, lastEvents, phase } };
       })
-      .addNode("retrieve", async (state) => ({
-        retrieved: packMemoryContext(
+      .addNode("retrieve", async (state) => {
+        const packed = packMemoryContext(
           (await deps.retrieveMemories?.(state.conversationId, state.userText)) ?? [],
-        ),
-        retrievedDocuments: packDocumentContext(
-          (await deps.retrieveDocuments?.(state.userText)) ?? [],
-        ),
-      }))
+        );
+        return {
+          retrieved: packed,
+          // 指示文へ入った分だけ使った記憶として persist へ渡す（枠から溢れた分は「使った」に数えん）。
+          retrievedMemoryIds: packedMemoryIds(packed),
+          retrievedDocuments: packDocumentContext(
+            (await deps.retrieveDocuments?.(state.userText)) ?? [],
+          ),
+        };
+      })
       .addNode("compose", async (state) => {
         const voice = extractVoice(state.character.systemPrompt);
         const system = composeSystemPrompt({
@@ -974,6 +980,7 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
           userText: state.userText,
           events,
           ledger: state.ledger,
+          usedMemoryIds: state.retrievedMemoryIds,
         });
         if (state.generation) {
           runtime.writer({
