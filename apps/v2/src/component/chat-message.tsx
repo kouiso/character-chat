@@ -9,6 +9,9 @@ export type ChatMessageProps = {
   text: string;
   characterName: string;
   streaming?: boolean;
+  // 台詞レイヤにだけ載せる音声ボタンの差し込み口。本人の言葉だけ読み上げるため、
+  // 描写や心の声にはスイッチを付けない。
+  voiceSlot?: (layerText: string, layerIndex: number) => ReactNode;
 };
 
 const MAX_UNBROKEN_EMOJI_CODE_POINTS = 16;
@@ -46,7 +49,13 @@ export const ChatMessageText = ({ text }: ChatMessageTextProps) =>
     return result;
   }, [text]);
 
-export const ChatMessage = ({ role, text, characterName, streaming = false }: ChatMessageProps) => {
+export const ChatMessage = ({
+  role,
+  text,
+  characterName,
+  streaming = false,
+  voiceSlot,
+}: ChatMessageProps) => {
   if (role === "user") {
     return (
       <div className="v2-message v2-message--user" role="group" aria-label="あなたのメッセージ">
@@ -76,6 +85,7 @@ export const ChatMessage = ({ role, text, characterName, streaming = false }: Ch
           <p className="v2-message-text">
             <ChatMessageText text={layer.text} />
           </p>
+          {layer.kind === "dialogue" ? voiceSlot?.(layer.text, index) : null}
         </div>
       ))}
     </div>
