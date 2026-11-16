@@ -1,4 +1,4 @@
-// テスト用: ローカル D1（.wrangler/state/v3、root の pnpm db:migrate:local と同じ store）に
+// テスト用: ローカル D1（既定は実行ごとの一時 store、dev store は使わない）に
 // migration を当ててから getPlatformProxy で束縛する。
 // @v2/cf に同じ処理があるが、cf は check.ts で @v2/db に依存しとるので db 側から cf を使うと
 // ワークスペースの依存が循環する。wrangler を直接使って db 側で閉じる。
@@ -15,9 +15,12 @@ const REPO_ROOT = path.resolve(PACKAGE_ROOT, "../..");
 const WRANGLER_CONFIG = path.join(REPO_ROOT, "packages/cf/wrangler.local.jsonc");
 // getPlatformProxy の persist.path は v3 ディレクトリそのもの、wrangler CLI の --persist-to は
 // その親（CLI が自分で /v3 を足す）。@v2/cf と同じ非対称の吸収。
-const PERSIST_ROOT = path.resolve(
-  process.env.WRANGLER_PERSIST_DIR ?? path.join(REPO_ROOT, ".wrangler/state"),
-);
+// dev サーバーと root の pnpm db:migrate:local が使う store。テストは globalSetup が
+// WRANGLER_PERSIST_DIR を一時ディレクトリへ向けるので、ここを直接開くのは dev 側だけ。
+export const DEV_PERSIST_ROOT = path.join(REPO_ROOT, ".wrangler/state");
+// 環境変数は呼び出し時に読む（globalSetup が worker 起動前に差し込む値を拾うため）。
+export const resolvePersistRoot = (): string =>
+  path.resolve(process.env.WRANGLER_PERSIST_DIR ?? DEV_PERSIST_ROOT);
 const WRANGLER_BIN = path.join(PACKAGE_ROOT, "node_modules/.bin/wrangler");
 
 type LocalEnv = { DB: D1Database };
@@ -30,7 +33,7 @@ export type LocalD1 = { db: V2Db; d1: D1Database; dispose: () => Promise<void> }
 export type OpenLocalD1Options = { persistRoot?: string };
 
 export const openLocalD1 = async ({
-  persistRoot = PERSIST_ROOT,
+  persistRoot = resolvePersistRoot(),
 }: OpenLocalD1Options = {}): Promise<LocalD1> => {
   const resolvedPersistRoot = path.resolve(persistRoot);
   execFileSync(
