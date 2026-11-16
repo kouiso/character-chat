@@ -2,6 +2,7 @@
 // 付与は全部冪等（1日1回・attemptId 単位・同日1購入）で、残高の正は v2_currency_ledger。
 import { bonusCurrency, spendCurrency } from "./currency";
 import { ensureSeedBalance } from "./generation-billing";
+import { jstDateKey, jstDayStartMs } from "./jst-date";
 import { readPlan } from "./plan";
 
 // ログイン特典: 基本10 + 連続日数×5（上限50）。MiraiMind 型の連続ログイン増量。
@@ -12,7 +13,6 @@ const AD_REWARD_AMOUNT = 5;
 const DAILY_PASS_COST = 100;
 const DAILY_PASS_HOURS = 24;
 
-const dayOf = (epochMs: number): string => new Date(epochMs).toISOString().slice(0, 10);
 const DAY_MS = 86_400_000;
 
 interface LoginBonusRow {
@@ -21,6 +21,7 @@ interface LoginBonusRow {
   streak: number;
   amount: number;
   ledger_id: string;
+  created_at: number;
 }
 
 export interface LoginBonusResult {
@@ -35,7 +36,7 @@ export interface LoginBonusResult {
 const lastLoginBonus = async (db: D1Database, userId: string): Promise<LoginBonusRow | null> => {
   const row = await db
     .prepare(
-      "SELECT id, day, streak, amount, ledger_id FROM v2_login_bonus WHERE user_id = ? ORDER BY day DESC LIMIT 1",
+      "SELECT id, day, streak, amount, ledger_id, created_at FROM v2_login_bonus WHERE user_id = ? ORDER BY day DESC LIMIT 1",
     )
     .bind(userId)
     .first<Record<string, unknown>>();
@@ -46,6 +47,7 @@ const lastLoginBonus = async (db: D1Database, userId: string): Promise<LoginBonu
         streak: Number(row.streak),
         amount: Number(row.amount),
         ledger_id: String(row.ledger_id),
+        created_at: Number(row.created_at),
       }
     : null;
 };
@@ -54,12 +56,13 @@ const todayBonus = async (
   db: D1Database,
   userId: string,
   day: string,
+  dayStart: number,
 ): Promise<LoginBonusRow | null> => {
   const row = await db
     .prepare(
-      "SELECT id, day, streak, amount, ledger_id FROM v2_login_bonus WHERE user_id = ? AND day = ?",
+      "SELECT id, day, streak, amount, ledger_id, created_at FROM v2_login_bonus WHERE user_id = ? AND (day = ? OR (created_at >= ? AND created_at < ?)) ORDER BY created_at DESC LIMIT 1",
     )
-    .bind(userId, day)
+    .bind(userId, day, dayStart, dayStart + DAY_MS)
     .first<Record<string, unknown>>();
   return row
     ? {
@@ -68,6 +71,7 @@ const todayBonus = async (
         streak: Number(row.streak),
         amount: Number(row.amount),
         ledger_id: String(row.ledger_id),
+        created_at: Number(row.created_at),
       }
     : null;
 };
@@ -96,16 +100,19 @@ const existingClaim = async (
 };
 
 // ログイン特典（1日1回・連続で増量）。user_id×day の一意で同日の二重受取は起きない。
+// 切替前の記録は day が UTC 日付なので、day の一致だけでは同じ JST 日の受取を見落とす。
+// created_at が当日の JST 範囲に入る行も受取済みとみなし、連続日数も created_at の JST 日で数える。
 export const claimLoginBonus = async (
   db: D1Database,
   userId: string,
   now = Date.now(),
 ): Promise<LoginBonusResult> => {
-  const day = dayOf(now);
-  const existing = await todayBonus(db, userId, day);
+  const day = jstDateKey(now);
+  const existing = await todayBonus(db, userId, day, jstDayStartMs(now));
   if (existing) return existingClaim(db, userId, day, existing);
   const last = await lastLoginBonus(db, userId);
-  const streak = last && last.day === dayOf(now - DAY_MS) ? last.streak + 1 : 1;
+  const streak =
+    last && jstDateKey(last.created_at) === jstDateKey(now - DAY_MS) ? last.streak + 1 : 1;
   // プランの通貨ボーナスレートを特典額へ掛ける（RIT-193 の機能差適用点）。
   const rate = (await readPlan(db, userId, now)).features.currencyBonusRate;
   const amount = Math.round(loginBonusAmount(streak) * rate);
@@ -122,12 +129,12 @@ export const claimLoginBonus = async (
       .prepare(
         "INSERT INTO v2_login_bonus (id, user_id, day, streak, amount, ledger_id, created_at) VALUES (?,?,?,?,?,?,?)",
       )
-      .bind(crypto.randomUUID(), userId, day, streak, amount, granted.entry.id, Date.now())
+      .bind(crypto.randomUUID(), userId, day, streak, amount, granted.entry.id, now)
       .run();
   } catch {
     // 同時受取の競合: 台帳は冪等キーで1行、受取記録だけ一意違反になる。
     // 既に入った側の記録を返し、呼び出し元には「当日受取済み」を返す。
-    const winner = await todayBonus(db, userId, day);
+    const winner = await todayBonus(db, userId, day, jstDayStartMs(now));
     if (winner) return existingClaim(db, userId, day, winner);
     throw new Error("v2_login_bonus への挿入に失敗しました");
   }
@@ -207,8 +214,8 @@ export const activateDailyPass = async (
     amount: DAILY_PASS_COST,
     reason: "1日券",
     refType: "feature-pass",
-    refId: dayOf(now),
-    idempotencyKey: `pass:${userId}:${dayOf(now)}`,
+    refId: jstDateKey(now),
+    idempotencyKey: `pass:${userId}:${jstDateKey(now)}`,
   });
   if (spent.replayed) {
     // 同日購入の再送/競合: 課金は1回のみ。発行済みの券があればそれを返し、

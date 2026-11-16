@@ -9,6 +9,7 @@ import {
   type V2Db,
 } from "@v2/db";
 
+import { jstDateKey } from "./jst-date";
 import {
   embedMemoryText,
   memoryNamespace,
@@ -62,7 +63,7 @@ const rankMemoryCandidates = async (
   matches: MemoryCandidateMatch[],
   now: number,
 ): Promise<MemoryContextEntry[]> => {
-  const today = new Date(now).toISOString().slice(0, 10);
+  const today = jstDateKey(now);
   const ranked: (MemoryContextEntry & { score: number })[] = [];
   for (const row of rows) {
     if ((row.validFrom && row.validFrom > today) || (row.validUntil && row.validUntil < today))
