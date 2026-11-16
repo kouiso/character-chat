@@ -18,6 +18,7 @@ import {
   v2ConversationTable,
   v2GenerationTable,
   v2LedgerTable,
+  v2LegacyImportTable,
   v2MemoryTable,
   v2MemoryJobTable,
   v2MemorySourceTable,
@@ -50,6 +51,7 @@ describe("v2_ tables: SQL DDL と drizzle 宣言の一致", () => {
     characterRevisionTable,
     v2MemoryJobTable,
     v2MemorySourceTable,
+    v2LegacyImportTable,
   ];
 
   it("SQL 側にすべての v2_ テーブルが存在する", async () => {
@@ -81,6 +83,7 @@ describe("v2_ tables: SQL DDL と drizzle 宣言の一致", () => {
         "v2_group_message",
         "v2_image_generation",
         "v2_ledger",
+        "v2_legacy_import",
         "v2_login_bonus",
         "v2_memory",
         "v2_memory_job",

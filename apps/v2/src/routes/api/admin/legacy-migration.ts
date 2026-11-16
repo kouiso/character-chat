@@ -1,4 +1,5 @@
-// POST /api/admin/legacy-migration — 旧記憶・検索塊の v2 への移行実行（RIT-78）。
+// POST /api/admin/legacy-migration — 旧会話の v2 への取り込み（RIT-77）。mode は
+// sources・conversations・verify-conversations の 3 つ。
 import { createFileRoute } from "@tanstack/react-router";
 
 import { handleLegacyMigration } from "../../../server/api-admin-migration";

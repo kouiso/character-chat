@@ -2,7 +2,7 @@
   "version": "6",
   "dialect": "sqlite",
   "id": "14adb6f9-f536-49e2-8c98-bd02edf232aa",
-  "prevId": "4b3c8bc5-c44e-43ed-8092-8770e754834f",
+  "prevId": "4618a1cd-392b-4afd-a93f-f161a1229584",
   "tables": {
     "character_default_outfit_tag": {
       "name": "character_default_outfit_tag",
