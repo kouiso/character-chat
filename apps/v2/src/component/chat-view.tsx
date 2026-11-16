@@ -46,6 +46,8 @@ export type ChatViewProps = {
   characterId: string;
   characterName: string;
   characterAvatar?: string | null;
+  // 会話が始まる前にキャラが差し出す「初回のひとこと」。履歴に無い表示専用の冒頭バブル。
+  characterGreeting?: string | null;
   initialConversationId?: string;
   newConversationKey?: string;
 };
@@ -338,14 +340,41 @@ const startScheduledReveal = (
   );
 };
 
+// 「初回のひとこと」の冒頭バブル。履歴に無い表示専用なので id/turn・枝操作は付けん。
+const GREETING_ROLE = "assistant";
+const GreetingRow = ({
+  name,
+  avatar,
+  text,
+}: {
+  name: string;
+  avatar?: string | null;
+  text: string | null;
+}) =>
+  !text ? null : (
+    <div className="v2-turn-row assistant">
+      <span className="v2-avatar" aria-hidden>
+        {name.slice(0, 1)}
+        {avatar && <img src={avatar} alt="" onError={(e) => e.currentTarget.remove()} />}
+      </span>
+      <div className="v2-bubble v2-message-turn assistant">
+        <ChatMessage role={GREETING_ROLE} text={text} characterName={name} />
+      </div>
+    </div>
+  );
+
 export const ChatView = ({
   characterId,
   characterName,
   characterAvatar,
+  characterGreeting,
   initialConversationId,
   newConversationKey,
 }: ChatViewProps) => {
   const [bubbles, setBubbles] = useState<ChatBubble[]>([]);
+  // 「初回のひとこと」は会話が空の時だけ差し出す。一度出したらこの画面を閉じるまで残す
+  //（最初の返信が来ても消えんほうが、会話が誰の言葉で始まったか分かる）。
+  const [greeting, setGreeting] = useState<string | null>(characterGreeting?.trim() || null);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [imageBusy, setImageBusy] = useState(false);
@@ -595,6 +624,8 @@ export const ChatView = ({
         const history = await loadChatHistory(characterId, saved.conversationId, abort.signal);
         if (abort.signal.aborted) return;
         nextTurn.current = history.nextTurn;
+        // 確定済みの発言が残る会話へ「初回のひとこと」を足すと、あとから挨拶が混ざる。
+        setGreeting((previous) => (history.bubbles.length === 0 ? previous : null));
         setBubbles(
           saved.pending
             ? withPending(history.bubbles, history.nextTurn, saved.pending)
@@ -798,6 +829,7 @@ export const ChatView = ({
         />
       </div>
       <ChatMessageLog key={characterId} busy={busy}>
+        <GreetingRow name={characterName} avatar={characterAvatar} text={greeting} />
         {bubbles.map((bubble, index) => (
           // LINE 型の見た目に寄せるため、相手の発言はアイコン付きの行にする（本人専用の顔出し）。
           <div key={keys[index]} className={`v2-turn-row ${bubble.role}`}>

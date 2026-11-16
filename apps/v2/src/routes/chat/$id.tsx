@@ -26,6 +26,7 @@ const ChatPage = () => {
         characterId={character.id}
         characterName={character.name}
         characterAvatar={avatarUrl(character.avatar)}
+        characterGreeting={character.greeting}
         initialConversationId={conversationId}
         newConversationKey={newChat}
       />

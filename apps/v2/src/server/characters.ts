@@ -22,11 +22,18 @@ export const listCharacters = createServerFn({ method: "GET" }).handler(
 export const getCharacter = createServerFn({ method: "GET" })
   .validator((id: string) => id)
   .handler(
-    async ({ data: id }): Promise<{ id: string; name: string; avatar: string | null } | null> => {
+    async ({
+      data: id,
+    }): Promise<{
+      id: string;
+      name: string;
+      avatar: string | null;
+      greeting: string;
+    } | null> => {
       const { readCharacter } = await import("./character-data.server");
       const { ok } = await readCharacter(id);
-      // チャット画面のバブル横アイコンに使うため avatar も返す。
-      return ok ? { id: ok.id, name: ok.name, avatar: ok.avatar } : null;
+      // チャット画面のバブル横アイコンに avatar、会話冒頭の「初回のひとこと」に greeting を使う。
+      return ok ? { id: ok.id, name: ok.name, avatar: ok.avatar, greeting: ok.greeting } : null;
     },
   );
 

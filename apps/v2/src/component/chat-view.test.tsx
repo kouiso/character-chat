@@ -20,6 +20,69 @@ describe("ChatView", () => {
     expect(screen.getByRole("button", { name: "送信" })).toBeDisabled();
   });
 
+  it("空の会話では「初回のひとこと」が冒頭に出て、送った後も残る", async () => {
+    writeChatSession("a", { version: 1, conversationId: null, pending: null });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (_url: RequestInfo | URL, init?: RequestInit) =>
+        init?.method === "POST"
+          ? new Response(
+              'id: 1\nevent: done\ndata: {"conversationId":"conversation-a","turn":1,"generationId":null}\n\n',
+            )
+          : Response.json({
+              turn: 2,
+              history: [
+                { id: "m1", turn: 1, role: "user", content: "よろしく" },
+                { id: "m2", turn: 1, role: "assistant", content: "よろしくね" },
+              ],
+            }),
+      ),
+    );
+    render(
+      <ChatView
+        characterId="a"
+        characterName="案内役"
+        characterGreeting="はじめまして、案内役です"
+      />,
+    );
+    expect(screen.getByText("はじめまして、案内役です")).toBeInTheDocument();
+    fireEvent.change(screen.getByRole("textbox", { name: "メッセージ" }), {
+      target: { value: "よろしく" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "送信" }));
+    await screen.findByText("よろしくね");
+    expect(screen.getByText("はじめまして、案内役です")).toBeInTheDocument();
+  });
+
+  it("確定済みの発言がある会話を再開すると「初回のひとこと」は出さない", async () => {
+    writeChatSession("a", {
+      version: 1,
+      conversationId: "conversation-a",
+      pending: null,
+    });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        Response.json({
+          turn: 2,
+          history: [
+            { id: "m1", turn: 1, role: "user", content: "続き" },
+            { id: "m2", turn: 1, role: "assistant", content: "うん" },
+          ],
+        }),
+      ),
+    );
+    render(
+      <ChatView
+        characterId="a"
+        characterName="案内役"
+        characterGreeting="はじめまして、案内役です"
+      />,
+    );
+    await screen.findByText("うん");
+    expect(screen.queryByText("はじめまして、案内役です")).toBeNull();
+  });
+
   it("新規会話の入口では前の会話を再開せず、再読込時は新しい保留を復元する", async () => {
     writeChatSession("a", { version: 1, conversationId: "old", pending: null });
     const fetchMock = vi.fn(async (_url: RequestInfo | URL, init?: RequestInit) => {
