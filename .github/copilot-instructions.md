@@ -169,6 +169,8 @@ drizzle/               # D1 migrations
 
 命名: リポジトリは character-chat。v1 = 従来 adult-ai-app（ルート app、adult-ai-chat.pages.dev）、v2 = `apps/v2`（新 character-chat、adult-ai-v2.kouiso.workers.dev）。
 
+**v1 は凍結（2026-11-16 局長決定）**: `src/` と `functions/` への新規機能追加はしない。両者で共有する静的資産（アバター等）と障害修正だけは触れてよい。新しい作業はすべて v2 へ。`doc/v2/rebuild-runtime-plan.md` が 2026-10-26 に決めた本線一本化の追認。
+
 ## レビュー観点（よくある失敗パターン）
 
 > このセクションは CodeRabbit（REVIEW.md）と共有する失敗パターン corpus の圧縮版です。
