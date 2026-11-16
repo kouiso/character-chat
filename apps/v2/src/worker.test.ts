@@ -142,6 +142,8 @@ const UNAUTHENTICATED_PROBES = [
   ["DELETE", "/api/characters/example/documents/doc-1"],
   ["GET", "/clips"],
   ["GET", "/create"],
+  ["GET", "/album"],
+  ["GET", "/my"],
   ["GET", "/api/clips"],
   ["GET", "/api/clip-media/example"],
   ["GET", "/api/clips/example"],
