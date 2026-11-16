@@ -149,6 +149,9 @@ const codexFetchImpl: typeof fetch = (
     const stderrChunks: Buffer[] = [];
     child.stdout.on("data", (chunk: Buffer) => stdoutChunks.push(chunk));
     child.stderr.on("data", (chunk: Buffer) => stderrChunks.push(chunk));
+    // 子が入力を読まずに先に終わると stdin の書き込みが EPIPE で unhandled になる。
+    // 終了コードは close で拾うので、ここはプロセスを落とさんように受けるだけにする
+    child.stdin.on("error", () => {});
     const onAbort = () => child.kill("SIGTERM");
     init?.signal?.addEventListener("abort", onAbort, { once: true });
     const killTimer = setTimeout(() => child.kill("SIGTERM"), 600_000);

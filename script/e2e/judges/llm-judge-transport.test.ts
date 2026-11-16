@@ -1,3 +1,7 @@
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { delimiter, join } from "node:path";
+
 import { describe, expect, it } from "vitest";
 
 import { resolveJudgeTransport } from "./llm-judge-transport";
@@ -72,5 +76,28 @@ describe("resolveJudgeTransport", () => {
     // Keychain にトークンがある Mac では anthropic になりうるので
     // 形だけ決め打ちはせん。鍵の無い環境では openrouter
     expect(["openrouter", "anthropic", "codex"]).toContain(t.kind);
+  });
+
+  it("codex が入力を読まずに先に終わっても EPIPE で採点プロセスが落ちん", async () => {
+    // パイプ容量(64KB)を超える入力を 即終了する偽 codex へ書くと
+    // 読み手が消えた後の書き込みが EPIPE になる再現
+    const dir = mkdtempSync(join(tmpdir(), "aiq-codex-"));
+    writeFileSync(join(dir, "codex"), "#!/bin/sh\nexit 0\n", { mode: 0o755 });
+    const t = resolveJudgeTransport(env({ AIQ_JUDGE: "codex" }));
+    const prevPath = process.env.PATH;
+    process.env.PATH = `${dir}${delimiter}${prevPath}`;
+    try {
+      const res = await t.fetchImpl("http://127.0.0.1:1/", {
+        method: "POST",
+        body: JSON.stringify({
+          model: "gpt-5.1-codex-mini",
+          messages: [{ role: "user", content: "x".repeat(300_000) }],
+        }),
+      });
+      expect(res.status).toBe(200);
+    } finally {
+      process.env.PATH = prevPath;
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 });
