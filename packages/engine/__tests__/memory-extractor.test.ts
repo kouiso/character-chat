@@ -48,4 +48,12 @@ describe("extractMemories", () => {
     const plainSystem = String(plainMessages?.[0]?.content);
     expect(plainSystem).not.toContain("Character-specific instruction");
   });
+
+  it("空白だけの指示は system メッセージへ足さない", async () => {
+    const blank = modelFor([memory]);
+    const spy = vi.spyOn(blank, "invoke");
+    await extractMemories(blank, "私は紅茶が好きです。", "　　");
+    const messages = spy.mock.calls[0]?.[0] as { content?: unknown }[];
+    expect(String(messages?.[0]?.content)).not.toContain("Character-specific instruction");
+  });
 });

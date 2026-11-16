@@ -4,7 +4,13 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-import { characterTable, createD1TurnStore, userTable } from "@v2/db";
+import {
+  characterContentSchema,
+  characterTable,
+  createCharacterWithVersion,
+  createD1TurnStore,
+  userTable,
+} from "@v2/db";
 import { emptyLedger } from "@v2/prompt";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
@@ -199,6 +205,78 @@ describe("memories API", () => {
     expect((await call("DELETE", { memoryId: memory.id })).status).toBe(200);
     const { memories } = await list();
     expect(memories.find((row) => row.id === memory.id)).toBeUndefined();
+  });
+
+  it("覚える種類が空の版のキャラでも、利用者が足した記憶は入る（FR-7）", async () => {
+    const content = characterContentSchema.parse({
+      name: "無記憶役",
+      personality: "案内役",
+      speechStyle: "丁寧",
+      greeting: "こんにちは。",
+      memoryKinds: [],
+    });
+    const created = await createCharacterWithVersion(local.db, LOCAL_USER_ID, content);
+    const conversationId = crypto.randomUUID();
+    conversations.push(conversationId);
+    try {
+      // 種類を全て切った版に会話を固定しても、手で足す記憶は方針の外（利用者の明示だから）
+      await createD1TurnStore(local.db, {
+        userId: LOCAL_USER_ID,
+        characterId: created.id,
+        characterVersionId: created.versionId,
+        promptVersion: "test",
+        extractMemory: false,
+      }).saveTurn({
+        conversationId,
+        turn: 1,
+        userText: "私は紅茶が好きです。",
+        ledger: emptyLedger(),
+        events: [reply],
+      });
+      const createdMemory = await handleMemoriesRequest(
+        created.id,
+        request("POST", { conversationId, content: "手で足した記憶", kind: "preference" }),
+      );
+      expect(createdMemory.status).toBe(201);
+      const response = await handleMemoriesRequest(created.id, request("GET"));
+      const { memories } = (await response.json()) as {
+        memories: { content: string; kind: string }[];
+      };
+      expect(memories.find((row) => row.content === "手で足した記憶")).toMatchObject({
+        kind: "preference",
+      });
+    } finally {
+      // 会話→記憶の順に消してからキャラを消す（外部キー順。afterAll の掃除とは冪等に重なる）
+      await local.d1
+        .prepare(
+          "DELETE FROM v2_chunk WHERE message_id IN (SELECT id FROM v2_message WHERE conversation_id = ?)",
+        )
+        .bind(conversationId)
+        .run();
+      for (const table of [
+        "v2_memory",
+        "v2_memory_tombstone",
+        "v2_memory_job",
+        "v2_message",
+        "v2_ledger",
+        "v2_generation",
+      ]) {
+        await local.d1
+          .prepare(`DELETE FROM ${table} WHERE conversation_id = ?`)
+          .bind(conversationId)
+          .run();
+      }
+      await local.d1.prepare("DELETE FROM v2_conversation WHERE id = ?").bind(conversationId).run();
+      await local.d1
+        .prepare("DELETE FROM character_revision WHERE character_id = ?")
+        .bind(created.id)
+        .run();
+      await local.d1
+        .prepare("DELETE FROM character_version WHERE character_id = ?")
+        .bind(created.id)
+        .run();
+      await local.d1.prepare("DELETE FROM character WHERE id = ?").bind(created.id).run();
+    }
   });
 
   it("空・長すぎる記憶は 422、4000字は通る", async () => {

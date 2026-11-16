@@ -1,0 +1,152 @@
+/* キャラ編集「記憶」の節（板 CharacterEdit）。値は design-token.css の変数だけを使う。
+   すべて .v2-memory-section 以下で書くのは、置き場である character-form の
+   .v2-character-form button/textarea/label（汎用の平たい見た目）より詳細度を上げるため。 */
+
+.v2-memory-section {
+  margin: 20px 0;
+}
+
+.v2-memory-section .v2-memory-section-toggle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 52px;
+  margin: 0;
+  padding: 6px 16px;
+  border: 0;
+  border-radius: var(--radius-card);
+  background: var(--gradient-surface);
+  box-shadow: var(--shadow-surface);
+  color: var(--color-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+/* ひらいた時の頭は札を外し、文と同じ地へ置く（板の開いた節の形） */
+.v2-memory-section .v2-memory-section-toggle[aria-expanded="true"] {
+  min-height: 64px;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.v2-memory-section .v2-memory-section-heading {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.v2-memory-section .v2-memory-section-title {
+  font-size: var(--text-row-size);
+  line-height: var(--text-row-line);
+  font-weight: 700;
+  letter-spacing: var(--text-tracking-strong);
+  white-space: nowrap;
+}
+
+.v2-memory-section .v2-memory-section-toggle[aria-expanded="true"] .v2-memory-section-title {
+  font-size: var(--text-title-size);
+  line-height: var(--text-title-line);
+  letter-spacing: var(--text-tracking-title);
+}
+
+.v2-memory-section .v2-memory-section-summary {
+  color: var(--color-text-sub);
+  font-size: var(--text-note-size);
+  line-height: var(--text-note-line);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.v2-memory-section .v2-memory-section-chevron {
+  color: var(--color-text-sub);
+  display: flex;
+}
+
+.v2-memory-section .v2-memory-section-toggle[aria-expanded="true"] .v2-memory-section-chevron {
+  transform: rotate(180deg);
+}
+
+.v2-memory-section .v2-memory-section-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.v2-memory-section .v2-memory-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.v2-memory-section .v2-memory-field label,
+.v2-memory-section .v2-memory-kinds-heading {
+  margin: 0;
+  color: var(--color-text);
+  font-size: var(--text-row-size);
+  line-height: var(--text-row-line);
+  font-weight: 700;
+  letter-spacing: var(--text-tracking-strong);
+}
+
+.v2-memory-section .v2-memory-field textarea {
+  width: 100%;
+  min-height: 108px;
+  margin: 0;
+  padding: 12px 16px;
+  border: 1px solid var(--color-well-border);
+  border-radius: var(--radius-control);
+  background: var(--color-well);
+  color: var(--color-text);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+  font-weight: 500;
+  letter-spacing: var(--text-tracking);
+  resize: none;
+}
+
+.v2-memory-section .v2-memory-kinds {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.v2-memory-section .v2-memory-kinds-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.v2-memory-section .v2-memory-kind {
+  flex: 1;
+  min-height: 44px;
+  margin: 0;
+  padding: 0 16px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--gradient-press);
+  box-shadow: var(--shadow-press);
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--text-row-size);
+  line-height: var(--text-row-line);
+  font-weight: 700;
+  letter-spacing: var(--text-tracking-strong);
+  cursor: pointer;
+}
+
+.v2-memory-section .v2-memory-kind[aria-pressed="true"] {
+  background: var(--gradient-selected);
+  box-shadow: var(--edge-selected);
+}
+
+.v2-memory-section .v2-memory-note {
+  margin: 0;
+  color: var(--color-text-sub);
+  font-size: var(--text-note-size);
+  line-height: var(--text-note-line);
+}
