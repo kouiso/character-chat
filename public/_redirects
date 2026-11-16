@@ -1,4 +1,6 @@
-# SPA fallback: pathname ルーティング(/home, /chat, /legal/... など)へ直アクセス・
-# リロードしても 404 にせず index.html を返す。Cloudflare Pages では静的資産と
-# Pages Functions(/api/* 等)がこのルールより優先されるため、それらは横取りされない。
-/* /index.html 200
+# v1 は凍結（2026-11-16 寄せ決定・AGENTS.md 参照）。旧 URL に来た人は v2 の
+# トップへ送る。v1 と v2 でパスの形が違うので :splat は使わずルートへ集約する。
+# 先頭の1行だけ例外: PWA の SW 更新が 302 に潰されて旧アプリが端末に残るのを防ぐため、
+# /sw.js には「自分を消す SW」の中身をそのまま返す。
+/sw.js /sw-kill.js 200
+/* https://adult-ai-v2.kouiso.workers.dev/ 302
