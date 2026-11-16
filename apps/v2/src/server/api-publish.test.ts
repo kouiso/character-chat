@@ -6,11 +6,19 @@ const state = vi.hoisted(() => ({
   publishes: new Map<string, { user_id: string; summary: string | null; published_at: number }>(),
   characters: new Map<
     string,
-    { user_id: string; name: string; avatar: string | null; greeting: string }
+    { user_id: string; is_official?: number; name: string; avatar: string | null; greeting: string }
   >(),
+  legacyOwners: new Set<string>(),
   versions: new Map<string, string>(),
   created: vi.fn(async () => ({ id: "forked-1", versionId: "v1", revision: 1 })),
 }));
+
+const visibleCharacter = (id: unknown, userId: unknown) => {
+  const c = state.characters.get(id as string);
+  if (!c) return null;
+  const visible = c.user_id === userId || c.is_official === 1 || state.legacyOwners.has(c.user_id);
+  return visible ? { ok: 1 } : null;
+};
 
 vi.mock("@v2/db", async (importOriginal) => ({
   ...(await importOriginal<Record<string, unknown>>()),
@@ -40,10 +48,8 @@ vi.mock("./platform", () => ({
           }),
           bind: (...args: unknown[]) => ({
             first: async () => {
-              if (sql.includes("SELECT user_id FROM character WHERE id")) {
-                const c = state.characters.get(args[0] as string);
-                return c ? { user_id: c.user_id } : null;
-              }
+              if (sql.includes("FROM character WHERE id"))
+                return visibleCharacter(args[0], args[1]);
               if (sql.includes("FROM v2_character_publish")) {
                 const p = state.publishes.get(args[0] as string);
                 return p
@@ -127,6 +133,7 @@ beforeEach(() => {
   state.characters.clear();
   state.versions.clear();
   state.created.mockClear();
+  state.legacyOwners.clear();
   state.characters.set("mine", {
     user_id: "local",
     name: "ミア",

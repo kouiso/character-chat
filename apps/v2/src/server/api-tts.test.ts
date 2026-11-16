@@ -7,7 +7,8 @@ const state = vi.hoisted(() => ({
     string,
     { engine: string; speaker_id: string; speed: number; pitch: number; intonation: number }
   >(),
-  characters: new Map<string, { user_id: string }>(),
+  characters: new Map<string, { user_id: string; is_official?: number }>(),
+  legacyOwners: new Set<string>(),
   fetchCalls: [] as string[],
   synthBodies: [] as Record<string, unknown>[],
   fetchResult: "ok" as "ok" | "query_fail" | "synth_fail" | "throw",
@@ -23,9 +24,12 @@ vi.mock("./platform", () => ({
         prepare: (sql: string) => ({
           bind: (...args: unknown[]) => ({
             first: async () => {
-              if (sql.includes("SELECT user_id FROM character WHERE id")) {
+              if (sql.includes("FROM character WHERE id")) {
                 const c = state.characters.get(args[0] as string);
-                return c ? { user_id: c.user_id } : null;
+                if (!c) return null;
+                const visible =
+                  c.user_id === args[1] || c.is_official === 1 || state.legacyOwners.has(c.user_id);
+                return visible ? { ok: 1 } : null;
               }
               if (sql.includes("FROM v2_character_voice")) {
                 return state.voices.get(args[0] as string) ?? null;
@@ -80,6 +84,7 @@ beforeEach(() => {
   state.ttsConfigured = true;
   state.characters.set("c1", { user_id: "local" });
   state.characters.set("c2", { user_id: "other" });
+  state.legacyOwners.clear();
 });
 
 describe("api-tts", () => {
@@ -128,6 +133,14 @@ describe("api-tts", () => {
     expect(state.synthBodies[0].speedScale).toBe(1.0);
     expect(state.synthBodies[0].pitchScale).toBe(0.0);
     expect(state.synthBodies[0].intonationScale).toBe(1.0);
+  });
+
+  it("公式・移行元名義のキャラも可視（404にしない）", async () => {
+    state.characters.set("official", { user_id: "other", is_official: 1 });
+    state.characters.set("legacy", { user_id: "old@example.com" });
+    state.legacyOwners.add("old@example.com");
+    expect((await handleTtsRequest(post({ characterId: "official", text: "x" }))).status).toBe(200);
+    expect((await handleTtsRequest(post({ characterId: "legacy", text: "x" }))).status).toBe(200);
   });
 
   it("他人のキャラは404・エンジン未起動は503", async () => {

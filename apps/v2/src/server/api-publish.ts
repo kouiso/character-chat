@@ -9,6 +9,7 @@ import {
 import { z } from "zod";
 
 import { LOCAL_USER_ID } from "./identity";
+import { canAccessCharacter } from "./character-access";
 import { getPlatform } from "./platform";
 
 const json = (status: number, body: Record<string, unknown>): Response =>
@@ -19,13 +20,7 @@ const publishBodySchema = z.object({
 });
 
 // 本人所有確認（生 D1：apps/v2 の drizzle 二重版ルール）
-const ownsCharacter = async (db: D1Database, characterId: string): Promise<boolean> => {
-  const row = await db
-    .prepare("SELECT user_id FROM character WHERE id = ?")
-    .bind(characterId)
-    .first<{ user_id: string }>();
-  return row?.user_id === LOCAL_USER_ID;
-};
+const ownsCharacter = canAccessCharacter;
 
 const publishedRow = async (db: D1Database, characterId: string) =>
   db
