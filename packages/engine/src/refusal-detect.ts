@@ -24,6 +24,11 @@ const HARD_REFUSAL_PATTERNS: RegExp[] = [
   /私は(AI|人工知能|AIアシスタント|言語モデル)です/,
 ];
 
+// 末尾 3 件は OOC の AI 宣言系。bench の --ai-persona はそのキャラのターンで
+// この件数分をパターンの末尾から外すので、配列の並びを変えたら件数も追従する。
+export const AI_DECLARATION_PATTERN_COUNT = 3;
+export { HARD_REFUSAL_PATTERNS };
+
 // 締切・障害で 1 字も来んかった出力と短すぎる失速を拒否と同じく次のモデルへ送るための下限。
 const MIN_REPLY_CHARS = 20;
 
