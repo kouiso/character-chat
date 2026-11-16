@@ -20,6 +20,7 @@ vi.mock("@v2/db", async (importOriginal) => ({
   ...(await importOriginal<typeof V2Db>()),
   createDb: () => ({}),
   createD1TurnStore: () => ({}),
+  listLegacySourceUserIds: async () => [],
   ensureCurrentVersion: async () => {
     versionState.calls.push("ensure-current");
     return { versionId: "version-1", revision: 1 };

@@ -598,6 +598,26 @@ describe("immutable character version store", () => {
     expect(detail?.content.privateNotes).toBe("所有者だけが見る演出メモ。");
   });
 
+  it("lets a legacy-owned character start turns when its owner is in the accepted list", async () => {
+    const { id, userId } = await insertLegacyCharacter();
+    // 旧名義だけでは読めん。一覧と同じ名義集合を渡して初めて版を組める。
+    await expect(ensureCurrentVersion(local.db, id, "local")).resolves.toBeNull();
+    const ensured = await ensureCurrentVersion(local.db, id, ["local", userId]);
+    expect(ensured?.versionId).toBeTruthy();
+    const version = await loadVersionedCharacter(local.db, {
+      characterId: id,
+      versionId: ensured!.versionId,
+      userId: ["local", userId],
+    });
+    expect(version?.content.greeting).toBe("ようこそ。");
+    // 版の持ち主はあくまでキャラの名義。新しい会話の名義とは別物。
+    const [row] = await local.db
+      .select({ ownerUserId: characterVersionTable.ownerUserId })
+      .from(characterVersionTable)
+      .where(eq(characterVersionTable.id, ensured!.versionId));
+    expect(row?.ownerUserId).toBe(userId);
+  });
+
   it("does not let an official character owned by someone else initialize during edits", async () => {
     const { id } = await insertLegacyCharacter();
     await local.db
