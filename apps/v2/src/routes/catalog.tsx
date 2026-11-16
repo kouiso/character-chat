@@ -35,7 +35,7 @@ const CatalogCard = ({ item }: { item: CatalogItem }) => {
         {item.name.slice(0, 1)}
         {item.avatar && (
           <img
-            src={avatarUrl(item.avatar) ?? undefined}
+            src={avatarUrl(item.characterId, item.avatar) ?? undefined}
             alt=""
             loading="lazy"
             onError={(e) => e.currentTarget.remove()}

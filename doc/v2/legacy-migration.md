@@ -40,3 +40,25 @@ V2_LOCAL_PERSIST_ROOT=/absolute/path/to/restored-d1 pnpm --filter @v2/app dev
 - 中断後の再開、連続assistant発言、元データ変更の検出、他所有者の画像参照拒否はローカルD1テストで検証。
 
 本番には未適用。R2実オブジェクトの全件存在検査と本番での並行運用期間は別の完了条件である。
+
+## 移行後の全件検査（RIT-80）
+
+移したキャラと画像が「居る」だけでなく「使える」かを、読み取り専用の検査APIで確かめる。検査は何度呼んでも D1・R2 を変えない。
+
+- `GET /api/admin/character-check?limit=10&cursor=...` — キャラ全件を1件ずつ。見えるか・公開か・顔の絵の状態（`unset`/`bundled`/`r2`/`missing`/`not_image`/`bad_key`）・Zod検査の合否と場所・持ち主として読めるか・書けるかを返す。`limit` は 10 が標準で最大 25。`nextCursor` が null になるまでめくる。
+- `GET /api/admin/image-check?limit=10&cursor=...` — 自分の会話に出る画像のキー（v2・旧の両方）が R2 に在るかを `ok`/`missing`/`empty`/`bad_key` で返す。
+- `GET /api/characters/<id>/avatar` — キャラの顔の絵を返す。同梱 `public/avatars/` → R2 `avatars/` → 旧 R2 キーの順で探し、中身が画像かをバイト列で見て返す。見える・公開されたキャラだけ応答する。
+
+全件を最後のページまで検査するには同梱のスクリプトを使う。不合格が1件でも在れば終了コード1で、合計と不合格の一覧を `.work/report/` へ Markdown で残す。
+
+```sh
+# BASIC 認証
+V2_BASIC_USER=... V2_BASIC_PASSWORD=... \
+  node apps/v2/script/verify-character-check.mjs https://adult-ai-v2-staging.kouiso.workers.dev
+
+# Cloudflare Access（サービストークン）
+CF_ACCESS_CLIENT_ID=... CF_ACCESS_CLIENT_SECRET=... \
+  node apps/v2/script/verify-character-check.mjs https://adult-ai-v2-staging.kouiso.workers.dev
+```
+
+ローカルの復元コピー（上の `V2_LOCAL_PERSIST_ROOT` で起動した開発サーバー）にも同じ手順で向けられる。認証が通らなければ「認証の値を確かめてください」と出て終了コード1。応答が失敗したページは同じページをもう一度だけ呼び直す。

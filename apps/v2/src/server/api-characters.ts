@@ -13,7 +13,7 @@ import {
 } from "@v2/db";
 import { z } from "zod";
 
-import { LOCAL_USER_ID } from "./identity";
+import { LOCAL_USER_ID, resolveEditorUserId } from "./identity";
 import { getPlatform } from "./platform";
 
 const idSchema = z.string().min(1).max(120);
@@ -91,6 +91,8 @@ const db = async () => {
   return createDb(env.DB);
 };
 
+const d1 = async () => (await getPlatform()).env.DB;
+
 export const handleCharactersRequest = async (request: Request): Promise<Response> => {
   if (request.method !== "POST") return message(405, "この操作には対応していません。");
   const requestError = mutationRequestError(request);
@@ -113,7 +115,12 @@ export const handleCharacterRequest = async (id: string, request: Request): Prom
   try {
     const database = await db();
     if (request.method === "GET") {
-      const result = await readCharacterDetail(database, parsedId.data, LOCAL_USER_ID);
+      // 旧名義のキャラはその名義で所有を確かめる（local 固定だと読めない）。
+      const result = await readCharacterDetail(
+        database,
+        parsedId.data,
+        await resolveEditorUserId(await d1(), database, parsedId.data),
+      );
       return result
         ? privateJson(result)
         : message(404, "キャラクターまたは指定された版が見つかりません。");
@@ -127,7 +134,7 @@ export const handleCharacterRequest = async (id: string, request: Request): Prom
       if (!content.success) return message(422, "入力内容を確認してください。");
       const result = await updateCharacterWithVersion(database, {
         id: parsedId.data,
-        userId: LOCAL_USER_ID,
+        userId: await resolveEditorUserId(await d1(), database, parsedId.data),
         expectedRevision: payload.expectedRevision,
         content: content.data,
       });
@@ -149,7 +156,12 @@ export const handleCharacterVersionsRequest = async (
   const parsedId = idSchema.safeParse(id);
   if (!parsedId.success) return message(422, "入力内容を確認してください。");
   try {
-    const result = await listCharacterVersions(await db(), parsedId.data, LOCAL_USER_ID);
+    const database = await db();
+    const result = await listCharacterVersions(
+      database,
+      parsedId.data,
+      await resolveEditorUserId(await d1(), database, parsedId.data),
+    );
     return result
       ? privateJson(result)
       : message(404, "キャラクターまたは指定された版が見つかりません。");
@@ -167,10 +179,11 @@ export const handleCharacterVersionRequest = async (
   const parsed = z.object({ id: idSchema, versionId: idSchema }).safeParse({ id, versionId });
   if (!parsed.success) return message(422, "入力内容を確認してください。");
   try {
-    const result = await readCharacterVersion(await db(), {
+    const database = await db();
+    const result = await readCharacterVersion(database, {
       characterId: parsed.data.id,
       versionId: parsed.data.versionId,
-      userId: LOCAL_USER_ID,
+      userId: await resolveEditorUserId(await d1(), database, parsed.data.id),
     });
     return result
       ? privateJson(result)
@@ -192,9 +205,10 @@ export const handleCharacterRestoreRequest = async (
   const payload = await readBody(request, restoreSchema);
   if (payload instanceof Response) return payload;
   try {
-    const result = await restoreCharacterVersion(await db(), {
+    const database = await db();
+    const result = await restoreCharacterVersion(database, {
       id: parsedId.data,
-      userId: LOCAL_USER_ID,
+      userId: await resolveEditorUserId(await d1(), database, parsedId.data),
       ...payload,
     });
     return privateJson({ id: parsedId.data, ...result });

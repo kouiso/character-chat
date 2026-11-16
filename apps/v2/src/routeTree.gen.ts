@@ -37,7 +37,9 @@ import { Route as GroupsIndexRouteImport } from './routes/groups/index'
 import { Route as GroupsIdRouteImport } from './routes/groups/$id'
 import { Route as StoriesIndexRouteImport } from './routes/stories/index'
 import { Route as StoriesIdRouteImport } from './routes/stories/$id'
+import { Route as ApiAdminCharacterCheckRouteImport } from './routes/api/admin/character-check'
 import { Route as ApiAdminFailureDrillRouteImport } from './routes/api/admin/failure-drill'
+import { Route as ApiAdminImageCheckRouteImport } from './routes/api/admin/image-check'
 import { Route as ApiAdminLegacyMigrationRouteImport } from './routes/api/admin/legacy-migration'
 import { Route as ApiBoardIdRouteImport } from './routes/api/board/$id'
 import { Route as ApiCatalogIdRouteImport } from './routes/api/catalog/$id'
@@ -64,6 +66,7 @@ import { Route as ApiCatalogIdForkRouteImport } from './routes/api/catalog/$id_/
 import { Route as ApiCatalogIdLikeRouteImport } from './routes/api/catalog/$id_/like'
 import { Route as ApiCatalogIdReactionsRouteImport } from './routes/api/catalog/$id_/reactions'
 import { Route as ApiCatalogIdTipRouteImport } from './routes/api/catalog/$id_/tip'
+import { Route as ApiCharactersIdAvatarRouteImport } from './routes/api/characters/$id_/avatar'
 import { Route as ApiCharactersIdDocumentsRouteImport } from './routes/api/characters/$id_/documents'
 import { Route as ApiCharactersIdMemoriesRouteImport } from './routes/api/characters/$id_/memories'
 import { Route as ApiCharactersIdPublishRouteImport } from './routes/api/characters/$id_/publish'
@@ -233,9 +236,19 @@ const StoriesIdRoute = StoriesIdRouteImport.update({
   path: '/stories/$id',
   getParentRoute: () => rootRouteImport,
 })
+const ApiAdminCharacterCheckRoute = ApiAdminCharacterCheckRouteImport.update({
+  id: '/api/admin/character-check',
+  path: '/api/admin/character-check',
+  getParentRoute: () => rootRouteImport,
+})
 const ApiAdminFailureDrillRoute = ApiAdminFailureDrillRouteImport.update({
   id: '/api/admin/failure-drill',
   path: '/api/admin/failure-drill',
+  getParentRoute: () => rootRouteImport,
+})
+const ApiAdminImageCheckRoute = ApiAdminImageCheckRouteImport.update({
+  id: '/api/admin/image-check',
+  path: '/api/admin/image-check',
   getParentRoute: () => rootRouteImport,
 })
 const ApiAdminLegacyMigrationRoute = ApiAdminLegacyMigrationRouteImport.update({
@@ -367,6 +380,11 @@ const ApiCatalogIdTipRoute = ApiCatalogIdTipRouteImport.update({
   id: '/$id_/tip',
   path: '/$id/tip',
   getParentRoute: () => ApiCatalogRoute,
+})
+const ApiCharactersIdAvatarRoute = ApiCharactersIdAvatarRouteImport.update({
+  id: '/$id_/avatar',
+  path: '/$id/avatar',
+  getParentRoute: () => ApiCharactersRoute,
 })
 const ApiCharactersIdDocumentsRoute =
   ApiCharactersIdDocumentsRouteImport.update({
@@ -547,7 +565,9 @@ export interface FileRoutesByFullPath {
   '/stories/$id': typeof StoriesIdRouteWithChildren
   '/groups/': typeof GroupsIndexRoute
   '/stories/': typeof StoriesIndexRoute
+  '/api/admin/character-check': typeof ApiAdminCharacterCheckRoute
   '/api/admin/failure-drill': typeof ApiAdminFailureDrillRoute
+  '/api/admin/image-check': typeof ApiAdminImageCheckRoute
   '/api/admin/legacy-migration': typeof ApiAdminLegacyMigrationRoute
   '/api/board/$id': typeof ApiBoardIdRoute
   '/api/catalog/$id': typeof ApiCatalogIdRoute
@@ -574,6 +594,7 @@ export interface FileRoutesByFullPath {
   '/api/catalog/$id/like': typeof ApiCatalogIdLikeRoute
   '/api/catalog/$id/reactions': typeof ApiCatalogIdReactionsRoute
   '/api/catalog/$id/tip': typeof ApiCatalogIdTipRoute
+  '/api/characters/$id/avatar': typeof ApiCharactersIdAvatarRoute
   '/api/characters/$id/documents': typeof ApiCharactersIdDocumentsRouteWithChildren
   '/api/characters/$id/memories': typeof ApiCharactersIdMemoriesRoute
   '/api/characters/$id/publish': typeof ApiCharactersIdPublishRoute
@@ -632,7 +653,9 @@ export interface FileRoutesByTo {
   '/stories/$id': typeof StoriesIdRouteWithChildren
   '/groups': typeof GroupsIndexRoute
   '/stories': typeof StoriesIndexRoute
+  '/api/admin/character-check': typeof ApiAdminCharacterCheckRoute
   '/api/admin/failure-drill': typeof ApiAdminFailureDrillRoute
+  '/api/admin/image-check': typeof ApiAdminImageCheckRoute
   '/api/admin/legacy-migration': typeof ApiAdminLegacyMigrationRoute
   '/api/board/$id': typeof ApiBoardIdRoute
   '/api/catalog/$id': typeof ApiCatalogIdRoute
@@ -659,6 +682,7 @@ export interface FileRoutesByTo {
   '/api/catalog/$id/like': typeof ApiCatalogIdLikeRoute
   '/api/catalog/$id/reactions': typeof ApiCatalogIdReactionsRoute
   '/api/catalog/$id/tip': typeof ApiCatalogIdTipRoute
+  '/api/characters/$id/avatar': typeof ApiCharactersIdAvatarRoute
   '/api/characters/$id/documents': typeof ApiCharactersIdDocumentsRouteWithChildren
   '/api/characters/$id/memories': typeof ApiCharactersIdMemoriesRoute
   '/api/characters/$id/publish': typeof ApiCharactersIdPublishRoute
@@ -718,7 +742,9 @@ export interface FileRoutesById {
   '/stories/$id': typeof StoriesIdRouteWithChildren
   '/groups/': typeof GroupsIndexRoute
   '/stories/': typeof StoriesIndexRoute
+  '/api/admin/character-check': typeof ApiAdminCharacterCheckRoute
   '/api/admin/failure-drill': typeof ApiAdminFailureDrillRoute
+  '/api/admin/image-check': typeof ApiAdminImageCheckRoute
   '/api/admin/legacy-migration': typeof ApiAdminLegacyMigrationRoute
   '/api/board/$id': typeof ApiBoardIdRoute
   '/api/catalog/$id': typeof ApiCatalogIdRoute
@@ -745,6 +771,7 @@ export interface FileRoutesById {
   '/api/catalog/$id_/like': typeof ApiCatalogIdLikeRoute
   '/api/catalog/$id_/reactions': typeof ApiCatalogIdReactionsRoute
   '/api/catalog/$id_/tip': typeof ApiCatalogIdTipRoute
+  '/api/characters/$id_/avatar': typeof ApiCharactersIdAvatarRoute
   '/api/characters/$id_/documents': typeof ApiCharactersIdDocumentsRouteWithChildren
   '/api/characters/$id_/memories': typeof ApiCharactersIdMemoriesRoute
   '/api/characters/$id_/publish': typeof ApiCharactersIdPublishRoute
@@ -805,7 +832,9 @@ export interface FileRouteTypes {
     | '/stories/$id'
     | '/groups/'
     | '/stories/'
+    | '/api/admin/character-check'
     | '/api/admin/failure-drill'
+    | '/api/admin/image-check'
     | '/api/admin/legacy-migration'
     | '/api/board/$id'
     | '/api/catalog/$id'
@@ -832,6 +861,7 @@ export interface FileRouteTypes {
     | '/api/catalog/$id/like'
     | '/api/catalog/$id/reactions'
     | '/api/catalog/$id/tip'
+    | '/api/characters/$id/avatar'
     | '/api/characters/$id/documents'
     | '/api/characters/$id/memories'
     | '/api/characters/$id/publish'
@@ -890,7 +920,9 @@ export interface FileRouteTypes {
     | '/stories/$id'
     | '/groups'
     | '/stories'
+    | '/api/admin/character-check'
     | '/api/admin/failure-drill'
+    | '/api/admin/image-check'
     | '/api/admin/legacy-migration'
     | '/api/board/$id'
     | '/api/catalog/$id'
@@ -917,6 +949,7 @@ export interface FileRouteTypes {
     | '/api/catalog/$id/like'
     | '/api/catalog/$id/reactions'
     | '/api/catalog/$id/tip'
+    | '/api/characters/$id/avatar'
     | '/api/characters/$id/documents'
     | '/api/characters/$id/memories'
     | '/api/characters/$id/publish'
@@ -975,7 +1008,9 @@ export interface FileRouteTypes {
     | '/stories/$id'
     | '/groups/'
     | '/stories/'
+    | '/api/admin/character-check'
     | '/api/admin/failure-drill'
+    | '/api/admin/image-check'
     | '/api/admin/legacy-migration'
     | '/api/board/$id'
     | '/api/catalog/$id'
@@ -1002,6 +1037,7 @@ export interface FileRouteTypes {
     | '/api/catalog/$id_/like'
     | '/api/catalog/$id_/reactions'
     | '/api/catalog/$id_/tip'
+    | '/api/characters/$id_/avatar'
     | '/api/characters/$id_/documents'
     | '/api/characters/$id_/memories'
     | '/api/characters/$id_/publish'
@@ -1061,7 +1097,9 @@ export interface RootRouteChildren {
   StoriesIdRoute: typeof StoriesIdRouteWithChildren
   GroupsIndexRoute: typeof GroupsIndexRoute
   StoriesIndexRoute: typeof StoriesIndexRoute
+  ApiAdminCharacterCheckRoute: typeof ApiAdminCharacterCheckRoute
   ApiAdminFailureDrillRoute: typeof ApiAdminFailureDrillRoute
+  ApiAdminImageCheckRoute: typeof ApiAdminImageCheckRoute
   ApiAdminLegacyMigrationRoute: typeof ApiAdminLegacyMigrationRoute
   ApiChapterMediaIdRoute: typeof ApiChapterMediaIdRoute
   ApiChapterVideoIdRoute: typeof ApiChapterVideoIdRoute
@@ -1282,11 +1320,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StoriesIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/character-check': {
+      id: '/api/admin/character-check'
+      path: '/api/admin/character-check'
+      fullPath: '/api/admin/character-check'
+      preLoaderRoute: typeof ApiAdminCharacterCheckRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/admin/failure-drill': {
       id: '/api/admin/failure-drill'
       path: '/api/admin/failure-drill'
       fullPath: '/api/admin/failure-drill'
       preLoaderRoute: typeof ApiAdminFailureDrillRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/image-check': {
+      id: '/api/admin/image-check'
+      path: '/api/admin/image-check'
+      fullPath: '/api/admin/image-check'
+      preLoaderRoute: typeof ApiAdminImageCheckRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/admin/legacy-migration': {
@@ -1470,6 +1522,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/catalog/$id/tip'
       preLoaderRoute: typeof ApiCatalogIdTipRouteImport
       parentRoute: typeof ApiCatalogRoute
+    }
+    '/api/characters/$id_/avatar': {
+      id: '/api/characters/$id_/avatar'
+      path: '/$id/avatar'
+      fullPath: '/api/characters/$id/avatar'
+      preLoaderRoute: typeof ApiCharactersIdAvatarRouteImport
+      parentRoute: typeof ApiCharactersRoute
     }
     '/api/characters/$id_/documents': {
       id: '/api/characters/$id_/documents'
@@ -1747,6 +1806,7 @@ const ApiCharactersIdVersionsRouteWithChildren =
 
 interface ApiCharactersRouteChildren {
   ApiCharactersIdRoute: typeof ApiCharactersIdRoute
+  ApiCharactersIdAvatarRoute: typeof ApiCharactersIdAvatarRoute
   ApiCharactersIdDocumentsRoute: typeof ApiCharactersIdDocumentsRouteWithChildren
   ApiCharactersIdMemoriesRoute: typeof ApiCharactersIdMemoriesRoute
   ApiCharactersIdPublishRoute: typeof ApiCharactersIdPublishRoute
@@ -1758,6 +1818,7 @@ interface ApiCharactersRouteChildren {
 
 const ApiCharactersRouteChildren: ApiCharactersRouteChildren = {
   ApiCharactersIdRoute: ApiCharactersIdRoute,
+  ApiCharactersIdAvatarRoute: ApiCharactersIdAvatarRoute,
   ApiCharactersIdDocumentsRoute: ApiCharactersIdDocumentsRouteWithChildren,
   ApiCharactersIdMemoriesRoute: ApiCharactersIdMemoriesRoute,
   ApiCharactersIdPublishRoute: ApiCharactersIdPublishRoute,
@@ -1899,7 +1960,9 @@ const rootRouteChildren: RootRouteChildren = {
   StoriesIdRoute: StoriesIdRouteWithChildren,
   GroupsIndexRoute: GroupsIndexRoute,
   StoriesIndexRoute: StoriesIndexRoute,
+  ApiAdminCharacterCheckRoute: ApiAdminCharacterCheckRoute,
   ApiAdminFailureDrillRoute: ApiAdminFailureDrillRoute,
+  ApiAdminImageCheckRoute: ApiAdminImageCheckRoute,
   ApiAdminLegacyMigrationRoute: ApiAdminLegacyMigrationRoute,
   ApiChapterMediaIdRoute: ApiChapterMediaIdRoute,
   ApiChapterVideoIdRoute: ApiChapterVideoIdRoute,
