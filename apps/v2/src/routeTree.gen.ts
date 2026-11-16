@@ -10,10 +10,12 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AlbumRouteImport } from './routes/album'
 import { Route as BoardRouteImport } from './routes/board'
 import { Route as CatalogRouteImport } from './routes/catalog'
 import { Route as ClipsRouteImport } from './routes/clips'
 import { Route as CreateRouteImport } from './routes/create'
+import { Route as MyRouteImport } from './routes/my'
 import { Route as RevenueRouteImport } from './routes/revenue'
 import { Route as ApiBoardRouteImport } from './routes/api/board'
 import { Route as ApiCatalogRouteImport } from './routes/api/catalog'
@@ -94,6 +96,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 })
+const AlbumRoute = AlbumRouteImport.update({
+  id: '/album',
+  path: '/album',
+  getParentRoute: () => rootRouteImport,
+})
 const BoardRoute = BoardRouteImport.update({
   id: '/board',
   path: '/board',
@@ -112,6 +119,11 @@ const ClipsRoute = ClipsRouteImport.update({
 const CreateRoute = CreateRouteImport.update({
   id: '/create',
   path: '/create',
+  getParentRoute: () => rootRouteImport,
+})
+const MyRoute = MyRouteImport.update({
+  id: '/my',
+  path: '/my',
   getParentRoute: () => rootRouteImport,
 })
 const RevenueRoute = RevenueRouteImport.update({
@@ -495,10 +507,12 @@ const ApiStoriesIdChaptersCidVideoRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/album': typeof AlbumRoute
   '/board': typeof BoardRoute
   '/catalog': typeof CatalogRoute
   '/clips': typeof ClipsRoute
   '/create': typeof CreateRoute
+  '/my': typeof MyRoute
   '/revenue': typeof RevenueRoute
   '/api/board': typeof ApiBoardRouteWithChildren
   '/api/catalog': typeof ApiCatalogRouteWithChildren
@@ -576,10 +590,12 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/album': typeof AlbumRoute
   '/board': typeof BoardRoute
   '/catalog': typeof CatalogRoute
   '/clips': typeof ClipsRoute
   '/create': typeof CreateRoute
+  '/my': typeof MyRoute
   '/revenue': typeof RevenueRoute
   '/api/board': typeof ApiBoardRouteWithChildren
   '/api/catalog': typeof ApiCatalogRouteWithChildren
@@ -658,10 +674,12 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/album': typeof AlbumRoute
   '/board': typeof BoardRoute
   '/catalog': typeof CatalogRoute
   '/clips': typeof ClipsRoute
   '/create': typeof CreateRoute
+  '/my': typeof MyRoute
   '/revenue': typeof RevenueRoute
   '/api/board': typeof ApiBoardRouteWithChildren
   '/api/catalog': typeof ApiCatalogRouteWithChildren
@@ -741,10 +759,12 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/album'
     | '/board'
     | '/catalog'
     | '/clips'
     | '/create'
+    | '/my'
     | '/revenue'
     | '/api/board'
     | '/api/catalog'
@@ -822,10 +842,12 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/album'
     | '/board'
     | '/catalog'
     | '/clips'
     | '/create'
+    | '/my'
     | '/revenue'
     | '/api/board'
     | '/api/catalog'
@@ -903,10 +925,12 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/album'
     | '/board'
     | '/catalog'
     | '/clips'
     | '/create'
+    | '/my'
     | '/revenue'
     | '/api/board'
     | '/api/catalog'
@@ -985,10 +1009,12 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AlbumRoute: typeof AlbumRoute
   BoardRoute: typeof BoardRoute
   CatalogRoute: typeof CatalogRoute
   ClipsRoute: typeof ClipsRoute
   CreateRoute: typeof CreateRoute
+  MyRoute: typeof MyRoute
   RevenueRoute: typeof RevenueRoute
   ApiBoardRoute: typeof ApiBoardRouteWithChildren
   ApiCatalogRoute: typeof ApiCatalogRouteWithChildren
@@ -1041,6 +1067,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/album': {
+      id: '/album'
+      path: '/album'
+      fullPath: '/album'
+      preLoaderRoute: typeof AlbumRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/board': {
       id: '/board'
       path: '/board'
@@ -1067,6 +1100,13 @@ declare module '@tanstack/react-router' {
       path: '/create'
       fullPath: '/create'
       preLoaderRoute: typeof CreateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/my': {
+      id: '/my'
+      path: '/my'
+      fullPath: '/my'
+      preLoaderRoute: typeof MyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/revenue': {
@@ -1790,10 +1830,12 @@ const StoriesIdRouteWithChildren = StoriesIdRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AlbumRoute: AlbumRoute,
   BoardRoute: BoardRoute,
   CatalogRoute: CatalogRoute,
   ClipsRoute: ClipsRoute,
   CreateRoute: CreateRoute,
+  MyRoute: MyRoute,
   RevenueRoute: RevenueRoute,
   ApiBoardRoute: ApiBoardRouteWithChildren,
   ApiCatalogRoute: ApiCatalogRouteWithChildren,

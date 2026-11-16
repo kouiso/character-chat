@@ -1,10 +1,10 @@
 :root {
   color-scheme: dark;
-  --bg: #0f0f14;
-  --panel: #1a1a22;
-  --text: #f0f0f5;
-  --muted: #9494a6;
-  --accent: #ff5f8f;
+  --bg: var(--color-ground-flat);
+  --panel: var(--color-surface-to);
+  --text: var(--color-text);
+  --muted: var(--color-text-sub);
+  --accent: var(--color-peach);
 }
 
 * {
@@ -21,7 +21,9 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-family: var(--font-body);
+  letter-spacing: var(--text-tracking);
+  padding-top: var(--safe-top);
 }
 
 .v2-group-messages {
