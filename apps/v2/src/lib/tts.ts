@@ -37,7 +37,11 @@ const requestServerClip = async (
     return null;
   }
   if (!res.ok) {
-    serverTtsDownUntil = Date.now() + SERVER_TTS_RETRY_MS;
+    // 501 = サーバにエンジン未設定（本番の定常状態）。以後このセッションでは
+    // /api/tts を叩かずブラウザ TTS へ直行する。503 等の一時失敗だけが
+    // クールダウン再試行の対象（ローカルのエンジン後起動を拾うため）。
+    serverTtsDownUntil =
+      res.status === 501 ? Number.POSITIVE_INFINITY : Date.now() + SERVER_TTS_RETRY_MS;
     return null;
   }
   const url = URL.createObjectURL(await res.blob());

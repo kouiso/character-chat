@@ -76,6 +76,19 @@ describe("playVoiceText fallback", () => {
     expect(utterances.map((u) => u.text)).toEqual(["一つ目", "二つ目"]);
   });
 
+  it("treats 501 (engine not configured) as permanent and never retries /api/tts", async () => {
+    const fetchMock = vi.fn(async () => new Response(null, { status: 501 }));
+    vi.stubGlobal("fetch", fetchMock);
+    const { playVoiceText } = await loadTts();
+    playVoiceText("char-1", "<dialogue>一発目</dialogue>", () => {});
+    await vi.advanceTimersByTimeAsync(10);
+    playVoiceText("char-1", "<dialogue>二発目</dialogue>", () => {});
+    await vi.advanceTimersByTimeAsync(60_000);
+    // 501 を受けた後はクールダウン切れを待たずに以後一切サーバへ投げない
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(utterances.map((u) => u.text)).toEqual(["一発目", "二発目"]);
+  });
+
   it("does not speak narration or inner layers", async () => {
     vi.stubGlobal(
       "fetch",

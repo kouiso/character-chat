@@ -61,8 +61,12 @@ export const handleTtsRequest = async (request: Request): Promise<Response> => {
   const { characterId, text, layer } = parsed.data;
   if (!(await ownsCharacter(env.DB, characterId))) return json(404, { error: "not_found" });
   const settings = await readVoiceSettings(env.DB, characterId);
+  const baseUrl = engineBaseUrl(env, settings.engine);
+  // 501: エンジン未設定（本番は常時こちら）。一時的なエンジン停止の 503 とは
+  // 区別する — クライアントは 501 を受けたら再試行せずブラウザ TTS へ倒れる。
+  if (baseUrl === null) return json(501, { error: "tts_not_configured" });
   try {
-    return await synthesizeSpeech(engineBaseUrl(env, settings.engine), settings, text, layer);
+    return await synthesizeSpeech(baseUrl, settings, text, layer);
   } catch {
     return json(503, { error: "tts_unavailable" });
   }

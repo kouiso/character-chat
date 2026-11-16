@@ -52,10 +52,13 @@ interface TtsEnv {
   V2_TTS_AIVIS_URL?: string;
 }
 
-// エンジン別の接続先。ローカル実行前提の既定値（VOICEVOX:50021 / AivisSpeech:10101）
-export const engineBaseUrl = (env: TtsEnv, engine: VoiceEngine): string => {
-  if (engine === "aivisspeech") return env.V2_TTS_AIVIS_URL ?? "http://localhost:10101";
-  return env.V2_TTS_VOICEVOX_URL ?? "http://localhost:50021";
+// エンジン別の接続先。未設定なら null を返す — localhost 既定値は付けない。
+// Workers 上で localhost は Worker 自身を指すので、「既定値あり」の見せかけが
+// 本番での到達不能 fetch を常時発生させていた（デタラメ動作の根因）。
+// ローカル開発でエンジンを使う場合は wrangler.jsonc の開発用 vars に明示する。
+export const engineBaseUrl = (env: TtsEnv, engine: VoiceEngine): string | null => {
+  if (engine === "aivisspeech") return env.V2_TTS_AIVIS_URL ?? null;
+  return env.V2_TTS_VOICEVOX_URL ?? null;
 };
 
 // RIT-211: VOICEVOX 系2段合成（audio_query→synthesis）。AivisSpeech は
