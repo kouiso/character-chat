@@ -224,20 +224,15 @@ export const resolveJudgeTransport = (env: NodeJS.ProcessEnv): JudgeTransport =>
     }
   }
 
-  if (explicit === "codex" || (explicit === null && commandExists("codex") && freeKey === null)) {
-    // codex だけを選ぶ明示か 他に鍵が無い時の自動選択
-    if (
-      explicit === "codex" ||
-      firstNonEmpty(env, ["CLAUDE_OAUTH_TOKEN", "CLAUDE_SESSION_TOKEN"]) === null
-    ) {
-      return {
-        kind: "codex",
-        apiKey: "codex-cli",
-        model: judgeModel ?? "gpt-5.1-codex-mini",
-        fetchImpl: codexFetchImpl,
-        note: "codex CLI（Codex 月額認証）",
-      };
-    }
+  // codex だけを選ぶ明示はここで即決。自動選択は Claude 系（無料鍵→OAuth→Keychain）より後
+  if (explicit === "codex") {
+    return {
+      kind: "codex",
+      apiKey: "codex-cli",
+      model: judgeModel ?? "gpt-5.1-codex-mini",
+      fetchImpl: codexFetchImpl,
+      note: "codex CLI（Codex 月額認証）",
+    };
   }
 
   const oauth = firstNonEmpty(env, ["CLAUDE_OAUTH_TOKEN", "CLAUDE_SESSION_TOKEN"]);
@@ -258,6 +253,15 @@ export const resolveJudgeTransport = (env: NodeJS.ProcessEnv): JudgeTransport =>
         env,
         "macOS Keychain の Claude Code 認証（月額）",
       );
+    }
+    if (commandExists("codex")) {
+      return {
+        kind: "codex",
+        apiKey: "codex-cli",
+        model: judgeModel ?? "gpt-5.1-codex-mini",
+        fetchImpl: codexFetchImpl,
+        note: "codex CLI（Codex 月額認証）",
+      };
     }
   }
 
