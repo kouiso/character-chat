@@ -77,6 +77,32 @@ const withoutPending = (history: ChatBubble[], pending: PendingTurn): ChatBubble
     : history;
 };
 
+// 並びの位置を key にすると、前の発言が消えた時に開いた操作欄が次の発言へ付け替わる。
+// 一方、枝の切り替えは同じターン・同じ役割の別の行を active にして行の id を変えるので、
+// id を key にすると切り替えた行の枝操作欄が作り直されて閉じる。保存済みの行は
+// 「ターン + 役割」（active は 1 行だけ・ターン番号は保存値で詰まらない）で区別する。
+// 万一同じ組が重なる時だけ id を足して衝突を避ける。id を持たない行は、送信中の返信なら
+// 固定名、確定済みの断片なら同じ役割の中での出現順で区別する。
+const bubbleKeys = (bubbles: ChatBubble[]): string[] => {
+  const groupOf = (bubble: ChatBubble) => `${bubble.turn}:${bubble.role}`;
+  const groupCount = new Map<string, number>();
+  for (const bubble of bubbles) {
+    if (bubble.id === undefined || bubble.turn === undefined) continue;
+    groupCount.set(groupOf(bubble), (groupCount.get(groupOf(bubble)) ?? 0) + 1);
+  }
+  const localCount = { user: 0, assistant: 0 };
+  return bubbles.map((bubble) => {
+    if (bubble.id !== undefined && bubble.turn !== undefined) {
+      const group = groupOf(bubble);
+      return (groupCount.get(group) ?? 0) > 1 ? `${group}:${bubble.id}` : group;
+    }
+    if (bubble.pending) return `pending-${bubble.role}`;
+    const key = `local-${bubble.role}-${localCount[bubble.role]}`;
+    localCount[bubble.role] += 1;
+    return key;
+  });
+};
+
 const failureMessage = (cause: unknown): string =>
   cause instanceof Error ? cause.message : "返信を確認できませんでした。";
 
@@ -737,6 +763,8 @@ export const ChatView = ({
     target?.scrollIntoView({ block: "center" });
   };
 
+  const keys = bubbleKeys(bubbles);
+
   return (
     <div className="v2-chat" data-hide-inner={!showInner} ref={rootRef}>
       <div className="v2-chat-header">
@@ -765,7 +793,7 @@ export const ChatView = ({
       <ChatMessageLog key={characterId} busy={busy}>
         {bubbles.map((bubble, index) => (
           // LINE 型の見た目に寄せるため、相手の発言はアイコン付きの行にする（本人専用の顔出し）。
-          <div key={index} className={`v2-turn-row ${bubble.role}`}>
+          <div key={keys[index]} className={`v2-turn-row ${bubble.role}`}>
             {bubble.role === "assistant" && (
               <span className="v2-avatar" aria-hidden>
                 {characterName.slice(0, 1)}
