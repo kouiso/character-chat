@@ -6,6 +6,7 @@
 // 確認だけで見た expected の一致がそろった時だけで、ずれていれば何も書かず 409。
 import {
   createDb,
+  describeError,
   LegacyPlanChangedError,
   listLegacySources,
   migrateLegacyConversations,
@@ -15,6 +16,7 @@ import {
 import { z } from "zod";
 
 import { LOCAL_USER_ID } from "./identity";
+import { reportFailure } from "./log";
 import { getPlatform } from "./platform";
 
 const sourceOwnerSchema = z.string().regex(/^(local|owner-[0-9a-f]{8})$/);
@@ -142,7 +144,14 @@ export const handleLegacyMigration = async (request: Request): Promise<Response>
         return await runVerify(db, parsed.data);
     }
   } catch (e) {
-    console.error("legacy-migration failed", e);
+    reportFailure(env, {
+      event: "legacy_migration_failed",
+      level: "error",
+      status: 500,
+      method: request.method,
+      route: "/api/admin/legacy-migration",
+      reason: describeError(e),
+    });
     return errorJson("internal", 500);
   }
 };

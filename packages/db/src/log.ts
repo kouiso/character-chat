@@ -19,6 +19,7 @@ export type LogEventName =
   | "document_r2_delete_failed"
   | "document_retrieval_failed"
   | "proactive_push_failed"
+  | "legacy_migration_failed"
   | "image_generation_error"
   | "image_lora_trigger_missing"
   | "ledger_fallback"
