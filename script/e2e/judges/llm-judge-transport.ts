@@ -179,6 +179,19 @@ export const resolveJudgeTransport = (env: NodeJS.ProcessEnv): JudgeTransport =>
   const explicit = firstNonEmpty(env, ["AIQ_JUDGE", "EVAL_JUDGE_TRANSPORT"]);
   const judgeModel = firstNonEmpty(env, ["EVAL_JUDGE_MODEL"]);
 
+  // MOCK_API_BASE は OpenAI 形のモックへ送る契約。自動選択で Claude/codex を拾うと
+  // モックを素通りして実サービスへ行くので、未明示の時は openrouter 形に固定する。
+  // 明示(AIQ_JUDGE等)がある時は利用者の意思を優先する。
+  if (explicit === null && firstNonEmpty(env, ["MOCK_API_BASE"]) !== null) {
+    return {
+      kind: "openrouter",
+      apiKey: firstNonEmpty(env, ["OPENROUTER_API_KEY"]) ?? "",
+      model: judgeModel ?? "",
+      fetchImpl: fetch,
+      note: "MOCK_API_BASE 指定のためモックへ送る",
+    };
+  }
+
   if (explicit === "openrouter") {
     return {
       kind: "openrouter",

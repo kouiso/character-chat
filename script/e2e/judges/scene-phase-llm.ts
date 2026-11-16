@@ -105,7 +105,13 @@ export async function judgePhaseWithLlm(args: {
       // AIQ_JUDGE/EVAL_JUDGE_TRANSPORT や鍵の有無で Claude/codex を判定役に切り替える。
       // 何も指定が無ければ従来どおり OpenRouter（CI の既定経路は変わらん）
       const transport = resolveJudgeTransport(process.env);
-      const apiKey = transport.kind === "openrouter" ? readOpenRouterApiKey() : transport.apiKey;
+      // モック向き先(apiKey 不要)では鍵が無くても呼べるように、transport が持つ鍵を優先する
+      const apiKey =
+        transport.kind === "openrouter"
+          ? transport.apiKey !== ""
+            ? transport.apiKey
+            : readOpenRouterApiKey()
+          : transport.apiKey;
       const result = await classifySubtextEscalation({
         messages: args.recentTurnsForClassifier,
         apiKey,

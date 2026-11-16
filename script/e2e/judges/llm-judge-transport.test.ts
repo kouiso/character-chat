@@ -35,6 +35,30 @@ describe("resolveJudgeTransport", () => {
     ).toThrow();
   });
 
+  it("MOCK_API_BASE がある時は鍵があっても openrouter 形でモックへ送る", () => {
+    const t = resolveJudgeTransport(
+      env({
+        MOCK_API_BASE: "http://127.0.0.1:8790",
+        ANTHROPIC_API_KEY_FOR_EVAL: "sk-ant-key",
+        CLAUDE_OAUTH_TOKEN: "sk-ant-oat0-token",
+        AIQ_JUDGE: "",
+        EVAL_JUDGE_TRANSPORT: "",
+      }),
+    );
+    expect(t.kind).toBe("openrouter");
+  });
+
+  it("MOCK_API_BASE があっても AIQ_JUDGE 明示は利用者の意思を優先する", () => {
+    const t = resolveJudgeTransport(
+      env({
+        MOCK_API_BASE: "http://127.0.0.1:8790",
+        AIQ_JUDGE: "anthropic",
+        ANTHROPIC_API_KEY_FOR_EVAL: "sk-ant-key",
+      }),
+    );
+    expect(t.kind).toBe("anthropic");
+  });
+
   it("何も無ければ openrouter 既定に戻る", () => {
     const t = resolveJudgeTransport(
       env({
