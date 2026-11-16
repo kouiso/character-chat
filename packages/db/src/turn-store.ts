@@ -751,6 +751,164 @@ const saveAssistantBranchTurn = async (args: {
   return { chunkSendAt: sendTimes };
 };
 
+// 通常経路の保存: 会話行を起こし、同ターンの表示中行を置き換えて
+// user/assistant/chunk/ledger/generation・記憶仕事・記憶の使用記録を 1 バッチで書く。
+const saveTurnMainLine = async (args: {
+  db: V2Db;
+  opts: D1TurnStoreOptions;
+  input: Parameters<TurnStore["saveTurn"]>[0];
+  now: number;
+  chunks: ChunkEvent[];
+  sendTimes: number[];
+  dropped: DroppedEvent[];
+  generations: GenerationEvent[];
+  assistantText: string;
+  userMessageId: string;
+  assistantMessageId: string;
+  sameTurnActive: SQL | undefined;
+  threadId: string;
+  lastGeneration: GenerationEvent | undefined;
+  userBranchMax: number;
+  assistantBranchMax: number;
+}) => {
+  const {
+    db,
+    opts,
+    input,
+    now,
+    chunks,
+    sendTimes,
+    dropped,
+    generations,
+    assistantText,
+    userMessageId,
+    assistantMessageId,
+    sameTurnActive,
+    threadId,
+    lastGeneration,
+    userBranchMax,
+    assistantBranchMax,
+  } = args;
+  await db.batch([
+    db
+      .insert(v2ConversationTable)
+      .values({
+        id: input.conversationId,
+        userId: opts.userId,
+        characterId: opts.characterId,
+        threadId,
+        promptVersion: opts.promptVersion,
+        characterVersionId: toNull(opts.characterVersionId),
+        createdAt: now,
+        updatedAt: now,
+      })
+      .onConflictDoUpdate({
+        target: v2ConversationTable.id,
+        set: { updatedAt: now, threadId },
+      }),
+    db.delete(v2MemoryTable).where(
+      inArray(
+        v2MemoryTable.id,
+        db
+          .select({ id: v2MemorySourceTable.memoryId })
+          .from(v2MemorySourceTable)
+          .where(
+            inArray(
+              v2MemorySourceTable.sourceMessageId,
+              db.select({ id: v2MessageTable.id }).from(v2MessageTable).where(sameTurnActive),
+            ),
+          ),
+      ),
+    ),
+    // 置き換え: 同じ turn の表示中行を chunk → message → ledger → generation の順（FK の子から）で消す。
+    // 眠らせた枝（active=0）は記憶出処と生成記録ごと残す（RIT-202）。
+    db
+      .delete(v2ChunkTable)
+      .where(
+        inArray(
+          v2ChunkTable.messageId,
+          db.select({ id: v2MessageTable.id }).from(v2MessageTable).where(sameTurnActive),
+        ),
+      ),
+    db.delete(v2MessageTable).where(sameTurnActive),
+    db
+      .delete(v2LedgerTable)
+      .where(
+        and(
+          eq(v2LedgerTable.conversationId, input.conversationId),
+          eq(v2LedgerTable.turn, input.turn),
+        ),
+      ),
+    // 生成記録は消さない。失敗・枝替え・再送のどの経路でも実コールの出処として残す
+    // （RIT-188 の課金集計は行単位なので、置き換えで消すと過少計上になる）。
+    ...insertGenerationRows(db, generations, input, now),
+    db.insert(v2MessageTable).values({
+      id: userMessageId,
+      conversationId: input.conversationId,
+      turn: input.turn,
+      role: "user",
+      content: input.userText,
+      branchNo: userBranchMax + 1,
+      createdAt: now,
+    }),
+    db.insert(v2MessageTable).values({
+      id: assistantMessageId,
+      conversationId: input.conversationId,
+      turn: input.turn,
+      role: "assistant",
+      content: assistantText,
+      action: extractTag(assistantText, "action"),
+      dialogue: extractTag(assistantText, "dialogue"),
+      inner: extractTag(assistantText, "inner"),
+      generationId: toNull(lastGeneration?.generationId),
+      provider: toNull(lastGeneration?.provider),
+      upstreamId: toNull(lastGeneration?.upstreamId),
+      branchNo: assistantBranchMax + 1,
+      createdAt: now,
+    }),
+    // D1 は 1 文あたりのバインド変数が 100 個までなので、chunk は 1 行 1 文で入れる。
+    // 予定時刻は塊列から一括計算して行ごとに割り当てる（RIT-67）。
+    ...insertChunkRows(db, chunks, assistantMessageId, sendTimes, now),
+    // 判定で落ちて配らんかった塊も、理由つきで残す（RIT-70）。sendAt は無し。
+    ...insertDroppedRows(db, dropped, assistantMessageId, now),
+    db.insert(v2LedgerTable).values({
+      conversationId: input.conversationId,
+      turn: input.turn,
+      ledgerJson: JSON.stringify(input.ledger),
+      createdAt: now,
+    }),
+    ...(opts.extractMemory &&
+    assistantText.trim() &&
+    (!lastGeneration || lastGeneration.status !== "error")
+      ? [
+          db.insert(v2MemoryJobTable).values({
+            id: userMessageId,
+            sourceMessageId: userMessageId,
+            conversationId: input.conversationId,
+            userId: opts.userId,
+            characterId: opts.characterId,
+            sourceTurn: input.turn,
+            createdAt: now,
+            updatedAt: now,
+          }),
+        ]
+      : []),
+    // 記憶の使用記録（RIT-92）。同じ turn の保存し直しでは消してから入れ直す。
+    ...(input.usedMemoryIds === undefined
+      ? []
+      : memoryUseStatements(
+          db,
+          {
+            conversationId: input.conversationId,
+            turn: input.turn,
+            memoryIds: input.usedMemoryIds,
+          },
+          now,
+        )),
+  ]);
+  return { chunkSendAt: sendTimes };
+};
+
 export const createD1TurnStore = (db: V2Db, opts: D1TurnStoreOptions): TurnStore => ({
   load: async (conversationId) => {
     await assertConversationOwner(db, opts, conversationId);
@@ -857,123 +1015,23 @@ export const createD1TurnStore = (db: V2Db, opts: D1TurnStoreOptions): TurnStore
       });
     }
 
-    await db.batch([
-      db
-        .insert(v2ConversationTable)
-        .values({
-          id: input.conversationId,
-          userId: opts.userId,
-          characterId: opts.characterId,
-          threadId,
-          promptVersion: opts.promptVersion,
-          characterVersionId: toNull(opts.characterVersionId),
-          createdAt: now,
-          updatedAt: now,
-        })
-        .onConflictDoUpdate({
-          target: v2ConversationTable.id,
-          set: { updatedAt: now, threadId },
-        }),
-      db.delete(v2MemoryTable).where(
-        inArray(
-          v2MemoryTable.id,
-          db
-            .select({ id: v2MemorySourceTable.memoryId })
-            .from(v2MemorySourceTable)
-            .where(
-              inArray(
-                v2MemorySourceTable.sourceMessageId,
-                db.select({ id: v2MessageTable.id }).from(v2MessageTable).where(sameTurnActive),
-              ),
-            ),
-        ),
-      ),
-      // 置き換え: 同じ turn の表示中行を chunk → message → ledger → generation の順（FK の子から）で消す。
-      // 眠らせた枝（active=0）は記憶出処と生成記録ごと残す（RIT-202）。
-      db
-        .delete(v2ChunkTable)
-        .where(
-          inArray(
-            v2ChunkTable.messageId,
-            db.select({ id: v2MessageTable.id }).from(v2MessageTable).where(sameTurnActive),
-          ),
-        ),
-      db.delete(v2MessageTable).where(sameTurnActive),
-      db
-        .delete(v2LedgerTable)
-        .where(
-          and(
-            eq(v2LedgerTable.conversationId, input.conversationId),
-            eq(v2LedgerTable.turn, input.turn),
-          ),
-        ),
-      // 生成記録は消さない。失敗・枝替え・再送のどの経路でも実コールの出処として残す
-      // （RIT-188 の課金集計は行単位なので、置き換えで消すと過少計上になる）。
-      ...insertGenerationRows(db, generations, input, now),
-      db.insert(v2MessageTable).values({
-        id: userMessageId,
-        conversationId: input.conversationId,
-        turn: input.turn,
-        role: "user",
-        content: input.userText,
-        branchNo: userBranchMax + 1,
-        createdAt: now,
-      }),
-      db.insert(v2MessageTable).values({
-        id: assistantMessageId,
-        conversationId: input.conversationId,
-        turn: input.turn,
-        role: "assistant",
-        content: assistantText,
-        action: extractTag(assistantText, "action"),
-        dialogue: extractTag(assistantText, "dialogue"),
-        inner: extractTag(assistantText, "inner"),
-        generationId: toNull(lastGeneration?.generationId),
-        provider: toNull(lastGeneration?.provider),
-        upstreamId: toNull(lastGeneration?.upstreamId),
-        branchNo: assistantBranchMax + 1,
-        createdAt: now,
-      }),
-      // D1 は 1 文あたりのバインド変数が 100 個までなので、chunk は 1 行 1 文で入れる。
-      // 予定時刻は塊列から一括計算して行ごとに割り当てる（RIT-67）。
-      ...insertChunkRows(db, chunks, assistantMessageId, sendTimes, now),
-      // 判定で落ちて配らんかった塊も、理由つきで残す（RIT-70）。sendAt は無し。
-      ...insertDroppedRows(db, dropped, assistantMessageId, now),
-      db.insert(v2LedgerTable).values({
-        conversationId: input.conversationId,
-        turn: input.turn,
-        ledgerJson: JSON.stringify(input.ledger),
-        createdAt: now,
-      }),
-      ...(opts.extractMemory &&
-      assistantText.trim() &&
-      (!lastGeneration || lastGeneration.status !== "error")
-        ? [
-            db.insert(v2MemoryJobTable).values({
-              id: userMessageId,
-              sourceMessageId: userMessageId,
-              conversationId: input.conversationId,
-              userId: opts.userId,
-              characterId: opts.characterId,
-              sourceTurn: input.turn,
-              createdAt: now,
-              updatedAt: now,
-            }),
-          ]
-        : []),
-      // 記憶の使用記録（RIT-92）。同じ turn の保存し直しでは消してから入れ直す。
-      ...(input.usedMemoryIds === undefined
-        ? []
-        : memoryUseStatements(
-            db,
-            {
-              conversationId: input.conversationId,
-              turn: input.turn,
-              memoryIds: input.usedMemoryIds,
-            },
-            now,
-          )),
-    ]);
-    return { chunkSendAt: sendTimes };
+    return saveTurnMainLine({
+      db,
+      opts,
+      input,
+      now,
+      chunks,
+      sendTimes,
+      dropped,
+      generations,
+      assistantText,
+      userMessageId,
+      assistantMessageId,
+      sameTurnActive,
+      threadId,
+      lastGeneration,
+      userBranchMax,
+      assistantBranchMax,
+    });
   },
 });

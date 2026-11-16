@@ -208,12 +208,15 @@ export type UpdateMemoryResult =
   | { type: "revision_conflict"; currentRevision: number }
   | { type: "pin_limit" };
 
-export const updateMemory = async (
+type OwnedMemory = NonNullable<Awaited<ReturnType<typeof loadOwnedMemory>>>;
+
+// 手直しの前提検査: 所有・版ずれ・固定上限。返り値が "ok" 以外ならそのまま応答に使う。
+const guardMemoryUpdate = async (
   db: V2Db,
   scope: MemoryScope,
   memoryId: string,
   input: UpdateMemoryInput,
-): Promise<UpdateMemoryResult> => {
+): Promise<UpdateMemoryResult | { type: "ok"; owned: OwnedMemory }> => {
   const owned = await loadOwnedMemory(db, scope, memoryId);
   if (!owned) return { type: "not_found" };
   if (owned.revision !== input.expectedRevision) {
@@ -223,16 +226,25 @@ export const updateMemory = async (
     const count = await countPinnedMemories(db, owned.conversationId);
     if (count >= MEMORY_PIN_LIMIT) return { type: "pin_limit" };
   }
-  const now = Date.now();
-  const contentChanged = input.content !== undefined && input.content !== owned.content;
-  const set: {
-    revision: ReturnType<typeof sql>;
-    content?: string;
-    embedding?: null;
-    editedAt?: number;
-    category?: MemoryCategory;
-    pinned?: number;
-  } = { revision: sql`${v2MemoryTable.revision} + 1` };
+  return { type: "ok", owned };
+};
+
+type MemoryUpdateSet = {
+  revision: ReturnType<typeof sql>;
+  content?: string;
+  embedding?: null;
+  editedAt?: number;
+  category?: MemoryCategory;
+  pinned?: number;
+};
+
+// 更新する列の束。内容を変える時だけ embedding を空にし edited_at を刻む。
+const buildMemoryUpdateSet = (
+  input: UpdateMemoryInput,
+  contentChanged: boolean,
+  now: number,
+): MemoryUpdateSet => {
+  const set: MemoryUpdateSet = { revision: sql`${v2MemoryTable.revision} + 1` };
   if (contentChanged) {
     set.content = input.content;
     set.embedding = null;
@@ -240,52 +252,57 @@ export const updateMemory = async (
   }
   if (input.category !== undefined) set.category = input.category;
   if (input.pinned !== undefined) set.pinned = input.pinned ? 1 : 0;
+  return set;
+};
 
-  const updateStatement = db
-    .update(v2MemoryTable)
-    .set(set)
-    .where(
-      and(
-        eq(v2MemoryTable.id, memoryId),
-        eq(v2MemoryTable.revision, input.expectedRevision),
-        isNull(v2MemoryTable.deletedAt),
-      ),
-    );
-  const extras: BatchItem<"sqlite">[] = [];
-  if (contentChanged && input.content !== undefined) {
-    const newHash = await hashMemorySource(input.content);
-    const oldHash = await hashMemorySource(owned.content);
-    // 「元に戻す」で戻す本文が墓標に残っとると、戻した直後の再抽出を止めてしまう。
-    extras.push(
-      db
-        .delete(v2MemoryTombstoneTable)
-        .where(
-          and(
-            eq(v2MemoryTombstoneTable.conversationId, owned.conversationId),
-            eq(v2MemoryTombstoneTable.contentHash, newHash),
-          ),
+// 内容を差し替える時の付随文: 旧内容は墓標へ（再抽出で蘇らんため）、
+// 「元に戻す」で戻す本文が墓標に残っとると戻した直後の再抽出を止めるので消す、
+// 要約は伏せ直し待ちへ。
+const memoryEditExtras = async (
+  db: V2Db,
+  owned: OwnedMemory,
+  content: string,
+  now: number,
+): Promise<BatchItem<"sqlite">[]> => {
+  const newHash = await hashMemorySource(content);
+  const oldHash = await hashMemorySource(owned.content);
+  return [
+    db
+      .delete(v2MemoryTombstoneTable)
+      .where(
+        and(
+          eq(v2MemoryTombstoneTable.conversationId, owned.conversationId),
+          eq(v2MemoryTombstoneTable.contentHash, newHash),
         ),
-      db
-        .insert(v2MemoryTombstoneTable)
-        .values({
-          conversationId: owned.conversationId,
-          contentHash: oldHash,
-          content: owned.content,
-          createdAt: now,
-        })
-        .onConflictDoUpdate({
-          target: [v2MemoryTombstoneTable.conversationId, v2MemoryTombstoneTable.contentHash],
-          set: { content: owned.content },
-        }),
-      db
-        .update(v2SummaryTable)
-        .set({ redactPending: 1 })
-        .where(eq(v2SummaryTable.conversationId, owned.conversationId)),
-    );
-  }
-  const [updated] = await db.batch([updateStatement, ...extras]);
-  if (updated.meta.changes === 0) {
-    // 読み合わせの後で別の編集が入った。最新の revision を返してやり直させる。
+      ),
+    db
+      .insert(v2MemoryTombstoneTable)
+      .values({
+        conversationId: owned.conversationId,
+        contentHash: oldHash,
+        content: owned.content,
+        createdAt: now,
+      })
+      .onConflictDoUpdate({
+        target: [v2MemoryTombstoneTable.conversationId, v2MemoryTombstoneTable.contentHash],
+        set: { content: owned.content },
+      }),
+    db
+      .update(v2SummaryTable)
+      .set({ redactPending: 1 })
+      .where(eq(v2SummaryTable.conversationId, owned.conversationId)),
+  ];
+};
+
+// 書き込みの確定。0 件なら読み合わせと書き込みの間に別編集が入った印なので、
+// 最新の版を返してやり直させる。
+const finishMemoryUpdate = async (
+  db: V2Db,
+  scope: MemoryScope,
+  memoryId: string,
+  args: { changes: number; contentChanged: boolean; previous: string },
+): Promise<UpdateMemoryResult> => {
+  if (args.changes === 0) {
     const current = await loadOwnedMemory(db, scope, memoryId);
     return current
       ? { type: "revision_conflict", currentRevision: current.revision }
@@ -293,8 +310,42 @@ export const updateMemory = async (
   }
   const memory = await loadOwnedMemory(db, scope, memoryId);
   return memory
-    ? { type: "updated", memory, contentChanged, previous: owned.content }
+    ? { type: "updated", memory, contentChanged: args.contentChanged, previous: args.previous }
     : { type: "not_found" };
+};
+
+export const updateMemory = async (
+  db: V2Db,
+  scope: MemoryScope,
+  memoryId: string,
+  input: UpdateMemoryInput,
+): Promise<UpdateMemoryResult> => {
+  const guard = await guardMemoryUpdate(db, scope, memoryId, input);
+  if (guard.type !== "ok") return guard;
+  const { owned } = guard;
+  const now = Date.now();
+  const contentChanged = input.content !== undefined && input.content !== owned.content;
+
+  const updateStatement = db
+    .update(v2MemoryTable)
+    .set(buildMemoryUpdateSet(input, contentChanged, now))
+    .where(
+      and(
+        eq(v2MemoryTable.id, memoryId),
+        eq(v2MemoryTable.revision, input.expectedRevision),
+        isNull(v2MemoryTable.deletedAt),
+      ),
+    );
+  const extras =
+    contentChanged && input.content !== undefined
+      ? await memoryEditExtras(db, owned, input.content, now)
+      : [];
+  const [updated] = await db.batch([updateStatement, ...extras]);
+  return finishMemoryUpdate(db, scope, memoryId, {
+    changes: updated.meta.changes,
+    contentChanged,
+    previous: owned.content,
+  });
 };
 
 // 固定/解除。固定した記憶は類似度に負けず指示文へ入る（loadPinnedMemories）。
