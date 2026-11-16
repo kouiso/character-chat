@@ -1,4 +1,4 @@
-import { execFileSync, spawnSync } from "node:child_process";
+import { execFileSync, spawn, spawnSync } from "node:child_process";
 
 // judge の送り先は業者で違う（OpenRouter は Bearer 1本・Anthropic は x-api-key か
 // OAuth Bearer・codex はコマンドが認証を持つ）。選ぶ順は
@@ -141,25 +141,45 @@ const codexFetchImpl: typeof fetch = (
     ...(model.startsWith("gpt") ? ["--model", model] : []),
     "-",
   ];
-  const result = spawnSync("codex", args, {
-    input: prompt,
-    encoding: "utf8",
-    maxBuffer: 16 * 1024 * 1024,
-    timeout: 600_000,
+  // spawnSync だとイベントループを止めて分類器のタイムアウトが効かんので、
+  // 非同期 spawn にして呼び出し側の AbortSignal(4秒)と上限10分の両方で止める。
+  return new Promise<Response>((resolve) => {
+    const child = spawn("codex", args, { stdio: ["pipe", "pipe", "pipe"] });
+    const stdoutChunks: Buffer[] = [];
+    const stderrChunks: Buffer[] = [];
+    child.stdout.on("data", (chunk: Buffer) => stdoutChunks.push(chunk));
+    child.stderr.on("data", (chunk: Buffer) => stderrChunks.push(chunk));
+    const onAbort = () => child.kill("SIGTERM");
+    init?.signal?.addEventListener("abort", onAbort, { once: true });
+    const killTimer = setTimeout(() => child.kill("SIGTERM"), 600_000);
+    child.on("error", (error) => {
+      clearTimeout(killTimer);
+      init?.signal?.removeEventListener("abort", onAbort);
+      resolve(
+        new Response(JSON.stringify({ error: String(error).slice(0, 2000) }), { status: 500 }),
+      );
+    });
+    child.on("close", (code) => {
+      clearTimeout(killTimer);
+      init?.signal?.removeEventListener("abort", onAbort);
+      if (init?.signal?.aborted || code !== 0) {
+        resolve(
+          new Response(
+            JSON.stringify({ error: Buffer.concat(stderrChunks).toString("utf8").slice(0, 2000) }),
+            { status: 500 },
+          ),
+        );
+        return;
+      }
+      resolve(
+        new Response(openAiShape(Buffer.concat(stdoutChunks).toString("utf8").trim()), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        }),
+      );
+    });
+    child.stdin.end(prompt);
   });
-  if (result.status !== 0) {
-    return Promise.resolve(
-      new Response(JSON.stringify({ error: (result.stderr ?? "").slice(0, 2000) }), {
-        status: 500,
-      }),
-    );
-  }
-  return Promise.resolve(
-    new Response(openAiShape((result.stdout ?? "").trim()), {
-      status: 200,
-      headers: { "content-type": "application/json" },
-    }),
-  );
 };
 
 const pickAnthropic = (
