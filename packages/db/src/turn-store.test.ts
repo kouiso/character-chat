@@ -338,11 +338,78 @@ describe("createD1TurnStore", () => {
       .where(eq(v2ChunkTable.messageId, assistant.id))
       .orderBy(asc(v2ChunkTable.seq));
 
-    // 先頭の塊は保存時刻そのもの、2個目は先頭の字数に比例した間。
-    const firstText = `<action>動作 1</action>`;
+    // 先頭の塊は保存時刻そのもの、2個目は先頭の見える字数に比例した間。
+    // タグは画面に出んので字数に入らん（<action>動作 1</action> の見える字数は 4）。
     expect(chunkRows).toHaveLength(2);
     expect(chunkRows[0].sendAt).toBe(chunkRows[0].createdAt);
-    expect(chunkRows[1].sendAt).toBe(chunkRows[0].createdAt + firstText.length * CHUNK_MS_PER_CHAR);
+    expect(chunkRows[1].sendAt).toBe(chunkRows[0].createdAt + 4 * CHUNK_MS_PER_CHAR);
+  });
+
+  it("D-1: send_at は保存時刻＋間の合計で返り値 chunkSendAt と一致、落ちた塊は NULL（RIT-67）", async () => {
+    const conversationId = newConversationId();
+    const chunkOf = (seq: number, text: string): TurnEvent => ({
+      type: "chunk",
+      seq,
+      text,
+      judge: OK_JUDGE,
+      attempt: 1,
+      preExtend: true,
+    });
+    const saved = await store.saveTurn({
+      conversationId,
+      turn: 1,
+      userText: "user 1",
+      events: [
+        // seq をばらして渡し、保存側が seq 順に並べ直すことも見る。
+        chunkOf(2, "<dialogue>こっち向いて、ほら。</dialogue>"),
+        chunkOf(0, "<action>小さく笑う。</action>"),
+        chunkOf(1, "<dialogue>ねえねえ</dialogue>"),
+        {
+          type: "dropped",
+          seq: 3,
+          reasons: ["repetition"],
+          attempt: 2,
+          text: "<action>小さく笑う。</action>",
+          judge: { ...OK_JUDGE, ok: false, reasons: ["repetition"] },
+        },
+      ],
+      ledger: ledgerAt(1),
+    });
+
+    const [assistant] = await local.db
+      .select({ id: v2MessageTable.id })
+      .from(v2MessageTable)
+      .where(
+        and(
+          eq(v2MessageTable.conversationId, conversationId),
+          eq(v2MessageTable.role, "assistant"),
+        ),
+      );
+    const chunkRows = await local.db
+      .select({
+        seq: v2ChunkTable.seq,
+        sendAt: v2ChunkTable.sendAt,
+        dropped: v2ChunkTable.dropped,
+        createdAt: v2ChunkTable.createdAt,
+      })
+      .from(v2ChunkTable)
+      .where(eq(v2ChunkTable.messageId, assistant.id))
+      .orderBy(asc(v2ChunkTable.seq));
+
+    // 見える字数 6・4・10 → 間は 0・120・80 → send_at は t・t+120・t+200（t=保存時刻）。
+    const savedAt = chunkRows[0].createdAt;
+    expect(chunkRows.map((row) => row.sendAt)).toEqual([
+      savedAt,
+      savedAt + 120,
+      savedAt + 200,
+      null,
+    ]);
+    // 返り値は配った塊の予定時刻だけ（落ちた seq 3 の分は含まん）。
+    expect(saved.chunkSendAt).toEqual([savedAt, savedAt + 120, savedAt + 200]);
+    expect(chunkRows.find((row) => row.dropped === 1)).toMatchObject({
+      seq: 3,
+      sendAt: null,
+    });
   });
 
   it("判定で落ちた塊は本文に入らず、理由つきで dropped=1 の行が残る（RIT-70）", async () => {

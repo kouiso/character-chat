@@ -64,6 +64,30 @@ describe("公開SSEの実行時検証", () => {
     }
   });
 
+  it("S-1: chunk の gapMs・emittedAt（RIT-67）。付いても無くても通り、型だけは検査する", () => {
+    // 付く形・無い形（導入前の保存済み出来事）の両方を通す。
+    expect(parseChatSseEvent({ ...chunk, gapMs: 0, emittedAt: 1_794_000_000_000 })).toEqual({
+      ...chunk,
+      gapMs: 0,
+      emittedAt: 1_794_000_000_000,
+    });
+    expect(parseChatSseEvent({ ...chunk, gapMs: 120 })).toEqual({ ...chunk, gapMs: 120 });
+    expect(parseChatSseEvent({ ...chunk, emittedAt: 1_794_000_000_000 })).toEqual({
+      ...chunk,
+      emittedAt: 1_794_000_000_000,
+    });
+    expect(parseChatSseEvent(chunk)).toEqual(chunk);
+    // 上限は型に置かん。CHUNK_MAX_GAP_MS を将来 30 秒へ変えても、部屋が塊を捨てて
+    // 黙って消える事態にならんよう 30000 も通ることを固定する。
+    expect(parseChatSseEvent({ ...chunk, gapMs: 30_000 })).toEqual({ ...chunk, gapMs: 30_000 });
+    for (const gapMs of [-1, 1.5, "120", null, Number.NaN, Number.POSITIVE_INFINITY]) {
+      expect(parseChatSseEvent({ ...chunk, gapMs })).toBeNull();
+    }
+    for (const emittedAt of ["t", null, Number.NaN, Number.POSITIVE_INFINITY]) {
+      expect(parseChatSseEvent({ ...chunk, emittedAt })).toBeNull();
+    }
+  });
+
   it("ネストした判定の欠落・型違いも拒否する", () => {
     for (const name of Object.keys(chunk.judge.checks)) {
       const invalid = structuredClone(chunk);

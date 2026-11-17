@@ -99,6 +99,12 @@ export type TurnEvent =
       judge: JudgeResult;
       attempt: number;
       preExtend: boolean;
+      // RIT-67: 1 つ前に配った塊を出してからこの塊を出すまでの間（ミリ秒）。
+      // emit が配信の時だけ付ける。保存用の events・導入前の出来事には無い。
+      gapMs?: number;
+      // RIT-67: この塊を出した時のエンジンの時計 now() の値（ミリ秒の epoch）。
+      // 画面は端末の時計と比べん（部屋が SSE で送る時に経過へ換えるのは RIT-69）。
+      emittedAt?: number;
     }
   // 判定で 2 回落ちて配らんことにした塊。本文には出さず、監視と transcript の数字にだけ使う。
   // text/judge は保存用の events だけが持つ。配信には載せん（SSE スキーマが削る）。

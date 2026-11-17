@@ -16,6 +16,7 @@ import {
   v2SummaryTable,
 } from "./v2-schema";
 import { hashMemorySource } from "./memory-extraction-store";
+import { selectScopedMemories } from "./memory-scope";
 
 import type { V2Db } from "./client";
 
@@ -68,9 +69,22 @@ const memoryRowColumns = {
   revision: v2MemoryTable.revision,
 } as const;
 
+// 画面・API へ出す行へ絞る。区切り select は v2_memory の全列（embedding の blob 等）
+// を持って来るので、写し漏れで内部の列が応答に混ざらんよう明示的に拾う。
 const toRow = (row: Omit<MemoryRow, "pinned"> & { pinned: number }): MemoryRow => ({
-  ...row,
+  id: row.id,
+  conversationId: row.conversationId,
+  kind: row.kind,
+  content: row.content,
   pinned: row.pinned === 1,
+  sourceTurn: row.sourceTurn,
+  createdAt: row.createdAt,
+  subject: row.subject,
+  supersededBy: row.supersededBy,
+  category: row.category,
+  origin: row.origin,
+  editedAt: row.editedAt,
+  revision: row.revision,
 });
 
 // 会話がこの所有者・キャラのものか。記憶 API は全てこの確認を通す（NFR-1）。
@@ -92,7 +106,8 @@ export const loadOwnedConversation = async (
   return row ?? null;
 };
 
-// 会話ごとの記憶一覧（RIT-92）。summary・論理削除済みは返さん。
+// 会話ごとの記憶一覧（RIT-92）。summary・論理削除済み・眠った枝の記憶は返さん（RIT-89）。
+// 画面の区切りは「利用者×キャラ×会話」。置き換わった記憶は「置き換わり」表示のため返す。
 // 並び: 固定 → 置き換えられていないもの → 新しい順。
 export const listConversationMemories = async (
   db: V2Db,
@@ -100,16 +115,11 @@ export const listConversationMemories = async (
 ): Promise<MemoryRow[]> => {
   const owned = await loadOwnedConversation(db, scope);
   if (!owned) throw new MemoryAccessError();
-  const rows = await db
-    .select(memoryRowColumns)
-    .from(v2MemoryTable)
-    .where(
-      and(
-        eq(v2MemoryTable.conversationId, scope.conversationId),
-        ne(v2MemoryTable.kind, "summary"),
-        isNull(v2MemoryTable.deletedAt),
-      ),
-    )
+  const rows = await selectScopedMemories(
+    db,
+    { ...scope, excludeSuperseded: false, activeBranchOnly: true },
+    [ne(v2MemoryTable.kind, "summary")],
+  )
     .orderBy(
       desc(v2MemoryTable.pinned),
       // SQLite は ASC で NULL が先頭に来る — 置き換わっていない（NULL）記憶を先に出す。
@@ -117,7 +127,7 @@ export const listConversationMemories = async (
       desc(v2MemoryTable.createdAt),
     )
     .limit(MEMORY_LIST_LIMIT);
-  return rows.map(toRow);
+  return rows.map((row) => toRow(row.v2_memory));
 };
 
 // 記憶 API の応答に載せるキャラ名。
@@ -152,20 +162,14 @@ export const loadOwnedMemory = async (
   scope: MemoryScope,
   memoryId: string,
 ): Promise<(MemoryRow & { embedding: Uint8Array | Buffer | null }) | null> => {
-  const [row] = await db
-    .select({ ...memoryRowColumns, embedding: v2MemoryTable.embedding })
-    .from(v2MemoryTable)
-    .innerJoin(v2ConversationTable, eq(v2ConversationTable.id, v2MemoryTable.conversationId))
-    .where(
-      and(
-        eq(v2MemoryTable.id, memoryId),
-        eq(v2ConversationTable.userId, scope.userId),
-        eq(v2ConversationTable.characterId, scope.characterId),
-        isNull(v2MemoryTable.deletedAt),
-      ),
-    )
-    .limit(1);
-  return row ? { ...toRow(row), embedding: row.embedding } : null;
+  // 会話はその記憶の conversation_id で決まり、利用者・キャラはその会話で確かめる。
+  // 眠った枝の出どころを持つ記憶は画面にも操作対象にも出さん（RIT-89 FR-7）。
+  const [row] = await selectScopedMemories(
+    db,
+    { ...scope, excludeSuperseded: false, activeBranchOnly: true },
+    [eq(v2MemoryTable.id, memoryId)],
+  ).limit(1);
+  return row ? { ...toRow(row.v2_memory), embedding: row.v2_memory.embedding } : null;
 };
 
 // 復元専用の読み込み: 論理削除済みの行だけを拾う（deleted_at の残り窓は呼び出し側が判定）。
@@ -634,24 +638,16 @@ export const loadPinnedMemories = async (
   db: V2Db,
   scope: MemoryScope & { conversationId: string },
 ): Promise<MemoryRow[]> => {
-  const rows = await db
-    .select(memoryRowColumns)
-    .from(v2MemoryTable)
-    .innerJoin(v2ConversationTable, eq(v2ConversationTable.id, v2MemoryTable.conversationId))
-    .where(
-      and(
-        eq(v2MemoryTable.conversationId, scope.conversationId),
-        eq(v2ConversationTable.userId, scope.userId),
-        eq(v2ConversationTable.characterId, scope.characterId),
-        eq(v2MemoryTable.pinned, 1),
-        isNull(v2MemoryTable.deletedAt),
-        // 置き換わった記憶は固定されとっても出さん（RIT-86 の食い違いは新しい方が勝つ）
-        isNull(v2MemoryTable.supersededBy),
-      ),
-    )
+  // 固定した記憶は枝では絞らん（未決 3 — 利用者が手で固定した物だから）。
+  // 置き換わった記憶は固定されとっても出さん（RIT-86 の食い違いは新しい方が勝つ）。
+  const rows = await selectScopedMemories(
+    db,
+    { ...scope, excludeSuperseded: true, activeBranchOnly: false, kinds: ["fact", "preference"] },
+    [eq(v2MemoryTable.pinned, 1)],
+  )
     .orderBy(desc(v2MemoryTable.createdAt))
     .limit(20);
-  return rows.filter((row) => row.kind === "fact" || row.kind === "preference").map(toRow);
+  return rows.map((row) => toRow(row.v2_memory));
 };
 
 // 「覚えた：…」リンク用（RIT-92）。そのターンの抽出ジョブの状態を拾う。
