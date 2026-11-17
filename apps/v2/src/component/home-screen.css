@@ -1,0 +1,316 @@
+/* ホーム（板 Main.dc.html / HomeEmpty.dc.html）。値は design-token.css の変数だけ使う */
+
+.v2-home {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--gradient-ground);
+  color: var(--color-text);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+  font-weight: 500;
+  letter-spacing: var(--text-tracking);
+}
+
+/* 絵の頭。ホームは 420px、絵は無加工、下端 64px の縁だけでシートへ溶かす */
+.v2-home-hero {
+  position: relative;
+  height: 420px;
+  overflow: hidden;
+  background: var(--color-ground-low);
+}
+
+.v2-home-hero img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.v2-home-hero-edge {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: var(--image-edge-height);
+  background: var(--gradient-image-edge);
+}
+
+/* 絵の上の札（不透明の濃い札＋影。半透明の面・絵上直文字は禁止） */
+.v2-home-plate {
+  position: absolute;
+  left: var(--space-edge);
+  top: var(--space-edge);
+  height: 44px;
+  padding: 0 16px 0 12px;
+  border-radius: var(--radius-pill);
+  background: var(--color-plate);
+  box-shadow: var(--shadow-plate);
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-note-size);
+  line-height: var(--text-note-line);
+  font-weight: 700;
+  letter-spacing: var(--text-tracking-title);
+  text-decoration: none;
+}
+
+.v2-home-plate svg {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  display: block;
+  color: var(--color-peach);
+}
+
+.v2-home-sheet {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 0 var(--space-gutter) 24px;
+  background: var(--gradient-sheet);
+}
+
+.v2-home-arrival {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 20px;
+  font-size: var(--text-note-size);
+  line-height: var(--text-note-line);
+  font-weight: 500;
+  letter-spacing: var(--text-tracking);
+  color: var(--color-text-sub);
+}
+
+.v2-home-arrival-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--color-lamp);
+  flex: none;
+}
+
+.v2-home-arrival-new {
+  color: var(--color-peach);
+  font-weight: 700;
+}
+
+.v2-home-name {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.v2-home-name h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 32px;
+  line-height: 40px;
+  font-weight: 900;
+  letter-spacing: 0.03em;
+}
+
+/* 相手の吹き出し（面の階層 1。話し手側の左下の角だけ 8） */
+.v2-home-bubble {
+  align-self: flex-start;
+  max-width: 100%;
+  margin-top: 16px;
+  padding: 12px 16px;
+  border-radius: var(--radius-bubble-other);
+  background: var(--gradient-surface);
+  box-shadow: var(--shadow-surface);
+}
+
+/* 主ボタンは 1 画面に 1 つ。灯の光はここだけ */
+.v2-home-primary {
+  margin-top: 24px;
+  height: 56px;
+  border-radius: var(--radius-pill);
+  background: var(--gradient-peach);
+  box-shadow: var(--shadow-peach);
+  color: var(--color-on-peach);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: var(--text-title-size);
+  line-height: var(--text-title-line);
+  font-weight: 700;
+  letter-spacing: var(--text-tracking-title);
+  text-decoration: none;
+}
+
+.v2-home-primary svg {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  display: block;
+}
+
+.v2-home-section {
+  display: flex;
+  align-items: center;
+  height: 44px;
+  margin-top: 24px;
+}
+
+.v2-home-section h2 {
+  margin: 0;
+  flex: 1;
+  font-size: var(--text-title-size);
+  line-height: var(--text-title-line);
+  font-weight: 700;
+  letter-spacing: var(--text-tracking-strong);
+}
+
+/* 履歴は文字だけの行き先（右向きの山形つき） */
+.v2-home-history {
+  flex: none;
+  height: 44px;
+  padding: 0 0 0 12px;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-size: var(--text-row-size);
+  line-height: var(--text-row-line);
+  font-weight: 500;
+  letter-spacing: var(--text-tracking);
+  text-decoration: none;
+}
+
+.v2-home-history svg {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  display: block;
+  color: var(--color-text-sub);
+}
+
+.v2-home-continuations {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* 札の中の行は面なし。行の間は細い線（上端の光）だけ */
+.v2-home-continuation {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 64px;
+  box-shadow: var(--edge-top);
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.v2-home-continuation-face {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-title-size);
+  font-weight: 700;
+}
+
+.v2-home-continuation-face img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.v2-home-continuation-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.v2-home-continuation-name {
+  font-size: var(--text-row-size);
+  line-height: var(--text-row-line);
+  font-weight: 700;
+  letter-spacing: var(--text-tracking-strong);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.v2-home-continuation-preview {
+  color: var(--color-text-sub);
+  font-size: var(--text-note-size);
+  line-height: var(--text-note-line);
+  font-weight: 500;
+  letter-spacing: var(--text-tracking);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.v2-home-continuation-day {
+  flex: none;
+  color: var(--color-text-sub);
+  font-size: var(--text-note-size);
+  line-height: var(--text-note-line);
+  font-weight: 500;
+  letter-spacing: var(--text-tracking);
+}
+
+/* いつもの子がまだいない時（HomeEmpty）。上下中央の塊 */
+.v2-home-empty {
+  min-height: 70vh;
+  padding: 0 var(--space-gutter);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.v2-home-empty-icon {
+  flex: none;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-pill);
+  background: var(--gradient-surface);
+  box-shadow: var(--shadow-surface);
+  color: var(--color-peach);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.v2-home-empty-icon svg {
+  width: 24px;
+  height: 24px;
+  flex: none;
+  display: block;
+}
+
+.v2-home-empty h1 {
+  margin: 0;
+  padding: 16px 0 4px;
+  font-size: var(--text-title-size);
+  line-height: var(--text-title-line);
+  font-weight: 700;
+  letter-spacing: var(--text-tracking-title);
+}
+
+.v2-home-empty-note {
+  color: var(--color-text-sub);
+}
+
+.v2-home-empty .v2-home-primary {
+  align-self: stretch;
+}

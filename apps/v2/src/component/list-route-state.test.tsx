@@ -82,7 +82,7 @@ describe("list and root recovery", () => {
     renderList();
     await screen.findByRole("heading", { name: "一覧を読み込んでいます" });
     fireEvent.click(screen.getByRole("button", { name: "読み込みをやり直す" }));
-    expect(await screen.findByRole("link", { name: fixture[0].name })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: fixture[0].name })).toBeInTheDocument();
     expect(listCharacters).toHaveBeenCalledTimes(2);
     expect(previousSignal?.aborted).toBe(true);
   });
@@ -95,7 +95,7 @@ describe("list and root recovery", () => {
     await screen.findByRole("heading", { name: "一覧を読み込めませんでした" });
     expect(screen.queryByText("synthetic-list-failure")).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "読み込みをやり直す" }));
-    expect(await screen.findByRole("link", { name: fixture[0].name })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: fixture[0].name })).toBeInTheDocument();
   });
 
   it("戻り先の一覧が失敗しても再試行の出口がある", async () => {
@@ -106,27 +106,26 @@ describe("list and root recovery", () => {
     fireEvent.click(await screen.findByRole("link", { name: "一覧に戻る" }));
     await screen.findByRole("heading", { name: "一覧を読み込めませんでした" });
     fireEvent.click(screen.getByRole("button", { name: "読み込みをやり直す" }));
-    expect(await screen.findByRole("link", { name: fixture[0].name })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: fixture[0].name })).toBeInTheDocument();
   });
 
-  it("一覧0件から読み込みをやり直せる", async () => {
-    listCharacters.mockResolvedValueOnce([]).mockResolvedValue(fixture);
+  it("一覧0件は出会うへの入口を出す（やり直しは帯・エラー側だけ）", async () => {
+    listCharacters.mockResolvedValueOnce([]);
     renderList();
-    await screen.findByRole("heading", { name: "キャラクターがありません" });
-    fireEvent.click(screen.getByRole("button", { name: "読み込みをやり直す" }));
-    expect(await screen.findByRole("link", { name: fixture[0].name })).toBeInTheDocument();
+    await screen.findByRole("heading", { name: "まだ、いつもの子はいません" });
+    expect(screen.getByRole("link", { name: "出会うへ" })).toBeInTheDocument();
   });
 
   it("圏外かつ0件は復帰操作を重複表示しない", async () => {
     listCharacters.mockResolvedValueOnce([]).mockResolvedValue(fixture);
     renderList();
-    await screen.findByRole("heading", { name: "キャラクターがありません" });
+    await screen.findByRole("heading", { name: "まだ、いつもの子はいません" });
     setOnline(false);
     expect(await screen.findByRole("heading", { name: "オフラインです" })).toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: "読み込みをやり直す" })).toHaveLength(1);
     fireEvent.click(screen.getByRole("button", { name: "読み込みをやり直す" }));
     setOnline(true);
-    expect(await screen.findByRole("link", { name: fixture[0].name })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: fixture[0].name })).toBeInTheDocument();
   });
 
   it("圏外の一覧待機から復帰後に手動で再試行できる", async () => {
@@ -137,7 +136,7 @@ describe("list and root recovery", () => {
     setOnline(true);
     expect(listCharacters).toHaveBeenCalledTimes(1);
     fireEvent.click(screen.getByRole("button", { name: "読み込みをやり直す" }));
-    expect(await screen.findByRole("link", { name: fixture[0].name })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: fixture[0].name })).toBeInTheDocument();
   });
 
   it("圏外で一覧失敗が続いても再試行ボタンが残る", async () => {
@@ -161,10 +160,10 @@ describe("list and root recovery", () => {
   it("一覧表示中の圏外でも項目を残し、自動取得しない", async () => {
     listCharacters.mockResolvedValue(fixture);
     renderList();
-    await screen.findByRole("link", { name: fixture[0].name });
+    await screen.findByRole("heading", { name: fixture[0].name });
     setOnline(false);
     expect(await screen.findByRole("heading", { name: "オフラインです" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: fixture[0].name })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: fixture[0].name })).toBeInTheDocument();
     setOnline(true);
     expect(listCharacters).toHaveBeenCalledTimes(1);
   });
@@ -174,7 +173,7 @@ describe("list and root recovery", () => {
     renderList("/unknown");
     await screen.findByRole("heading", { name: "ページが見つかりません" });
     fireEvent.click(screen.getByRole("link", { name: "一覧に戻る" }));
-    expect(await screen.findByRole("link", { name: fixture[0].name })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: fixture[0].name })).toBeInTheDocument();
   });
 
   it("root接続契約: root loader失敗から再試行できる", async () => {
@@ -186,7 +185,7 @@ describe("list and root recovery", () => {
     renderList("/", rootLoader);
     await screen.findByRole("heading", { name: "画面を読み込めませんでした" });
     fireEvent.click(screen.getByRole("button", { name: "読み込みをやり直す" }));
-    expect(await screen.findByRole("link", { name: fixture[0].name })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: fixture[0].name })).toBeInTheDocument();
     expect(rootLoader).toHaveBeenCalledTimes(2);
   });
 
@@ -199,7 +198,7 @@ describe("list and root recovery", () => {
     renderList("/", rootLoader);
     await screen.findByRole("heading", { name: "画面を読み込んでいます" });
     fireEvent.click(screen.getByRole("button", { name: "読み込みをやり直す" }));
-    expect(await screen.findByRole("link", { name: fixture[0].name })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: fixture[0].name })).toBeInTheDocument();
     expect(rootLoader).toHaveBeenCalledTimes(2);
   });
 });

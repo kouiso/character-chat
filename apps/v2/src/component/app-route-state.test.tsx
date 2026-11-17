@@ -91,7 +91,7 @@ describe("production root recovery slots", () => {
     expect(screen.queryByText("synthetic-render-failure")).not.toBeInTheDocument();
     failRender = false;
     fireEvent.click(screen.getByRole("button", { name: "読み込みをやり直す" }));
-    expect(await screen.findByRole("link", { name: fixture.name })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: fixture.name })).toBeInTheDocument();
   });
 
   it("不明URLから戻った一覧も失敗した場合に再試行して復帰する", async () => {
@@ -104,7 +104,7 @@ describe("production root recovery slots", () => {
     fireEvent.click(screen.getByRole("link", { name: "一覧に戻る" }));
     await screen.findByRole("heading", { name: "一覧を読み込めませんでした" });
     fireEvent.click(screen.getByRole("button", { name: "読み込みをやり直す" }));
-    expect(await screen.findByRole("link", { name: fixture.name })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: fixture.name })).toBeInTheDocument();
   });
 
   it("root再試行後の保存済み送信の再接続は同じ受付番号を維持する", async () => {
