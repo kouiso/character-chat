@@ -142,8 +142,7 @@ export const runMemoryExtraction = async (
   models?: readonly BaseChatModel[],
 ): Promise<void> => {
   if (memoryExtractFault(env)) throw new Error("test fault: memory-extract-fail");
-  const resolved =
-    models ?? (await resolveMemoryExtractionModels(env, source)).map((c) => c.model);
+  const resolved = models ?? (await resolveMemoryExtractionModels(env, source)).map((c) => c.model);
   await extractMemorySource(db, source, resolved);
 };
 
