@@ -40,43 +40,47 @@ const seed = async (local: LocalD1) => {
     for (const characterId of CHARS) {
       for (const convIdx of [0, 1]) {
         const tag = `${userId}-${characterId}-${convIdx}`;
-        const conversationId = `conv-${tag}`;
-        allMemoryIds.push(`mem-${tag}-active`, `mem-${tag}-sleep`);
-        await local.d1
-          .prepare(
-            "INSERT INTO v2_conversation (id, user_id, character_id, thread_id, prompt_version, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
-          )
-          .bind(conversationId, userId, characterId, conversationId, "test", now, now)
-          .run();
-        // turn 3 の眠った枝（branch 0, active=0）と今の枝（branch 1, active=1）の発言
-        for (const [branch, active] of [
-          [0, 0],
-          [1, 1],
-        ] as const) {
-          const messageId = `msg-${tag}-b${branch}`;
-          const memoryId = `mem-${tag}-${active === 1 ? "active" : "sleep"}`;
-          const content = `${tag} の枝${branch}の話`;
-          await local.d1
-            .prepare(
-              "INSERT INTO v2_message (id, conversation_id, turn, role, content, branch_no, active, created_at) VALUES (?, ?, 3, 'user', ?, ?, ?, ?)",
-            )
-            .bind(messageId, conversationId, content, branch, active, now)
-            .run();
-          await local.d1
-            .prepare(
-              "INSERT INTO v2_memory (id, conversation_id, kind, content, pinned, source_turn, created_at, origin) VALUES (?, ?, 'fact', ?, 0, 3, ?, 'extracted')",
-            )
-            .bind(memoryId, conversationId, content, now)
-            .run();
-          await local.d1
-            .prepare(
-              "INSERT INTO v2_memory_source (memory_id, source_message_id, source_content_hash, importance) VALUES (?, ?, ?, 3)",
-            )
-            .bind(memoryId, messageId, await hashMemorySource(content))
-            .run();
-        }
+        await seedCell(local, tag, userId, characterId);
       }
     }
+  }
+};
+
+// 1 会話ぶん: 会話本体 + turn 3 の眠った枝（branch 0, active=0）と今の枝（branch 1, active=1）の発言と記憶。
+const seedCell = async (local: LocalD1, tag: string, userId: string, characterId: string) => {
+  const conversationId = `conv-${tag}`;
+  allMemoryIds.push(`mem-${tag}-active`, `mem-${tag}-sleep`);
+  await local.d1
+    .prepare(
+      "INSERT INTO v2_conversation (id, user_id, character_id, thread_id, prompt_version, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+    )
+    .bind(conversationId, userId, characterId, conversationId, "test", now, now)
+    .run();
+  for (const [branch, active] of [
+    [0, 0],
+    [1, 1],
+  ] as const) {
+    const messageId = `msg-${tag}-b${branch}`;
+    const memoryId = `mem-${tag}-${active === 1 ? "active" : "sleep"}`;
+    const content = `${tag} の枝${branch}の話`;
+    await local.d1
+      .prepare(
+        "INSERT INTO v2_message (id, conversation_id, turn, role, content, branch_no, active, created_at) VALUES (?, ?, 3, 'user', ?, ?, ?, ?)",
+      )
+      .bind(messageId, conversationId, content, branch, active, now)
+      .run();
+    await local.d1
+      .prepare(
+        "INSERT INTO v2_memory (id, conversation_id, kind, content, pinned, source_turn, created_at, origin) VALUES (?, ?, 'fact', ?, 0, 3, ?, 'extracted')",
+      )
+      .bind(memoryId, conversationId, content, now)
+      .run();
+    await local.d1
+      .prepare(
+        "INSERT INTO v2_memory_source (memory_id, source_message_id, source_content_hash, importance) VALUES (?, ?, ?, 3)",
+      )
+      .bind(memoryId, messageId, await hashMemorySource(content))
+      .run();
   }
 };
 
