@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>案A 灯 トーク</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Klee+One&family=Shippori+Mincho:wght@500;600&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+input::placeholder{color:#9A8E7C}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; position: relative; overflow: hidden; display: flex; flex-direction: column; background: #151210; color: #EFE6D8; font-family: 'Zen Kaku Gothic New', sans-serif; -webkit-font-smoothing: antialiased;">
+
+  <div aria-hidden="true" style="position: absolute; left: 0; top: 0; width: 390px; height: 280px; pointer-events: none; background: radial-gradient(ellipse 320px 230px at 64px 24px, rgba(227,168,87,.18) 0%, rgba(227,168,87,.06) 50%, rgba(227,168,87,0) 100%);"></div>
+
+  <header style="position: relative; flex: none; display: flex; align-items: center; height: 56px; padding: 0 4px; box-sizing: border-box;">
+    <button type="button" aria-label="戻る" style="flex: none; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; padding: 0; border: 0; background: transparent; color: #C2B6A3; cursor: pointer;">
+      <svg aria-hidden="true" width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12.5 4.5 7 10l5.5 5.5"/></svg>
+    </button>
+    <div style="flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px;">
+      <span style="position: relative; flex: none; width: 28px; height: 36px; border-radius: 6px; background: #6B4A2E; display: flex; align-items: center; justify-content: center; font-family: 'Shippori Mincho', serif; font-weight: 600; font-size: 15px; color: #EFE6D8;">霧<span aria-hidden="true" style="position: absolute; right: -8px; top: -8px; width: 16px; height: 16px; border-radius: 999px; background: radial-gradient(circle, #E3A857 0, #E3A857 3px, rgba(227,168,87,.30) 3.6px, rgba(227,168,87,0) 8px);"></span></span>
+      <h1 style="margin: 0; font-family: 'Shippori Mincho', serif; font-weight: 600; font-size: 16px; line-height: 1.4; letter-spacing: .06em; color: #EFE6D8; white-space: nowrap;">霧島 澪</h1>
+    </div>
+    <div style="flex: none; display: flex; align-items: center;">
+      <button type="button" aria-label="心の声を表示中。押すと隠します" aria-pressed="true" style="position: relative; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; padding: 0; border: 0; background: transparent; color: #EFE6D8; cursor: pointer;">
+        <svg aria-hidden="true" width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 3c3.6 0 6.5 2.1 6.5 4.8s-2.9 4.8-6.5 4.8S4 10.500 4 7.800 6.900 3 10.500 3z"/><circle cx="6" cy="14.300" r="1.200"/><path d="M3.800 17.200h.010"/></svg>
+        <span aria-hidden="true" style="position: absolute; left: 16px; bottom: 0; width: 12px; height: 12px; border-radius: 999px; background: radial-gradient(circle, #E3A857 0, #E3A857 2.5px, rgba(227,168,87,.30) 3px, rgba(227,168,87,0) 6px);"></span>
+      </button>
+      <button type="button" aria-label="ブックマーク" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; padding: 0; border: 0; background: transparent; color: #C2B6A3; cursor: pointer;">
+        <svg aria-hidden="true" width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 3.5h9V17L10 13.8 5.5 17z"/></svg>
+      </button>
+      <button type="button" aria-label="場面の台帳" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; padding: 0; border: 0; background: transparent; color: #C2B6A3; cursor: pointer;">
+        <svg aria-hidden="true" width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="12" height="14" rx="1.5"/><path d="M7.5 3v14M10.5 7.5h2.5M10.5 10.5h2.5"/></svg>
+      </button>
+      <button type="button" aria-label="通話" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; padding: 0; border: 0; background: transparent; color: #C2B6A3; cursor: pointer;">
+        <svg aria-hidden="true" width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.3 3.5h1.9l1.2 3.3-1.6 1.3a8.4 8.4 0 0 0 4.1 4.1l1.3-1.6 3.3 1.2v1.9a1.7 1.7 0 0 1-1.9 1.7A12.2 12.2 0 0 1 4.6 5.4a1.7 1.7 0 0 1 1.7-1.9z"/></svg>
+      </button>
+      <button type="button" aria-label="ギャラリー" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; padding: 0; border: 0; background: transparent; color: #C2B6A3; cursor: pointer;">
+        <svg aria-hidden="true" width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="14" height="11" rx="1.5"/><path d="m3.5 13 3.5-3.5 3 3 2.5-2.5 4 4"/><circle cx="13" cy="8" r="1"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main style="position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; box-sizing: border-box; padding: 4px 0 0;">
+
+    <div style="display: flex; align-items: center; gap: 12px; height: 40px; padding: 0 24px;">
+      <span aria-hidden="true" style="flex: 1; height: 1px; background: rgba(239,230,216,.18);"></span>
+      <span style="font-size: 12px; font-weight: 500; line-height: 1; letter-spacing: .18em; color: #9A8E7C; white-space: nowrap;">金曜の夜・閉店後のバー</span>
+      <span aria-hidden="true" style="flex: 1; height: 1px; background: rgba(239,230,216,.18);"></span>
+    </div>
+
+    <article style="display: flex; flex-direction: column; gap: 8px; padding: 0 24px;">
+      <p style="margin: 0; word-break: auto-phrase; font-size: 13px; line-height: 1.8; color: #C2B6A3;">カウンターの灯りを一つだけ残して、澪はグラスを拭く手を止めた。</p>
+      <p style="margin: 0; word-break: auto-phrase; font-family: 'Shippori Mincho', serif; font-weight: 500; font-size: 17px; line-height: 1.9; letter-spacing: .02em; text-indent: -1em; color: #EFE6D8;">「おかえり。今日は遅かったね。……いつもの、作ろうか」</p>
+      <div style="display: flex; align-items: flex-end; padding: 4px 0 0 16px;">
+        <p style="margin: 0; word-break: auto-phrase; flex: 1; min-width: 0; padding: 0 0 0 12px; border-left: 1px dotted rgba(239,230,216,.40); font-family: 'Klee One', cursive; font-weight: 400; font-size: 14px; line-height: 1.8; color: #C2B6A3;">来てくれた。顔を見るまで、少しだけ落ち着かなかった。</p>
+        <button type="button" aria-label="この返事の操作を開く" style="flex: none; width: 44px; height: 44px; display: flex; align-items: center; justify-content: flex-end; padding: 0; border: 0; background: transparent; color: #9A8E7C; cursor: pointer;">
+          <svg aria-hidden="true" width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 10h.01M14 10h.01M19 10h.01"/></svg>
+        </button>
+      </div>
+    </article>
+
+    <div style="display: flex; flex-direction: column; align-items: flex-end; padding: 20px 24px 0;">
+      <p style="margin: 0; word-break: auto-phrase; box-sizing: border-box; max-width: 228px; padding: 12px 16px; border: 1px solid rgba(239,230,216,.10); border-radius: 12px; background: #25201C; font-size: 14px; line-height: 1.7; color: #EFE6D8;">ただいま。今日は長かった。少しだけ、話を聞いてくれる?</p>
+      <div style="display: flex; gap: 4px;">
+        <button type="button" style="height: 44px; padding: 0 8px; border: 0; background: transparent; font-family: inherit; font-size: 12px; font-weight: 500; color: #9A8E7C; cursor: pointer;">書き直す</button>
+        <button type="button" style="height: 44px; padding: 0 0 0 8px; border: 0; background: transparent; font-family: inherit; font-size: 12px; font-weight: 500; color: #9A8E7C; cursor: pointer;">ここから戻る</button>
+      </div>
+    </div>
+
+    <article style="display: flex; align-items: flex-start; gap: 12px; padding: 0 24px;">
+      <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px;">
+        <p style="margin: 0; word-break: auto-phrase; font-size: 13px; line-height: 1.8; color: #C2B6A3;">澪は何も聞かずに、氷を一つグラスへ落とした。</p>
+        <p style="margin: 0; word-break: auto-phrase; font-family: 'Shippori Mincho', serif; font-weight: 500; font-size: 17px; line-height: 1.9; letter-spacing: .02em; text-indent: -1em; color: #EFE6D8;">「うん。閉店の札はもう出したから。時間は、あるよ」</p>
+        <p style="margin: 0; word-break: auto-phrase; font-family: 'Shippori Mincho', serif; font-weight: 500; font-size: 14px; line-height: 1.9; letter-spacing: .02em; text-indent: 1em; color: #C2B6A3;">氷がグラスの中で小さく鳴った。</p>
+      </div>
+      <figure style="flex: none; width: 84px; box-sizing: border-box; margin: 0; display: flex; flex-direction: column; border: 1px solid rgba(239,230,216,.10); border-radius: 6px; overflow: hidden; background: #1C1815;">
+        <div style="position: relative; height: 108px; background: #5A3F28; display: flex; align-items: center; justify-content: center;">
+          <span aria-hidden="true" style="position: absolute; left: 0; bottom: 0; width: 100%; height: 28px; background: #3B2A1A;"></span>
+          <span aria-hidden="true" style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; background: radial-gradient(circle 68px at 18px 16px, rgba(227,168,87,.42) 0%, rgba(227,168,87,0) 100%);"></span>
+          <span style="position: relative; font-family: 'Shippori Mincho', serif; font-weight: 600; font-size: 28px; line-height: 1; color: #EFE6D8;">霧</span>
+        </div>
+        <button type="button" style="height: 44px; display: flex; align-items: center; justify-content: center; gap: 4px; padding: 0; border: 0; background: transparent; font-family: inherit; font-size: 12px; font-weight: 500; color: #C2B6A3; cursor: pointer;">
+          <svg aria-hidden="true" width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 7.5h10M12 5l2.5 2.5L12 10"/><path d="M15.5 12.5h-10M8 10l-2.5 2.5L8 15"/></svg>
+          表情変更
+        </button>
+      </figure>
+    </article>
+
+    <div style="display: flex; flex-direction: column; padding: 8px 0 0;">
+      <div style="display: flex; align-items: center; height: 44px; padding: 0 24px;">
+        <div style="flex: 1; display: flex; justify-content: flex-start;">
+          <button type="button" style="height: 44px; display: flex; align-items: center; gap: 8px; padding: 0 8px 0 0; border: 0; background: transparent; font-family: inherit; font-size: 12px; font-weight: 500; color: #C2B6A3; cursor: pointer;">
+            <svg aria-hidden="true" width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8v4H6l4 3.5v-11L6 8z"/><path d="M13 7.6a3.4 3.4 0 0 1 0 4.8M15.2 5.6a6.3 6.3 0 0 1 0 8.8"/></svg>
+            音声で聞く
+          </button>
+        </div>
+        <div style="flex: none; display: flex; align-items: center;">
+          <button type="button" aria-label="前の返事に切り替える" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; padding: 0; border: 0; background: transparent; color: #9A8E7C; cursor: pointer;">
+            <svg aria-hidden="true" width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5.5 7.5 10l4.5 4.5"/></svg>
+          </button>
+          <span style="font-family: 'Shippori Mincho', serif; font-weight: 500; font-size: 14px; line-height: 1; letter-spacing: .16em; color: #EFE6D8; white-space: nowrap;">2 / 3</span>
+          <button type="button" aria-label="次の返事に切り替える" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; padding: 0; border: 0; background: transparent; color: #9A8E7C; cursor: pointer;">
+            <svg aria-hidden="true" width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 5.5 12.5 10 8 14.5"/></svg>
+          </button>
+        </div>
+        <div style="flex: 1; display: flex; justify-content: flex-end;">
+          <button type="button" style="height: 44px; display: flex; align-items: center; gap: 8px; padding: 0 0 0 8px; border: 0; background: transparent; font-family: inherit; font-size: 12px; font-weight: 500; color: #C2B6A3; cursor: pointer;">
+            <svg aria-hidden="true" width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 10a6 6 0 1 1-1.8-4.3"/><path d="M16.4 3.4v3.3h-3.3"/></svg>
+            再生成
+          </button>
+        </div>
+      </div>
+      <div style="display: flex; align-items: center; justify-content: space-between; height: 44px; padding: 0 12px;">
+        <div style="display: flex;">
+          <button type="button" aria-label="コピー" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; padding: 0; border: 0; background: transparent; color: #9A8E7C; cursor: pointer;">
+            <svg aria-hidden="true" width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="9.5" height="9.5" rx="1.5"/><path d="M13 7V5a1.5 1.5 0 0 0-1.5-1.5H5A1.5 1.5 0 0 0 3.5 5v6.5A1.5 1.5 0 0 0 5 13h2"/></svg>
+          </button>
+          <button type="button" aria-label="共有" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; padding: 0; border: 0; background: transparent; color: #9A8E7C; cursor: pointer;">
+            <svg aria-hidden="true" width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 12.5v-9M6.5 6.5 10 3l3.5 3.5"/><path d="M4.5 10.5v5A1.5 1.5 0 0 0 6 17h8a1.5 1.5 0 0 0 1.5-1.5v-5"/></svg>
+          </button>
+          <button type="button" aria-label="この発言をブックマーク" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; padding: 0; border: 0; background: transparent; color: #9A8E7C; cursor: pointer;">
+            <svg aria-hidden="true" width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 3.5h9V17L10 13.8 5.5 17z"/></svg>
+          </button>
+        </div>
+        <div style="display: flex;">
+          <button type="button" aria-label="いいね" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; padding: 0; border: 0; background: transparent; color: #9A8E7C; cursor: pointer;">
+            <svg aria-hidden="true" width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 9 9.4 3.5a1.8 1.8 0 0 1 1.9 2.2l-.5 2.8h4a1.5 1.5 0 0 1 1.5 1.8l-.9 4.7a1.8 1.8 0 0 1-1.8 1.5H6.5z"/><path d="M6.5 9H3.8v7.5h2.7"/></svg>
+          </button>
+          <button type="button" aria-label="良くない" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; padding: 0; border: 0; background: transparent; color: #9A8E7C; cursor: pointer;">
+            <svg aria-hidden="true" width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><g transform="rotate(180 10 10)"><path d="M6.5 9 9.4 3.5a1.8 1.8 0 0 1 1.9 2.2l-.5 2.8h4a1.5 1.5 0 0 1 1.5 1.8l-.9 4.7a1.8 1.8 0 0 1-1.8 1.5H6.5z"/><path d="M6.5 9H3.8v7.5h2.7"/></g></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer style="position: relative; flex: none; display: flex; flex-direction: column; gap: 8px; padding: 8px 0 12px; border-top: 1px solid rgba(239,230,216,.10);">
+    <div style="position: relative; display: flex; gap: 8px; height: 44px; padding: 0 0 0 16px;">
+      <button type="button" style="flex: none; height: 44px; display: flex; align-items: center; padding: 0; border: 0; background: transparent; font-family: inherit; cursor: pointer;"><span style="display: flex; align-items: center; height: 36px; box-sizing: border-box; padding: 0 12px; border: 1px solid rgba(239,230,216,.18); border-radius: 6px; font-size: 13px; font-weight: 500; color: #C2B6A3; white-space: nowrap;">今日あったことを話す</span></button>
+      <button type="button" style="flex: none; height: 44px; display: flex; align-items: center; padding: 0; border: 0; background: transparent; font-family: inherit; cursor: pointer;"><span style="display: flex; align-items: center; height: 36px; box-sizing: border-box; padding: 0 12px; border: 1px solid rgba(239,230,216,.18); border-radius: 6px; font-size: 13px; font-weight: 500; color: #C2B6A3; white-space: nowrap;">隣の席に座る</span></button>
+      <button type="button" aria-label="黙ってグラスを受け取る" style="flex: 0 1 auto; min-width: 0; overflow: hidden; height: 44px; display: flex; align-items: center; padding: 0; border: 0; background: transparent; font-family: inherit; cursor: pointer;"><span style="flex: 0 1 auto; min-width: 0; overflow: hidden; display: flex; align-items: center; height: 36px; box-sizing: border-box; padding: 0 0 0 12px; border: 1px solid rgba(239,230,216,.18); border-right: 0; border-radius: 6px 0 0 6px; font-size: 13px; font-weight: 500; color: #C2B6A3; white-space: nowrap;">黙ってグラスを受け取る</span></button>
+      <span aria-hidden="true" style="position: absolute; right: 0; top: 0; width: 40px; height: 44px; background: linear-gradient(90deg, rgba(21,18,16,0), #151210); pointer-events: none;"></span>
+    </div>
+    <div style="padding: 0 16px;">
+      <div style="display: flex; flex-direction: column; padding: 4px 8px; border: 1px solid rgba(239,230,216,.10); border-radius: 12px; background: #100E0C;">
+        <input type="text" aria-label="メッセージを入力" placeholder="メッセージを入力" style="width: 100%; height: 44px; box-sizing: border-box; padding: 0; border: 0; outline: none; background: transparent; font-family: inherit; font-size: 15px; color: #EFE6D8;" />
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <button type="button" aria-pressed="true" style="height: 44px; display: flex; align-items: center; padding: 0; border: 0; background: transparent; font-family: inherit; cursor: pointer;"><span style="display: flex; align-items: center; gap: 4px; height: 32px; box-sizing: border-box; padding: 0 12px 0 8px; border-radius: 999px; background: rgba(227,168,87,.12); font-size: 12px; font-weight: 500; color: #E3A857; white-space: nowrap;"><span aria-hidden="true" style="width: 12px; height: 12px; border-radius: 999px; background: radial-gradient(circle, #E3A857 0, #E3A857 2.5px, rgba(227,168,87,.30) 3px, rgba(227,168,87,0) 6px);"></span>おすすめ</span></button>
+            <div style="display: flex; align-items: center;">
+              <button type="button" style="height: 44px; display: flex; align-items: center; padding: 0; border: 0; background: transparent; font-family: inherit; cursor: pointer;"><span style="display: flex; align-items: center; gap: 4px; height: 32px; box-sizing: border-box; padding: 0 8px 0 12px; border: 1px solid rgba(239,230,216,.18); border-right: 0; border-radius: 999px 0 0 999px; font-size: 12px; font-weight: 500; color: #C2B6A3; white-space: nowrap;">
+                <svg aria-hidden="true" width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="14" height="11" rx="1.5"/><path d="m3.5 13 3.5-3.5 3 3 2.5-2.5 4 4"/><circle cx="13" cy="8" r="1"/></svg>
+                画像</span></button>
+              <button type="button" aria-label="画像の細かい設定" style="width: 44px; height: 44px; display: flex; align-items: center; padding: 0; border: 0; background: transparent; cursor: pointer;"><span style="width: 44px; height: 32px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(239,230,216,.18); border-radius: 0 999px 999px 0; color: #9A8E7C;">
+                <svg aria-hidden="true" width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 6.5h5M12.5 6.5h4M3.5 13.5h3M10.5 13.5h6"/><circle cx="10.5" cy="6.5" r="2"/><circle cx="8.5" cy="13.5" r="2"/></svg>
+              </span></button>
+            </div>
+          </div>
+          <button type="button" aria-label="送信" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: flex-end; padding: 0; border: 0; background: transparent; cursor: pointer;"><span style="width: 36px; height: 36px; border-radius: 999px; background: #25201C; display: flex; align-items: center; justify-content: center; color: #9A8E7C;">
+            <svg aria-hidden="true" width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 15.5v-11M5.5 9 10 4.5 14.5 9"/></svg>
+          </span></button>
+        </div>
+      </div>
+    </div>
+  </footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>
