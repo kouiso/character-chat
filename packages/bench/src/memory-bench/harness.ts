@@ -572,32 +572,33 @@ export const runArm = async (deps: RunArmDeps): Promise<ArmRunResult> => {
   const now = deps.now ?? Date.now;
   const sleep = deps.sleep ?? defaultSleep;
   const dir = mkdtempSync(path.join(tmpdir(), `memory-bench-${deps.arm}-`));
-  cpSync(deps.persistTemplate, dir, { recursive: true });
-  const platform = await createPlatform({ persistRoot: dir });
-  const db = createDb(platform.env.DB);
-
-  // 実行ごとに別の id（腕どうし・2 度目の実行と行が衝突せんため）。数字には効かんので
-  // 乱入しても NFR-2 の決定論は崩れん（報告に id は出さん）。
-  const scope: ArmScope = {
-    userId: `bench-${crypto.randomUUID()}`,
-    characterId: `bench-${crypto.randomUUID()}`,
-    conversationId: `bench-${crypto.randomUUID()}`,
-  };
-  await seedScope(db, scope);
-  const rt = armRuntime(deps, db, scope);
-
-  const checks: RecallCheck[] = [];
-  let aborted: "call-limit" | "cost-limit" | null = null;
-  let transportFailedAsks = 0;
-
+  let platform: Awaited<ReturnType<typeof createPlatform>> | undefined;
   const cleanup = async (): Promise<void> => {
-    await platform.dispose();
+    await platform?.dispose();
     rmSync(dir, { recursive: true, force: true });
   };
 
-  // ターンの途中で死んだら掃除を先に済ませる（呼び出し元の cleanup は結果が
-  // 返った時だけ届くので、例外経路だと persist ディレクトリと platform が残る）。
+  // セットアップ（雛形写し・platform 起動・seed 投入）も例外経路になりうるので
+  // 全部 try に入れる。呼び出し元の cleanup は正常終了した結果だけに届くので、
+  // ここで掃除せんと persist ディレクトリと workerd が残ってプロセスが落ちん。
   try {
+    cpSync(deps.persistTemplate, dir, { recursive: true });
+    platform = await createPlatform({ persistRoot: dir });
+    const db = createDb(platform.env.DB);
+    // 実行ごとに別の id（腕どうし・2 度目の実行と行が衝突せんため）。数字には
+    // 効かんので乱入しても NFR-2 の決定論は崩れん（報告に id は出さん）。
+    const scope: ArmScope = {
+      userId: `bench-${crypto.randomUUID()}`,
+      characterId: `bench-${crypto.randomUUID()}`,
+      conversationId: `bench-${crypto.randomUUID()}`,
+    };
+    await seedScope(db, scope);
+    const rt = armRuntime(deps, db, scope);
+
+    const checks: RecallCheck[] = [];
+    let aborted: "call-limit" | "cost-limit" | null = null;
+    let transportFailedAsks = 0;
+
     for (const plan of deps.scenario.plans) {
       aborted = abortReason(deps);
       if (aborted) break;
@@ -609,18 +610,18 @@ export const runArm = async (deps: RunArmDeps): Promise<ArmRunResult> => {
       aborted = deps.budget.hit;
       if (aborted) break;
     }
+
+    return {
+      arm: summarizeChecks(checks),
+      aborted,
+      transportFailedAsks,
+      conversationId: scope.conversationId,
+      db,
+      vectorIndex: deps.vectorIndex,
+      cleanup,
+    };
   } catch (error) {
     await cleanup();
     throw error;
   }
-
-  return {
-    arm: summarizeChecks(checks),
-    aborted,
-    transportFailedAsks,
-    conversationId: scope.conversationId,
-    db,
-    vectorIndex: deps.vectorIndex,
-    cleanup,
-  };
 };

@@ -10,9 +10,11 @@
 //
 // 終了コード: 0=正常, 3=健全性ゲート失敗（valid:false）, 4=鍵不足, 5=呼び出し/料金上限,
 // 1=その他の失敗。stdout には JSON 報告だけを出す（本文は FR-11 で禁止）。
+import { spawn } from "node:child_process";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 import type { BaseChatModel } from "@langchain/core/language_models/chat_models";
 import { applyLocalMigrations } from "@v2/cf/migrate";
@@ -60,6 +62,10 @@ type CliArgs = {
   usdLimit?: number;
   model?: string;
   providerOnly?: string;
+  // 内部用。子プロセスは親が migrate 済みの雛形を使い回す（腕ごとの立ち上げを
+  // 分けて真に並列にするための仕組みで、利用者向けの旗ではない）。
+  child: boolean;
+  childTemplate?: string;
 };
 
 const VALUE_FLAGS: Record<string, (args: CliArgs, value: string) => void> = {
@@ -87,6 +93,9 @@ const VALUE_FLAGS: Record<string, (args: CliArgs, value: string) => void> = {
   "--provider-only": (args, value) => {
     args.providerOnly = value;
   },
+  "--child-template": (args, value) => {
+    args.childTemplate = value;
+  },
 };
 
 const validateArgs = (args: CliArgs): void => {
@@ -107,11 +116,16 @@ const parseArgs = (argv: string[]): CliArgs => {
     arms: [...ARM_ORDER],
     keepTranscript: false,
     sabotage: null,
+    child: false,
   };
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
     if (arg === "--keep-transcript") {
       args.keepTranscript = true;
+      continue;
+    }
+    if (arg === "--child") {
+      args.child = true;
       continue;
     }
     const setter = VALUE_FLAGS[arg];
@@ -258,6 +272,7 @@ const runOneArm = async (
     }),
   }));
   const records: { turn: number; user: string; assistant: string }[] = [];
+  const armStart = Date.now();
   const result = await runArm({
     scenario,
     arm,
@@ -289,6 +304,8 @@ const runOneArm = async (
     now: args.mode === "fake" ? createFakeClock() : Date.now,
     sleep: args.mode === "fake" ? () => Promise.resolve() : undefined,
   });
+  if (process.env.MEMORY_BENCH_DEBUG)
+    process.stderr.write(`debug arm=${arm} ms=${Date.now() - armStart}\n`);
   return { arm, budget, result, records };
 };
 
@@ -313,11 +330,15 @@ const runAllArms = async (
     transportFailedAsks: 0,
     transcripts: [],
   };
-  const results = await Promise.all(
+  // 片腕が死んでも他腕は走り続ける（Promise.all だと途中で reject して、
+  // 生きたままの platform/persist の掃除が呼ばれずプロセスが落ちん）。
+  const settled = await Promise.allSettled(
     args.arms.map((arm) => runOneArm(args, scenario, template, parts, arm)),
   );
-  // 集計は常に正規の腕順（Promise.all は投げた順を保つ）。
-  for (const { arm, budget, result, records } of results) {
+  // 集計は常に正規の腕順。失敗した腕は runArm 側で掃除済み、残りはここで捨てる。
+  for (const entry of settled) {
+    if (entry.status !== "fulfilled") continue;
+    const { arm, budget, result, records } = entry.value;
     out.arms[arm] = result.arm;
     out.totals.chat += budget.chat;
     out.totals.extraction += budget.extraction;
@@ -330,6 +351,108 @@ const runAllArms = async (
     if (result.aborted && out.aborted === null) out.aborted = result.aborted;
     out.transcripts.push({ arm, records });
     await result.cleanup();
+  }
+  const failure = settled.find((entry) => entry.status === "rejected");
+  if (failure) throw (failure as PromiseRejectedResult).reason;
+  return out;
+};
+
+// 子プロセスが腕の結果を stdout に返す時の境界印。report 本体と混ざらんよう
+// 親は印以降だけを JSON として読む。
+const CHILD_SENTINEL = "__MEMORY_BENCH_ARM_RESULT__";
+const SCRIPT_PATH = fileURLToPath(import.meta.url);
+const CHILD_STDERR_TAIL = 8 * 1024;
+
+const mergeChildResult = (out: RunAllResult, run: RunAllResult): void => {
+  for (const [arm, report] of Object.entries(run.arms)) {
+    out.arms[arm as ArmName] = report;
+  }
+  out.totals.chat += run.totals.chat;
+  out.totals.extraction += run.totals.extraction;
+  out.totals.summary += run.totals.summary;
+  out.totals.embedding += run.totals.embedding;
+  out.totals.extractionFailures += run.totals.extractionFailures;
+  out.totals.embeddingFailures += run.totals.embeddingFailures;
+  out.usdTotal += run.usdTotal;
+  out.transportFailedAsks += run.transportFailedAsks;
+  if (run.aborted && out.aborted === null) out.aborted = run.aborted;
+  out.transcripts.push(...run.transcripts);
+};
+
+// 子プロセス 1 個 = 1 腕。stdout の境界印以降が腕の結果 JSON。
+// stderr は成功時は捨て、失敗時はデバッグ用に末尾だけ残す（本文は出さん）。
+const collectChild = (arm: ArmName, childArgv: string[]): Promise<RunAllResult> =>
+  new Promise((resolve, reject) => {
+    const child = spawn(process.execPath, ["--import", "tsx", SCRIPT_PATH, ...childArgv], {
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+    const outChunks: Buffer[] = [];
+    let errTail = "";
+    child.stdout.on("data", (chunk: Buffer) => outChunks.push(chunk));
+    child.stderr.on("data", (chunk: Buffer) => {
+      errTail = (errTail + chunk.toString()).slice(-CHILD_STDERR_TAIL);
+    });
+    child.on("error", reject);
+    child.on("close", (code) => {
+      const stdout = Buffer.concat(outChunks).toString();
+      const marker = stdout.indexOf(CHILD_SENTINEL);
+      if (code === 0 && marker >= 0) {
+        try {
+          resolve(JSON.parse(stdout.slice(marker + CHILD_SENTINEL.length)) as RunAllResult);
+          return;
+        } catch {
+          // JSON が読めん時は失敗扱いに落とす。
+        }
+      }
+      if (process.env.MEMORY_BENCH_DEBUG) {
+        writeFileSync(`/tmp/memory-bench-child-${arm}.log`, `code=${code}\n${errTail}`);
+      }
+      reject(new Error(`child-failed:${arm}`));
+    });
+  });
+
+// 腕は子プロセスに分けて回す。同一プロセス内の Promise 並列だとイベントループが
+// 頭打ちになり各腕が約4倍遅くなる実測だったが、別プロセスなら各腕がフル速度で
+// 走る（NFR-1 の120秒を満たすため）。real は外部APIの同時接続を増やさんよう逐次。
+const runParentArms = async (args: CliArgs, template: string): Promise<RunAllResult> => {
+  const out: RunAllResult = {
+    arms: {},
+    totals: {
+      chat: 0,
+      extraction: 0,
+      summary: 0,
+      embedding: 0,
+      extractionFailures: 0,
+      embeddingFailures: 0,
+    },
+    usdTotal: 0,
+    aborted: null,
+    transportFailedAsks: 0,
+    transcripts: [],
+  };
+  const childArgvFor = (arm: ArmName): string[] => {
+    const argv = ["--child", "--child-template", template, "--mode", args.mode, "--arms", arm];
+    if (args.sabotage) argv.push("--sabotage", args.sabotage);
+    if (args.callLimit !== undefined) argv.push("--call-limit", String(args.callLimit));
+    if (args.usdLimit !== undefined) argv.push("--usd-limit", String(args.usdLimit));
+    if (args.model) argv.push("--model", args.model);
+    if (args.providerOnly) argv.push("--provider-only", args.providerOnly);
+    return argv;
+  };
+  if (args.mode === "fake") {
+    const settled = await Promise.allSettled(
+      args.arms.map((arm) => collectChild(arm, childArgvFor(arm))),
+    );
+    // 集計は常に正規の腕順。失敗した子は掃除済みなので、残りの集計を終えてから投げる。
+    for (const entry of settled) {
+      if (entry.status === "fulfilled") mergeChildResult(out, entry.value);
+    }
+    const failure = settled.find((entry) => entry.status === "rejected");
+    if (failure) throw (failure as PromiseRejectedResult).reason;
+    return out;
+  }
+  for (const arm of args.arms) {
+    mergeChildResult(out, await collectChild(arm, childArgvFor(arm)));
   }
   return out;
 };
@@ -409,44 +532,78 @@ const main = async (): Promise<number> => {
   if (keyCode !== 0) return keyCode;
 
   const scenario = buildScenario();
-  const template = mkdtempSync(path.join(tmpdir(), "memory-bench-template-"));
-  applyLocalMigrations({ persistRoot: template, quiet: true });
-
-  const parts =
-    args.mode === "fake"
-      ? fakeParts(scenario)
-      : await realParts(args, process.env as Record<string, string | undefined>);
+  // 子は親が migrate 済みの雛形を受け取る（migration を腕ごとに重複実行せんため）。
+  let template = args.childTemplate;
+  let ownsTemplate = false;
+  if (!template) {
+    template = mkdtempSync(path.join(tmpdir(), "memory-bench-template-"));
+    applyLocalMigrations({ persistRoot: template, quiet: true });
+    ownsTemplate = true;
+  }
 
   const startedAt = Date.now();
-  const run = await runAllArms(args, scenario, template, parts);
-  rmSync(template, { recursive: true, force: true });
+  try {
+    const run = args.child
+      ? await runAllArms(
+          args,
+          scenario,
+          template,
+          args.mode === "fake"
+            ? fakeParts(scenario)
+            : await realParts(args, process.env as Record<string, string | undefined>),
+        )
+      : await runParentArms(args, template);
 
-  const gates = gateFailures(args.mode, run.arms);
-  const invalidReason =
-    gates.length > 0
-      ? `gate:${gates.join(",")}`
-      : run.transportFailedAsks >= 3
-        ? "transport"
-        : null;
+    if (args.child) {
+      // 子は中間結果だけを返す。報告の組み立て・健全性判定・発言の保存は親の仕事。
+      process.stdout.write(`${CHILD_SENTINEL}\n${JSON.stringify(run)}\n`);
+      return 0;
+    }
 
-  const report = buildReport(args, parts, run, startedAt, invalidReason);
-  memoryRecallReportSchema.parse(report);
-  if (args.keepTranscript) writeTranscripts(run.transcripts);
-  emitReport(report, args.out);
+    const parts =
+      args.mode === "fake"
+        ? fakeParts(scenario)
+        : await realParts(args, process.env as Record<string, string | undefined>);
+    const gates = gateFailures(args.mode, run.arms);
+    const invalidReason =
+      gates.length > 0
+        ? `gate:${gates.join(",")}`
+        : run.transportFailedAsks >= 3
+          ? "transport"
+          : null;
 
-  if (run.aborted) return 5;
-  return invalidReason === null ? 0 : 3;
+    const report = buildReport(args, parts, run, startedAt, invalidReason);
+    memoryRecallReportSchema.parse(report);
+    if (args.keepTranscript) writeTranscripts(run.transcripts);
+    emitReport(report, args.out);
+
+    if (run.aborted) return 5;
+    return invalidReason === null ? 0 : 3;
+  } finally {
+    if (ownsTemplate) rmSync(template, { recursive: true, force: true });
+  }
 };
 
 const REPO_WORK = path.resolve(path.dirname(new URL(import.meta.url).pathname), "../../../.work");
 
+// 報告を出したあとも workerd 等の生き残ったハンドルがイベントループを抱えて
+// プロセスが自然終了せん場合がある。報告は届いているので、残り時間だけで切る。
+const finish = (code: number): void => {
+  process.exitCode = code;
+  setTimeout(() => process.exit(code), 10_000).unref();
+};
+
 main()
-  .then((code) => {
-    process.exitCode = code;
-  })
+  .then(finish)
   .catch((error: unknown) => {
     // 失敗理由の中身（会話本文・プロンプト）を出さんよう、種類名だけを出す。
     const name = error instanceof Error ? error.name : "unknown";
     process.stderr.write(`error:${name}\n`);
-    process.exitCode = 1;
+    if (process.env.MEMORY_BENCH_DEBUG) {
+      writeFileSync(
+        "/tmp/memory-bench-error.log",
+        String(error instanceof Error ? error.stack : error),
+      );
+    }
+    finish(1);
   });
