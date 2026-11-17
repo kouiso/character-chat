@@ -42,6 +42,7 @@ import { Route as ApiAdminCharacterCheckRouteImport } from './routes/api/admin/c
 import { Route as ApiAdminFailureDrillRouteImport } from './routes/api/admin/failure-drill'
 import { Route as ApiAdminImageCheckRouteImport } from './routes/api/admin/image-check'
 import { Route as ApiAdminLegacyMigrationRouteImport } from './routes/api/admin/legacy-migration'
+import { Route as ApiAdminMemoryReindexRouteImport } from './routes/api/admin/memory-reindex'
 import { Route as ApiBoardIdRouteImport } from './routes/api/board/$id'
 import { Route as ApiCatalogIdRouteImport } from './routes/api/catalog/$id'
 import { Route as ApiChapterMediaIdRouteImport } from './routes/api/chapter-media/$id'
@@ -266,6 +267,11 @@ const ApiAdminImageCheckRoute = ApiAdminImageCheckRouteImport.update({
 const ApiAdminLegacyMigrationRoute = ApiAdminLegacyMigrationRouteImport.update({
   id: '/api/admin/legacy-migration',
   path: '/api/admin/legacy-migration',
+  getParentRoute: () => rootRouteImport,
+})
+const ApiAdminMemoryReindexRoute = ApiAdminMemoryReindexRouteImport.update({
+  id: '/api/admin/memory-reindex',
+  path: '/api/admin/memory-reindex',
   getParentRoute: () => rootRouteImport,
 })
 const ApiBoardIdRoute = ApiBoardIdRouteImport.update({
@@ -613,6 +619,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/failure-drill': typeof ApiAdminFailureDrillRoute
   '/api/admin/image-check': typeof ApiAdminImageCheckRoute
   '/api/admin/legacy-migration': typeof ApiAdminLegacyMigrationRoute
+  '/api/admin/memory-reindex': typeof ApiAdminMemoryReindexRoute
   '/api/board/$id': typeof ApiBoardIdRoute
   '/api/catalog/$id': typeof ApiCatalogIdRoute
   '/api/chapter-media/$id': typeof ApiChapterMediaIdRoute
@@ -708,6 +715,7 @@ export interface FileRoutesByTo {
   '/api/admin/failure-drill': typeof ApiAdminFailureDrillRoute
   '/api/admin/image-check': typeof ApiAdminImageCheckRoute
   '/api/admin/legacy-migration': typeof ApiAdminLegacyMigrationRoute
+  '/api/admin/memory-reindex': typeof ApiAdminMemoryReindexRoute
   '/api/board/$id': typeof ApiBoardIdRoute
   '/api/catalog/$id': typeof ApiCatalogIdRoute
   '/api/chapter-media/$id': typeof ApiChapterMediaIdRoute
@@ -804,6 +812,7 @@ export interface FileRoutesById {
   '/api/admin/failure-drill': typeof ApiAdminFailureDrillRoute
   '/api/admin/image-check': typeof ApiAdminImageCheckRoute
   '/api/admin/legacy-migration': typeof ApiAdminLegacyMigrationRoute
+  '/api/admin/memory-reindex': typeof ApiAdminMemoryReindexRoute
   '/api/board/$id': typeof ApiBoardIdRoute
   '/api/catalog/$id': typeof ApiCatalogIdRoute
   '/api/chapter-media/$id': typeof ApiChapterMediaIdRoute
@@ -901,6 +910,7 @@ export interface FileRouteTypes {
     | '/api/admin/failure-drill'
     | '/api/admin/image-check'
     | '/api/admin/legacy-migration'
+    | '/api/admin/memory-reindex'
     | '/api/board/$id'
     | '/api/catalog/$id'
     | '/api/chapter-media/$id'
@@ -996,6 +1006,7 @@ export interface FileRouteTypes {
     | '/api/admin/failure-drill'
     | '/api/admin/image-check'
     | '/api/admin/legacy-migration'
+    | '/api/admin/memory-reindex'
     | '/api/board/$id'
     | '/api/catalog/$id'
     | '/api/chapter-media/$id'
@@ -1091,6 +1102,7 @@ export interface FileRouteTypes {
     | '/api/admin/failure-drill'
     | '/api/admin/image-check'
     | '/api/admin/legacy-migration'
+    | '/api/admin/memory-reindex'
     | '/api/board/$id'
     | '/api/catalog/$id'
     | '/api/chapter-media/$id'
@@ -1187,6 +1199,7 @@ export interface RootRouteChildren {
   ApiAdminFailureDrillRoute: typeof ApiAdminFailureDrillRoute
   ApiAdminImageCheckRoute: typeof ApiAdminImageCheckRoute
   ApiAdminLegacyMigrationRoute: typeof ApiAdminLegacyMigrationRoute
+  ApiAdminMemoryReindexRoute: typeof ApiAdminMemoryReindexRoute
   ApiChapterMediaIdRoute: typeof ApiChapterMediaIdRoute
   ApiChapterVideoIdRoute: typeof ApiChapterVideoIdRoute
   ApiChatIdRoute: typeof ApiChatIdRoute
@@ -1444,6 +1457,13 @@ declare module '@tanstack/react-router' {
       path: '/api/admin/legacy-migration'
       fullPath: '/api/admin/legacy-migration'
       preLoaderRoute: typeof ApiAdminLegacyMigrationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/memory-reindex': {
+      id: '/api/admin/memory-reindex'
+      path: '/api/admin/memory-reindex'
+      fullPath: '/api/admin/memory-reindex'
+      preLoaderRoute: typeof ApiAdminMemoryReindexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/board/$id': {
@@ -2119,6 +2139,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminFailureDrillRoute: ApiAdminFailureDrillRoute,
   ApiAdminImageCheckRoute: ApiAdminImageCheckRoute,
   ApiAdminLegacyMigrationRoute: ApiAdminLegacyMigrationRoute,
+  ApiAdminMemoryReindexRoute: ApiAdminMemoryReindexRoute,
   ApiChapterMediaIdRoute: ApiChapterMediaIdRoute,
   ApiChapterVideoIdRoute: ApiChapterVideoIdRoute,
   ApiChatIdRoute: ApiChatIdRoute,

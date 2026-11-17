@@ -11,6 +11,8 @@ export type LogEventName =
   | "memory_queue_publish_failed"
   | "memory_queue_invalid_message"
   | "memory_extraction_failed"
+  | "memory_index_failed"
+  | "memory_reindex_failed"
   | "memory_manual_index_failed"
   | "memory_vector_drop_failed"
   | "memory_purge_failed"

@@ -1,7 +1,8 @@
-import { and, asc, desc, eq, exists, inArray, isNull, ne, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, exists, inArray, isNull, lt, ne, or, sql } from "drizzle-orm";
 
 import { storedCharacterContentSchema } from "./character-version";
 import {
+  MEMORY_INDEX_ATTEMPTS,
   MEMORY_PUBLISH_ATTEMPTS,
   validateExtractedMemories,
   type ExtractedMemory,
@@ -43,6 +44,8 @@ export const listPendingMemoryJobs = async (
           includeUnindexed
             ? and(
                 eq(v2MemoryJobTable.state, "completed"),
+                // index_failed（5 回到達）は運用の口で戻すまで拾わん（RIT-74）
+                lt(v2MemoryJobTable.indexAttempts, MEMORY_INDEX_ATTEMPTS),
                 exists(
                   db
                     .select({ one: sql`1` })

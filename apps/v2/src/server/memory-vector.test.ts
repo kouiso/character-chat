@@ -19,9 +19,11 @@ describe("memory vector", () => {
     for (const invalid of [
       vector.slice(1),
       [...vector, 0],
-      new Array(1024).fill(0),
+      Array.from({ length: 1024 }, () => 0),
+      [NaN, ...vector.slice(1)],
       [Infinity, ...vector.slice(1)],
       [1e100, ...vector.slice(1)],
+      [-1e100, ...vector.slice(1)],
     ]) {
       expect(() => validateMemoryVector(invalid)).toThrow();
     }

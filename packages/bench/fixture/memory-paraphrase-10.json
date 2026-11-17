@@ -1,0 +1,66 @@
+{
+  "memories": [
+    {
+      "id": "bench-mem-01",
+      "kind": "fact",
+      "content": "日曜の朝は、たいてい走っている。"
+    },
+    {
+      "id": "bench-mem-02",
+      "kind": "preference",
+      "content": "紅茶はミルクを入れずに飲むのが好き。"
+    },
+    {
+      "id": "bench-mem-03",
+      "kind": "fact",
+      "content": "猫を二匹飼っていて、名前はモカとソラ。"
+    },
+    {
+      "id": "bench-mem-04",
+      "kind": "preference",
+      "content": "傘は持たずに、濡れて帰る方を選ぶことが多い。"
+    },
+    {
+      "id": "bench-mem-05",
+      "kind": "fact",
+      "content": "仕事は水曜と金曜が在宅勤務。"
+    },
+    {
+      "id": "bench-mem-06",
+      "kind": "preference",
+      "content": "映画は字幕で観る派で、吹き替えは苦手。"
+    },
+    {
+      "id": "bench-mem-07",
+      "kind": "fact",
+      "content": "実家は海の近くで、帰ると必ず防波堤を歩く。"
+    },
+    {
+      "id": "bench-mem-08",
+      "kind": "preference",
+      "content": "朝ごはんはパンよりご飯と味噌汁が多い。"
+    },
+    {
+      "id": "bench-mem-09",
+      "kind": "fact",
+      "content": "週に一度、駅前の書店で新刊を眺めるのが習慣。"
+    },
+    {
+      "id": "bench-mem-10",
+      "kind": "preference",
+      "content": "部屋の照明は暖色系じゃないと落ち着かない。"
+    }
+  ],
+  "queries": [
+    { "memoryId": "bench-mem-01", "text": "週末の朝って何してる？" },
+    { "memoryId": "bench-mem-02", "text": "紅茶の飲み方にこだわりはある？" },
+    { "memoryId": "bench-mem-03", "text": "ペットは飼ってる？" },
+    { "memoryId": "bench-mem-04", "text": "雨の日はどうしてる？" },
+    { "memoryId": "bench-mem-05", "text": "リモートワークの曜日を教えて？" },
+    { "memoryId": "bench-mem-06", "text": "映画を観る時の好みってある？" },
+    { "memoryId": "bench-mem-07", "text": "故郷に帰ったら何をする？" },
+    { "memoryId": "bench-mem-08", "text": "朝食は何を食べることが多い？" },
+    { "memoryId": "bench-mem-09", "text": "本屋にはよく行く？" },
+    { "memoryId": "bench-mem-10", "text": "部屋の明かりに好みはある？" }
+  ]
+}

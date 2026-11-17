@@ -261,6 +261,46 @@ const tryPurgeExpiredMemories = async (
   }
 };
 
+// 抜き出し job 1 件の配送。索引の失敗は job ごとに数える（RIT-74 FR-5）。
+// 抜き出しの失敗は terminal だけ failed にする — 抜き出し済みの再配送で数を混ぜんため。
+const consumeOneMemoryJob = async (
+  db: V2Db,
+  env: MemoryModelEnv & Pick<Cloudflare.Env, "DB"> & MemoryVectorBindings,
+  message: Pick<Message, "attempts" | "ack" | "retry">,
+  jobId: string,
+): Promise<void> => {
+  let indexing = false;
+  try {
+    const source = await loadMemoryExtractionSource(db, jobId);
+    if (source) {
+      await tryPurgeExpiredMemories(db, env, source.conversationId);
+      await runMemoryExtraction(db, env, source);
+    }
+    if (memoryVectorReady(env)) {
+      indexing = true;
+      await indexMemoryJob(db, env, jobId);
+    }
+    message.ack();
+  } catch (error) {
+    const terminal = message.attempts >= MEMORY_CONSUMER_ATTEMPTS;
+    if (indexing) await failMemoryIndex(db, jobId, terminal);
+    reportFailure(env, {
+      event: indexing ? "memory_index_failed" : "memory_extraction_failed",
+      level: "error",
+      jobId,
+      attempt: message.attempts,
+      terminal,
+      reason: describeError(error),
+    });
+    if (!terminal) {
+      message.retry({ delaySeconds: MEMORY_RETRY_DELAY_MS / 1_000 });
+      return;
+    }
+    if (!indexing) await failMemoryExtraction(db, jobId);
+    message.ack();
+  }
+};
+
 export const consumeMemoryJobs = async (
   batch: MessageBatch<unknown>,
   env: MemoryModelEnv &
@@ -284,35 +324,6 @@ export const consumeMemoryJobs = async (
       await consumeSummaryRedact(db, env, message, parsed.data.conversationId);
       continue;
     }
-    const { jobId } = parsed.data;
-    let indexing = false;
-    try {
-      const source = await loadMemoryExtractionSource(db, jobId);
-      if (source) {
-        await tryPurgeExpiredMemories(db, env, source.conversationId);
-        await runMemoryExtraction(db, env, source);
-      }
-      if (memoryVectorReady(env)) {
-        indexing = true;
-        await indexMemoryJob(db, env, jobId);
-      }
-      message.ack();
-    } catch (error) {
-      const terminal = message.attempts >= MEMORY_CONSUMER_ATTEMPTS;
-      reportFailure(env, {
-        event: "memory_extraction_failed",
-        level: "error",
-        jobId,
-        attempt: message.attempts,
-        terminal,
-        reason: describeError(error),
-      });
-      if (terminal) {
-        await (indexing ? failMemoryIndex(db, jobId) : failMemoryExtraction(db, jobId));
-        message.ack();
-      } else {
-        message.retry({ delaySeconds: MEMORY_RETRY_DELAY_MS / 1_000 });
-      }
-    }
+    await consumeOneMemoryJob(db, env, message, parsed.data.jobId);
   }
 };
