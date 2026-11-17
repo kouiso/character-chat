@@ -13,8 +13,13 @@ const WRANGLER_BIN = path.join(
 /**
  * `pnpm db:migrate:local` と同じ store（.wrangler/state/v3）にローカル D1 の schema を反映する。
  * drizzle-kit のジャーナルには触れず、wrangler 自身の migrations テーブルで冪等に適用される。
+ * persistRoot を渡すとその persist ルートへ適用する（RIT-99: ベンチが実行ごとの mkdtemp へ
+ * 適用する用）。quiet:true では wrangler の出力を stderr へ逃がし、stdout を JSON 報告だけに
+ * 使う呼び出し側（ベンチ）を邪魔せん。
  */
-export const applyLocalMigrations = (): void => {
+export const applyLocalMigrations = (
+  opts: { persistRoot?: string; quiet?: boolean } = {},
+): void => {
   // --persist-to を明示しないと wrangler は config ファイルのディレクトリ（apps/v2）基準で
   // 永続化先を決める。createPlatform() 側は REPO_ROOT/.wrangler/state/v3 を見るので、
   // 明示しないと別々の空 DB を見て「テーブルが無い」になる（実測済み）。
@@ -29,8 +34,8 @@ export const applyLocalMigrations = (): void => {
       "-c",
       WRANGLER_CONFIG,
       "--persist-to",
-      PERSIST_ROOT,
+      opts.persistRoot ?? PERSIST_ROOT,
     ],
-    { cwd: REPO_ROOT, stdio: "inherit" },
+    { cwd: REPO_ROOT, stdio: opts.quiet ? ["ignore", 2, 2] : "inherit" },
   );
 };
