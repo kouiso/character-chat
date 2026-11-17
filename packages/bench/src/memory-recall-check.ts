@@ -526,6 +526,50 @@ const emitReport = (report: MemoryRecallReport, out: string | undefined): void =
   writeFileSync(path.resolve(out), text);
 };
 
+const partsFor = (
+  args: CliArgs,
+  scenario: ReturnType<typeof buildScenario>,
+): Promise<ModeParts> | ModeParts =>
+  args.mode === "fake"
+    ? fakeParts(scenario)
+    : realParts(args, process.env as Record<string, string | undefined>);
+
+const runBenchmark = async (
+  args: CliArgs,
+  scenario: ReturnType<typeof buildScenario>,
+  template: string,
+): Promise<RunAllResult> =>
+  args.child
+    ? runAllArms(args, scenario, template, await partsFor(args, scenario))
+    : runParentArms(args, template);
+
+// 親だけが報告を組み立てる。子は中間 JSON を出して 0 で終わる。
+const emitFinal = async (
+  args: CliArgs,
+  scenario: ReturnType<typeof buildScenario>,
+  run: RunAllResult,
+  startedAt: number,
+): Promise<number> => {
+  if (args.child) {
+    process.stdout.write(`${CHILD_SENTINEL}\n${JSON.stringify(run)}\n`);
+    return 0;
+  }
+  const parts = await partsFor(args, scenario);
+  const gates = gateFailures(args.mode, run.arms);
+  const invalidReason =
+    gates.length > 0
+      ? `gate:${gates.join(",")}`
+      : run.transportFailedAsks >= 3
+        ? "transport"
+        : null;
+  const report = buildReport(args, parts, run, startedAt, invalidReason);
+  memoryRecallReportSchema.parse(report);
+  if (args.keepTranscript) writeTranscripts(run.transcripts);
+  emitReport(report, args.out);
+  if (run.aborted) return 5;
+  return invalidReason === null ? 0 : 3;
+};
+
 const main = async (): Promise<number> => {
   const args = parseArgs(process.argv.slice(2));
   const keyCode = checkRealKeys(args.mode);
@@ -543,42 +587,8 @@ const main = async (): Promise<number> => {
 
   const startedAt = Date.now();
   try {
-    const run = args.child
-      ? await runAllArms(
-          args,
-          scenario,
-          template,
-          args.mode === "fake"
-            ? fakeParts(scenario)
-            : await realParts(args, process.env as Record<string, string | undefined>),
-        )
-      : await runParentArms(args, template);
-
-    if (args.child) {
-      // 子は中間結果だけを返す。報告の組み立て・健全性判定・発言の保存は親の仕事。
-      process.stdout.write(`${CHILD_SENTINEL}\n${JSON.stringify(run)}\n`);
-      return 0;
-    }
-
-    const parts =
-      args.mode === "fake"
-        ? fakeParts(scenario)
-        : await realParts(args, process.env as Record<string, string | undefined>);
-    const gates = gateFailures(args.mode, run.arms);
-    const invalidReason =
-      gates.length > 0
-        ? `gate:${gates.join(",")}`
-        : run.transportFailedAsks >= 3
-          ? "transport"
-          : null;
-
-    const report = buildReport(args, parts, run, startedAt, invalidReason);
-    memoryRecallReportSchema.parse(report);
-    if (args.keepTranscript) writeTranscripts(run.transcripts);
-    emitReport(report, args.out);
-
-    if (run.aborted) return 5;
-    return invalidReason === null ? 0 : 3;
+    const run = await runBenchmark(args, scenario, template);
+    return await emitFinal(args, scenario, run, startedAt);
   } finally {
     if (ownsTemplate) rmSync(template, { recursive: true, force: true });
   }
