@@ -1,0 +1,721 @@
+/* つくる系の画面の地と部品（板 Create / ClipCreate / Clips / Stories / Groups / Album、KIT 6）。
+   値は design-token.css の変数だけ。半透明の面・絵の加工・枠線のボタンは作らない。 */
+.v2-make {
+  min-height: 100dvh;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  background: var(--gradient-ground);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+  font-weight: 500;
+  letter-spacing: var(--text-tracking);
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+  padding-top: var(--safe-top);
+}
+
+.v2-make a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.v2-make button,
+.v2-make a {
+  font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.v2-make-body {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  padding: 0 var(--space-gutter) 32px;
+}
+
+/* 6.4 ふつうの頭。タブの根は題 22px・左 20 */
+.v2-make-head {
+  flex: none;
+  height: 56px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 8px;
+}
+
+.v2-make-head.root {
+  padding: 0 8px 0 var(--space-gutter);
+}
+
+.v2-make-head h1 {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+  font-size: var(--text-title-size);
+  line-height: var(--text-title-line);
+  font-weight: 700;
+  letter-spacing: var(--text-tracking-title);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.v2-make-head.root h1 {
+  font-size: var(--text-screen-title-size);
+  line-height: var(--text-screen-title-line);
+  letter-spacing: var(--text-tracking-strong);
+}
+
+.v2-make-icon-button {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.v2-make-icon-button svg,
+.v2-make-sub-icon svg,
+.v2-make-primary svg,
+.v2-make-surface-button svg {
+  flex: none;
+  display: block;
+}
+
+.v2-make-sub-icon {
+  color: var(--color-text-sub);
+  display: flex;
+}
+
+/* 6.5 塗り（主）。1 画面に 1 つだけ */
+.v2-make-primary {
+  flex: none;
+  height: 56px;
+  margin: 0;
+  border: 0;
+  box-sizing: border-box;
+  border-radius: var(--radius-pill);
+  background: var(--gradient-peach);
+  box-shadow: var(--shadow-peach);
+  color: var(--color-on-peach);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: var(--text-title-size);
+  line-height: var(--text-title-line);
+  font-weight: 700;
+  letter-spacing: var(--text-tracking-title);
+  cursor: pointer;
+}
+
+.v2-make .v2-make-primary {
+  color: var(--color-on-peach);
+}
+
+/* 押せない間はピーチの光を止めて、面の段に下げる（板 ClipCreate「選ぶ前」） */
+.v2-make-primary:disabled {
+  background: var(--gradient-surface);
+  box-shadow: none;
+  color: var(--color-text-sub);
+  cursor: default;
+}
+
+/* 6.6 面（副） */
+.v2-make-surface-button {
+  flex: none;
+  height: 56px;
+  margin: 0;
+  border: 0;
+  box-sizing: border-box;
+  padding: 0 20px 0 16px;
+  border-radius: var(--radius-pill);
+  background: var(--gradient-press);
+  box-shadow: var(--shadow-press);
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: var(--text-row-size);
+  line-height: var(--text-row-line);
+  font-weight: 700;
+  letter-spacing: var(--text-tracking-strong);
+  cursor: pointer;
+}
+
+.v2-make-surface-button.small {
+  align-self: flex-start;
+  height: 44px;
+  padding: 0 16px 0 12px;
+}
+
+/* 6.7 文字だけ（静か）の行き先 */
+.v2-make-quiet-link {
+  flex: none;
+  height: 44px;
+  padding: 0 0 0 12px;
+  background: transparent;
+  border: 0;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-size: var(--text-row-size);
+  line-height: var(--text-row-line);
+  font-weight: 500;
+  letter-spacing: var(--text-tracking);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+/* 1 面の札（KIT 4） */
+.v2-make-card {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  border-radius: var(--radius-card);
+  background: var(--gradient-surface);
+  box-shadow: var(--shadow-surface);
+}
+
+.v2-make-card-title {
+  font-size: var(--text-title-size);
+  line-height: var(--text-title-line);
+  font-weight: 700;
+  letter-spacing: var(--text-tracking-title);
+}
+
+.v2-make-card-text {
+  color: var(--color-text-sub);
+}
+
+/* 6.13 節の見出し。下の段（h3）は副の色の 13px */
+.v2-make-section,
+.v2-make-subsection {
+  flex: none;
+  display: flex;
+  align-items: center;
+  height: 44px;
+}
+
+.v2-make-section h2 {
+  margin: 0;
+  flex: 1;
+  font-size: var(--text-title-size);
+  line-height: var(--text-title-line);
+  font-weight: 700;
+  letter-spacing: var(--text-tracking-strong);
+}
+
+.v2-make-subsection h3 {
+  margin: 0;
+  flex: 1;
+  color: var(--color-text-sub);
+  font-size: var(--text-note-size);
+  line-height: var(--text-note-line);
+  font-weight: 500;
+  letter-spacing: var(--text-tracking);
+}
+
+/* 6.14 一覧の行（高さ 64・行の間は上端の細い線） */
+.v2-make-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.v2-make-row {
+  flex: none;
+  min-height: 64px;
+  box-shadow: var(--edge-top);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.v2-make-row-link {
+  flex: 1;
+  min-width: 0;
+  min-height: 64px;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.v2-make-row-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.v2-make-row-name {
+  font-size: var(--text-row-size);
+  line-height: var(--text-row-line);
+  font-weight: 700;
+  letter-spacing: var(--text-tracking-strong);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.v2-make-row-note,
+.v2-make-row-date {
+  color: var(--color-text-sub);
+  font-size: var(--text-note-size);
+  line-height: var(--text-note-line);
+  font-weight: 500;
+  letter-spacing: var(--text-tracking);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.v2-make-row-date {
+  flex: none;
+}
+
+.v2-make-row-action {
+  flex: none;
+  height: 44px;
+  padding: 0 0 0 16px;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  font-size: var(--text-row-size);
+  line-height: var(--text-row-line);
+  font-weight: 500;
+  letter-spacing: var(--text-tracking);
+  white-space: nowrap;
+}
+
+/* 押せる面の行（つくりかけ） */
+.v2-make-press-row {
+  flex: none;
+  height: 64px;
+  box-sizing: border-box;
+  padding: 0 12px 0 16px;
+  border-radius: var(--radius-card);
+  background: var(--gradient-press);
+  box-shadow: var(--shadow-press);
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.v2-make-press-row-icon {
+  color: var(--color-peach);
+  display: flex;
+}
+
+.v2-make-press-row-go {
+  font-size: var(--text-row-size);
+  line-height: var(--text-row-line);
+  font-weight: 500;
+  letter-spacing: var(--text-tracking);
+  white-space: nowrap;
+}
+
+/* 6.12 顔と頭文字の札 */
+.v2-make-face {
+  position: relative;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  box-shadow: var(--edge-top-press);
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-title-size);
+  line-height: var(--text-title-line);
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.v2-make-face.tone-1 {
+  background: var(--color-initial-1);
+}
+
+.v2-make-face.tone-2 {
+  background: var(--color-initial-2);
+}
+
+.v2-make-face.tone-3 {
+  background: var(--color-initial-3);
+}
+
+.v2-make-face.tone-4 {
+  background: var(--color-initial-4);
+}
+
+.v2-make-face img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* 6.20 画像の札と並び（3 列・角丸 12・絵は無加工） */
+.v2-make-tiles {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.v2-make-tile {
+  min-width: 0;
+  color: var(--color-text);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.v2-make-tile-frame {
+  position: relative;
+  overflow: hidden;
+  height: 148px;
+  border-radius: var(--radius-control);
+  background: var(--color-ground-low);
+  display: block;
+}
+
+.v2-make-tile-frame video,
+.v2-make-tile-frame img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.v2-make-tile-text {
+  display: flex;
+  flex-direction: column;
+  padding: 4px 0 0;
+}
+
+/* 6.31 空の時 */
+.v2-make-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 24px 0;
+  text-align: center;
+}
+
+.v2-make-empty-lamp {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-pill);
+  background: var(--gradient-surface);
+  box-shadow: var(--shadow-surface);
+  color: var(--color-peach);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.v2-make-empty-title {
+  padding: 8px 0 0;
+  font-size: var(--text-title-size);
+  line-height: var(--text-title-line);
+  font-weight: 700;
+  letter-spacing: var(--text-tracking-title);
+}
+
+.v2-make-empty-text {
+  color: var(--color-text-sub);
+}
+
+/* 6.33 うまくいかなかった時 */
+.v2-make-error {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border-radius: var(--radius-card);
+  background: var(--gradient-surface);
+  box-shadow: var(--shadow-surface);
+}
+
+.v2-make-error-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.v2-make-error-note {
+  padding: 0 0 0 28px;
+  color: var(--color-text-sub);
+  font-size: var(--text-note-size);
+  line-height: var(--text-note-line);
+}
+
+.v2-make-error-icon {
+  flex: none;
+  color: var(--color-danger);
+  display: flex;
+}
+
+/* 6.32 読み込み中（骨組み） */
+.v2-make-skeleton {
+  display: flex;
+  flex-direction: column;
+}
+
+.v2-make-skeleton-row {
+  height: 64px;
+  box-shadow: var(--edge-top);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.v2-make-skeleton-face {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-pill);
+  background: var(--color-skeleton-hi);
+}
+
+.v2-make-skeleton-lines {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.v2-make-skeleton-lines span {
+  height: 12px;
+  border-radius: var(--radius-tail);
+}
+
+.v2-make-skeleton-lines .hi {
+  width: 96px;
+  background: var(--color-skeleton-hi);
+}
+
+.v2-make-skeleton-lines .lo {
+  width: 200px;
+  max-width: 100%;
+  background: var(--color-skeleton-lo);
+}
+
+/* 下の帯（KIT 4）。本文が潜らんよう、帯のある画面は .has-bottom-bar で下を空ける */
+.v2-make-bottom-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 30;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  padding: 12px var(--space-gutter) calc(16px + var(--safe-bottom));
+  background: var(--color-bar);
+  box-shadow: var(--edge-top);
+}
+
+.v2-make.has-bottom-bar {
+  padding-bottom: calc(84px + var(--safe-bottom));
+}
+
+.v2-make-gap-8 {
+  flex: none;
+  height: 8px;
+}
+
+.v2-make-gap-12 {
+  flex: none;
+  height: 12px;
+}
+
+.v2-make-gap-16 {
+  flex: none;
+  height: 16px;
+}
+
+.v2-make-gap-24 {
+  flex: none;
+  height: 24px;
+}
+
+/* 6.27 下からのシート（後ろに暗幕。シートの主ボタンだけ光る） */
+.v2-make-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: var(--color-scrim);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.v2-make-sheet {
+  max-height: 88dvh;
+  overflow-y: auto;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px var(--space-gutter) calc(24px + var(--safe-bottom));
+  border-radius: var(--radius-sheet);
+  background: var(--color-bar);
+  box-shadow: var(--shadow-sheet);
+}
+
+.v2-make-sheet-grabber {
+  align-self: center;
+  width: 36px;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--color-grabber);
+}
+
+.v2-make-sheet-head {
+  display: flex;
+  align-items: center;
+  height: 52px;
+  padding: 0 0 0 4px;
+}
+
+.v2-make-sheet-head h2 {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+  font-size: var(--text-title-size);
+  line-height: var(--text-title-line);
+  font-weight: 700;
+  letter-spacing: var(--text-tracking-title);
+}
+
+.v2-make-sheet-head .v2-make-icon-button {
+  color: var(--color-text-sub);
+}
+
+/* 設定の札の選ぶ行（高さ 52・札の中は面なし＋細い線） */
+.v2-make-choice-card {
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  background: var(--gradient-surface);
+  box-shadow: var(--shadow-surface);
+  display: flex;
+  flex-direction: column;
+}
+
+.v2-make-choice {
+  height: 52px;
+  margin: 0;
+  border: 0;
+  flex: none;
+  padding: 0 16px 0 12px;
+  background: transparent;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+.v2-make-choice + .v2-make-choice {
+  box-shadow: var(--edge-top);
+}
+
+.v2-make-choice .v2-make-face {
+  width: 28px;
+  height: 28px;
+  font-size: var(--text-note-size);
+}
+
+.v2-make-choice-name {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.v2-make-choice-check {
+  flex: none;
+  color: var(--color-peach);
+  display: flex;
+}
+
+.v2-make-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.v2-make-label {
+  color: var(--color-text);
+  font-size: var(--text-row-size);
+  line-height: var(--text-row-line);
+  font-weight: 700;
+  letter-spacing: var(--text-tracking-strong);
+}
+
+.v2-make-note {
+  margin: 0;
+  color: var(--color-text-sub);
+  font-size: var(--text-note-size);
+  line-height: var(--text-note-line);
+}
+
+.v2-make-input {
+  height: 48px;
+  margin: 0;
+  box-sizing: border-box;
+  padding: 0 16px;
+  outline: none;
+  border-radius: var(--radius-control);
+  background: var(--color-well);
+  border: 1px solid var(--color-well-border);
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--text-body-size);
+  line-height: 24px;
+}
+
+.v2-make-input::placeholder {
+  color: var(--color-text-sub);
+  opacity: 1;
+}
+
+.v2-make-choices-scroll {
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.v2-make-wide {
+  padding: 0 24px;
+}

@@ -26,7 +26,16 @@ const renderShell = async (entry: string) => {
       </>
     ),
   });
-  const paths = ["/", "/catalog", "/characters/new", "/album", "/my", "/chat/$id", "/groups/$id"];
+  const paths = [
+    "/",
+    "/catalog",
+    "/create",
+    "/characters/new",
+    "/album",
+    "/my",
+    "/chat/$id",
+    "/groups/$id",
+  ];
   const children = paths.map((path) =>
     createRoute({
       getParentRoute: (): AnyRootRoute => root,
@@ -61,7 +70,7 @@ describe("AppTabBar", () => {
     const expected: Record<string, string> = {
       ホーム: "/",
       出会う: "/catalog",
-      つくる: "/characters/new",
+      つくる: "/create",
       アルバム: "/album",
       マイ: "/my",
     };
@@ -80,6 +89,11 @@ describe("AppTabBar", () => {
       .getAllByRole("link")
       .filter((link) => link.getAttribute("aria-current") === "page");
     expect(current.map((link) => link.textContent)).toEqual(["出会う"]);
+  });
+
+  it("つくるの奥の画面（戻るの付く画面）では帯を出さない", async () => {
+    await renderShell("/characters/new");
+    expect(screen.queryByRole("navigation", { name: "メイン" })).toBeNull();
   });
 
   it("会話画面では帯を出さない（Talk ボードに帯は無い）", async () => {
