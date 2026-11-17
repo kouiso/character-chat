@@ -21,7 +21,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { openLocalD1, type LocalD1 } from "../../../../packages/db/src/test/local-d1";
 
 import { consumeMemoryJobs } from "./memory-queue";
-import { indexMemoryJob, retrieveMemories } from "./memory-rag";
+import { indexMemoryJob, retrieveMemories, retrieveVectorMemories } from "./memory-rag";
 import { memoryNamespace, memoryVectorId } from "./memory-vector";
 
 const owner = `rag-${crypto.randomUUID()}`;
@@ -326,6 +326,37 @@ describe("memory RAG with local D1", () => {
     expect(
       await retrieveMemories(local.db, { V2_RAG_ENABLED: "0" }, fixture.scope, "", now),
     ).toEqual([]);
+  });
+
+  it("retrieveVectorMemories は固定の道を通らず、vector 側の結果は retrieveMemories と同じ（FR-12）", async () => {
+    const fixture = await seed();
+    const env = bindings();
+    await indexMemoryJob(local.db, env, fixture.jobId);
+    // 同じ会話に固定済み・未索引（検索箱に点が無い）の記憶を足す。
+    await local.d1
+      .prepare(
+        "INSERT INTO v2_memory (id, conversation_id, kind, content, pinned, source_turn, created_at) VALUES (?,?,?,?,?,?,?)",
+      )
+      .bind(
+        `${fixture.memoryId}-pinned`,
+        fixture.scope.conversationId,
+        "fact",
+        "固定だけの記憶",
+        1,
+        3,
+        now,
+      )
+      .run();
+    // 検索箱を通る道だけでは固定だけの記憶は出ない（verify-memory の retrievable を誤魔化さない）。
+    const vectorOnly = await retrieveVectorMemories(local.db, env, fixture.scope, "好み", now);
+    expect(vectorOnly.map((entry) => entry.id)).toEqual([fixture.memoryId]);
+    // retrieveMemories は従来どおり固定分が先頭・重複無しで、vector 側と同じ並びを引き継ぐ。
+    const merged = await retrieveMemories(local.db, env, fixture.scope, "好み", now);
+    expect(merged.map((entry) => entry.id)).toEqual([
+      `${fixture.memoryId}-pinned`,
+      fixture.memoryId,
+    ]);
+    expect(merged[0]).toMatchObject({ pinned: true });
   });
 
   it("indexの失敗はQueueで再試行し、抽出を再実行せずに完了する", async () => {
