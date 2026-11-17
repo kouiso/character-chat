@@ -130,4 +130,58 @@ describe("findRecallCue", () => {
     void conversationId;
     expect(await cueFor(characterId)).toBeNull();
   });
+
+  it("置き換わった記憶・眠った枝・summary・消した記憶はキューに使わん（RIT-89）", async () => {
+    const characterId = await newCharacter();
+    const conversationId = await seedConversation(characterId);
+    const yesterdayNoonUtc = Date.parse(`${japanDay(now - DAY_MS)}T03:00:00.000Z`);
+    // 眠った枝（active=0）の発言を出どころにする記憶
+    const sleepingMessageId = crypto.randomUUID();
+    await local.d1
+      .prepare(
+        "INSERT INTO v2_message (id, conversation_id, turn, role, content, branch_no, active, created_at) VALUES (?,?,3,'user','眠い枝',0,0,?)",
+      )
+      .bind(sleepingMessageId, conversationId, yesterdayNoonUtc)
+      .run();
+    const sleepingMemoryId = crypto.randomUUID();
+    await local.d1
+      .prepare(
+        "INSERT INTO v2_memory (id, conversation_id, kind, content, pinned, created_at) VALUES (?,?,'fact','眠った枝の記憶',0,?)",
+      )
+      .bind(sleepingMemoryId, conversationId, yesterdayNoonUtc)
+      .run();
+    await local.d1
+      .prepare(
+        "INSERT INTO v2_memory_source (memory_id, source_message_id, source_content_hash, importance) VALUES (?,?,?,3)",
+      )
+      .bind(sleepingMemoryId, sleepingMessageId, "hash")
+      .run();
+    // summary・置き換わり・論理削除も昨日付けで植える
+    await local.d1
+      .prepare(
+        "INSERT INTO v2_memory (id, conversation_id, kind, content, pinned, created_at) VALUES (?,?,'summary','要約の記憶',0,?)",
+      )
+      .bind(crypto.randomUUID(), conversationId, yesterdayNoonUtc)
+      .run();
+    await local.d1
+      .prepare(
+        "INSERT INTO v2_memory (id, conversation_id, kind, content, pinned, created_at, superseded_by) VALUES (?,?,'fact','置き換わった記憶',0,?,'newer')",
+      )
+      .bind(crypto.randomUUID(), conversationId, yesterdayNoonUtc)
+      .run();
+    await local.d1
+      .prepare(
+        "INSERT INTO v2_memory (id, conversation_id, kind, content, pinned, created_at, deleted_at) VALUES (?,?,'fact','消した記憶',0,?,?)",
+      )
+      .bind(crypto.randomUUID(), conversationId, yesterdayNoonUtc, now)
+      .run();
+    // どれも昨日付けだが全て区切りで弾かれるので「昨日の話」は出ない
+    expect(await cueFor(characterId)).toBeNull();
+    // 生きた記憶を足すと昨日の話が出る（対照）
+    await seedMemory(conversationId, "昨日ピクニックした話", yesterdayNoonUtc);
+    expect(await cueFor(characterId)).toEqual({
+      kind: "yesterday",
+      content: "昨日ピクニックした話",
+    });
+  });
 });
