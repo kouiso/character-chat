@@ -44,6 +44,14 @@
   --color-skeleton-hi: #2b3452;
   --color-skeleton-lo: #232c47;
   --color-tab-active: #3a292d;
+  /* 絵の無い子の頭文字の札（KIT 6.12）。同じ子はいつも同じ色 */
+  --color-initial-1: #2e2a4a;
+  --color-initial-2: #1e3437;
+  --color-initial-3: #3b2630;
+  --color-initial-4: #38291c;
+  /* シートの後ろの暗幕（半透明の唯一の例外・KIT 0） */
+  --color-scrim: rgba(6, 8, 16, 0.6);
+  --color-grabber: rgba(255, 255, 255, 0.24);
   --color-peach-from: #ffcdb2;
   --color-peach-to: #ffc4a4;
   /* 選ばれた面（見本帳「選ばれた札・選ばれた子」） */

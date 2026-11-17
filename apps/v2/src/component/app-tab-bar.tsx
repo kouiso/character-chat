@@ -21,7 +21,7 @@ const TabIcon = ({ children }: TabIconProps) => (
 
 type TabDef = {
   label: string;
-  to: "/" | "/catalog" | "/characters/new" | "/album" | "/my";
+  to: "/" | "/catalog" | "/create" | "/album" | "/my";
   // 帯を出さん画面から戻ってきた時も、同じ系統の画面なら該当タブを点ける
   owns: (path: string) => boolean;
   icon: React.ReactNode;
@@ -54,9 +54,10 @@ export const TABS: readonly TabDef[] = [
   },
   {
     label: "つくる",
-    to: "/characters/new",
+    // 板 Create がタブの根。新しい子・ストーリー・クリップ・グループはその奥
+    to: "/create",
     owns: (path) =>
-      ["/characters", "/create", "/stories", "/clips"].some((base) =>
+      ["/characters", "/create", "/stories", "/clips", "/groups"].some((base) =>
         startsWithSegment(path, base),
       ),
     icon: (
@@ -91,11 +92,18 @@ export const TABS: readonly TabDef[] = [
   },
 ];
 
+// つくるの奥（戻るの付く画面）は板 ClipCreate・Clips・Stories・Groups・CreateWizard とも帯が無い。
+// 帯を出すのはタブの根の /create だけ
+const isMakeSubScreen = (path: string) =>
+  path === "/characters/new" ||
+  ["/clips", "/stories", "/groups"].some((base) => startsWithSegment(path, base));
+
 // Talk（会話・グループ会話）とリーダーは絵と入力欄が画面いっぱいなので、ボードどおり帯を出さない
 const isImmersive = (path: string) =>
   startsWithSegment(path, "/chat") ||
   /^\/groups\/[^/]+/.test(path) ||
-  /^\/stories\/[^/]+\/read/.test(path);
+  /^\/stories\/[^/]+\/read/.test(path) ||
+  isMakeSubScreen(path);
 
 export const AppTabBar = () => {
   const path = useRouterState({ select: (state) => state.location.pathname });

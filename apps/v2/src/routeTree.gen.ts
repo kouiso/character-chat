@@ -33,6 +33,7 @@ import { Route as ApiTtsRouteImport } from './routes/api/tts'
 import { Route as CharactersIdRouteImport } from './routes/characters/$id'
 import { Route as CharactersNewRouteImport } from './routes/characters/new'
 import { Route as ChatIdRouteImport } from './routes/chat/$id'
+import { Route as ClipsNewRouteImport } from './routes/clips_/new'
 import { Route as GroupsIndexRouteImport } from './routes/groups/index'
 import { Route as GroupsIdRouteImport } from './routes/groups/$id'
 import { Route as StoriesIndexRouteImport } from './routes/stories/index'
@@ -220,6 +221,11 @@ const CharactersNewRoute = CharactersNewRouteImport.update({
 const ChatIdRoute = ChatIdRouteImport.update({
   id: '/chat/$id',
   path: '/chat/$id',
+  getParentRoute: () => rootRouteImport,
+})
+const ClipsNewRoute = ClipsNewRouteImport.update({
+  id: '/clips_/new',
+  path: '/clips/new',
   getParentRoute: () => rootRouteImport,
 })
 const GroupsIndexRoute = GroupsIndexRouteImport.update({
@@ -598,6 +604,7 @@ export interface FileRoutesByFullPath {
   '/characters/$id': typeof CharactersIdRoute
   '/characters/new': typeof CharactersNewRoute
   '/chat/$id': typeof ChatIdRoute
+  '/clips/new': typeof ClipsNewRoute
   '/groups/$id': typeof GroupsIdRoute
   '/stories/$id': typeof StoriesIdRouteWithChildren
   '/groups/': typeof GroupsIndexRoute
@@ -692,6 +699,7 @@ export interface FileRoutesByTo {
   '/characters/$id': typeof CharactersIdRoute
   '/characters/new': typeof CharactersNewRoute
   '/chat/$id': typeof ChatIdRoute
+  '/clips/new': typeof ClipsNewRoute
   '/groups/$id': typeof GroupsIdRoute
   '/stories/$id': typeof StoriesIdRouteWithChildren
   '/groups': typeof GroupsIndexRoute
@@ -787,6 +795,7 @@ export interface FileRoutesById {
   '/characters/$id': typeof CharactersIdRoute
   '/characters/new': typeof CharactersNewRoute
   '/chat/$id': typeof ChatIdRoute
+  '/clips_/new': typeof ClipsNewRoute
   '/groups/$id': typeof GroupsIdRoute
   '/stories/$id': typeof StoriesIdRouteWithChildren
   '/groups/': typeof GroupsIndexRoute
@@ -883,6 +892,7 @@ export interface FileRouteTypes {
     | '/characters/$id'
     | '/characters/new'
     | '/chat/$id'
+    | '/clips/new'
     | '/groups/$id'
     | '/stories/$id'
     | '/groups/'
@@ -977,6 +987,7 @@ export interface FileRouteTypes {
     | '/characters/$id'
     | '/characters/new'
     | '/chat/$id'
+    | '/clips/new'
     | '/groups/$id'
     | '/stories/$id'
     | '/groups'
@@ -1071,6 +1082,7 @@ export interface FileRouteTypes {
     | '/characters/$id'
     | '/characters/new'
     | '/chat/$id'
+    | '/clips_/new'
     | '/groups/$id'
     | '/stories/$id'
     | '/groups/'
@@ -1166,6 +1178,7 @@ export interface RootRouteChildren {
   CharactersIdRoute: typeof CharactersIdRoute
   CharactersNewRoute: typeof CharactersNewRoute
   ChatIdRoute: typeof ChatIdRoute
+  ClipsNewRoute: typeof ClipsNewRoute
   GroupsIdRoute: typeof GroupsIdRoute
   StoriesIdRoute: typeof StoriesIdRouteWithChildren
   GroupsIndexRoute: typeof GroupsIndexRoute
@@ -1368,6 +1381,13 @@ declare module '@tanstack/react-router' {
       path: '/chat/$id'
       fullPath: '/chat/$id'
       preLoaderRoute: typeof ChatIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/clips_/new': {
+      id: '/clips_/new'
+      path: '/clips/new'
+      fullPath: '/clips/new'
+      preLoaderRoute: typeof ClipsNewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/groups/': {
@@ -2090,6 +2110,7 @@ const rootRouteChildren: RootRouteChildren = {
   CharactersIdRoute: CharactersIdRoute,
   CharactersNewRoute: CharactersNewRoute,
   ChatIdRoute: ChatIdRoute,
+  ClipsNewRoute: ClipsNewRoute,
   GroupsIdRoute: GroupsIdRoute,
   StoriesIdRoute: StoriesIdRouteWithChildren,
   GroupsIndexRoute: GroupsIndexRoute,

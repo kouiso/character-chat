@@ -152,6 +152,7 @@ const UNAUTHENTICATED_PROBES = [
   ["PATCH", "/api/characters/example/documents/doc-1"],
   ["DELETE", "/api/characters/example/documents/doc-1"],
   ["GET", "/clips"],
+  ["GET", "/clips/new"],
   ["GET", "/create"],
   ["GET", "/album"],
   ["GET", "/my"],
