@@ -1,3 +1,7 @@
 {
-  "ignorePatterns": ["**/*.dc.html", "**/*.md"]
+  "ignorePatterns": [
+    "**/*.dc.html",
+    "**/*.md",
+    "**/*.json"
+  ]
 }
