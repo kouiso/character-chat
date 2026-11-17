@@ -26,6 +26,9 @@ export const TurnState = new StateSchema({
   phase: z.custom<ScenePhase>().nullable().default(null),
   // 1 ターンの締切（ms）。null なら graph.ts の DEFAULT_TURN_TIMEOUT_MS。
   timeoutMs: z.number().nullable().default(null),
+  // generate に入った時の now()。書き直しの締切を「ターンの締切の残り」で決めるために
+  // 覚える（RIT-70）。null のまま = まだ生成に入っとらん。
+  turnStartedAt: z.number().nullable().default(null),
   character: z.custom<CharacterSheet>(),
   history: z.array(z.custom<HistoryMessage>()).default(() => []),
   ledger: z.custom<SceneLedger>(),

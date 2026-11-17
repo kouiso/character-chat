@@ -151,3 +151,44 @@ describe("judgeChunk: inner の出力契約（1応答に1回・120字以内）",
     expect(result.ok).toBe(true);
   });
 });
+
+// RIT-70 NFR-2: 判定そのもの（judgeChunk）は 1 塊 50 ミリ秒以内。比較相手は FR-5 の上限どおり
+// 48 個（お手本 4 + 前 6 ターン 24 + このターン 20）。CI は 4 コアを共用して時間が揺れるので
+// 落とす閾値は 150 ミリ秒（50 の 3 倍）に置き、実測平均は出力に残す。
+describe("judgeChunk の計測（NFR-2）", () => {
+  it("48 個 × 400 字の比較相手に対して、1000 塊の判定の平均が 150ms を超えん", () => {
+    // 種を 1 に固定した乱数（内容が揺れて計測がぶれんよう）。
+    let seed = 1;
+    const rand = (): number => {
+      seed = (seed * 1664525 + 1013904223) >>> 0;
+      return seed / 0x1_0000_0000;
+    };
+    const POOL =
+      "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをんアイウエオカキクケコサシスセソ山川田人口手足目心男女時事";
+    // 句点で 40 字ごとに区切った文（40 字の節を並べる）。
+    const body = (chars: number): string => {
+      let out = "";
+      while (out.length < chars) {
+        let clause = "";
+        for (let i = 0; i < 39; i += 1) clause += POOL[Math.floor(rand() * POOL.length)];
+        out += `${clause}。`;
+      }
+      return out.slice(0, chars);
+    };
+    const previousChunks = Array.from({ length: 48 }, () => body(400));
+    const userText = body(200);
+    const voice = extractVoice("一人称: わたし");
+    const judged = Array.from({ length: 1000 }, () => body(400));
+
+    const started = performance.now();
+    for (const text of judged) {
+      judgeChunk(text, { previousChunks, voice, userText });
+    }
+    const averageMs = (performance.now() - started) / judged.length;
+    // no-console 回避で stdout 直書き（計測結果を CI ログへ残す）。
+    process.stdout.write(
+      `judgeChunk 1 塊あたり平均: ${averageMs.toFixed(3)}ms（n=${judged.length}, 閾値 150ms, 目標 50ms）\n`,
+    );
+    expect(averageMs).toBeLessThan(150);
+  }, 300_000);
+});

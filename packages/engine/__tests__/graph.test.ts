@@ -1,11 +1,14 @@
 import { AIMessageChunk, BaseMessage } from "@langchain/core/messages";
 import { FakeListChatModel } from "@langchain/core/utils/testing";
 import { createMemorySummaryStore } from "@v2/db";
+import { splitChunks } from "@v2/judge";
+import { exemplarForPhase } from "@v2/prompt";
 
-import { createTurnGraph, runTurn, visibleSummaries } from "../src/graph";
+import { createTurnGraph, regenReasonLines, runTurn, visibleSummaries } from "../src/graph";
 import { createMemoryTurnStore, type MemoryTurnStore } from "../src/memory-store";
 
 import type { CharacterSheet, TurnEvent } from "../src/types";
+import type { JudgeResult } from "@v2/judge";
 import type { BaseLanguageModelInput } from "@langchain/core/language_models/base";
 import type { BaseChatModelCallOptions } from "@langchain/core/language_models/chat_models";
 
@@ -16,6 +19,11 @@ const VALID_XML =
 // 2 ターン目用。判定はターンをまたいで前の本文と比べるので、1 ターン目と別の本文にしとく。
 const VALID_XML_SECOND =
   "<response><action>窓を少し開けて夜風を入れる</action><dialogue>ねえ、今日はどこへ行ってたの</dialogue><inner>声が少し震えたのが悔しい</inner></response>";
+
+// 絶頂のお手本（@v2/prompt exemplars.ts の CLIMAX）の先頭塊。判定器はお手本を比較相手へ
+// 入れるので、そのまま出すと repetition で必ず落ちる。実物から取るのでお手本の更新に追従し、
+// 本文の写しをテストへ埋め込まんでも済む。
+const EXEMPLAR_COPY = splitChunks(exemplarForPhase("climax"))[0];
 
 const character: CharacterSheet = {
   id: "char-1",
@@ -398,8 +406,7 @@ describe("createTurnGraph", () => {
 
   test("お手本を写した塊は反復として落ち、書き直しが走る（お手本は直前の塊と同じ扱い）", async () => {
     const store = createMemoryTurnStore();
-    const copied =
-      "<action>奥の奥にどくどくと注がれる熱が止まらない。子宮が精液で満たされていく重さが下腹にずしりと広がる。</action>";
+    const copied = EXEMPLAR_COPY;
     const fresh = "窓の外で雨が強くなり、部屋の灯りが一度だけ揺れた。";
     const model = new FakeListChatModel({ responses: [copied, fresh] });
     const invokeSpy = vi.spyOn(model, "invoke");
@@ -422,8 +429,7 @@ describe("createTurnGraph", () => {
     // 2026-09-15 実測: regen≥1 のターンだけに intra-turn 反復ループが出た（regen=0 は最大3）。
     // 「別の言い方で同じ場面を一段先へ進める」が、場面を進めず同じ動作を言い換える塊を産んでいた。
     const store = createMemoryTurnStore();
-    const copied =
-      "<action>奥の奥にどくどくと注がれる熱が止まらない。子宮が精液で満たされていく重さが下腹にずしりと広がる。</action>";
+    const copied = EXEMPLAR_COPY;
     const fresh = "窓の外で雨が強くなり、部屋の灯りが一度だけ揺れた。";
     const model = new FakeListChatModel({ responses: [copied, fresh] });
     const invokeSpy = vi.spyOn(model, "invoke");
@@ -710,6 +716,633 @@ describe("createTurnGraph", () => {
           (entry) => entry.text,
         ),
       ).toEqual(["b"]);
+    });
+  });
+
+  // RIT-70: 塊ごとの品質判定と書き直しの結合。
+  describe("塊ごとの判定と書き直し（RIT-70）", () => {
+    const turnMetaOf = (events: TurnEvent[]) =>
+      events.find(
+        (event): event is Extract<TurnEvent, { type: "turn-meta" }> => event.type === "turn-meta",
+      );
+
+    const instructionOfCall = (spy: ReturnType<typeof vi.spyOn>, index: number): string => {
+      const messages = spy.mock.calls[index]?.[0] as BaseMessage[];
+      return String(messages.at(-1)?.content);
+    };
+
+    test("G-1: 写しの塊が書き直しで通ると seq 0・1・2 が配られ turn-meta は droppedChunks=0/regeneratedChunks=1", async () => {
+      const store = createMemoryTurnStore();
+      const ok0 = "<action>窓の外で雨が強くなり、部屋の灯りが一度だけ揺れた。</action>";
+      const ok2 = "<dialogue>「……ねえ、聞こえてる？」</dialogue>";
+      const regen = "彼女が毛布を引き上げて、露わだった肩をそっと隠した。";
+      const model = new FakeListChatModel({
+        responses: [`${ok0}\n\n${EXEMPLAR_COPY}\n\n${ok2}`, regen],
+      });
+      const graph = createTurnGraph({ model, store, extendBelowRatio: 0 });
+      const events: TurnEvent[] = [];
+      for await (const event of runTurn(
+        graph,
+        { conversationId: "conv-g1", userText: "一回目", character, phase: "climax" },
+        "conv-g1",
+      )) {
+        events.push(event);
+      }
+      expect(events.filter(isChunkEvent).map((event) => event.seq)).toEqual([0, 1, 2]);
+      expect(events.filter((event) => event.type === "dropped")).toHaveLength(0);
+      expect(turnMetaOf(events)).toMatchObject({ droppedChunks: 0, regeneratedChunks: 1 });
+    });
+
+    test("G-2/G-7: 書き直しても写しの塊は dropped になり turn-meta は droppedChunks=1/regeneratedChunks=1", async () => {
+      const store = createMemoryTurnStore();
+      const ok0 = "<action>窓の外で雨が強くなり、部屋の灯りが一度だけ揺れた。</action>";
+      const ok2 = "<dialogue>「……ねえ、聞こえてる？」</dialogue>";
+      // 書き直しの結果も同じ写し → 2 回目の判定も repetition で落ちる。
+      const model = new FakeListChatModel({
+        responses: [`${ok0}\n\n${EXEMPLAR_COPY}\n\n${ok2}`, EXEMPLAR_COPY],
+      });
+      const graph = createTurnGraph({ model, store, extendBelowRatio: 0 });
+      const events: TurnEvent[] = [];
+      for await (const event of runTurn(
+        graph,
+        { conversationId: "conv-g2", userText: "一回目", character, phase: "climax" },
+        "conv-g2",
+      )) {
+        events.push(event);
+      }
+      expect(events.filter(isChunkEvent).map((event) => event.seq)).toEqual([0, 2]);
+      expect(events.filter((event) => event.type === "dropped")).toMatchObject([
+        { seq: 1, reasons: ["repetition"], attempt: 2 },
+      ]);
+      expect(turnMetaOf(events)).toMatchObject({ droppedChunks: 1, regeneratedChunks: 1 });
+      const loaded = await store.load("conv-g2");
+      const assistant = loaded.history.find((m) => m.role === "assistant");
+      // 落ちた塊（お手本の写し）は保存される本文へ混ざらん。
+      expect(assistant?.content).not.toContain(EXEMPLAR_COPY);
+    });
+
+    test("G-3: 閉じていない <dialogue> の塊は、書き直しの頼み方に format の行が入り「新しい出来事」行は入らん", async () => {
+      const store = createMemoryTurnStore();
+      const ok0 = "<action>窓の外で雨が強くなり、部屋の灯りが一度だけ揺れた。</action>";
+      const ok2 = "彼女が毛布を引き上げて、露わだった肩をそっと隠した。";
+      const regen = "雨脚が強まり、窓ガラスが細かく震え始めた。";
+      const model = new FakeListChatModel({
+        responses: [`${ok0}\n\n<dialogue>閉じていない台詞\n\n${ok2}`, regen],
+      });
+      const invokeSpy = vi.spyOn(model, "invoke");
+      const graph = createTurnGraph({ model, store, extendBelowRatio: 0 });
+      await drain(
+        runTurn(graph, { conversationId: "conv-g3", userText: "一回目", character }, "conv-g3"),
+      );
+      expect(invokeSpy).toHaveBeenCalledTimes(1);
+      const instruction = instructionOfCall(invokeSpy, 0);
+      expect(instruction).toContain(
+        "タグは <action>・<dialogue>・<inner> だけを使い、開いたら閉じる。",
+      );
+      expect(instruction).not.toContain("新しい出来事");
+      expect(instruction).toContain("次の段落だけ書き直す。");
+    });
+
+    test("G-4: シートに無い一人称の塊は、頼み方に「一人称は「わたし」だけを使う。「俺」は使わん。」が入る", async () => {
+      const store = createMemoryTurnStore();
+      const ok0 = "<action>窓の外で雨が強くなり、部屋の灯りが一度だけ揺れた。</action>";
+      const ok2 = "<dialogue>「……ねえ、聞こえてる？」</dialogue>";
+      const regen = "彼女が毛布を引き上げて、露わだった肩をそっと隠した。";
+      const model = new FakeListChatModel({
+        responses: [`${ok0}\n\n<action>俺は彼女の手を取る</action>\n\n${ok2}`, regen],
+      });
+      const invokeSpy = vi.spyOn(model, "invoke");
+      const graph = createTurnGraph({ model, store, extendBelowRatio: 0 });
+      await drain(
+        runTurn(graph, { conversationId: "conv-g4", userText: "一回目", character }, "conv-g4"),
+      );
+      expect(invokeSpy).toHaveBeenCalledTimes(1);
+      expect(instructionOfCall(invokeSpy, 0)).toContain(
+        "一人称は「わたし」だけを使う。「俺」は使わん。",
+      );
+    });
+
+    test("G-5: 空の塊は、頼み方に「空にせず、この段落を書く。」が入る", async () => {
+      const store = createMemoryTurnStore();
+      const ok0 = "<action>窓の外で雨が強くなり、部屋の灯りが一度だけ揺れた。</action>";
+      const ok2 = "<dialogue>「……ねえ、聞こえてる？」</dialogue>";
+      const regen = "彼女が毛布を引き上げて、露わだった肩をそっと隠した。";
+      const model = new FakeListChatModel({
+        responses: [`${ok0}\n\n<action>   </action>\n\n${ok2}`, regen],
+      });
+      const invokeSpy = vi.spyOn(model, "invoke");
+      const graph = createTurnGraph({ model, store, extendBelowRatio: 0 });
+      await drain(
+        runTurn(graph, { conversationId: "conv-g5", userText: "一回目", character }, "conv-g5"),
+      );
+      expect(invokeSpy).toHaveBeenCalledTimes(1);
+      expect(instructionOfCall(invokeSpy, 0)).toContain("空にせず、この段落を書く。");
+    });
+
+    test("G-6: 落ちた塊は比べる相手に入らん（seq 1 が落ちても、それに似た seq 2 は通る）", async () => {
+      const store = createMemoryTurnStore();
+      const ok0 = "<action>朝の光がカーテンの隙間から差し込んでいる。</action>";
+      // seq 1: 閉じていない dialogue（format で落ちる。書き直しも閉じんまま → attempt 2 で dropped）。
+      const ng1 = "<dialogue>風が吹いて窓が鳴った、彼女は目を閉じた";
+      // seq 2: seq 1 とほぼ同じ文。落ちた seq 1 と比べなければ他の相手とは重ならず通る。
+      const ok2 = "風が吹いて窓が鳴った、彼女は目を閉じた。";
+      const model = new FakeListChatModel({
+        responses: [`${ok0}\n\n${ng1}\n\n${ok2}`, "<dialogue>直らんかった風の文"],
+      });
+      const graph = createTurnGraph({ model, store, extendBelowRatio: 0 });
+      const events: TurnEvent[] = [];
+      for await (const event of runTurn(
+        graph,
+        { conversationId: "conv-g6", userText: "一回目", character },
+        "conv-g6",
+      )) {
+        events.push(event);
+      }
+      expect(events.filter(isChunkEvent).map((event) => event.seq)).toEqual([0, 2]);
+      expect(events.filter((event) => event.type === "dropped")).toMatchObject([
+        { seq: 1, reasons: ["format"], attempt: 2 },
+      ]);
+    });
+
+    test("G-6b: 書き直しの「ここまでの本文:」には判定を通った塊だけが入り、落ちた塊の本文（どの版も）は入らん", async () => {
+      const store = createMemoryTurnStore();
+      const ok0 = "<action>朝の光がカーテンの隙間から差し込んでいる。</action>";
+      const ng1 = "<dialogue>壊れた一つ目の段落";
+      const ng1Regen = "<dialogue>直らんかった一つ目の段落";
+      const ng2 = "<dialogue>壊れた二つ目の段落";
+      const ng2Regen = "雨脚が強まり、窓ガラスが細かく震え始めた。";
+      const model = new FakeListChatModel({
+        responses: [`${ok0}\n\n${ng1}\n\n${ng2}`, ng1Regen, ng2Regen],
+      });
+      const invokeSpy = vi.spyOn(model, "invoke");
+      const graph = createTurnGraph({ model, store, extendBelowRatio: 0 });
+      const events: TurnEvent[] = [];
+      for await (const event of runTurn(
+        graph,
+        { conversationId: "conv-g6b", userText: "一回目", character },
+        "conv-g6b",
+      )) {
+        events.push(event);
+      }
+      // seq 1 は 2 回落ちて dropped、seq 2 は書き直しで通る。
+      expect(invokeSpy).toHaveBeenCalledTimes(2);
+      const instruction = instructionOfCall(invokeSpy, 1);
+      const before = instruction.split("ここまでの本文:")[1] ?? "";
+      expect(before).toContain("朝の光がカーテンの隙間から差し込んでいる");
+      expect(before).not.toContain("壊れた一つ目の段落");
+      expect(before).not.toContain("直らんかった一つ目の段落");
+      expect(events.filter((event) => event.type === "dropped")).toMatchObject([
+        { seq: 1, attempt: 2 },
+      ]);
+    });
+
+    test("G-8: 全部の塊が落ちたターンは error で終わり、配れる塊が 1 つも出ん", async () => {
+      const store = createMemoryTurnStore();
+      const model = new FakeListChatModel({
+        responses: [`${EXEMPLAR_COPY}\n\n${EXEMPLAR_COPY}`, EXEMPLAR_COPY, EXEMPLAR_COPY],
+      });
+      const graph = createTurnGraph({ model, store, extendBelowRatio: 0 });
+      const events: TurnEvent[] = [];
+      for await (const event of runTurn(
+        graph,
+        { conversationId: "conv-g8", userText: "一回目", character, phase: "climax" },
+        "conv-g8",
+      )) {
+        events.push(event);
+      }
+      expect(events.filter(isChunkEvent)).toHaveLength(0);
+      expect(events.find((event) => event.type === "error")).toMatchObject({
+        message: "全塊が判定で落ちた（配れる本文が無い）",
+      });
+      expect(turnMetaOf(events)).toMatchObject({ droppedChunks: 2 });
+    });
+
+    test("書き直しはターン全体で 3 回まで（4 つ目の落ちた塊は書き直さず落とす）", async () => {
+      const store = createMemoryTurnStore();
+      const bad = "<dialogue>閉じていない段落";
+      const ok0 = "<action>朝の光がカーテンの隙間から差し込んでいる。</action>";
+      // 4 つの壊れた塊を混ぜる。書き直しは 3 回で止まり、4 つ目は呼ばれずに落ちる。
+      const model = new FakeListChatModel({
+        responses: [
+          `${ok0}\n\n${bad}1\n\n${bad}2\n\n${bad}3\n\n${bad}4`,
+          "<dialogue>直らんかった一",
+          "<dialogue>直らんかった二",
+          "<dialogue>直らんかった三",
+        ],
+      });
+      const invokeSpy = vi.spyOn(model, "invoke");
+      const graph = createTurnGraph({ model, store, extendBelowRatio: 0 });
+      const events: TurnEvent[] = [];
+      for await (const event of runTurn(
+        graph,
+        { conversationId: "conv-g7b", userText: "一回目", character },
+        "conv-g7b",
+      )) {
+        events.push(event);
+      }
+      expect(invokeSpy).toHaveBeenCalledTimes(3);
+      expect(events.filter((event) => event.type === "dropped")).toHaveLength(4);
+      expect(turnMetaOf(events)).toMatchObject({ droppedChunks: 4, regeneratedChunks: 3 });
+      expect(events.filter(isChunkEvent).map((event) => event.seq)).toEqual([0]);
+    });
+
+    test("G-9: 書き直しのモデルが返事をしない時は 30 秒で打ち切り、その塊を落として残りを配る", async () => {
+      vi.useFakeTimers();
+      try {
+        const store = createMemoryTurnStore();
+        const ok0 = "<action>窓の外で雨が強くなり、部屋の灯りが一度だけ揺れた。</action>";
+        // seq 2 はタグ無しの地の文にする。閉じとらん <dialogue> の直後に整った
+        // <dialogue> を置くと、splitChunks が非貪欲マッチで 1 塊に併合してしまう。
+        const ok2 = "彼女が毛布を引き上げて、露わだった肩をそっと隠した。";
+        const ng1 = "<dialogue>閉じていない段落";
+        let abortedAfterMs = -1;
+        const started = Date.now();
+        // 書き直しの invoke だけぶら下がるモデル。合図の中断で投げる。
+        class HangingRegenModel extends FakeListChatModel {
+          override async invoke(
+            _input: BaseLanguageModelInput,
+            options?: BaseChatModelCallOptions,
+          ): Promise<AIMessageChunk> {
+            return new Promise<AIMessageChunk>((_resolve, reject) => {
+              options?.signal?.addEventListener("abort", () => {
+                abortedAfterMs = Date.now() - started;
+                reject(options?.signal?.reason ?? new Error("aborted"));
+              });
+            });
+          }
+        }
+        const model = new HangingRegenModel({
+          responses: [`${ok0}\n\n${ng1}\n\n${ok2}`],
+        });
+        const graph = createTurnGraph({ model, store, extendBelowRatio: 0 });
+        const events: TurnEvent[] = [];
+        const finished = (async () => {
+          for await (const event of runTurn(
+            graph,
+            { conversationId: "conv-g9", userText: "一回目", character },
+            "conv-g9",
+          )) {
+            events.push(event);
+          }
+        })();
+        await vi.advanceTimersByTimeAsync(30_000);
+        await finished;
+        expect(abortedAfterMs).toBe(30_000);
+        // 締切で切れた書き直しは空文 → empty で落ち、次の塊は配られる。
+        expect(events.filter((event) => event.type === "dropped")).toMatchObject([
+          { seq: 1, reasons: ["empty"], attempt: 2 },
+        ]);
+        expect(events.filter(isChunkEvent).map((event) => event.seq)).toEqual([0, 2]);
+        expect(events.at(-1)?.type).toBe("done");
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    test.each([
+      ["120 秒経過後（残り 0）", 120_000],
+      ["残り 4999 ミリ秒", 115_001],
+    ])(
+      "G-10/G-10b: ターンの締切の残りが 5000 ミリ秒未満なら書き直しのモデルを呼ばん（%s）",
+      async (_label, elapsedMs) => {
+        const store = createMemoryTurnStore();
+        let nowValue = 1_000_000;
+        const ok0 = "<action>窓の外で雨が強くなり、部屋の灯りが一度だけ揺れた。</action>";
+        // seq 2 はタグ無しの地の文にする。閉じとらん <dialogue> の直後に整った
+        // <dialogue> を置くと、splitChunks が非貪欲マッチで 1 塊に併合してしまう。
+        const ok2 = "彼女が毛布を引き上げて、露わだった肩をそっと隠した。";
+        const ng1 = "<dialogue>閉じていない段落";
+        const model = new FakeListChatModel({
+          responses: [`${ok0}\n\n${ng1}\n\n${ok2}`],
+        });
+        // 生成に時間が掛かった振る舞い: stream が終わる時点で時計を進める。
+        const originalStream = model.stream.bind(model);
+        vi.spyOn(model, "stream").mockImplementation(async (input, options) => {
+          nowValue += elapsedMs;
+          return originalStream(input, options);
+        });
+        const invokeSpy = vi.spyOn(model, "invoke");
+        const graph = createTurnGraph({
+          model,
+          store,
+          extendBelowRatio: 0,
+          now: () => nowValue,
+        });
+        const events: TurnEvent[] = [];
+        for await (const event of runTurn(
+          graph,
+          { conversationId: "conv-g10", userText: "一回目", character },
+          "conv-g10",
+        )) {
+          events.push(event);
+        }
+        expect(invokeSpy).not.toHaveBeenCalled();
+        expect(events.filter((event) => event.type === "dropped")).toMatchObject([
+          { seq: 1, reasons: ["format"], attempt: 1 },
+        ]);
+        expect(events.filter(isChunkEvent).map((event) => event.seq)).toEqual([0, 2]);
+      },
+    );
+
+    test("G-10b: 残りがちょうど 5000 ミリ秒なら、締切 5000 ミリ秒で書き直しが呼ばれる", async () => {
+      vi.useFakeTimers();
+      try {
+        const store = createMemoryTurnStore();
+        let nowValue = 1_000_000;
+        const ok0 = "<action>窓の外で雨が強くなり、部屋の灯りが一度だけ揺れた。</action>";
+        // seq 2 はタグ無しの地の文にする。閉じとらん <dialogue> の直後に整った
+        // <dialogue> を置くと、splitChunks が非貪欲マッチで 1 塊に併合してしまう。
+        const ok2 = "彼女が毛布を引き上げて、露わだった肩をそっと隠した。";
+        const ng1 = "<dialogue>閉じていない段落";
+        let abortedAfterMs = -1;
+        const started = Date.now();
+        class HangingRegenModel extends FakeListChatModel {
+          override async invoke(
+            _input: BaseLanguageModelInput,
+            options?: BaseChatModelCallOptions,
+          ): Promise<AIMessageChunk> {
+            return new Promise<AIMessageChunk>((_resolve, reject) => {
+              options?.signal?.addEventListener("abort", () => {
+                abortedAfterMs = Date.now() - started;
+                reject(options?.signal?.reason ?? new Error("aborted"));
+              });
+            });
+          }
+        }
+        const model = new HangingRegenModel({
+          responses: [`${ok0}\n\n${ng1}\n\n${ok2}`],
+        });
+        // 生成に 115 秒掛かった → 残り 5000 ミリ秒。
+        const originalStream = model.stream.bind(model);
+        vi.spyOn(model, "stream").mockImplementation(async (input, options) => {
+          nowValue += 115_000;
+          return originalStream(input, options);
+        });
+        const invokeSpy = vi.spyOn(model, "invoke");
+        const graph = createTurnGraph({
+          model,
+          store,
+          extendBelowRatio: 0,
+          now: () => nowValue,
+        });
+        const events: TurnEvent[] = [];
+        const finished = (async () => {
+          for await (const event of runTurn(
+            graph,
+            { conversationId: "conv-g10b", userText: "一回目", character },
+            "conv-g10b",
+          )) {
+            events.push(event);
+          }
+        })();
+        await vi.advanceTimersByTimeAsync(5_000);
+        await finished;
+        // min(30000, 5000) = 5000 ミリ秒で打ち切られる。
+        expect(invokeSpy).toHaveBeenCalledTimes(1);
+        expect(abortedAfterMs).toBe(5_000);
+        expect(events.filter((event) => event.type === "dropped")).toMatchObject([
+          { seq: 1, reasons: ["empty"], attempt: 2 },
+        ]);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    test("G-11: 書き直しの頼み方の全パターンに合意・同意・セーフワード・境界・配慮・倫理が含まれん", () => {
+      const voice = { firstPerson: ["わたし"], secondPerson: ["あなた"], endings: [], tics: [] };
+      const baseChecks: JudgeResult["checks"] = {
+        ngram: { ok: true, ratio: 0, matchedPhrases: [], exactRepeat: false },
+        nearDuplicate: { ok: true, matches: [] },
+        voice: { ok: true },
+        format: { ok: true },
+        empty: { ok: true },
+      };
+      const judgeOf = (
+        reasons: JudgeResult["reasons"],
+        checks: Partial<JudgeResult["checks"]>,
+      ): JudgeResult => ({
+        ok: false,
+        reasons,
+        warnings: [],
+        checks: { ...baseChecks, ...checks },
+      });
+      const allLines = [
+        // repetition（名指しあり・無しの両パターン）
+        regenReasonLines(
+          judgeOf(["repetition"], {
+            ngram: { ok: false, ratio: 0.9, matchedPhrases: ["同じ句"], exactRepeat: true },
+          }),
+          voice,
+          "テスト子",
+        ),
+        regenReasonLines(
+          judgeOf(["repetition"], {
+            ngram: { ok: false, ratio: 0.9, matchedPhrases: [], exactRepeat: false },
+          }),
+          voice,
+          "テスト子",
+        ),
+        // voice 3 パターン
+        regenReasonLines(
+          judgeOf(["voice"], { voice: { ok: false, forbiddenPronoun: "俺" } }),
+          voice,
+          "テスト子",
+        ),
+        regenReasonLines(
+          judgeOf(["voice"], { voice: { ok: false, forbiddenAddress: "きみ" } }),
+          voice,
+          "テスト子",
+        ),
+        regenReasonLines(
+          judgeOf(["voice"], { voice: { ok: false, thirdPersonSelf: "テスト子は" } }),
+          voice,
+          "テスト子",
+        ),
+        // format・empty
+        regenReasonLines(
+          judgeOf(["format"], { format: { ok: false, reason: "閉じられてへんタグ" } }),
+          voice,
+          "テスト子",
+        ),
+        regenReasonLines(judgeOf(["empty"], { empty: { ok: false } }), voice, "テスト子"),
+        // 複合理由（全行が一度に並ぶ形）
+        regenReasonLines(
+          judgeOf(["repetition", "voice", "format", "empty"], {
+            ngram: { ok: false, ratio: 0.9, matchedPhrases: ["同じ句"], exactRepeat: true },
+            voice: { ok: false, forbiddenPronoun: "俺", forbiddenAddress: "きみ" },
+            format: { ok: false, reason: "閉じられてへんタグ" },
+            empty: { ok: false },
+          }),
+          voice,
+          "テスト子",
+        ),
+      ]
+        .flat()
+        .join("\n");
+      for (const banned of ["合意", "同意", "セーフワード", "境界", "配慮", "倫理"]) {
+        expect(allLines).not.toContain(banned);
+      }
+      // 表の各行が実際に組めること（頼み方が空で終わらん）。
+      expect(allLines).toContain("一人称は「わたし」だけを使う。「俺」は使わん。");
+      expect(allLines).toContain("相手の呼び方は「あなた」だけを使う。「きみ」は使わん。");
+      expect(allLines).toContain("地の文で自分の名前「テスト子」を主語にせん。自分の目から書く。");
+      expect(allLines).toContain("開いたら閉じる");
+      expect(allLines).toContain("空にせず、この段落を書く。");
+      expect(allLines).toContain("新しい出来事か動作を一つだけ書け");
+    });
+
+    test("G-12: 記録（console）に塊の本文が出ない", async () => {
+      const store = createMemoryTurnStore();
+      const secretBody = "画面に出さん落ちた塊の本文そのもの";
+      const model = new FakeListChatModel({
+        responses: [`<dialogue>${secretBody}`, `<dialogue>${secretBody}`],
+      });
+      const consoleSpies = [
+        vi.spyOn(console, "log"),
+        vi.spyOn(console, "info"),
+        vi.spyOn(console, "warn"),
+        vi.spyOn(console, "error"),
+        vi.spyOn(console, "debug"),
+      ];
+      try {
+        await drain(
+          runTurn(
+            createTurnGraph({ model, store, extendBelowRatio: 0 }),
+            { conversationId: "conv-g12", userText: "一回目", character },
+            "conv-g12",
+          ),
+        );
+        for (const spy of consoleSpies) {
+          for (const call of spy.mock.calls) {
+            expect(JSON.stringify(call)).not.toContain(secretBody);
+          }
+        }
+      } finally {
+        for (const spy of consoleSpies) spy.mockRestore();
+      }
+    });
+
+    test("G-13: 書き直しのモデルが例外を投げても、その塊だけを落として残りは配られる", async () => {
+      const store = createMemoryTurnStore();
+      const ok0 = "<action>窓の外で雨が強くなり、部屋の灯りが一度だけ揺れた。</action>";
+      // seq 2 はタグ無しの地の文にする。閉じとらん <dialogue> の直後に整った
+      // <dialogue> を置くと、splitChunks が非貪欲マッチで 1 塊に併合してしまう。
+      const ok2 = "彼女が毛布を引き上げて、露わだった肩をそっと隠した。";
+      const ng1 = "<dialogue>閉じていない段落";
+      class ThrowingRegenModel extends FakeListChatModel {
+        override async invoke(
+          _input: BaseLanguageModelInput,
+          _options?: BaseChatModelCallOptions,
+        ): Promise<AIMessageChunk> {
+          throw new Error("network");
+        }
+      }
+      const model = new ThrowingRegenModel({
+        responses: [`${ok0}\n\n${ng1}\n\n${ok2}`],
+      });
+      const graph = createTurnGraph({ model, store, extendBelowRatio: 0 });
+      const events: TurnEvent[] = [];
+      for await (const event of runTurn(
+        graph,
+        { conversationId: "conv-g13", userText: "一回目", character },
+        "conv-g13",
+      )) {
+        events.push(event);
+      }
+      // 例外の書き直しは空文扱い → empty でその塊だけ落ちる。
+      expect(events.filter((event) => event.type === "dropped")).toMatchObject([
+        { seq: 1, reasons: ["empty"], attempt: 2 },
+      ]);
+      expect(events.filter(isChunkEvent).map((event) => event.seq)).toEqual([0, 2]);
+      expect(events.at(-1)?.type).toBe("done");
+    });
+
+    test("G-14: 書き直しの最中に外の合図が中断したら例外が外まで届き、保存も残りの配信もせん", async () => {
+      const store = createMemoryTurnStore();
+      const saveSpy = vi.spyOn(store, "saveTurn");
+      const outer = new AbortController();
+      const ok0 = "<action>窓の外で雨が強くなり、部屋の灯りが一度だけ揺れた。</action>";
+      // seq 2 はタグ無しの地の文にする。閉じとらん <dialogue> の直後に整った
+      // <dialogue> を置くと、splitChunks が非貪欲マッチで 1 塊に併合してしまう。
+      const ok2 = "彼女が毛布を引き上げて、露わだった肩をそっと隠した。";
+      const ng1 = "<dialogue>閉じていない段落";
+      // 合図を受けるモデル: 書き直しの呼び出しの中で外の合図を中断し、AbortError を投げる。
+      // abortOnInvoke=false なら合図と関係ない失敗（鍵・通信）を真似て対照群に使う。
+      class AbortAwareRegenModel extends FakeListChatModel {
+        private readonly controller: AbortController;
+        private readonly abortOnInvoke: boolean;
+        constructor(responses: string[], controller: AbortController, abortOnInvoke: boolean) {
+          super({ responses });
+          this.controller = controller;
+          this.abortOnInvoke = abortOnInvoke;
+        }
+        override async invoke(
+          _input: BaseLanguageModelInput,
+          options?: BaseChatModelCallOptions,
+        ): Promise<AIMessageChunk> {
+          if (!this.abortOnInvoke) throw new Error("network");
+          this.controller.abort();
+          return new Promise<AIMessageChunk>((_resolve, reject) => {
+            options?.signal?.addEventListener("abort", () =>
+              reject(new DOMException("The operation was aborted.", "AbortError")),
+            );
+            // 合図が既に効いとる場合も AbortError を投げる。
+            if (options?.signal?.aborted)
+              reject(new DOMException("The operation was aborted.", "AbortError"));
+          });
+        }
+      }
+      const model = new AbortAwareRegenModel([`${ok0}\n\n${ng1}\n\n${ok2}`], outer, true);
+      const graph = createTurnGraph({ model, store, extendBelowRatio: 0 });
+      const events: TurnEvent[] = [];
+      await expect(
+        (async () => {
+          for await (const event of runTurn(
+            graph,
+            {
+              conversationId: "conv-g14",
+              userText: "一回目",
+              character,
+              signal: outer.signal,
+            },
+            "conv-g14",
+          )) {
+            events.push(event);
+          }
+        })(),
+      ).rejects.toThrow();
+      // 止めたターンは判定・配信・保存を続けない。
+      expect(saveSpy).not.toHaveBeenCalled();
+      expect(events.some((event) => event.type === "done")).toBe(false);
+      expect(events.some((event) => event.type === "chunk" && event.seq === 2)).toBe(false);
+
+      // 対照: 同じ偽のモデルで合図を中断せん時は、その塊だけを落として残りを配る（G-13 と同じ）。
+      const calmStore = createMemoryTurnStore();
+      const calmOuter = new AbortController();
+      const calmModel = new AbortAwareRegenModel([`${ok0}\n\n${ng1}\n\n${ok2}`], calmOuter, false);
+      const calmGraph = createTurnGraph({
+        model: calmModel,
+        store: calmStore,
+        extendBelowRatio: 0,
+      });
+      const calmEvents: TurnEvent[] = [];
+      for await (const event of runTurn(
+        calmGraph,
+        {
+          conversationId: "conv-g14-calm",
+          userText: "一回目",
+          character,
+          signal: calmOuter.signal,
+        },
+        "conv-g14-calm",
+      )) {
+        calmEvents.push(event);
+      }
+      expect(calmEvents.filter((event) => event.type === "dropped")).toMatchObject([
+        { seq: 1, reasons: ["empty"], attempt: 2 },
+      ]);
+      expect(calmEvents.filter(isChunkEvent).map((event) => event.seq)).toEqual([0, 2]);
+      expect(calmEvents.at(-1)?.type).toBe("done");
     });
   });
 });

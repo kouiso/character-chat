@@ -70,6 +70,10 @@ const eventSchemas = {
     mechanicsPhase: z.enum(["conversation", "intimate", "erotic", "climax", "afterglow"]),
     preExtendVisibleChars: finiteNumber,
     omittedHistoryMessages: z.number().int().nonnegative().optional(),
+    // そのターンで、書き直しても判定を通らず配らなかった塊の数（RIT-70）。
+    droppedChunks: z.number().int().nonnegative().optional(),
+    // そのターンで書き直しを呼んだ回数（0〜3）。
+    regeneratedChunks: z.number().int().nonnegative().optional(),
   }),
   done: z.object({
     type: z.literal("done"),
