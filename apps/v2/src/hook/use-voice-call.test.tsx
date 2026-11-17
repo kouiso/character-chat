@@ -1,4 +1,5 @@
-// 音声通話ループの検査。STT の結果を送ってから、返答が確定した時だけ読み上げることを確かめる。
+// sendText が返答確定を待つ契約に直した経緯がある（RIT-213 の読み上げ欠落）。
+// この検査が無いと、古い返事の読み直しや読み上げ欠落へ静かに戻る。
 import { act, cleanup, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
