@@ -184,8 +184,8 @@ describe("オフライン送信（S-15）", () => {
 
     // POST は出さん。場面帯の GET は許す。文は入力欄に残る。
     const postCalls = () =>
-      fetchMock.mock.calls.filter(
-        ([, init]) => (init as RequestInit | undefined)?.method === "POST",
+      (fetchMock.mock.calls as unknown[][]).filter(
+        (call) => (call[1] as RequestInit | undefined)?.method === "POST",
       );
     expect(postCalls()).toHaveLength(0);
     expect(screen.getByRole("textbox", { name: "メッセージ" })).toHaveValue("圏外のひとこと");
