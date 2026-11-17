@@ -446,7 +446,7 @@ describe("memory extraction store", () => {
       conversationId: other,
     });
 
-    const subjects = await listActiveSubjects(local.db, conversationId);
+    const subjects = await listActiveSubjects(local.db, scope(conversationId));
     expect(subjects).toHaveLength(ACTIVE_SUBJECT_LIMIT);
     expect(new Set(subjects).size).toBe(subjects.length);
     // 新しい順の先頭は createdAt 最大の主題。除外対象はどれも入らん。
@@ -454,5 +454,27 @@ describe("memory extraction store", () => {
     expect(subjects).not.toContain("主題0");
     expect(subjects).not.toContain("主題1");
     expect(subjects).not.toContain("他の会話");
+  });
+
+  it("眠った枝の未索引記憶は配送対象にせず、枝が起きると拾う（RIT-89 FR-8）", async () => {
+    const id = await save();
+    const [job] = await listPendingMemoryJobs(local.db, scope(id));
+    const source = await loadMemoryExtractionSource(local.db, job.id);
+    if (!source) throw new Error("source missing");
+    await completeMemoryExtraction(local.db, source, [fact]);
+    // 出どころが生きとる間は、completed + 未索引のジョブは配送対象に出る
+    expect(await listPendingMemoryJobs(local.db, scope(id), true)).toHaveLength(1);
+    // 出どころの発言を眠らせると、拾い続けて Queue へ送り続ける事は無い
+    await local.db
+      .update(v2MessageTable)
+      .set({ active: 0 })
+      .where(eq(v2MessageTable.id, source.sourceMessageId));
+    expect(await listPendingMemoryJobs(local.db, scope(id), true)).toEqual([]);
+    // 「ここから続ける」で枝が起きると、同じ呼び出しがまたジョブを返す
+    await local.db
+      .update(v2MessageTable)
+      .set({ active: 1 })
+      .where(eq(v2MessageTable.id, source.sourceMessageId));
+    expect(await listPendingMemoryJobs(local.db, scope(id), true)).toHaveLength(1);
   });
 });

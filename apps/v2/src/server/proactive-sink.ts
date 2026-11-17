@@ -126,7 +126,11 @@ export const createProactiveSink = (deps: ProactiveSinkDeps): ProactiveNotificat
         { userId: LOCAL_USER_ID, characterId, promptVersion: PROMPT_VERSION },
         conversationId,
       ),
-      loadRecentMemories(deps.db, conversationId, MEMORY_LIMIT),
+      loadRecentMemories(
+        deps.db,
+        { userId: LOCAL_USER_ID, characterId, conversationId },
+        MEMORY_LIMIT,
+      ),
       createD1SummaryStore(deps.db).list(conversationId),
     ]);
     const prompt = buildPrompt({

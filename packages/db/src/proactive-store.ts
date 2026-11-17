@@ -1,5 +1,6 @@
-import { and, desc, eq, isNull, sql } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 
+import { selectScopedMemories } from "./memory-scope";
 import { v2ConversationTable, v2MemoryTable, v2MessageTable } from "./v2-schema";
 
 import type { V2Db } from "./client";
@@ -35,19 +36,44 @@ export const ensureProactiveConversation = async (
   return id;
 };
 
+// 話しかけの「覚えていること」欄。区切りは RIT-89 FR-4 — 利用者・キャラ・会話・
+// 置き換わっていない・今の枝・kind は事実と好みだけ。
 export const loadRecentMemories = async (
   db: V2Db,
-  conversationId: string,
+  scope: { userId: string; characterId: string; conversationId: string },
   limit: number,
 ): Promise<string[]> =>
   (
-    await db
-      .select({ content: v2MemoryTable.content })
-      .from(v2MemoryTable)
-      .where(and(eq(v2MemoryTable.conversationId, conversationId), isNull(v2MemoryTable.deletedAt)))
+    await selectScopedMemories(db, {
+      ...scope,
+      excludeSuperseded: true,
+      activeBranchOnly: true,
+      kinds: ["fact", "preference"],
+    })
       .orderBy(desc(v2MemoryTable.createdAt))
       .limit(limit)
-  ).map((row) => row.content);
+  ).map((row) => row.v2_memory.content);
+
+// 記念日キュー用の記憶スキャン（FR-4）。区切りは利用者・キャラで会話をまたぐ（未決 1）が、
+// 置き換わった・眠った枝・消した記憶・summary は話題に使わん。新しい順。
+export const loadRecallCueMemories = async (
+  db: V2Db,
+  scope: { userId: string; characterId: string },
+  limit: number,
+): Promise<{ content: string; createdAt: number }[]> =>
+  (
+    await selectScopedMemories(db, {
+      ...scope,
+      excludeSuperseded: true,
+      activeBranchOnly: true,
+      kinds: ["fact", "preference"],
+    })
+      .orderBy(desc(v2MemoryTable.createdAt))
+      .limit(limit)
+  ).map((row) => ({
+    content: row.v2_memory.content,
+    createdAt: row.v2_memory.createdAt,
+  }));
 
 // 話しかけは assistant 単独のターンとして保存する。generationId に alarm の冪等キーを残す。
 // v2_message は (conversation_id, turn, role) が一意なので、次のターン番号をここで採る。

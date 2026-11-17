@@ -14,6 +14,34 @@ Vectorizeには本文を保存しない。namespaceは利用者IDとキャラID�
 
 順位は `類似度 × 重要度 × 2^(-経過日数/30)`。その順に最大8件を、見出しとIDを含めた2,000文字以内へ丸ごと収める。途中で切った事実は使わない。LangGraphは毎ターン再検索し、参考データをhuman messageへJSONとして渡す。上位のsystem instructionにはしない。実際に渡したIDと本文は既存のgeneration.request_jsonに残る。
 
+## 記憶の読み出し区切り（RIT-89）
+
+`v2_memory` を読む全ての経路は `packages/db/src/memory-scope.ts` の `memoryReadScope` を通す。区切りは `v2_memory` と `v2_conversation` の結合で照合する（記憶自身は所有者を持たない）。`deleted_at IS NULL` は全読み手に共通で掛かる。
+
+| 経路 | 利用者 | キャラ | 会話 | 今の枝 | 置き換わりを除く | kind |
+|---|---|---|---|---|---|---|
+| 返事の指示文（`loadMemoryCandidates`） | 同じ | 同じ | 同じ | 要 | 要 | fact/preference |
+| 話しかけ（`findRecallCue`/`loadRecentMemories`） | 同じ | 同じ | またぐ | 要 | 要 | fact/preference |
+| 記憶の画面（`listConversationMemories`/`loadOwnedMemory`） | 同じ | 同じ | 同じ | 要 | 出す（置き換わり表示のため） | 全種類 |
+| 固定の道（`loadPinnedMemories`） | 同じ | 同じ | 同じ | 絞らない（未決 3） | 要 | 全種類 |
+
+- 「今の枝」: 出どころの `v2_memory_source` が在り、その発言の `v2_message.active = 0` なら読まない。手で足した記憶（`origin='manual'`）は枝に関係なく読める。
+- 未索引の記憶を拾う `listPendingMemoryJobs(includeUnindexed)`・`loadUnindexedMemoryJob` にも同じ枝の条件を掛ける。掛けないと眠った枝の記憶が配送対象に居続け、`publishMemories` が alarm を予約し直して Queue へ送り続ける。
+- 読み手の一覧は `packages/db/src/memory-reader-inventory.test.ts` で凍結している。一覧に無いファイルで `v2_memory`/`v2MemoryTable` を読むと試験が落ちる。
+- 区切りの関数が空の利用者 id・キャラ id を受け取った時は `MemoryScopeError`。黙って全件は読まない。
+
+## staging での漏れ検査（RIT-89 実モデル）
+
+```bash
+pnpm exec tsx apps/v2/script/memory-leak-check.ts --env staging
+```
+
+要る変数: `V2_STAGING_URL`・`BASIC_AUTH_USERNAME`・`BASIC_AUTH_PASSWORD`・`CLOUDFLARE_API_TOKEN`・`CLOUDFLARE_ACCOUNT_ID`（`OPENROUTER_API_KEY` は staging の Worker の secret 側で、手元には要らない）。揃わん時は実行せず `status: "unverified"` を出して終了する。
+
+手順はスクリプトが行う: `packages/bench/fixture/memory-leak-characters.json` の同名キャラ「鈴」2 人を `POST /api/characters` で作り、A の会話で「私の誕生日は3月9日なんだ」と言わせ（返事 1 回）、A の `v2_memory` が抜き出されるまで staging D1 を `wrangler d1 execute character-chat-v2-staging --env staging --remote` で見る。B の会話で「私の誕生日いつだっけ」と聞き（返事 1 回）、B のターンの `v2_generation.request_json` に A の記憶の id が無い事を確かめる。
+
+合否は `request_json` で決める。B の返事の本文は記録だけ（モデルが偶然同じ日付を言う事が在る）。呼び出し予算は返事 4 回＋抜き出し 2 回までで、この検査は 2+2 で済む。結果は stdout の JSON（`pass`/`leak`/`inconclusive`/`unverified`）。
+
 ## 有効化の境界
 
 通常のローカル設定は`V2_RAG_ENABLED=0`。AIとVectorizeにはローカル模擬環境がないため、本番の`env.rag`と試し用の`env.staging`だけにremote bindingを宣言している。これらの環境のデプロイは外部リソースへ接続する。`vite dev`/`vite preview`で起こす時は、シェルで`V2_REMOTE_BINDINGS=1`を付けた時だけ本物へつなぐ。テストはローカルD1と差し替えたbindingで実行し、これらの環境は起動しない。
