@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray, isNull, ne, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, exists, inArray, isNull, ne, or, sql } from "drizzle-orm";
 
 import { storedCharacterContentSchema } from "./character-version";
 import {
@@ -7,6 +7,10 @@ import {
   type ExtractedMemory,
   type ExtractionScope,
 } from "./memory-extraction-contract";
+import {
+  joinedSourceOnActiveBranch,
+  selectScopedMemories,
+} from "./memory-scope";
 import {
   characterRevisionTable,
   characterVersionTable,
@@ -42,9 +46,33 @@ export const listPendingMemoryJobs = async (
           includeUnindexed
             ? and(
                 eq(v2MemoryJobTable.state, "completed"),
-                // 論理削除済みの未索引行は埋め込みを再配送せん（RIT-94）
-                sql`exists (select 1 from v2_memory m join v2_memory_source s on s.memory_id = m.id
-            where s.source_message_id = ${v2MemoryJobTable.sourceMessageId} and m.embedding is null and m.deleted_at is null)`,
+                exists(
+                  db
+                    .select({ one: sql`1` })
+                    .from(v2MemoryTable)
+                    .innerJoin(
+                      v2MemorySourceTable,
+                      eq(v2MemorySourceTable.memoryId, v2MemoryTable.id),
+                    )
+                    .innerJoin(
+                      v2MessageTable,
+                      eq(v2MessageTable.id, v2MemorySourceTable.sourceMessageId),
+                    )
+                    .where(
+                      and(
+                        eq(
+                          v2MemorySourceTable.sourceMessageId,
+                          v2MemoryJobTable.sourceMessageId,
+                        ),
+                        isNull(v2MemoryTable.embedding),
+                        // 論理削除済みの未索引行は埋め込みを再配送せん（RIT-94）
+                        isNull(v2MemoryTable.deletedAt),
+                        // 眠った枝の未索引記憶を拾い続けると publishMemories が alarm を
+                        // 予約し直して Queue へ送り続ける（RIT-89 FR-8）
+                        joinedSourceOnActiveBranch,
+                      ),
+                    ),
+                ),
               )
             : undefined,
         ),
@@ -169,24 +197,23 @@ export const loadMemoryExtractionPolicy = async (
 export const ACTIVE_SUBJECT_LIMIT = 50;
 
 // 同じ会話で今有効な記憶の主題一覧（RIT-73 FR-5）。新しい順・重複なし。
-// 置き換わった記憶（superseded）と消した記憶（deleted）は「有効」でないので除く
-// — 消した話題の主題へ新しい記憶を寄せると復活に見える。
-export const listActiveSubjects = async (db: V2Db, conversationId: string): Promise<string[]> => {
-  const rows = await db
-    .select({ subject: v2MemoryTable.subject })
-    .from(v2MemoryTable)
-    .where(
-      and(
-        eq(v2MemoryTable.conversationId, conversationId),
-        isNull(v2MemoryTable.supersededBy),
-        isNull(v2MemoryTable.deletedAt),
-        ne(v2MemoryTable.subject, ""),
-      ),
-    )
+// 区切りは RIT-89 — 利用者・キャラ・会話・置き換わっていない・今の枝（抜き出しの
+// 指示文へ眠った枝の話題を混ぜると、戻った話を覚え続ける事になる）。消した記憶
+// （deleted）は「有効」でないので区切り側で除く — 消した話題の主題へ新しい記憶を
+// 寄せると復活に見える。
+export const listActiveSubjects = async (
+  db: V2Db,
+  scope: ExtractionScope,
+): Promise<string[]> => {
+  const rows = await selectScopedMemories(
+    db,
+    { ...scope, excludeSuperseded: true, activeBranchOnly: true },
+    [ne(v2MemoryTable.subject, "")],
+  )
     .groupBy(v2MemoryTable.subject)
     .orderBy(desc(sql`max(${v2MemoryTable.createdAt})`))
     .limit(ACTIVE_SUBJECT_LIMIT);
-  return rows.map((row) => row.subject);
+  return rows.map((row) => row.v2_memory.subject);
 };
 
 export const hashMemorySource = async (content: string): Promise<string> => {

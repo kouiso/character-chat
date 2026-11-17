@@ -197,7 +197,7 @@ describe("memory delete readers (RIT-94)", () => {
   });
 
   it("6. 話しかけ用の最近の記憶（loadRecentMemories）", async () => {
-    const recent = await loadRecentMemories(local.db, conversationId, 20);
+    const recent = await loadRecentMemories(local.db, { ...scope, conversationId }, 20);
     expect(recent).toContain("生きた記憶");
     expect(recent).not.toContain("消した記憶");
   });

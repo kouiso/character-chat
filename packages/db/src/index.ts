@@ -17,6 +17,7 @@ export * from "./local-user";
 export * from "./memory-extraction-contract";
 export * from "./memory-extraction-store";
 export * from "./memory-index-store";
+export * from "./memory-scope";
 export * from "./memory-crud-store";
 export * from "./memory-use-store";
 export * from "./branch-store";

@@ -1,5 +1,6 @@
 import { and, eq, inArray, isNull, lt, sql } from "drizzle-orm";
 
+import { memoryReadConditions } from "./memory-scope";
 import {
   v2ConversationTable,
   v2MemoryJobTable,
@@ -51,13 +52,17 @@ export const loadUnindexedMemoryJob = async (db: V2Db, jobId: string) => {
     .where(
       and(
         sourceMatches,
+        // 区切りは RIT-89 の読み手条件へ集約（利用者・キャラ・会話・枝・論理削除）。
+        // 眠った枝の出どころを持つ記憶は検索にも出ないので索引へ載せん（FR-8）。
+        memoryReadConditions({
+          userId: job.userId,
+          characterId: job.characterId,
+          conversationId: job.conversationId,
+          excludeSuperseded: false,
+          activeBranchOnly: true,
+        }),
         eq(v2MemorySourceTable.sourceMessageId, job.sourceMessageId),
-        eq(v2MemoryTable.conversationId, job.conversationId),
-        eq(v2ConversationTable.userId, job.userId),
-        eq(v2ConversationTable.characterId, job.characterId),
         isNull(v2MemoryTable.embedding),
-        // 論理削除済みは埋め込みの対象にせん（RIT-94）
-        isNull(v2MemoryTable.deletedAt),
       ),
     )
     .limit(8);
@@ -75,14 +80,16 @@ export const loadMemoryCandidates = async (
     .where(
       and(
         sourceMatches,
-        eq(v2MemoryTable.conversationId, scope.conversationId),
-        eq(v2ConversationTable.userId, scope.userId),
-        eq(v2ConversationTable.characterId, scope.characterId),
+        // 検索箱が別区切りの候補を返しても D1 側の区切りで捨てる（RIT-89 FR-6）。
+        // 置き換わった記憶は指示文へ出さん（RIT-86）・眠った枝の記憶も出さん（FR-2）・
+        // 指示文へ入るのは事実と好みだけ（summary は検索側の filter と同じ区切り）。
+        memoryReadConditions({
+          ...scope,
+          excludeSuperseded: true,
+          activeBranchOnly: true,
+          kinds: ["fact", "preference"],
+        }),
         inArray(v2MemoryTable.id, ids.slice(0, 20)),
-        // 食い違いは新しい方が勝つ（RIT-86）— 置き換わった記憶は指示文へ出さん
-        isNull(v2MemoryTable.supersededBy),
-        // 論理削除済みは検索箱の点が残っとっても出さん（D1 が正、RIT-94）
-        isNull(v2MemoryTable.deletedAt),
         scope.beforeTurn === undefined ? undefined : lt(v2MemoryTable.sourceTurn, scope.beforeTurn),
       ),
     )

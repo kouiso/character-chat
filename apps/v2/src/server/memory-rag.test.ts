@@ -255,6 +255,27 @@ describe("memory RAG with local D1", () => {
     }
   });
 
+  it("出どころの発言が眠った枝にある記憶は、index が返しても指示文に入らない（RIT-89 FR-2）", async () => {
+    const fixture = await seed();
+    const env = bindings();
+    await indexMemoryJob(local.db, env, fixture.jobId);
+    // 検索箱がそのまま返しても、D1 の区切りが眠った出どころの記憶を外す
+    await local.d1
+      .prepare("UPDATE v2_message SET active = 0 WHERE id = ?")
+      .bind(fixture.jobId)
+      .run();
+    expect(env.stored.size).toBe(1);
+    expect(await retrieveMemories(local.db, env, fixture.scope, "飲み物", now)).toEqual([]);
+    // 「ここから続ける」で枝が起きるとまた出る
+    await local.d1
+      .prepare("UPDATE v2_message SET active = 1 WHERE id = ?")
+      .bind(fixture.jobId)
+      .run();
+    expect(await retrieveMemories(local.db, env, fixture.scope, "飲み物", now)).toEqual([
+      { id: fixture.memoryId, content: preference.content },
+    ]);
+  });
+
   it("有効期間で除外し、重要度と新しさを近さに掛けて並べる", async () => {
     const fixture = await seed([
       { ...preference, importance: 1 },

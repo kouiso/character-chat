@@ -137,6 +137,7 @@
         "**/src/compare-baseline.ts",
         "**/src/check.ts",
         "**/script/memory-extract-check.ts",
+        "**/script/memory-leak-check.ts",
         "**/src/server/chat-room.ts",
         "**/src/server/api-chat.ts",
         "**/src/worker.ts",
