@@ -22,7 +22,8 @@
     "refusal-check": "tsx src/refusal-check.ts",
     "conversation-quality-check": "tsx src/conversation-quality-check.ts",
     "memory-adversarial": "tsx src/memory-adversarial-check.ts",
-    "compare-baseline": "tsx src/compare-baseline.ts"
+    "compare-baseline": "tsx src/compare-baseline.ts",
+    "model-compare": "tsx src/model-compare.ts"
   },
   "dependencies": {
     "@langchain/core": "^1.2.9",
@@ -30,7 +31,8 @@
     "@v2/db": "workspace:^",
     "@v2/engine": "workspace:^",
     "@v2/judge": "workspace:^",
-    "@v2/prompt": "workspace:^"
+    "@v2/prompt": "workspace:^",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260317.1",

@@ -135,6 +135,7 @@
         "**/src/memory-recall-check.ts",
         "**/src/memory-adversarial-check.ts",
         "**/src/compare-baseline.ts",
+        "**/src/model-compare.ts",
         "**/src/check.ts",
         "**/src/server/chat-room.ts",
         "**/src/server/api-chat.ts",
