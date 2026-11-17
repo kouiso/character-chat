@@ -37,6 +37,8 @@
         "V2_LIGHT_MODEL_CHAIN": "[{\"model\":\"cognitivecomputations/dolphin-mistral-24b-venice-edition\"}]",
         "V2_TURN_TIMEOUT_MS": "120000",
         "V2_TEST_FAULT": "none",
+        "V2_TEST_FAULT_MS": "",
+        "V2_FAKE_RESPONSE": "",
         "V2_HISTORY_CHARACTERS": 12000,
         "V2_HISTORY_MESSAGES": 40,
         "V2_DAILY_TURN_LIMIT": "300",
@@ -116,6 +118,8 @@
         "V2_LIGHT_MODEL_CHAIN": "[{\"model\":\"cognitivecomputations/dolphin-mistral-24b-venice-edition\"}]",
         "V2_TURN_TIMEOUT_MS": "120000",
         "V2_TEST_FAULT": "none",
+        "V2_TEST_FAULT_MS": "",
+        "V2_FAKE_RESPONSE": "",
         "V2_HISTORY_CHARACTERS": 12000,
         "V2_HISTORY_MESSAGES": 40,
         "V2_DAILY_TURN_LIMIT": "300",
@@ -200,6 +204,10 @@
     "V2_LIGHT_MODEL_CHAIN": "[{\"model\":\"cognitivecomputations/dolphin-mistral-24b-venice-edition\"}]",
     "V2_TURN_TIMEOUT_MS": "120000",
     "V2_TEST_FAULT": "none",
+    // vite dev は .dev.vars の値を vars に載った鍵へしか渡さんので、試験用の差し替え口も
+    // ここへ置く（V2_FAKE_RESPONSE は named env 側に既に在る）。
+    "V2_TEST_FAULT_MS": "",
+    "V2_FAKE_RESPONSE": "",
     "V2_HISTORY_CHARACTERS": 12000,
     "V2_HISTORY_MESSAGES": 40,
     "V2_DAILY_TURN_LIMIT": "300",

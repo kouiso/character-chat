@@ -117,10 +117,32 @@ describe("production root recovery slots", () => {
     };
     writeChatSession(fixture.id, { version: 1, conversationId: pending.conversationId, pending });
     const posts: unknown[] = [];
-    vi.spyOn(globalThis, "fetch").mockImplementation(async (_url, init) => {
+    vi.spyOn(globalThis, "fetch").mockImplementation(async (url, init) => {
+      const path = String(url);
       if (init?.method === "POST") {
         posts.push(JSON.parse(String(init.body)));
-        return new Response('event: error\ndata: {"message":"合成の一時失敗"}\n\n');
+        return new Response('event: error\ndata: {"message":"合成の一時失敗","terminal":true}\n\n');
+      }
+      // 開き直しの受付の調べ: 受付は部屋に残っとる（走っている）と答える。
+      if (path.includes("/turn?")) {
+        return Response.json({
+          active: {
+            requestId: pending.requestId,
+            kind: "send",
+            text: pending.text,
+            turn: 1,
+          },
+          request: {
+            requestId: pending.requestId,
+            status: "running",
+            turn: 1,
+            kind: "send",
+          },
+        });
+      }
+      // つなぎ直しの GET /events: 失敗の出来事で終わっていたと配る。
+      if (path.includes("/events?")) {
+        return new Response('event: error\ndata: {"message":"合成の一時失敗","terminal":true}\n\n');
       }
       return Response.json({ history: [], turn: 1 });
     });
@@ -132,18 +154,12 @@ describe("production root recovery slots", () => {
     await screen.findByRole("heading", { name: "画面を読み込めませんでした" });
     expect(posts).toHaveLength(0);
     fireEvent.click(screen.getByRole("button", { name: "読み込みをやり直す" }));
-    await screen.findByText("合成の一時失敗");
-    expect(posts).toEqual([
-      {
-        conversationId: pending.conversationId,
-        requestId: pending.requestId,
-        text: pending.text,
-        retry: false,
-      },
-    ]);
-    fireEvent.click(screen.getByRole("button", { name: "再接続・再試行" }));
-    await vi.waitFor(() => expect(posts).toHaveLength(2));
-    expect(posts[1]).toEqual({
+    // 受付の続きは GET でつなぐので、この時点で POST は出てへん。
+    await screen.findByText("返事が届きませんでした。");
+    expect(posts).toHaveLength(0);
+    fireEvent.click(screen.getByRole("button", { name: "もう一度" }));
+    await vi.waitFor(() => expect(posts).toHaveLength(1));
+    expect(posts[0]).toEqual({
       conversationId: pending.conversationId,
       requestId: pending.requestId,
       text: pending.text,

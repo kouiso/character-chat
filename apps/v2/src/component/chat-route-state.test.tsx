@@ -154,12 +154,11 @@ describe("chat route state exits", () => {
     const page = input.closest(".v2-chat-page");
     expect(page).toContainElement(expectBack());
     setOnline(false);
-    expect(await screen.findByRole("heading", { name: "オフラインです" })).toBeInTheDocument();
-    expect(page).toContainElement(screen.getByRole("heading", { name: "オフラインです" }));
+    // 会話が出とる間は 1 画面の知らせに切り替えん。圏外の知らせは送った失敗の枠にだけ出す。
+    expect(screen.queryByRole("heading", { name: "オフラインです" })).not.toBeInTheDocument();
     expectBack();
     expect(input).toHaveValue("合成の未送信文");
     setOnline(true);
-    expect(screen.queryByRole("heading", { name: "オフラインです" })).not.toBeInTheDocument();
     expect(input).toHaveValue("合成の未送信文");
     // 自動送信しないことだけを見る。話しかけ設定の読み出し等の会話送信以外は数えん。
     expect(
@@ -175,7 +174,9 @@ describe("chat route state exits", () => {
     const input = await screen.findByPlaceholderText("メッセージを入力");
     fireEvent.change(input, { target: { value: "合成の質問" } });
     fireEvent.click(screen.getByRole("button", { name: "送信" }));
-    expect(input).toBeDisabled();
+    // 待っている間は送信と入れ替わりで止めるが出る。入力欄は次の文を書けるよう開いたまま。
+    expect(await screen.findByRole("button", { name: "返事を止める" })).toBeInTheDocument();
+    expect(input).toBeEnabled();
     fireEvent.click(expectBack());
     expect(await screen.findByText("合成一覧")).toBeInTheDocument();
   });

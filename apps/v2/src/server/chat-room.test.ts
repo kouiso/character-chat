@@ -56,7 +56,8 @@ vi.mock("@v2/engine", async (importOriginal) => {
 const { ChatRoom } = await import("./chat-room");
 const { consumeMemoryJobs } = await import("./memory-queue");
 const { loadHistory } = await import("./engine");
-const { handleChatRequest, handleHistoryRequest } = await import("./api-chat");
+const { handleChatRequest, handleHistoryRequest, handleWithdrawRequest } =
+  await import("./api-chat");
 
 const HistoryBodySchema = z
   .object({ turn: z.number(), storedTurn: z.unknown().optional() })
@@ -69,6 +70,8 @@ type SqlValue = string | number | null;
 const createDurableState = () => {
   const sqlite = new DatabaseSync(":memory:");
   const alarms: number[] = [];
+  // 予約中の alarm の時刻。storage の alarm は 1 本だけなので、上書き・取り消しを真似る。
+  let scheduled: number | null = null;
   return {
     sqlite,
     alarms,
@@ -91,7 +94,12 @@ const createDurableState = () => {
         }
       },
       setAlarm: async (at: number) => {
+        scheduled = at;
         alarms.push(at);
+      },
+      getAlarm: async () => scheduled,
+      deleteAlarm: async () => {
+        scheduled = null;
       },
     },
   };
@@ -275,13 +283,13 @@ describe("ChatRoom", () => {
     replies.queue.push([""]);
     const failed = await submitAndRun(room, input);
     expect(failed.status).toBe("failed");
-    expect(failed.events.map((item) => item.event)).toEqual([
-      {
-        type: "error",
-        message: "返信を完了できませんでした。再試行してください。",
-        terminal: false,
-      },
-    ]);
+    // 出来事の流れは試行の印（attempt）から始まり、終わりは再試行できる失敗の印。
+    expect(failed.events.at(0)?.event).toMatchObject({ type: "attempt", attempt: 1 });
+    expect(failed.events.at(-1)?.event).toMatchObject({
+      type: "error",
+      message: "返信を完了できませんでした。再試行してください。",
+      terminal: false,
+    });
     const afterFailure = await loadHistory({ characterId, conversationId });
     expect(afterFailure.turn).toBe(1);
     expect(afterFailure.history).toEqual([]);
@@ -307,13 +315,12 @@ describe("ChatRoom", () => {
     await submitAndRun(room, { ...input, retry: true });
     const last = await submitAndRun(room, { ...input, retry: true });
     expect(last.status).toBe("failed");
-    expect(last.events.map((item) => item.event)).toEqual([
-      {
-        type: "error",
-        message: "返信を完了できませんでした。入力に戻してください。",
-        terminal: true,
-      },
-    ]);
+    expect(last.events.at(0)?.event).toMatchObject({ type: "attempt" });
+    expect(last.events.at(-1)?.event).toMatchObject({
+      type: "error",
+      message: "返信を完了できませんでした。入力に戻してください。",
+      terminal: true,
+    });
     // 「入力に戻す」は次の番号が送信時の番号以下かで判断する（chat-view の recoverPending）。
     const history = await loadHistory({ characterId, conversationId });
     expect(history.turn).toBe(1);
@@ -334,9 +341,14 @@ describe("ChatRoom", () => {
 
     const recovered = await submitAndRun(room, { ...input, retry: true });
     expect(recovered.status).toBe("succeeded");
-    expect(recovered.events.map((item) => item.event)).toEqual([
-      { type: "done", conversationId, turn: 1, generationId: null, sendAt: [] },
-    ]);
+    // 回復は試行を作り直さんので、前の試行の出来事の末尾に完了だけ足す。
+    expect(recovered.events.at(-1)?.event).toEqual({
+      type: "done",
+      conversationId,
+      turn: 1,
+      generationId: null,
+      sendAt: [],
+    });
     expect(replies.calls).toBe(1);
     expect((await loadHistory({ characterId, conversationId })).history).toEqual(stored.history);
   });
@@ -358,9 +370,14 @@ describe("ChatRoom", () => {
     await room.alarm();
     const resumed = room.readEvents("req-4", 0);
     expect(resumed.status).toBe("succeeded");
-    expect(resumed.events.map((item) => item.event)).toEqual([
-      { type: "done", conversationId, turn: 1, generationId: null, sendAt: [] },
-    ]);
+    // 回復は試行を作り直さんので、試行の印の後に完了が来る。
+    expect(resumed.events.at(-1)?.event).toEqual({
+      type: "done",
+      conversationId,
+      turn: 1,
+      generationId: null,
+      sendAt: [],
+    });
     expect(replies.calls).toBe(3);
   });
 
@@ -400,7 +417,8 @@ describe("ChatRoom", () => {
     state.alarms.length = 0;
     await room.alarm();
     expect(room.readEvents(requestId, 0).status).toBe("succeeded");
-    expect(state.alarms).toEqual([]);
+    // 走っとる job の見張りは処理中だけ残る。全部終わったら予約を畳む。
+    expect(await state.storage.getAlarm()).toBeNull();
   });
 
   it("alarm は残った job があれば次の alarm を予約する", async () => {
@@ -419,7 +437,9 @@ describe("ChatRoom", () => {
 
     await room.alarm();
     expect(room.readEvents("req-6a", 0).status).toBe("succeeded");
-    expect(state.alarms).toHaveLength(1);
+    // 処理中の見張りとは別に、残った job のために直近の alarm が予約される。
+    expect(await state.storage.getAlarm()).toBeLessThanOrEqual(Date.now() + 1000);
+    expect(state.alarms.length).toBeGreaterThanOrEqual(1);
   });
 
   it("失敗の記録には固定の理由だけを出し、送信文や例外の本文を出さん", async () => {
@@ -445,32 +465,36 @@ describe("ChatRoom", () => {
     }
   });
 
-  it("履歴 API は送信が割り当てられたターンに残った発言と、返信が残ったかを返す", async () => {
+  it("取り下げ API は送信が割り当てられたターンに残った発言と、返信が残ったかを返す", async () => {
     const room = newRoom();
     platform.env = { ...platform.env, CHAT_ROOMS: { getByName: () => room } };
     const conversationId = newConversation();
     replies.queue.push([""]);
     await submitAndRun(room, { requestId: "req-8a", conversationId, text: "届かん質問" });
-    const url = (requestId: string) =>
-      `https://example.com/api/chat/x/history?conversationId=${conversationId}&requestId=${requestId}`;
+    const withdraw = (character: string, requestId: string) =>
+      handleWithdrawRequest(
+        character,
+        new Request(`https://example.com/api/chat/x/withdraw`, {
+          method: "POST",
+          body: JSON.stringify({ conversationId, requestId }),
+        }),
+      );
 
-    const dead = await handleHistoryRequest(characterId, new Request(url("req-8a")));
+    const dead = await withdraw(characterId, "req-8a");
     expect((await historyBody(dead)).storedTurn).toEqual({
       turn: 1,
       user: "届かん質問",
       answered: false,
     });
 
-    // 問い合わせで取り下げ済みになるので、同じ文は新しい受付番号で送る。
+    // 取り下げ済みになるので、同じ文は新しい受付番号で送る。
     replies.queue.push([VALID_REPLY]);
     await submitAndRun(room, {
       requestId: "req-8c",
       conversationId,
       text: "届かん質問",
     });
-    const saved = await historyBody(
-      await handleHistoryRequest(characterId, new Request(url("req-8c"))),
-    );
+    const saved = await historyBody(await withdraw(characterId, "req-8c"));
     expect(saved.storedTurn).toEqual({
       turn: 1,
       user: "届かん質問",
@@ -479,23 +503,24 @@ describe("ChatRoom", () => {
 
     // 受け付けたがまだ処理しとらん送信は 409 busy。キャラが読めん時でも、履歴より先に答える。
     await room.submit({ requestId: "req-8b", conversationId, text: "待ち中", characterId });
-    const queued = await handleHistoryRequest(characterId, new Request(url("req-8b")));
+    const queued = await withdraw(characterId, "req-8b");
     expect(queued.status).toBe(409);
-    const missingCharacter = await handleHistoryRequest(
-      "no-such-character",
-      new Request(url("req-8b")),
-    );
+    const missingCharacter = await withdraw("no-such-character", "req-8b");
     expect(missingCharacter.status).toBe(409);
     expect(saved.turn).toBe(2);
 
     // サーバーに届いとらん送信は null（保存されてへん）。
-    const unknown = await historyBody(
-      await handleHistoryRequest(characterId, new Request(url("req-never-sent"))),
-    );
+    const unknown = await historyBody(await withdraw(characterId, "req-never-sent"));
     expect(unknown.storedTurn).toBeNull();
-    expect(
-      (await handleHistoryRequest(characterId, new Request(url("x".repeat(121))))).status,
-    ).toBe(400);
+    // requestId つきの履歴は取り下げへ誘導する（読み取りで状態を変えんため）。
+    const viaHistory = await handleHistoryRequest(
+      characterId,
+      new Request(
+        `https://example.com/api/chat/x/history?conversationId=${conversationId}&requestId=req-8c`,
+      ),
+    );
+    expect(viaHistory.status).toBe(400);
+    expect(((await viaHistory.json()) as { code?: string }).code).toBe("use_withdraw");
     const plain = await handleHistoryRequest(
       characterId,
       new Request(`https://example.com/api/chat/x/history?conversationId=${conversationId}`),
@@ -514,9 +539,11 @@ describe("ChatRoom", () => {
 
     const retried = await submitAndRun(room, { ...first, retry: true });
     expect(retried.status).toBe("failed");
+    // ターンが進んだ衝突は生成を回す前に確定するので、出来事は終わりの印だけ。
     expect(retried.events.map((item) => item.event)).toEqual([
       {
         type: "error",
+        code: "conversation_advanced",
         message: "返信を完了できませんでした。入力に戻してください。",
         terminal: true,
       },
@@ -534,13 +561,11 @@ describe("ChatRoom", () => {
     const input = { requestId: "req-w1", conversationId, text: "取り下げる質問" };
     replies.queue.push([""]);
     const failed = await submitAndRun(room, input);
-    expect(failed.events.map((item) => item.event)).toEqual([
-      {
-        type: "error",
-        message: "返信を完了できませんでした。再試行してください。",
-        terminal: false,
-      },
-    ]);
+    expect(failed.events.at(-1)?.event).toMatchObject({
+      type: "error",
+      message: "返信を完了できませんでした。再試行してください。",
+      terminal: false,
+    });
 
     expect(room.withdraw("req-w1")).toEqual({ turn: 1, active: false });
     // 古いタブからの再試行は、戻した文を二重に生成させず、入力へ戻す失敗を返すだけ。
@@ -548,13 +573,11 @@ describe("ChatRoom", () => {
     await room.alarm();
     const after = room.readEvents("req-w1", 0);
     expect(after.status).toBe("failed");
-    expect(after.events.map((item) => item.event)).toEqual([
-      {
-        type: "error",
-        message: "返信を完了できませんでした。入力に戻してください。",
-        terminal: true,
-      },
-    ]);
+    expect(after.events.at(-1)?.event).toMatchObject({
+      type: "error",
+      message: "返信を完了できませんでした。入力に戻してください。",
+      terminal: true,
+    });
     expect(replies.calls).toBe(1);
 
     // 戻した後に同じ文を新しい受付番号で送っても、返信は 1 つだけ保存される。
@@ -727,6 +750,163 @@ describe("ChatRoom", () => {
       const text = await response.text();
       expect(text.match(/^event: chunk$/gm)).toHaveLength(150);
       expect(text).toMatch(/^event: done$/m);
+    });
+  });
+
+  // 「止める」（RIT-65）。queued・実行中・終わった後・届いてない、の 4 つの時点で確かめる。
+  describe("stop", () => {
+    it("受付済みでまだ処理してない送信は畳み、出来事は stopped の 1 行だけ残る", async () => {
+      const room = newRoom();
+      const conversationId = newConversation();
+      replies.queue.push([VALID_REPLY]);
+      await room.submit({
+        requestId: "req-s1",
+        conversationId,
+        text: "まだ読まれてない",
+        characterId,
+      });
+
+      const result = await room.stop("req-s1");
+      expect(result).toEqual({ outcome: "stopped", turn: 1 });
+
+      const page = room.readEvents("req-s1", 0);
+      expect(page.status).toBe("stopped");
+      expect(page.events.map((item) => item.event)).toEqual([{ type: "stopped" }]);
+
+      // 畳んだ後に alarm が回っても生成は起きず、止めた job は retry でも起き直さん。
+      await room.alarm();
+      expect(replies.calls).toBe(0);
+      await room.submit({
+        requestId: "req-s1",
+        conversationId,
+        text: "まだ読まれてない",
+        characterId,
+        retry: true,
+      });
+      expect(state.sqlite.prepare("SELECT status FROM jobs WHERE id = 'req-s1'").get()).toEqual({
+        status: "stopped",
+      });
+      expect(replies.calls).toBe(0);
+    });
+
+    it("生成の途中で止めたら stopped を返し、止めた合図の後は D1 にも書かれん", async () => {
+      const errors = vi.spyOn(console, "error").mockImplementation(() => undefined);
+      try {
+        // slow-events で 1 出来事ごとに待ちを入れ、生成の途中で stop を挟む窓を作る。
+        const room = newRoom({ V2_TEST_FAULT: "slow-events" });
+        const conversationId = newConversation();
+        replies.queue.push([VALID_REPLY]);
+        await room.submit({
+          requestId: "req-s2",
+          conversationId,
+          text: "返事の途中で止める",
+          characterId,
+        });
+
+        const run = room.alarm();
+        const result = await room.stop("req-s2");
+        expect(result.outcome).toBe("stopped");
+        await run;
+
+        const page = room.readEvents("req-s2", 0);
+        expect(page.status).toBe("stopped");
+        expect(page.events.map((item) => item.event)).toEqual([{ type: "stopped" }]);
+
+        // 止めたターンは D1 に残さん（発言も返事も）。次の送信は同じ番号を使う。
+        const history = await loadHistory({ characterId, conversationId });
+        expect(history.turn).toBe(1);
+        expect(history.history).toHaveLength(0);
+      } finally {
+        errors.mockRestore();
+      }
+    });
+
+    it("返事が届く前の受付を止めると印が残り、遅れて届く同じ番号の送信は生成し直さん（S-13b）", async () => {
+      const errors = vi.spyOn(console, "error").mockImplementation(() => undefined);
+      try {
+        // slow-admit: submit が履歴を読む前に 2 秒止まる。その間に stop が先に届く。
+        const room = newRoom({ V2_TEST_FAULT: "slow-admit" });
+        const conversationId = newConversation();
+        replies.queue.push([VALID_REPLY]);
+        const submitting = room.submit({
+          requestId: "req-s3",
+          conversationId,
+          text: "まだ届いてない送信",
+          characterId,
+        });
+
+        const stopped = await room.stop("req-s3");
+        // 部屋に受付が無い時は missing を返すが、印は残す。
+        expect(stopped).toEqual({ outcome: "missing", turn: null });
+
+        const receipt = await submitting;
+        expect(receipt.status).toBe("accepted");
+        const page = room.readEvents("req-s3", 0);
+        expect(page.status).toBe("failed");
+        expect(page.events.map((item) => item.event)).toEqual([
+          {
+            type: "error",
+            code: "withdrawn",
+            message: "返信を完了できませんでした。入力に戻してください。",
+            terminal: true,
+          },
+        ]);
+        await room.alarm();
+        expect(replies.calls).toBe(0);
+      } finally {
+        errors.mockRestore();
+      }
+    });
+
+    it("終わった job の stop は保存・失敗の結果をそのまま返し、見つからん受付は missing", async () => {
+      const room = newRoom();
+      const conversationId = newConversation();
+      replies.queue.push([VALID_REPLY]);
+      await submitAndRun(room, { requestId: "req-s4a", conversationId, text: "済んだ送信" });
+      expect(await room.stop("req-s4a")).toEqual({ outcome: "already_saved", turn: 1 });
+
+      replies.queue.push([""]);
+      await submitAndRun(room, { requestId: "req-s4b", conversationId, text: "失敗した送信" });
+      expect(await room.stop("req-s4b")).toEqual({ outcome: "already_failed", turn: 2 });
+
+      expect(await room.stop("req-never-sent")).toEqual({ outcome: "missing", turn: null });
+    });
+
+    it("試験故障 fail-after-chunk-once: 最初の塊が 1 個届いた直後に失敗で畳む（cut_off の再現）", async () => {
+      const errors = vi.spyOn(console, "error").mockImplementation(() => undefined);
+      try {
+        const room = newRoom({ V2_TEST_FAULT: "fail-after-chunk-once" });
+        const conversationId = newConversation();
+        replies.queue.push([VALID_REPLY]);
+        const events = await submitAndRun(room, {
+          requestId: "req-s5",
+          conversationId,
+          text: "途中で切れる返事",
+        });
+
+        const kinds = events.events.map((item) => item.event.type);
+        expect(kinds.filter((type) => type === "chunk")).toHaveLength(1);
+        const last = events.events.at(-1)?.event;
+        expect(last).toMatchObject({
+          type: "error",
+          code: "generation_failed",
+          terminal: false,
+        });
+        expect(events.status).toBe("failed");
+
+        // 再試行（retry:true）は故障が一回きりなので最後まで届く。
+        replies.queue.push([VALID_REPLY]);
+        const retried = await submitAndRun(room, {
+          requestId: "req-s5",
+          conversationId,
+          text: "途中で切れる返事",
+          retry: true,
+        });
+        expect(retried.status).toBe("succeeded");
+        expect(retried.events.at(-1)?.event.type).toBe("done");
+      } finally {
+        errors.mockRestore();
+      }
     });
   });
 });

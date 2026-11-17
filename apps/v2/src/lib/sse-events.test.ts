@@ -26,6 +26,8 @@ const valid = {
     omittedHistoryMessages: 3,
   },
   done: { type: "done", conversationId: "synthetic room", turn: 1, generationId: null },
+  attempt: { type: "attempt", attempt: 1 },
+  stopped: { type: "stopped" },
   error: { type: "error", message: "synthetic failure" },
 } satisfies { [Type in ChatSseEvent["type"]]: Extract<ChatSseEvent, { type: Type }> };
 

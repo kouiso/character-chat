@@ -10,6 +10,9 @@ const pendingSchema = z.object({
   characterId: z.string(),
   text: z.string(),
   baseTurn: z.number().int().positive(),
+  // 受理の印（RIT-87）。HTTP 200 を受けて部屋の受付が確実に在る時だけ真。
+  // 無い（届く前に切れたかもしれん）時は、開き直した時に GET /turn で確かめてからつなぐ。
+  accepted: z.boolean().optional(),
 });
 const sessionSchema = z.object({
   version: z.literal(1),
@@ -106,6 +109,33 @@ export class ChatTurnActiveError extends Error {
     this.name = "ChatTurnActiveError";
   }
 }
+
+// 会話に別の受付が走っとる（409 busy）。active は部屋が教える進行中の受付。
+// 画面は送信文を入力へ戻し、エラーの枠は出さん。
+export type BusyActive = { requestId: string; kind: string; text: string; turn: number };
+export class ChatRoomBusyError extends Error {
+  readonly active: BusyActive | null;
+  constructor(active: BusyActive | null) {
+    super("この会話の返信を作成中です。");
+    this.name = "ChatRoomBusyError";
+    this.active = active;
+  }
+}
+
+// 「止める」の結果。missing（受付が部屋に届いとらん）も画面側は stopped と同じに扱う。
+export type StopOutcome = "stopped" | "truncated" | "saved" | "failed";
+export type StopResult = { outcome: StopOutcome; turn: number | null };
+
+// 進行中の受付の調べ（GET turn）。自分の受付が残っとるかを見る request と、
+// 別の受付が走っとるかを見る active の 2 つを返す。
+export type TurnStateRequest = {
+  requestId: string;
+  status: "queued" | "running" | "succeeded" | "failed" | "stopped";
+  turn: number;
+  kind: string;
+  failureCode?: string | null;
+};
+export type TurnState = { active: BusyActive | null; request: TurnStateRequest | null };
 
 export const isPendingSaved = (
   pending: PendingTurn,
@@ -241,9 +271,12 @@ export const loadChatHistory = async (
   };
 };
 
-const parseBlock = (block: string): ChatSseEvent | null => {
+// SSE の 1 区切り。`id:` は部屋の出来事番号（再接続時の Last-Event-ID にそのまま使う）。
+export type SequencedChatEvent = { id: number; event: ChatSseEvent };
+
+export const parseEventBlock = (block: string): SequencedChatEvent | null => {
   const lines = block.split("\n");
-  const event = lines
+  const eventName = lines
     .find((line) => line.startsWith("event:"))
     ?.slice(6)
     .trim();
@@ -251,12 +284,25 @@ const parseBlock = (block: string): ChatSseEvent | null => {
     .find((line) => line.startsWith("data:"))
     ?.slice(5)
     .trim();
-  return event && data ? parseSseEvent(event, data) : null;
+  const id = Number(
+    lines
+      .find((line) => line.startsWith("id:"))
+      ?.slice(3)
+      .trim() ?? "0",
+  );
+  const event = eventName && data ? parseSseEvent(eventName, data) : null;
+  return event ? { id, event } : null;
 };
 
 export const readChatEvents = async function* (
   body: ReadableStream<Uint8Array>,
 ): AsyncGenerator<ChatSseEvent> {
+  for await (const item of readSequencedChatEvents(body)) yield item.event;
+};
+
+export const readSequencedChatEvents = async function* (
+  body: ReadableStream<Uint8Array>,
+): AsyncGenerator<SequencedChatEvent> {
   const reader = body.getReader();
   const decoder = new TextDecoder();
   let buffer = "";
@@ -267,7 +313,7 @@ export const readChatEvents = async function* (
       buffer += decoder.decode(value, { stream: true });
       const blocks = buffer.split("\n\n");
       buffer = blocks.pop() ?? "";
-      yield* blocks.map(parseBlock).filter((event) => event !== null);
+      yield* blocks.map(parseEventBlock).filter((item) => item !== null);
     }
   } finally {
     await reader.cancel();
@@ -452,15 +498,48 @@ export const deleteChatImage = async (
   }
 };
 
+// 409 の本文を確かめる。conflict は確定的な拒否、busy は別の受付が走っとる合図。
+const readConflictBody = async (
+  response: Response,
+): Promise<{ code?: string; active?: BusyActive | null }> => {
+  const body = (await response.json().catch(() => null)) as {
+    code?: string;
+    active?: BusyActive;
+  } | null;
+  return { code: body?.code, active: body?.active ?? null };
+};
+
+// POST の返事を失敗の種類へ写す。通った時は何もせず返る。
+const throwForTurnResponse = async (response: Response): Promise<void> => {
+  if (response.ok) return;
+  if (response.status === 409) {
+    const body = await readConflictBody(response);
+    if (body.code === "busy") throw new ChatRoomBusyError(body.active ?? null);
+    if (body.code === "conflict") throw new ChatRequestRejectedError();
+  }
+  if (await isDefinitiveRejection(response)) throw new ChatRequestRejectedError();
+  if (response.status === 429) {
+    const body = (await response.json().catch(() => null)) as { message?: string } | null;
+    throw new ChatDailyLimitError(
+      body?.message ?? "今日の会話回数の上限に達しました。送信文は入力欄に戻します。",
+    );
+  }
+  throw new Error("返信を受け取れませんでした。再接続してください。");
+};
+
 export const connectChatTurn = async (
   pending: PendingTurn,
   signal: AbortSignal,
   retry = false,
+  after = 0,
 ): Promise<ReadableStream<Uint8Array>> => {
   const response = await throughNetwork(() =>
     fetch(`/api/chat/${encodeURIComponent(pending.characterId)}`, {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: {
+        "content-type": "application/json",
+        ...(after > 0 ? { "last-event-id": String(after) } : {}),
+      },
       signal,
       body: JSON.stringify({
         conversationId: pending.conversationId,
@@ -470,14 +549,133 @@ export const connectChatTurn = async (
       }),
     }),
   );
-  if (!response.ok && (await isDefinitiveRejection(response))) throw new ChatRequestRejectedError();
-  if (response.status === 429) {
-    const body = (await response.json().catch(() => null)) as { message?: string } | null;
-    throw new ChatDailyLimitError(
-      body?.message ?? "今日の会話回数の上限に達しました。送信文は入力欄に戻します。",
-    );
-  }
+  await throwForTurnResponse(response);
+  if (!response.body) throw new Error("返信を受け取れませんでした。再接続してください。");
+  return response.body;
+};
+
+// 部屋に控えた出来事を続きから配る口（GET /api/chat/:id/events）。
+// 404 は受付が部屋に無い（届く前に取り下げ・止めた）。画面は POST の送り直しへ戻る。
+export const attachChatTurn = async (
+  characterId: string,
+  conversationId: string,
+  requestId: string,
+  after: number,
+  signal: AbortSignal,
+): Promise<ReadableStream<Uint8Array>> => {
+  const query = new URLSearchParams({ conversationId, requestId });
+  const response = await throughNetwork(() =>
+    fetch(`/api/chat/${encodeURIComponent(characterId)}/events?${query}`, {
+      headers: after > 0 ? { "last-event-id": String(after) } : {},
+      signal,
+    }),
+  );
+  if (response.status === 404) throw new ChatRequestRejectedError();
+  if (response.status === 422) throw new ChatRequestRejectedError();
   if (!response.ok || !response.body)
     throw new Error("返信を受け取れませんでした。再接続してください。");
   return response.body;
+};
+
+// 進行中の受付の調べ（GET /api/chat/:id/turn）。開き直しと取り下げの 409 の後に使う。
+export const readChatTurnState = async (
+  characterId: string,
+  conversationId: string,
+  signal: AbortSignal,
+  requestId?: string,
+): Promise<TurnState> => {
+  const query = new URLSearchParams({ conversationId });
+  if (requestId !== undefined) query.set("requestId", requestId);
+  const response = await throughNetwork(() =>
+    fetch(`/api/chat/${encodeURIComponent(characterId)}/turn?${query}`, { signal }),
+  );
+  if (response.status === 404 || response.status === 422) throw new ChatRequestRejectedError();
+  if (!response.ok) throw new Error("送信の状態を読めませんでした。再試行してください。");
+  const body = z
+    .object({
+      active: z
+        .object({
+          requestId: z.string(),
+          kind: z.string(),
+          text: z.string(),
+          turn: z.number().int(),
+          status: z.string().optional(),
+          attempts: z.number().int().optional(),
+          startedAt: z.number().optional(),
+        })
+        .nullable(),
+      request: z
+        .object({
+          requestId: z.string(),
+          status: z.enum(["queued", "running", "succeeded", "failed", "stopped"]),
+          turn: z.number().int(),
+          kind: z.string(),
+          failureCode: z.string().nullable().optional(),
+        })
+        .nullable(),
+    })
+    .parse(await response.json());
+  return body;
+};
+
+// 「入力に戻す」（POST /api/chat/:id/withdraw）。200 は履歴と保存済みの確かめ、
+// 409 は作成中（つなぎ直す方へ）、404/422 は手元だけで戻す方へ。
+export const withdrawChatTurn = async (
+  characterId: string,
+  conversationId: string,
+  requestId: string,
+  signal: AbortSignal,
+): Promise<{ bubbles: ChatBubble[]; nextTurn: number; storedTurn: StoredTurn | null }> => {
+  const response = await throughNetwork(() =>
+    fetch(`/api/chat/${encodeURIComponent(characterId)}/withdraw`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      signal,
+      body: JSON.stringify({ conversationId, requestId }),
+    }),
+  );
+  if (response.status === 409) throw new ChatTurnActiveError();
+  if (response.status === 404 || response.status === 422) throw new ChatRequestRejectedError();
+  if (!response.ok) throw new Error("入力を戻せませんでした。再試行してください。");
+  const body = historySchema.parse(await response.json());
+  return {
+    bubbles: body.history.map((item) => ({
+      role: item.role,
+      text: item.content,
+      imageUrl: item.imageUrl,
+      mediaKind: item.mediaKind,
+      id: item.id,
+      turn: item.turn,
+    })),
+    nextTurn: body.turn,
+    storedTurn: body.storedTurn ?? null,
+  };
+};
+
+// 「止める」（POST /api/chat/:id/stop）。shownSeq は画面に出た最後の塊番号。
+// 404 missing は画面側では stopped と同じに扱う（受付が届く前に印だけ書いた状態）。
+export const stopChatTurn = async (
+  characterId: string,
+  conversationId: string,
+  requestId: string,
+  shownSeq: number | null,
+  signal: AbortSignal,
+): Promise<StopResult> => {
+  const response = await throughNetwork(() =>
+    fetch(`/api/chat/${encodeURIComponent(characterId)}/stop`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      signal,
+      body: JSON.stringify({ conversationId, requestId, shownSeq }),
+    }),
+  );
+  if (response.status === 404) return { outcome: "stopped", turn: null };
+  if (response.status === 422) throw new ChatRequestRejectedError();
+  if (!response.ok) throw new Error("返信を止められませんでした。再試行してください。");
+  return z
+    .object({
+      outcome: z.enum(["stopped", "truncated", "saved", "failed"]),
+      turn: z.number().int().nullable(),
+    })
+    .parse(await response.json());
 };

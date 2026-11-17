@@ -6,7 +6,10 @@ import type * as V2Db from "@v2/db";
 import type * as V2Engine from "@v2/engine";
 
 const platform = vi.hoisted(() => ({ env: {} as Record<string, unknown> }));
-const captured = vi.hoisted(() => ({ budget: undefined as Partial<ContextBudget> | undefined }));
+const captured = vi.hoisted(() => ({
+  budget: undefined as Partial<ContextBudget> | undefined,
+  model: undefined as { responses?: string[] } | undefined,
+}));
 const versionState = vi.hoisted(() => ({ available: true, calls: [] as string[] }));
 
 vi.mock("./platform", () => ({ getPlatform: async () => platform }));
@@ -56,9 +59,13 @@ vi.mock("@v2/db", async (importOriginal) => ({
 }));
 vi.mock("@v2/engine", async (importOriginal) => ({
   ...(await importOriginal<typeof V2Engine>()),
-  createTurnGraph: (deps: { contextBudget?: Partial<ContextBudget> }) => {
+  createTurnGraph: (deps: {
+    contextBudget?: Partial<ContextBudget>;
+    model?: { responses?: string[] };
+  }) => {
     versionState.calls.push("create-graph");
     captured.budget = deps.contextBudget;
+    captured.model = deps.model;
     return {};
   },
   runTurn: async function* () {},
@@ -70,6 +77,7 @@ const start = () => startTurn({ characterId: "c", conversationId: "conv", text: 
 
 beforeEach(() => {
   captured.budget = undefined;
+  captured.model = undefined;
   versionState.available = true;
   versionState.calls = [];
 });
@@ -112,5 +120,54 @@ describe("startTurn の履歴予算", () => {
       "load-pinned",
       "create-graph",
     ]);
+  });
+});
+
+describe("V2_FAKE_RESPONSE", () => {
+  it("JSON の文字列配列なら、その並びのまま複数の返事を持つ", async () => {
+    platform.env = {
+      APP_ENV: "test",
+      V2_FAKE_MODEL: "1",
+      V2_FAKE_RESPONSE: JSON.stringify(["一つ目の返事", "二つ目の返事"]),
+    };
+    await start();
+    expect(captured.model?.responses).toEqual(["一つ目の返事", "二つ目の返事"]);
+  });
+
+  it("配列で始まらない値は 1 本の本文として扱う", async () => {
+    platform.env = {
+      APP_ENV: "test",
+      V2_FAKE_MODEL: "1",
+      V2_FAKE_RESPONSE: "固定の返事",
+    };
+    await start();
+    expect(captured.model?.responses).toEqual(["固定の返事"]);
+  });
+
+  it("壊れた JSON の配列風は 1 本の本文として扱う", async () => {
+    platform.env = {
+      APP_ENV: "test",
+      V2_FAKE_MODEL: "1",
+      V2_FAKE_RESPONSE: '["壊れた',
+    };
+    await start();
+    expect(captured.model?.responses).toEqual(['["壊れた']);
+  });
+
+  it("文字列以外を含む配列は 1 本の本文として扱う", async () => {
+    platform.env = {
+      APP_ENV: "test",
+      V2_FAKE_MODEL: "1",
+      V2_FAKE_RESPONSE: '["返事", 42]',
+    };
+    await start();
+    expect(captured.model?.responses).toEqual(['["返事", 42]']);
+  });
+
+  it("未設定なら既定の固定応答 1 本", async () => {
+    platform.env = { APP_ENV: "test", V2_FAKE_MODEL: "1" };
+    await start();
+    expect(captured.model?.responses).toHaveLength(1);
+    expect(captured.model?.responses?.[0]).toContain("<response>");
   });
 });

@@ -82,6 +82,8 @@ type SqlValue = string | number | null;
 const createDurableState = () => {
   const sqlite = new DatabaseSync(":memory:");
   const alarms: number[] = [];
+  // 予約中の alarm の時刻。storage の alarm は 1 本だけなので、上書き・取り消しを真似る。
+  let scheduled: number | null = null;
   return {
     alarms,
     storage: {
@@ -103,7 +105,12 @@ const createDurableState = () => {
         }
       },
       setAlarm: async (at: number) => {
+        scheduled = at;
         alarms.push(at);
+      },
+      getAlarm: async () => scheduled,
+      deleteAlarm: async () => {
+        scheduled = null;
       },
     },
   };
