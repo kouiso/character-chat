@@ -1,6 +1,7 @@
 export type {
   CharacterSheet,
   ComposedPrompt,
+  ContextUsage,
   GenerationRecord,
   HistoryMessage,
   ModelAttempt,
@@ -49,6 +50,17 @@ export {
   ContextBudgetConfigError,
   contextBudgetFromEnv,
   DEFAULT_CONTEXT_BUDGET,
+  resolveContextBudget,
   type ContextBudget,
   type ContextBudgetEnv,
 } from "./context-budget";
+export {
+  measureContextUsage,
+  packSummaries,
+  PERSONA_BLOCK_HEADER,
+  PROMPT_LAYER_BUDGET,
+  PROMPT_TOTAL_CHARACTERS,
+  PromptBudgetExceededError,
+  SUMMARY_BLOCK_HEADER,
+  type ContextMeasureParts,
+} from "./prompt-layer-budget";

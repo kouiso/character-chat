@@ -22,7 +22,17 @@ import {
   targetCharsForPhase,
 } from "@v2/prompt";
 
-import { buildConversationContext, type ContextBudget } from "./context-budget";
+import {
+  buildConversationContext,
+  resolveContextBudget,
+  type ContextBudget,
+} from "./context-budget";
+import {
+  measureContextUsage,
+  packSummaries,
+  PERSONA_BLOCK_HEADER,
+  SUMMARY_BLOCK_HEADER,
+} from "./prompt-layer-budget";
 import {
   packMemoryContext,
   packedMemoryIds,
@@ -37,6 +47,7 @@ import { TurnState, type JudgedChunk } from "./state";
 import type {
   CharacterSheet,
   ComposedPrompt,
+  ContextUsage,
   GenerationRecord,
   HistoryMessage,
   ModelAttempt,
@@ -528,6 +539,7 @@ const settleGeneration = async (
   args: {
     generationId: string;
     prompt: ComposedPrompt;
+    contextUsage: ContextUsage | null;
     candidates: ModelCandidate[];
     outcome: CandidateOutcome;
     timeoutMs: number;
@@ -560,6 +572,8 @@ const settleGeneration = async (
     ...(outcome.truncated ? { truncated: outcome.truncated } : {}),
     attempts: outcome.attempts,
     timeoutMs: args.timeoutMs,
+    // 層ごとの使用字数（RIT-71）。persist が context_usage_json へ書く。
+    ...(args.contextUsage ? { contextUsage: args.contextUsage } : {}),
   };
 };
 
@@ -799,59 +813,53 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
           style: deps.style,
           soloReaction: deps.soloReaction,
         });
-        const { messages, omittedMessages } = buildConversationContext(
+        const { messages, omittedMessages, oldestIncludedTurn } = buildConversationContext(
           state.history,
           state.userText,
           deps.contextBudget,
         );
-        // 窓の外に出た分は要約が代わりに乗る（RIT-72）。
+        const budget = resolveContextBudget(deps.contextBudget);
+        // 窓の外に出た分は要約が代わりに乗る（RIT-72）。あらすじ層の上限は
+        // V2_SUMMARY_CHARACTERS（既定 2,500 字・RIT-71）。溢れる時は古い level 1 から外す。
         const summaries = deps.summaryStore
           ? visibleSummaries(await deps.summaryStore.list(state.conversationId))
           : [];
+        const packedSummaries = packSummaries(summaries, budget.summaryCharacters);
+        const summaryBlock =
+          packedSummaries.length > 0 ? SUMMARY_BLOCK_HEADER + packedSummaries.join("\n") : null;
+        const memoryBlock = deps.retrieveMemories
+          ? MEMORY_CONTEXT_HEADER + (state.retrieved.join("\n") || "該当する記憶はありません。")
+          : null;
+        // 設定資料は記憶の後ろ。資料が無い時はメッセージ自体を出さん（空約束を書かん）。
+        const documentsBlock =
+          deps.retrieveDocuments && state.retrievedDocuments.length > 0
+            ? DOCUMENT_CONTEXT_HEADER + state.retrievedDocuments.join("\n")
+            : null;
+        // ユーザーの人物像は会話履歴の直前。記憶や資料より新しい指示として読ませる。
+        const personaBlock = deps.userPersona ? PERSONA_BLOCK_HEADER + deps.userPersona : null;
         const prompt: ComposedPrompt = {
           version: "v0002",
           system,
           messages: [
-            ...(summaries.length > 0
-              ? [
-                  {
-                    role: "user" as const,
-                    content: `これまでのあらすじ:\n${summaries.map((entry) => entry.text).join("\n")}`,
-                  },
-                ]
-              : []),
-            ...(deps.retrieveMemories
-              ? [
-                  {
-                    role: "user" as const,
-                    content:
-                      MEMORY_CONTEXT_HEADER +
-                      (state.retrieved.join("\n") || "該当する記憶はありません。"),
-                  },
-                ]
-              : []),
-            // 設定資料は記憶の後ろ。資料が無い時はメッセージ自体を出さん（空約束を書かん）。
-            ...(deps.retrieveDocuments && state.retrievedDocuments.length > 0
-              ? [
-                  {
-                    role: "user" as const,
-                    content: DOCUMENT_CONTEXT_HEADER + state.retrievedDocuments.join("\n"),
-                  },
-                ]
-              : []),
-            // ユーザーの人物像は会話履歴の直前。記憶や資料より新しい指示として読ませる。
-            ...(deps.userPersona
-              ? [
-                  {
-                    role: "user" as const,
-                    content: `【ユーザーについて】\n${deps.userPersona}`,
-                  },
-                ]
-              : []),
+            ...[summaryBlock, memoryBlock, documentsBlock, personaBlock]
+              .filter((block): block is string => block !== null)
+              .map((content) => ({ role: "user" as const, content })),
             ...messages,
           ],
         };
-        return { prompt, omittedHistoryMessages: omittedMessages };
+        // 層ごとの使用字数を測る。層の検査が抜けて合計を超えた時はここで決定的に失敗する。
+        const contextUsage = measureContextUsage(prompt, {
+          layers: {
+            summary: summaryBlock,
+            memory: memoryBlock,
+            documents: documentsBlock,
+            persona: personaBlock,
+          },
+          budget,
+          omittedHistoryMessages: omittedMessages,
+          oldestIncludedTurn,
+        });
+        return { prompt, omittedHistoryMessages: omittedMessages, contextUsage };
       })
       .addNode("generate", async (state, runtime) => {
         if (!state.prompt) throw new Error("prompt が未生成のまま generate に到達した");
@@ -878,6 +886,7 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
         const generation = await settleGeneration(deps, {
           generationId,
           prompt: state.prompt,
+          contextUsage: state.contextUsage,
           candidates,
           outcome,
           timeoutMs,

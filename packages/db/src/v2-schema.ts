@@ -203,6 +203,8 @@ export const v2GenerationTable = sqliteTable(
     // RIT-102: 逃げ道チェーンの試行履歴（JSON 配列）と、掛けた締切 ms。
     attemptsJson: text("attempts_json"),
     timeoutMs: integer("timeout_ms"),
+    // 層ごとの使用字数と窓の境目（RIT-71）。旧行は NULL。request_json は変えん。
+    contextUsageJson: text("context_usage_json"),
     createdAt: integer("created_at").notNull(),
   },
   (table) => [

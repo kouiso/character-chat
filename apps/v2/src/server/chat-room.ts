@@ -1,4 +1,5 @@
 import { createDb, describeError } from "@v2/db";
+import { PromptBudgetExceededError } from "@v2/engine";
 import { DurableObject } from "cloudflare:workers";
 
 import { parseChatSseEvent, type ChatSseEvent } from "../lib/sse-events";
@@ -40,6 +41,7 @@ type TurnFailureReason =
   | "conversation_rewound"
   | "conversation_advanced"
   | "generation_failed"
+  | "prompt_budget_exceeded"
   | "stopped"
   | "test_interruption"
   | "withdrawn";
@@ -53,10 +55,12 @@ class TurnFailure extends Error {
   }
 }
 
-// 会話が別の送信で進んだ・巻き戻った・取り下げられたのは、何回やり直しても同じ結果になる。
+// 会話が別の送信で進んだ・巻き戻った・取り下げられたのと、層の上限検査を抜けた
+// 指示文は、何回やり直しても同じ結果になる。
 const DETERMINISTIC_REASONS: ReadonlySet<TurnFailureReason> = new Set([
   "conversation_advanced",
   "conversation_rewound",
+  "prompt_budget_exceeded",
   "withdrawn",
 ]);
 const isDeterministic = (error: unknown): boolean =>
@@ -682,19 +686,38 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
     });
     let failed = false;
     let done = false;
-    for await (const event of turn.events) {
-      // 止めの印が立った後は、塊も保存も進めず畳む。保存の口は signal が閉じとるので
-      // ここを抜けた後に D1 のそのターンへ行は増えん。
-      if (this.halted(job.id, signal)) return;
-      if (event.type === "error") failed = true;
-      const publicEvent = this.publicEventOf(event);
-      if (publicEvent === null) continue;
-      if (publicEvent.type === "done") done = true;
-      await this.writeEvent(job.id, publicEvent);
-      this.failAfterChunkFault(job, publicEvent);
+    try {
+      for await (const event of turn.events) {
+        // 止めの印が立った後は、塊も保存も進めず畳む。保存の口は signal が閉じとるので
+        // ここを抜けた後に D1 のそのターンへ行は増えん。
+        if (this.halted(job.id, signal)) return;
+        if (event.type === "error") failed = true;
+        const publicEvent = this.publicEventOf(event);
+        if (publicEvent === null) continue;
+        if (publicEvent.type === "done") done = true;
+        await this.writeEvent(job.id, publicEvent);
+        this.failAfterChunkFault(job, publicEvent);
+      }
+    } catch (error) {
+      throw this.turnErrorOf(job.id, error);
     }
     if (this.halted(job.id, signal)) return;
     if (failed || !done) throw new TurnFailure("generation_failed");
+  }
+
+  // 層の予算超過は再生成しても同じなので決定的な失敗へ写す。記録は層ごとの字数だけ
+  // （本文は出さん・RIT-71 の失敗時の振る舞い）。
+  private turnErrorOf(jobId: string, error: unknown): unknown {
+    if (error instanceof PromptBudgetExceededError) {
+      reportFailure(this.env, {
+        event: "prompt_budget_exceeded",
+        level: "error",
+        jobId,
+        usage: error.usage,
+      });
+      return new TurnFailure("prompt_budget_exceeded");
+    }
+    return error;
   }
 
   // 各試行の最初に attempt を書き、それより前の試行の出来事は同じ束で消す。

@@ -84,24 +84,26 @@ const envWith = (vars: Record<string, unknown>) => ({
 });
 
 describe("POST /api/chat の履歴予算設定", () => {
-  it.each([["-1"], ["abc"], ["1.5"]])(
-    "不正な値 %s では受け付けず、ジョブを積まずに設定エラーを返す",
-    async (value) => {
-      const error = vi.spyOn(console, "error").mockImplementation(() => {});
-      platform.env = envWith({ V2_HISTORY_MESSAGES: value });
-      const response = await post();
-      expect(response.status).toBe(500);
-      expect(submit).not.toHaveBeenCalled();
-      // 記録は出来事と例外クラス名だけ。設定の誤りを説明する例外の message は出さん。
-      const logged = error.mock.calls.flat().join(" ");
-      expect(JSON.parse(String(error.mock.calls[0]?.[0]))).toMatchObject({
-        event: "context_budget_config_invalid",
-        reason: "unexpected:ContextBudgetConfigError",
-      });
-      expect(logged).not.toContain("V2_HISTORY_MESSAGES");
-      error.mockRestore();
-    },
-  );
+  it.each([
+    ["V2_HISTORY_CHARACTERS", "abc"],
+    ["V2_HISTORY_MESSAGES", "-1"],
+    ["V2_SUMMARY_CHARACTERS", "1.5"],
+  ])("不正な値 %s=%s では受け付けず、ジョブを積まずに設定エラーを返す", async (name, value) => {
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    platform.env = envWith({ [name]: value });
+    const response = await post();
+    expect(response.status).toBe(500);
+    expect(await response.json()).toEqual({ message: "サーバー設定に誤りがあります。" });
+    expect(submit).not.toHaveBeenCalled();
+    // 記録は出来事と例外クラス名だけ。設定の誤りを説明する例外の message は出さん。
+    const logged = error.mock.calls.flat().join(" ");
+    expect(JSON.parse(String(error.mock.calls[0]?.[0]))).toMatchObject({
+      event: "context_budget_config_invalid",
+      reason: "unexpected:ContextBudgetConfigError",
+    });
+    expect(logged).not.toContain(name);
+    error.mockRestore();
+  });
 
   it("未設定なら既定値のままジョブを受け付ける", async () => {
     platform.env = envWith({});

@@ -136,7 +136,23 @@ describe("conversation context budget", () => {
       messages: [{ role: "user", content: "今" }],
       historyCharacters: 0,
       omittedMessages: 0,
+      oldestIncludedTurn: null,
     });
+  });
+  test("窓の境目に入った最古のターンを oldestIncludedTurn で返す", () => {
+    const history: HistoryMessage[] = [
+      { role: "user", content: "古い", turn: 198 },
+      { role: "assistant", content: "古い返事", turn: 198 },
+      { role: "user", content: "直前", turn: 199 },
+      { role: "assistant", content: "直前の返事", turn: 199 },
+    ];
+    const all = buildConversationContext(history, "今", { historyCharacters: 100 });
+    expect(all.oldestIncludedTurn).toBe(198);
+    expect(all.messages.every((message) => message.turn === undefined)).toBe(true);
+    const cut = buildConversationContext(history, "今", { historyCharacters: 10 });
+    expect(cut.oldestIncludedTurn).toBe(199);
+    const none = buildConversationContext(history, "今", { historyCharacters: 0 });
+    expect(none.oldestIncludedTurn).toBeNull();
   });
   test("字数予算ちょうどまでは入れ、1字でも超える1通は入れない", () => {
     const history: HistoryMessage[] = [
@@ -175,16 +191,23 @@ describe("conversation context budget", () => {
 describe("環境変数からの履歴予算", () => {
   test.each([
     ["未設定", {}],
-    ["空文字", { V2_HISTORY_CHARACTERS: "", V2_HISTORY_MESSAGES: "" }],
+    ["空文字", { V2_HISTORY_CHARACTERS: "", V2_HISTORY_MESSAGES: "", V2_SUMMARY_CHARACTERS: "" }],
   ])("%sなら既定値で組み立てられる", (_label, env) => {
     const overrides = contextBudgetFromEnv(env);
     expect({ ...DEFAULT_CONTEXT_BUDGET, ...overrides }).toEqual(DEFAULT_CONTEXT_BUDGET);
     expect(() => buildConversationContext([], "今", overrides)).not.toThrow();
   });
   test("wrangler の数値も文字列の整数も受け付ける", () => {
-    expect(contextBudgetFromEnv({ V2_HISTORY_CHARACTERS: 500, V2_HISTORY_MESSAGES: "8" })).toEqual({
+    expect(
+      contextBudgetFromEnv({
+        V2_HISTORY_CHARACTERS: 500,
+        V2_HISTORY_MESSAGES: "8",
+        V2_SUMMARY_CHARACTERS: "1500",
+      }),
+    ).toEqual({
       historyCharacters: 500,
       historyMessages: 8,
+      summaryCharacters: 1500,
     });
   });
   test('件数"0"は履歴なしとして今回の発言だけを送る', () => {
@@ -197,7 +220,11 @@ describe("環境変数からの履歴予算", () => {
   test.each([["-1"], [-1], ["abc"], ["1.5"], [1.5], [" 12"], ["1e3"], [NaN], [Infinity]])(
     "不正な値 %s は既定値へ逃がさず設定エラーにする",
     (value) => {
-      for (const name of ["V2_HISTORY_CHARACTERS", "V2_HISTORY_MESSAGES"] as const) {
+      for (const name of [
+        "V2_HISTORY_CHARACTERS",
+        "V2_HISTORY_MESSAGES",
+        "V2_SUMMARY_CHARACTERS",
+      ] as const) {
         expect(() => contextBudgetFromEnv({ [name]: value })).toThrow(ContextBudgetConfigError);
         expect(() => contextBudgetFromEnv({ [name]: value })).toThrow(name);
       }
