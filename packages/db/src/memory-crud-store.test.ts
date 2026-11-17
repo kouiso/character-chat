@@ -161,6 +161,69 @@ describe("memory crud store", () => {
     ).rejects.toBeInstanceOf(MemoryAccessError);
   });
 
+  it("同じキャラの別会話・眠った枝の記憶は一覧に出ない。置き換わった記憶は出る（RIT-89 FR-7）", async () => {
+    const conversationId = await talk();
+    const otherConversationId = await talk();
+    const scope3 = { ...scope, characterId, conversationId };
+    const other = await insertManualMemory(
+      local.db,
+      { ...scope3, conversationId: otherConversationId },
+      {
+        content: "別会話の記憶",
+        kind: "fact",
+      },
+    );
+    expect(other).not.toBeNull();
+    const stamp = Date.now();
+    // 眠った枝（active=0）の発言を出どころにする抜き出し記憶
+    const sleepingMessageId = crypto.randomUUID();
+    const sleepingMemoryId = crypto.randomUUID();
+    await local.db.insert(v2MessageTable).values({
+      id: sleepingMessageId,
+      conversationId,
+      turn: 9,
+      role: "user",
+      content: "眠い枝の発言",
+      branchNo: 0,
+      active: 0,
+      createdAt: stamp,
+    });
+    await local.db.insert(v2MemoryTable).values({
+      id: sleepingMemoryId,
+      conversationId,
+      kind: "fact",
+      content: "眠った枝の記憶",
+      pinned: 0,
+      sourceTurn: 9,
+      origin: "extracted",
+      createdAt: stamp,
+    });
+    await local.db.insert(v2MemorySourceTable).values({
+      memoryId: sleepingMemoryId,
+      sourceMessageId: sleepingMessageId,
+      sourceContentHash: "hash",
+      importance: 3,
+    });
+    // 置き換わった記憶は「新しい記憶に置き換わった」と出すために一覧に残す（RIT-86）
+    const supersededId = crypto.randomUUID();
+    await local.db.insert(v2MemoryTable).values({
+      id: supersededId,
+      conversationId,
+      kind: "fact",
+      content: "置き換わった記憶",
+      pinned: 0,
+      supersededBy: "newer",
+      origin: "extracted",
+      createdAt: stamp,
+    });
+
+    const list = await listConversationMemories(local.db, scope3);
+    const contents = list.map((row) => row.content);
+    expect(contents).toContain("置き換わった記憶");
+    expect(contents).not.toContain("眠った枝の記憶");
+    expect(contents).not.toContain("別会話の記憶");
+  });
+
   it("発言の無い会話では足せず、他人の会話では拒否される", async () => {
     const empty = await emptyTalk();
     expect(

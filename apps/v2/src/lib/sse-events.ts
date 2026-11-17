@@ -54,6 +54,12 @@ const eventSchemas = {
     judge: judgeSchema,
     attempt: finiteNumber,
     preExtend: z.boolean(),
+    // 1 つ前に配った塊を出してから、この塊を出すまでの間（ミリ秒）。古い保存済みの出来事には無い。
+    // 上限は型に置かない。上限 CHUNK_MAX_GAP_MS を変えた時に、型を通らない chunk を
+    // 部屋が捨てて（chat-room.ts の publicEventOf）塊が黙って消えるのを防ぐ。
+    gapMs: z.number().int().min(0).optional(),
+    // この塊を出した時のエンジンの時計 now() の値（ミリ秒の epoch）。画面は端末の時計と比べない。
+    emittedAt: finiteNumber.optional(),
   }),
   dropped: z.object({
     type: z.literal("dropped"),

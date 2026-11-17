@@ -149,7 +149,7 @@ export const runMemoryExtraction = async (
     return;
   }
   if (memoryExtractFault(env)) throw new Error("test fault: memory-extract-fail");
-  const knownSubjects = await listActiveSubjects(db, source.conversationId);
+  const knownSubjects = await listActiveSubjects(db, source);
   const resolved = models ?? (await resolveMemoryExtractionModels(env, source)).map((c) => c.model);
   const extracted = await extractMemories(resolved, source.content, {
     instruction: policy?.memoryInstruction,

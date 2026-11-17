@@ -5,6 +5,19 @@
 export const CHUNK_MS_PER_CHAR = 20;
 export const CHUNK_MAX_GAP_MS = 8_000;
 
+// 間は読む文の長さで決める。タグは画面に出ないので数えない
+//（数えると 1 塊につきタグの 15〜21 字＝300〜420ms が毎回の間に乗る）。
+export const chunkVisibleLength = (text: string): number =>
+  text.replace(/<\/?(action|dialogue|inner)>/g, "").length;
+
+// 1 つ前に配った塊を出してから、次の塊を出すまでに空けるミリ秒。
+// その返事の最初の塊（前の塊が無い）は 0。式はここ 1 か所だけに持つ
+//（出来事の gapMs と v2_chunk.send_at で式が食い違わんため）。
+export const chunkGapMs = (previousText: string | undefined): number =>
+  previousText === undefined
+    ? 0
+    : Math.min(chunkVisibleLength(previousText) * CHUNK_MS_PER_CHAR, CHUNK_MAX_GAP_MS);
+
 // 先頭の塊は base（=保存時刻）で即出し、2個目以降は前の塊の読み時間ぶん遅らせる。
 // 空の塊は 0ms（同時刻）扱いで壊れん。
 export const chunkSendTimes = (texts: string[], base: number): number[] => {
@@ -12,7 +25,7 @@ export const chunkSendTimes = (texts: string[], base: number): number[] => {
   let at = base;
   for (const text of texts) {
     times.push(at);
-    at += Math.min(text.length * CHUNK_MS_PER_CHAR, CHUNK_MAX_GAP_MS);
+    at += chunkGapMs(text);
   }
   return times;
 };

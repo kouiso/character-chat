@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { FakeListChatModel } from "@langchain/core/utils/testing";
 import { createDb } from "@v2/db";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { openLocalD1, type LocalD1 } from "../../../../packages/db/src/test/local-d1";
 
@@ -43,10 +43,9 @@ describe("話しかけの生成と保存", () => {
   let local: LocalD1;
   let characterId: string;
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     local = await openLocalD1();
     platform.env = { DB: local.d1 };
-    calls.length = 0;
     // 共有 store で他テストの会話を拾わんよう、このテスト専用のキャラを立てる。
     characterId = "proactive-sink-test-character";
     await local.d1
@@ -61,8 +60,11 @@ describe("話しかけの生成と保存", () => {
       )
       .bind(characterId)
       .run();
+  }, 120_000);
+  afterAll(() => local.dispose());
+  beforeEach(() => {
+    calls.length = 0;
   });
-  afterEach(() => local.dispose());
 
   it("キャラの設定を載せた一言が assistant 行として会話に残る", async () => {
     const db = createDb(local.d1);
@@ -112,7 +114,9 @@ describe("話しかけの生成と保存", () => {
     const prompt = calls[0][0]?.content ?? "";
     expect(prompt).toContain("鉄道が好き");
     // 共有 store では前回の実行分も残るので「含む」で見る。
-    expect(await loadRecentMemories(db, conversationId, 8)).toContain("ユーザーは鉄道が好き");
+    expect(
+      await loadRecentMemories(db, { userId: "local", characterId, conversationId }, 8),
+    ).toContain("ユーザーは鉄道が好き");
   });
 
   it("保存が済んだら push 送信口へ本文と会話URL要素を渡す", async () => {
