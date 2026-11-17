@@ -7,10 +7,7 @@ import {
   type ExtractedMemory,
   type ExtractionScope,
 } from "./memory-extraction-contract";
-import {
-  joinedSourceOnActiveBranch,
-  selectScopedMemories,
-} from "./memory-scope";
+import { joinedSourceOnActiveBranch, selectScopedMemories } from "./memory-scope";
 import {
   characterRevisionTable,
   characterVersionTable,
@@ -60,10 +57,7 @@ export const listPendingMemoryJobs = async (
                     )
                     .where(
                       and(
-                        eq(
-                          v2MemorySourceTable.sourceMessageId,
-                          v2MemoryJobTable.sourceMessageId,
-                        ),
+                        eq(v2MemorySourceTable.sourceMessageId, v2MemoryJobTable.sourceMessageId),
                         isNull(v2MemoryTable.embedding),
                         // 論理削除済みの未索引行は埋め込みを再配送せん（RIT-94）
                         isNull(v2MemoryTable.deletedAt),
@@ -201,10 +195,7 @@ export const ACTIVE_SUBJECT_LIMIT = 50;
 // 指示文へ眠った枝の話題を混ぜると、戻った話を覚え続ける事になる）。消した記憶
 // （deleted）は「有効」でないので区切り側で除く — 消した話題の主題へ新しい記憶を
 // 寄せると復活に見える。
-export const listActiveSubjects = async (
-  db: V2Db,
-  scope: ExtractionScope,
-): Promise<string[]> => {
+export const listActiveSubjects = async (db: V2Db, scope: ExtractionScope): Promise<string[]> => {
   const rows = await selectScopedMemories(
     db,
     { ...scope, excludeSuperseded: true, activeBranchOnly: true },
