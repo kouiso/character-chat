@@ -193,7 +193,8 @@ const measureTurn = async (
   };
 };
 
-const main = async (): Promise<void> => {
+// 引数・環境変数・到達確認まで。通ったら base URL を返す。
+const checkPreconditions = async (): Promise<string> => {
   if (!process.argv.includes("--env") || !process.argv.includes("staging")) {
     unverified("使い方: tsx apps/v2/script/memory-extract-check.ts --env staging");
   }
@@ -206,7 +207,22 @@ const main = async (): Promise<void> => {
   }).catch(() => null);
   if (!health?.ok)
     unverified(`GET ${base}/api/health が 200 を返さない（URL・Basic 認証を確かめる）`);
+  return base;
+};
 
+const printResults = (results: TurnResult[]): void => {
+  console.log("turn | state | done→行の秒数 | category | subject");
+  for (const row of results) {
+    console.log(
+      `${row.index} | ${row.state}${row.errorCode ? `(${row.errorCode})` : ""} | ${
+        row.seconds === null ? "-" : `${row.seconds}s`
+      } | ${row.categories.join(",") || "-"} | ${row.subjects.join(",") || "-"}`,
+    );
+  }
+};
+
+const main = async (): Promise<void> => {
+  const base = await checkPreconditions();
   const utterances = JSON.parse(readFileSync(FIXTURE, "utf-8")) as string[];
   const characterId = pickCharacterId();
   const conversationId = crypto.randomUUID();
@@ -216,14 +232,7 @@ const main = async (): Promise<void> => {
   for (const [index, text] of utterances.entries()) {
     results.push(await measureTurn(base, characterId, conversationId, text, index + 1));
   }
-  console.log("turn | state | done→行の秒数 | category | subject");
-  for (const row of results) {
-    console.log(
-      `${row.index} | ${row.state}${row.errorCode ? `(${row.errorCode})` : ""} | ${
-        row.seconds === null ? "-" : `${row.seconds}s`
-      } | ${row.categories.join(",") || "-"} | ${row.subjects.join(",") || "-"}`,
-    );
-  }
+  printResults(results);
 };
 
 await main().catch((error: unknown) => {
