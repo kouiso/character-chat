@@ -24,6 +24,8 @@ import { consumeMemoryJobs } from "./memory-queue";
 import { indexMemoryJob, retrieveMemories, retrieveVectorMemories } from "./memory-rag";
 import { memoryNamespace, memoryVectorId } from "./memory-vector";
 
+import { buildMemoryQuery, MEMORY_QUERY_MAX_CHARS } from "@v2/engine";
+
 const owner = `rag-${crypto.randomUUID()}`;
 const characterIds = [crypto.randomUUID(), crypto.randomUUID()] as const;
 const conversationIds: string[] = [];
@@ -193,9 +195,10 @@ describe("memory RAG with local D1", () => {
         conversation_id: fixture.scope.conversationId,
       },
     });
-    expect(await retrieveMemories(local.db, env, fixture.scope, "好きな飲み物は？", now)).toEqual([
-      { id: fixture.memoryId, content: preference.content },
-    ]);
+    expect(await retrieveMemories(local.db, env, fixture.scope, "好きな飲み物は？", now)).toEqual({
+      status: "ok",
+      entries: [{ id: fixture.memoryId, content: preference.content, via: "search" }],
+    });
     expect(env.queryMock).toHaveBeenCalledWith(
       vector,
       expect.objectContaining({
@@ -219,17 +222,20 @@ describe("memory RAG with local D1", () => {
     ]) {
       await indexMemoryJob(local.db, env, fixture.jobId);
     }
-    expect(await retrieveMemories(local.db, env, own.scope, "飲み物", now)).toEqual([
-      { id: own.memoryId, content: preference.content },
-    ]);
+    const ownResult = await retrieveMemories(local.db, env, own.scope, "飲み物", now);
+    expect(ownResult.entries.map((entry) => entry.id)).toEqual([own.memoryId]);
     expect(
       await retrieveMemories(local.db, env, { ...own.scope, userId: "unknown" }, "飲み物", now),
-    ).toEqual([]);
+    ).toMatchObject({ status: "ok", entries: [] });
     expect(
       await retrieveMemories(local.db, env, { ...own.scope, beforeTurn: 3 }, "飲み物", now),
-    ).toEqual([]);
+    ).toMatchObject({ status: "ok", entries: [] });
     expect(
       await retrieveMemories(local.db, env, { ...own.scope, beforeTurn: 4 }, "飲み物", now),
+    ).toMatchObject({ status: "ok" });
+    expect(
+      (await retrieveMemories(local.db, env, { ...own.scope, beforeTurn: 4 }, "飲み物", now))
+        .entries,
     ).toHaveLength(1);
   });
 
@@ -251,7 +257,9 @@ describe("memory RAG with local D1", () => {
           .bind("飲み物の話はしていません。", fixture.jobId)
           .run();
       expect(env.stored.size).toBe(1);
-      expect(await retrieveMemories(local.db, env, fixture.scope, "好きな飲み物", now)).toEqual([]);
+      expect(
+        await retrieveMemories(local.db, env, fixture.scope, "好きな飲み物", now),
+      ).toMatchObject({ status: "ok", entries: [] });
     }
   });
 
@@ -265,15 +273,19 @@ describe("memory RAG with local D1", () => {
       .bind(fixture.jobId)
       .run();
     expect(env.stored.size).toBe(1);
-    expect(await retrieveMemories(local.db, env, fixture.scope, "飲み物", now)).toEqual([]);
+    expect(await retrieveMemories(local.db, env, fixture.scope, "飲み物", now)).toEqual({
+      status: "ok",
+      entries: [],
+    });
     // 「ここから続ける」で枝が起きるとまた出る
     await local.d1
       .prepare("UPDATE v2_message SET active = 1 WHERE id = ?")
       .bind(fixture.jobId)
       .run();
-    expect(await retrieveMemories(local.db, env, fixture.scope, "飲み物", now)).toEqual([
-      { id: fixture.memoryId, content: preference.content },
-    ]);
+    expect(await retrieveMemories(local.db, env, fixture.scope, "飲み物", now)).toEqual({
+      status: "ok",
+      entries: [{ id: fixture.memoryId, content: preference.content, via: "search" }],
+    });
   });
 
   it("有効期間で除外し、重要度と新しさを近さに掛けて並べる", async () => {
@@ -287,14 +299,18 @@ describe("memory RAG with local D1", () => {
     await indexMemoryJob(local.db, env, fixture.jobId);
     const greenId = `${fixture.jobId}:1`;
     expect(
-      (await retrieveMemories(local.db, env, fixture.scope, "好み", now)).map((item) => item.id),
+      (await retrieveMemories(local.db, env, fixture.scope, "好み", now)).entries.map(
+        (item) => item.id,
+      ),
     ).toEqual([greenId, fixture.memoryId]);
     await local.d1
       .prepare("UPDATE v2_memory SET created_at = ? WHERE id = ?")
       .bind(now - 120 * 86_400_000, greenId)
       .run();
     expect(
-      (await retrieveMemories(local.db, env, fixture.scope, "好み", now)).map((item) => item.id),
+      (await retrieveMemories(local.db, env, fixture.scope, "好み", now)).entries.map(
+        (item) => item.id,
+      ),
     ).toEqual([fixture.memoryId, greenId]);
   });
 
@@ -303,7 +319,9 @@ describe("memory RAG with local D1", () => {
     const env = bindings();
     await indexMemoryJob(local.db, env, fixture.jobId);
     const ids = async (at: number) =>
-      (await retrieveMemories(local.db, env, fixture.scope, "好み", at)).map((item) => item.id);
+      (await retrieveMemories(local.db, env, fixture.scope, "好み", at)).entries.map(
+        (item) => item.id,
+      );
     // JST 11/10 23:59 はまだ有効、JST 11/11 0:00（UTC 11/10 15:00）で切れる。
     expect(await ids(Date.UTC(2026, 10, 10, 14, 59))).toEqual([fixture.memoryId]);
     expect(await ids(Date.UTC(2026, 10, 10, 15, 0))).toEqual([]);
@@ -315,7 +333,7 @@ describe("memory RAG with local D1", () => {
     await indexMemoryJob(local.db, env, fixture.jobId);
     await expect(
       retrieveMemories(local.db, env, fixture.scope, "好み", Number.NaN),
-    ).resolves.toEqual([]);
+    ).resolves.toEqual({ status: "pinned_only", entries: [] });
   });
 
   it("固定した記憶は類似度もindexも要らず、先頭に必ず載る（RIT-92）", async () => {
@@ -324,10 +342,13 @@ describe("memory RAG with local D1", () => {
     await indexMemoryJob(local.db, env, fixture.jobId);
     await setMemoryPinned(local.db, fixture.scope, fixture.memoryId, true);
 
-    // vector が無効でも空クエリでも固定分は返る
+    // vector が無効でも空クエリでも固定分は返る（印は disabled、RIT-84）
     expect(
       await retrieveMemories(local.db, { V2_RAG_ENABLED: "0" }, fixture.scope, "", now),
-    ).toEqual([{ id: fixture.memoryId, content: preference.content, pinned: true }]);
+    ).toEqual({
+      status: "disabled",
+      entries: [{ id: fixture.memoryId, content: preference.content, via: "pinned" }],
+    });
 
     // vector 側にも載る時は重複せず先頭になる
     const another = await seed([{ ...preference, content: "緑茶も好き", importance: 5 }]);
@@ -339,14 +360,19 @@ describe("memory RAG with local D1", () => {
       "好み",
       now,
     );
-    expect(merged[0]).toEqual({ id: fixture.memoryId, content: preference.content, pinned: true });
-    expect(merged.filter((entry) => entry.id === fixture.memoryId)).toHaveLength(1);
+    expect(merged.status).toBe("ok");
+    expect(merged.entries[0]).toEqual({
+      id: fixture.memoryId,
+      content: preference.content,
+      via: "pinned",
+    });
+    expect(merged.entries.filter((entry) => entry.id === fixture.memoryId)).toHaveLength(1);
 
     // 解除すれば vector 経路だけに戻る
     await setMemoryPinned(local.db, fixture.scope, fixture.memoryId, false);
     expect(
       await retrieveMemories(local.db, { V2_RAG_ENABLED: "0" }, fixture.scope, "", now),
-    ).toEqual([]);
+    ).toEqual({ status: "disabled", entries: [] });
   });
 
   it("retrieveVectorMemories は固定の道を通らず、vector 側の結果は retrieveMemories と同じ（FR-12）", async () => {
@@ -373,11 +399,12 @@ describe("memory RAG with local D1", () => {
     expect(vectorOnly.map((entry) => entry.id)).toEqual([fixture.memoryId]);
     // retrieveMemories は従来どおり固定分が先頭・重複無しで、vector 側と同じ並びを引き継ぐ。
     const merged = await retrieveMemories(local.db, env, fixture.scope, "好み", now);
-    expect(merged.map((entry) => entry.id)).toEqual([
+    expect(merged.entries.map((entry) => entry.id)).toEqual([
       `${fixture.memoryId}-pinned`,
       fixture.memoryId,
     ]);
-    expect(merged[0]).toMatchObject({ pinned: true });
+    expect(merged.entries[0]).toMatchObject({ via: "pinned" });
+    expect(merged.entries[1]).toMatchObject({ via: "search" });
   });
 
   it("indexの失敗はQueueで再試行し、抽出を再実行せずに完了する", async () => {
@@ -548,6 +575,152 @@ describe("memory RAG with local D1", () => {
       .bind(fixture.memoryId)
       .first<{ embedding: unknown | null }>();
     expect(memory).toMatchObject({ embedding: null });
-    expect(await retrieveMemories(local.db, env, fixture.scope, "好きな飲み物", now)).toEqual([]);
+    expect(await retrieveMemories(local.db, env, fixture.scope, "好きな飲み物", now)).toMatchObject(
+      { status: "ok", entries: [] },
+    );
+  });
+
+  it("検索の失敗でも固定だけで返事を作れる（印 pinned_only、RIT-84 FR-8）", async () => {
+    const fixture = await seed();
+    const env = bindings();
+    await indexMemoryJob(local.db, env, fixture.jobId);
+    await setMemoryPinned(local.db, fixture.scope, fixture.memoryId, true);
+    env.queryMock.mockRejectedValueOnce(new Error("vectorize down"));
+    await expect(retrieveMemories(local.db, env, fixture.scope, "好み", now)).resolves.toEqual({
+      status: "pinned_only",
+      entries: [{ id: fixture.memoryId, content: preference.content, via: "pinned" }],
+    });
+    // 埋め込み（AI.run）の失敗も同じ振る舞い
+    env.runMock.mockRejectedValueOnce(new Error("workers ai down"));
+    await expect(
+      retrieveMemories(local.db, env, fixture.scope, "好み", now),
+    ).resolves.toMatchObject({ status: "pinned_only" });
+  });
+
+  it("プランの memoryTopK が 60 でも検索箱へ頼むのは 50 まで（NFR-2）", async () => {
+    const fixture = await seed();
+    const env = bindings();
+    await indexMemoryJob(local.db, env, fixture.jobId);
+    await retrieveMemories(local.db, env, { ...fixture.scope, topK: 60 }, "好み", now);
+    expect(env.queryMock).toHaveBeenCalledWith(vector, expect.objectContaining({ topK: 50 }));
+    // 未指定なら従来どおり 20
+    await retrieveMemories(local.db, env, fixture.scope, "好み", now);
+    expect(env.queryMock).toHaveBeenLastCalledWith(vector, expect.objectContaining({ topK: 20 }));
+  });
+
+  it("D1 の確かめ直しは検索箱から取った分だけ（上限 50）を読む", async () => {
+    // 検索箱が 50 件の点を返しても D1 で 20 に切られんことを確かめる。
+    const fixture = await seed();
+    const env = bindings();
+    await indexMemoryJob(local.db, env, fixture.jobId);
+    env.queryMock.mockImplementationOnce(async () => ({
+      count: 60,
+      matches: Array.from({ length: 60 }, (_, index) => ({
+        id: `ghost-${index}`,
+        metadata: { memory_id: `ghost-${index}`, content_hash: "x" },
+        score: 0.9 - index * 0.001,
+      })),
+    }));
+    const result = await retrieveMemories(
+      local.db,
+      env,
+      { ...fixture.scope, topK: 60 },
+      "好み",
+      now,
+    );
+    // ghost は D1 に無いので全て弾かれるが、読みは 50 件分を試す（上限で切らせん）。
+    expect(result.status).toBe("ok");
+    expect(result.entries).toEqual([]);
+  });
+
+  it("覚える種類が片方だけなら、検索箱の絞り込みと D1 の確かめ直しにその種類だけ渡す（FR-10）", async () => {
+    const fixture = await seed();
+    const env = bindings();
+    await indexMemoryJob(local.db, env, fixture.jobId);
+    const result = await retrieveVectorMemories(
+      local.db,
+      env,
+      { ...fixture.scope, kinds: ["fact"] },
+      "好み",
+      now,
+    );
+    expect(env.queryMock).toHaveBeenCalledWith(
+      vector,
+      expect.objectContaining({
+        filter: {
+          conversation_id: fixture.scope.conversationId,
+          kind: { $in: ["fact"] },
+        },
+      }),
+    );
+    // seeded 記憶は preference なので kind=fact の確かめ直しで弾かれる
+    expect(result).toEqual([]);
+  });
+
+  it("生きてない枝の出処から取った記憶は混ぜない（RIT-89・FR-3）", async () => {
+    const fixture = await seed();
+    const env = bindings();
+    await indexMemoryJob(local.db, env, fixture.jobId);
+    // 出処メッセージを眠らせる（枝分かれで active=0 になった状態と同じ）。
+    await local.d1
+      .prepare("UPDATE v2_message SET active = 0 WHERE id = ?")
+      .bind(fixture.jobId)
+      .run();
+    await expect(
+      retrieveMemories(local.db, env, fixture.scope, "好み", now),
+    ).resolves.toMatchObject({ status: "ok", entries: [] });
+    await local.d1
+      .prepare("UPDATE v2_message SET active = 1 WHERE id = ?")
+      .bind(fixture.jobId)
+      .run();
+  });
+
+  it("V2_TEST_FAULT=memory-search-fail は staging/test でだけ固定だけに倒す", async () => {
+    const fixture = await seed();
+    await indexMemoryJob(local.db, bindings(), fixture.jobId);
+    await setMemoryPinned(local.db, fixture.scope, fixture.memoryId, true);
+    const faultEnv = {
+      ...bindings(),
+      APP_ENV: "staging",
+      V2_TEST_FAULT: "memory-search-fail",
+    };
+    await expect(
+      retrieveMemories(local.db, faultEnv, fixture.scope, "好み", now),
+    ).resolves.toMatchObject({ status: "pinned_only" });
+    // production では故障値は無視して普通に検索する
+    const prodEnv = {
+      ...faultEnv,
+      APP_ENV: "production",
+    };
+    await expect(
+      retrieveMemories(local.db, prodEnv, fixture.scope, "好み", now),
+    ).resolves.toMatchObject({ status: "ok" });
+  });
+});
+
+describe("buildMemoryQuery（RIT-84 FR-2）", () => {
+  it("今回の発言と 1 つ前の利用者発言を改行でつなぐ", () => {
+    const query = buildMemoryQuery("それでさ、あの時なに食べたっけ", [
+      { role: "user", content: "この前の休み、海に行ったんだ" },
+      { role: "assistant", content: "いいなあ、海か" },
+    ]);
+    expect(query).toBe("それでさ、あの時なに食べたっけ\nこの前の休み、海に行ったんだ");
+  });
+
+  it("前の利用者発言が無ければ今回の発言だけ", () => {
+    expect(buildMemoryQuery("はじめまして", [])).toBe("はじめまして");
+    expect(buildMemoryQuery("はじめまして", [{ role: "assistant", content: "よろしく" }])).toBe(
+      "はじめまして",
+    );
+  });
+
+  it("合わせて 500 字を超える時は前の発言を先頭から削る", () => {
+    const current = "今".repeat(100);
+    const previous = "前".repeat(500);
+    const query = buildMemoryQuery(current, [{ role: "user", content: previous }]);
+    expect(query.length).toBe(MEMORY_QUERY_MAX_CHARS);
+    expect(query.startsWith(`${current}\n`)).toBe(true);
+    // 前の発言の末尾 399 字だけが残る（先頭 101 字が削られる）
+    expect(query.endsWith("前".repeat(399))).toBe(true);
   });
 });

@@ -12,9 +12,11 @@
 
 Vectorizeには本文を保存しない。namespaceは利用者IDとキャラIDの組をhash化した値、metadataはmemory ID・本文hash・kind・conversation_id。vector IDもmemory IDと本文hashから作り、旧版の遅い書込みが新版を上書きしないようにする。upsertの受付後に、元発言と本文が変わっていない場合だけD1のembeddingを保存する。受付は検索反映の完了を意味しない。
 
-検索はnamespace、kind、conversation_idで絞って20件取得する。本文はD1から読み直し、利用者・キャラ・会話・元発言のhash・本文のhash・有効期間を再確認する。再生成では指定ターン以降の記憶も除く。Vectorizeに削除済み・編集前の結果が残っても、その本文をモデルへ渡さない。検索箱を通る道だけの部分は`retrieveVectorMemories`として切り出してあり、`retrieveMemories`は固定分の後にその結果を重複無しで継ぐ。RIT-78のverify-memoryは`retrieveVectorMemories`で「検索で実際に引けるか」を確かめる（固定の道で返る物を引けたと数えない）。
+検索の問いは「今回の発言」と「1つ前の利用者の発言」をこの順で改行でつないだ物。合わせて500字を超える時は1つ前の発言の先頭を削る。検索はnamespace、kind、conversation_idで絞る。取る件数は `min(memoryTopK, 50)`（memoryTopKは保有プランの値）。kindはその会話が固定したキャラ版の`memoryKinds`（両方切ると検索も固定も走らず塊は出ない、印`off`）。本文はD1から読み直し、`memoryReadScope`（利用者・キャラ・会話・置き換わっていない・今の枝）と元発言のhash・本文のhash・有効期間を再確認する。再生成では指定ターン以降の記憶も除く。Vectorizeに削除済み・編集前の結果が残っても、その本文をモデルへ渡さない。検索箱を通る道だけの部分は`retrieveVectorMemories`として切り出してあり、`retrieveMemories`は固定分の後にその結果を重複無しで継ぐ。RIT-78のverify-memoryは`retrieveVectorMemories`で「検索で実際に引けるか」を確かめる（固定の道で返る物を引けたと数えない）。
 
-順位は `類似度 × 重要度 × 2^(-経過日数/30)`。その順に最大8件を、見出しとIDを含めた2,000文字以内へ丸ごと収める。途中で切った事実は使わない。LangGraphは毎ターン再検索し、参考データをhuman messageへJSONとして渡す。上位のsystem instructionにはしない。実際に渡したIDと本文は既存のgeneration.request_jsonに残る。
+固定した記憶は類似度を使わず先頭に入れ、固定どうしは新しい順。その後ろに検索を点数 `類似度 × 重要度 × 2^(-経過日数/30)` の順で並べる。点数が同じなら記憶idの辞書順。固定と検索を合わせて最大8件を、見出しとIDを含めた2,000文字以内へ丸ごと収める。途中で切った事実は使わない。LangGraphは毎ターン再検索し、参考データをhuman messageへJSONとして渡す。上位のsystem instructionにはしない。
+
+記憶の取り出しは終わり方を印として返す: `ok`（検索した）・`pinned_only`（検索に失敗し固定だけ入れた。固定の読み自体が落ちた時もこの印で記憶なし）・`disabled`（束ねが無く検索しなかった。固定した記憶は入れた）・`off`（`memoryKinds`が空で検索も塊も出さなかった）。印は`v2_generation.memory_retrieval`へ、記憶の塊に実際に入った記憶はid・順番・経路（`pinned`/`search`）を`v2_generation_memory`へ、返事の保存と同じD1 batchで書く。記憶を消すと行も消える（`memory_id`の外部鍵がcascade）。「さっきの返事で使った」は、その会話の一番新しい`v2_generation`（`status='ok'`）の`v2_generation_memory`に記憶idが在るかで出す。全文は既存のgeneration.request_jsonにも残る。
 
 ## 記憶の読み出し区切り（RIT-89）
 
@@ -53,6 +55,10 @@ pnpm exec tsx apps/v2/script/memory-leak-check.ts --env staging
 ## 置き換え（RIT-86）
 
 同じ会話・同じ主題（`v2_memory.subject`、空は対象外）の記憶は、有効な行の中で一番新しい 1 つだけが `superseded_by is null` になり、残りはその id を指す。新しさは `source_turn` の大きい順、同じなら記憶 id の辞書順で後（Queue の配送順・`created_at` は使わない）。有効な行とは「同じ会話・同じ主題・`pinned = 0`・`deleted_at is null`・出どころの発言が今の枝（`v2_message.active = 1`）」を満たす行。並べ直しは `recomputeSupersessionStatements` が主題 1 つあたり 2 文（全部を新しい 1 つへ向ける・新しい 1 つを空にする）を返し、冪等。呼び出しは (1) 抜き出しの保存 `completeMemoryExtraction` が保存した記憶の主題で同じ batch に入れる、(2) ターンの置き換え `saveTurnMainLine` が消えた記憶の主題で batch の最後に入れる。(3) 記憶を 1 件消す処理は RIT-94 が、(4) 枝の操作は RIT-82 の `invalidateDerivedFromTurn` がそれぞれ自分の batch に入れる。置き換わった行は消さず記憶一覧に残り（`supersededBy` が「新しい記憶に置き換わった」印の元）、検索候補からは `loadMemoryCandidates` が外す。
+
+## 通しの確かめ
+
+staging での実モデル検査は `apps/v2/script/memory-recall-check.ts`（fixture: `packages/bench/fixture/memory-recall-29.json`）。29ターンの会話で1〜3ターン目に植えた事実を27〜29ターン目に聞き、返事の本文・`v2_generation_memory` の行・`v2_generation.memory_retrieval`・探す処理の時間を記録する。別会話で「姉は看護師」と「母は小学校の先生」を植えて姉側を聞き、取り違えていないかも見る。`V2_TEST_FAULT=memory-search-fail` は `APP_ENV=staging`/`test` の時だけ埋め込みの前に例外を投げる（固定だけで返事が出て印は`pinned_only`）。本番では無視。
 
 ## この経路だけでは満たさない項目
 

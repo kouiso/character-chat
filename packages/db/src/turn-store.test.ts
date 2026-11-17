@@ -8,6 +8,8 @@ import { characterTable } from "../../../src/schema/character";
 
 import { truncateFromTurn } from "./branch-store";
 import { CHUNK_MS_PER_CHAR } from "./chunk-schedule";
+import { removeMemories } from "./memory-crud-store";
+import { loadLastTurnUsedMemoryIds } from "./memory-use-store";
 import { openLocalD1, type LocalD1 } from "./test/local-d1";
 import {
   ConversationAccessError,
@@ -25,6 +27,7 @@ import {
 import {
   v2ChunkTable,
   v2ConversationTable,
+  v2GenerationMemoryTable,
   v2GenerationTable,
   v2LedgerTable,
   v2MemoryJobTable,
@@ -60,21 +63,27 @@ const ledgerAt = (turn: number): SceneLedger => ({
   items: {},
 });
 
+const generationEvent = (
+  turn: number,
+  overrides: Partial<Extract<TurnEvent, { type: "generation" }>> = {},
+): Extract<TurnEvent, { type: "generation" }> => ({
+  type: "generation",
+  generationId: crypto.randomUUID(),
+  model: "fake-list",
+  promptVersion: "v0001",
+  systemPrompt: "system",
+  request: [{ role: "user", content: `user ${turn}` }],
+  rawOutput: `raw ${turn}`,
+  usage: { inputTokens: 1, outputTokens: 2, totalTokens: 3 },
+  latencyMs: 5,
+  status: "ok",
+  attempts: [{ model: "fake-list", outcome: "ok" }],
+  timeoutMs: 120_000,
+  ...overrides,
+});
+
 const chunkEvents = (turn: number): TurnEvent[] => [
-  {
-    type: "generation",
-    generationId: crypto.randomUUID(),
-    model: "fake-list",
-    promptVersion: "v0001",
-    systemPrompt: "system",
-    request: [{ role: "user", content: `user ${turn}` }],
-    rawOutput: `raw ${turn}`,
-    usage: { inputTokens: 1, outputTokens: 2, totalTokens: 3 },
-    latencyMs: 5,
-    status: "ok",
-    attempts: [{ model: "fake-list", outcome: "ok" }],
-    timeoutMs: 120_000,
-  },
+  generationEvent(turn),
   // seq を逆順で渡して、保存側が seq 順に並べ直すことも同時に見る。
   {
     type: "chunk",
@@ -1556,5 +1565,191 @@ describe("createD1TurnStore", () => {
     // 触っとらんので塊も本文もそのまま。
     const after = await assistantRow(conversationId);
     expect(await chunkTexts(after.id)).toHaveLength(3);
+  });
+
+  // RIT-84: 指示文へ実際に入った記憶を「使った記憶」として残す仕組み。
+  // generation イベントが usedMemories（入った順・via 付き）と memoryRetrieval を運び、
+  // saveTurn が返事・生成と同じバッチで v2_generation_memory / memory_retrieval へ書く。
+  const seedMemory = async (conversationId: string, id: string, content: string) => {
+    const [user] = await local.db
+      .select()
+      .from(v2MessageTable)
+      .where(
+        and(
+          eq(v2MessageTable.conversationId, conversationId),
+          eq(v2MessageTable.role, "user"),
+          eq(v2MessageTable.active, 1),
+        ),
+      );
+    const now = Date.now();
+    await local.db.batch([
+      local.db.insert(v2MemoryTable).values({
+        id,
+        conversationId,
+        kind: "fact",
+        content,
+        sourceTurn: 1,
+        createdAt: now,
+      }),
+      local.db.insert(v2MemorySourceTable).values({
+        memoryId: id,
+        sourceMessageId: user.id,
+        sourceContentHash: `hash-${id}`,
+        importance: 1,
+      }),
+    ]);
+  };
+
+  const generationMemoryRows = (generationId: string) =>
+    local.db
+      .select()
+      .from(v2GenerationMemoryTable)
+      .where(eq(v2GenerationMemoryTable.generationId, generationId))
+      .orderBy(asc(v2GenerationMemoryTable.rank));
+
+  it("使った記憶は生成・返事と同じバッチで rank・via・印つきで残る（RIT-84）", async () => {
+    const conversationId = newConversationId();
+    await store.saveTurn({
+      conversationId,
+      turn: 1,
+      userText: "紅茶が好きと言った",
+      events: chunkEvents(1),
+      ledger: ledgerAt(1),
+    });
+    await seedMemory(conversationId, "mem-used-1", "紅茶が好き");
+    await seedMemory(conversationId, "mem-used-2", "猫を飼っている");
+
+    const generationId = crypto.randomUUID();
+    await store.saveTurn({
+      conversationId,
+      turn: 2,
+      userText: "好きな飲み物は？",
+      events: [
+        generationEvent(2, {
+          generationId,
+          // 指示文へ入った順（固定が先）
+          usedMemories: [
+            { id: "mem-used-1", via: "pinned" },
+            { id: "mem-used-2", via: "search" },
+          ],
+          memoryRetrieval: "ok",
+        }),
+        ...chunkEvents(2).slice(1),
+      ],
+      ledger: ledgerAt(2),
+    });
+
+    // generation 行へ検索の終わり方の印が入る
+    const [generation] = await local.db
+      .select({ memoryRetrieval: v2GenerationTable.memoryRetrieval })
+      .from(v2GenerationTable)
+      .where(eq(v2GenerationTable.id, generationId));
+    expect(generation.memoryRetrieval).toBe("ok");
+    // 使った記憶は rank=0 から入った順・経由つきで残る
+    expect(await generationMemoryRows(generationId)).toEqual([
+      {
+        generationId,
+        memoryId: "mem-used-1",
+        rank: 0,
+        via: "pinned",
+      },
+      {
+        generationId,
+        memoryId: "mem-used-2",
+        rank: 1,
+        via: "search",
+      },
+    ]);
+    // 「さっきの返事で使った」は一番新しい成功生成の行を読む
+    expect(await loadLastTurnUsedMemoryIds(local.db, conversationId)).toEqual(
+      new Set(["mem-used-1", "mem-used-2"]),
+    );
+
+    // 記憶を消すと使用記録も一緒に消える（RIT-94）
+    await removeMemories(local.db, ["mem-used-1"]);
+    expect(await generationMemoryRows(generationId)).toEqual([
+      {
+        generationId,
+        memoryId: "mem-used-2",
+        rank: 1,
+        via: "search",
+      },
+    ]);
+    expect(await loadLastTurnUsedMemoryIds(local.db, conversationId)).toEqual(
+      new Set(["mem-used-2"]),
+    );
+  });
+
+  it("枝替えの返事は新しい生成 id へ使った記憶を書く（RIT-82・RIT-84）", async () => {
+    const conversationId = newConversationId();
+    await store.saveTurn({
+      conversationId,
+      turn: 1,
+      userText: "紅茶が好きと言った",
+      events: chunkEvents(1),
+      ledger: ledgerAt(1),
+    });
+    await seedMemory(conversationId, "mem-branch-1", "紅茶が好き");
+    const firstGenerationId = crypto.randomUUID();
+    await store.saveTurn({
+      conversationId,
+      turn: 2,
+      userText: "好きな飲み物は？",
+      events: [
+        generationEvent(2, {
+          generationId: firstGenerationId,
+          usedMemories: [{ id: "mem-branch-1", via: "search" }],
+          memoryRetrieval: "ok",
+        }),
+        ...chunkEvents(2).slice(1),
+      ],
+      ledger: ledgerAt(2),
+    });
+
+    const branchStore = createD1TurnStore(local.db, {
+      userId: "vitest",
+      characterId,
+      promptVersion: "v0001",
+      branch: true,
+    });
+    const branchGenerationId = crypto.randomUUID();
+    await branchStore.saveTurn({
+      conversationId,
+      turn: 2,
+      userText: "好きな飲み物は？",
+      events: [
+        generationEvent(2, {
+          generationId: branchGenerationId,
+          usedMemories: [{ id: "mem-branch-1", via: "pinned" }],
+          memoryRetrieval: "pinned_only",
+        }),
+        {
+          type: "chunk",
+          seq: 0,
+          text: "別の返答",
+          judge: OK_JUDGE,
+          attempt: 1,
+          preExtend: true,
+        },
+      ],
+      ledger: ledgerAt(2),
+    });
+
+    // 旧枝の生成の使用記録は残し、新しい生成は自分の記録を持つ
+    expect(await generationMemoryRows(firstGenerationId)).toEqual([
+      { generationId: firstGenerationId, memoryId: "mem-branch-1", rank: 0, via: "search" },
+    ]);
+    expect(await generationMemoryRows(branchGenerationId)).toEqual([
+      { generationId: branchGenerationId, memoryId: "mem-branch-1", rank: 0, via: "pinned" },
+    ]);
+    const [branchGeneration] = await local.db
+      .select({ memoryRetrieval: v2GenerationTable.memoryRetrieval })
+      .from(v2GenerationTable)
+      .where(eq(v2GenerationTable.id, branchGenerationId));
+    expect(branchGeneration.memoryRetrieval).toBe("pinned_only");
+    // バッジの出どころは新しい方の生成
+    expect(await loadLastTurnUsedMemoryIds(local.db, conversationId)).toEqual(
+      new Set(["mem-branch-1"]),
+    );
   });
 });

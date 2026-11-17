@@ -205,6 +205,8 @@ export const v2GenerationTable = sqliteTable(
     timeoutMs: integer("timeout_ms"),
     // 層ごとの使用字数と窓の境目（RIT-71）。旧行は NULL。request_json は変えん。
     contextUsageJson: text("context_usage_json"),
+    // 記憶の取り出しがどういう条件で走ったか（RIT-84）。検査は zod 側（既存行は NULL）。
+    memoryRetrieval: text("memory_retrieval"),
     createdAt: integer("created_at").notNull(),
   },
   (table) => [
@@ -259,10 +261,32 @@ export const v2MemoryTable = sqliteTable(
   ],
 );
 
+// RIT-84: ある生成で指示文へ実際に入った記憶。入った順（rank）と入った経由
+// （pinned=手で固定 / search=束ねの検索）を残して「キャラが忘れた」を辿れるようにする。
+export const v2GenerationMemoryTable = sqliteTable(
+  "v2_generation_memory",
+  {
+    generationId: text("generation_id")
+      .notNull()
+      .references(() => v2GenerationTable.id),
+    memoryId: text("memory_id")
+      .notNull()
+      .references(() => v2MemoryTable.id, { onDelete: "cascade" }),
+    rank: integer("rank").notNull(),
+    via: text("via").notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.generationId, table.memoryId] }),
+    index("v2_generation_memory_memory_idx").on(table.memoryId),
+    check("v2_generation_memory_via_check", sql`${table.via} in ('pinned','search')`),
+  ],
+);
+
 // 最新の返事の指示文へ入った記憶（RIT-92）。「さっきの返事で使った」バッジの正本。
 // memory_id に外部キーは張らん: 記憶は論理削除→物理削除で行ごと消えるので、
 // 参照を張ると掃除ごと消える・残るのどちらでも不自然になる。読む側は常に
 // v2_memory と突き合わせるので、孤立行は単に無視される。
+// RIT-84 で v2_generation_memory に一本化したので新規書き込みはせん（読みだけ残す）。
 export const v2MemoryUseTable = sqliteTable(
   "v2_memory_use",
   {

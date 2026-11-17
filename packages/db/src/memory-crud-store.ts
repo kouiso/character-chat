@@ -8,6 +8,7 @@ import { characterTable } from "../../../src/schema/character";
 
 import {
   v2ConversationTable,
+  v2GenerationMemoryTable,
   v2MemoryJobTable,
   v2MemorySourceTable,
   v2MemoryTable,
@@ -514,12 +515,13 @@ export const loadExpiredMemories = async (
     );
 };
 
-// 物理削除。source は FK cascade 宣言があるが D1 の foreign_keys 既定では効かん
-// 可能性があるので明示削除する（memory-reset.ts と同じ順）。
+// 物理削除。source・generation_memory は FK cascade 宣言があるが D1 の
+// foreign_keys 既定では効かん可能性があるので明示削除する（memory-reset.ts と同じ順）。
 export const removeMemories = async (db: V2Db, ids: string[]): Promise<void> => {
   if (ids.length === 0) return;
   await db.batch([
     db.delete(v2MemorySourceTable).where(inArray(v2MemorySourceTable.memoryId, ids)),
+    db.delete(v2GenerationMemoryTable).where(inArray(v2GenerationMemoryTable.memoryId, ids)),
     db.delete(v2MemoryTable).where(inArray(v2MemoryTable.id, ids)),
   ]);
 };
