@@ -2,13 +2,14 @@
 // 契約をここ（@v2/db）に置くのは、@v2/engine が package.json で @v2/db に依存しとるため。
 // engine 側で定義すると db → engine → db の循環になる。engine は型を再 export して使う。
 import { emptyLedger, type SceneLedger, type ScenePhase } from "@v2/prompt";
-import { asc, desc, eq, and, gt, inArray, lt, lte, sql, type SQL } from "drizzle-orm";
+import { asc, desc, eq, and, gt, inArray, lt, lte, ne, sql, type SQL } from "drizzle-orm";
 import { z } from "zod";
 
 import { messageTable } from "../../../src/schema/message";
 
 import { chunkSendTimes } from "./chunk-schedule";
 import { logEvent } from "./log";
+import { recomputeSupersessionStatements } from "./memory-supersession";
 import { memoryUseStatements } from "./memory-use-store";
 import {
   v2ChunkTable,
@@ -831,6 +832,16 @@ const saveTurnMainLine = async (args: {
     userBranchMax,
     assistantBranchMax,
   } = args;
+  // この置き換えで消える記憶の主題。物理削除の後に主題ごと並べ直すので、
+  // 消えた記憶が一番新しかった主題では次に新しい行が有効に戻る（RIT-86 FR-6）。
+  const replacedSubjects = (
+    await db
+      .selectDistinct({ subject: v2MemoryTable.subject })
+      .from(v2MemoryTable)
+      .innerJoin(v2MemorySourceTable, eq(v2MemorySourceTable.memoryId, v2MemoryTable.id))
+      .innerJoin(v2MessageTable, eq(v2MessageTable.id, v2MemorySourceTable.sourceMessageId))
+      .where(and(sameTurnActive, ne(v2MemoryTable.subject, "")))
+  ).map((row) => row.subject);
   await db.batch([
     db
       .insert(v2ConversationTable)
@@ -947,6 +958,9 @@ const saveTurnMainLine = async (args: {
           },
           now,
         )),
+    // 消えた記憶の主題を並べ直す（RIT-86）。この batch の記憶削除・発言置き換えが
+    // 全部終わった後の状態で決まるよう、文は最後に置く。
+    ...recomputeSupersessionStatements(db, input.conversationId, replacedSubjects),
   ]);
   return { chunkSendAt: sendTimes };
 };

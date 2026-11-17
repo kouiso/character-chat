@@ -1,6 +1,7 @@
 import { and, asc, desc, eq, exists, inArray, isNull, lt, ne, or, sql } from "drizzle-orm";
 
 import { storedCharacterContentSchema } from "./character-version";
+import { recomputeSupersessionStatements } from "./memory-supersession";
 import {
   MEMORY_INDEX_ATTEMPTS,
   MEMORY_PUBLISH_ATTEMPTS,
@@ -298,25 +299,17 @@ export const completeMemoryExtraction = async (
               .where(and(eq(v2MemoryJobTable.id, source.id), notTombstoned)),
           )
           .onConflictDoNothing(),
-        // 同じ主題の古い記憶は新しい方が勝つ印を付ける（RIT-86）。tombstone 済み・失格ジョブでは付けん。
-        ...(memory.subject === ""
-          ? []
-          : [
-              db
-                .update(v2MemoryTable)
-                .set({ supersededBy: id })
-                .where(
-                  and(
-                    notTombstoned,
-                    eq(v2MemoryTable.conversationId, source.conversationId),
-                    eq(v2MemoryTable.subject, memory.subject),
-                    isNull(v2MemoryTable.supersededBy),
-                    sql`${v2MemoryTable.id} <> ${id}`,
-                  ),
-                ),
-            ]),
       ];
     }),
+    // 同じ主題の記憶は新しい方が勝つ（RIT-86）。届いた順ではなく source_turn → id の順で
+    // 主題ごとに並べ直すので、Queue のやり直しで古い発言が後から届いても古い値に戻らん。
+    // 記憶の insert の後・job の完了より前に入れる — 同じ batch なので失敗時は job が
+    // Queue のやり直しに回り、記憶だけ保存されて置き換えが抜ける状態にはならん。
+    ...recomputeSupersessionStatements(
+      db,
+      source.conversationId,
+      memories.map((memory) => memory.subject),
+    ),
     db
       .update(v2MemoryJobTable)
       .set({ state: "completed", errorCode: null, updatedAt: now })

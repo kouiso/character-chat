@@ -19,6 +19,7 @@ export * from "./memory-extraction-store";
 export * from "./memory-index-store";
 export * from "./memory-scope";
 export * from "./memory-crud-store";
+export * from "./memory-supersession";
 export * from "./memory-use-store";
 export * from "./branch-store";
 export * from "./proactive-store";
