@@ -4,6 +4,8 @@ export type CharacterListItem = {
   id: string;
   name: string;
   avatar: string | null;
+  // マイ画面の副行に出す。先頭の札だけ使う
+  tags: string[];
   canEdit: boolean;
   playCount: number;
 };
@@ -29,11 +31,15 @@ export const getCharacter = createServerFn({ method: "GET" })
       name: string;
       avatar: string | null;
       greeting: string;
+      tags: string[];
     } | null> => {
       const { readCharacter } = await import("./character-data.server");
       const { ok } = await readCharacter(id);
-      // チャット画面のバブル横アイコンに avatar、会話冒頭の「初回のひとこと」に greeting を使う。
-      return ok ? { id: ok.id, name: ok.name, avatar: ok.avatar, greeting: ok.greeting } : null;
+      // チャット画面のバブル横アイコンに avatar、会話冒頭の「初回のひとこと」に greeting、
+      // プロフィールの札行に tags を使う。
+      return ok
+        ? { id: ok.id, name: ok.name, avatar: ok.avatar, greeting: ok.greeting, tags: ok.tags }
+        : null;
     },
   );
 

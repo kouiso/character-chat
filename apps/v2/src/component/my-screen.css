@@ -1,0 +1,480 @@
+/* マイ画面（板 My）。値は design-token.css の変数だけを使う。 */
+.v2-my-page {
+  min-height: 100dvh;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  background: var(--gradient-ground);
+  color: var(--color-text);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+  font-weight: 500;
+  letter-spacing: var(--text-tracking);
+}
+
+.v2-my-header {
+  flex: none;
+  height: 56px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 8px 0 var(--space-gutter);
+}
+
+.v2-my-header h1 {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+  font-size: var(--text-screen-title-size);
+  line-height: var(--text-screen-title-line);
+  font-weight: 700;
+  letter-spacing: var(--text-tracking-strong);
+  white-space: nowrap;
+}
+
+.v2-my-body {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  padding: 0 var(--space-gutter) calc(var(--tab-bar-total) + var(--space-edge));
+}
+
+.v2-my-section-head {
+  flex: none;
+  display: flex;
+  align-items: center;
+  height: 44px;
+}
+
+.v2-my-section-head h2 {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+  font-size: var(--text-title-size);
+  line-height: var(--text-title-line);
+  font-weight: 700;
+  letter-spacing: var(--text-tracking-strong);
+}
+
+/* 並べ替えを開く静かなボタン（板: 見出し右の「最後に話した順 ▾」） */
+.v2-my-sort-button {
+  font: inherit;
+  margin: 0;
+  border: 0;
+  appearance: none;
+  flex: none;
+  height: 44px;
+  padding: 0 0 0 12px;
+  background: transparent;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--text-row-size);
+  line-height: var(--text-row-line);
+  font-weight: 500;
+  letter-spacing: var(--text-tracking);
+  cursor: pointer;
+}
+
+.v2-my-sort-button svg,
+.v2-my-sub svg,
+.v2-my-nav-chevron svg,
+.v2-my-ghost svg {
+  display: block;
+  flex: none;
+}
+
+.v2-my-icon-sub {
+  color: var(--color-text-sub);
+  display: flex;
+}
+
+/* つくった子の行（板: 高さ64・顔44・上端の細い線） */
+.v2-my-char-row {
+  flex: none;
+  height: 64px;
+  box-shadow: var(--edge-top);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.v2-my-char-link {
+  flex: 1;
+  min-width: 0;
+  height: 64px;
+  color: var(--color-text);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.v2-my-char-face {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-pill);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-title-size);
+  line-height: var(--text-title-line);
+  font-weight: 700;
+  color: var(--color-text);
+  box-shadow: var(--edge-top-press);
+  overflow: hidden;
+  position: relative;
+}
+
+.v2-my-char-face.plate-1 {
+  background: var(--color-initial-plate-1);
+}
+.v2-my-char-face.plate-2 {
+  background: var(--color-initial-plate-2);
+}
+.v2-my-char-face.plate-3 {
+  background: var(--color-initial-plate-3);
+}
+.v2-my-char-face.plate-4 {
+  background: var(--color-initial-plate-4);
+}
+
+.v2-my-char-face img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.v2-my-char-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.v2-my-char-line {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.v2-my-char-name {
+  min-width: 0;
+  font-size: var(--text-row-size);
+  line-height: var(--text-row-line);
+  font-weight: 700;
+  letter-spacing: var(--text-tracking-strong);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.v2-my-char-date,
+.v2-my-char-tag {
+  color: var(--color-text-sub);
+  font-size: var(--text-note-size);
+  line-height: var(--text-note-line);
+  font-weight: 500;
+  letter-spacing: var(--text-tracking);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.v2-my-char-date {
+  flex: none;
+}
+
+.v2-my-char-edit {
+  flex: none;
+  height: 44px;
+  padding: 0 8px;
+  color: var(--color-text);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  font-size: var(--text-row-size);
+  line-height: var(--text-row-line);
+  font-weight: 500;
+  letter-spacing: var(--text-tracking);
+}
+
+/* 「ほか N 人を見る」「新しい子をつくる」は文字だけのボタン */
+.v2-my-ghost {
+  font: inherit;
+  margin: 0;
+  border: 0;
+  appearance: none;
+  flex: none;
+  align-self: flex-start;
+  height: 44px;
+  padding: 0;
+  background: transparent;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-row-size);
+  line-height: var(--text-row-line);
+  font-weight: 500;
+  letter-spacing: var(--text-tracking);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.v2-my-spacer {
+  flex: none;
+  height: 16px;
+}
+
+/* 行き先の札の束（板: 面の札・行52・間16） */
+.v2-my-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.v2-my-card {
+  flex: none;
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  background: var(--gradient-surface);
+  box-shadow: var(--shadow-surface);
+  display: flex;
+  flex-direction: column;
+}
+
+.v2-my-nav-row {
+  font: inherit;
+  margin: 0;
+  border: 0;
+  appearance: none;
+  height: 52px;
+  padding: 0 12px 0 16px;
+  background: transparent;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+  font-weight: 500;
+  letter-spacing: var(--text-tracking);
+  text-decoration: none;
+}
+
+.v2-my-nav-row + .v2-my-nav-row {
+  box-shadow: var(--edge-top);
+}
+
+.v2-my-nav-row[disabled] {
+  cursor: default;
+}
+
+.v2-my-nav-label {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.v2-my-nav-value {
+  color: var(--color-peach);
+  font-size: var(--text-row-size);
+  line-height: var(--text-row-line);
+  white-space: nowrap;
+}
+
+.v2-my-nav-chevron {
+  color: var(--color-text-sub);
+  display: flex;
+}
+
+/* 空・読み込み・失敗（板 My 状態枠） */
+.v2-my-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 16px 0;
+}
+
+.v2-my-empty-title {
+  margin: 0;
+  font-size: var(--text-title-size);
+  line-height: var(--text-title-line);
+  font-weight: 700;
+  letter-spacing: var(--text-tracking-strong);
+}
+
+.v2-my-empty-copy {
+  margin: 0;
+  color: var(--color-text-sub);
+  font-size: var(--text-note-size);
+  line-height: var(--text-note-line);
+}
+
+.v2-my-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px 0;
+}
+
+.v2-my-skeleton-line {
+  display: block;
+  height: 44px;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(
+    90deg,
+    var(--color-skeleton-lo) 0%,
+    var(--color-skeleton-hi) 50%,
+    var(--color-skeleton-lo) 100%
+  );
+}
+
+.v2-my-error {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 0;
+}
+
+.v2-my-error-text {
+  color: var(--color-text);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+}
+
+.v2-my-secondary {
+  font: inherit;
+  margin: 0;
+  border: 0;
+  appearance: none;
+  height: 44px;
+  padding: 0 16px;
+  border-radius: var(--radius-pill);
+  background: var(--gradient-press);
+  box-shadow: var(--shadow-press);
+  color: var(--color-text);
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--text-row-size);
+  line-height: var(--text-row-line);
+  font-weight: 700;
+  letter-spacing: var(--text-tracking-strong);
+  cursor: pointer;
+}
+
+/* 並べ替えシート（板 My 2 枚目・下からのシート） */
+.v2-my-sheet-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  background: var(--color-scrim);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.v2-my-sheet {
+  width: 100%;
+  max-width: 430px;
+  box-sizing: border-box;
+  border-radius: var(--radius-sheet);
+  background: var(--color-bar);
+  box-shadow: var(--shadow-sheet);
+  display: flex;
+  flex-direction: column;
+  padding: 8px var(--space-edge) 24px;
+}
+
+.v2-my-sheet-grabber {
+  align-self: center;
+  width: 36px;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--color-grabber);
+}
+
+.v2-my-sheet-head {
+  display: flex;
+  align-items: center;
+  height: 52px;
+  padding: 0 0 0 4px;
+}
+
+.v2-my-sheet-head h2 {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+  font-size: var(--text-title-size);
+  line-height: var(--text-title-line);
+  font-weight: 700;
+  letter-spacing: var(--text-tracking-title);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.v2-my-icon-button {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-text-sub);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.v2-my-sort-choice {
+  font: inherit;
+  margin: 0;
+  border: 0;
+  appearance: none;
+  height: 52px;
+  padding: 0 16px;
+  background: transparent;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+  font-weight: 500;
+  letter-spacing: var(--text-tracking);
+  cursor: pointer;
+}
+
+.v2-my-sort-choice + .v2-my-sort-choice {
+  box-shadow: var(--edge-top);
+}
+
+.v2-my-sort-choice[aria-checked="true"] {
+  font-weight: 700;
+}
+
+.v2-my-sort-label {
+  flex: 1;
+  min-width: 0;
+}
+
+.v2-my-sort-check {
+  color: var(--color-peach);
+  display: flex;
+}
+/* .v2-sr-only は memory-screen.css で定義済み */

@@ -1,0 +1,202 @@
+/* プロフィール（板 Profile）。絵の頭 → シート → 編集。値は design-token.css の変数だけ。 */
+.v2-profile-page {
+  min-height: 100dvh;
+  background: var(--gradient-sheet);
+  color: var(--color-text);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+  font-weight: 500;
+  letter-spacing: var(--text-tracking);
+}
+
+/* 絵の頭（板: 420px・下端64pxの縁でシートへ溶ける） */
+.v2-profile-hero {
+  position: relative;
+  width: 100%;
+  height: 420px;
+  overflow: hidden;
+  background: var(--color-ground-low);
+}
+
+.v2-profile-hero img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.v2-profile-hero-edge {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: var(--image-edge-height);
+  background: var(--gradient-image-edge);
+}
+
+/* 絵の上の札（板 6.3・不透明の濃い札＋影） */
+.v2-profile-plate {
+  position: absolute;
+  left: 12px;
+  top: calc(12px + var(--safe-top));
+  height: 44px;
+  border-radius: var(--radius-pill);
+  background: var(--color-plate);
+  box-shadow: var(--shadow-plate);
+  display: flex;
+  align-items: center;
+  padding: 0 16px 0 0;
+  z-index: 2;
+}
+
+.v2-profile-plate a {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.v2-profile-plate span {
+  font-size: var(--text-title-size);
+  line-height: var(--text-title-line);
+  font-weight: 700;
+  letter-spacing: var(--text-tracking-title);
+  white-space: nowrap;
+}
+
+/* 絵が無い子はふつうの頭 */
+.v2-profile-plain-head {
+  height: 56px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 8px;
+}
+
+.v2-profile-plain-head a {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-pill);
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.v2-profile-plain-head h1 {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+  font-size: var(--text-title-size);
+  line-height: var(--text-title-line);
+  font-weight: 700;
+  letter-spacing: var(--text-tracking-title);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.v2-profile-sheet {
+  display: flex;
+  flex-direction: column;
+  padding: 0 var(--space-gutter) 32px;
+}
+
+.v2-profile-name {
+  margin: 0;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  font-family: var(--font-display);
+  font-size: 32px;
+  line-height: 40px;
+  font-weight: 900;
+  letter-spacing: 0.03em;
+  overflow-wrap: anywhere;
+}
+
+.v2-profile-meta {
+  color: var(--color-text-sub);
+  font-size: var(--text-note-size);
+  line-height: var(--text-note-line);
+}
+
+.v2-profile-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 16px;
+  margin-top: 8px;
+  color: var(--color-text-sub);
+  font-size: var(--text-note-size);
+  line-height: var(--text-note-line);
+}
+
+.v2-profile-tags b {
+  color: var(--color-peach);
+  font-weight: 500;
+}
+
+.v2-profile-section {
+  margin: 0;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  font-size: var(--text-title-size);
+  line-height: var(--text-title-line);
+  font-weight: 700;
+  letter-spacing: var(--text-tracking-strong);
+}
+
+.v2-profile-greeting {
+  align-self: flex-start;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 12px 16px;
+  border-radius: var(--radius-bubble-other);
+  background: var(--gradient-surface);
+  box-shadow: var(--shadow-surface);
+  white-space: pre-wrap;
+}
+
+.v2-profile-spacer-12 {
+  flex: none;
+  height: 12px;
+}
+.v2-profile-spacer-16 {
+  flex: none;
+  height: 16px;
+}
+.v2-profile-spacer-24 {
+  flex: none;
+  height: 24px;
+}
+
+/* 始まり方への導線（板の主ボタン。話す→トークへ） */
+.v2-profile-cta {
+  margin: 24px 0 8px;
+  height: 56px;
+  border-radius: var(--radius-pill);
+  background: var(--gradient-peach);
+  box-shadow: var(--shadow-peach);
+  color: var(--color-on-peach);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: var(--text-title-size);
+  line-height: var(--text-title-line);
+  font-weight: 700;
+  letter-spacing: var(--text-tracking-title);
+  text-decoration: none;
+}

@@ -49,6 +49,11 @@
   /* 選ばれた面（見本帳「選ばれた札・選ばれた子」） */
   --color-selected-from: #3d2b2f;
   --color-selected-to: #36262a;
+  /* 絵が無い子の頭文字の札（見本帳 KIT §1.1）。4 色を行ごとに回す */
+  --color-initial-plate-1: #2e2a4a;
+  --color-initial-plate-2: #1e3437;
+  --color-initial-plate-3: #3b2630;
+  --color-initial-plate-4: #38291c;
 
   --gradient-ground: linear-gradient(
     180deg,
@@ -99,6 +104,10 @@
   --edge-ring: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
   /* 選ばれた面の枠 */
   --edge-selected: inset 0 0 0 1.5px var(--color-peach);
+  /* シートの後ろの暗幕（KIT §6。半透明はここだけ） */
+  --color-scrim: rgba(6, 8, 16, 0.6);
+  /* シートのつまみ */
+  --color-grabber: rgba(255, 255, 255, 0.24);
   /* 自分の面の上端の光（温かい色。面の白い光とは違う） */
   --edge-top-own: inset 0 1px 0 rgba(255, 228, 214, 0.1);
   --edge-top-delete: inset 0 1px 0 rgba(255, 200, 190, 0.12);
