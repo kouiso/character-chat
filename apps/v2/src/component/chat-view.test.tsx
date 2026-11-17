@@ -16,7 +16,7 @@ describe("ChatView", () => {
     render(<ChatView characterId="char-koharu-ex" characterName="小春" />);
 
     expect(screen.getByText("小春")).toBeInTheDocument();
-    expect(screen.getByPlaceholderText("メッセージを入力")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("なに話す？")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "送信" })).toBeDisabled();
   });
 
@@ -110,11 +110,11 @@ describe("ChatView", () => {
     render(<ChatView characterId="a" characterName="案内役" />);
     await screen.findByText("こっち向いて。");
     const dialogue = screen.getByRole("group", { name: "台詞" });
-    expect(dialogue.querySelector('[aria-label="音声で再生"]')).not.toBeNull();
+    expect(dialogue.querySelector('[aria-label="この返事を声で聞く"]')).not.toBeNull();
     const narration = screen.getByRole("group", { name: "描写" });
     const inner = screen.getByRole("group", { name: "心の声" });
-    expect(narration.querySelector('[aria-label="音声で再生"]')).toBeNull();
-    expect(inner.querySelector('[aria-label="音声で再生"]')).toBeNull();
+    expect(narration.querySelector('[aria-label="この返事を声で聞く"]')).toBeNull();
+    expect(inner.querySelector('[aria-label="この返事を声で聞く"]')).toBeNull();
   });
 
   it("新規会話の入口では前の会話を再開せず、再読込時は新しい保留を復元する", async () => {

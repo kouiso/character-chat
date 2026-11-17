@@ -31,6 +31,7 @@
   --color-own-to: #352024;
   --color-plate: #0f1528;
   --color-bar: #1c171f;
+  --color-sheet-scrim: rgba(6, 8, 16, 0.6);
   --color-well: #0b0f1a;
   --color-well-border: #8c8497;
   /* 失敗のある入力欄の枠。ふつうの欄の枠と同じ見えやすさに揃える */

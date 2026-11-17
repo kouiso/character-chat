@@ -40,7 +40,7 @@ const setOnline = (online: boolean) => {
 };
 
 const expectBack = () => {
-  const back = screen.getByRole("link", { name: "一覧に戻る" });
+  const back = screen.getByRole("link", { name: /^(一覧に戻る|戻る)$/ });
   expect(back).toHaveAttribute("href", "/");
   return back;
 };
@@ -149,7 +149,7 @@ describe("chat route state exits", () => {
     getCharacter.mockResolvedValue(fixture);
     const fetchSpy = vi.spyOn(globalThis, "fetch");
     renderChat();
-    const input = await screen.findByPlaceholderText("メッセージを入力");
+    const input = await screen.findByPlaceholderText("なに話す？");
     fireEvent.change(input, { target: { value: "合成の未送信文" } });
     const page = input.closest(".v2-chat-page");
     expect(page).toContainElement(expectBack());
@@ -171,12 +171,26 @@ describe("chat route state exits", () => {
     getCharacter.mockResolvedValue(fixture);
     vi.spyOn(globalThis, "fetch").mockImplementation(() => new Promise(() => {}));
     renderChat();
-    const input = await screen.findByPlaceholderText("メッセージを入力");
+    const input = await screen.findByPlaceholderText("なに話す？");
     fireEvent.change(input, { target: { value: "合成の質問" } });
     fireEvent.click(screen.getByRole("button", { name: "送信" }));
     // 待っている間は送信と入れ替わりで止めるが出る。入力欄は次の文を書けるよう開いたまま。
     expect(await screen.findByRole("button", { name: "返事を止める" })).toBeInTheDocument();
     expect(input).toBeEnabled();
+    fireEvent.click(expectBack());
+    expect(await screen.findByText("合成一覧")).toBeInTheDocument();
+  });
+
+  it("返事の途中終了でつなぎ直している間も戻れる", async () => {
+    getCharacter.mockResolvedValue(fixture);
+    vi.spyOn(globalThis, "fetch").mockImplementation(
+      async () => new Response('event: token\ndata: {"text":"合成の途中応答"}\n\n'),
+    );
+    renderChat();
+    const input = await screen.findByPlaceholderText("なに話す？");
+    fireEvent.change(input, { target: { value: "合成の質問" } });
+    fireEvent.click(screen.getByRole("button", { name: "送信" }));
+    await screen.findByRole("button", { name: "返事を止める" });
     fireEvent.click(expectBack());
     expect(await screen.findByText("合成一覧")).toBeInTheDocument();
   });
@@ -195,15 +209,11 @@ describe("chat route state exits", () => {
       () => Promise.resolve(new Response('event: error\ndata: {"message":"合成の生成失敗"}\n\n')),
     ],
     ["空の応答", () => Promise.resolve(new Response(null))],
-    [
-      "途中終了",
-      () => Promise.resolve(new Response('event: token\ndata: {"text":"合成の途中応答"}\n\n')),
-    ],
   ])("既存の生成%sから一覧に戻れる", async (_label, response) => {
     getCharacter.mockResolvedValue(fixture);
     vi.spyOn(globalThis, "fetch").mockImplementation(response);
     renderChat();
-    const input = await screen.findByPlaceholderText("メッセージを入力");
+    const input = await screen.findByPlaceholderText("なに話す？");
     fireEvent.change(input, { target: { value: "合成の質問" } });
     fireEvent.click(screen.getByRole("button", { name: "送信" }));
     await screen.findByRole("alert");

@@ -2,6 +2,7 @@
 import { useState } from "react";
 
 import { loadBookmarkItems, type BookmarkItem } from "../lib/marks";
+import { TalkSheet } from "./talk-sheet";
 
 type BookmarkPanelProps = {
   characterId: string;
@@ -28,28 +29,31 @@ export const BookmarkPanel = ({ characterId, getConversationId, onJump }: Bookma
   return (
     <span className="v2-bookmarks">
       <button type="button" onClick={toggle} disabled={!getConversationId()}>
-        🔖 {open ? "閉じる" : "ブックマーク"}
+        <span>しおり</span>
+        <span>戻りたい所に印</span>
       </button>
       {open && (
-        <div className="v2-bookmark-list" role="dialog" aria-label="ブックマーク一覧">
-          {failed && <p role="alert">読み込みに失敗しました。</p>}
-          {!failed && items.length === 0 && <p>ブックマークはまだありません。</p>}
-          <ul>
-            {items.map((item) => (
-              <li key={item.messageId}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    onJump(item.messageId);
-                    setOpen(false);
-                  }}
-                >
-                  t{item.turn}: {item.excerpt}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
+        <TalkSheet title="しおり" onClose={() => setOpen(false)}>
+          <div className="v2-talk-bookmarks">
+            {failed && <p role="alert">しおりを読み込めませんでした。</p>}
+            {!failed && items.length === 0 && <p>まだ、しおりはありません。</p>}
+            <ul>
+              {items.map((item) => (
+                <li key={item.messageId}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onJump(item.messageId);
+                      setOpen(false);
+                    }}
+                  >
+                    {item.excerpt}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </TalkSheet>
       )}
     </span>
   );

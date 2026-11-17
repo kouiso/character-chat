@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import { fetchSuggestions } from "../lib/suggest";
+import { TalkIcon } from "./talk-icon";
 
 // RIT-203: 次の発話候補の取得ボタンと候補チップ。選択肢・おすすめ返信の両方を兼ねる。
 // 選んだ文は親の送信経路へ渡す（発話として送られる）。
@@ -58,11 +59,16 @@ export const SuggestionChips = ({
             aria-label="候補を閉じる"
             onClick={() => setSuggestions(null)}
           >
-            ×
+            <TalkIcon name="close" />
           </button>
         </div>
       )}
-      <button type="button" onClick={request} disabled={disabled || busy || !getConversationId()}>
+      <button
+        className="v2-talk-suggest-request"
+        type="button"
+        onClick={request}
+        disabled={disabled || busy || !getConversationId()}
+      >
         {busy ? "考え中…" : "おすすめ"}
       </button>
     </>

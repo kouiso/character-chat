@@ -1,6 +1,16 @@
 import "@testing-library/jest-dom/vitest";
 import { vi } from "vitest";
 
+// jsdom はモーダルの開閉を実装していないため、トークのシート試験では open 属性を同期する。
+if (typeof HTMLDialogElement !== "undefined") {
+  HTMLDialogElement.prototype.showModal = function () {
+    this.open = true;
+  };
+  HTMLDialogElement.prototype.close = function () {
+    this.open = false;
+  };
+}
+
 // cloudflare:workers は Vitest では解決できんので全試験へ既定の身代わりを置く。
 // waitUntil・DurableObject・env の形が要る試験は各ファイルの vi.mock が上書きする。
 vi.mock("cloudflare:workers", () => ({

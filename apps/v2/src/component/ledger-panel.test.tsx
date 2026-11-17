@@ -27,7 +27,7 @@ describe("台帳パネル", () => {
     vi.stubGlobal("fetch", fetchMock);
     render(<LedgerPanel characterId="char" getConversationId={() => "conv"} />);
 
-    fireEvent.click(screen.getByRole("button", { name: "台帳" }));
+    fireEvent.click(screen.getByRole("button", { name: "いまの場面" }));
 
     expect(await screen.findByText("台所")).toBeInTheDocument();
     expect(screen.getByText("深夜")).toBeInTheDocument();
@@ -45,7 +45,7 @@ describe("台帳パネル", () => {
     );
     render(<LedgerPanel characterId="char" getConversationId={() => "conv"} />);
 
-    fireEvent.click(screen.getByRole("button", { name: "台帳" }));
+    fireEvent.click(screen.getByRole("button", { name: "いまの場面" }));
 
     expect(await screen.findByText(/まだ台帳がありません/)).toBeInTheDocument();
   });
@@ -58,7 +58,7 @@ describe("台帳パネル", () => {
     vi.stubGlobal("fetch", fetchMock);
     render(<LedgerPanel characterId="char" getConversationId={() => "conv"} />);
 
-    fireEvent.click(screen.getByRole("button", { name: "台帳" }));
+    fireEvent.click(screen.getByRole("button", { name: "いまの場面" }));
     fireEvent.click(await screen.findByRole("button", { name: "直す" }));
 
     const locationInput = screen.getByLabelText("場所");
@@ -85,7 +85,7 @@ describe("台帳パネル", () => {
     vi.stubGlobal("fetch", fetchMock);
     render(<LedgerPanel characterId="char" getConversationId={() => null} />);
 
-    fireEvent.click(screen.getByRole("button", { name: "台帳" }));
+    fireEvent.click(screen.getByRole("button", { name: "いまの場面" }));
 
     expect(await screen.findByText(/まだ台帳がありません/)).toBeInTheDocument();
     expect(fetchMock).not.toHaveBeenCalled();

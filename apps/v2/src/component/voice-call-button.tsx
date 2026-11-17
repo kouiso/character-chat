@@ -1,11 +1,12 @@
 // 音声通話モードの切替・状態表示（RIT-213）。非対応端末ではボタンを出さない。
 import { voiceCallSupported, type VoiceCallState } from "../hook/use-voice-call";
+import { TalkIcon } from "./talk-icon";
 
 const STATE_LABELS: Record<VoiceCallState, string> = {
-  idle: "通話",
-  listening: "🎙 聞き取り中",
-  thinking: "… 応答中",
-  speaking: "🔊 再生中",
+  idle: "電話する",
+  listening: "聞いています",
+  thinking: "返事を待っています",
+  speaking: "声で聞いています",
   blocked: "無料枠終了",
 };
 
@@ -27,10 +28,12 @@ export const VoiceCallButton = ({
       <button
         type="button"
         className="v2-voice-call-toggle"
+        aria-label={inCall ? "通話を終える" : STATE_LABELS[state]}
+        title={STATE_LABELS[state]}
         aria-pressed={inCall}
         onClick={() => (inCall ? onStop() : onStart())}
       >
-        {STATE_LABELS[state]}
+        <TalkIcon name="phone" />
       </button>
       {inCall && remaining !== null ? (
         <span className="v2-voice-call-remaining">残り{remaining}秒</span>

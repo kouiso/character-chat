@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { TalkIcon } from "./talk-icon";
 
 import {
   listBranchSiblings,
@@ -7,10 +8,10 @@ import {
   type BranchSibling,
 } from "../lib/branch";
 
-// RIT-202: バブル横の枝操作。「⋯」を開いた時だけ系列を読みに行くので、
-// 枝が無い会話では余計な往復が出ない。操作後は onChanged で履歴を読み直す。
+// トークの操作行では別の返事を先に表示し、単独の入口では開くまで系列の取得を待つ。
 
 export type BranchControlsProps = {
+  embedded?: boolean;
   characterId: string;
   conversationId: string;
   role: "user" | "assistant";
@@ -69,7 +70,7 @@ const AssistantControls = ({
             disabled={busy || activeIndex <= 0}
             onClick={() => void activate(activeIndex - 1)}
           >
-            ◀
+            <TalkIcon name="back" />
           </button>
           {activeIndex + 1}/{siblings.length}
           <button
@@ -78,7 +79,7 @@ const AssistantControls = ({
             disabled={busy || activeIndex < 0 || activeIndex >= siblings.length - 1}
             onClick={() => void activate(activeIndex + 1)}
           >
-            ▶
+            <TalkIcon name="next" />
           </button>
         </span>
       )}
@@ -89,10 +90,29 @@ const AssistantControls = ({
   );
 };
 
+const BranchClose = ({ embedded, onClose }: { embedded?: boolean; onClose: () => void }) =>
+  embedded ? null : (
+    <button type="button" className="v2-branch-close" aria-label="閉じる" onClick={onClose}>
+      <TalkIcon name="close" />
+    </button>
+  );
+
 export const BranchControls = (props: BranchControlsProps) => {
   const { characterId, conversationId, role, turn, busy, onChanged, onRewound } = props;
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(props.embedded === true);
   const [siblings, setSiblings] = useState<BranchSibling[]>([]);
+  useEffect(() => {
+    if (!props.embedded) return;
+    let active = true;
+    void listBranchSiblings(characterId, conversationId, turn, role)
+      .then((items) => {
+        if (active) setSiblings(items);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [props.embedded, characterId, conversationId, turn, role]);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -145,13 +165,13 @@ export const BranchControls = (props: BranchControlsProps) => {
         disabled={busy}
         onClick={() => void toggle()}
       >
-        ⋯
+        <TalkIcon name="more" />
       </button>
     );
   }
 
   return (
-    <div className="v2-branch-controls">
+    <div className="v2-branch-controls" data-embedded={props.embedded}>
       {role === "assistant" && (
         <AssistantControls
           {...props}
@@ -194,9 +214,7 @@ export const BranchControls = (props: BranchControlsProps) => {
           </button>
         </>
       )}
-      <button type="button" aria-label="閉じる" onClick={() => setOpen(false)}>
-        ×
-      </button>
+      <BranchClose embedded={props.embedded} onClose={() => setOpen(false)} />
       {error && <div className="v2-branch-error">{error}</div>}
     </div>
   );

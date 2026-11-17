@@ -37,7 +37,7 @@ describe("ChatView message 表示接続", () => {
     });
     vi.stubGlobal("fetch", fetchMock);
     render(<ChatView characterId="synthetic-guide" characterName="サンプル案内役" />);
-    fireEvent.change(screen.getByPlaceholderText("メッセージを入力"), {
+    fireEvent.change(screen.getByPlaceholderText("なに話す？"), {
       target: { value: "合成の公園へ行こう🙂" },
     });
     fireEvent.click(screen.getByRole("button", { name: "送信" }));
@@ -94,7 +94,7 @@ describe("ChatView message 表示接続", () => {
     expect(screen.getByRole("group", { name: "描写" })).toHaveTextContent("地図を開く。");
     expect(screen.getAllByRole("group", { name: "台詞" })).toHaveLength(1);
     expect(screen.queryByText("仮の描写。")).not.toBeInTheDocument();
-    await waitFor(() => expect(screen.getByPlaceholderText("メッセージを入力")).toBeEnabled());
+    await waitFor(() => expect(screen.getByPlaceholderText("なに話す？")).toBeEnabled());
     expect(screen.getByRole("group", { name: "心の声" }).closest(".pending")).toBeNull();
   });
 });

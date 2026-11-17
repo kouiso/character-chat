@@ -182,8 +182,12 @@ describe("オフライン送信（S-15）", () => {
     });
     fireEvent.click(screen.getByRole("button", { name: "送信" }));
 
-    // POST は出さん。文は入力欄に残る。
-    expect(fetchMock).not.toHaveBeenCalled();
+    // POST は出さん。場面帯の GET は許す。文は入力欄に残る。
+    const postCalls = () =>
+      fetchMock.mock.calls.filter(
+        ([, init]) => (init as RequestInit | undefined)?.method === "POST",
+      );
+    expect(postCalls()).toHaveLength(0);
     expect(screen.getByRole("textbox", { name: "メッセージ" })).toHaveValue("圏外のひとこと");
     const alert = screen.getByRole("alert");
     expect(alert).toHaveTextContent("オフラインです。");
@@ -194,14 +198,14 @@ describe("オフライン送信（S-15）", () => {
 
     // オフラインのまま「もう一度」を押しても、やはり POST は出さん。
     fireEvent.click(screen.getByRole("button", { name: "もう一度" }));
-    expect(fetchMock).not.toHaveBeenCalled();
+    expect(postCalls()).toHaveLength(0);
     expect(screen.getByRole("textbox", { name: "メッセージ" })).toHaveValue("圏外のひとこと");
     expect(screen.getByRole("alert")).toHaveTextContent("オフラインです。");
 
     // つながったら枠は消える。自動では送らん（送信を押すまでは文を持って待つだけ）。
     setOnline(true);
     await waitFor(() => expect(screen.queryByRole("alert")).toBeNull());
-    expect(fetchMock).not.toHaveBeenCalled();
+    expect(postCalls()).toHaveLength(0);
     expect(screen.getByRole("textbox", { name: "メッセージ" })).toHaveValue("圏外のひとこと");
     expect(screen.getByRole("button", { name: "送信" })).toBeInTheDocument();
   });
