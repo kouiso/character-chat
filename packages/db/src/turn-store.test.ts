@@ -405,6 +405,77 @@ describe("createD1TurnStore", () => {
     });
   });
 
+  it("format・empty で落ちた塊も理由つきの dropped=1 行として残る（RIT-70）", async () => {
+    const conversationId = newConversationId();
+    const judgeOf = (reasons: string[], check: Partial<JudgeResult["checks"]>): JudgeResult => ({
+      ...OK_JUDGE,
+      ok: false,
+      reasons: reasons as JudgeResult["reasons"],
+      checks: { ...OK_JUDGE.checks, ...check },
+    });
+    await store.saveTurn({
+      conversationId,
+      turn: 1,
+      userText: "user 1",
+      events: [
+        ...chunkEvents(1),
+        {
+          type: "dropped",
+          seq: 2,
+          reasons: ["format"],
+          attempt: 2,
+          text: "<dialogue>閉じられてへん段落",
+          judge: judgeOf(["format"], {
+            format: { ok: false, reason: "閉じられてへんタグが残っとる: dialogue" },
+          }),
+        },
+        {
+          type: "dropped",
+          seq: 3,
+          reasons: ["empty"],
+          attempt: 2,
+          text: "",
+          judge: judgeOf(["empty"], { empty: { ok: false } }),
+        },
+      ],
+      ledger: ledgerAt(1),
+    });
+
+    const [assistant] = await local.db
+      .select({ id: v2MessageTable.id, content: v2MessageTable.content })
+      .from(v2MessageTable)
+      .where(
+        and(
+          eq(v2MessageTable.conversationId, conversationId),
+          eq(v2MessageTable.role, "assistant"),
+        ),
+      );
+    // 落ちた塊は配る本文に混ざらん。
+    expect(assistant.content).not.toContain("閉じられてへん段落");
+
+    const chunkRows = await local.db
+      .select({
+        seq: v2ChunkTable.seq,
+        judgeJson: v2ChunkTable.judgeJson,
+        dropped: v2ChunkTable.dropped,
+      })
+      .from(v2ChunkTable)
+      .where(eq(v2ChunkTable.messageId, assistant.id))
+      .orderBy(asc(v2ChunkTable.seq));
+
+    const droppedRows = chunkRows.filter((row) => row.dropped === 1);
+    expect(droppedRows).toHaveLength(2);
+    expect(droppedRows.map((row) => row.seq)).toEqual([2, 3]);
+    expect(JSON.parse(droppedRows[0].judgeJson)).toMatchObject({
+      ok: false,
+      reasons: ["format"],
+    });
+    expect(JSON.parse(droppedRows[1].judgeJson)).toMatchObject({
+      ok: false,
+      reasons: ["empty"],
+    });
+  });
+
   it("最新の台帳が壊れとっても一個前の台帳へ遡って会話は止まらん（RIT-118）", async () => {
     const conversationId = newConversationId();
     await store.saveTurn({

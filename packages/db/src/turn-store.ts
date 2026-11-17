@@ -103,6 +103,11 @@ export type TurnEvent =
       preExtendVisibleChars: number;
       // 文脈の予算で model へ渡さんかった古い履歴の件数。長い会話で「忘れた」と「切った」を見分ける。
       omittedHistoryMessages: number;
+      // RIT-70: そのターンで、書き直しても判定を通らず配らなかった塊の数。
+      // 導入前に保存された事象には無いので optional。
+      droppedChunks?: number;
+      // RIT-70: そのターンで書き直しを呼んだ回数（0〜3）。同上 optional。
+      regeneratedChunks?: number;
     }
   | {
       type: "done";

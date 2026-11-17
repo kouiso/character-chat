@@ -14,6 +14,7 @@ import {
   type BaseCheckpointSaver,
 } from "@langchain/langgraph";
 import { extractVoice, judgeChunk, splitChunks } from "@v2/judge";
+import type { JudgeResult, Voice } from "@v2/judge";
 import {
   collectUsedPhrases,
   composeSystemPrompt,
@@ -56,6 +57,13 @@ const MAX_ATTEMPTS_PER_CHUNK = 2;
 // 1ターンで許す再生成の合計回数。病的な入力（chunk数が多く全部失敗する等）で
 // 再生成が無限に積み重ならんための安全弁。
 const MAX_REGENERATIONS_PER_TURN = 3;
+
+// 書き直し 1 回の締切の上限。ターンの締切の残りとの小さい方を使う（RIT-70 FR-6）。
+// 前はターンと同じ 120 秒を許しとって、1 塊の書き直しで画面が長く止まっとった。
+const REGENERATE_DEADLINE_CAP_MS = 30_000;
+// ターンの締切の残りがこれを割ったら書き直しのモデルを呼ばん。数ミリ秒で打ち切る
+// 課金の呼び出しをせず、そのまま落ちた塊にする（未決 3 の既定値）。
+const MIN_REGENERATE_REMAINING_MS = 5_000;
 
 // 1 ターンの締切。2026-09-04 v2 arm（CI 89426095）で Sakura t6 が 1 ターン 63 分
 // （latencyMs 3,807,055・43,204 字）書き続け、CI の 90 分がそこで尽きた。呼ぶ側は TurnInput.timeoutMs で
@@ -630,10 +638,20 @@ const rollUpLevel2 = async (
 const regenerateWithDeadline = async (
   model: TurnModel,
   lcMessages: BaseMessage[],
-  opts: { maxTokens: number; timeoutMs: number; sampling: SamplingOptions; signal?: AbortSignal },
+  opts: {
+    maxTokens: number;
+    timeoutMs: number;
+    sampling: SamplingOptions;
+    // 外から来た止める合図（RIT-83 が部屋から TurnInput.signal として通す）。
+    signal?: AbortSignal;
+  },
 ): Promise<string> => {
   const controller = new AbortController();
-  linkAbort(controller, opts.signal);
+  // 外の合図もモデル呼び出しへ伝えるため、自分の締切の合図へ畳み込む。
+  // 名前付きにしとるのは finally で外すため（呼び捨ての listener は外側の合図に残る）。
+  const onOuterAbort = () => controller.abort(opts.signal?.reason);
+  if (opts.signal?.aborted) onOuterAbort();
+  else opts.signal?.addEventListener("abort", onOuterAbort, { once: true });
   const deadline = setTimeout(
     () => controller.abort(new Error(`書き直しの締切 ${opts.timeoutMs}ms を超えた`)),
     opts.timeoutMs,
@@ -648,12 +666,81 @@ const regenerateWithDeadline = async (
     });
     return contentToText(result.content);
   } catch (caught) {
+    // 外の合図由来の中断は書き直しの失敗扱いにせん（FR-10）。畳み込みで
+    // controller も落ちとるので、先に外の合図を見んと締切切れと区別がつかん。
+    if (opts.signal?.aborted) throw caught;
     // 自分で切った締切だけ空文に写す。それ以外（鍵・ネットワーク）はそのまま上へ。
-    if (!controller.signal.aborted) throw caught;
-    return "";
+    if (controller.signal.aborted) return "";
+    throw caught;
   } finally {
     clearTimeout(deadline);
+    opts.signal?.removeEventListener("abort", onOuterAbort);
   }
+};
+
+// 画面に出ることが決まった塊（seq < cursor かつ判定通過）の本文。繰り返し判定の比較相手と
+// 書き直しの「ここまでの本文」の両方で使う。判定で落ちた塊は画面に出とらんので入れん
+// （FR-5: 出とらん文を繰り返しと数えんし、モデルにも出とらん文の続きを書かせん）。
+const acceptedChunkTexts = (state: { cursor: number; chunks: JudgedChunk[] }): string[] =>
+  state.chunks
+    .filter((chunkItem) => chunkItem.seq < state.cursor && chunkItem.judge.ok)
+    .map((chunkItem) => chunkItem.text);
+
+// 書き直しに使えるターン締切の残り（ms）。generate に入った時からの経過を引くので、
+// 生成に 100 秒掛かった後なら残りは 20 秒しか無い（FR-6）。turnStartedAt が無い
+// （generate 未到達）なら残りいっぱいと見なす。
+const turnRemainingMs = (
+  state: { timeoutMs: number | null; turnStartedAt: number | null },
+  now: () => number,
+): number =>
+  state.turnStartedAt === null
+    ? Number.POSITIVE_INFINITY
+    : (state.timeoutMs ?? DEFAULT_TURN_TIMEOUT_MS) - (now() - state.turnStartedAt);
+
+// voice 理由の書き直しの行（FR-4 の表）。キャラ設定に無い枠は足さん（FR-9）。
+const regenVoiceLines = (
+  voiceCheck: JudgeResult["checks"]["voice"],
+  voice: Voice,
+  selfName: string,
+): string[] => {
+  const lines: string[] = [];
+  if (voiceCheck.forbiddenPronoun)
+    lines.push(
+      `一人称は「${voice.firstPerson.join("、")}」だけを使う。「${voiceCheck.forbiddenPronoun}」は使わん。`,
+    );
+  if (voiceCheck.forbiddenAddress)
+    lines.push(
+      `相手の呼び方は「${voice.secondPerson.join("、")}」だけを使う。「${voiceCheck.forbiddenAddress}」は使わん。`,
+    );
+  if (voiceCheck.thirdPersonSelf)
+    lines.push(`地の文で自分の名前「${selfName}」を主語にせん。自分の目から書く。`);
+  return lines;
+};
+
+// 落ちた理由ごとの書き直しの行。理由が 2 つ以上なら表の順（repetition → voice → format →
+// empty）に全部並べる（FR-4）。repetition 行は落ちた句を名指しして言い換え自体を禁じる
+// （2026-09-15 実測: 「別の言い方」頼みは場面を進めず同じ動作の言い換えを産んだ）。
+export const regenReasonLines = (judge: JudgeResult, voice: Voice, selfName: string): string[] => {
+  const lines: string[] = [];
+  if (judge.reasons.includes("repetition")) {
+    const matched = [
+      ...judge.checks.ngram.matchedPhrases,
+      ...judge.checks.nearDuplicate.matches.map((match) => match.sentence),
+    ];
+    lines.push(
+      matched.length > 0
+        ? `次の句は前の段落や例示と同じ言い回しになっとる: ${matched.map((phrase) => `「${phrase}」`).join("")}。この句は使わん。前の段落の動作や感覚を言い換えるのも禁止。その場面でまだ書いとらん新しい出来事か動作を一つだけ書け。`
+        : "前の段落と同じ動作を言い換えん。その場面でまだ書いとらん新しい出来事か動作を一つだけ書け。",
+    );
+  }
+  if (judge.reasons.includes("voice"))
+    lines.push(...regenVoiceLines(judge.checks.voice, voice, selfName));
+  if (judge.reasons.includes("format"))
+    lines.push(
+      "タグは <action>・<dialogue>・<inner> だけを使い、開いたら閉じる。Markdown の記号・コードの囲み・話者の札は書かん。<inner> は 1 返事に 1 回・120 字以内。",
+    );
+  if (judge.reasons.includes("empty")) lines.push("空にせず、この段落を書く。");
+  return lines;
 };
 
 export const createTurnGraph = (deps: TurnGraphDeps) => {
@@ -804,6 +891,7 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
           raw: outcome.raw,
           generationId,
           generation,
+          turnStartedAt: startedAt,
           activeModelIndex: Math.max(0, outcome.winnerIndex),
           extended: 0,
           preExtendVisibleChars: visibleCharsOf(outcome.raw),
@@ -873,7 +961,11 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
           // 直前の塊と同じ扱いで比較対象に入れて、写したら反復として落とす。
           ...splitChunks(exemplarForPhase(state.ledger.phase)),
           ...previousTurnChunks(state.history),
-          ...state.chunks.slice(-20).map((chunkItem) => chunkItem.text),
+          // FR-5: このターンで判定を通った塊の直近 20 個だけ。落ちた塊は画面に出とらんので
+          // 比べる相手に入れん（前は chunks 全部を見とって、落ちた別の塊に似とるだけで
+          // 次の塊が連鎖して落ちた）。書き直しの後はその塊自身の前の版を末尾に足す。
+          ...acceptedChunkTexts(state).slice(-20),
+          ...(state.chunks[state.cursor] ? [state.chunks[state.cursor].text] : []),
         ];
         const judge = judgeChunk(text, {
           previousChunks,
@@ -897,38 +989,49 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
         chunks[state.cursor] = judged;
         return { chunks };
       })
-      .addNode("regenerate_chunk", async (state) => {
+      .addNode("regenerate_chunk", async (state, runtime) => {
         if (!state.prompt) throw new Error("prompt が未生成のまま regenerate_chunk に到達した");
-        const before = state.pendingChunks.slice(0, state.cursor).join("\n\n");
-        // 落ちた理由の句を名指しする。同じ入力で書き直させると同じ写しが出る（旧経路の実測 F11）。
+        // FR-5:「ここまでの本文」は画面に出ると決まった塊だけ。落ちた塊（どの版も）を
+        // 繋ぐと、モデルは画面に出とらん文の続きとして書いてしまう。
+        const before = acceptedChunkTexts(state).join("\n\n");
+        // FR-4: 落ちた理由ごとに頼み方を変える。format・voice・empty では直し方を
+        // 名指しせんと直らん（前はどの理由でも「新しい出来事を一つ書け」だけやった）。
         const judged = state.chunks[state.cursor]?.judge;
-        const matched = [
-          ...(judged?.checks.ngram.matchedPhrases ?? []),
-          ...(judged?.checks.nearDuplicate.matches.map((match) => match.sentence) ?? []),
-        ];
-        // 「別の言い方で同じ場面を進め」は場面を進めず同じ動作を言い換える塊を産む
-        // （2026-09-15 実測: regen≥1 ターンだけに intra-turn 反復ループが出た）。
-        // 落ちた句を名指しした上で、言い換え自体を禁じて新しい出来事を一つ書かせる。
-        const phraseLine =
-          matched.length > 0
-            ? `次の句は前の段落や例示と同じ言い回しになっとる: ${matched.map((phrase) => `「${phrase}」`).join("")}。この句は使わん。前の段落の動作や感覚を言い換えるのも禁止。その場面でまだ書いとらん新しい出来事か動作を一つだけ書け。`
-            : "前の段落と同じ動作を言い換えん。その場面でまだ書いとらん新しい出来事か動作を一つだけ書け。";
+        const reasonLines = judged
+          ? regenReasonLines(
+              judged,
+              extractVoice(state.character.systemPrompt),
+              state.character.name,
+            )
+          : [];
         const instruction = [
           "ここまでの本文:",
           before,
           "",
-          `次の段落だけ書き直す。${phraseLine}`,
+          ...reasonLines,
+          "次の段落だけ書き直す。",
         ].join("\n");
         const lcMessages = [...toLangchainMessages(state.prompt), new HumanMessage(instruction)];
-        // 1 段落の書き直しにもターンと同じ max_tokens と締切を掛ける（invoke は stream と違って受信字数の
-        // 網が無い。2026-09-04 v2 arm run 2 の Sakura t9 は締切 120 s のターンが 149 s かかった＝書き直しが
-        // 締切の外で待っとった）。締切で切れた書き直しは空文として judge に渡し、empty で落として配らん。
-        const text = await regenerateWithDeadline(modelForTurn(deps, state), lcMessages, {
+        // FR-6: 1 段落の書き直しの締切は min(30秒, ターン締切の残り)。前はターンと同じ
+        // 120 秒を許しとって、書き直しが締切の外で待ち続けた（2026-09-04 v2 arm run 2 の
+        // Sakura t9 は締切 120 s のターンが 149 s かかった）。invoke は stream と違って
+        // 受信字数の網が無いので max_tokens は据え置く。
+        const regenOpts = {
           maxTokens: maxTokensForTarget(scaledTargetChars(mechanics(state))),
-          timeoutMs: state.timeoutMs ?? DEFAULT_TURN_TIMEOUT_MS,
+          timeoutMs: Math.min(REGENERATE_DEADLINE_CAP_MS, turnRemainingMs(state, now)),
           sampling: samplingForPhase(mechanics(state)),
-          signal: deps.signal,
-        });
+          signal: runtime.signal,
+        };
+        let text: string;
+        try {
+          text = await regenerateWithDeadline(modelForTurn(deps, state), lcMessages, regenOpts);
+        } catch (caught) {
+          // FR-10: 外の止める合図が効いとる最中の例外はそのまま上へ（止めたターンは
+          // 判定・配信・保存を続けん）。それ以外（締切・鍵・通信）は空文として判定に回し、
+          // その塊だけを落とす。前は例外がターンごと潰してた。
+          if (regenOpts.signal?.aborted) throw caught;
+          text = "";
+        }
         const pendingChunks = [...state.pendingChunks];
         pendingChunks[state.cursor] = text;
         const attempts = [...state.attempts];
@@ -1013,6 +1116,10 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
             mechanicsPhase: mechanics(state),
             preExtendVisibleChars: state.preExtendVisibleChars,
             omittedHistoryMessages: state.omittedHistoryMessages,
+            // RIT-70 FR-3: そのターンで配らんかった塊の数と書き直しを呼んだ回数。
+            // 落ちた理由の集計は v2_chunk.judge_json から、数の推移はここから追える。
+            droppedChunks: state.dropped.length,
+            regeneratedChunks: state.regenerationCount,
           } satisfies TurnEvent);
         }
         runtime.writer({
@@ -1104,7 +1211,10 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
         // 締切で切ったターンはもうモデルを呼ばん（途中で切れたタグは format で落ちるが、
         // 書き直しに締切の外でさらに待つと締切の意味が無い）。
         const overDeadline = state.generation?.truncated === "deadline";
-        return judge?.ok || chunkBudgetExhausted || turnBudgetExhausted || overDeadline
+        // FR-6: ターンの締切の残りが 5 秒未満なら書き直さずに落とす。数ミリ秒で
+        // 打ち切る課金の呼び出しをしない。
+        const outOfTime = turnRemainingMs(state, now) < MIN_REGENERATE_REMAINING_MS;
+        return judge?.ok || chunkBudgetExhausted || turnBudgetExhausted || overDeadline || outOfTime
           ? "emit"
           : "regenerate_chunk";
       })
@@ -1127,6 +1237,9 @@ export type TurnInput = {
   phase?: ScenePhase;
   // 1 ターンの締切（ms）。省略時は DEFAULT_TURN_TIMEOUT_MS。
   timeoutMs?: number;
+  // 外から来た止める合図（RIT-83 が部屋の「止める」操作から通す）。書き直しの最中に
+  // 効いたら例外を投げ直して、判定・配信・保存を続けん（RIT-70 FR-10）。
+  signal?: AbortSignal;
 };
 
 const isTurnEvent = (value: unknown): value is TurnEvent =>
@@ -1142,10 +1255,15 @@ export async function* runTurn(
   // chunk → judge → emit を塊ごとに回すので、1 ターンのステップ数は塊数に比例する。
   // 既定の 25 では 8 塊前後で「Recursion limit reached」になり、長い本文ほど落ちる
   // （2026-09-04 v2 初回実測、鈴 t3）。
-  const stream = await graph.stream(input, {
+  // signal は状態チャンネルやのうてランの合図。input から外して stream の options へ渡す
+  // （状態に入れると checkpointer の保存対象に混ざる）。
+  const { signal, ...stateInput } = input;
+  const stream = await graph.stream(stateInput, {
     streamMode: "custom",
     recursionLimit: 400,
     configurable: { thread_id: threadId },
+    // 部屋からの止める合図はランの合図に畳まれ、ノードの runtime.signal から見える。
+    signal,
   });
   for await (const event of stream) {
     if (isTurnEvent(event)) yield event;
