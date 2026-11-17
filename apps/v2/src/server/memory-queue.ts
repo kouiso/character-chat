@@ -265,7 +265,7 @@ const tryPurgeExpiredMemories = async (
 // 抜き出しの失敗は terminal だけ failed にする — 抜き出し済みの再配送で数を混ぜんため。
 const consumeOneMemoryJob = async (
   db: V2Db,
-  env: MemoryModelEnv & MemoryVectorBindings,
+  env: MemoryModelEnv & Pick<Cloudflare.Env, "DB"> & MemoryVectorBindings,
   message: Pick<Message, "attempts" | "ack" | "retry">,
   jobId: string,
 ): Promise<void> => {
