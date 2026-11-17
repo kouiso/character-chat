@@ -8,7 +8,8 @@
   --color-text-sub: #dcd3ce;
   --color-peach: #ffc9ac;
   --color-on-peach: #1a0b08;
-  --color-danger: #ffa69a;
+  /* 最終版で 2 回沈めた失敗の色（はじめ #FFA69A → #EDAFA7 → 今の値）。自分の面には載せない */
+  --color-danger: #dba199;
   /* 灯は居る印の点だけ。文字には使わない */
   --color-lamp: #f5d58c;
 
@@ -32,6 +33,16 @@
   --color-bar: #1c171f;
   --color-well: #0b0f1a;
   --color-well-border: #8c8497;
+  /* 失敗のある入力欄の枠。ふつうの欄の枠と同じ見えやすさに揃える */
+  --color-error-border: rgba(219, 161, 153, 0.72);
+  /* 心の声の吹き出しの枠（飾り。見出しの文字で見分ける） */
+  --color-heart-voice-border: #7a6058;
+  /* 消すボタンの面。確かめのシートの中だけに置く */
+  --color-delete-from: #4a2226;
+  --color-delete-to: #401c21;
+  /* 読み込み中の形（骨組み）。最終版で 1 段明るくした */
+  --color-skeleton-hi: #2b3452;
+  --color-skeleton-lo: #232c47;
   --color-tab-active: #3a292d;
   --color-peach-from: #ffcdb2;
   --color-peach-to: #ffc4a4;
@@ -66,6 +77,20 @@
     var(--color-selected-from) 0%,
     var(--color-selected-to) 100%
   );
+  --gradient-delete: linear-gradient(
+    180deg,
+    var(--color-delete-from) 0%,
+    var(--color-delete-to) 100%
+  );
+  /* 絵の下端 64px だけ。シートの色へ溶かす縁。これ以外で絵に色かぶせ・透過はしない */
+  --gradient-image-edge: linear-gradient(
+    180deg,
+    rgba(16, 22, 42, 0) 0%,
+    rgba(16, 22, 42, 0.72) 52%,
+    var(--color-ground-mid) 88%,
+    var(--color-ground-mid) 100%
+  );
+  --image-edge-height: 64px;
 
   /* 影と縁 */
   --edge-top: inset 0 1px 0 rgba(255, 255, 255, 0.08);
@@ -74,6 +99,11 @@
   --edge-ring: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
   /* 選ばれた面の枠 */
   --edge-selected: inset 0 0 0 1.5px var(--color-peach);
+  /* 自分の面の上端の光（温かい色。面の白い光とは違う） */
+  --edge-top-own: inset 0 1px 0 rgba(255, 228, 214, 0.1);
+  --edge-top-delete: inset 0 1px 0 rgba(255, 200, 190, 0.12);
+  --shadow-own: var(--edge-top-own), 0 6px 16px rgba(4, 6, 14, 0.3);
+  --shadow-delete: var(--edge-top-delete), 0 4px 12px rgba(4, 6, 14, 0.28);
   --shadow-press: var(--edge-top-press), 0 4px 12px rgba(4, 6, 14, 0.28);
   --shadow-surface: var(--edge-top-surface), 0 6px 16px rgba(4, 6, 14, 0.3);
   --shadow-plate: var(--edge-ring), 0 6px 16px rgba(4, 6, 14, 0.4);
