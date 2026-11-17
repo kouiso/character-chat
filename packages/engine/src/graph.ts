@@ -564,11 +564,7 @@ const settleGeneration = async (
   },
 ): Promise<GenerationRecord> => {
   const { outcome } = args;
-  let error = outcome.error;
-  if (outcome.winnerIndex < 0) {
-    error = `全モデルで生成に失敗した: ${outcome.attempts.map((a) => `${a.model}=${a.outcome}`).join(" → ")}`;
-    args.emitError(error);
-  }
+  const error = resolveOutcomeError(outcome, args.emitError);
   const provider = outcome.winnerUpstreamId
     ? await resolveWinnerProvider(deps, args.generationId, outcome.winnerUpstreamId)
     : null;
@@ -593,8 +589,56 @@ const settleGeneration = async (
     // 記憶の使用記録と検索の印（RIT-84）。persist が v2_generation_memory・
     // v2_generation.memory_retrieval へ書く。取り出し未注入の時は undefined。
     ...(args.usedMemories !== undefined ? { usedMemories: args.usedMemories } : {}),
-    ...(args.memoryRetrieval != null ? { memoryRetrieval: args.memoryRetrieval } : {}),
+    ...(args.memoryRetrieval ? { memoryRetrieval: args.memoryRetrieval } : {}),
   };
+};
+
+// RIT-84 FR-9: 記憶 OFF・取り出し自体の未注入・束ね無しで固定も 0 件の時は隠す。
+const hideMemoryBlock = (state: { memoryRetrieval: string | null; retrieved: readonly string[] }) =>
+  state.memoryRetrieval === null ||
+  state.memoryRetrieval === "off" ||
+  (state.memoryRetrieval === "disabled" && state.retrieved.length === 0);
+
+// compose ノードの層ブロック組み立て。要約・記憶・資料・人物像の4層を決めて返す。
+const buildContextBlocks = async (
+  state: {
+    conversationId: string;
+    memoryRetrieval: string | null;
+    retrieved: readonly string[];
+    retrievedDocuments: readonly string[];
+  },
+  deps: TurnGraphDeps,
+  budget: { summaryCharacters: number },
+) => {
+  // 窓の外に出た分は要約が代わりに乗る（RIT-72）。あらすじ層の上限は
+  // V2_SUMMARY_CHARACTERS（既定 2,500 字・RIT-71）。溢れる時は古い level 1 から外す。
+  const summaries = deps.summaryStore
+    ? visibleSummaries(await deps.summaryStore.list(state.conversationId))
+    : [];
+  const packedSummaries = packSummaries(summaries, budget.summaryCharacters);
+  const summaryBlock =
+    packedSummaries.length > 0 ? SUMMARY_BLOCK_HEADER + packedSummaries.join("\n") : null;
+  // RIT-84 FR-9: 記憶 OFF・取り出し自体の未注入・束ね無しで固定も 0 件の時は
+  // 記憶の塊を出さん。それ以外は 0 件でも「該当する記憶はありません。」を出す。
+  const memoryBlock = hideMemoryBlock(state)
+    ? null
+    : MEMORY_CONTEXT_HEADER + (state.retrieved.join("\n") || "該当する記憶はありません。");
+  // 設定資料は記憶の後ろ。資料が無い時はメッセージ自体を出さん（空約束を書かん）。
+  const documentsBlock =
+    deps.retrieveDocuments && state.retrievedDocuments.length > 0
+      ? DOCUMENT_CONTEXT_HEADER + state.retrievedDocuments.join("\n")
+      : null;
+  // ユーザーの人物像は会話履歴の直前。記憶や資料より新しい指示として読ませる。
+  const personaBlock = deps.userPersona ? PERSONA_BLOCK_HEADER + deps.userPersona : null;
+  return { summaryBlock, memoryBlock, documentsBlock, personaBlock };
+};
+
+// 全滅時は error イベントをここで流し、保存用の error 文字列を返す。
+const resolveOutcomeError = (outcome: CandidateOutcome, emitError: (message: string) => void) => {
+  if (outcome.winnerIndex >= 0) return outcome.error;
+  const error = `全モデルで生成に失敗した: ${outcome.attempts.map((a) => `${a.model}=${a.outcome}`).join(" → ")}`;
+  emitError(error);
+  return error;
 };
 
 const SUMMARY_DEFAULTS = { thresholdMessages: 20, maxLevel1: 4 } as const;
@@ -844,29 +888,8 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
           deps.contextBudget,
         );
         const budget = resolveContextBudget(deps.contextBudget);
-        // 窓の外に出た分は要約が代わりに乗る（RIT-72）。あらすじ層の上限は
-        // V2_SUMMARY_CHARACTERS（既定 2,500 字・RIT-71）。溢れる時は古い level 1 から外す。
-        const summaries = deps.summaryStore
-          ? visibleSummaries(await deps.summaryStore.list(state.conversationId))
-          : [];
-        const packedSummaries = packSummaries(summaries, budget.summaryCharacters);
-        const summaryBlock =
-          packedSummaries.length > 0 ? SUMMARY_BLOCK_HEADER + packedSummaries.join("\n") : null;
-        // RIT-84 FR-9: 記憶 OFF・取り出し自体の未注入・束ね無しで固定も 0 件の時は
-        // 記憶の塊を出さん。それ以外は 0 件でも「該当する記憶はありません。」を出す。
-        const memoryBlock =
-          state.memoryRetrieval === null ||
-          state.memoryRetrieval === "off" ||
-          (state.memoryRetrieval === "disabled" && state.retrieved.length === 0)
-            ? null
-            : MEMORY_CONTEXT_HEADER + (state.retrieved.join("\n") || "該当する記憶はありません。");
-        // 設定資料は記憶の後ろ。資料が無い時はメッセージ自体を出さん（空約束を書かん）。
-        const documentsBlock =
-          deps.retrieveDocuments && state.retrievedDocuments.length > 0
-            ? DOCUMENT_CONTEXT_HEADER + state.retrievedDocuments.join("\n")
-            : null;
-        // ユーザーの人物像は会話履歴の直前。記憶や資料より新しい指示として読ませる。
-        const personaBlock = deps.userPersona ? PERSONA_BLOCK_HEADER + deps.userPersona : null;
+        const { summaryBlock, memoryBlock, documentsBlock, personaBlock } =
+          await buildContextBlocks(state, deps, budget);
         const prompt: ComposedPrompt = {
           version: "v0002",
           system,

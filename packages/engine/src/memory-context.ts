@@ -39,14 +39,7 @@ export const packMemoryContext = (
     ...entries.filter((entry) => entry.via !== "pinned"),
   ];
   for (const entry of ordered.slice(0, 20)) {
-    if (
-      seen.has(entry.id) ||
-      !entry.id ||
-      entry.id.length > 128 ||
-      !entry.content.trim() ||
-      entry.content.length > 1000
-    )
-      continue;
+    if (seen.has(entry.id) || !isUsableEntry(entry)) continue;
     const line = JSON.stringify({ id: entry.id, content: entry.content });
     const nextLength = length + line.length + (lines.length > 0 ? 1 : 0);
     if (nextLength > MEMORY_CONTEXT_CHARACTERS) continue;
@@ -58,6 +51,12 @@ export const packMemoryContext = (
   }
   return { lines, used };
 };
+
+const isUsableEntry = (entry: MemoryContextEntry) =>
+  entry.id.length > 0 &&
+  entry.id.length <= 128 &&
+  entry.content.trim().length > 0 &&
+  entry.content.length <= 1000;
 
 // RIT-115: キャラの設定資料（局長が上げた正本）を記憶の検索結果とは別口で渡す。
 // 資料はキャラの作者が書いた正本なので、記憶と食い違う時は資料の方を優先する。

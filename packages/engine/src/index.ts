@@ -90,6 +90,7 @@ export {
   retrieveMemories,
   retrieveVectorMemories,
   type MemoryFailureReporter,
+  type MemorySearchScope,
 } from "./memory-rag";
 export { jstDateKey, jstDayStartMs } from "./jst-date";
 export { extractMemorySource, runMemoryJob } from "./memory-job";
