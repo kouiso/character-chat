@@ -44,7 +44,7 @@ const FAKE_RESPONSE =
 type ScriptedTurn = { intent: ScenePhase; user: string };
 
 // label は transcript のファイル名と集計のキー。台本ごとにキャラ名を短く付ける。
-type ScriptCharacter = {
+export type ScriptCharacter = {
   label: string;
   id: string;
   script: ScriptedTurn[];
@@ -344,7 +344,8 @@ const CHARACTERS_SAKURA_FIX: ScriptCharacter[] = [
   },
 ];
 
-const scriptCharacters = (name: string): ScriptCharacter[] => {
+// RIT-96 のモデル比較が成人向け台本（"adult"）を外から取るので export する。
+export const scriptCharacters = (name: string): ScriptCharacter[] => {
   if (name === "adult") return CHARACTERS;
   if (name === "nonadult") return CHARACTERS_NONADULT;
   if (name === "nonconsent") return CHARACTERS_NONCONSENT;
@@ -360,7 +361,7 @@ type ChunkEvent = Extract<TurnEvent, { type: "chunk" }>;
 type TurnMetaEvent = Extract<TurnEvent, { type: "turn-meta" }>;
 type DroppedEvent = Extract<TurnEvent, { type: "dropped" }>;
 
-type TurnRecord = {
+export type TurnRecord = {
   character: ScriptCharacter["label"];
   turn: number;
   intent: ScenePhase;
@@ -475,7 +476,11 @@ const createModel = (): BaseChatModel =>
     ? new FakeListChatModel({ responses: [FAKE_RESPONSE] })
     : createOpenRouterModel(process.env);
 
-const resolveCharacter = async (db: V2Db, entry: ScriptCharacter): Promise<CharacterSheet> => {
+// RIT-96 もキャラの準備にこの手順を使う（金を使う前に行の有無を確かめる）。
+export const resolveCharacter = async (
+  db: V2Db,
+  entry: ScriptCharacter,
+): Promise<CharacterSheet> => {
   const { ok, failures } = await loadCharacter(db, entry.id);
   if (!ok) {
     const detail =
@@ -538,12 +543,15 @@ const headerOf = (record: TurnRecord): string => {
   ].join("\n");
 };
 
-type RunContext = {
+export type RunContext = {
   arm: string;
   run: string;
   runId: string;
   outDir: string;
   qualityLines: string[];
+  // false の時は transcript・ledger・台詞の echo を残さん（RIT-96: 返事本文を
+  // 報告・ファイル・標準出力へ出さん約束）。CLI の既定は true で今までどおり。
+  writeTranscript: boolean;
   mechanicsPhase?: ScenePhase;
   // --turns N: 台本の先頭 N ターンだけ演じる（較正の短走し用）。
   turnsLimit?: number;
@@ -560,7 +568,10 @@ type RunContext = {
   actor?: UserActor;
 };
 
-const writeTurn = (ctx: RunContext, record: TurnRecord): void => {
+// RIT-96 が「書き出さん」約束を試験するため export。writeTranscript:false なら
+// ファイルも qualityLines も書かん（呼び出し側で分岐すると片方だけ残る事故を防ぐ）。
+export const writeTurn = (ctx: RunContext, record: TurnRecord): void => {
+  if (ctx.writeTranscript === false) return;
   const name = `${record.character}-${String(record.turn).padStart(2, "0")}-session-${ctx.arm}-${ctx.run}-${fileSafeModel(record.model)}-${ctx.runId}.txt`;
   writeFileSync(resolve(ctx.outDir, name), headerOf(record) + record.text, "utf8");
   for (const chunkEvent of [...record.chunks].sort((a, b) => a.seq - b.seq)) {
@@ -698,13 +709,17 @@ const actorUserText = async (
     ctx.qualityLines.push(
       `${label} turn ${turn} actor regenerated=${line.regenerated} fallback=${line.fallback}`,
     );
-  console.log(
-    `[${label}] turn ${turn} actor> ${line.text.slice(0, 60)}${line.fallback ? " (fallback)" : ""}`,
-  );
+  // 台詞の echo は transcript と同じく本文なので writeTranscript:false では出さん。
+  if (ctx.writeTranscript !== false)
+    console.log(
+      `[${label}] turn ${turn} actor> ${line.text.slice(0, 60)}${line.fallback ? " (fallback)" : ""}`,
+    );
   return line.text;
 };
 
-const runCharacter = async (
+// RIT-96 のモデル比較がこの関数をそのまま使う（台本・キャラ準備・打ち切り判定を
+// 共有して script-run との条件差を無くすため）。
+export const runCharacter = async (
   ctx: RunContext,
   db: V2Db,
   model: BaseChatModel,
@@ -790,10 +805,11 @@ const runCharacter = async (
     // 台帳スナップショットを run へ残す（RIT-120 食い違い検査の入力）。
     // persist 済みの最新値を読むので、失敗ターン判定より後に置く。
     const { ledger } = await store.load(conversationId);
-    appendFileSync(
-      resolve(ctx.outDir, "ledger.jsonl"),
-      JSON.stringify({ character: entry.label, turn, ...ledger }) + "\n",
-    );
+    if (ctx.writeTranscript !== false)
+      appendFileSync(
+        resolve(ctx.outDir, "ledger.jsonl"),
+        JSON.stringify({ character: entry.label, turn, ...ledger }) + "\n",
+      );
 
     const stopReason = stopReasonAfter(records.map((item) => item.ending));
     if (stopReason) {
@@ -909,6 +925,7 @@ const main = async (args: string[]): Promise<void> => {
     runId,
     outDir,
     qualityLines: [],
+    writeTranscript: true,
     mechanicsPhase,
     turnsLimit,
     extendBelowRatio,

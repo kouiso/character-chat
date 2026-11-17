@@ -36,8 +36,8 @@ export const OPENROUTER_PROVIDER_POLICY: {
 // 2026-09-05 CI v2-arm: euryale は 6 回直しても視点が本人から外れて 60〜130 字のまま
 // （doc/v2/arm-status.md run 4〜6）。同じコードで deepseek-v3.2 は 4 会話とも 10 ターン完走・
 // 本人の一人称視点・ループ無し・1 ターン 3〜34 秒・単価は euryale の約半分。
-// RIT-96 のモデル比較で 1017 が既定に確定（RIT-100）。euryale で回す時は
-// V2_MODEL=sao10k/l3.3-euryale-70b（CI は件名の [v2model:...]）。
+// 1017 が既定の根拠は RIT-96 のモデル比較表（doc/v2/model-compare.md に回すたび足される）。
+// euryale で回す時は V2_MODEL=sao10k/l3.3-euryale-70b（CI は件名の [v2model:...]）。
 const DEFAULT_MODEL = "deepseek/deepseek-v4.1-flash-1017";
 
 // RIT-104: 既定が使えん時に順に落ちる逃げ道。Venice との直契約・直の鍵は作らん（局長裁定）。
