@@ -1,0 +1,1 @@
+ALTER TABLE `v2_memory_job` ADD `index_attempts` integer DEFAULT 0 NOT NULL;

@@ -2,6 +2,9 @@ import { z } from "zod";
 
 export const MEMORY_EXTRACTION_LIMIT = 8;
 export const MEMORY_PUBLISH_ATTEMPTS = 5;
+// 索引の失敗を数える上限（RIT-74）。届くと error_code='index_failed' で送りを止め、
+// 運用の口（POST /api/admin/memory-reindex）で戻すまで拾われない。
+export const MEMORY_INDEX_ATTEMPTS = 5;
 
 export const extractedMemorySchema = z
   .object({

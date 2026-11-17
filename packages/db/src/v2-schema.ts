@@ -293,6 +293,8 @@ export const v2MemoryJobTable = sqliteTable(
       .notNull()
       .default("pending"),
     publishAttempts: integer("publish_attempts").notNull().default(0),
+    // 索引（埋め込み→upsert→D1 保存）の失敗回数（RIT-74）。5 に届くと error_code='index_failed'。
+    indexAttempts: integer("index_attempts").notNull().default(0),
     errorCode: text("error_code"),
     createdAt: integer("created_at").notNull(),
     updatedAt: integer("updated_at").notNull(),

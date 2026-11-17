@@ -8,6 +8,8 @@
 
 抽出のモデルは返事と同じ選び方の鎖（利用者のセーフモードが入なら`V2_SAFE_MODEL_CHAIN`、切なら`V2_MODEL_CHAIN`）を先頭から順に試し、1本ごとに20秒で打ち切る。キャラ版の`memoryKinds`が空ならモデルを呼ばずjobを`completed`にする。抽出へは同じ会話で有効な記憶の主題一覧（`listActiveSubjects`、重複なく最大50件）をデータとして渡し、同じ話題には一覧の主題をそのまま使わせる。各記憶は`kind`・`category`（`long`/`recent`/`relation`/`future`、無い・不正な値は`long`）・`content`（発言の連続した部分そのもの）・`subject`・`importance`・`validFrom`・`validUntil`を持ち、5回失敗したjobは`failed`・`error_code`（`extraction_failed`/`source_changed`/`queue_delivery_failed`）を残す。
 
+索引の失敗（埋め込み・upsert・D1保存のどれかが投げる）はjobの`index_attempts`を+1し、`message.retry({delaySeconds:30})`でQueueへ戻す。5回目の配りの失敗で`error_code='index_failed'`にしてackする（jobのstateはcompletedのまま — failedにすると二度と拾われん）。`index_attempts<5`の未索引jobはChatRoomのalarmの送り（`listPendingMemoryJobs(includeUnindexed)`）でも拾われる2つ目の道が在る。`index_failed`のjobは運用の口`POST /api/admin/memory-reindex`（`mode:"failed"`、既定）で`index_attempts=0`・`error_code=null`に戻すと次の送りでやり直される。`mode:"all"`は対象会話のfact・preference記憶の`embedding`をnullに戻しその記憶のjobを未完成へ戻す — Vectorizeのmetadata indexは作成前にupsertされたベクトルに効かんので、indexを後から作った時はこの入れ直しが要る（vector idは同じなので件数は増えん）。資源の有無は`apps/v2/script/check-memory-resources.ts`で確かめる。
+
 Vectorizeには本文を保存しない。namespaceは利用者IDとキャラIDの組をhash化した値、metadataはmemory ID・本文hash・kind・conversation_id。vector IDもmemory IDと本文hashから作り、旧版の遅い書込みが新版を上書きしないようにする。upsertの受付後に、元発言と本文が変わっていない場合だけD1のembeddingを保存する。受付は検索反映の完了を意味しない。
 
 検索はnamespace、kind、conversation_idで絞って20件取得する。本文はD1から読み直し、利用者・キャラ・会話・元発言のhash・本文のhash・有効期間を再確認する。再生成では指定ターン以降の記憶も除く。Vectorizeに削除済み・編集前の結果が残っても、その本文をモデルへ渡さない。検索箱を通る道だけの部分は`retrieveVectorMemories`として切り出してあり、`retrieveMemories`は固定分の後にその結果を重複無しで継ぐ。RIT-78のverify-memoryは`retrieveVectorMemories`で「検索で実際に引けるか」を確かめる（固定の道で返る物を引けたと数えない）。
@@ -50,7 +52,7 @@ pnpm exec tsx apps/v2/script/memory-leak-check.ts --env staging
 
 ## この経路だけでは満たさない項目
 
-- 固定vectorのテストは配線と境界の検査であり、意味の近い言い換えが上位3件へ入る品質検証ではない。
+- 固定vectorのテストは配線と境界の検査であり、意味の近い言い換えが上位3件へ入る品質検証ではない。言い換えの実測は`apps/v2/script/memory-paraphrase-check.ts`（fixture: `packages/bench/fixture/memory-paraphrase-10.json`）をstagingで実行する（`CLOUDFLARE_API_TOKEN`・`CLOUDFLARE_ACCOUNT_ID`が要る）。
 - 矛盾する新旧事実の置換（RIT-86）、手入力記憶の統合、世界線・版の管理は別の接続が必要。
 - 古いvectorの物理削除と派生要約からの削除（RIT-94）、二段要約（RIT-72）は未接続。検索時の除外だけで削除完了とは扱わない。
 

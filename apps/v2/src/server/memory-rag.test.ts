@@ -417,21 +417,115 @@ describe("memory RAG with local D1", () => {
     expect(ack).toHaveBeenCalledOnce();
     expect(await listPendingMemoryJobs(local.db, fixture.scope, true)).toEqual([]);
 
+    // 配り 1〜5 回目で全部 upsert が投げる → 5 回目は index_failed で ack（spec 例: index_attempts=5）。
     const terminal = await seed();
-    env.upsertMock.mockRejectedValueOnce(new Error("offline"));
-    await consumeMemoryJobs(
-      {
-        ...batch,
-        messages: [{ ...batch.messages[0], body: { jobId: terminal.jobId }, attempts: 5 }],
-      },
-      workerEnv,
-    );
+    for (const attempts of [1, 2, 3, 4, 5]) {
+      env.upsertMock.mockRejectedValueOnce(new Error("offline"));
+      const terminalAck = vi.fn();
+      const terminalRetry = vi.fn();
+      await consumeMemoryJobs(
+        {
+          ...batch,
+          messages: [
+            {
+              ...batch.messages[0],
+              body: { jobId: terminal.jobId },
+              attempts,
+              ack: terminalAck,
+              retry: terminalRetry,
+            },
+          ],
+        },
+        workerEnv,
+      );
+      if (attempts < 5) {
+        expect(terminalRetry).toHaveBeenCalledWith({ delaySeconds: 30 });
+        expect(terminalAck).not.toHaveBeenCalled();
+      } else {
+        expect(terminalAck).toHaveBeenCalledOnce();
+        expect(terminalRetry).not.toHaveBeenCalled();
+      }
+    }
+    // 5 回目の失敗: job は completed のまま error_code='index_failed'・index_attempts=5（RIT-74）。
+    // state='failed' にすると二度と拾われんので completed に残す。
     const job = await local.d1
-      .prepare("SELECT state, error_code AS errorCode FROM v2_memory_job WHERE id = ?")
+      .prepare(
+        "SELECT state, error_code AS errorCode, index_attempts AS indexAttempts FROM v2_memory_job WHERE id = ?",
+      )
       .bind(terminal.jobId)
-      .first<{ state: string; errorCode: string | null }>();
-    expect(job).toMatchObject({ state: "failed", errorCode: "index_failed" });
+      .first<{ state: string; errorCode: string | null; indexAttempts: number }>();
+    expect(job).toMatchObject({
+      state: "completed",
+      errorCode: "index_failed",
+      indexAttempts: 5,
+    });
+    // index_failed は送られない（運用の口で戻すまで拾われない）
     expect(await listPendingMemoryJobs(local.db, terminal.scope, true)).toEqual([]);
+  });
+
+  it("upsertが3回投げてから成功すると索引に入り、index_attemptsは3のまま", async () => {
+    const fixture = await seed();
+    const env = bindings();
+    const workerEnv = {
+      ...env,
+      DB: local.d1,
+      APP_ENV: "test",
+      V2_FAKE_MODEL: "0",
+      V2_MODEL: "unused",
+      OPENROUTER_API_KEY: "",
+    };
+    const batch = (
+      attempts: number,
+      ack: () => void,
+      retry: () => void,
+    ): MessageBatch<unknown> => ({
+      queue: "local-memory",
+      ackAll: vi.fn(),
+      retryAll: vi.fn(),
+      metadata: { metrics: { backlogCount: 0, backlogBytes: 0 } },
+      messages: [
+        {
+          id: `delivery-${attempts}`,
+          timestamp: new Date(),
+          body: { jobId: fixture.jobId },
+          attempts,
+          ack,
+          retry,
+        },
+      ],
+    });
+    const jobRow = async () =>
+      local.d1
+        .prepare(
+          "SELECT index_attempts AS indexAttempts, error_code AS errorCode FROM v2_memory_job WHERE id = ?",
+        )
+        .bind(fixture.jobId)
+        .first<{ indexAttempts: number; errorCode: string | null }>();
+
+    // 1〜3 回目の配りは全部 upsert が投げる → retry され index_attempts が積み上がる
+    for (const attempts of [1, 2, 3]) {
+      env.upsertMock.mockRejectedValueOnce(new Error("offline"));
+      const ack = vi.fn();
+      const retry = vi.fn();
+      await consumeMemoryJobs(batch(attempts, ack, retry), workerEnv);
+      expect(retry).toHaveBeenCalledWith({ delaySeconds: 30 });
+      expect(ack).not.toHaveBeenCalled();
+    }
+    expect(await jobRow()).toMatchObject({ indexAttempts: 3, errorCode: null });
+
+    // 4 回目の配りで成功 → 記憶は索引に入る。index_attempts は戻さない（実測の失敗回数のまま）。
+    const ack = vi.fn();
+    const retry = vi.fn();
+    await consumeMemoryJobs(batch(4, ack, retry), workerEnv);
+    expect(ack).toHaveBeenCalledOnce();
+    expect(retry).not.toHaveBeenCalled();
+    const memory = await local.d1
+      .prepare("SELECT length(embedding) AS bytes FROM v2_memory WHERE id = ?")
+      .bind(fixture.memoryId)
+      .first<{ bytes: number | null }>();
+    expect(memory?.bytes).toBe(4096);
+    expect(await jobRow()).toMatchObject({ indexAttempts: 3, errorCode: null });
+    expect(await listPendingMemoryJobs(local.db, fixture.scope, true)).toEqual([]);
   });
 
   it("1024次元以外をindexへ送らず、書込み中の編集も完了扱いにしない", async () => {

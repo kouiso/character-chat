@@ -7,6 +7,7 @@ import { join } from "node:path";
 import {
   characterContentSchema,
   characterTable,
+  completeMemoryExtraction,
   createCharacterWithVersion,
   listRedactPendingSummaries,
   loadMemoryExtractionSource,
@@ -17,6 +18,7 @@ import {
   v2MessageTable,
   v2SummaryTable,
   hashMemorySource,
+  type ExtractedMemory,
 } from "@v2/db";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
@@ -407,6 +409,168 @@ describe("memory queue publisher", () => {
         .bind(created.id)
         .run();
       await local.d1.prepare("DELETE FROM character WHERE id = ?").bind(created.id).run();
+    }
+  });
+
+  // RIT-74 FR-5: 索引の失敗は retry で戻し、やり直しの配りでは抽出を呼ばずに索引だけやり直す。
+  // 5 回目の失敗は index_failed で ack（job は completed のまま、運用の口で戻すまで拾われない）。
+  it("索引の失敗は retry、やり直しは索引だけ、5 回目は index_failed で ack", async () => {
+    const memory: ExtractedMemory = {
+      kind: "preference",
+      content: "紅茶が好きです。",
+      subject: "",
+      category: "long",
+      importance: 3,
+      validFrom: null,
+      validUntil: null,
+    };
+    const vector = Array.from({ length: 1024 }, (_, index) => (index === 0 ? 1 : 0));
+    const convId = crypto.randomUUID();
+    const jobA = crypto.randomUUID();
+    const jobB = crypto.randomUUID();
+    try {
+      await local.db.batch([
+        local.db.insert(v2ConversationTable).values({
+          id: convId,
+          userId,
+          characterId,
+          threadId: convId,
+          promptVersion: "test",
+          createdAt: now,
+          updatedAt: now,
+        }),
+        ...[jobA, jobB].map((id) =>
+          local.db.insert(v2MessageTable).values({
+            id,
+            conversationId: convId,
+            turn: id === jobA ? 1 : 2,
+            role: "user",
+            content: `私は${memory.content}`,
+            createdAt: now,
+          }),
+        ),
+        ...[jobA, jobB].map((id) =>
+          local.db.insert(v2MemoryJobTable).values({
+            id,
+            sourceMessageId: id,
+            sourceTurn: id === jobA ? 1 : 2,
+            conversationId: convId,
+            userId,
+            characterId,
+            createdAt: now,
+            updatedAt: now,
+          }),
+        ),
+      ]);
+      // 抜き出し済み（state=completed）の job を作る — 記憶の行は在るが embedding は無い。
+      for (const id of [jobA, jobB]) {
+        const source = await loadMemoryExtractionSource(local.db, id);
+        if (!source) throw new Error("missing source");
+        await completeMemoryExtraction(local.db, source, [
+          { ...memory, content: `私は${memory.content}` },
+        ]);
+      }
+
+      const runMock = vi.fn().mockResolvedValue({ data: [vector] });
+      const upsertMock = vi.fn().mockResolvedValue({ ids: [], count: 0 });
+      const workerEnv = {
+        DB: local.d1,
+        APP_ENV: "test",
+        V2_FAKE_MODEL: "1",
+        V2_MODEL: "unused",
+        OPENROUTER_API_KEY: "",
+        V2_RAG_ENABLED: "1",
+        AI: { run: runMock as unknown as Ai["run"] },
+        MEMORY_INDEX: {
+          upsert: upsertMock as unknown as VectorizeIndex["upsert"],
+          query: vi.fn() as unknown as VectorizeIndex["query"],
+        },
+      };
+      const delivery = (
+        jobId: string,
+        attempts: number,
+        ack: () => void,
+        retry: () => void,
+      ): MessageBatch<unknown> => ({
+        queue: "local-memory",
+        ackAll: vi.fn(),
+        retryAll: vi.fn(),
+        metadata: { metrics: { backlogCount: 0, backlogBytes: 0 } },
+        messages: [
+          {
+            id: `d-${jobId}-${attempts}`,
+            timestamp: new Date(),
+            body: { jobId },
+            attempts,
+            ack,
+            retry,
+          },
+        ],
+      });
+      const invoke = vi.spyOn(FakeListChatModel.prototype, "invoke");
+      try {
+        // 1 回目の失敗: retry({delaySeconds:30})・ack 無し・index_attempts=1
+        upsertMock.mockRejectedValueOnce(new Error("vectorize offline"));
+        const ack1 = vi.fn();
+        const retry1 = vi.fn();
+        await consumeMemoryJobs(delivery(jobA, 1, ack1, retry1), workerEnv);
+        expect(retry1).toHaveBeenCalledWith({ delaySeconds: 30 });
+        expect(ack1).not.toHaveBeenCalled();
+        // 2 回目の配りは成功 → 索引だけがやり直される（抽出のモデルは 1 回も呼ばれない）
+        const ack2 = vi.fn();
+        const retry2 = vi.fn();
+        await consumeMemoryJobs(delivery(jobA, 2, ack2, retry2), workerEnv);
+        expect(ack2).toHaveBeenCalledOnce();
+        expect(invoke).not.toHaveBeenCalled();
+        const memoryRow = await local.d1
+          .prepare("SELECT length(embedding) AS bytes FROM v2_memory WHERE id = ?")
+          .bind(`${jobA}:0`)
+          .first<{ bytes: number | null }>();
+        expect(memoryRow?.bytes).toBe(4096);
+        const jobRow = await local.d1
+          .prepare("SELECT index_attempts AS n FROM v2_memory_job WHERE id = ?")
+          .bind(jobA)
+          .first<{ n: number }>();
+        expect(jobRow?.n).toBe(1);
+
+        // 配り 1〜4 回目で upsert が投げる → retry({delaySeconds:30})・ack 無し
+        for (const attempts of [1, 2, 3, 4]) {
+          upsertMock.mockRejectedValueOnce(new Error("vectorize offline"));
+          const ack3 = vi.fn();
+          const retry3 = vi.fn();
+          await consumeMemoryJobs(delivery(jobB, attempts, ack3, retry3), workerEnv);
+          expect(retry3).toHaveBeenCalledWith({ delaySeconds: 30 });
+          expect(ack3).not.toHaveBeenCalled();
+        }
+        // 5 回目の失敗は index_failed で ack。retry は呼ばれない。
+        upsertMock.mockRejectedValueOnce(new Error("vectorize offline"));
+        const ack5 = vi.fn();
+        const retry5 = vi.fn();
+        await consumeMemoryJobs(delivery(jobB, 5, ack5, retry5), workerEnv);
+        expect(ack5).toHaveBeenCalledOnce();
+        expect(retry5).not.toHaveBeenCalled();
+        const terminal = await local.d1
+          .prepare(
+            "SELECT state, error_code AS errorCode, index_attempts AS n FROM v2_memory_job WHERE id = ?",
+          )
+          .bind(jobB)
+          .first<{ state: string; errorCode: string | null; n: number }>();
+        expect(terminal).toMatchObject({
+          state: "completed",
+          errorCode: "index_failed",
+          n: 5,
+        });
+      } finally {
+        invoke.mockRestore();
+      }
+    } finally {
+      await local.d1.prepare("DELETE FROM v2_memory WHERE conversation_id = ?").bind(convId).run();
+      await local.d1
+        .prepare("DELETE FROM v2_memory_job WHERE conversation_id = ?")
+        .bind(convId)
+        .run();
+      await local.d1.prepare("DELETE FROM v2_message WHERE conversation_id = ?").bind(convId).run();
+      await local.d1.prepare("DELETE FROM v2_conversation WHERE id = ?").bind(convId).run();
     }
   });
 

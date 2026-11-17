@@ -1,5 +1,6 @@
-import { and, eq, inArray, isNull, lt, sql } from "drizzle-orm";
+import { and, eq, inArray, isNull, lt, sql, type SQLWrapper } from "drizzle-orm";
 
+import { MEMORY_INDEX_ATTEMPTS } from "./memory-extraction-contract";
 import { memoryReadConditions } from "./memory-scope";
 import {
   v2ConversationTable,
@@ -118,9 +119,84 @@ export const saveMemoryEmbedding = async (db: V2Db, memory: IndexableMemory, vec
     );
 };
 
-export const failMemoryIndex = async (db: V2Db, jobId: string) => {
+// 索引の失敗 1 回ごとの勘定（RIT-74 FR-5）。state は completed のままにする — failed にすると
+// listPendingMemoryJobs が二度と拾わず、その記憶は永久に索引に入らん。失敗回数が上限に
+// 届いた時か、Queue の配りが最後（terminal）の時に error_code='index_failed' を付けて送りを止める。
+export const failMemoryIndex = async (db: V2Db, jobId: string, terminal = false) => {
   await db
     .update(v2MemoryJobTable)
-    .set({ state: "failed", errorCode: "index_failed", updatedAt: Date.now() })
+    .set({
+      indexAttempts: sql`${v2MemoryJobTable.indexAttempts} + 1`,
+      errorCode: terminal
+        ? "index_failed"
+        : sql`case when ${v2MemoryJobTable.indexAttempts} + 1 >= ${MEMORY_INDEX_ATTEMPTS} then 'index_failed' else ${v2MemoryJobTable.errorCode} end`,
+      updatedAt: Date.now(),
+    })
     .where(and(eq(v2MemoryJobTable.id, jobId), eq(v2MemoryJobTable.state, "completed")));
+};
+
+// 対象の会話は利用者の物だけ（所有境界は v2_conversation.user_id）。
+const ownedConversation = (userId: string, column: SQLWrapper) =>
+  sql`exists (select 1 from v2_conversation c where c.id = ${column} and c.user_id = ${userId})`;
+
+// mode: "failed" — index_failed の job を未完成へ戻し、次の送りで拾わせる（RIT-74 FR-6）。
+export const resetFailedMemoryIndex = async (
+  db: V2Db,
+  userId: string,
+  conversationId?: string,
+): Promise<number> => {
+  const result = await db
+    .update(v2MemoryJobTable)
+    .set({ indexAttempts: 0, errorCode: null, state: "completed", updatedAt: Date.now() })
+    .where(
+      and(
+        eq(v2MemoryJobTable.errorCode, "index_failed"),
+        ownedConversation(userId, v2MemoryJobTable.conversationId),
+        conversationId === undefined
+          ? undefined
+          : eq(v2MemoryJobTable.conversationId, conversationId),
+      ),
+    );
+  return result.meta.changes ?? 0;
+};
+
+// mode: "all" — metadata index を後から作った時の入れ直し（RIT-74 FR-8）。
+// 索引より先に upsert されたベクトルは絞り込みに効かんので、embedding を null に戻して
+// 次の送りで同じ vector id で upsert し直させる（件数は増えん）。
+export const resetAllMemoryIndex = async (
+  db: V2Db,
+  userId: string,
+  conversationId?: string,
+): Promise<number> => {
+  const [, jobs] = await db.batch([
+    db
+      .update(v2MemoryTable)
+      .set({ embedding: null })
+      .where(
+        and(
+          inArray(v2MemoryTable.kind, ["fact", "preference"]),
+          ownedConversation(userId, v2MemoryTable.conversationId),
+          conversationId === undefined
+            ? undefined
+            : eq(v2MemoryTable.conversationId, conversationId),
+        ),
+      ),
+    db
+      .update(v2MemoryJobTable)
+      .set({ indexAttempts: 0, errorCode: null, state: "completed", updatedAt: Date.now() })
+      .where(
+        and(
+          ownedConversation(userId, v2MemoryJobTable.conversationId),
+          conversationId === undefined
+            ? undefined
+            : eq(v2MemoryJobTable.conversationId, conversationId),
+          // 記憶を持つ job だけを戻す（未抽出の pending/queued には記憶が無いので自然に除ける）。
+          sql`exists (select 1 from v2_memory_source s join v2_memory m on m.id = s.memory_id
+            where s.source_message_id = ${v2MemoryJobTable.sourceMessageId}
+              and m.conversation_id = ${v2MemoryJobTable.conversationId}
+              and m.kind in ('fact', 'preference'))`,
+        ),
+      ),
+  ]);
+  return jobs.meta.changes ?? 0;
 };

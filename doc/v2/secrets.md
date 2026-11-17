@@ -119,6 +119,20 @@ pnpm exec wrangler queues create adult-ai-v2-memory-staging
 metadata index は記憶の検索が `kind` と `conversation_id` で絞るのに要る（[memory-rag.md](./memory-rag.md)）。
 未作成のまま `wrangler deploy` すると束ね解決で止まるので、開いた状態にはならん。
 
+### 資源の有無の確かめ（RIT-74）
+
+上の資源（検索箱・2 つの metadata index・Queue）が env ごとに在るかを読むだけの手順。
+要る鍵は `CLOUDFLARE_API_TOKEN` と `CLOUDFLARE_ACCOUNT_ID`（読むだけ。資源は作らん）:
+
+```sh
+pnpm exec tsx apps/v2/script/check-memory-resources.ts --env staging
+pnpm exec tsx apps/v2/script/check-memory-resources.ts --env rag
+```
+
+出力は資源ごとの有無の表。検索箱にベクトルが在るのに metadata index が無い時は、
+metadata index を作った後に `POST /api/admin/memory-reindex {"mode":"all"}` の
+入れ直しが要る事を出す（metadata index は作成前に upsert されたベクトルに効かんため）。
+
 ## やってはいけん
 
 - secret の値を issue・PR・commit・ログ・`wrangler.jsonc` の `vars` に書く

@@ -31,7 +31,9 @@ export const indexMemoryJob = async (
   const memories = await loadUnindexedMemoryJob(db, jobId);
   for (const memory of memories) {
     if ((await hashMemorySource(memory.sourceContent)) !== memory.sourceContentHash) {
-      await failMemoryIndex(db, jobId);
+      // 元発言が抜き出し後に変わった食い違いはやり直しても一致せんので、
+      // 回数を数えず即 index_failed（terminal）にして送りを止める。
+      await failMemoryIndex(db, jobId, true);
       return;
     }
     const hash = await hashMemorySource(memory.content);

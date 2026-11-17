@@ -124,6 +124,14 @@
       }
     },
     {
+      "files": ["**/script/**/*.ts"],
+      "rules": {
+        "no-console": "off",
+        "complexity": "off",
+        "max-depth": "off"
+      }
+    },
+    {
       "files": [
         "**/src/run.ts",
         "**/src/persist-check.ts",
