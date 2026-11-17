@@ -8,6 +8,7 @@ import {
   dropSummary,
   failMemoryExtraction,
   failMemoryIndex,
+  listActiveSubjects,
   listForgottenContents,
   listPendingMemoryJobs,
   listRedactPendingSummaries,
@@ -21,13 +22,19 @@ import {
   type MemoryQueueBody,
   type V2Db,
 } from "@v2/db";
-import { createOpenRouterModel, extractMemories } from "@v2/engine";
+import {
+  createModelChain,
+  createOpenRouterModel,
+  extractMemories,
+  type ModelCandidate,
+} from "@v2/engine";
 import { buildSummaryRedactInstruction } from "@v2/prompt";
 
 import { purgeExpiredMemories } from "./memory-purge";
 import { indexMemoryJob } from "./memory-rag";
 import { memoryVectorReady, type MemoryVectorBindings } from "./memory-vector";
 import { reportFailure } from "./log";
+import { readSafeMode } from "./user-settings";
 
 import type { BaseChatModel } from "@langchain/core/language_models/chat_models";
 import type { BaseMessage } from "@langchain/core/messages";
@@ -66,38 +73,74 @@ export const publishMemoryJobs = async (
   return (await listPendingMemoryJobs(db, scope, includeUnindexed)).length > 0;
 };
 
-type MemoryModelEnv = Pick<
-  Cloudflare.Env,
-  "APP_ENV" | "V2_FAKE_MODEL" | "V2_MODEL" | "OPENROUTER_API_KEY"
+type MemoryModelEnv = Partial<
+  Pick<
+    Cloudflare.Env,
+    | "APP_ENV"
+    | "V2_FAKE_MODEL"
+    | "V2_MODEL"
+    | "V2_MODEL_CHAIN"
+    | "V2_SAFE_MODEL_CHAIN"
+    | "V2_OPENROUTER_BASE_URL"
+    | "OPENROUTER_API_KEY"
+    | "V2_TEST_FAULT"
+  >
 >;
 
-export const createMemoryExtractionModel = (env: MemoryModelEnv, source: string): BaseChatModel => {
+// 抜き出しのモデル鎖（RIT-73 FR-8）。返事と同じ選び方: セーフモードが入なら
+// V2_SAFE_MODEL_CHAIN、切なら V2_MODEL_CHAIN の順で試す。試験環境では固定文の偽モデル 1 本。
+export const createMemoryExtractionModels = (
+  env: MemoryModelEnv,
+  safeMode: boolean,
+  source: string,
+): ModelCandidate[] => {
   if (env.APP_ENV === "test" && env.V2_FAKE_MODEL === "1") {
-    return new FakeListChatModel({
-      responses: [
-        JSON.stringify({
-          memories: source.trim()
-            ? [
-                {
-                  kind: "fact",
-                  content: source.trim().slice(0, 500),
-                  importance: 3,
-                  validFrom: null,
-                  validUntil: null,
-                },
-              ]
-            : [],
+    return [
+      {
+        name: "fake",
+        model: new FakeListChatModel({
+          responses: [
+            JSON.stringify({
+              memories: source.trim()
+                ? [
+                    {
+                      kind: "fact",
+                      content: source.trim().slice(0, 500),
+                      importance: 3,
+                      validFrom: null,
+                      validUntil: null,
+                    },
+                  ]
+                : [],
+            }),
+          ],
         }),
-      ],
-    });
+      },
+    ];
   }
-  return createOpenRouterModel(env);
+  return createModelChain(env, { safeMode });
 };
 
-const runMemoryExtraction = async (
-  db: V2Db,
-  env: MemoryModelEnv,
+// 失敗の再現用（RIT-73 6-b）。staging・test の時だけモデルを呼ぶ前に投げる。
+// 本番（APP_ENV=production）では値が残っていても無視する。
+const memoryExtractFault = (env: MemoryModelEnv): boolean =>
+  env.V2_TEST_FAULT === "memory-extract-fail" &&
+  (env.APP_ENV === "staging" || env.APP_ENV === "test");
+
+// 利用者のセーフモード設定を読んで抜き出しの鎖を組む（RIT-73 FR-8）。
+export const resolveMemoryExtractionModels = async (
+  env: MemoryModelEnv & Pick<Cloudflare.Env, "DB">,
   source: MemoryExtractionSource,
+): Promise<ModelCandidate[]> =>
+  createMemoryExtractionModels(env, await readSafeMode(env.DB, source.userId), source.content);
+
+// 1 件の予約を抜き出しから保存まで流す。models は試験が鎖を差し替える口
+// （未指定なら利用者のセーフモードで env から組む）。
+export const runMemoryExtraction = async (
+  db: V2Db,
+  env: MemoryModelEnv & Pick<Cloudflare.Env, "DB">,
+  source: MemoryExtractionSource,
+  models?: readonly BaseChatModel[],
 ): Promise<void> => {
   const policy = await loadMemoryExtractionPolicy(db, source.conversationId);
   // 種類を全部切った版では呼んでも全て捨てるだけなので、モデルを呼ばず完了にする。
@@ -105,11 +148,13 @@ const runMemoryExtraction = async (
     await completeMemoryExtraction(db, source, []);
     return;
   }
-  const extracted = await extractMemories(
-    createMemoryExtractionModel(env, source.content),
-    source.content,
-    policy?.memoryInstruction,
-  );
+  if (memoryExtractFault(env)) throw new Error("test fault: memory-extract-fail");
+  const knownSubjects = await listActiveSubjects(db, source.conversationId);
+  const resolved = models ?? (await resolveMemoryExtractionModels(env, source)).map((c) => c.model);
+  const extracted = await extractMemories(resolved, source.content, {
+    instruction: policy?.memoryInstruction,
+    knownSubjects,
+  });
   // 指示どおりの種類だけ残す契約。方針を読めん会話は全種類を通す。
   const memories = policy
     ? extracted.filter((memory) => policy.memoryKinds.includes(memory.kind))
@@ -219,13 +264,18 @@ const tryPurgeExpiredMemories = async (
 export const consumeMemoryJobs = async (
   batch: MessageBatch<unknown>,
   env: MemoryModelEnv &
-    Pick<Cloudflare.Env, "DB"> & { SLACK_ERROR_WEBHOOK_URL?: string } & MemoryVectorBindings,
+    Pick<Cloudflare.Env, "DB"> & {
+      SLACK_ERROR_WEBHOOK_URL?: string;
+    } & MemoryVectorBindings,
 ): Promise<void> => {
   const db = createDb(env.DB);
   for (const message of batch.messages) {
     const parsed = memoryQueueBodySchema.safeParse(message.body);
     if (!parsed.success) {
-      reportFailure(env, { event: "memory_queue_invalid_message", level: "error" });
+      reportFailure(env, {
+        event: "memory_queue_invalid_message",
+        level: "error",
+      });
       message.ack();
       continue;
     }

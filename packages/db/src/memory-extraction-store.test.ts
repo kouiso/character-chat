@@ -9,9 +9,11 @@ import { characterContentSchema } from "./character-version";
 import { createCharacterWithVersion } from "./character-version-store";
 import {
   completeMemoryExtraction,
+  listActiveSubjects,
   listPendingMemoryJobs,
   loadMemoryExtractionPolicy,
   loadMemoryExtractionSource,
+  ACTIVE_SUBJECT_LIMIT,
 } from "./memory-extraction-store";
 import { loadMemoryCandidates } from "./memory-index-store";
 import { openLocalD1, type LocalD1 } from "./test/local-d1";
@@ -24,6 +26,7 @@ import {
   v2GenerationTable,
   v2LedgerTable,
   v2MemoryJobTable,
+  v2MemorySourceTable,
   v2MemoryTable,
   v2MessageTable,
 } from "./v2-schema";
@@ -79,7 +82,11 @@ describe("memory extraction store", () => {
   let local: LocalD1;
   let characterId: string;
   const ids: string[] = [];
-  const scope = (conversationId: string) => ({ userId: owner, characterId, conversationId });
+  const scope = (conversationId: string) => ({
+    userId: owner,
+    characterId,
+    conversationId,
+  });
   const save = async (conversationId = crypto.randomUUID(), events: TurnEvent[] = [reply]) => {
     ids.push(conversationId);
     await createD1TurnStore(local.db, {
@@ -124,11 +131,17 @@ describe("memory extraction store", () => {
     const id = await save();
     expect(await listPendingMemoryJobs(local.db, scope(id))).toHaveLength(1);
     expect(await listPendingMemoryJobs(local.db, { ...scope(id), userId: "other" })).toEqual([]);
-    expect(await listPendingMemoryJobs(local.db, { ...scope(id), characterId: "other" })).toEqual(
-      [],
-    );
     expect(
-      await listPendingMemoryJobs(local.db, { ...scope(id), conversationId: "other" }),
+      await listPendingMemoryJobs(local.db, {
+        ...scope(id),
+        characterId: "other",
+      }),
+    ).toEqual([]);
+    expect(
+      await listPendingMemoryJobs(local.db, {
+        ...scope(id),
+        conversationId: "other",
+      }),
     ).toEqual([]);
     expect(await listPendingMemoryJobs(local.db, scope(await save(undefined, [])))).toEqual([]);
   });
@@ -342,5 +355,104 @@ describe("memory extraction store", () => {
       rows.map((row) => row.id),
     );
     expect(active.map((row) => row.content)).toEqual(["麦茶が好き"]);
+  });
+
+  it("抜き出した記憶の行ごとに出どころと分類が入る（FR-10・FR-11）", async () => {
+    const id = await save();
+    const [job] = await listPendingMemoryJobs(local.db, scope(id));
+    const source = await loadMemoryExtractionSource(local.db, job.id);
+    if (!source) throw new Error("source missing");
+    await completeMemoryExtraction(local.db, source, [
+      fact,
+      {
+        ...fact,
+        content: "私は紅茶が好きです",
+        category: "recent",
+        subject: "",
+      },
+    ]);
+    const memories = await local.db
+      .select({
+        id: v2MemoryTable.id,
+        sourceTurn: v2MemoryTable.sourceTurn,
+        category: v2MemoryTable.category,
+      })
+      .from(v2MemoryTable)
+      .where(eq(v2MemoryTable.conversationId, id));
+    expect(memories).toHaveLength(2);
+    // RIT-92 への保証: source_turn はそのターンの番号、category は抽出の値
+    expect(memories.every((row) => row.sourceTurn === 1)).toBe(true);
+    expect(memories.map((row) => row.category).sort()).toEqual(["long", "recent"]);
+    const sources = await local.db
+      .select({
+        memoryId: v2MemorySourceTable.memoryId,
+        sourceMessageId: v2MemorySourceTable.sourceMessageId,
+      })
+      .from(v2MemorySourceTable)
+      .where(
+        inArray(
+          v2MemorySourceTable.memoryId,
+          memories.map((row) => row.id),
+        ),
+      );
+    // RIT-92 への保証: source_message_id はそのターンの利用者の発言の id（= job id）
+    expect(sources).toHaveLength(2);
+    expect(sources.every((row) => row.sourceMessageId === source.sourceMessageId)).toBe(true);
+  });
+
+  it("有効な記憶の主題だけを新しい順・重複なく 50 件まで返す（FR-5）", async () => {
+    const conversationId = crypto.randomUUID();
+    ids.push(conversationId);
+    await local.db.insert(v2ConversationTable).values({
+      id: conversationId,
+      userId: owner,
+      characterId,
+      threadId: conversationId,
+      promptVersion: "test",
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+    const memory = (i: number, extra: Partial<typeof v2MemoryTable.$inferInsert> = {}) => ({
+      id: `subj-${i}`,
+      conversationId,
+      kind: "fact" as const,
+      content: `内容${i}`,
+      createdAt: i,
+      subject: `主題${i}`,
+      ...extra,
+    });
+    // 除外対象: 置き換え済み・論理削除・空主題・他の会話の行
+    await local.db.insert(v2MemoryTable).values(memory(0, { supersededBy: "subj-1" }));
+    await local.db.insert(v2MemoryTable).values(memory(1, { deletedAt: Date.now() }));
+    await local.db.insert(v2MemoryTable).values(memory(2, { subject: "" }));
+    const total = ACTIVE_SUBJECT_LIMIT + 5;
+    for (let i = 3; i < total; i += 1) {
+      await local.db.insert(v2MemoryTable).values(memory(i));
+    }
+    const other = crypto.randomUUID();
+    ids.push(other);
+    await local.db.insert(v2ConversationTable).values({
+      id: other,
+      userId: owner,
+      characterId,
+      threadId: other,
+      promptVersion: "test",
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+    await local.db.insert(v2MemoryTable).values({
+      ...memory(total, { subject: "他の会話" }),
+      id: "subj-other",
+      conversationId: other,
+    });
+
+    const subjects = await listActiveSubjects(local.db, conversationId);
+    expect(subjects).toHaveLength(ACTIVE_SUBJECT_LIMIT);
+    expect(new Set(subjects).size).toBe(subjects.length);
+    // 新しい順の先頭は createdAt 最大の主題。除外対象はどれも入らん。
+    expect(subjects[0]).toBe(`主題${total - 1}`);
+    expect(subjects).not.toContain("主題0");
+    expect(subjects).not.toContain("主題1");
+    expect(subjects).not.toContain("他の会話");
   });
 });
