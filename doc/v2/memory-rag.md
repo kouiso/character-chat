@@ -6,6 +6,8 @@
 
 確定ターンと同じD1 batchで抽出jobを保存し、Queueにはjob IDだけを渡す。文字数上限またはdeadlineで生成が打ち切られても、非空の応答を受理したターンは抽出対象にする。明示的な生成errorと空応答は除く。Queue送信が受理された後のD1状態更新失敗は送信失敗回数に加えず、jobをpendingのままにする。Queueは重複配送を前提に、job IDで冪等に処理する。抽出済みjobの再配送では抽出を繰り返さず、未indexの記憶だけを処理する。bge-m3の応答は1024次元の有限値に限定する。
 
+抽出のモデルは返事と同じ選び方の鎖（利用者のセーフモードが入なら`V2_SAFE_MODEL_CHAIN`、切なら`V2_MODEL_CHAIN`）を先頭から順に試し、1本ごとに20秒で打ち切る。キャラ版の`memoryKinds`が空ならモデルを呼ばずjobを`completed`にする。抽出へは同じ会話で有効な記憶の主題一覧（`listActiveSubjects`、重複なく最大50件）をデータとして渡し、同じ話題には一覧の主題をそのまま使わせる。各記憶は`kind`・`category`（`long`/`recent`/`relation`/`future`、無い・不正な値は`long`）・`content`（発言の連続した部分そのもの）・`subject`・`importance`・`validFrom`・`validUntil`を持ち、5回失敗したjobは`failed`・`error_code`（`extraction_failed`/`source_changed`/`queue_delivery_failed`）を残す。
+
 Vectorizeには本文を保存しない。namespaceは利用者IDとキャラIDの組をhash化した値、metadataはmemory ID・本文hash・kind・conversation_id。vector IDもmemory IDと本文hashから作り、旧版の遅い書込みが新版を上書きしないようにする。upsertの受付後に、元発言と本文が変わっていない場合だけD1のembeddingを保存する。受付は検索反映の完了を意味しない。
 
 検索はnamespace、kind、conversation_idで絞って20件取得する。本文はD1から読み直し、利用者・キャラ・会話・元発言のhash・本文のhash・有効期間を再確認する。再生成では指定ターン以降の記憶も除く。Vectorizeに削除済み・編集前の結果が残っても、その本文をモデルへ渡さない。検索箱を通る道だけの部分は`retrieveVectorMemories`として切り出してあり、`retrieveMemories`は固定分の後にその結果を重複無しで継ぐ。RIT-78のverify-memoryは`retrieveVectorMemories`で「検索で実際に引けるか」を確かめる（固定の道で返る物を引けたと数えない）。

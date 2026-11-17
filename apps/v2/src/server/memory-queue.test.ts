@@ -22,7 +22,13 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import { openLocalD1, type LocalD1 } from "../../../../packages/db/src/test/local-d1";
 
-import { consumeMemoryJobs, publishMemoryJobs, runSummaryRedact } from "./memory-queue";
+import {
+  consumeMemoryJobs,
+  publishMemoryJobs,
+  resolveMemoryExtractionModels,
+  runMemoryExtraction,
+  runSummaryRedact,
+} from "./memory-queue";
 
 const userId = `memory-queue-test-${crypto.randomUUID()}`;
 const characterId = crypto.randomUUID();
@@ -514,5 +520,238 @@ describe("memory queue publisher", () => {
       .all();
     expect(remaining.results).toEqual([]);
     expect(await listRedactPendingSummaries(local.db, conversationId)).toEqual([]);
+  });
+
+  // 1 件の予約を会話・発言・job の 3 行で仕込む。
+  const seedJob = async (text: string) => {
+    const seedConversationId = crypto.randomUUID();
+    const seedJobId = crypto.randomUUID();
+    await local.db.batch([
+      local.db.insert(v2ConversationTable).values({
+        id: seedConversationId,
+        userId,
+        characterId,
+        threadId: seedConversationId,
+        promptVersion: "test",
+        createdAt: now,
+        updatedAt: now,
+      }),
+      local.db.insert(v2MessageTable).values({
+        id: seedJobId,
+        conversationId: seedConversationId,
+        turn: 1,
+        role: "user",
+        content: text,
+        createdAt: now,
+      }),
+      local.db.insert(v2MemoryJobTable).values({
+        id: seedJobId,
+        sourceMessageId: seedJobId,
+        sourceTurn: 1,
+        conversationId: seedConversationId,
+        userId,
+        characterId,
+        createdAt: now,
+        updatedAt: now,
+      }),
+    ]);
+    const source = await loadMemoryExtractionSource(local.db, seedJobId);
+    if (!source) throw new Error("source missing");
+    return { source, seedJobId, seedConversationId };
+  };
+
+  const cleanupSeed = async (seedConversationId: string) => {
+    await local.d1
+      .prepare("DELETE FROM v2_memory WHERE conversation_id = ?")
+      .bind(seedConversationId)
+      .run();
+    await local.d1
+      .prepare("DELETE FROM v2_memory_job WHERE conversation_id = ?")
+      .bind(seedConversationId)
+      .run();
+    await local.d1
+      .prepare("DELETE FROM v2_message WHERE conversation_id = ?")
+      .bind(seedConversationId)
+      .run();
+    await local.d1
+      .prepare("DELETE FROM v2_conversation WHERE id = ?")
+      .bind(seedConversationId)
+      .run();
+  };
+
+  it("1 本目のモデルが投げると 2 本目で保存する（FR-8）", async () => {
+    const { source, seedJobId, seedConversationId } = await seedJob("私は紅茶が好きです。");
+    try {
+      const throwing = new FakeListChatModel({ responses: [] });
+      const good = new FakeListChatModel({
+        responses: [
+          JSON.stringify({
+            memories: [
+              {
+                kind: "preference",
+                content: "紅茶が好き",
+                subject: "好きな飲み物",
+                category: "long",
+                importance: 3,
+                validFrom: null,
+                validUntil: null,
+              },
+            ],
+          }),
+        ],
+      });
+      await runMemoryExtraction(local.db, { DB: local.d1 }, source, [throwing, good]);
+      const memories = await local.d1
+        .prepare("SELECT content, subject, category FROM v2_memory WHERE conversation_id = ?")
+        .bind(seedConversationId)
+        .all<{ content: string; subject: string; category: string }>();
+      expect(memories.results).toEqual([
+        { content: "紅茶が好き", subject: "好きな飲み物", category: "long" },
+      ]);
+      const job = await local.d1
+        .prepare("SELECT state FROM v2_memory_job WHERE id = ?")
+        .bind(seedJobId)
+        .first<{ state: string }>();
+      expect(job?.state).toBe("completed");
+    } finally {
+      await cleanupSeed(seedConversationId);
+    }
+  });
+
+  it("セーフモードが入の利用者は V2_SAFE_MODEL_CHAIN、切は V2_MODEL_CHAIN を使う（FR-8）", async () => {
+    const env = {
+      DB: local.d1,
+      APP_ENV: "staging",
+      OPENROUTER_API_KEY: "test-key",
+      V2_SAFE_MODEL_CHAIN: '[{"model":"safe-a"},{"model":"safe-b"}]',
+      V2_MODEL_CHAIN: '[{"model":"normal-a"}]',
+    };
+    const source = {
+      id: crypto.randomUUID(),
+      conversationId,
+      userId,
+      characterId,
+      sourceMessageId: crypto.randomUUID(),
+      sourceTurn: 1,
+      content: "私は紅茶が好きです。",
+      createdAt: now,
+    };
+    try {
+      // 未設定 = 切 → 通常の鎖
+      expect((await resolveMemoryExtractionModels(env, source)).map((c) => c.name)).toEqual([
+        "normal-a",
+      ]);
+      await local.d1
+        .prepare("INSERT INTO v2_user_settings (user_id, safe_mode, updated_at) VALUES (?, 1, ?)")
+        .bind(userId, Date.now())
+        .run();
+      // 入 = セーフ側の鎖の値をそのまま使う
+      expect((await resolveMemoryExtractionModels(env, source)).map((c) => c.name)).toEqual([
+        "safe-a",
+        "safe-b",
+      ]);
+    } finally {
+      await local.d1.prepare("DELETE FROM v2_user_settings WHERE user_id = ?").bind(userId).run();
+    }
+  });
+
+  it("memory-extract-fail は staging・test で投げ、production では投げない（6-b）", async () => {
+    const first = await seedJob("私は紅茶が好きです。");
+    const second = await seedJob("私は紅茶が好きです。");
+    const good = new FakeListChatModel({
+      responses: [
+        JSON.stringify({
+          memories: [
+            {
+              kind: "fact",
+              content: "紅茶が好き",
+              subject: "",
+              category: "long",
+              importance: 3,
+              validFrom: null,
+              validUntil: null,
+            },
+          ],
+        }),
+      ],
+    });
+    try {
+      // staging・test ではモデルを呼ぶ前に投げる（注入したモデルがあっても呼ばれん）
+      await expect(
+        runMemoryExtraction(
+          local.db,
+          {
+            DB: local.d1,
+            APP_ENV: "staging",
+            V2_TEST_FAULT: "memory-extract-fail",
+          },
+          first.source,
+          [good],
+        ),
+      ).rejects.toThrow();
+      // production では値が残っていても無視して普通に抜き出す
+      await runMemoryExtraction(
+        local.db,
+        {
+          DB: local.d1,
+          APP_ENV: "production",
+          V2_TEST_FAULT: "memory-extract-fail",
+        },
+        second.source,
+        [good],
+      );
+      const memories = await local.d1
+        .prepare("SELECT id FROM v2_memory WHERE conversation_id = ?")
+        .bind(second.seedConversationId)
+        .all();
+      expect(memories.results).toHaveLength(1);
+    } finally {
+      await cleanupSeed(first.seedConversationId);
+      await cleanupSeed(second.seedConversationId);
+    }
+  });
+
+  it("抜き出しの 5 回目の失敗で予約を failed・extraction_failed にして ack する（FR-9）", async () => {
+    const { seedJobId, seedConversationId } = await seedJob("私は紅茶が好きです。");
+    try {
+      const ack = vi.fn();
+      const retry = vi.fn();
+      const batch: MessageBatch<unknown> = {
+        queue: "local-memory",
+        ackAll: vi.fn(),
+        retryAll: vi.fn(),
+        metadata: { metrics: { backlogCount: 0, backlogBytes: 0 } },
+        messages: [
+          {
+            id: "fifth-delivery",
+            timestamp: new Date(),
+            body: { jobId: seedJobId },
+            attempts: 5,
+            ack,
+            retry,
+          },
+        ],
+      };
+      await consumeMemoryJobs(batch, {
+        DB: local.d1,
+        APP_ENV: "test",
+        V2_FAKE_MODEL: "1",
+        V2_TEST_FAULT: "memory-extract-fail",
+        OPENROUTER_API_KEY: "",
+        V2_RAG_ENABLED: "0",
+      });
+      expect(ack).toHaveBeenCalledOnce();
+      expect(retry).not.toHaveBeenCalled();
+      const job = await local.d1
+        .prepare("SELECT state, error_code AS errorCode FROM v2_memory_job WHERE id = ?")
+        .bind(seedJobId)
+        .first<{ state: string; errorCode: string | null }>();
+      expect(job).toMatchObject({
+        state: "failed",
+        errorCode: "extraction_failed",
+      });
+    } finally {
+      await cleanupSeed(seedConversationId);
+    }
   });
 });

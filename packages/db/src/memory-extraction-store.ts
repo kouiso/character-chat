@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray, isNull, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNull, ne, or, sql } from "drizzle-orm";
 
 import { storedCharacterContentSchema } from "./character-version";
 import {
@@ -164,6 +164,31 @@ export const loadMemoryExtractionPolicy = async (
   return latest ? policyFromContent(latest.contentJson) : null;
 };
 
+// 抜き出しへ渡す主題一覧の上限（RIT-73 FR-5）。会話ごとに覚える話題は
+// 多くても数十なので、直近 50 件で指示文の膨張を抑える。
+export const ACTIVE_SUBJECT_LIMIT = 50;
+
+// 同じ会話で今有効な記憶の主題一覧（RIT-73 FR-5）。新しい順・重複なし。
+// 置き換わった記憶（superseded）と消した記憶（deleted）は「有効」でないので除く
+// — 消した話題の主題へ新しい記憶を寄せると復活に見える。
+export const listActiveSubjects = async (db: V2Db, conversationId: string): Promise<string[]> => {
+  const rows = await db
+    .select({ subject: v2MemoryTable.subject })
+    .from(v2MemoryTable)
+    .where(
+      and(
+        eq(v2MemoryTable.conversationId, conversationId),
+        isNull(v2MemoryTable.supersededBy),
+        isNull(v2MemoryTable.deletedAt),
+        ne(v2MemoryTable.subject, ""),
+      ),
+    )
+    .groupBy(v2MemoryTable.subject)
+    .orderBy(desc(sql`max(${v2MemoryTable.createdAt})`))
+    .limit(ACTIVE_SUBJECT_LIMIT);
+  return rows.map((row) => row.subject);
+};
+
 export const hashMemorySource = async (content: string): Promise<string> => {
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(content));
   return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
@@ -285,6 +310,10 @@ export const completeMemoryExtraction = async (
 export const failMemoryExtraction = async (db: V2Db, id: string): Promise<void> => {
   await db
     .update(v2MemoryJobTable)
-    .set({ state: "failed", errorCode: "extraction_failed", updatedAt: Date.now() })
+    .set({
+      state: "failed",
+      errorCode: "extraction_failed",
+      updatedAt: Date.now(),
+    })
     .where(and(eq(v2MemoryJobTable.id, id), unfinished));
 };
