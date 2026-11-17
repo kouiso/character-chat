@@ -1311,10 +1311,9 @@ export const ChatView = ({
     const abort = new AbortController();
     controller.current = abort;
     // HTTP 200 が返った時点で部屋の受付が確実に在る。開き直しの自動再接続に使う印。
-    void (async () => {
-      await consume(turn, abort.signal);
-      void maybeAutoplay();
-    })();
+    // 音声通話は sendText の解決を返答確定の合図に使うので、ここで consume を待ち切る（RIT-213）。
+    await consume(turn, abort.signal);
+    void maybeAutoplay();
   };
 
   // RIT-213: STT→送信→TTS の通話ループ。再生終了は callEndRef 経由で listen へ戻る。
