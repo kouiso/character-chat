@@ -67,12 +67,12 @@ const recallCueFor = async (
 const buildPrompt = (input: {
   systemPrompt: string;
   cue: RecallCue | null;
-  summaries: { level: number; coveredTo: number; text: string }[];
+  summaries: { level: number; toTurn: number; text: string }[];
   memories: string[];
   history: { role: string; content: string }[];
 }): string => {
   const summaryText = [...input.summaries]
-    .sort((a, b) => b.level - a.level || b.coveredTo - a.coveredTo)
+    .sort((a, b) => b.level - a.level || b.toTurn - a.toTurn)
     .slice(0, SUMMARY_LIMIT)
     .map((s) => s.text)
     .join("\n");
@@ -131,7 +131,7 @@ export const createProactiveSink = (deps: ProactiveSinkDeps): ProactiveNotificat
         { userId: LOCAL_USER_ID, characterId, conversationId },
         MEMORY_LIMIT,
       ),
-      createD1SummaryStore(deps.db).list(conversationId),
+      createD1SummaryStore(deps.db).listActive(conversationId),
     ]);
     const prompt = buildPrompt({
       systemPrompt: ok.systemPrompt,

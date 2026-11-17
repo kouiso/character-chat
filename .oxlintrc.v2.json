@@ -150,7 +150,8 @@
         "**/src/server/chat-room.ts",
         "**/src/server/api-chat.ts",
         "**/src/worker.ts",
-        "**/packages/db/src/log.ts"
+        "**/packages/db/src/log.ts",
+        "**/script/summary-check.ts"
       ],
       "rules": {
         "no-console": "off"

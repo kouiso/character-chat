@@ -173,10 +173,11 @@ const sendReply = async (
       text,
     }),
   });
-  if (!response.ok || !response.body) {
+  if (!response.ok || response.body === null) {
     fail(`返事の受付が ${response.status}: ${await response.text()}`);
   }
-  const reader = response.body.getReader();
+  // 上の fail は never — ここでは body は必ず在る。
+  const reader = response.body!.getReader();
   const decoder = new TextDecoder();
   let buffer = "";
   const state = { assistantText: "" };
