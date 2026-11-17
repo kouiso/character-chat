@@ -25,13 +25,10 @@ export const ChatErrorState = () => {
 
 export const ChatUnavailableState = () => <ChatState state="unavailable" />;
 
-export const ChatConnectionState = () => {
-  const online = useChatOnline();
-  return online ? (
-    <nav className="v2-list" aria-label="会話の移動">
-      <Link to="/">一覧に戻る</Link>
-    </nav>
-  ) : (
-    <ChatState state="offline" />
-  );
-};
+// 会話を開いたあとの移動口。オフラインでも「一覧に戻る」は押せるままにする（RIT-65:
+// オフラインの知らせは会話の中の失敗の枠だけに絞り、ここの 1 画面の表示は出さん）。
+export const ChatConnectionState = () => (
+  <nav className="v2-list" aria-label="会話の移動">
+    <Link to="/">一覧に戻る</Link>
+  </nav>
+);

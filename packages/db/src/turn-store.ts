@@ -2,7 +2,7 @@
 // 契約をここ（@v2/db）に置くのは、@v2/engine が package.json で @v2/db に依存しとるため。
 // engine 側で定義すると db → engine → db の循環になる。engine は型を再 export して使う。
 import { emptyLedger, type SceneLedger, type ScenePhase } from "@v2/prompt";
-import { asc, desc, eq, and, inArray, lt, lte, sql, type SQL } from "drizzle-orm";
+import { asc, desc, eq, and, gt, inArray, lt, lte, sql, type SQL } from "drizzle-orm";
 import { z } from "zod";
 
 import { messageTable } from "../../../src/schema/message";
@@ -1035,3 +1035,121 @@ export const createD1TurnStore = (db: V2Db, opts: D1TurnStoreOptions): TurnStore
     });
   },
 });
+
+export type TruncateResult =
+  | { truncated: true; messageId: string; removedMemories: { id: string; content: string }[] }
+  | { truncated: false; removedMemories: { id: string; content: string }[] };
+
+// 「止める」で保存済みの返事を画面に出た塊まで切り詰める（RIT-65）。
+// keepThroughSeq より後の塊を消し、message の本文・action/dialogue/inner を残った塊から組み直す。
+// 1 塊も出ていなければ最初の 1 塊だけ残す。出どころがそのターンの記憶とそのベクトル、
+// そのターンの v2_ledger を消し、記憶 job を pending に戻す（配送は wake で回り直す）。
+// generation 行と raw 出力は、残った本文がどう作られたかの記録なので消さん。
+export const truncateAssistantReply = async (
+  db: V2Db,
+  opts: D1TurnStoreOptions,
+  input: { conversationId: string; turn: number; keepThroughSeq: number | null },
+): Promise<TruncateResult> => {
+  await assertConversationOwner(db, opts, input.conversationId);
+  const [assistant] = await db
+    .select({ id: v2MessageTable.id })
+    .from(v2MessageTable)
+    .where(
+      and(
+        eq(v2MessageTable.conversationId, input.conversationId),
+        eq(v2MessageTable.turn, input.turn),
+        eq(v2MessageTable.role, "assistant"),
+        eq(v2MessageTable.active, 1),
+      ),
+    );
+  if (!assistant) return { truncated: false, removedMemories: [] };
+  const chunks = await db
+    .select({ id: v2ChunkTable.id, seq: v2ChunkTable.seq, text: v2ChunkTable.text })
+    .from(v2ChunkTable)
+    .where(and(eq(v2ChunkTable.messageId, assistant.id), eq(v2ChunkTable.dropped, 0)))
+    .orderBy(asc(v2ChunkTable.seq));
+  if (chunks.length === 0) return { truncated: false, removedMemories: [] };
+  // 1 塊も画面に出ていない時（keepThroughSeq が null か最初の seq 未満）は、先頭の塊を残す。
+  const boundary = Math.max(input.keepThroughSeq ?? chunks[0].seq, chunks[0].seq);
+  const kept = chunks.filter((chunk) => chunk.seq <= boundary);
+  const cut = chunks.filter((chunk) => chunk.seq > boundary);
+  if (cut.length === 0) return { truncated: false, removedMemories: [] };
+
+  const newContent = kept.map((chunk) => chunk.text).join("\n\n");
+  // 発言と返事の両方を出どころにする記憶を拾う（job は発言を出どころにするが、
+  // 抽出器は返事側も出どころにしうる）。
+  const sourceMessages = await db
+    .select({ id: v2MessageTable.id })
+    .from(v2MessageTable)
+    .where(
+      and(
+        eq(v2MessageTable.conversationId, input.conversationId),
+        eq(v2MessageTable.turn, input.turn),
+        eq(v2MessageTable.active, 1),
+      ),
+    );
+  const sourceIds = sourceMessages.map((message) => message.id);
+  const memorySources =
+    sourceIds.length === 0
+      ? []
+      : await db
+          .select({ memoryId: v2MemorySourceTable.memoryId })
+          .from(v2MemorySourceTable)
+          .where(inArray(v2MemorySourceTable.sourceMessageId, sourceIds));
+  const memoryIds = [...new Set(memorySources.map((source) => source.memoryId))];
+  const removedMemories =
+    memoryIds.length === 0
+      ? []
+      : await db
+          .select({ id: v2MemoryTable.id, content: v2MemoryTable.content })
+          .from(v2MemoryTable)
+          .where(inArray(v2MemoryTable.id, memoryIds));
+
+  const now = Date.now();
+  await db.batch([
+    db
+      .delete(v2ChunkTable)
+      .where(
+        and(
+          eq(v2ChunkTable.messageId, assistant.id),
+          gt(v2ChunkTable.seq, boundary),
+          eq(v2ChunkTable.dropped, 0),
+        ),
+      ),
+    // source は FK cascade 宣言があるが、D1 の foreign_keys 既定では効かない可能性があるため明示削除する。
+    ...(memoryIds.length > 0
+      ? [
+          db.delete(v2MemorySourceTable).where(inArray(v2MemorySourceTable.memoryId, memoryIds)),
+          db.delete(v2MemoryTable).where(inArray(v2MemoryTable.id, memoryIds)),
+        ]
+      : []),
+    db
+      .update(v2MessageTable)
+      .set({
+        content: newContent,
+        action: extractTag(newContent, "action"),
+        dialogue: extractTag(newContent, "dialogue"),
+        inner: extractTag(newContent, "inner"),
+      })
+      .where(eq(v2MessageTable.id, assistant.id)),
+    db
+      .delete(v2LedgerTable)
+      .where(
+        and(
+          eq(v2LedgerTable.conversationId, input.conversationId),
+          eq(v2LedgerTable.turn, input.turn),
+        ),
+      ),
+    // そのターンの記憶 job は配送の仕切り直し。止めた後に古い記憶が載らんよう pending に戻す。
+    db
+      .update(v2MemoryJobTable)
+      .set({ state: "pending", publishAttempts: 0, errorCode: null, updatedAt: now })
+      .where(
+        and(
+          eq(v2MemoryJobTable.conversationId, input.conversationId),
+          eq(v2MemoryJobTable.sourceTurn, input.turn),
+        ),
+      ),
+  ]);
+  return { truncated: true, messageId: assistant.id, removedMemories };
+};

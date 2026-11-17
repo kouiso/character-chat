@@ -9,7 +9,11 @@ export type ChatSseEvent =
   | (Omit<Extract<TurnEvent, { type: "turn-meta" }>, "omittedHistoryMessages"> & {
       omittedHistoryMessages?: number;
     })
-  | { type: "error"; message: string; terminal?: boolean };
+  // RIT-83: 各試行の最初に部屋が書く印。再接続の画面はここで塊の控えを捨て直す。
+  | { type: "attempt"; attempt: number }
+  // RIT-83/RIT-65: 「止める」で打ち切った受付の終わりの印。
+  | { type: "stopped" }
+  | { type: "error"; message: string; code?: string; terminal?: boolean };
 
 const finiteNumber = z.number().finite();
 const judgeSchema = z.object({
@@ -75,9 +79,12 @@ const eventSchemas = {
     // 塊ごとの表示予定時刻。無い・空の done は全部即出し（回復・旧形式）。
     sendAt: z.array(finiteNumber).optional(),
   }),
+  attempt: z.object({ type: z.literal("attempt"), attempt: finiteNumber }),
+  stopped: z.object({ type: z.literal("stopped") }),
   error: z.object({
     type: z.literal("error"),
     message: z.string(),
+    code: z.string().optional(),
     terminal: z.boolean().optional(),
   }),
 } satisfies { [Type in ChatSseEvent["type"]]: z.ZodType<Extract<ChatSseEvent, { type: Type }>> };
@@ -88,6 +95,8 @@ const publicEventSchema = z.discriminatedUnion("type", [
   eventSchemas.dropped,
   eventSchemas["turn-meta"],
   eventSchemas.done,
+  eventSchemas.attempt,
+  eventSchemas.stopped,
   eventSchemas.error,
 ]) satisfies z.ZodType<ChatSseEvent>;
 
