@@ -24,6 +24,7 @@ export type LogEventName =
   | "image_generation_error"
   | "image_lora_trigger_missing"
   | "ledger_fallback"
+  | "legacy_migration_failed"
   | "binding_unavailable"
   | "failure_drill"
   | "failure_notice_failed";

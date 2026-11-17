@@ -1,4 +1,4 @@
-# 旧会話の移行（RIT-77）
+# 旧データの移行（RIT-77・RIT-78）
 
 旧 `conversation` / `message` を残し、同じIDで `v2_conversation` / `v2_message` に取り込む。元のタイトル・本文・日時を保持する。表示順は旧表の `created_at, rowid` に従い、`system` を除く発言を 1 発言 1 番号にする（挨拶や連続する assistant 発言も個別の番号）。新しい送信は最大番号の次へ保存する。
 
@@ -15,20 +15,35 @@
 
 ## 受け口 `POST /api/admin/legacy-migration`
 
-`mode` は 1 つだけ。`sources`・`conversations`・`verify-conversations` の 3 つ（`memory`・`corpus`・`verify-memory`・`verify-corpus` は RIT-78 が足すまで 400）。利用者は札 `local` または `owner-<SHA-256 の先頭 8 桁>` で指定し、応答に利用者 ID・本文・題名は出さない。
+`mode` は 1 つだけ。`sources`・`conversations`・`verify-conversations`（RIT-77）に RIT-78 が `memory`・`corpus`・`verify-memory`・`verify-corpus` を足した。利用者は札 `local` または `owner-<SHA-256 の先頭 8 桁>` で指定し、応答に利用者 ID・本文・題名は出さない。
 
 - `conversations` は `apply` を付けなければ確認だけ、`apply: true` では `expected`（確認だけで見た `insertedConversations`・`insertedMessages`）が必須で、計画と違えば何も書かず 409 `plan_changed`。
-- ページは旧 `conversation.id` の昇順で `limit` 件（既定 5・最大 20）。`cursor` は前のページの最後の id。
+- `memory` も同じ構え。`expected` は `{ insertedMemories }`（新しく入れる v2_memory の件数）。D1 の行を確定してから、まだ埋めていない記憶を 1 件ずつ 埋める → Vectorize へ入れる → embedding を D1 へ書き戻す。途中の失敗は `index_failed` としてその 1 件だけ `failures` へ入れて続く。検索箱が使えなければ apply は 503 `vector_unavailable`。
+- `corpus` の `expected` は `{ chunks }`（そのページの塊の件数）。塊は 1 件ずつ bge-m3 で埋め直し、`legacy-rag-<旧の id>`・区画 `legacy-corpus`・metadata `source:"rag_chunk"`/`type`/`phase`/`character_id` で入れる。同じ id なので繰り返しても増えない。
+- `verify-memory` はメモ 1 件ずつ `match`・`edited_in_v2`・`deleted_in_v2`・`not_imported`・`skipped`・`source_changed`・`not_indexed` を返す。`search: true` を付けると `match` の記憶だけを検索箱を通る道（固定の道は通らない）で実際に引き、`retrievable` を返す。search の時は 1 ページ 10 件まで。
+- `verify-corpus` はそのページの `legacy-rag-<id>` を `getByIds` で引き、無い id を `missingIds` に返す。
+- ページは旧 `conversation.id`・`memory_note.id`・`rag_chunk.id` の昇順で `limit` 件（conversations 既定 5・memory/corpus 既定 10・最大 20）。`cursor` は前のページの最後の id。
 - `verify-conversations` は会話ごとに `match`・`not_imported`・`deleted_in_v2`・`mismatch` を返し、何も書かない。
+
+## 旧記憶メモと検索の塊（RIT-78）
+
+旧 `memory_note` は 1 件につき `v2_memory`（id `legacy-mn-<旧の id>`・kind `fact`・pinned 0）・`v2_memory_source`（importance 3）・台帳の 3 行に写す。`[auto] ` で始まる本文は頭の印だけ剥がす。写す先の会話は ①`source_message_id` が v2_message に解けて会話が持ち主×同じキャラならその会話（出どころはその発言、assistant ならそれ以前の起きている自分の発言の最大）②同じ `legacy_source_user_id` の会話のうち更新が最新 ③同じキャラの会話の最新。会話が無ければ `skippedNoConversation`、自分の発言が無ければ `skippedNoUserMessage`。別の利用者・別のキャラの会話には付かない。
+
+台帳に行が在って v2_memory が無い物は v2 で消した印（`skippedDeletedInV2`）、同じ会話・同じ本文の消した印（`v2_memory_tombstone`）が在る物は `skippedTombstoned`、どちらも戻さない。旧の本文が台帳のハッシュと違う物は `source_changed` の failure で v2 を変えない。v2 で書き換えられた記憶は取り込み直しで上書きしない。台帳の無い頃に写した記憶は台帳と出どころの行を補う。旧表は 1 行も変えない。
+
+旧 `rag_chunk` は全件を bge-m3 で埋め直し、`legacy-corpus` 区画へ入れる。会話の検索は記憶の区画だけを見るので、コーパスの物は応答の検索には 1 件も現れない。
 
 ## 流す道具
 
 ```sh
-node apps/v2/script/run-legacy-migration.mjs <URL> --source-owner <札> \
-  [--out <確認だけの結果.json>] [--apply --expected-file <確認だけの結果.json>] [--verify]
+node apps/v2/script/run-legacy-migration.mjs <URL> [--mode conversations|memory|corpus] \
+  [--source-owner <札>] [--out <確認だけの結果.json>] \
+  [--apply --expected-file <確認だけの結果.json>] [--verify] [--search] [--limit N]
 ```
 
-認証は RIT-80 と同じ名前: `V2_BASIC_USER`/`V2_BASIC_PASSWORD`（Basic）か `CF_ACCESS_CLIENT_ID`/`CF_ACCESS_CLIENT_SECRET`（Access）。1 ページずつ送る。`--apply` で 409 を受けたら止まって確認だけからやり直す（書けたページは残る）。終了コードは `failures` が 0 で、`--verify` の時は `not_imported`・`mismatch` が 0 の時だけ 0。
+`--source-owner` は conversations・memory の時に要る（corpus は共有なので要らない）。`--verify` は mode に対応する verify（conversations→verify-conversations・memory→verify-memory・corpus→verify-corpus）を全ページ流す。`--search` は verify-memory で retrievable の検査を点ける。`--apply` の後の `--verify` は検索箱の反映を待って 60 秒後に流し、retrievable が偽の物が残れば 60 秒おきに 2 回まで流し直す。
+
+認証は RIT-80 と同じ名前: `V2_BASIC_USER`/`V2_BASIC_PASSWORD`（Basic）か `CF_ACCESS_CLIENT_ID`/`CF_ACCESS_CLIENT_SECRET`（Access）。1 ページずつ送る。`--apply` で 409 を受けたら止まって確認だけからやり直す（書けたページは残る）。検索箱が使えなければ「検索箱が使えません（V2_RAG_ENABLED と束ねを確かめてください）」と出て終了コード 1。終了コードは `failures` が 0 で、`--verify` の時は `not_imported`・`mismatch`・`source_changed`・`not_indexed`・missing・retrievable 偽が全部 0 の時だけ 0。
 
 ## 本番へ書く時の順番
 

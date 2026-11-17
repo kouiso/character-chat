@@ -4,8 +4,9 @@ import { z } from "zod";
 export const MEMORY_EMBEDDING_MODEL = "@cf/baai/bge-m3";
 export const MEMORY_VECTOR_DIMENSIONS = 1024;
 
+// getByIds は verify-corpus（RIT-78）が使う。偽物の束縛が持たなくても済むよう省略可。
 export type MemoryVectorIndex = Pick<VectorizeIndex, "upsert" | "query"> &
-  Partial<Pick<VectorizeIndex, "deleteByIds">>;
+  Partial<Pick<VectorizeIndex, "deleteByIds" | "getByIds">>;
 
 export type MemoryVectorBindings = {
   V2_RAG_ENABLED?: string;

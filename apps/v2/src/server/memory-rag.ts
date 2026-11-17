@@ -90,7 +90,9 @@ const rankMemoryCandidates = async (
     }));
 };
 
-export const retrieveMemories = async (
+// 検索箱を通る道だけの検索（埋める → query → 候補読み直し → 順位付け）。固定の道は通らない。
+// RIT-78 の verify-memory が「会話の検索で実際に引けるか」を確かめるのに使う。
+export const retrieveVectorMemories = async (
   db: V2Db,
   env: MemoryVectorBindings,
   scope: ExtractionScope & { beforeTurn?: number; topK?: number },
@@ -99,18 +101,7 @@ export const retrieveMemories = async (
 ): Promise<MemoryContextEntry[]> => {
   // 記憶の深さはプランの機能差（RIT-193）。未指定は従来どおり20。
   const topK = scope.topK ?? 20;
-  // 固定済みは類似度を必要とせんので vector 非依存で必ず先に返す（手で足した記憶の既定経路）。
-  const pinned = await loadPinnedMemories(db, scope).catch((error: unknown) => {
-    reportFailure(env, {
-      event: "memory_pinned_load_failed",
-      level: "error",
-      reason: describeError(error),
-    });
-    return [];
-  });
-  // pinned 印は packMemoryContext が固定の別枠（最大8件・2000字）へ振り分ける印（RIT-92）。
-  const pinnedEntries = pinned.map(({ id, content }) => ({ id, content, pinned: true as const }));
-  if (!memoryVectorReady(env) || !query.trim()) return pinnedEntries;
+  if (!memoryVectorReady(env) || !query.trim()) return [];
   try {
     const values = await embedMemoryText(env.AI, query);
     const result = await env.MEMORY_INDEX.query(values, {
@@ -135,15 +126,36 @@ export const retrieveMemories = async (
       scope,
       matches.map((match) => match.id),
     );
-    const ranked = await rankMemoryCandidates(rows, matches, now);
-    const pinnedIds = new Set(pinnedEntries.map((entry) => entry.id));
-    return [...pinnedEntries, ...ranked.filter((entry) => !pinnedIds.has(entry.id))];
+    return await rankMemoryCandidates(rows, matches, now);
   } catch (error) {
     reportFailure(env, {
       event: "memory_retrieval_failed",
       level: "error",
       reason: describeError(error),
     });
-    return pinnedEntries;
+    return [];
   }
+};
+
+export const retrieveMemories = async (
+  db: V2Db,
+  env: MemoryVectorBindings,
+  scope: ExtractionScope & { beforeTurn?: number; topK?: number },
+  query: string,
+  now = Date.now(),
+): Promise<MemoryContextEntry[]> => {
+  // 固定済みは類似度を必要とせんので vector 非依存で必ず先に返す（手で足した記憶の既定経路）。
+  const pinned = await loadPinnedMemories(db, scope).catch((error: unknown) => {
+    reportFailure(env, {
+      event: "memory_pinned_load_failed",
+      level: "error",
+      reason: describeError(error),
+    });
+    return [];
+  });
+  // pinned 印は packMemoryContext が固定の別枠（最大8件・2000字）へ振り分ける印（RIT-92）。
+  const pinnedEntries = pinned.map(({ id, content }) => ({ id, content, pinned: true as const }));
+  const ranked = await retrieveVectorMemories(db, env, scope, query, now);
+  const pinnedIds = new Set(pinnedEntries.map((entry) => entry.id));
+  return [...pinnedEntries, ...ranked.filter((entry) => !pinnedIds.has(entry.id))];
 };

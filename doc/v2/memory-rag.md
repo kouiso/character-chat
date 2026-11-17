@@ -8,7 +8,7 @@
 
 Vectorizeには本文を保存しない。namespaceは利用者IDとキャラIDの組をhash化した値、metadataはmemory ID・本文hash・kind・conversation_id。vector IDもmemory IDと本文hashから作り、旧版の遅い書込みが新版を上書きしないようにする。upsertの受付後に、元発言と本文が変わっていない場合だけD1のembeddingを保存する。受付は検索反映の完了を意味しない。
 
-検索はnamespace、kind、conversation_idで絞って20件取得する。本文はD1から読み直し、利用者・キャラ・会話・元発言のhash・本文のhash・有効期間を再確認する。再生成では指定ターン以降の記憶も除く。Vectorizeに削除済み・編集前の結果が残っても、その本文をモデルへ渡さない。
+検索はnamespace、kind、conversation_idで絞って20件取得する。本文はD1から読み直し、利用者・キャラ・会話・元発言のhash・本文のhash・有効期間を再確認する。再生成では指定ターン以降の記憶も除く。Vectorizeに削除済み・編集前の結果が残っても、その本文をモデルへ渡さない。検索箱を通る道だけの部分は`retrieveVectorMemories`として切り出してあり、`retrieveMemories`は固定分の後にその結果を重複無しで継ぐ。RIT-78のverify-memoryは`retrieveVectorMemories`で「検索で実際に引けるか」を確かめる（固定の道で返る物を引けたと数えない）。
 
 順位は `類似度 × 重要度 × 2^(-経過日数/30)`。その順に最大8件を、見出しとIDを含めた2,000文字以内へ丸ごと収める。途中で切った事実は使わない。LangGraphは毎ターン再検索し、参考データをhuman messageへJSONとして渡す。上位のsystem instructionにはしない。実際に渡したIDと本文は既存のgeneration.request_jsonに残る。
 
