@@ -1392,4 +1392,96 @@ describe("createTurnGraph", () => {
       expect(calmEvents.at(-1)?.type).toBe("done");
     });
   });
+
+  describe("塊ごとの間と送出時刻（RIT-67）", () => {
+    test("E-1: chunk に gapMs（0・前の塊の見える字数×20）と emittedAt（エンジンの時計）が付く", async () => {
+      const store = createMemoryTurnStore();
+      // 見える字数 6・4・10 の塊 → gapMs は 0・120・80（タグの分は間に乗らん）。
+      const model = new FakeListChatModel({
+        responses: [
+          "<response><action>小さく笑う。</action><dialogue>ねえねえ</dialogue><dialogue>こっち向いて、ほら。</dialogue></response>",
+        ],
+      });
+      // 呼ぶたびに 1 進む偽の時計。生成や判定でも now() を読むので、値は呼び出し順になる。
+      const ticks: number[] = [];
+      const now = () => {
+        const value = 1_794_000_000_000 + ticks.length;
+        ticks.push(value);
+        return value;
+      };
+      const graph = createTurnGraph({ model, store, extendBelowRatio: 0, now });
+      const events: TurnEvent[] = [];
+      for await (const event of runTurn(
+        graph,
+        { conversationId: "conv-r67e1", userText: "一回目", character },
+        "conv-r67e1",
+      )) {
+        events.push(event);
+      }
+      const chunks = events.filter(isChunkEvent);
+      expect(chunks.map((event) => event.seq)).toEqual([0, 1, 2]);
+      expect(chunks.map((event) => event.gapMs)).toEqual([0, 120, 80]);
+      const emittedAts = chunks.flatMap((event) =>
+        event.emittedAt === undefined ? [] : [event.emittedAt],
+      );
+      // 全部の chunk に emittedAt が在り、値は偽の時計が返した時刻と一致する。
+      expect(emittedAts).toHaveLength(3);
+      expect(emittedAts.every((at) => ticks.includes(at))).toBe(true);
+      for (let i = 1; i < emittedAts.length; i++) {
+        expect(emittedAts[i]).toBeGreaterThanOrEqual(emittedAts[i - 1]);
+      }
+    });
+
+    test("E-2: 落ちた塊は間の基準に入らん（seq 2 の gapMs は seq 0 の字数から決まる）", async () => {
+      const store = createMemoryTurnStore();
+      // seq 1 が seq 0 と同じ文で 2 回落ち → 配るのは seq 0・2。
+      const ng =
+        "<action>小さく笑う。</action><action>小さく笑う。</action><dialogue>こっち向いて、ほら。</dialogue>";
+      const model = new FakeListChatModel({ responses: [ng, "<action>小さく笑う。</action>"] });
+      const graph = createTurnGraph({ model, store, extendBelowRatio: 0 });
+      const events: TurnEvent[] = [];
+      for await (const event of runTurn(
+        graph,
+        { conversationId: "conv-r67e2", userText: "一回目", character },
+        "conv-r67e2",
+      )) {
+        events.push(event);
+      }
+      expect(events.filter((event) => event.type === "dropped")).toMatchObject([
+        { seq: 1, attempt: 2 },
+      ]);
+      const chunks = events.filter(isChunkEvent);
+      expect(chunks.map((event) => event.seq)).toEqual([0, 2]);
+      // seq 0 の見える字数 6 × 20 = 120（落ちた seq 1 の字数ではない）。
+      expect(chunks.map((event) => event.gapMs)).toEqual([0, 120]);
+    });
+
+    test("E-3: 塊の本文を console へ出さん（NFR-3）", async () => {
+      const store = createMemoryTurnStore();
+      const marker = "内緒の吐息";
+      const model = new FakeListChatModel({
+        responses: [`<response><action>${marker}</action></response>`],
+      });
+      const spies = (["log", "info", "warn", "error", "debug"] as const).map((name) =>
+        vi.spyOn(console, name).mockImplementation(() => undefined),
+      );
+      try {
+        const graph = createTurnGraph({ model, store, extendBelowRatio: 0 });
+        await drain(
+          runTurn(
+            graph,
+            { conversationId: "conv-r67e3", userText: "一回目", character },
+            "conv-r67e3",
+          ),
+        );
+        for (const spy of spies) {
+          for (const call of spy.mock.calls) {
+            expect(call.map(String).join(" ")).not.toContain(marker);
+          }
+        }
+      } finally {
+        for (const spy of spies) spy.mockRestore();
+      }
+    });
+  });
 });

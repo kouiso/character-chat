@@ -60,6 +60,7 @@ import type {
 } from "@langchain/core/language_models/chat_models";
 import type { AIMessageChunk } from "@langchain/core/messages";
 import { appendForgottenInstruction } from "@v2/prompt";
+import { chunkGapMs } from "@v2/db/chunk-schedule";
 import type { StoredSummary, SummaryStore } from "@v2/db";
 import type { ScenePhase } from "@v2/prompt";
 
@@ -1066,6 +1067,12 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
           judge: current.judge,
           attempt: current.attempt,
           preExtend: current.preExtend,
+          // RIT-67: この塊を出すまでに空ける間。前に配った塊（落ちた塊は飛ばす）の
+          // 読む長さで決まる。最初の塊は 0。
+          gapMs: chunkGapMs(acceptedChunkTexts(state).at(-1)),
+          // 開き直した画面が、とうに過ぎた塊を待たずに出すための、エンジンの時計での
+          // 送出時刻（端末の時計とは比べん）。
+          emittedAt: now(),
         } satisfies TurnEvent);
         return { cursor: state.cursor + 1 };
       })
