@@ -225,11 +225,20 @@ describe("createD1TurnStore", () => {
     });
 
     const loaded = await store.load(conversationId);
+    // turn は窓の境目（oldestIncludedTurn）をターン番号で返すための内部情報（RIT-71）。
     expect(loaded.history).toEqual([
-      { role: "user", content: "user 1" },
-      { role: "assistant", content: "<action>動作 1</action>\n\n<dialogue>台詞 1</dialogue>" },
-      { role: "user", content: "user 2" },
-      { role: "assistant", content: "<action>動作 2</action>\n\n<dialogue>台詞 2</dialogue>" },
+      { role: "user", content: "user 1", turn: 1 },
+      {
+        role: "assistant",
+        content: "<action>動作 1</action>\n\n<dialogue>台詞 1</dialogue>",
+        turn: 1,
+      },
+      { role: "user", content: "user 2", turn: 2 },
+      {
+        role: "assistant",
+        content: "<action>動作 2</action>\n\n<dialogue>台詞 2</dialogue>",
+        turn: 2,
+      },
     ]);
     expect(loaded.ledger).toEqual(ledgerAt(2));
     // graph.ts の intake は load().turn をそのまま次の saveTurn の turn に使うので「次のターン番号」。
@@ -600,8 +609,8 @@ describe("createD1TurnStore", () => {
 
     const loaded = await store.load(conversationId);
     expect(loaded.history).toEqual([
-      { role: "user", content: "second" },
-      { role: "assistant", content: "平文だけ" },
+      { role: "user", content: "second", turn: 1 },
+      { role: "assistant", content: "平文だけ", turn: 1 },
     ]);
     expect(loaded.ledger.location).toBe("部屋");
     expect(loaded.turn).toBe(2);
@@ -880,8 +889,12 @@ describe("createD1TurnStore", () => {
 
       const afterFailure = await store.load(conversationId);
       expect(afterFailure.history).toEqual([
-        { role: "user", content: "user 1" },
-        { role: "assistant", content: "<action>動作 1</action>\n\n<dialogue>台詞 1</dialogue>" },
+        { role: "user", content: "user 1", turn: 1 },
+        {
+          role: "assistant",
+          content: "<action>動作 1</action>\n\n<dialogue>台詞 1</dialogue>",
+          turn: 1,
+        },
       ]);
       expect(afterFailure.turn).toBe(2);
       // 失敗ターンの ledger_update 結果を次の生成へ持ち越さん。
@@ -940,8 +953,12 @@ describe("createD1TurnStore", () => {
       });
     }
     const liveHistory = [
-      { role: "user", content: "user 1" },
-      { role: "assistant", content: "<action>動作 1</action>\n\n<dialogue>台詞 1</dialogue>" },
+      { role: "user", content: "user 1", turn: 1 },
+      {
+        role: "assistant",
+        content: "<action>動作 1</action>\n\n<dialogue>台詞 1</dialogue>",
+        turn: 1,
+      },
     ];
 
     const loaded = await store.load(conversationId);
@@ -1005,7 +1022,9 @@ describe("createD1TurnStore", () => {
       conversationId,
     );
     expect(display.turn).toBe(loaded.turn);
-    expect(display.history.map(({ role, content }) => ({ role, content }))).toEqual(loaded.history);
+    expect(display.history.map(({ role, content }) => ({ role, content }))).toEqual(
+      loaded.history.map(({ role, content }) => ({ role, content })),
+    );
     expect(display.history.map((row) => row.content)).not.toContain("失敗した質問 3");
   });
 
@@ -1020,8 +1039,8 @@ describe("createD1TurnStore", () => {
     });
     const loaded = await store.load(conversationId);
     expect(loaded.history).toEqual([
-      { role: "user", content: "短い返事の質問" },
-      { role: "assistant", content: "…" },
+      { role: "user", content: "短い返事の質問", turn: 1 },
+      { role: "assistant", content: "…", turn: 1 },
     ]);
     expect(loaded.turn).toBe(2);
     expect(loaded.ledger).toEqual(ledgerAt(1));

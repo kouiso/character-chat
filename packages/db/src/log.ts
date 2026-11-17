@@ -1,5 +1,7 @@
 // v2 の記録の唯一の出口（RIT-66 FR-1）。会話本文を残さんため、出せる項目は
 // NFR-1 の決めた物だけを型で受ける。自由な文字列（例外の message 等）は型で受けん。
+import type { ContextUsage } from "./turn-store";
+
 export type LogEventName =
   | "worker_request_failed"
   | "chat_turn_failed"
@@ -26,6 +28,7 @@ export type LogEventName =
   | "ledger_fallback"
   | "legacy_migration_failed"
   | "binding_unavailable"
+  | "prompt_budget_exceeded"
   | "failure_drill"
   | "failure_notice_failed";
 
@@ -47,6 +50,8 @@ export type LogEntry = {
   generationId?: string;
   // キャラの id は出さん（名前が入った id が在るので NFR-1 の許可リストに無い）。
   conversationId?: string;
+  // 層ごとの使用字数（RIT-71 の prompt_budget_exceeded 用）。数字だけ、本文は入れん。
+  usage?: ContextUsage;
 };
 
 // 例外の message には会話本文や接続先の詳細・上流のエラー文が混ざりうるので、

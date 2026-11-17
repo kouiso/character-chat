@@ -25,7 +25,29 @@ import {
 import type { V2Db } from "./client";
 import type { JudgeResult } from "@v2/judge";
 
-export type HistoryMessage = { role: "user" | "assistant"; content: string };
+export type HistoryMessage = {
+  role: "user" | "assistant";
+  content: string;
+  // そのメッセージが属するターン番号。窓の境目（oldestIncludedTurn）をターン番号で
+  // 返すために載せる。指示文へ渡す messages には含めん（request_json の形を変えんため）。
+  turn?: number;
+};
+
+// 層ごとの使用字数と窓の境目（RIT-71）。v2_generation.context_usage_json に入る形。
+// 数え方は「指示文に入る文字を見出し・区切りまで全部数える」（層の字数の数え方）どおり。
+export type ContextUsage = {
+  system: number;
+  summary: number;
+  memory: number;
+  documents: number;
+  persona: number;
+  history: number;
+  current: number;
+  total: number;
+  omittedHistoryMessages: number;
+  // 窓に入った一番古いターン。窓が空（履歴無しか全滅）なら null。
+  oldestIncludedTurn: number | null;
+};
 
 // RIT-102: 逃げ道チェーンの 1 試行分。使った順に並び、最後の要素が採用モデル
 // （全滅時は全要素が失敗理由を持つ）。
@@ -60,6 +82,9 @@ export type GenerationRecord = {
   attempts?: ModelAttempt[];
   // このターンに掛けた締切（設定値を記録して後から値を追えるようにする）。
   timeoutMs?: number;
+  // 層ごとの使用字数（RIT-71）。compose が測った値を persist が context_usage_json へ書く。
+  // 記録の無い旧行・生成を経ない保存では省略。
+  contextUsage?: ContextUsage;
 };
 
 export type TurnEvent =
@@ -245,7 +270,11 @@ export const readD1StoredTurn = async (
 ): Promise<HistoryMessage[]> => {
   await assertConversationOwner(db, opts, conversationId);
   return db
-    .select({ role: v2MessageTable.role, content: v2MessageTable.content })
+    .select({
+      role: v2MessageTable.role,
+      content: v2MessageTable.content,
+      turn: v2MessageTable.turn,
+    })
     .from(v2MessageTable)
     .where(
       and(
@@ -617,6 +646,8 @@ const insertGenerationRows = (
         error: generation.error ?? null,
         attemptsJson: generation.attempts ? JSON.stringify(generation.attempts) : null,
         timeoutMs: generation.timeoutMs ?? null,
+        // 層ごとの使用字数（RIT-71）。request_json の形は変えんので別列に入れる。
+        contextUsageJson: generation.contextUsage ? JSON.stringify(generation.contextUsage) : null,
         createdAt: now,
       })
       .onConflictDoNothing({ target: v2GenerationTable.id }),
@@ -949,7 +980,11 @@ export const createD1TurnStore = (db: V2Db, opts: D1TurnStoreOptions): TurnStore
       return { history: [], ledger: emptyLedger(), turn: 1 };
     }
     const { live, lastLiveTurn, nextTurn } = splitDeadTurns(messageRows);
-    const history = live.map((row): HistoryMessage => ({ role: row.role, content: row.content }));
+    const history = live.map((row): HistoryMessage => ({
+      role: row.role,
+      content: row.content,
+      turn: row.turn,
+    }));
     const ledgerRowsResolved =
       ledgerRows[0] && ledgerRows[0].turn > lastLiveTurn
         ? await db

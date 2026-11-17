@@ -4,6 +4,7 @@
 // engine は package.json で @v2/db に依存しとるので、契約を engine 側に置くと db → engine → db の
 // 循環になる。D1 実装は @v2/db の createD1TurnStore、テストは createMemoryTurnStore を注入する。
 export type {
+  ContextUsage,
   GenerationRecord,
   HistoryMessage,
   ModelAttempt,

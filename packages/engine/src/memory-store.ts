@@ -22,9 +22,9 @@ export const createMemoryTurnStore = (): MemoryTurnStore => {
     turns,
     load: async (conversationId) => {
       const existing = turns.get(conversationId) ?? [];
-      const history: HistoryMessage[] = existing.flatMap((stored) => [
-        { role: "user", content: stored.userText },
-        { role: "assistant", content: assistantTextOf(stored.events) },
+      const history: HistoryMessage[] = existing.flatMap((stored, index) => [
+        { role: "user", content: stored.userText, turn: index + 1 },
+        { role: "assistant", content: assistantTextOf(stored.events), turn: index + 1 },
       ]);
       const ledger = existing.length > 0 ? existing[existing.length - 1].ledger : emptyLedger();
       return { history, ledger, turn: existing.length + 1 };

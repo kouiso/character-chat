@@ -22,6 +22,7 @@ interface __BaseEnv_Env {
   V2_FAKE_RESPONSE: string;
   V2_HISTORY_CHARACTERS: number;
   V2_HISTORY_MESSAGES: number;
+  V2_SUMMARY_CHARACTERS: number;
   V2_DAILY_TURN_LIMIT: string;
   V2_TTS_VOICEVOX_URL?: string;
   V2_TTS_AIVIS_URL?: string;
@@ -65,6 +66,7 @@ declare namespace Cloudflare {
   V2_FAKE_RESPONSE: string;
     V2_HISTORY_CHARACTERS: number;
     V2_HISTORY_MESSAGES: number;
+    V2_SUMMARY_CHARACTERS: number;
     V2_DAILY_TURN_LIMIT: string;
     V2_TTS_VOICEVOX_URL?: string;
     V2_TTS_AIVIS_URL?: string;
@@ -102,6 +104,7 @@ declare namespace Cloudflare {
   V2_FAKE_RESPONSE: string;
     V2_HISTORY_CHARACTERS: number;
     V2_HISTORY_MESSAGES: number;
+    V2_SUMMARY_CHARACTERS: number;
     V2_DAILY_TURN_LIMIT: string;
     V2_TTS_VOICEVOX_URL?: string;
     V2_TTS_AIVIS_URL?: string;
@@ -141,6 +144,7 @@ declare namespace NodeJS {
       | "V2_FAKE_RESPONSE" | "V2_TEST_FAULT"
       | "V2_HISTORY_CHARACTERS"
       | "V2_HISTORY_MESSAGES"
+      | "V2_SUMMARY_CHARACTERS"
       | "V2_DAILY_TURN_LIMIT"
       | "V2_TTS_VOICEVOX_URL"
       | "V2_TTS_AIVIS_URL"

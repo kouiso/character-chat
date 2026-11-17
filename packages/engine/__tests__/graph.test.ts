@@ -74,6 +74,18 @@ const generationAt = (store: MemoryTurnStore, index: number, convId = "conv-memo
   return generation;
 };
 
+const assertContextUsage = (
+  usage: NonNullable<ReturnType<typeof generationAt>["contextUsage"]>,
+): void => {
+  expect(usage.system).toBeGreaterThan(0);
+  expect(usage.summary).toBe(0);
+  expect(usage.current).toBe("二回目".length);
+  expect(usage.history).toBeGreaterThan(0);
+  expect(usage.omittedHistoryMessages).toBe(1);
+  expect(usage.oldestIncludedTurn).toBe(1);
+  expect(usage.total).toBe(usage.system + usage.history + usage.current);
+};
+
 describe("createTurnGraph", () => {
   test("毎ターン記憶を取得し、採用IDと本文を保存するがsystemへは混ぜない", async () => {
     const store = createMemoryTurnStore();
@@ -192,6 +204,39 @@ describe("createTurnGraph", () => {
     expect(generation.request[personaIndex]?.content).toContain("優しい先輩");
     expect(generation.request[personaIndex + 1]?.content).toBe("こんにちは");
     expect(generation.systemPrompt).not.toContain("優しい先輩");
+  });
+
+  test("層ごとの使用字数を generation.contextUsage へ記録し request の形は変えない", async () => {
+    const store = createMemoryTurnStore();
+    const graph = createTurnGraph({
+      model: new FakeListChatModel({ responses: [VALID_XML, VALID_XML_SECOND] }),
+      store,
+      extendBelowRatio: 0,
+      // 件数上限 1 で窓は直近 1 通（1 ターン目の応答）に切れる。境目の最古ターンは 1。
+      contextBudget: { historyMessages: 1 },
+    });
+    await drain(
+      runTurn(
+        graph,
+        { conversationId: "conv-memory", userText: "こんにちは", character },
+        "conv-memory",
+      ),
+    );
+    await drain(
+      runTurn(
+        graph,
+        { conversationId: "conv-memory", userText: "二回目", character },
+        "conv-memory",
+      ),
+    );
+    const generation = generationAt(store, 1);
+    const usage = generation.contextUsage;
+    if (!usage) throw new Error("contextUsage が記録されとらん");
+    assertContextUsage(usage);
+    // request_json と同じ形（role と content だけ・turn を混ぜない）。
+    for (const message of generation.request) {
+      expect(Object.keys(message).sort()).toEqual(["content", "role"]);
+    }
   });
 
   test("userPersona 未設定ではペルソナ塊のメッセージ自体を出さない", async () => {
@@ -609,7 +654,9 @@ describe("createTurnGraph", () => {
         summaryStore,
         extendBelowRatio: 0,
         // 10ターンだけ窓に残る・未要約が20件溜まると level 1・level 1 が4本で level 2。
-        contextBudget: { historyMessages: 20 },
+        // 試験の MarkerModel は要約を圧縮せず200行積むので、あらすじ層の予算は緩めとく
+        // （層の予算自体は prompt-layer-budget.test.ts が担保する）。
+        contextBudget: { historyMessages: 20, summaryCharacters: 10_000 },
         summary: { thresholdMessages: 20, maxLevel1: 4 },
       });
       for (let turn = 1; turn <= 200; turn += 1) {

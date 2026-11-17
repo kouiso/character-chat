@@ -4,7 +4,13 @@
 import { StateSchema } from "@langchain/langgraph";
 import { z } from "zod";
 
-import type { CharacterSheet, ComposedPrompt, GenerationRecord, HistoryMessage } from "./types";
+import type {
+  CharacterSheet,
+  ComposedPrompt,
+  ContextUsage,
+  GenerationRecord,
+  HistoryMessage,
+} from "./types";
 import type { JudgeResult } from "@v2/judge";
 import type { SceneLedger, ScenePhase } from "@v2/prompt";
 
@@ -49,6 +55,9 @@ export const TurnState = new StateSchema({
   preExtendVisibleChars: z.number().default(0),
   // compose が文脈の予算で落とした古い履歴の件数。persist が turn-meta に載せる。
   omittedHistoryMessages: z.number().default(0),
+  // compose が測った層ごとの使用字数と窓の境目（RIT-71）。
+  // persist が generation の記録へ移し、store が context_usage_json へ書く。
+  contextUsage: z.custom<ContextUsage>().nullable().default(null),
   preExtendRawLength: z.number().default(0),
   cursor: z.number().default(0),
   chunks: z.array(z.custom<JudgedChunk>()).default(() => []),
