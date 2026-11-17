@@ -25,6 +25,8 @@ export const characterSheetSchema = z.object({
 export type CharacterSheet = z.infer<typeof characterSheetSchema>;
 
 export type CharacterSummary = Pick<CharacterSheet, "id" | "name" | "avatar"> & {
+  // マイ画面の行の副行（「カフェの店員」など）に使う 1 語目の札。
+  tags: string[];
   canEdit: boolean;
   // RIT-30 ギャップ（Saylo のプレイ数表示）: そのキャラのクリップ再生数の合計。
   playCount: number;
@@ -45,6 +47,16 @@ export const listCharacterSummaries = async (
       id: characterTable.id,
       name: characterTable.name,
       avatar: characterTable.avatar,
+      // drizzle の json モード列をそのまま選ぶと driver によって生文字列が返るので、
+      // ここで生の文字列を受けて表示用に安全側へ解く（壊れていても行は落とさない）。
+      tags: sql<string>`${characterTable.tags}`.mapWith((raw) => {
+        try {
+          const parsed: unknown = JSON.parse(raw);
+          return Array.isArray(parsed) ? parsed.filter((tag) => typeof tag === "string") : [];
+        } catch {
+          return [];
+        }
+      }),
       // 編集・削除は持ち主の名義の集合に入るキャラ全部（旧名義も自分のキャラ）。
       canEdit: sql<boolean>`${inArray(characterTable.userId, owners)}`.mapWith(Boolean),
       // drizzle は select 句の sql 片でテーブル修飾を落とすので、相関側はリテラル名で書く。

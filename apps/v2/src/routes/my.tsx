@@ -1,10 +1,48 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, getRouteApi, useRouter } from "@tanstack/react-router";
 
-// 下タブ「マイ」の行き先。画面本体（My ボード）は別単位で作る
-const MyPage = () => (
-  <main className="v2-list">
-    <h1>マイ</h1>
-  </main>
-);
+import {
+  lastTalkedMap,
+  MyErrorState,
+  MyLoadingState,
+  MyScreen,
+  type MyCharacter,
+} from "../component/my-screen";
+import { listCharacters, listSavedConversations } from "../server/characters";
 
-export const Route = createFileRoute("/my")({ component: MyPage });
+const routeApi = getRouteApi("/my");
+
+const MyPage = () => {
+  const { characters, conversations } = routeApi.useLoaderData();
+  const lastTalked = lastTalkedMap(conversations);
+  const rows: MyCharacter[] = characters.map((character) => ({
+    ...character,
+    lastTalkedAt: lastTalked.get(character.id) ?? null,
+  }));
+  return <MyScreen characters={rows} />;
+};
+
+const MyPending = () => <MyLoadingState />;
+
+const MyError = () => {
+  const router = useRouter();
+  return (
+    <MyErrorState
+      onRetry={() => {
+        void router.invalidate({ filter: (match) => match.routeId === "/my", forcePending: true });
+      }}
+    />
+  );
+};
+
+export const Route = createFileRoute("/my")({
+  pendingComponent: MyPending,
+  errorComponent: MyError,
+  loader: async ({ abortController }) => {
+    const [characters, conversations] = await Promise.all([
+      listCharacters({ signal: abortController.signal }),
+      listSavedConversations({ signal: abortController.signal }),
+    ]);
+    return { characters, conversations };
+  },
+  component: MyPage,
+});

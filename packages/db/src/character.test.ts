@@ -64,6 +64,7 @@ describe("loadCharacters / loadCharacter", () => {
       "id",
       "name",
       "playCount",
+      "tags",
     ]);
     expect(summaries.every(({ canEdit }) => typeof canEdit === "boolean")).toBe(true);
     // RIT-30 ギャップ: クリップ未作成のキャラは再生数 0。

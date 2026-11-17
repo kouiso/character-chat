@@ -2,8 +2,8 @@
    色・寸法は doc/design/v2/tokens.md の値に揃える。 */
 .v2-memory-page {
   min-height: 100dvh;
-  background: linear-gradient(180deg, #0e1425 0%, #10162a 46%, #191826 78%, #231b20 100%);
-  color: #fbf6f1;
+  background: var(--gradient-ground);
+  color: var(--color-text);
   font-size: 16px;
   line-height: 28px;
   font-weight: 500;
@@ -40,9 +40,9 @@
   height: 44px;
   padding: 0;
   border: 0;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: transparent;
-  color: #fbf6f1;
+  color: var(--color-text);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -51,7 +51,7 @@
 }
 
 .v2-memory-icon-button.subtle {
-  color: #dcd3ce;
+  color: var(--color-text-sub);
 }
 
 .v2-memory-body {
@@ -64,7 +64,7 @@
 
 .v2-memory-lead {
   flex: none;
-  color: #dcd3ce;
+  color: var(--color-text-sub);
   font-size: 13px;
   line-height: 20px;
   font-weight: 500;
@@ -92,12 +92,10 @@
 }
 
 .v2-memory-card {
-  border-radius: 20px;
+  border-radius: var(--radius-card);
   overflow: hidden;
-  background: linear-gradient(180deg, #212941 0%, #1d253b 100%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.07),
-    0 6px 16px rgba(4, 6, 14, 0.3);
+  background: var(--gradient-surface);
+  box-shadow: var(--shadow-surface);
   display: flex;
   flex-direction: column;
 }
@@ -109,7 +107,7 @@
   border: 0;
   padding: 12px 8px 12px 16px;
   background: transparent;
-  color: #fbf6f1;
+  color: var(--color-text);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -118,7 +116,7 @@
 }
 
 .v2-memory-row + .v2-memory-row {
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  box-shadow: var(--edge-top);
 }
 
 .v2-memory-row-body {
@@ -130,7 +128,7 @@
 }
 
 .v2-memory-row-text {
-  color: #fbf6f1;
+  color: var(--color-text);
   font-size: 16px;
   line-height: 28px;
   font-weight: 500;
@@ -145,7 +143,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  color: #dcd3ce;
+  color: var(--color-text-sub);
   font-size: 13px;
   line-height: 20px;
   font-weight: 500;
@@ -157,14 +155,14 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  color: #ffc9ac;
+  color: var(--color-peach);
 }
 
 .v2-memory-badge .v2-memory-badge-dot {
   width: 8px;
   height: 8px;
-  border-radius: 999px;
-  background: #f5d58c;
+  border-radius: var(--radius-pill);
+  background: var(--color-lamp);
 }
 
 .v2-memory-more {
@@ -173,8 +171,8 @@
   height: 44px;
   margin-top: 8px;
   border-radius: 14px;
-  background: linear-gradient(180deg, #262e49 0%, #212943 100%);
-  color: #dcd3ce;
+  background: var(--gradient-press);
+  color: var(--color-text-sub);
   font-size: 13px;
   line-height: 20px;
   font-weight: 500;
@@ -187,9 +185,9 @@
   height: 56px;
   margin-top: 16px;
   border: 0;
-  border-radius: 999px;
-  background: linear-gradient(180deg, #ffcdb2 0%, #ffc4a4 100%);
-  color: #1a0b08;
+  border-radius: var(--radius-pill);
+  background: var(--gradient-peach);
+  color: var(--color-on-peach);
   font-size: 16px;
   line-height: 24px;
   font-weight: 700;
@@ -207,9 +205,9 @@
   border: 0;
   min-height: 44px;
   padding: 0 16px;
-  border-radius: 999px;
-  background: linear-gradient(180deg, #262e49 0%, #212943 100%);
-  color: #dcd3ce;
+  border-radius: var(--radius-pill);
+  background: var(--gradient-press);
+  color: var(--color-text-sub);
   font-size: 13px;
   line-height: 20px;
   font-weight: 500;
@@ -231,12 +229,12 @@
 .v2-memory-empty-icon {
   width: 56px;
   height: 56px;
-  border-radius: 999px;
-  background: linear-gradient(180deg, #212941 0%, #1d253b 100%);
+  border-radius: var(--radius-pill);
+  background: var(--gradient-surface);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #dcd3ce;
+  color: var(--color-text-sub);
 }
 
 .v2-memory-empty-title {
@@ -249,7 +247,7 @@
 
 .v2-memory-empty-copy {
   margin: 0;
-  color: #dcd3ce;
+  color: var(--color-text-sub);
   font-size: 13px;
   line-height: 20px;
 }
@@ -263,22 +261,22 @@
 
 .v2-memory-skeleton-line {
   height: 20px;
-  border-radius: 8px;
-  background: #242c45;
+  border-radius: var(--radius-tail);
+  background: var(--color-skeleton-hi);
 }
 
 .v2-memory-skeleton-line.alt {
-  background: #1d253b;
+  background: var(--color-skeleton-lo);
 }
 
 .v2-memory-error-card {
-  background: linear-gradient(180deg, #212941 0%, #1d253b 100%);
-  border-radius: 20px;
+  background: var(--gradient-surface);
+  border-radius: var(--radius-card);
   padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  color: #fbf6f1;
+  color: var(--color-text);
 }
 
 .v2-sr-only {
@@ -298,15 +296,15 @@
   position: fixed;
   inset: 0;
   z-index: 60;
-  background: rgba(6, 8, 16, 0.6);
+  background: var(--color-scrim);
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
 }
 
 .v2-memory-sheet {
-  background: #1c171f;
-  border-radius: 28px 28px 0 0;
+  background: var(--color-bar);
+  border-radius: var(--radius-sheet);
   padding: 8px 20px 24px;
   display: flex;
   flex-direction: column;
@@ -319,8 +317,8 @@
   align-self: center;
   width: 36px;
   height: 4px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.24);
+  border-radius: var(--radius-pill);
+  background: var(--color-grabber);
 }
 
 .v2-memory-sheet-header {
@@ -340,7 +338,7 @@
 
 .v2-memory-sheet-caption {
   margin: 0;
-  color: #dcd3ce;
+  color: var(--color-text-sub);
   font-size: 13px;
   line-height: 20px;
 }
@@ -350,17 +348,17 @@
   font-size: 13px;
   line-height: 20px;
   font-weight: 500;
-  color: #dcd3ce;
+  color: var(--color-text-sub);
 }
 
 .v2-memory-textarea {
   width: 100%;
   min-height: 96px;
   box-sizing: border-box;
-  background: #0b0f1a;
-  border: 1px solid #8c8497;
-  border-radius: 12px;
-  color: #fbf6f1;
+  background: var(--color-well);
+  border: 1px solid var(--color-well-border);
+  border-radius: var(--radius-control);
+  color: var(--color-text);
   font: inherit;
   font-size: 16px;
   line-height: 28px;
@@ -369,7 +367,7 @@
 }
 
 .v2-memory-textarea.error {
-  border-color: #ffa69a;
+  border-color: var(--color-danger);
 }
 
 .v2-memory-pills {
@@ -383,9 +381,9 @@
   border: 0;
   height: 44px;
   padding: 0 18px;
-  border-radius: 999px;
-  background: linear-gradient(180deg, #262e49 0%, #212943 100%);
-  color: #dcd3ce;
+  border-radius: var(--radius-pill);
+  background: var(--gradient-press);
+  color: var(--color-text-sub);
   font-size: 13px;
   line-height: 20px;
   font-weight: 500;
@@ -393,21 +391,21 @@
 }
 
 .v2-memory-pill.selected {
-  background: linear-gradient(180deg, #3d2b2f 0%, #36262a 100%);
-  box-shadow: inset 0 0 0 1.5px #ffc9ac;
-  color: #fbf6f1;
+  background: var(--gradient-selected);
+  box-shadow: var(--edge-selected);
+  color: var(--color-text);
 }
 
 .v2-memory-note {
   margin: 0;
-  color: #dcd3ce;
+  color: var(--color-text-sub);
   font-size: 13px;
   line-height: 20px;
 }
 
 .v2-memory-error {
   margin: 0;
-  color: #ffa69a;
+  color: var(--color-danger);
   font-size: 13px;
   line-height: 20px;
 }
@@ -416,7 +414,7 @@
   font: inherit;
   border: 0;
   background: transparent;
-  color: #ffa69a;
+  color: var(--color-danger);
   font-size: 13px;
   line-height: 20px;
   display: inline-flex;
@@ -433,7 +431,7 @@
   align-items: center;
   gap: 8px;
   background: transparent;
-  color: #fbf6f1;
+  color: var(--color-text);
   font-size: 16px;
   line-height: 28px;
   padding: 4px 0;
@@ -443,9 +441,9 @@
 .v2-memory-toggle-track {
   width: 44px;
   height: 24px;
-  border-radius: 999px;
-  background: #0b0f1a;
-  border: 1px solid #8c8497;
+  border-radius: var(--radius-pill);
+  background: var(--color-well);
+  border: 1px solid var(--color-well-border);
   position: relative;
   flex: none;
 }
@@ -456,21 +454,21 @@
   left: 2px;
   width: 18px;
   height: 18px;
-  border-radius: 999px;
-  background: #dcd3ce;
+  border-radius: var(--radius-pill);
+  background: var(--color-text-sub);
   transition:
     left 0.15s ease,
     background 0.15s ease;
 }
 
 .v2-memory-toggle[aria-pressed="true"] .v2-memory-toggle-track {
-  background: linear-gradient(180deg, #ffcdb2 0%, #ffc4a4 100%);
+  background: var(--gradient-peach);
   border-color: transparent;
 }
 
 .v2-memory-toggle[aria-pressed="true"] .v2-memory-toggle-thumb {
   left: 22px;
-  background: #1a0b08;
+  background: var(--color-on-peach);
 }
 
 .v2-memory-danger {
@@ -478,9 +476,9 @@
   border: 0;
   height: 44px;
   padding: 0 16px;
-  border-radius: 999px;
-  background: linear-gradient(180deg, #4a2226 0%, #401c21 100%);
-  color: #ffa69a;
+  border-radius: var(--radius-pill);
+  background: var(--gradient-delete);
+  color: var(--color-danger);
   font-size: 16px;
   line-height: 24px;
   font-weight: 700;
@@ -500,9 +498,9 @@
 .v2-memory-quote {
   margin: 0;
   padding: 12px 16px;
-  border-radius: 12px;
-  background: #0b0f1a;
-  color: #fbf6f1;
+  border-radius: var(--radius-control);
+  background: var(--color-well);
+  color: var(--color-text);
   font-size: 16px;
   line-height: 28px;
 }
@@ -512,8 +510,8 @@
   flex-direction: column;
   gap: 8px;
   padding: 16px;
-  border-radius: 20px;
-  background: linear-gradient(180deg, #212941 0%, #1d253b 100%);
+  border-radius: var(--radius-card);
+  background: var(--gradient-surface);
 }
 
 /* 知らせ（画面の下から 16px・10 秒で消える） */
@@ -524,9 +522,9 @@
   bottom: 16px;
   z-index: 70;
   min-height: 52px;
-  border-radius: 999px;
-  background: #0f1528;
-  color: #fbf6f1;
+  border-radius: var(--radius-pill);
+  background: var(--color-plate);
+  color: var(--color-text);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -545,7 +543,7 @@
   font: inherit;
   border: 0;
   background: transparent;
-  color: #ffc9ac;
+  color: var(--color-peach);
   font-size: 13px;
   line-height: 20px;
   font-weight: 700;
