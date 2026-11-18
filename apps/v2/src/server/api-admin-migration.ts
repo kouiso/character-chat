@@ -378,6 +378,7 @@ export const handleLegacyMigration = async (request: Request): Promise<Response>
       event: "legacy_migration_failed",
       level: "error",
       status: 500,
+      method: request.method,
       route: "/api/admin/legacy-migration",
       reason: describeError(error),
     });
