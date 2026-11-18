@@ -23,7 +23,6 @@ import {
   createModelChain,
   createOpenRouterModel,
   extractMemorySource,
-  runMemoryJob,
   type ModelCandidate,
 } from "@v2/engine";
 import { buildSummaryRedactInstruction } from "@v2/prompt";
