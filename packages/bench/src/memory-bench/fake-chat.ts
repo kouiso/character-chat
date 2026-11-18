@@ -20,6 +20,8 @@ import {
   hardRefusalDetect,
   SUMMARIZE_LEVEL1_INSTRUCTION,
   SUMMARIZE_LEVEL2_INSTRUCTION,
+  SUMMARY_LEVEL1_MAX_CHARS,
+  SUMMARY_LEVEL2_MAX_CHARS,
   type TurnModel,
 } from "@v2/engine";
 
@@ -55,19 +57,33 @@ export type FakeChatQuestion = {
 
 export type FakeChatOptions = {
   questions: FakeChatQuestion[];
-  // "blank"=「（要約）」固定、"echo"=受け取った本文をそのまま返す。
+  // "blank"=「（要約）」固定、"echo"=本文の「相手:」行を上限まで拾って返す。
   summary: "blank" | "echo";
 };
 
 // 要約呼び出しなら返事を返す。会話呼び出しなら null。
 const summaryReply = (first: string, mode: FakeChatOptions["summary"]): string | null => {
-  const isSummary =
-    first.startsWith(SUMMARIZE_LEVEL1_INSTRUCTION) ||
-    first.startsWith(SUMMARIZE_LEVEL2_INSTRUCTION);
-  if (!isSummary) return null;
+  const isLevel1 = first.startsWith(SUMMARIZE_LEVEL1_INSTRUCTION);
+  const isLevel2 = first.startsWith(SUMMARIZE_LEVEL2_INSTRUCTION);
+  if (!isLevel1 && !isLevel2) return null;
   if (mode !== "echo") return "（要約）";
   const sep = first.indexOf("\n\n");
-  return sep >= 0 ? first.slice(sep + 2) : first;
+  return sep >= 0 ? echoLines(first.slice(sep + 2), isLevel1) : first;
+};
+
+// 実ソース由来の echo で限界内に収めるため「相手:」行だけ拾う。全文返しだと
+// level 上限超えで保存自体が落ち、echo 試験の意図（あらすじが見える事）を潰す。
+// level 2 の入力（level 1 本文の連結）も「相手:」行のままなので同じ規則で畳める。
+const echoLines = (body: string, isLevel1: boolean): string => {
+  const limit = isLevel1 ? SUMMARY_LEVEL1_MAX_CHARS : SUMMARY_LEVEL2_MAX_CHARS;
+  let out = "";
+  for (const line of body.split("\n")) {
+    if (!line.startsWith("相手:")) continue;
+    const next = out === "" ? line : `${out}\n${line}`;
+    if (next.length > limit) break;
+    out = next;
+  }
+  return out === "" ? "（要約）" : out;
 };
 
 export const createFakeChat = (opts: FakeChatOptions): TurnModel => {
