@@ -446,7 +446,7 @@ const visibleSummaryText = async (
   conversationId: string,
 ): Promise<string> =>
   plan.kind === "ask" && summaryStore
-    ? visibleSummaries(await summaryStore.list(conversationId))
+    ? visibleSummaries(await summaryStore.listActive(conversationId))
         .map((summary) => summary.text)
         .join("\n")
     : "";
