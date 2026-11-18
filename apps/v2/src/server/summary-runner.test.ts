@@ -309,6 +309,42 @@ describe("summarizeConversation（RIT-72）", () => {
     }
   });
 
+  it("穴の修復は次に有効な level 1 の手前で止まり、既存範囲を取り込まん", async () => {
+    const conversationId = await seedTurns(30);
+    // 1-10 と 21-30 に有効な level 1 があり、11-20 だけが穴（無効化された跡）。
+    // 係の網を通るよう hash はそれぞれの範囲の本文から正しく作る。
+    for (const [fromTurn, toTurn, text] of [
+      [1, 10, "前半の要約"],
+      [21, 30, "後半の要約"],
+    ] as const) {
+      await saveSummaryRange(local.db, {
+        conversationId,
+        level: 1,
+        fromTurn,
+        toTurn,
+        sourceHash: await summarySourceHash(
+          await loadTurnRange(local.db, { conversationId, fromTurn, toTurn }),
+        ),
+        text,
+      });
+    }
+    const model = new FakeListChatModel({ responses: ["穴の修復分"] });
+    const invokeSpy = vi.spyOn(model, "invoke");
+    const outcome = await summarizeConversation(
+      ENV,
+      { userId: "vitest", characterId, conversationId },
+      { models: [{ name: "fake", model }], db: local.db },
+    );
+    expect(outcome).toBe("saved");
+    const active = await listActiveSummaries(local.db, conversationId);
+    // 新しくできた level 1 は 11-20 だけ。既存の 21-30 を取り込んだ 11-30 は作らん。
+    const repaired = active.find((row) => row.level === 1 && row.fromTurn === 11);
+    expect(repaired?.toTurn).toBe(20);
+    expect(repaired?.text).toBe("穴の修復分");
+    expect(active.filter((row) => row.level === 1 && row.fromTurn === 21)).toHaveLength(1);
+    expect(invokeSpy).toHaveBeenCalledTimes(1);
+  });
+
   it("止めの合図で要約は保存せず終わり、失敗にも数えん（FR-5）", async () => {
     const conversationId = await seedTurns(12);
     const storage = memoryStorage();
