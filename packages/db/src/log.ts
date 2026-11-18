@@ -19,12 +19,18 @@ export type LogEventName =
   | "summary_redact_publish_failed"
   | "summary_redact_failed"
   | "summary_redact_dropped"
+  | "summary_saved"
+  | "summary_failed"
+  | "summary_failure_count_failed"
+  | "summary_aborted"
+  | "summary_source_mismatch"
   | "memory_pinned_load_failed"
   | "memory_retrieval_failed"
   | "document_vector_delete_failed"
   | "document_r2_delete_failed"
   | "document_retrieval_failed"
   | "proactive_push_failed"
+  | "legacy_migration_failed"
   | "image_generation_error"
   | "image_lora_trigger_missing"
   | "ledger_fallback"
@@ -54,6 +60,11 @@ export type LogEntry = {
   conversationId?: string;
   // 層ごとの使用字数（RIT-71 の prompt_budget_exceeded 用）。数字だけ、本文は入れん。
   usage?: ContextUsage;
+  // 要約の記録用（RIT-72）。level・ターン範囲・字数の数字だけ。要約本文・会話本文は出さん。
+  summaryLevel?: number;
+  fromTurn?: number;
+  toTurn?: number;
+  chars?: number;
 };
 
 // 例外の message には会話本文や接続先の詳細・上流のエラー文が混ざりうるので、

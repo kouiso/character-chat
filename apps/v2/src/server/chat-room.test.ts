@@ -22,7 +22,7 @@ const SECOND_REPLY =
   "<response><action>マフラーをほどいて、隣の椅子をそっと引いた。</action><dialogue>座って。今日あったこと、全部聞かせてよ。</dialogue><inner>帰ってきてくれて、ほんまに嬉しい。</inner></response>";
 
 const platform = vi.hoisted(() => ({ env: {} as Record<string, unknown> }));
-const replies = vi.hoisted(() => ({ queue: [] as string[][], calls: 0 }));
+const replies = vi.hoisted(() => ({ queue: [] as string[][], calls: 0, lastCallAt: 0 }));
 
 vi.mock("cloudflare:workers", () => ({
   waitUntil: (job: Promise<unknown>) => void job.catch(() => undefined),
@@ -39,6 +39,26 @@ vi.mock("cloudflare:workers", () => ({
 
 vi.mock("./platform", () => ({ getPlatform: async () => ({ env: platform.env }) }));
 
+// 要約の係（RIT-72）は差し替える。既定はすぐ済む idle。止まらん要約・失敗の再現は
+// summary.impl へ試験ごとに仕込む。
+const summary = vi.hoisted(() => ({
+  calls: 0,
+  impl: undefined as
+    | ((input: { signal?: AbortSignal; conversationId: string }) => Promise<string>)
+    | undefined,
+}));
+
+vi.mock("./summary-runner", () => ({
+  summarizeConversation: async (
+    _env: unknown,
+    input: { signal?: AbortSignal; conversationId: string },
+  ) => {
+    summary.calls += 1;
+    if (summary.impl) return summary.impl(input);
+    return "idle";
+  },
+}));
+
 vi.mock("@v2/engine", async (importOriginal) => {
   const original = await importOriginal<typeof EngineModule>();
   return {
@@ -47,6 +67,7 @@ vi.mock("@v2/engine", async (importOriginal) => {
     // RIT-102 でモデル取得はチェーン経由になったのでチェーンごと差し替える。
     createModelChain: (): EngineModule.ModelCandidate[] => {
       replies.calls += 1;
+      replies.lastCallAt = Date.now();
       const responses = replies.queue.shift() ?? [""];
       return [{ name: "fake", model: new FakeListChatModel({ responses }) }];
     },
@@ -181,6 +202,8 @@ describe("ChatRoom", () => {
   beforeEach(() => {
     replies.queue = [];
     replies.calls = 0;
+    summary.calls = 0;
+    summary.impl = undefined;
   });
 
   afterAll(async () => {
@@ -907,6 +930,119 @@ describe("ChatRoom", () => {
       } finally {
         errors.mockRestore();
       }
+    });
+  });
+
+  describe("要約の係（RIT-72）", () => {
+    it("要約の失敗は、届き終わった返事を失敗に戻さん（UR-4）", async () => {
+      const errors = vi.spyOn(console, "error").mockImplementation(() => undefined);
+      try {
+        const room = newRoom();
+        const conversationId = newConversation();
+        replies.queue.push([VALID_REPLY]);
+        summary.impl = async () => {
+          throw new Error("summary model down");
+        };
+        const requestId = "req-sum-fail";
+        const receipt = await room.submit({
+          requestId,
+          conversationId,
+          text: "こんにちは",
+          characterId,
+        });
+        expect(receipt.status).toBe("accepted");
+        await room.alarm();
+        const page = room.readEvents(requestId, 0);
+        expect(page.status).toBe("succeeded");
+        expect(page.events.map((item) => item.event.type)).toContain("done");
+        expect(summary.calls).toBe(1);
+        // 失敗は summary_failed だけを記録し、返事の失敗記録（chat_turn_failed）には触れん。
+        const events = errors.mock.calls.map((call) => JSON.parse(String(call[0])).event);
+        expect(events).toContain("summary_failed");
+        expect(events).not.toContain("chat_turn_failed");
+      } finally {
+        errors.mockRestore();
+      }
+    });
+
+    it("待ちの job が在る alarm では要約を回さん（FR-5）", async () => {
+      const room = newRoom();
+      const conversationId = newConversation();
+      replies.queue.push([VALID_REPLY]);
+      expect(
+        (await room.submit({ requestId: "req-sum-a", conversationId, text: "先", characterId }))
+          .status,
+      ).toBe("accepted");
+      // 直に queued の job を 1 本足す（alarm が走る時点で待ちが在る状態）。
+      state.sqlite
+        .prepare(
+          "INSERT INTO jobs (id,character_id,conversation_id,text,digest,turn,status,created_at) VALUES (?,?,?,?,?,?,'queued',?)",
+        )
+        .run("req-sum-b", characterId, conversationId, "後", "digest-b", 2, Date.now() + 1000);
+      await room.alarm();
+      expect(room.readEvents("req-sum-a", 0).status).toBe("succeeded");
+      expect(summary.calls).toBe(0);
+      // 待ちが無くなった次の alarm では要約が回る。
+      replies.queue.push([VALID_REPLY]);
+      await room.alarm();
+      expect(summary.calls).toBe(1);
+    });
+
+    it("発言が届いたら走っとる要約は止め、次の生成は 100ms 以内に始まる（FR-5・NFR-5）", async () => {
+      const room = newRoom();
+      const conversationId = newConversation();
+      replies.queue.push([VALID_REPLY]);
+      let observedSignal: AbortSignal | undefined;
+      let abortedAt = 0;
+      let hung = true;
+      // 止めの合図が来るまで終わらん要約（最初の 1 回だけ。2 回目以降は普通に済ませる）。
+      summary.impl = (input) => {
+        if (!hung) return Promise.resolve("idle");
+        hung = false;
+        return new Promise((resolve) => {
+          observedSignal = input.signal;
+          input.signal?.addEventListener(
+            "abort",
+            () => {
+              abortedAt = Date.now();
+              resolve("aborted");
+            },
+            { once: true },
+          );
+        });
+      };
+      const first = await room.submit({
+        requestId: "req-sum-first",
+        conversationId,
+        text: "先の発言",
+        characterId,
+      });
+      expect(first.status).toBe("accepted");
+      // alarm は返事の後で要約へ入る。要約が終わらんので await は後回し。
+      const alarmRun = room.alarm();
+      // 全部の試験が並ぶ環境でも要約が始まるまで待てるよう、締切は長めに取る。
+      await vi.waitFor(() => expect(observedSignal).toBeDefined(), { timeout: 10_000 });
+      expect(observedSignal?.aborted).toBe(false);
+
+      const second = await room.submit({
+        requestId: "req-sum-second",
+        conversationId,
+        text: "次の発言",
+        characterId,
+      });
+      expect(second.status).toBe("accepted");
+      expect(observedSignal?.aborted).toBe(true);
+      await alarmRun;
+
+      const callsBefore = replies.calls;
+      // 2 つ目の返事は 1 つ目と別文にしとく（同じ文は反復判定で落ちて生成が失敗になる）。
+      replies.queue.push([SECOND_REPLY]);
+      await room.alarm();
+      const generated = room.readEvents("req-sum-second", 0);
+      expect(generated.status).toBe("succeeded");
+      expect(replies.calls).toBe(callsBefore + 1);
+      // 要約の中断から次の生成開始（モデル鎖の作成）まで 100ms 以内。
+      expect(replies.lastCallAt - abortedAt).toBeLessThan(100);
     });
   });
 });

@@ -7,7 +7,7 @@ import {
   readDisplayHistory,
   saveProactiveMessage,
 } from "@v2/db";
-import { createOpenRouterModel } from "@v2/engine";
+import { createOpenRouterModel, visibleSummaries } from "@v2/engine";
 import { PROMPT_VERSION } from "@v2/prompt";
 
 import { readCharacter } from "./character-data.server";
@@ -67,12 +67,12 @@ const recallCueFor = async (
 const buildPrompt = (input: {
   systemPrompt: string;
   cue: RecallCue | null;
-  summaries: { level: number; coveredTo: number; text: string }[];
+  summaries: { level: number; toTurn: number; text: string }[];
   memories: string[];
   history: { role: string; content: string }[];
 }): string => {
   const summaryText = [...input.summaries]
-    .sort((a, b) => b.level - a.level || b.coveredTo - a.coveredTo)
+    .sort((a, b) => b.level - a.level || b.toTurn - a.toTurn)
     .slice(0, SUMMARY_LIMIT)
     .map((s) => s.text)
     .join("\n");
@@ -131,7 +131,9 @@ export const createProactiveSink = (deps: ProactiveSinkDeps): ProactiveNotificat
         { userId: LOCAL_USER_ID, characterId, conversationId },
         MEMORY_LIMIT,
       ),
-      createD1SummaryStore(deps.db).list(conversationId),
+      // 指示文と同じ選び方（最新の level 2 + 未収載の level 1）で絞る。
+      // listActive の生の行は伏せ直し待ちや古い level 2 も混ざる。
+      createD1SummaryStore(deps.db).listActive(conversationId).then(visibleSummaries),
     ]);
     const prompt = buildPrompt({
       systemPrompt: ok.systemPrompt,

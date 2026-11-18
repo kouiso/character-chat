@@ -1,4 +1,4 @@
-import { createDb, describeError } from "@v2/db";
+import { createDb, describeError, logEvent } from "@v2/db";
 import { PromptBudgetExceededError } from "@v2/engine";
 import { DurableObject } from "cloudflare:workers";
 
@@ -9,6 +9,7 @@ import { LOCAL_USER_ID } from "./identity";
 import { reportFailure } from "./log";
 import { MEMORY_RETRY_DELAY_MS, publishMemoryJobs } from "./memory-queue";
 import { memoryVectorReady } from "./memory-vector";
+import { summarizeConversation } from "./summary-runner";
 
 const parseStoredEvent = (raw: string): ChatSseEvent => {
   try {
@@ -154,6 +155,8 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
   private running = false;
   private runningJobId: string | null = null;
   private abortControllers = new Map<string, AbortController>();
+  // 要約の係の中断（RIT-72）。新しい job が入ったら submit がここから止める。
+  private summaryAbort: AbortController | null = null;
   private eventWaiters = new Set<() => void>();
   // abandon-once の故障を入れた試行は、alarm の末尾の再予約を止めて孤児を再現する。
   private abandonedByFault = false;
@@ -218,7 +221,11 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
         this.admit(input, digest, history.turn, version),
       );
       if (!receipt) continue;
-      if (receipt.status === "accepted") await this.scheduleIfWaiting(input.requestId);
+      if (receipt.status === "accepted") {
+        // 待ちの job が入ったので、走っとる要約は止める（部分保存せず、失敗に数えん）。
+        this.summaryAbort?.abort();
+        await this.scheduleIfWaiting(input.requestId);
+      }
       return receipt;
     }
     return { status: "busy", requestId: input.requestId, created: false };
@@ -508,6 +515,12 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
         await this.process(job);
       }
       await this.publishMemories();
+      // 要約は返事の配りと記憶の配送の後、待ちの job が 1 つも無い時だけ回す（RIT-72 FR-5）。
+      // 要約（最大 60 秒×2）の間に次の発言を待たせんため、job が在る alarm では呼ばん。
+      const waiting = this.ctx.storage.sql
+        .exec(`SELECT id FROM jobs WHERE ${ACTIVE_STATUS_SQL} LIMIT 1`)
+        .toArray()[0];
+      if (!waiting) await this.summarizeRoom();
     } finally {
       this.running = false;
       this.runningJobId = null;
@@ -546,6 +559,35 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
       this.env,
     );
     if (pending) await reserve();
+  }
+
+  // 要約の係（RIT-72）。会話の選び方は publishMemories と同じ（一番新しい job の会話）。
+  // 失敗・中断はここで記録するだけで、job の成否には一切触れん（UR-4）。
+  private async summarizeRoom(): Promise<void> {
+    const room = this.ctx.storage.sql
+      .exec<Job>("SELECT * FROM jobs ORDER BY created_at DESC LIMIT 1")
+      .toArray()[0];
+    if (!room) return;
+    const controller = new AbortController();
+    this.summaryAbort = controller;
+    try {
+      await summarizeConversation(this.env, {
+        userId: LOCAL_USER_ID,
+        characterId: room.character_id,
+        conversationId: room.conversation_id,
+        signal: controller.signal,
+        storage: this.ctx.storage,
+      });
+    } catch (error) {
+      logEvent({
+        event: controller.signal.aborted ? "summary_aborted" : "summary_failed",
+        level: controller.signal.aborted ? "info" : "error",
+        conversationId: room.conversation_id,
+        reason: describeError(error),
+      });
+    } finally {
+      this.summaryAbort = null;
+    }
   }
 
   private bumpVersion(): void {

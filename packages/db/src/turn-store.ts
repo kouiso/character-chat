@@ -11,6 +11,7 @@ import { chunkSendTimes } from "./chunk-schedule";
 import { logEvent } from "./log";
 import { recomputeSupersessionStatements } from "./memory-supersession";
 import { generationMemoryStatements } from "./memory-use-store";
+import { invalidateSummariesFromStatement } from "./summary-store";
 import {
   v2ChunkTable,
   v2ConversationTable,
@@ -795,6 +796,8 @@ const saveAssistantBranchTurn = async (args: {
     }),
     // 新しい枝の生成が使った記憶を同じバッチで入れる（generation_id 側が正本、RIT-84）。
     ...insertGenerationMemoryRows(db, generations),
+    // RIT-72 FR-7: このターンの枝替わりで、それ以降を覆う要約は元と合わんので無効にする。
+    invalidateSummariesFromStatement(db, input.conversationId, input.turn),
   ]);
   return { chunkSendAt: sendTimes };
 };
@@ -953,6 +956,8 @@ const saveTurnMainLine = async (args: {
       : []),
     // このターンの生成が使った記憶（RIT-84）。生成行と同じバッチで入れる。
     ...insertGenerationMemoryRows(db, generations),
+    // RIT-72 FR-7: このターン以降を覆う要約は置き換え後の元と合わんので無効にする。
+    invalidateSummariesFromStatement(db, input.conversationId, input.turn),
     // 消えた記憶の主題を並べ直す（RIT-86）。この batch の記憶削除・発言置き換えが
     // 全部終わった後の状態で決まるよう、文は最後に置く。
     ...recomputeSupersessionStatements(db, input.conversationId, replacedSubjects),

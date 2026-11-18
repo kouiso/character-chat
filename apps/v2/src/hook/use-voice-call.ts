@@ -34,7 +34,7 @@ export const voiceCallSupported = (): boolean => recognitionCtor() !== null;
 
 interface VoiceCallDeps {
   sendText: (text: string) => Promise<void>;
-  latestAssistant: () => { text: string } | undefined;
+  latestAssistant: () => { text: string; id?: string; turn?: number } | undefined;
   playVoice: (key: string, text: string) => void;
 }
 
@@ -116,12 +116,16 @@ export const useVoiceCall = (deps: VoiceCallDeps) => {
       if (!transcript) return;
       setPhase("thinking");
       void (async () => {
+        // 送信前の返答を覚えておく。失敗時に sendText が解けても古い返事を読み直さんため。
+        const before = depsRef.current.latestAssistant();
+        const beforeKey = before ? (before.id ?? `t${before.turn ?? 0}`) : null;
         await depsRef.current.sendText(transcript);
         if (!active.current) return;
-        const text = depsRef.current.latestAssistant()?.text;
-        if (text) {
+        const last = depsRef.current.latestAssistant();
+        const lastKey = last ? (last.id ?? `t${last.turn ?? 0}`) : null;
+        if (last && lastKey !== beforeKey) {
           setPhase("speaking");
-          depsRef.current.playVoice(`call-${Date.now()}`, text);
+          depsRef.current.playVoice(`call-${Date.now()}`, last.text);
           // 再生完了は onPlaybackEnded 経由で listen へ戻る。
         } else {
           listenRef.current();

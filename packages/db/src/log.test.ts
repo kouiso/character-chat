@@ -96,6 +96,10 @@ describe("LogEntry の型", () => {
       | "generationId"
       | "conversationId"
       | "usage"
+      | "summaryLevel"
+      | "fromTurn"
+      | "toTurn"
+      | "chars"
     >();
     // 会話本文・例外本文・要求 URL・キャラ id は NFR-1 の許可リストに無い。
     expectTypeOf<LogEntry>().not.toHaveProperty("message");

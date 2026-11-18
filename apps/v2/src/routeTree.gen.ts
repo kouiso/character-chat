@@ -61,6 +61,7 @@ import { Route as ApiPushVapidKeyRouteImport } from './routes/api/push/vapid-key
 import { Route as ApiRevenueAggregateRouteImport } from './routes/api/revenue_/aggregate'
 import { Route as ApiStoriesIdRouteImport } from './routes/api/stories/$id'
 import { Route as ApiVoiceCallQuotaRouteImport } from './routes/api/voice-call/quota'
+import { Route as ChatIdAlbumRouteImport } from './routes/chat/$id_/album'
 import { Route as ChatIdMemoryRouteImport } from './routes/chat/$id_/memory'
 import { Route as StoriesIdReadRouteImport } from './routes/stories/$id/read'
 import { Route as ApiCatalogIdCommentsRouteImport } from './routes/api/catalog/$id_/comments'
@@ -364,6 +365,11 @@ const ApiVoiceCallQuotaRoute = ApiVoiceCallQuotaRouteImport.update({
   path: '/api/voice-call/quota',
   getParentRoute: () => rootRouteImport,
 })
+const ChatIdAlbumRoute = ChatIdAlbumRouteImport.update({
+  id: '/chat/$id_/album',
+  path: '/chat/$id/album',
+  getParentRoute: () => rootRouteImport,
+})
 const ChatIdMemoryRoute = ChatIdMemoryRouteImport.update({
   id: '/chat/$id_/memory',
   path: '/chat/$id/memory',
@@ -638,6 +644,7 @@ export interface FileRoutesByFullPath {
   '/api/revenue/aggregate': typeof ApiRevenueAggregateRoute
   '/api/stories/$id': typeof ApiStoriesIdRoute
   '/api/voice-call/quota': typeof ApiVoiceCallQuotaRoute
+  '/chat/$id/album': typeof ChatIdAlbumRoute
   '/chat/$id/memory': typeof ChatIdMemoryRoute
   '/stories/$id/read': typeof StoriesIdReadRoute
   '/api/catalog/$id/comments': typeof ApiCatalogIdCommentsRouteWithChildren
@@ -734,6 +741,7 @@ export interface FileRoutesByTo {
   '/api/revenue/aggregate': typeof ApiRevenueAggregateRoute
   '/api/stories/$id': typeof ApiStoriesIdRoute
   '/api/voice-call/quota': typeof ApiVoiceCallQuotaRoute
+  '/chat/$id/album': typeof ChatIdAlbumRoute
   '/chat/$id/memory': typeof ChatIdMemoryRoute
   '/stories/$id/read': typeof StoriesIdReadRoute
   '/api/catalog/$id/comments': typeof ApiCatalogIdCommentsRouteWithChildren
@@ -831,6 +839,7 @@ export interface FileRoutesById {
   '/api/revenue_/aggregate': typeof ApiRevenueAggregateRoute
   '/api/stories/$id': typeof ApiStoriesIdRoute
   '/api/voice-call/quota': typeof ApiVoiceCallQuotaRoute
+  '/chat/$id_/album': typeof ChatIdAlbumRoute
   '/chat/$id_/memory': typeof ChatIdMemoryRoute
   '/stories/$id/read': typeof StoriesIdReadRoute
   '/api/catalog/$id_/comments': typeof ApiCatalogIdCommentsRouteWithChildren
@@ -929,6 +938,7 @@ export interface FileRouteTypes {
     | '/api/revenue/aggregate'
     | '/api/stories/$id'
     | '/api/voice-call/quota'
+    | '/chat/$id/album'
     | '/chat/$id/memory'
     | '/stories/$id/read'
     | '/api/catalog/$id/comments'
@@ -1025,6 +1035,7 @@ export interface FileRouteTypes {
     | '/api/revenue/aggregate'
     | '/api/stories/$id'
     | '/api/voice-call/quota'
+    | '/chat/$id/album'
     | '/chat/$id/memory'
     | '/stories/$id/read'
     | '/api/catalog/$id/comments'
@@ -1121,6 +1132,7 @@ export interface FileRouteTypes {
     | '/api/revenue_/aggregate'
     | '/api/stories/$id'
     | '/api/voice-call/quota'
+    | '/chat/$id_/album'
     | '/chat/$id_/memory'
     | '/stories/$id/read'
     | '/api/catalog/$id_/comments'
@@ -1209,6 +1221,7 @@ export interface RootRouteChildren {
   ApiPushVapidKeyRoute: typeof ApiPushVapidKeyRoute
   ApiRevenueAggregateRoute: typeof ApiRevenueAggregateRoute
   ApiVoiceCallQuotaRoute: typeof ApiVoiceCallQuotaRoute
+  ChatIdAlbumRoute: typeof ChatIdAlbumRoute
   ChatIdMemoryRoute: typeof ChatIdMemoryRoute
   ApiChatIdBranchRoute: typeof ApiChatIdBranchRoute
   ApiChatIdComicRoute: typeof ApiChatIdComicRoute
@@ -1590,6 +1603,13 @@ declare module '@tanstack/react-router' {
       path: '/api/voice-call/quota'
       fullPath: '/api/voice-call/quota'
       preLoaderRoute: typeof ApiVoiceCallQuotaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/chat/$id_/album': {
+      id: '/chat/$id_/album'
+      path: '/chat/$id/album'
+      fullPath: '/chat/$id/album'
+      preLoaderRoute: typeof ChatIdAlbumRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/chat/$id_/memory': {
@@ -2149,6 +2169,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPushVapidKeyRoute: ApiPushVapidKeyRoute,
   ApiRevenueAggregateRoute: ApiRevenueAggregateRoute,
   ApiVoiceCallQuotaRoute: ApiVoiceCallQuotaRoute,
+  ChatIdAlbumRoute: ChatIdAlbumRoute,
   ChatIdMemoryRoute: ChatIdMemoryRoute,
   ApiChatIdBranchRoute: ApiChatIdBranchRoute,
   ApiChatIdComicRoute: ApiChatIdComicRoute,
