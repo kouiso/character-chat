@@ -12,7 +12,7 @@
 //   CLOUDFLARE_API_TOKEN・CLOUDFLARE_ACCOUNT_ID（OPENROUTER_API_KEY は staging Worker の secret）
 // 鍵が揃っていない時は実行せず status "unverified" で終わる。
 import { execFile } from "node:child_process";
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -20,6 +20,7 @@ import { fileURLToPath } from "node:url";
 const v2Root = fileURLToPath(new URL("..", import.meta.url));
 const fixturePath = path.resolve(v2Root, "../../packages/bench/fixture/memory-recall-29.json");
 const STAGING_DB = "character-chat-v2-staging";
+const STAGING_INDEX = "character-chat-v2-staging";
 const SETTLE_WAIT_MS = 120_000;
 const SETTLE_POLL_MS = 5_000;
 
@@ -105,6 +106,56 @@ const wranglerQuery = async (sql: string): Promise<Record<string, unknown>[]> =>
   return Array.isArray(rows) ? (rows as Record<string, unknown>[]) : [];
 };
 
+// 検索箱の namespace は packages/engine の memoryNamespace と同じ計算。
+const sha256 = (text: string): string => createHash("sha256").update(text, "utf8").digest("hex");
+const memoryNamespace = (userId: string, characterId: string): string =>
+  sha256(JSON.stringify([userId, characterId]));
+
+// D1 には embedding が済んでいても検索箱への反映が間に合わん事がある（投入直後の
+// ターンで取りこぼす実害を踏んだ）。可視性は get-vectors ではなく query で測る —
+// 製品が読む経路（vectorize query + conversation filter）と同じ物を待つので
+// 「記録済みだが検索に出ない」期間だけを正確に待てる。
+const wranglerMemoryQuery = async (args: {
+  values: number[];
+  namespace: string;
+  conversationId: string;
+}): Promise<Set<string>> => {
+  const out = await new Promise<{ stdout: string }>((resolve, reject) => {
+    execFile(
+      "pnpm",
+      [
+        "exec",
+        "wrangler",
+        "vectorize",
+        "query",
+        STAGING_INDEX,
+        "--env",
+        "staging",
+        "--vector",
+        ...args.values.map((value) => String(value)),
+        "--namespace",
+        args.namespace,
+        "--top-k",
+        "50",
+        "--return-metadata",
+        "all",
+        "--filter",
+        JSON.stringify({
+          conversation_id: args.conversationId,
+          kind: { $in: ["fact", "preference"] },
+        }),
+      ],
+      { cwd: v2Root, timeout: 120_000, env: process.env },
+      (error, stdout) => (error ? reject(error) : resolve({ stdout })),
+    );
+  });
+  const found = new Set<string>();
+  for (const match of out.stdout.matchAll(/"memory_id":\s*"([^"]+)"/g)) {
+    found.add(match[1]);
+  }
+  return found;
+};
+
 const basic = (): string =>
   `Basic ${Buffer.from(`${process.env.BASIC_AUTH_USERNAME ?? ""}:${process.env.BASIC_AUTH_PASSWORD ?? ""}`).toString("base64")}`;
 
@@ -180,22 +231,81 @@ const postTurn = async (
 };
 
 // その会話の抜き出し（job）と索引（embedding）が終わるまで待つ。完了せず 120 秒で打ち切る。
-const waitSettled = async (conversationId: string): Promise<{ ms: number; settled: boolean }> => {
+const waitSettled = async (
+  conversationId: string,
+): Promise<{ ms: number; settled: boolean; phase?: string }> => {
   const startedAt = Date.now();
   for (;;) {
+    // wrangler 呼び出しは瞬断するので、失敗は「まだ済んでいない」として次を待つ。
+    // 連続で失敗し続けても枠の時間切れで終わる。
     const rows = await wranglerQuery(
       `SELECT` +
         ` (SELECT COUNT(*) FROM v2_memory_job WHERE conversation_id = '${conversationId}'` +
         `   AND state IN ('pending','queued')) AS pending_jobs,` +
         ` (SELECT COUNT(*) FROM v2_memory WHERE conversation_id = '${conversationId}'` +
         `   AND deleted_at IS NULL AND embedding IS NULL) AS unindexed`,
-    );
-    const row = rows[0] ?? {};
-    if (Number(row.pending_jobs ?? 0) === 0 && Number(row.unindexed ?? 0) === 0) {
-      return { ms: Date.now() - startedAt, settled: true };
+    ).catch(() => null);
+    // null は読み取り失敗 — 落ち着いたとは言えないので次を待つ。
+    if (rows !== null) {
+      const row = rows[0] ?? {};
+      if (Number(row.pending_jobs ?? 0) === 0 && Number(row.unindexed ?? 0) === 0) {
+        return { ms: Date.now() - startedAt, settled: true };
+      }
     }
     if (Date.now() - startedAt > SETTLE_WAIT_MS) {
-      return { ms: Date.now() - startedAt, settled: false };
+      return { ms: Date.now() - startedAt, settled: false, phase: "d1" };
+    }
+    await new Promise((resolve) => setTimeout(resolve, SETTLE_POLL_MS));
+  }
+};
+
+// D1 の索引完了の次は検索箱の反映を待つ。見えない内に進むと質問ターンで
+// 取りこぼして試験が嘘の失敗をする（実害: confusion 会話 turn 3）。
+// get-vectors の可視性は upsert 直後でも遅れるので、ここは D1 settle とは
+// 別の枠を持つ（合算だと抽出ジョブが枠を食って必ず切れる）。
+const VECTOR_VISIBLE_WAIT_MS = 300_000;
+const waitVectorVisible = async (
+  conversationId: string,
+): Promise<{ ms: number; settled: boolean; phase?: string }> => {
+  const startedAt = Date.now();
+  // プローブのクエリベクトルには会話内のどれかの embedding を使う。
+  // 検索箱は conversation_id で絞るので、どれで聞いても見える全件が返る。
+  for (;;) {
+    const probe = await wranglerQuery(
+      `SELECT m.embedding AS embedding, c.user_id AS user_id, c.character_id AS character_id` +
+        ` FROM v2_memory m JOIN v2_conversation c ON c.id = m.conversation_id` +
+        ` WHERE m.conversation_id = '${conversationId}' AND m.embedding IS NOT NULL LIMIT 1`,
+    ).catch(() => null);
+    if (probe === null) {
+      // 読み取りの瞬断は次を待つ。
+    } else if (probe.length === 0) {
+      // 記憶がまだ無いターンは検索箱を待つ必要が無い。
+      return { ms: Date.now() - startedAt, settled: true };
+    } else {
+      const row = probe[0] as {
+        embedding: number[];
+        user_id: string;
+        character_id: string;
+      };
+      const values = Array.from(new Float32Array(new Uint8Array(row.embedding).buffer));
+      const visible = await wranglerMemoryQuery({
+        values,
+        namespace: memoryNamespace(row.user_id, row.character_id),
+        conversationId,
+      }).catch(() => new Set<string>());
+      const expected = await wranglerQuery(
+        `SELECT id FROM v2_memory WHERE conversation_id = '${conversationId}'` +
+          ` AND deleted_at IS NULL AND embedding IS NOT NULL AND kind IN ('fact','preference')`,
+      ).catch(() => null);
+      if (
+        expected !== null &&
+        expected.every((row) => typeof row.id === "string" && visible.has(row.id as string))
+      ) {
+        return { ms: Date.now() - startedAt, settled: true };
+      }
+    }
+    if (Date.now() - startedAt > VECTOR_VISIBLE_WAIT_MS) {
+      return { ms: Date.now() - startedAt, settled: false, phase: "vector" };
     }
     await new Promise((resolve) => setTimeout(resolve, SETTLE_POLL_MS));
   }
@@ -209,15 +319,22 @@ const loadTurnUsage = async (
   memoryRetrieval: string | null;
   used: UsedMemoryRow[];
 } | null> => {
-  const rows = await wranglerQuery(
-    `SELECT g.id AS generation_id, g.memory_retrieval AS memory_retrieval,` +
-      ` m.memory_id AS memory_id, m.rank AS rank, m.via AS via, mem.content AS content` +
-      ` FROM v2_generation g` +
-      ` LEFT JOIN v2_generation_memory m ON m.generation_id = g.id` +
-      ` LEFT JOIN v2_memory mem ON mem.id = m.memory_id` +
-      ` WHERE g.conversation_id = '${conversationId}' AND g.turn = ${turn} AND g.status = 'ok'` +
-      ` ORDER BY g.created_at DESC, m.rank ASC`,
-  );
+  // wrangler が瞬断した時に嘘の「記憶未使用」へならんよう、数回はやり直す。
+  let rows: Record<string, unknown>[] | null = null;
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    rows = await wranglerQuery(
+      `SELECT g.id AS generation_id, g.memory_retrieval AS memory_retrieval,` +
+        ` m.memory_id AS memory_id, m.rank AS rank, m.via AS via, mem.content AS content` +
+        ` FROM v2_generation g` +
+        ` LEFT JOIN v2_generation_memory m ON m.generation_id = g.id` +
+        ` LEFT JOIN v2_memory mem ON mem.id = m.memory_id` +
+        ` WHERE g.conversation_id = '${conversationId}' AND g.turn = ${turn} AND g.status = 'ok'` +
+        ` ORDER BY g.created_at DESC, m.rank ASC`,
+    ).catch(() => null);
+    if (rows !== null) break;
+    await new Promise((resolve) => setTimeout(resolve, 3_000));
+  }
+  if (rows === null) return null;
   const generationId = rows.find((row) => row.generation_id)?.generation_id;
   if (typeof generationId !== "string") return null;
   const marker = rows.find((row) => row.generation_id === generationId)?.memory_retrieval;
@@ -300,10 +417,17 @@ const runConversation = async (
   const records: TurnRecord[] = [];
   for (const step of fixture.conversations[name].turns) {
     const sent = await postTurn(baseUrl, characterId, conversationId, step.text);
-    const settle = await waitSettled(conversationId);
+    const settleD1 = await waitSettled(conversationId);
+    const settle =
+      settleD1.settled === false
+        ? settleD1
+        : await waitVectorVisible(conversationId).then((result) => ({
+            ...result,
+            ms: settleD1.ms + result.ms,
+          }));
     // 索引が落ち着かんまま進むと、未索引の記憶の有無で結果がぶれるのでここで止める。
     if (!settle.settled) {
-      fail(`索引の待機が ${SETTLE_WAIT_MS}ms で時間切れ（${name} turn ${step.turn}）`);
+      fail(`索引の待機が時間切れ（${name} turn ${step.turn}・${settle.phase ?? "unknown"}相）`);
     }
     const usage = await loadTurnUsage(conversationId, step.turn);
     const checks = buildTurnChecks(step, sent.reply, usage);
