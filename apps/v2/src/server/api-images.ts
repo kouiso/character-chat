@@ -5,6 +5,7 @@ import {
   describeError,
   listConversationImages,
 } from "@v2/db";
+import type { ConversationImageRow } from "@v2/db";
 import { PROMPT_VERSION } from "@v2/prompt";
 import { z } from "zod";
 
@@ -163,6 +164,19 @@ const readQuery = (request: Request, key: string): string | null => {
   return value && value.length <= 120 ? value : null;
 };
 
+// 一覧行→画面エントリの写像。API 応答と会話アルバム画面の loader で形を揃える。
+export const toConversationImageEntry = (row: ConversationImageRow) => ({
+  messageId: row.id,
+  imageUrl: `/api/media/${encodeURIComponent(row.id)}`,
+  generationId: row.generationId,
+  groupId: row.groupId,
+  panelIndex: row.panelIndex,
+  // mp4 キーは動画メッセージ（RIT-190）。ギャラリーはこれで <video> 描画へ分ける。
+  mediaKind: row.imageKey.endsWith(".mp4") ? ("video" as const) : ("image" as const),
+  turn: row.turn,
+  createdAt: row.createdAt,
+});
+
 // GET /api/chat/:id/images?conversationId=… — この会話で残っとる画像を新しい順で返す（RIT-185）。
 // 一覧の正は v2_message なので、消えた画像はここにも出ん。
 export const handleImageListRequest = async (
@@ -178,19 +192,7 @@ export const handleImageListRequest = async (
       storeOpts(characterId),
       conversationId,
     );
-    return json(200, {
-      images: rows.map((row) => ({
-        messageId: row.id,
-        imageUrl: `/api/media/${encodeURIComponent(row.id)}`,
-        generationId: row.generationId,
-        groupId: row.groupId,
-        panelIndex: row.panelIndex,
-        // mp4 キーは動画メッセージ（RIT-190）。ギャラリーはこれで <video> 描画へ分ける。
-        mediaKind: row.imageKey.endsWith(".mp4") ? ("video" as const) : ("image" as const),
-        turn: row.turn,
-        createdAt: row.createdAt,
-      })),
-    });
+    return json(200, { images: rows.map(toConversationImageEntry) });
   } catch (error) {
     if (error instanceof ConversationAccessError) {
       return json(404, { message: "会話またはキャラクターが見つかりません。" });

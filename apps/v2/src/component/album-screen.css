@@ -211,3 +211,41 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* この会話のアルバム（板 TalkAlbum） */
+.v2-talk-album-title {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.v2-talk-album-sub {
+  color: var(--color-text-sub);
+  font-size: var(--text-note-size);
+  line-height: var(--text-note-line);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.v2-talk-album-counts {
+  margin: 0;
+  color: var(--color-text-sub);
+  font-size: var(--text-note-size);
+  line-height: var(--text-note-line);
+  letter-spacing: var(--text-tracking);
+}
+
+.v2-talk-album-comic {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+
+.v2-talk-album-comic-fail {
+  margin: 0;
+  color: var(--color-danger);
+  font-size: var(--text-note-size);
+  line-height: var(--text-note-line);
+}
