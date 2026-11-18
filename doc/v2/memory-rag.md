@@ -50,10 +50,14 @@ pnpm exec tsx apps/v2/script/memory-leak-check.ts --env staging
 
 本番接続には承認済みのD1・Queue・Vectorizeが必要。`env.rag`は旧アプリと同じ本番D1（`adult-ai-db`）を束ねる。top-levelのD1 IDはローカル用値で、本番設定ではない。Vectorizeは1024次元・cosine、`kind`と`conversation_id`のstring metadata indexを投入前に用意する（作り方は[secrets.md](./secrets.md)の資源準備節）。本変更でリソース作成、実API呼出し、デプロイは行わない。
 
+## 置き換え（RIT-86）
+
+同じ会話・同じ主題（`v2_memory.subject`、空は対象外）の記憶は、有効な行の中で一番新しい 1 つだけが `superseded_by is null` になり、残りはその id を指す。新しさは `source_turn` の大きい順、同じなら記憶 id の辞書順で後（Queue の配送順・`created_at` は使わない）。有効な行とは「同じ会話・同じ主題・`pinned = 0`・`deleted_at is null`・出どころの発言が今の枝（`v2_message.active = 1`）」を満たす行。並べ直しは `recomputeSupersessionStatements` が主題 1 つあたり 2 文（全部を新しい 1 つへ向ける・新しい 1 つを空にする）を返し、冪等。呼び出しは (1) 抜き出しの保存 `completeMemoryExtraction` が保存した記憶の主題で同じ batch に入れる、(2) ターンの置き換え `saveTurnMainLine` が消えた記憶の主題で batch の最後に入れる。(3) 記憶を 1 件消す処理は RIT-94 が、(4) 枝の操作は RIT-82 の `invalidateDerivedFromTurn` がそれぞれ自分の batch に入れる。置き換わった行は消さず記憶一覧に残り（`supersededBy` が「新しい記憶に置き換わった」印の元）、検索候補からは `loadMemoryCandidates` が外す。
+
 ## この経路だけでは満たさない項目
 
 - 固定vectorのテストは配線と境界の検査であり、意味の近い言い換えが上位3件へ入る品質検証ではない。言い換えの実測は`apps/v2/script/memory-paraphrase-check.ts`（fixture: `packages/bench/fixture/memory-paraphrase-10.json`）をstagingで実行する（`CLOUDFLARE_API_TOKEN`・`CLOUDFLARE_ACCOUNT_ID`が要る）。
-- 矛盾する新旧事実の置換（RIT-86）、手入力記憶の統合、世界線・版の管理は別の接続が必要。
+- 手入力記憶の統合、世界線・版の管理は別の接続が必要。
 - 古いvectorの物理削除と派生要約からの削除（RIT-94）、二段要約（RIT-72）は未接続。検索時の除外だけで削除完了とは扱わない。
 
 参照: [bge-m3](https://developers.cloudflare.com/workers-ai/models/bge-m3/)、[Vectorize API](https://developers.cloudflare.com/vectorize/reference/client-api/)、[metadata index](https://developers.cloudflare.com/vectorize/reference/metadata-filtering/)、[bindingのローカル対応](https://developers.cloudflare.com/workers/local-development/bindings-per-env/)。

@@ -224,6 +224,55 @@ describe("memory crud store", () => {
     expect(contents).not.toContain("別会話の記憶");
   });
 
+  it("置き換わった記憶も一覧に残り、新しい記憶の id を指す（RIT-86 FR-3）", async () => {
+    const conversationId = await talk(undefined, "私は紅茶が好きです。", true);
+    const extract = async (content: string) => {
+      const [job] = await listPendingMemoryJobs(local.db, {
+        ...scope,
+        characterId,
+        conversationId,
+      });
+      const source = await loadMemoryExtractionSource(local.db, job.id);
+      if (!source) throw new Error("source missing");
+      await completeMemoryExtraction(local.db, source, [
+        {
+          kind: "preference",
+          content,
+          subject: "好きな飲み物",
+          category: "long",
+          importance: 3,
+          validFrom: null,
+          validUntil: null,
+        },
+      ]);
+    };
+    await extract("紅茶が好き");
+    await createD1TurnStore(local.db, {
+      userId: owner,
+      characterId,
+      promptVersion: "test",
+      extractMemory: true,
+    }).saveTurn({
+      conversationId,
+      turn: 2,
+      userText: "私は麦茶が好きです。",
+      ledger: emptyLedger(),
+      events: [reply],
+    });
+    await extract("麦茶が好き");
+    const list = await listConversationMemories(local.db, {
+      ...scope,
+      characterId,
+      conversationId,
+    });
+    const byContent = new Map(list.map((row) => [row.content, row]));
+    const fresh = byContent.get("麦茶が好き");
+    const stale = byContent.get("紅茶が好き");
+    // 置き換わった行は消えずに辿れる（画面の「新しい記憶に置き換わった」印の元）。
+    expect(stale?.supersededBy).toBe(fresh?.id);
+    expect(fresh?.supersededBy).toBeNull();
+  });
+
   it("発言の無い会話では足せず、他人の会話では拒否される", async () => {
     const empty = await emptyTalk();
     expect(

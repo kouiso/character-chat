@@ -1,0 +1,15 @@
+{
+  "scenario": "memory-supersede-4",
+  "issue": "RIT-86",
+  "description": "1〜3ターン目に同じ主題（好きな飲み物）の好みを3回変え、4ターン目に聞き返す。実モデルが同じ主題を付けるか、置き換えの並び、4ターン目の記憶の塊を記録する台。",
+  "turns": [
+    { "turn": 1, "userMsg": "私は紅茶が好きです。", "expectSubject": "好きな飲み物" },
+    {
+      "turn": 2,
+      "userMsg": "気が変わった。私は烏龍茶が好きです。",
+      "expectSubject": "好きな飲み物"
+    },
+    { "turn": 3, "userMsg": "やっぱり麦茶が好きです。", "expectSubject": "好きな飲み物" },
+    { "turn": 4, "userMsg": "好きな飲み物なんだっけ", "question": true }
+  ]
+}

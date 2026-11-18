@@ -27,6 +27,7 @@ const MEMORY_READERS: Record<string, "scoped" | "writer" | "bench" | "schema" | 
   "packages/db/src/memory-extraction-store.ts": "scoped",
   "packages/db/src/memory-index-store.ts": "scoped",
   "packages/db/src/memory-scope.ts": "scope",
+  "packages/db/src/memory-supersession.ts": "writer",
   "packages/db/src/proactive-store.ts": "scoped",
   "packages/db/src/turn-store.ts": "writer",
   "packages/db/src/v2-schema.ts": "schema",

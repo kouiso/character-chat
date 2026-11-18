@@ -1,5 +1,5 @@
 import { emptyLedger } from "@v2/prompt";
-import { eq, inArray } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { characterTable } from "../../../src/schema/character";
@@ -343,9 +343,9 @@ describe("memory extraction store", () => {
       .from(v2MemoryTable)
       .where(eq(v2MemoryTable.conversationId, conversationId))
       .orderBy(v2MemoryTable.sourceTurn);
-    // 古い 2 件は新しい記憶の id を指し、最後のだけが現役
+    // 古い 2 件はどちらも一番新しい記憶の id を指し、最後のだけが現役
     expect(rows.map((row) => row.content)).toEqual(drinks);
-    expect(rows[0].supersededBy).toBe(rows[1].id);
+    expect(rows[0].supersededBy).toBe(rows[2].id);
     expect(rows[1].supersededBy).toBe(rows[2].id);
     expect(rows[2].supersededBy).toBeNull();
     // 一覧では辿れるが、ベクトル検索の候補からは置き換わった分が外れる
@@ -476,5 +476,191 @@ describe("memory extraction store", () => {
       .set({ active: 1 })
       .where(eq(v2MessageTable.id, source.sourceMessageId));
     expect(await listPendingMemoryJobs(local.db, scope(id), true)).toHaveLength(1);
+  });
+
+  it("Queue のやり直しで届く順が逆でも、source_turn の大きい方が勝つ（RIT-86）", async () => {
+    const conversationId = crypto.randomUUID();
+    ids.push(conversationId);
+    const store = createD1TurnStore(local.db, {
+      userId: owner,
+      characterId,
+      promptVersion: "test",
+      extractMemory: true,
+    });
+    const drinks = ["紅茶が好き", "烏龍茶が好き", "麦茶が好き"];
+    for (const [index, drink] of drinks.entries()) {
+      await store.saveTurn({
+        conversationId,
+        turn: index + 1,
+        userText: `私は${drink}です。`,
+        ledger: emptyLedger(),
+        events: [reply],
+      });
+    }
+    const jobs = await local.db
+      .select({ id: v2MemoryJobTable.id, sourceTurn: v2MemoryJobTable.sourceTurn })
+      .from(v2MemoryJobTable)
+      .where(
+        and(
+          eq(v2MemoryJobTable.conversationId, conversationId),
+          eq(v2MemoryJobTable.state, "pending"),
+        ),
+      );
+    // 3 → 1 → 2 の順で抜き出しが終わる（届いた順に置き換える作りだと「烏龍茶」で終わる）。
+    for (const sourceTurn of [3, 1, 2]) {
+      const job = jobs.find((entry) => entry.sourceTurn === sourceTurn);
+      const source = await loadMemoryExtractionSource(local.db, job!.id);
+      if (!source) throw new Error("source missing");
+      await completeMemoryExtraction(local.db, source, [
+        {
+          kind: "preference",
+          content: drinks[sourceTurn - 1],
+          subject: "好きな飲み物",
+          category: "long",
+          importance: 3,
+          validFrom: null,
+          validUntil: null,
+        },
+      ]);
+    }
+    const rows = await local.db
+      .select({
+        id: v2MemoryTable.id,
+        content: v2MemoryTable.content,
+        sourceTurn: v2MemoryTable.sourceTurn,
+        supersededBy: v2MemoryTable.supersededBy,
+      })
+      .from(v2MemoryTable)
+      .where(eq(v2MemoryTable.conversationId, conversationId));
+    const active = rows.filter((row) => row.supersededBy === null);
+    expect(active).toHaveLength(1);
+    expect(active[0].content).toBe("麦茶が好き");
+    expect(active[0].sourceTurn).toBe(3);
+    for (const row of rows.filter((entry) => entry.supersededBy !== null)) {
+      expect(row.supersededBy).toBe(active[0].id);
+    }
+  });
+
+  it("別の主題・空の主題の記憶は互いに置き換わらない（RIT-86）", async () => {
+    const conversationId = crypto.randomUUID();
+    ids.push(conversationId);
+    const store = createD1TurnStore(local.db, {
+      userId: owner,
+      characterId,
+      promptVersion: "test",
+      extractMemory: true,
+    });
+    const extracted = async (turn: number, memory: ExtractedMemory) => {
+      await store.saveTurn({
+        conversationId,
+        turn,
+        userText: `私は${memory.content}です。`,
+        ledger: emptyLedger(),
+        events: [reply],
+      });
+      const [job] = await listPendingMemoryJobs(local.db, scope(conversationId));
+      const source = await loadMemoryExtractionSource(local.db, job.id);
+      if (!source) throw new Error("source missing");
+      await completeMemoryExtraction(local.db, source, [memory]);
+    };
+    const base = { kind: "preference" as const, category: "long" as const, importance: 3 };
+    await extracted(1, {
+      ...base,
+      content: "紅茶が好き",
+      subject: "好きな飲み物",
+      validFrom: null,
+      validUntil: null,
+    });
+    await extracted(2, {
+      ...base,
+      content: "カレーが好き",
+      subject: "好きな食べ物",
+      validFrom: null,
+      validUntil: null,
+    });
+    await extracted(3, {
+      ...base,
+      content: "猫を飼っている",
+      subject: "",
+      validFrom: null,
+      validUntil: null,
+    });
+    await extracted(4, {
+      ...base,
+      content: "麦茶が好き",
+      subject: "好きな飲み物",
+      validFrom: null,
+      validUntil: null,
+    });
+    const rows = await local.db
+      .select({
+        id: v2MemoryTable.id,
+        content: v2MemoryTable.content,
+        subject: v2MemoryTable.subject,
+        supersededBy: v2MemoryTable.supersededBy,
+      })
+      .from(v2MemoryTable)
+      .where(eq(v2MemoryTable.conversationId, conversationId));
+    const byContent = new Map(rows.map((row) => [row.content, row]));
+    expect(byContent.get("麦茶が好き")!.supersededBy).toBeNull();
+    // 別の主題・空の主題は置き換わらん
+    expect(byContent.get("カレーが好き")!.supersededBy).toBeNull();
+    expect(byContent.get("猫を飼っている")!.supersededBy).toBeNull();
+    expect(byContent.get("紅茶が好き")!.supersededBy).toBe(byContent.get("麦茶が好き")!.id);
+  });
+
+  it("固定した記憶は置き換えの対象外（RIT-86 未決1の既定案）", async () => {
+    const conversationId = crypto.randomUUID();
+    ids.push(conversationId);
+    const store = createD1TurnStore(local.db, {
+      userId: owner,
+      characterId,
+      promptVersion: "test",
+      extractMemory: true,
+    });
+    const extracted = async (turn: number, content: string) => {
+      await store.saveTurn({
+        conversationId,
+        turn,
+        userText: `私は${content}です。`,
+        ledger: emptyLedger(),
+        events: [reply],
+      });
+      const [job] = await listPendingMemoryJobs(local.db, scope(conversationId));
+      const source = await loadMemoryExtractionSource(local.db, job.id);
+      if (!source) throw new Error("source missing");
+      await completeMemoryExtraction(local.db, source, [
+        {
+          kind: "preference",
+          content,
+          subject: "好きな飲み物",
+          category: "long",
+          importance: 3,
+          validFrom: null,
+          validUntil: null,
+        },
+      ]);
+    };
+    await extracted(1, "紅茶が好き");
+    const [first] = await local.db
+      .select({ id: v2MemoryTable.id })
+      .from(v2MemoryTable)
+      .where(eq(v2MemoryTable.conversationId, conversationId));
+    if (!first) throw new Error("memory missing");
+    await local.db.update(v2MemoryTable).set({ pinned: 1 }).where(eq(v2MemoryTable.id, first.id));
+    await extracted(2, "麦茶が好き");
+    const rows = await local.db
+      .select({
+        id: v2MemoryTable.id,
+        pinned: v2MemoryTable.pinned,
+        supersededBy: v2MemoryTable.supersededBy,
+      })
+      .from(v2MemoryTable)
+      .where(eq(v2MemoryTable.conversationId, conversationId));
+    const pinned = rows.find((row) => row.pinned === 1);
+    const fresh = rows.find((row) => row.id !== pinned!.id);
+    // 固定は置き換わらず、新しい方も固定の行に置き換えられん
+    expect(pinned!.supersededBy).toBeNull();
+    expect(fresh!.supersededBy).toBeNull();
   });
 });
