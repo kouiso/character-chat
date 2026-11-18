@@ -118,8 +118,8 @@ type RunStats = {
 };
 
 // 台本を 1 ターンずつ保存し、その度に要約の係を 1 回回す。モデル呼び出しは
-// 「要約行が新たに保存された数」で数える（1 回の係で level 1 と level 2 が
-// 両方作られる時もあるので、outcome ではなく行の増分で数える）。
+// 係が実際にモデルを呼び始める度に数える（保存できた行数ではなく試行回数。
+// 失敗した呼び出しも料金が掛かるので行の増分では過少になる）。
 const seedAndRun = async (
   fixture: Fixture,
   local: LocalD1,
@@ -144,6 +144,17 @@ const seedAndRun = async (
     level2Calls: 0,
     outcomes: { idle: 0, saved: 0, aborted: 0, failed: 0, paused: 0 },
   };
+  const counting: Pick<SummaryDeps, "models" | "onModelCall"> = {
+    ...deps,
+    onModelCall: () => {
+      stats.modelCalls += 1;
+      if (stats.modelCalls > MAX_MODEL_CALLS) {
+        throw new Error(
+          `モデル呼び出しが上限 ${MAX_MODEL_CALLS} 回を超えた（${stats.modelCalls} 回）`,
+        );
+      }
+    },
+  };
   for (let index = 0; index < fixture.turns.length; index += 1) {
     const turn = fixture.turns[index];
     await store.saveTurn({
@@ -153,7 +164,7 @@ const seedAndRun = async (
       events: makeTurn(turn.assistant),
       ledger: LEDGER,
     });
-    await runSummaryOnce(local, input, env, deps, stats);
+    await runSummaryOnce(local, input, env, counting, stats);
     if ((index + 1) % 40 === 0) {
       console.log(`…turn ${index + 1}/200 済（modelCalls=${stats.modelCalls}）`);
     }
@@ -161,12 +172,12 @@ const seedAndRun = async (
   return stats;
 };
 
-// 要約の係を 1 回回し、出来上がった行の数だけモデル呼び出しとして数える。
+// 要約の係を 1 回回し、出来上がった行で level 別の回数だけ数える。
 const runSummaryOnce = async (
   local: LocalD1,
   input: Parameters<typeof summarizeConversation>[1],
   env: SummaryRunnerEnv,
-  deps: Pick<SummaryDeps, "models">,
+  deps: Pick<SummaryDeps, "models" | "onModelCall">,
   stats: RunStats,
 ): Promise<void> => {
   const before = new Set(
@@ -176,7 +187,6 @@ const runSummaryOnce = async (
   stats.outcomes[outcome] += 1;
   const after = await listActiveSummaries(local.db, input.conversationId);
   for (const added of after.filter((row) => !before.has(row.id))) {
-    stats.modelCalls += 1;
     if (added.level === 1) stats.level1Calls += 1;
     else stats.level2Calls += 1;
   }

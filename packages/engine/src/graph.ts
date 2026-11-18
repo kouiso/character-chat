@@ -768,8 +768,12 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
         const budget = resolveContextBudget(deps.contextBudget);
         // 窓の外に出た分は要約が代わりに乗る（RIT-72）。あらすじ層の上限は
         // V2_SUMMARY_CHARACTERS（既定 2,500 字・RIT-71）。溢れる時は古い level 1 から外す。
+        // 再生成では対象ターン以降を覆う要約は入れん。置き換えられる未来の出来事を
+        // 書き直しの材料にすると、消えるはずの枝の内容が新しい本文へ漏れる。
         const summaries = deps.summaryStore
-          ? visibleSummaries(await deps.summaryStore.listActive(state.conversationId))
+          ? visibleSummaries(await deps.summaryStore.listActive(state.conversationId)).filter(
+              (entry) => entry.toTurn < state.turn,
+            )
           : [];
         const packedSummaries = packSummaries(summaries, budget.summaryCharacters);
         const summaryBlock =

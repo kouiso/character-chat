@@ -3,7 +3,7 @@ import type { AIMessageChunk } from "@langchain/core/messages";
 import { FakeListChatModel } from "@langchain/core/utils/testing";
 import { createMemorySummaryStore } from "@v2/db";
 import { splitChunks } from "@v2/judge";
-import { exemplarForPhase } from "@v2/prompt";
+import { emptyLedger, exemplarForPhase } from "@v2/prompt";
 
 import { createTurnGraph, regenReasonLines, runTurn, visibleSummaries } from "../src/graph";
 import { createMemoryTurnStore, type MemoryTurnStore } from "../src/memory-store";
@@ -657,9 +657,28 @@ describe("createTurnGraph", () => {
       for (const row of rows) await summaryStore.save({ ...row, conversationId });
     };
 
+    // 本番では要約は必ず現在ターンより前の範囲だけを覆う（それ以降を覆う行は
+    // 置き換え・枝・消去の時点で無効化されるし、グラフ側でも toTurn >= state.turn
+    // の行は生成入力から外す）。テストでも履歴を seed してその前提を作る。
+    const seedHistory = async (
+      store: MemoryTurnStore,
+      conversationId: string,
+      count: number,
+    ): Promise<void> => {
+      for (let i = 0; i < count; i += 1) {
+        await store.saveTurn({
+          conversationId,
+          userText: `u${i + 1}`,
+          events: [],
+          ledger: emptyLedger(),
+        });
+      }
+    };
+
     test("あらすじ塊は指示文へ 1 本だけ入り、見出しから始まる", async () => {
       const store = createMemoryTurnStore();
       const summaryStore = createMemorySummaryStore();
+      await seedHistory(store, "conv-s", 30);
       await plant(summaryStore, "conv-s", [
         { level: 2, fromTurn: 1, toTurn: 20, text: "昔のまとめ" },
         { level: 1, fromTurn: 21, toTurn: 30, text: "直前の要約" },
@@ -669,7 +688,7 @@ describe("createTurnGraph", () => {
       await drain(
         runTurn(graph, { conversationId: "conv-s", userText: "こんにちは", character }, "conv-s"),
       );
-      const request = generationAt(store, 0, "conv-s").request;
+      const request = generationAt(store, 30, "conv-s").request;
       const blocks = request.filter((m) => m.content.includes("これまでのあらすじ"));
       expect(blocks).toHaveLength(1);
       expect(blocks[0]?.content.startsWith("これまでのあらすじ:\n")).toBe(true);
@@ -683,6 +702,7 @@ describe("createTurnGraph", () => {
       // 見出し 11 字 + 30 字 + 改行 1 字 + 30 字 = 72 字。上限 50 では古い level 1 を外して
       // 11 + 30 = 41 字に収める。切られた「古い要約」は指示文へ入らん。
       const long = "あ".repeat(30);
+      await seedHistory(store, "conv-cap", 20);
       await plant(summaryStore, "conv-cap", [
         { level: 1, fromTurn: 1, toTurn: 10, text: `古い要約${long}` },
         { level: 1, fromTurn: 11, toTurn: 20, text: `新しい要約${long}` },
@@ -702,7 +722,7 @@ describe("createTurnGraph", () => {
           "conv-cap",
         ),
       );
-      const generation = generationAt(store, 0, "conv-cap");
+      const generation = generationAt(store, 20, "conv-cap");
       const block = generation.request.find((m) => m.content.includes("これまでのあらすじ"));
       expect(block?.content).toContain("新しい要約");
       expect(block?.content).not.toContain("古い要約");
@@ -716,6 +736,7 @@ describe("createTurnGraph", () => {
       const summaryStore = createMemorySummaryStore();
       // level 2 は 1-20。15-30 の level 1 は境をまたぐが、to_turn=30 > 20 なので残る。
       // 1-10 の level 1 は level 2 の内側なので外れる。
+      await seedHistory(store, "conv-overlap", 30);
       await plant(summaryStore, "conv-overlap", [
         { level: 1, fromTurn: 1, toTurn: 10, text: "内側の古い要約" },
         { level: 2, fromTurn: 1, toTurn: 20, text: "まとめ1-20" },
@@ -730,7 +751,7 @@ describe("createTurnGraph", () => {
           "conv-overlap",
         ),
       );
-      const block = generationAt(store, 0, "conv-overlap").request.find((m) =>
+      const block = generationAt(store, 30, "conv-overlap").request.find((m) =>
         m.content.includes("これまでのあらすじ"),
       );
       expect(block?.content).toContain("まとめ1-20");

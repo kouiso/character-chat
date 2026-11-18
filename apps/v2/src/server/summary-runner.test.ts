@@ -29,7 +29,6 @@ import {
 import type { ModelCandidate } from "@v2/engine";
 import type { JudgeResult } from "@v2/judge";
 import type { SceneLedger } from "@v2/prompt";
-import type { BaseChatModel } from "@langchain/core/language_models/chat_models";
 
 const OK_JUDGE: JudgeResult = {
   ok: true,
@@ -314,14 +313,15 @@ describe("summarizeConversation（RIT-72）", () => {
     const conversationId = await seedTurns(12);
     const storage = memoryStorage();
     // 呼ばれても返さんモデル。止めの合図が来るまで寝る。
-    const hanging = {
-      invoke: (_input: unknown, opts?: { signal?: AbortSignal }) =>
+    const hanging = new FakeListChatModel({ responses: [] });
+    vi.spyOn(hanging, "invoke").mockImplementation(
+      (_input, opts) =>
         new Promise((_resolve, reject) => {
           opts?.signal?.addEventListener("abort", () => reject(new Error("aborted")), {
             once: true,
           });
         }),
-    } as unknown as BaseChatModel;
+    );
     const controller = new AbortController();
     const run = summarizeConversation(
       ENV,
@@ -357,16 +357,9 @@ describe("summarizeConversation（RIT-72）", () => {
       const conversationId = await seedTurns(12);
       const storage = memoryStorage();
       let now = 1_000_000;
-      const failing: ModelCandidate[] = [
-        {
-          name: "failing",
-          model: {
-            invoke: async () => {
-              throw new Error("boom");
-            },
-          } as unknown as BaseChatModel,
-        },
-      ];
+      const failingModel = new FakeListChatModel({ responses: [] });
+      vi.spyOn(failingModel, "invoke").mockRejectedValue(new Error("boom"));
+      const failing: ModelCandidate[] = [{ name: "failing", model: failingModel }];
       const input = {
         userId: "vitest",
         characterId,

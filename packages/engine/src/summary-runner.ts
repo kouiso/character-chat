@@ -124,6 +124,8 @@ export type SummaryDeps = {
   models?: ModelCandidate[];
   now?: () => number;
   timeoutMs?: number;
+  // モデル呼び出しを始める度に呼ぶ（試験・bench 台が実呼出し回数を数える窓口）。
+  onModelCall?: () => void;
 };
 
 export type SummaryOutcome = "idle" | "saved" | "aborted" | "failed" | "paused";
@@ -176,12 +178,13 @@ const invokeSummaryChain = async (
   models: ModelCandidate[],
   instruction: string,
   body: string,
-  opts: { signal?: AbortSignal; timeoutMs: number },
+  opts: { signal?: AbortSignal; timeoutMs: number; onModelCall?: () => void },
   range: { summaryLevel: number; fromTurn: number; toTurn: number },
 ): Promise<string> => {
   let lastError: unknown;
   for (const candidate of models) {
     try {
+      opts.onModelCall?.();
       return await invokeSummary(candidate.model, instruction, body, opts);
     } catch (error) {
       if (error instanceof SummaryAbortError) throw error;
@@ -214,6 +217,32 @@ const resolveModels = async (env: SummaryRunnerEnv, userId: string): Promise<Mod
   );
 };
 
+// 要約 1 行の hash を作り直し、違えば無効にして記録する。合っとれば true。
+const verifySummaryHash = async (
+  db: V2Db,
+  conversationId: string,
+  summary: StoredSummary,
+): Promise<boolean> => {
+  if (summary.sourceHash === null) return true;
+  const rows = await loadTurnRange(db, {
+    conversationId,
+    fromTurn: summary.fromTurn,
+    toTurn: summary.toTurn,
+  });
+  const actual = await summarySourceHash(rows);
+  if (actual === summary.sourceHash) return true;
+  await invalidateSummaryById(db, summary.id);
+  logEvent({
+    event: "summary_source_mismatch",
+    level: "warn",
+    conversationId,
+    summaryLevel: summary.level,
+    fromTurn: summary.fromTurn,
+    toTurn: summary.toTurn,
+  });
+  return false;
+};
+
 // FR-8: 指示文に入りうる要約（最新の有効な level 2 とそれより後の level 1）について、
 // その範囲の有効メッセージから hash を作り直し、違う行を無効にする。
 // 戻る・作り直しの無効化は saveTurn の batch がその場で行うので、これは取りこぼしを拾う網。
@@ -225,25 +254,8 @@ const verifySummaryHashes = async (
   const active = await listActiveSummaries(db, conversationId);
   let changed = false;
   for (const summary of visibleSummaries(active)) {
-    if (summary.sourceHash === null) continue;
     throwIfAborted(signal);
-    const rows = await loadTurnRange(db, {
-      conversationId,
-      fromTurn: summary.fromTurn,
-      toTurn: summary.toTurn,
-    });
-    const actual = await summarySourceHash(rows);
-    if (actual === summary.sourceHash) continue;
-    await invalidateSummaryById(db, summary.id);
-    logEvent({
-      event: "summary_source_mismatch",
-      level: "warn",
-      conversationId,
-      summaryLevel: summary.level,
-      fromTurn: summary.fromTurn,
-      toTurn: summary.toTurn,
-    });
-    changed = true;
+    if (!(await verifySummaryHash(db, conversationId, summary))) changed = true;
   }
   return changed;
 };
@@ -337,15 +349,25 @@ const maybeRollUpLevel2 = async (
   deps: SummaryDeps,
   active: StoredSummary[],
 ): Promise<boolean> => {
-  const latest2 = active
+  // 伏せ直し待ち（redactPending）の行は生成の入力に入れん。伏せ直し前の本文が
+  // 新しい有効行へ漏れるのを防ぐ（RIT-94）。
+  const usable = active.filter((entry) => !entry.redactPending);
+  const latest2 = usable
     .filter((entry) => entry.level === 2)
     .sort((a, b) => a.toTurn - b.toTurn)
     .at(-1);
-  const pending = active
+  const pending = usable
     .filter((entry) => entry.level === 1 && entry.toTurn > (latest2?.toTurn ?? 0))
     .sort((a, b) => a.fromTurn - b.fromTurn);
   if (pending.length < SUMMARY_ROLLUP_LEVEL1) return false;
   const group = pending.slice(0, SUMMARY_ROLLUP_LEVEL1);
+  // 入力になる行（最新 level 2 と畳む level 1）は、指示文に出る行（visible）と
+  // 限らんので、ここで元本文の hash を確かめる。違う行は無効にして、次の
+  // alarm で作り直させる（同じ実行では古い本文を畳まん）。
+  for (const inputSummary of [...(latest2 ? [latest2] : []), ...group]) {
+    throwIfAborted(input.signal);
+    if (!(await verifySummaryHash(db, input.conversationId, inputSummary))) return true;
+  }
   const range = {
     summaryLevel: 2,
     fromTurn: Math.min(latest2?.fromTurn ?? Number.MAX_SAFE_INTEGER, group[0].fromTurn),
@@ -365,7 +387,11 @@ const maybeRollUpLevel2 = async (
     models,
     appendForgottenInstruction(LEVEL2_INSTRUCTION, forgotten),
     body,
-    { signal: input.signal, timeoutMs: deps.timeoutMs ?? SUMMARY_TIMEOUT_MS },
+    {
+      signal: input.signal,
+      timeoutMs: deps.timeoutMs ?? SUMMARY_TIMEOUT_MS,
+      onModelCall: deps.onModelCall,
+    },
     range,
   );
   guardSummaryText(text, range);
@@ -387,7 +413,15 @@ const rollLevel1 = async (
   const boundary =
     buildConversationContext(recent, "", budget).oldestIncludedTurn ??
     (recent.at(-1)?.turn ?? 0) + 1;
-  const covered = Math.max(0, ...active.filter((s) => s.level === 1).map((s) => s.toTurn));
+  // 最大の to_turn ではなく、連続して覆えた末尾を使う。途中の要約が無効化されて
+  // 穴が開いた時、先の要約だけが残って穴を再生成せんまま進んでしまうのを防ぐ。
+  const covered = active
+    .filter((s) => s.level === 1)
+    .sort((a, b) => a.fromTurn - b.fromTurn)
+    .reduce(
+      (end, summary) => (summary.fromTurn <= end + 1 ? Math.max(end, summary.toTurn) : end),
+      0,
+    );
   if (boundary - 1 < covered + 1) return false;
   const range = await loadTurnRange(db, {
     conversationId: input.conversationId,
@@ -407,7 +441,11 @@ const rollLevel1 = async (
     models,
     appendForgottenInstruction(LEVEL1_INSTRUCTION, forgotten),
     formatSummaryBody(chunk, characterName),
-    { signal: input.signal, timeoutMs: deps.timeoutMs ?? SUMMARY_TIMEOUT_MS },
+    {
+      signal: input.signal,
+      timeoutMs: deps.timeoutMs ?? SUMMARY_TIMEOUT_MS,
+      onModelCall: deps.onModelCall,
+    },
     rangeMeta,
   );
   guardSummaryText(text, rangeMeta);
@@ -499,12 +537,17 @@ export const summarizeConversation = async (
   const db = deps.db ?? (env.DB ? createDb(env.DB) : undefined);
   if (!db) return "idle";
   const now = (deps.now ?? (() => Date.now()))();
-  const gate = await gateOutcome(input, now);
-  if (gate !== null) return gate;
   try {
+    const gate = await gateOutcome(input, now);
+    if (gate !== null) return gate;
     const saved = await runSummaryOnce(db, env, input, deps);
-    return savedOutcome(input, saved);
+    return await savedOutcome(input, saved);
   } catch (error) {
-    return failedOutcome(error, input, now);
+    try {
+      return await failedOutcome(error, input, now);
+    } catch {
+      // 失敗の記録自体が落ちても、要約の失敗で返事の成否は変えん（UR-4）
+      return "failed";
+    }
   }
 };

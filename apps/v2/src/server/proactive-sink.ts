@@ -7,7 +7,7 @@ import {
   readDisplayHistory,
   saveProactiveMessage,
 } from "@v2/db";
-import { createOpenRouterModel } from "@v2/engine";
+import { createOpenRouterModel, visibleSummaries } from "@v2/engine";
 import { PROMPT_VERSION } from "@v2/prompt";
 
 import { readCharacter } from "./character-data.server";
@@ -131,7 +131,9 @@ export const createProactiveSink = (deps: ProactiveSinkDeps): ProactiveNotificat
         { userId: LOCAL_USER_ID, characterId, conversationId },
         MEMORY_LIMIT,
       ),
-      createD1SummaryStore(deps.db).listActive(conversationId),
+      // 指示文と同じ選び方（最新の level 2 + 未収載の level 1）で絞る。
+      // listActive の生の行は伏せ直し待ちや古い level 2 も混ざる。
+      createD1SummaryStore(deps.db).listActive(conversationId).then(visibleSummaries),
     ]);
     const prompt = buildPrompt({
       systemPrompt: ok.systemPrompt,

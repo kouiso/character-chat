@@ -227,7 +227,12 @@ describe("v2_summary の読み書き（RIT-72）", () => {
     await local.db
       .update(v2MessageTable)
       .set({ content: "assistant 2 改訂" })
-      .where(eq(v2MessageTable.content, "assistant 2"));
+      .where(
+        and(
+          eq(v2MessageTable.conversationId, conversationId),
+          eq(v2MessageTable.content, "assistant 2"),
+        ),
+      );
     const actual = await summarySourceHash(
       await loadTurnRange(local.db, { conversationId, fromTurn: 2, toTurn: 4 }),
     );

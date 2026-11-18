@@ -2,6 +2,7 @@
 // 持ち、active=1 の1本だけが表示・履歴対象。行は消さん（記憶の出処が cascade で消える
 // のを防ぐため）。張り替えは 1 batch でやるので途中で2本 active にはならん。
 import { and, asc, eq, inArray, sql } from "drizzle-orm";
+import { invalidateSummariesFromStatement } from "./summary-store";
 import { v2LedgerTable, v2MessageTable } from "./v2-schema";
 import type { V2Db } from "./client";
 
@@ -68,6 +69,9 @@ export const activateBranch = async (db: V2Db, messageId: string): Promise<"ok" 
   await db.batch([
     db.update(v2MessageTable).set({ active: 0 }).where(sameGroup),
     db.update(v2MessageTable).set({ active: 1 }).where(eq(v2MessageTable.id, messageId)),
+    // 枝が替わったターンを覆う要約は新しい本文と合わん。saveTurn の置き換えと
+    // 同じく、そのターン以降を覆う要約を同じ batch で無効にする（FR-7）。
+    invalidateSummariesFromStatement(db, group.conversationId, group.turn),
   ]);
   return "ok";
 };
@@ -79,15 +83,18 @@ export const truncateFromTurn = async (
   conversationId: string,
   fromTurn: number,
 ): Promise<void> => {
-  await db
-    .update(v2MessageTable)
-    .set({ active: 0 })
-    .where(
-      and(
-        eq(v2MessageTable.conversationId, conversationId),
-        sql`${v2MessageTable.turn} >= ${fromTurn}`,
+  await db.batch([
+    db
+      .update(v2MessageTable)
+      .set({ active: 0 })
+      .where(
+        and(
+          eq(v2MessageTable.conversationId, conversationId),
+          sql`${v2MessageTable.turn} >= ${fromTurn}`,
+        ),
       ),
-    );
+    invalidateSummariesFromStatement(db, conversationId, fromTurn),
+  ]);
 };
 
 // truncateFromTurn の逆向き。fromTurn 以降の各 (turn, role) グループで一番新しい
@@ -130,7 +137,10 @@ export const restoreFromTurn = async (
   );
   const targets = ids.filter((id): id is string => id !== undefined);
   if (targets.length === 0) return;
-  await db.update(v2MessageTable).set({ active: 1 }).where(inArray(v2MessageTable.id, targets));
+  await db.batch([
+    db.update(v2MessageTable).set({ active: 1 }).where(inArray(v2MessageTable.id, targets)),
+    invalidateSummariesFromStatement(db, conversationId, fromTurn),
+  ]);
 };
 
 // 次の branch_no を出す。新しい代替系列は常に末尾へ足す。
