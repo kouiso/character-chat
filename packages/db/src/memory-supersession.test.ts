@@ -239,9 +239,10 @@ describe("memory supersession", () => {
     expect(byId.get(j3)).toBeNull();
   });
 
-  it("同じターンの同じ主題は id の辞書順で後が勝つ", async () => {
+  it("同じターンの同じ主題は両方とも有効のまま（別事実を潰さんため）", async () => {
     const conversationId = await conversation();
-    // 1 回の抜き出しが 1 発言から 2 記憶を作った形。
+    // 1 回の抜き出しが 1 発言から 2 記憶を作った形。「姉は看護師。夜勤が多い」の
+    // ように同じ発言に同居した別事実は、どちらも新しい言い直しではないので残る。
     const sourceMessageId = await message(conversationId, "j1-src", 1);
     const j10 = await memory({
       conversationId,
@@ -260,8 +261,16 @@ describe("memory supersession", () => {
     await recomputeSupersession(local.db, conversationId, [SUBJECT]);
     const rows = await states(conversationId);
     const byId = new Map(rows.map((row) => [row.id, row.supersededBy]));
-    expect(byId.get(j10)).toBe(j11);
+    expect(byId.get(j10)).toBeNull();
     expect(byId.get(j11)).toBeNull();
+    // 別ターンの記憶が届いた時だけ、古い世代がまとめて置き換わる。
+    const j2 = await planted({ conversationId, id: "j2:0", turn: 2, content: "ほうじ茶が好き" });
+    await recomputeSupersession(local.db, conversationId, [SUBJECT]);
+    const rows2 = await states(conversationId);
+    const byId2 = new Map(rows2.map((row) => [row.id, row.supersededBy]));
+    expect(byId2.get(j10)).toBe(j2);
+    expect(byId2.get(j11)).toBe(j2);
+    expect(byId2.get(j2)).toBeNull();
   });
 
   it("一番新しい行を消すと次に新しい行が有効に戻る", async () => {

@@ -54,7 +54,7 @@ pnpm exec tsx apps/v2/script/memory-leak-check.ts --env staging
 
 ## 置き換え（RIT-86）
 
-同じ会話・同じ主題（`v2_memory.subject`、空は対象外）の記憶は、有効な行の中で一番新しい 1 つだけが `superseded_by is null` になり、残りはその id を指す。新しさは `source_turn` の大きい順、同じなら記憶 id の辞書順で後（Queue の配送順・`created_at` は使わない）。有効な行とは「同じ会話・同じ主題・`pinned = 0`・`deleted_at is null`・出どころの発言が今の枝（`v2_message.active = 1`）」を満たす行。並べ直しは `recomputeSupersessionStatements` が主題 1 つあたり 2 文（全部を新しい 1 つへ向ける・新しい 1 つを空にする）を返し、冪等。呼び出しは (1) 抜き出しの保存 `completeMemoryExtraction` が保存した記憶の主題で同じ batch に入れる、(2) ターンの置き換え `saveTurnMainLine` が消えた記憶の主題で batch の最後に入れる。(3) 記憶を 1 件消す処理は RIT-94 が、(4) 枝の操作は RIT-82 の `invalidateDerivedFromTurn` がそれぞれ自分の batch に入れる。置き換わった行は消さず記憶一覧に残り（`supersededBy` が「新しい記憶に置き換わった」印の元）、検索候補からは `loadMemoryCandidates` が外す。
+同じ会話・同じ主題（`v2_memory.subject`、空は対象外）の記憶は、有効な行の中で一番新しいターンの行だけが `superseded_by is null` になり、古いターンの行はその代表 id（一番新しいターンの中で記憶 id の辞書順が一番後ろの 1 行）を指す。新しさは `source_turn` の大きい順、同じなら記憶 id の辞書順で後（Queue の配送順・`created_at` は使わない）。**同じターンの記憶どうしは置き換えない**: 1 発言から複数の記憶を抜き出した時、それらは同時に言われた別の事実であって新しい言い直しではない（`source_turn` が NULL の行は常に古い扱いで置き換わる）。有効な行とは「同じ会話・同じ主題・`pinned = 0`・`deleted_at is null`・出どころの発言が今の枝（`v2_message.active = 1`）」を満たす行。並べ直しは `recomputeSupersessionStatements` が主題 1 つあたり 2 文（古いターンの行を代表 id へ向ける・最新ターンの行を全部空にする）を返し、冪等。呼び出しは (1) 抜き出しの保存 `completeMemoryExtraction` が保存した記憶の主題で同じ batch に入れる、(2) ターンの置き換え `saveTurnMainLine` が消えた記憶の主題で batch の最後に入れる。(3) 記憶を 1 件消す処理は RIT-94 が、(4) 枝の操作は RIT-82 の `invalidateDerivedFromTurn` がそれぞれ自分の batch に入れる。置き換わった行は消さず記憶一覧に残り（`supersededBy` が「新しい記憶に置き換わった」印の元）、検索候補からは `loadMemoryCandidates` が外す。
 
 ## 通しの確かめ
 
