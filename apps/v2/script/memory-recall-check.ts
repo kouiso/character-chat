@@ -320,7 +320,10 @@ const loadTurnUsage = async (
   used: UsedMemoryRow[];
 } | null> => {
   // wrangler が瞬断した時に嘘の「記憶未使用」へならんよう、数回はやり直す。
+  // やり直し切れの時は例外を上げて検査ごと止める — 空で返すと取得失敗と
+  // 「本当に使っていない」を区別できん。
   let rows: Record<string, unknown>[] | null = null;
+  let lastError: unknown;
   for (let attempt = 0; attempt < 3; attempt += 1) {
     rows = await wranglerQuery(
       `SELECT g.id AS generation_id, g.memory_retrieval AS memory_retrieval,` +
@@ -330,11 +333,14 @@ const loadTurnUsage = async (
         ` LEFT JOIN v2_memory mem ON mem.id = m.memory_id` +
         ` WHERE g.conversation_id = '${conversationId}' AND g.turn = ${turn} AND g.status = 'ok'` +
         ` ORDER BY g.created_at DESC, m.rank ASC`,
-    ).catch(() => null);
+    ).catch((error: unknown) => {
+      lastError = error;
+      return null;
+    });
     if (rows !== null) break;
     await new Promise((resolve) => setTimeout(resolve, 3_000));
   }
-  if (rows === null) return null;
+  if (rows === null) throw lastError;
   const generationId = rows.find((row) => row.generation_id)?.generation_id;
   if (typeof generationId !== "string") return null;
   const marker = rows.find((row) => row.generation_id === generationId)?.memory_retrieval;
