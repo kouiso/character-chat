@@ -1,4 +1,4 @@
-import { BaseMessage } from "@langchain/core/messages";
+import { AIMessageChunk, BaseMessage } from "@langchain/core/messages";
 import { FakeListChatModel } from "@langchain/core/utils/testing";
 import { createMemorySummaryStore } from "@v2/db";
 import { splitChunks } from "@v2/judge";
