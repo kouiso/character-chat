@@ -301,6 +301,10 @@ const runConversation = async (
   for (const step of fixture.conversations[name].turns) {
     const sent = await postTurn(baseUrl, characterId, conversationId, step.text);
     const settle = await waitSettled(conversationId);
+    // 索引が落ち着かんまま進むと、未索引の記憶の有無で結果がぶれるのでここで止める。
+    if (!settle.settled) {
+      fail(`索引の待機が ${SETTLE_WAIT_MS}ms で時間切れ（${name} turn ${step.turn}）`);
+    }
     const usage = await loadTurnUsage(conversationId, step.turn);
     const checks = buildTurnChecks(step, sent.reply, usage);
     records.push({
@@ -369,4 +373,7 @@ const main = async (): Promise<void> => {
   process.exit(failures.length === 0 ? 0 : 1);
 };
 
-await main();
+await main().catch((error: unknown) => {
+  const message = error instanceof Error ? error.message : String(error);
+  fail(`実行途中の例外: ${message}`);
+});

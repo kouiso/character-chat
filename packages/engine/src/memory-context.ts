@@ -38,7 +38,7 @@ export const packMemoryContext = (
     ...entries.filter((entry) => entry.via === "pinned"),
     ...entries.filter((entry) => entry.via !== "pinned"),
   ];
-  for (const entry of ordered.slice(0, 20)) {
+  for (const entry of ordered) {
     if (seen.has(entry.id) || !isUsableEntry(entry)) continue;
     const line = JSON.stringify({ id: entry.id, content: entry.content });
     const nextLength = length + line.length + (lines.length > 0 ? 1 : 0);

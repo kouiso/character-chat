@@ -5352,6 +5352,14 @@
           "autoincrement": false,
           "default": 0
         },
+        "index_attempts": {
+          "name": "index_attempts",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
         "error_code": {
           "name": "error_code",
           "type": "text",

@@ -93,7 +93,7 @@ export const loadMemoryCandidates = async (
           activeBranchOnly: true,
           kinds: ["fact", "preference"],
         }),
-        inArray(v2MemoryTable.id, ids.slice(0, 20)),
+        inArray(v2MemoryTable.id, ids.slice(0, MEMORY_QUERY_TOPK_MAX)),
         scope.beforeTurn === undefined ? undefined : lt(v2MemoryTable.sourceTurn, scope.beforeTurn),
         scope.kinds === undefined ? undefined : inArray(v2MemoryTable.kind, scope.kinds),
       ),
