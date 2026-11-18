@@ -770,8 +770,8 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
         // V2_SUMMARY_CHARACTERS（既定 2,500 字・RIT-71）。溢れる時は古い level 1 から外す。
         // 再生成では対象ターン以降を覆う要約は入れん。置き換えられる未来の出来事を
         // 書き直しの材料にすると、消えるはずの枝の内容が新しい本文へ漏れる。
-        // 境界での除外は visibleSummaries より先に掛ける。先に最新 level 2 を選ぶと、
-        // 未来の要約が有効な過去の要約を隠して全部落ちることがある。
+        // ターン番号での絞り込みは visibleSummaries より先に掛ける。先に最新
+        // level 2 を選ぶと、未来の要約が有効な過去の要約を隠して全部落ちることがある。
         const summaries = deps.summaryStore
           ? visibleSummaries(
               (await deps.summaryStore.listActive(state.conversationId)).filter(
