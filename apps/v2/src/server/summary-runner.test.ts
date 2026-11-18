@@ -312,16 +312,21 @@ describe("summarizeConversation（RIT-72）", () => {
   it("止めの合図で要約は保存せず終わり、失敗にも数えん（FR-5）", async () => {
     const conversationId = await seedTurns(12);
     const storage = memoryStorage();
-    // 呼ばれても返さんモデル。止めの合図が来るまで寝る。
+    // 呼ばれても返さんモデル。止めの合図が来るまで寝る。呼び出しが始まったことを
+    // テストへ知らせて、実行中への中断通知を確かめる（待ち時間頼みにせん）。
+    let invoked!: () => void;
+    const invokeStarted = new Promise<void>((resolve) => {
+      invoked = resolve;
+    });
     const hanging = new FakeListChatModel({ responses: [] });
-    vi.spyOn(hanging, "invoke").mockImplementation(
-      (_input, opts) =>
-        new Promise((_resolve, reject) => {
-          opts?.signal?.addEventListener("abort", () => reject(new Error("aborted")), {
-            once: true,
-          });
-        }),
-    );
+    vi.spyOn(hanging, "invoke").mockImplementation((_input, opts) => {
+      invoked();
+      return new Promise((_resolve, reject) => {
+        opts?.signal?.addEventListener("abort", () => reject(new Error("aborted")), {
+          once: true,
+        });
+      });
+    });
     const controller = new AbortController();
     const run = summarizeConversation(
       ENV,
@@ -334,7 +339,7 @@ describe("summarizeConversation（RIT-72）", () => {
       },
       { models: [{ name: "hanging", model: hanging }], db: local.db },
     );
-    await new Promise((resolve) => setTimeout(resolve, 10));
+    await invokeStarted;
     controller.abort();
     expect(await run).toBe("aborted");
     expect(await listActiveSummaries(local.db, conversationId)).toHaveLength(0);

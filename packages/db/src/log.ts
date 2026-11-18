@@ -21,6 +21,7 @@ export type LogEventName =
   | "summary_redact_dropped"
   | "summary_saved"
   | "summary_failed"
+  | "summary_failure_count_failed"
   | "summary_aborted"
   | "summary_source_mismatch"
   | "memory_pinned_load_failed"

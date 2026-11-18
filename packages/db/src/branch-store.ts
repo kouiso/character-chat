@@ -50,6 +50,7 @@ const branchGroupOf = async (db: V2Db, messageId: string) => {
       conversationId: v2MessageTable.conversationId,
       turn: v2MessageTable.turn,
       role: v2MessageTable.role,
+      active: v2MessageTable.active,
     })
     .from(v2MessageTable)
     .where(eq(v2MessageTable.id, messageId));
@@ -61,6 +62,8 @@ const branchGroupOf = async (db: V2Db, messageId: string) => {
 export const activateBranch = async (db: V2Db, messageId: string): Promise<"ok" | "not-found"> => {
   const group = await branchGroupOf(db, messageId);
   if (!group) return "not-found";
+  // 対象がすでに active なら履歴は変わらん。操作の再送で要約まで消えるのを防ぐ。
+  if (group.active === 1) return "ok";
   const sameGroup = and(
     eq(v2MessageTable.conversationId, group.conversationId),
     eq(v2MessageTable.turn, group.turn),

@@ -340,6 +340,85 @@ const saveLevelSummary = async (
   });
 };
 
+// level 2 の入力に使う行は、指示文に出る行（visible）と限らんので、畳む直前に
+// 元本文の hash を確かめる。違う行は無効にして、次の alarm で作り直させる
+//（同じ実行では古い本文を畳まん）。
+const verifyRollupInputs = async (
+  db: V2Db,
+  input: SummaryInput,
+  inputs: StoredSummary[],
+): Promise<boolean> => {
+  for (const inputSummary of inputs) {
+    throwIfAborted(input.signal);
+    if (!(await verifySummaryHash(db, input.conversationId, inputSummary))) return false;
+  }
+  return true;
+};
+
+// 畳む入力行の並びに穴がある時、その区間に有効なメッセージが残るか確かめる。
+// 実メッセージのある区間を跨いで畳むと、その範囲が「集約済み」になって表示も
+// 修復もされんまま落ちる。メッセージが無い欠番の区間（眠らせた枝）は跨いでよい。
+const rollupGapHasMessages = async (
+  db: V2Db,
+  conversationId: string,
+  anchors: StoredSummary[],
+): Promise<boolean> => {
+  let coveredEnd = 0;
+  for (const entry of [...anchors].sort((a, b) => a.fromTurn - b.fromTurn)) {
+    if (entry.fromTurn <= coveredEnd + 1) {
+      coveredEnd = Math.max(coveredEnd, entry.toTurn);
+      continue;
+    }
+    const gap = await loadTurnRange(db, {
+      conversationId,
+      fromTurn: coveredEnd + 1,
+      toTurn: entry.fromTurn - 1,
+    });
+    if (gap.length > 0) return true;
+    coveredEnd = entry.toTurn;
+  }
+  return false;
+};
+
+type RollupPlan = {
+  latest2: StoredSummary | undefined;
+  group: StoredSummary[];
+  inputs: StoredSummary[];
+  range: { summaryLevel: number; fromTurn: number; toTurn: number };
+};
+
+// 畳みの材料を選ぶ: 伏せ直し待ちは外し、最新の level 2 ＋その後の連続した
+// level 1 から 4 本。入力行が覆わん区間に実メッセージが残る時は null を返して
+// 集約を見送る（その範囲の要約が先。伏せ直し待ちの本文は入力に戻さん）。
+const pickRollupPlan = async (
+  db: V2Db,
+  conversationId: string,
+  active: StoredSummary[],
+): Promise<RollupPlan | null> => {
+  const usable = active.filter((entry) => !entry.redactPending);
+  const latest2 = usable
+    .filter((entry) => entry.level === 2)
+    .sort((a, b) => a.toTurn - b.toTurn)
+    .at(-1);
+  const pending = usable
+    .filter((entry) => entry.level === 1 && entry.toTurn > (latest2?.toTurn ?? 0))
+    .sort((a, b) => a.fromTurn - b.fromTurn);
+  if (pending.length < SUMMARY_ROLLUP_LEVEL1) return null;
+  const group = pending.slice(0, SUMMARY_ROLLUP_LEVEL1);
+  const inputs = [...(latest2 ? [latest2] : []), ...group];
+  if (await rollupGapHasMessages(db, conversationId, inputs)) return null;
+  return {
+    latest2,
+    group,
+    inputs,
+    range: {
+      summaryLevel: 2,
+      fromTurn: Math.min(latest2?.fromTurn ?? Number.MAX_SAFE_INTEGER, group[0].fromTurn),
+      toTurn: group.at(-1)?.toTurn ?? group[0].toTurn,
+    },
+  };
+};
+
 // FR-2: 最新の level 2 より後の有効な level 1 が 4 本たまったら、「前の level 2 ＋
 // その 4 本」でまとめ直す。新しい分だけを畳むと古い出来事が level 2 から落ちる。
 const maybeRollUpLevel2 = async (
@@ -349,36 +428,18 @@ const maybeRollUpLevel2 = async (
   deps: SummaryDeps,
   active: StoredSummary[],
 ): Promise<boolean> => {
-  // 伏せ直し待ち（redactPending）の行は生成の入力に入れん。伏せ直し前の本文が
-  // 新しい有効行へ漏れるのを防ぐ（RIT-94）。
-  const usable = active.filter((entry) => !entry.redactPending);
-  const latest2 = usable
-    .filter((entry) => entry.level === 2)
-    .sort((a, b) => a.toTurn - b.toTurn)
-    .at(-1);
-  const pending = usable
-    .filter((entry) => entry.level === 1 && entry.toTurn > (latest2?.toTurn ?? 0))
-    .sort((a, b) => a.fromTurn - b.fromTurn);
-  if (pending.length < SUMMARY_ROLLUP_LEVEL1) return false;
-  const group = pending.slice(0, SUMMARY_ROLLUP_LEVEL1);
-  // 入力になる行（最新 level 2 と畳む level 1）は、指示文に出る行（visible）と
-  // 限らんので、ここで元本文の hash を確かめる。違う行は無効にして、次の
-  // alarm で作り直させる（同じ実行では古い本文を畳まん）。
-  for (const inputSummary of [...(latest2 ? [latest2] : []), ...group]) {
-    throwIfAborted(input.signal);
-    if (!(await verifySummaryHash(db, input.conversationId, inputSummary))) return true;
-  }
-  const range = {
-    summaryLevel: 2,
-    fromTurn: Math.min(latest2?.fromTurn ?? Number.MAX_SAFE_INTEGER, group[0].fromTurn),
-    toTurn: group.at(-1)?.toTurn ?? group[0].toTurn,
-  };
+  const plan = await pickRollupPlan(db, input.conversationId, active);
+  if (!plan) return false;
+  const { latest2, group, inputs, range } = plan;
   throwIfAborted(input.signal);
   const sourceRows = await loadTurnRange(db, {
     conversationId: input.conversationId,
     fromTurn: range.fromTurn,
     toTurn: range.toTurn,
   });
+  // 入力の検証は範囲の読込みのあと。読んだ行と畳む要約が同じ履歴の版を見る形に
+  // そろえ、間に枝の切替えが入った時は不一致で畳みを見送る。
+  if (!(await verifyRollupInputs(db, input, inputs))) return true;
   const sourceHash = await summarySourceHash(sourceRows);
   const forgotten = await listForgottenContents(db, input.conversationId);
   const models = deps.models ?? (await resolveModels(env, input.userId));
@@ -400,6 +461,23 @@ const maybeRollUpLevel2 = async (
   return true;
 };
 
+// level 1 の未カバー範囲を選ぶ。最大の to_turn ではなく連続して覆えた末尾を
+// 使い（途中の無効化で開いた穴を残さん）、穴の修復は次に有効な level 1 の
+// 手前で止める（先の要約済み区間を取り込んで二重に作らん）。
+const uncoveredLevel1Range = (
+  active: StoredSummary[],
+  boundary: number,
+): { fromTurn: number; toTurn: number } | null => {
+  const level1s = active.filter((s) => s.level === 1).sort((a, b) => a.fromTurn - b.fromTurn);
+  const covered = level1s.reduce(
+    (end, summary) => (summary.fromTurn <= end + 1 ? Math.max(end, summary.toTurn) : end),
+    0,
+  );
+  const nextFrom = level1s.find((s) => s.fromTurn > covered)?.fromTurn;
+  const toTurn = Math.min(boundary - 1, (nextFrom ?? Number.MAX_SAFE_INTEGER) - 1);
+  return toTurn < covered + 1 ? null : { fromTurn: covered + 1, toTurn };
+};
+
 // FR-1: 窓の外の未要約が 20 件以上なら、先頭から 12,000 字の範囲を level 1 にする。
 const rollLevel1 = async (
   db: V2Db,
@@ -413,20 +491,14 @@ const rollLevel1 = async (
   const boundary =
     buildConversationContext(recent, "", budget).oldestIncludedTurn ??
     (recent.at(-1)?.turn ?? 0) + 1;
-  // 最大の to_turn ではなく、連続して覆えた末尾を使う。途中の要約が無効化されて
-  // 穴が開いた時、先の要約だけが残って穴を再生成せんまま進んでしまうのを防ぐ。
-  const covered = active
-    .filter((s) => s.level === 1)
-    .sort((a, b) => a.fromTurn - b.fromTurn)
-    .reduce(
-      (end, summary) => (summary.fromTurn <= end + 1 ? Math.max(end, summary.toTurn) : end),
-      0,
-    );
-  if (boundary - 1 < covered + 1) return false;
+  const uncovered = uncoveredLevel1Range(active, boundary);
+  if (!uncovered) return false;
+  // loadTurnRange は有効な行だけ返すので、眠らせた枝しか無い欠番の区間は
+  // 行数が足りずここで止まる（要約済みの区間を毎回モデルへは投げん）。
   const range = await loadTurnRange(db, {
     conversationId: input.conversationId,
-    fromTurn: covered + 1,
-    toTurn: boundary - 1,
+    fromTurn: uncovered.fromTurn,
+    toTurn: uncovered.toTurn,
   });
   if (range.length < SUMMARY_TRIGGER_MESSAGES) return false;
   throwIfAborted(input.signal);
@@ -481,7 +553,17 @@ const failedOutcome = async (
   if (error instanceof SummaryAbortError || input.signal?.aborted) {
     return abortedOutcome(input.conversationId);
   }
-  await recordFailure(input.storage, now);
+  // 失敗回数の記録自体が落ちても、失敗した事実のログは残す。ストレージ不調で
+  // 係の失敗が闇に消えると追えん（例外本文は出さん・NFR-4）。
+  try {
+    await recordFailure(input.storage, now);
+  } catch {
+    logEvent({
+      event: "summary_failure_count_failed",
+      level: "warn",
+      conversationId: input.conversationId,
+    });
+  }
   logEvent({
     event: "summary_failed",
     level: "error",

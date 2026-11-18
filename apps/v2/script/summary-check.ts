@@ -144,15 +144,17 @@ const seedAndRun = async (
     level2Calls: 0,
     outcomes: { idle: 0, saved: 0, aborted: 0, failed: 0, paused: 0 },
   };
+  // 上限は数える前に確かめる。拒否した分は呼び出し回数に入れず、30 回目の
+  // 呼び出しは普通に通して、31 回目が要る時だけ止める。
+  const cap = { hit: false };
   const counting: Pick<SummaryDeps, "models" | "onModelCall"> = {
     ...deps,
     onModelCall: () => {
-      stats.modelCalls += 1;
-      if (stats.modelCalls > MAX_MODEL_CALLS) {
-        throw new Error(
-          `モデル呼び出しが上限 ${MAX_MODEL_CALLS} 回を超えた（${stats.modelCalls} 回）`,
-        );
+      if (stats.modelCalls >= MAX_MODEL_CALLS) {
+        cap.hit = true;
+        throw new Error(`モデル呼び出しが上限 ${MAX_MODEL_CALLS} 回に達した`);
       }
+      stats.modelCalls += 1;
     },
   };
   for (let index = 0; index < fixture.turns.length; index += 1) {
@@ -164,7 +166,7 @@ const seedAndRun = async (
       events: makeTurn(turn.assistant),
       ledger: LEDGER,
     });
-    await runSummaryOnce(local, input, env, counting, stats);
+    await runSummaryOnce(local, input, env, counting, stats, cap);
     if ((index + 1) % 40 === 0) {
       console.log(`…turn ${index + 1}/200 済（modelCalls=${stats.modelCalls}）`);
     }
@@ -179,6 +181,7 @@ const runSummaryOnce = async (
   env: SummaryRunnerEnv,
   deps: Pick<SummaryDeps, "models" | "onModelCall">,
   stats: RunStats,
+  cap: { hit: boolean },
 ): Promise<void> => {
   const before = new Set(
     (await listActiveSummaries(local.db, input.conversationId)).map((row) => row.id),
@@ -190,8 +193,9 @@ const runSummaryOnce = async (
     if (added.level === 1) stats.level1Calls += 1;
     else stats.level2Calls += 1;
   }
-  if (stats.modelCalls > MAX_MODEL_CALLS) {
-    throw new Error(`モデル呼び出しが上限 ${MAX_MODEL_CALLS} 回を超えた（${stats.modelCalls} 回）`);
+  // 係が上限拒否を要約失敗として飲み込んでも、台の側では上限到達で止める。
+  if (cap.hit) {
+    throw new Error(`モデル呼び出しが上限 ${MAX_MODEL_CALLS} 回に達した`);
   }
 };
 

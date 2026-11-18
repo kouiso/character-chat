@@ -668,6 +668,7 @@ describe("createTurnGraph", () => {
       for (let i = 0; i < count; i += 1) {
         await store.saveTurn({
           conversationId,
+          turn: i + 1,
           userText: `u${i + 1}`,
           events: [],
           ledger: emptyLedger(),
