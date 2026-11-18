@@ -27,6 +27,9 @@ const MEMORY_READERS: Record<string, "scoped" | "writer" | "bench" | "schema" | 
   "packages/db/src/memory-extraction-store.ts": "scoped",
   "packages/db/src/memory-index-store.ts": "scoped",
   "packages/db/src/memory-scope.ts": "scope",
+  // generation_memory の書き手。v2_memory は挿入時の生存確認（FK 欠落を握り潰す
+  // where exists）にだけ触れるので区切りは通さない。
+  "packages/db/src/memory-use-store.ts": "writer",
   "packages/db/src/memory-supersession.ts": "writer",
   "packages/db/src/proactive-store.ts": "scoped",
   "packages/db/src/turn-store.ts": "writer",

@@ -4,15 +4,19 @@ export type {
   ContextUsage,
   GenerationRecord,
   HistoryMessage,
+  MemoryRetrievalMarker,
   ModelAttempt,
   TurnEvent,
   TurnStore,
+  UsedMemory,
 } from "./types";
 export {
+  buildMemoryQuery,
   createTurnGraph,
   DEFAULT_TURN_TIMEOUT_MS,
   EXTEND_BELOW_RATIO,
   maxTokensForTarget,
+  MEMORY_QUERY_MAX_CHARS,
   runTurn,
   streamedCharCap,
   visibleSummaries,
@@ -42,10 +46,12 @@ export {
   packMemoryContext,
   MEMORY_CONTEXT_HEADER,
   MEMORY_CONTEXT_CHARACTERS,
+  MEMORY_CONTEXT_LIMIT,
   packDocumentContext,
   DOCUMENT_CONTEXT_HEADER,
   DOCUMENT_CONTEXT_CHARACTERS,
   type MemoryContextEntry,
+  type MemoryRetrievalResult,
 } from "./memory-context";
 export { TurnState, type JudgedChunk, type TurnStateUpdate, type TurnStateValue } from "./state";
 export {
@@ -84,6 +90,7 @@ export {
   retrieveMemories,
   retrieveVectorMemories,
   type MemoryFailureReporter,
+  type MemorySearchScope,
 } from "./memory-rag";
 export { jstDateKey, jstDayStartMs } from "./jst-date";
 export { extractMemorySource, runMemoryJob } from "./memory-job";

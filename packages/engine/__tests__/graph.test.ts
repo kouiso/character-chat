@@ -98,9 +98,10 @@ const assertContextUsage = (
 describe("createTurnGraph", () => {
   test("毎ターン記憶を取得し、採用IDと本文を保存するがsystemへは混ぜない", async () => {
     const store = createMemoryTurnStore();
-    const retrieveMemories = vi
-      .fn()
-      .mockResolvedValue([{ id: "fact-tea", content: "紅茶が好きです。" }]);
+    const retrieveMemories = vi.fn().mockResolvedValue({
+      entries: [{ id: "fact-tea", content: "紅茶が好きです。", via: "search" }],
+      status: "ok",
+    });
     const graph = createTurnGraph({
       model: new FakeListChatModel({ responses: [VALID_XML, VALID_XML_SECOND] }),
       store,
@@ -120,7 +121,10 @@ describe("createTurnGraph", () => {
     expect(first.request[0]?.content).toContain('"id":"fact-tea"');
     expect(first.request[0]?.content).toContain("紅茶が好きです。");
     expect(first.systemPrompt).not.toContain("fact-tea");
-    retrieveMemories.mockResolvedValue([]);
+    // 実際に指示文へ入った記憶だけが使った記憶として記録へ移る（RIT-84）。
+    expect(first.usedMemories).toEqual([{ id: "fact-tea", via: "search" }]);
+    expect(first.memoryRetrieval).toBe("ok");
+    retrieveMemories.mockResolvedValue({ entries: [], status: "ok" });
     await drain(
       runTurn(
         graph,
@@ -131,13 +135,150 @@ describe("createTurnGraph", () => {
     const second = generationAt(store, 1);
     expect(retrieveMemories).toHaveBeenCalledTimes(2);
     expect(second.request.some((message) => message.content.includes("fact-tea"))).toBe(false);
+    expect(second.usedMemories).toEqual([]);
+  });
+
+  test("記憶の問いは今回の発言と1つ前の利用者発言を繋ぐ（RIT-84 FR-2）", async () => {
+    const store = createMemoryTurnStore();
+    const retrieveMemories = vi.fn().mockResolvedValue({ entries: [], status: "ok" });
+    const graph = createTurnGraph({
+      model: new FakeListChatModel({ responses: [VALID_XML, VALID_XML_SECOND, VALID_XML] }),
+      store,
+      extendBelowRatio: 0,
+      retrieveMemories,
+    });
+    await drain(
+      runTurn(
+        graph,
+        { conversationId: "conv-q", userText: "この前行った店の名前なんだっけ", character },
+        "conv-q",
+      ),
+    );
+    // 1 ターン目は前の発言が無いので今回の発言だけ。
+    expect(retrieveMemories).toHaveBeenLastCalledWith("conv-q", "この前行った店の名前なんだっけ");
+    await drain(
+      runTurn(
+        graph,
+        { conversationId: "conv-q", userText: "そこで何を食べた？", character },
+        "conv-q",
+      ),
+    );
+    // 2 ターン目は「今回 + 改行 + 前の利用者発言」で問い合わせる。
+    expect(retrieveMemories).toHaveBeenLastCalledWith(
+      "conv-q",
+      "そこで何を食べた？\nこの前行った店の名前なんだっけ",
+    );
+  });
+
+  test("束ねが無くても固定だけの記憶塊を出し、印は disabled（RIT-84 FR-9）", async () => {
+    const store = createMemoryTurnStore();
+    const retrieveMemories = vi.fn().mockResolvedValue({
+      entries: [{ id: "pin-dog", content: "犬を飼っています。", via: "pinned" }],
+      status: "disabled",
+    });
+    const graph = createTurnGraph({
+      model: new FakeListChatModel({ responses: [VALID_XML] }),
+      store,
+      extendBelowRatio: 0,
+      retrieveMemories,
+    });
+    await drain(
+      runTurn(graph, { conversationId: "conv-d", userText: "ペットは？", character }, "conv-d"),
+    );
+    const generation = generationAt(store, 0, "conv-d");
+    expect(generation.request[0]?.content).toContain('"id":"pin-dog"');
+    expect(generation.usedMemories).toEqual([{ id: "pin-dog", via: "pinned" }]);
+    expect(generation.memoryRetrieval).toBe("disabled");
+  });
+
+  test("検索に落ちても固定分は出て印は pinned_only、0件でも塊は出る（RIT-84 FR-8）", async () => {
+    const store = createMemoryTurnStore();
+    const retrieveMemories = vi.fn().mockResolvedValue({
+      entries: [{ id: "pin-tea", content: "紅茶が好きです。", via: "pinned" }],
+      status: "pinned_only",
+    });
+    const graph = createTurnGraph({
+      model: new FakeListChatModel({ responses: [VALID_XML] }),
+      store,
+      extendBelowRatio: 0,
+      retrieveMemories,
+    });
+    await drain(
+      runTurn(graph, { conversationId: "conv-po", userText: "飲み物は？", character }, "conv-po"),
+    );
+    const generation = generationAt(store, 0, "conv-po");
+    expect(generation.request[0]?.content).toContain('"id":"pin-tea"');
+    expect(generation.memoryRetrieval).toBe("pinned_only");
+  });
+
+  test("記憶 OFF（kinds 空）は塊を出さず、検索0件の disabled も空の塊を出さん（RIT-84 FR-9）", async () => {
+    const store = createMemoryTurnStore();
+    // off: 覚える種類を全て切った版。dep 自体は呼ばれる（D1 側が status を返す）。
+    const retrieveMemories = vi
+      .fn()
+      .mockResolvedValueOnce({ entries: [], status: "off" })
+      .mockResolvedValueOnce({ entries: [], status: "disabled" })
+      .mockResolvedValue({ entries: [], status: "ok" });
+    const graph = createTurnGraph({
+      model: new FakeListChatModel({ responses: [VALID_XML, VALID_XML_SECOND, VALID_XML] }),
+      store,
+      extendBelowRatio: 0,
+      retrieveMemories,
+    });
+    const header = "以下は過去の発言から取得した参考データです";
+    await drain(
+      runTurn(graph, { conversationId: "conv-off", userText: "一回目", character }, "conv-off"),
+    );
+    let generation = generationAt(store, 0, "conv-off");
+    expect(generation.memoryRetrieval).toBe("off");
+    expect(generation.request.some((m) => String(m.content).includes(header))).toBe(false);
+
+    await drain(
+      runTurn(graph, { conversationId: "conv-off", userText: "二回目", character }, "conv-off"),
+    );
+    generation = generationAt(store, 1, "conv-off");
+    expect(generation.memoryRetrieval).toBe("disabled");
+    // disabled で 0 件なら空の記憶塊を出さん
+    expect(generation.request.some((m) => String(m.content).includes(header))).toBe(false);
+
+    // ok で 0 件は従来どおり「該当する記憶はありません。」を出す
+    await drain(
+      runTurn(graph, { conversationId: "conv-off", userText: "三回目", character }, "conv-off"),
+    );
+    generation = generationAt(store, 2, "conv-off");
+    expect(generation.memoryRetrieval).toBe("ok");
+    expect(generation.request.some((m) => String(m.content).includes(header))).toBe(true);
+    expect(
+      generation.request.some((m) => String(m.content).includes("該当する記憶はありません")),
+    ).toBe(true);
+  });
+
+  test("記憶の取り出しを注入せん従来の組み方では塊も印も出さん（後方互換）", async () => {
+    const store = createMemoryTurnStore();
+    const graph = createTurnGraph({
+      model: new FakeListChatModel({ responses: [VALID_XML] }),
+      store,
+      extendBelowRatio: 0,
+    });
+    await drain(
+      runTurn(graph, { conversationId: "conv-n", userText: "こんにちは", character }, "conv-n"),
+    );
+    const generation = generationAt(store, 0, "conv-n");
+    expect(generation.memoryRetrieval).toBeUndefined();
+    expect(generation.usedMemories).toBeUndefined();
+    expect(
+      generation.request.some((m) =>
+        String(m.content).includes("以下は過去の発言から取得した参考データです"),
+      ),
+    ).toBe(false);
   });
 
   test("記憶と資料が食い違う時、資料は記憶の後ろに優先ルール付きで渡る (RIT-117)", async () => {
     const store = createMemoryTurnStore();
-    const retrieveMemories = vi
-      .fn()
-      .mockResolvedValue([{ id: "fact-drink", content: "紅茶は嫌いです。" }]);
+    const retrieveMemories = vi.fn().mockResolvedValue({
+      entries: [{ id: "fact-drink", content: "紅茶は嫌いです。", via: "search" }],
+      status: "ok",
+    });
     const retrieveDocuments = vi
       .fn()
       .mockResolvedValue([{ id: "doc-setting", content: "【設定資料】紅茶が好きです。" }]);

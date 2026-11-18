@@ -39,6 +39,7 @@ import {
   SUMMARIZE_LEVEL2_INSTRUCTION,
   type CharacterSheet,
   type MemoryContextEntry,
+  type MemoryRetrievalResult,
   type MemoryVectorBindings,
   type ModelCandidate,
   type SummaryStorage,
@@ -461,7 +462,7 @@ type ArmRuntime = {
   retrievalOn: boolean;
   // 最後の retrieveMemories の結果を採点へ渡す受け皿（ask の retrievedRank 用）。
   retrieved: { entries: MemoryContextEntry[] };
-  retrieveDep?: (conversationId: string, query: string) => Promise<MemoryContextEntry[]>;
+  retrieveDep?: (conversationId: string, query: string) => Promise<MemoryRetrievalResult>;
 };
 
 const characterFor = (deps: RunArmDeps): CharacterSheet => {
@@ -486,14 +487,15 @@ const armRuntime = (deps: RunArmDeps, db: V2Db, scope: ArmScope): ArmRuntime => 
     retrievalOn,
     retrieved,
     retrieveDep: retrievalOn
-      ? async (conversationId: string, query: string): Promise<MemoryContextEntry[]> => {
-          retrieved.entries = await retrieveMemories(
+      ? async (conversationId: string, query: string): Promise<MemoryRetrievalResult> => {
+          const result = await retrieveMemories(
             db,
             deps.bindings,
             { ...scope, conversationId },
             query,
           );
-          return retrieved.entries;
+          retrieved.entries = result.entries;
+          return result;
         }
       : undefined,
   };

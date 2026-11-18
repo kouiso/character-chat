@@ -35,11 +35,11 @@ import {
 } from "./prompt-layer-budget";
 import {
   packMemoryContext,
-  packedMemoryIds,
   MEMORY_CONTEXT_HEADER,
   packDocumentContext,
   DOCUMENT_CONTEXT_HEADER,
   type MemoryContextEntry,
+  type MemoryRetrievalResult,
 } from "./memory-context";
 import { hardRefusalDetect } from "./refusal-detect";
 import { TurnState, type JudgedChunk } from "./state";
@@ -282,9 +282,21 @@ const usageOf = (piece: AIMessageChunk): GenerationRecord["usage"] => {
   };
 };
 
+// RIT-84 FR-2: 記憶検索の問いは「今回の発言」と「1 つ前の利用者の発言」を改行で
+// つなぐ。合わせて 500 字を超える時は前の発言の先頭を削る（今回の発言は削らん）。
+export const MEMORY_QUERY_MAX_CHARS = 500;
+export const buildMemoryQuery = (userText: string, history: HistoryMessage[]): string => {
+  const previous = history.filter((message) => message.role === "user").at(-1)?.content ?? "";
+  if (previous === "") return userText;
+  const room = MEMORY_QUERY_MAX_CHARS - userText.length - 1;
+  if (room <= 0) return userText;
+  return `${userText}\n${previous.slice(-room)}`;
+};
+
 export type TurnGraphDeps = {
   contextBudget?: Partial<ContextBudget>;
-  retrieveMemories?: (conversationId: string, query: string) => Promise<MemoryContextEntry[]>;
+  // 記憶の取り出し（RIT-84）。束ねが無くても注入する（固定だけでも入るので）。
+  retrieveMemories?: (conversationId: string, query: string) => Promise<MemoryRetrievalResult>;
   // RIT-115: キャラの設定資料の検索。記憶とは別口（キャラごと・会話を跨ぐ）。
   retrieveDocuments?: (query: string) => Promise<MemoryContextEntry[]>;
   model: TurnModel;
@@ -542,15 +554,14 @@ const settleGeneration = async (
     outcome: CandidateOutcome;
     timeoutMs: number;
     latencyMs: number;
+    // RIT-84: 記憶の塊に実際に入った記憶と検索の終わり方の印（retrieve ノードの結果）。
+    usedMemories?: GenerationRecord["usedMemories"];
+    memoryRetrieval?: GenerationRecord["memoryRetrieval"] | null;
     emitError: (message: string) => void;
   },
 ): Promise<GenerationRecord> => {
   const { outcome } = args;
-  let error = outcome.error;
-  if (outcome.winnerIndex < 0) {
-    error = `全モデルで生成に失敗した: ${outcome.attempts.map((a) => `${a.model}=${a.outcome}`).join(" → ")}`;
-    args.emitError(error);
-  }
+  const error = resolveOutcomeError(outcome, args.emitError);
   const provider = outcome.winnerUpstreamId
     ? await resolveWinnerProvider(deps, args.generationId, outcome.winnerUpstreamId)
     : null;
@@ -572,7 +583,68 @@ const settleGeneration = async (
     timeoutMs: args.timeoutMs,
     // 層ごとの使用字数（RIT-71）。persist が context_usage_json へ書く。
     ...(args.contextUsage ? { contextUsage: args.contextUsage } : {}),
+    // 記憶の使用記録と検索の印（RIT-84）。persist が v2_generation_memory・
+    // v2_generation.memory_retrieval へ書く。取り出し未注入の時は undefined。
+    ...(args.usedMemories !== undefined ? { usedMemories: args.usedMemories } : {}),
+    ...(args.memoryRetrieval ? { memoryRetrieval: args.memoryRetrieval } : {}),
   };
+};
+
+// RIT-84 FR-9: 記憶 OFF・取り出し自体の未注入・束ね無しで固定も 0 件の時は隠す。
+const hideMemoryBlock = (state: { memoryRetrieval: string | null; retrieved: readonly string[] }) =>
+  state.memoryRetrieval === null ||
+  state.memoryRetrieval === "off" ||
+  (state.memoryRetrieval === "disabled" && state.retrieved.length === 0);
+
+// compose ノードの層ブロック組み立て。要約・記憶・資料・人物像の4層を決めて返す。
+const buildContextBlocks = async (
+  state: {
+    conversationId: string;
+    turn: number;
+    memoryRetrieval: string | null;
+    retrieved: readonly string[];
+    retrievedDocuments: readonly string[];
+  },
+  deps: TurnGraphDeps,
+  budget: { summaryCharacters: number },
+) => {
+  // 窓の外に出た分は要約が代わりに乗る（RIT-72）。あらすじ層の上限は
+  // V2_SUMMARY_CHARACTERS（既定 2,500 字・RIT-71）。溢れる時は古い level 1 から外す。
+  // 再生成では対象ターン以降を覆う要約は入れん。置き換えられる未来の出来事を
+  // 書き直しの材料にすると、消えるはずの枝の内容が新しい本文へ漏れる。
+  // ターン番号での絞り込みは visibleSummaries より先に掛ける。先に最新
+  // level 2 を選ぶと、未来の要約が有効な過去の要約を隠して全部落ちることがある。
+  const summaries = deps.summaryStore
+    ? visibleSummaries(
+        (await deps.summaryStore.listActive(state.conversationId)).filter(
+          (entry) => entry.toTurn < state.turn,
+        ),
+      )
+    : [];
+  const packedSummaries = packSummaries(summaries, budget.summaryCharacters);
+  const summaryBlock =
+    packedSummaries.length > 0 ? SUMMARY_BLOCK_HEADER + packedSummaries.join("\n") : null;
+  // RIT-84 FR-9: 記憶 OFF・取り出し自体の未注入・束ね無しで固定も 0 件の時は
+  // 記憶の塊を出さん。それ以外は 0 件でも「該当する記憶はありません。」を出す。
+  const memoryBlock = hideMemoryBlock(state)
+    ? null
+    : MEMORY_CONTEXT_HEADER + (state.retrieved.join("\n") || "該当する記憶はありません。");
+  // 設定資料は記憶の後ろ。資料が無い時はメッセージ自体を出さん（空約束を書かん）。
+  const documentsBlock =
+    deps.retrieveDocuments && state.retrievedDocuments.length > 0
+      ? DOCUMENT_CONTEXT_HEADER + state.retrievedDocuments.join("\n")
+      : null;
+  // ユーザーの人物像は会話履歴の直前。記憶や資料より新しい指示として読ませる。
+  const personaBlock = deps.userPersona ? PERSONA_BLOCK_HEADER + deps.userPersona : null;
+  return { summaryBlock, memoryBlock, documentsBlock, personaBlock };
+};
+
+// 全滅時は error イベントをここで流し、保存用の error 文字列を返す。
+const resolveOutcomeError = (outcome: CandidateOutcome, emitError: (message: string) => void) => {
+  if (outcome.winnerIndex >= 0) return outcome.error;
+  const error = `全モデルで生成に失敗した: ${outcome.attempts.map((a) => `${a.model}=${a.outcome}`).join(" → ")}`;
+  emitError(error);
+  return error;
 };
 
 // 作り話防止が本質の指示（壊しにいく確かめ: 要約に無い作り話が混ざらんか）。
@@ -727,13 +799,17 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
         return { ledger: { ...state.ledger, lastEvents, phase } };
       })
       .addNode("retrieve", async (state) => {
-        const packed = packMemoryContext(
-          (await deps.retrieveMemories?.(state.conversationId, state.userText)) ?? [],
+        const memory = await deps.retrieveMemories?.(
+          state.conversationId,
+          buildMemoryQuery(state.userText, state.history),
         );
+        const packed = packMemoryContext(memory?.entries ?? []);
         return {
-          retrieved: packed,
+          retrieved: packed.lines,
           // 指示文へ入った分だけ使った記憶として persist へ渡す（枠から溢れた分は「使った」に数えん）。
-          retrievedMemoryIds: packedMemoryIds(packed),
+          retrievedMemories: packed.used,
+          // 検索の終わり方の印（RIT-84）。取り出しの注入が無い時は null のまま。
+          memoryRetrieval: memory?.status ?? null,
           retrievedDocuments: packDocumentContext(
             (await deps.retrieveDocuments?.(state.userText)) ?? [],
           ),
@@ -766,32 +842,8 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
           deps.contextBudget,
         );
         const budget = resolveContextBudget(deps.contextBudget);
-        // 窓の外に出た分は要約が代わりに乗る（RIT-72）。あらすじ層の上限は
-        // V2_SUMMARY_CHARACTERS（既定 2,500 字・RIT-71）。溢れる時は古い level 1 から外す。
-        // 再生成では対象ターン以降を覆う要約は入れん。置き換えられる未来の出来事を
-        // 書き直しの材料にすると、消えるはずの枝の内容が新しい本文へ漏れる。
-        // ターン番号での絞り込みは visibleSummaries より先に掛ける。先に最新
-        // level 2 を選ぶと、未来の要約が有効な過去の要約を隠して全部落ちることがある。
-        const summaries = deps.summaryStore
-          ? visibleSummaries(
-              (await deps.summaryStore.listActive(state.conversationId)).filter(
-                (entry) => entry.toTurn < state.turn,
-              ),
-            )
-          : [];
-        const packedSummaries = packSummaries(summaries, budget.summaryCharacters);
-        const summaryBlock =
-          packedSummaries.length > 0 ? SUMMARY_BLOCK_HEADER + packedSummaries.join("\n") : null;
-        const memoryBlock = deps.retrieveMemories
-          ? MEMORY_CONTEXT_HEADER + (state.retrieved.join("\n") || "該当する記憶はありません。")
-          : null;
-        // 設定資料は記憶の後ろ。資料が無い時はメッセージ自体を出さん（空約束を書かん）。
-        const documentsBlock =
-          deps.retrieveDocuments && state.retrievedDocuments.length > 0
-            ? DOCUMENT_CONTEXT_HEADER + state.retrievedDocuments.join("\n")
-            : null;
-        // ユーザーの人物像は会話履歴の直前。記憶や資料より新しい指示として読ませる。
-        const personaBlock = deps.userPersona ? PERSONA_BLOCK_HEADER + deps.userPersona : null;
+        const { summaryBlock, memoryBlock, documentsBlock, personaBlock } =
+          await buildContextBlocks(state, deps, budget);
         const prompt: ComposedPrompt = {
           version: "v0002",
           system,
@@ -846,6 +898,10 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
           outcome,
           timeoutMs,
           latencyMs: now() - startedAt,
+          // 記憶の取り出し自体が走らんターン（未注入）は usedMemories ごと
+          // 記録に残さん（GenerationRecord 両列とも未設定 = 旧形式のまま）。
+          usedMemories: state.memoryRetrieval === null ? undefined : state.retrievedMemories,
+          memoryRetrieval: state.memoryRetrieval,
           emitError: (message) => runtime.writer({ type: "error", message }),
         });
         // preExtendVisibleChars / preExtendRawLength は extend が raw を上書きする前の
@@ -1074,7 +1130,6 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
           userText: state.userText,
           events,
           ledger: state.ledger,
-          usedMemoryIds: state.retrievedMemoryIds,
         });
         if (state.generation) {
           runtime.writer({

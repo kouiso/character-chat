@@ -7,10 +7,12 @@ export type {
   ContextUsage,
   GenerationRecord,
   HistoryMessage,
+  MemoryRetrievalMarker,
   ModelAttempt,
   SaveTurnInput,
   TurnEvent,
   TurnStore,
+  UsedMemory,
 } from "@v2/db";
 
 import type { HistoryMessage } from "@v2/db";
