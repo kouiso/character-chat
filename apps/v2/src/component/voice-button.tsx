@@ -1,4 +1,4 @@
-// 応答の読み上げボタン（RIT-211）。再生中は停止ボタンに化ける。
+import { TalkIcon } from "./talk-icon";
 export const VoiceButton = ({
   playing,
   busy,
@@ -15,8 +15,8 @@ export const VoiceButton = ({
     className="v2-voice-button"
     disabled={busy}
     onClick={() => (playing ? onStop() : onPlay())}
-    aria-label={playing ? "音声を停止" : "音声で再生"}
+    aria-label={playing ? "声を止める" : "この返事を声で聞く"}
   >
-    {playing ? "⏹ 停止" : "🔊"}
+    <TalkIcon name={playing ? "stop" : "speaker"} />
   </button>
 );

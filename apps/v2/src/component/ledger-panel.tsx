@@ -3,6 +3,7 @@
 import { useState, type ReactNode } from "react";
 
 import { ledgerSchema, loadLedger, saveLedger, type LedgerData } from "../lib/ledger";
+import { TalkSheet } from "./talk-sheet";
 
 const PHASES = ["conversation", "intimate", "erotic", "climax", "afterglow"] as const;
 
@@ -177,9 +178,10 @@ const LedgerBody = ({ ledger, hasError, editing, onStartEdit, form }: LedgerBody
 type LedgerPanelProps = {
   characterId: string;
   getConversationId: () => string | null;
+  trigger?: ReactNode;
 };
 
-export const LedgerPanel = ({ characterId, getConversationId }: LedgerPanelProps) => {
+export const LedgerPanel = ({ characterId, getConversationId, trigger }: LedgerPanelProps) => {
   const [open, setOpen] = useState(false);
   const [ledger, setLedger] = useState<LedgerData | null | undefined>(undefined);
   const [draft, setDraft] = useState<LedgerData | null>(null);
@@ -271,36 +273,38 @@ export const LedgerPanel = ({ characterId, getConversationId }: LedgerPanelProps
   return (
     <div className="v2-ledger">
       <button type="button" className="v2-ledger-toggle" onClick={() => void openPanel()}>
-        台帳
+        {trigger ?? "いまの場面"}
       </button>
       {open && (
-        <div className="v2-ledger-panel">
-          {error && (
-            <div className="v2-error" role="alert">
-              {error}
-            </div>
-          )}
-          {notice && <div className="v2-ledger-notice">{notice}</div>}
-          <LedgerBody
-            ledger={ledger}
-            hasError={error !== null}
-            editing={editing}
-            onStartEdit={startEdit}
-            form={
-              draft && (
-                <LedgerForm
-                  draft={draft}
-                  fields={fields}
-                  saving={saving}
-                  setDraft={setDraft}
-                  setField={setField}
-                  onSave={() => void save()}
-                  onCancel={() => setEditing(false)}
-                />
-              )
-            }
-          />
-        </div>
+        <TalkSheet title="いまの場面" onClose={() => setOpen(false)}>
+          <div className="v2-talk-scene-panel">
+            {error && (
+              <div className="v2-error" role="alert">
+                {error}
+              </div>
+            )}
+            {notice && <div className="v2-ledger-notice">{notice}</div>}
+            <LedgerBody
+              ledger={ledger}
+              hasError={error !== null}
+              editing={editing}
+              onStartEdit={startEdit}
+              form={
+                draft && (
+                  <LedgerForm
+                    draft={draft}
+                    fields={fields}
+                    saving={saving}
+                    setDraft={setDraft}
+                    setField={setField}
+                    onSave={() => void save()}
+                    onCancel={() => setEditing(false)}
+                  />
+                )
+              }
+            />
+          </div>
+        </TalkSheet>
       )}
     </div>
   );

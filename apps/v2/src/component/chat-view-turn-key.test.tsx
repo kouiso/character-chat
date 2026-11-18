@@ -101,10 +101,21 @@ const stubBackend = (state: BackendState) =>
     ),
   );
 
+const openUserActions = async () => {
+  await screen.findAllByText("二番目の発言");
+  const row = document.querySelector('[data-message-id="m-user"]')?.closest(".v2-turn-row");
+  fireEvent.click(within(row as HTMLElement).getByRole("button", { name: "発言の操作" }));
+};
+
+const closeUserActions = () =>
+  fireEvent.click(
+    within(screen.getByRole("dialog", { name: "この発言" })).getByRole("button", {
+      name: "閉じる",
+    }),
+  );
+
 const openRewrite = async () => {
-  const toggles = await screen.findAllByRole("button", { name: "枝操作" });
-  // 並びは 画像 / 二番目の発言 / その返事 / 三番目の発言。2 つ目が「二番目の発言」。
-  fireEvent.click(toggles[1]);
+  await openUserActions();
   fireEvent.click(await screen.findByRole("button", { name: "書き直す" }));
   return screen.findByRole("textbox", { name: "メッセージの書き直し" });
 };
@@ -112,12 +123,20 @@ const openRewrite = async () => {
 const turnRowOf = (element: HTMLElement) => element.closest<HTMLElement>(".v2-turn-row");
 
 const removeFirstImage = async () => {
+  closeUserActions();
+  fireEvent.click(screen.getByRole("button", { name: "メニュー" }));
   fireEvent.click(screen.getByRole("button", { name: "画像履歴" }));
   fireEvent.click(await screen.findByRole("button", { name: "消す" }));
   fireEvent.click(await screen.findByRole("button", { name: "本当に消す" }));
   await waitFor(() => {
     expect(document.querySelector('[data-message-id="m-image"]')).toBeNull();
   });
+  fireEvent.click(
+    within(screen.getByRole("dialog", { name: "メニュー" })).getByRole("button", {
+      name: "閉じる",
+    }),
+  );
+  await openUserActions();
 };
 
 describe("ChatView の発言の識別子", () => {
@@ -176,10 +195,10 @@ describe("ChatView の発言の識別子", () => {
     const editor = await openRewrite();
     fireEvent.change(editor, { target: { value: "書きかけの下書き" } });
 
-    const toggles = screen.getAllByRole("button", { name: "枝操作" });
-    fireEvent.click(toggles[toggles.length - 2]);
+    closeUserActions();
     fireEvent.click(await screen.findByRole("button", { name: "次の枝" }));
     await screen.findByText("別の枝の返事");
+    await openUserActions();
 
     const after = screen.getByRole("textbox", { name: "メッセージの書き直し" });
     expect(after).toHaveValue("書きかけの下書き");
@@ -192,12 +211,14 @@ describe("ChatView の発言の識別子", () => {
     render(<ChatView characterId="a" characterName="案内役" initialConversationId="conv" />);
     const editor = await openRewrite();
     fireEvent.change(editor, { target: { value: "書きかけの下書き" } });
+    closeUserActions();
 
     fireEvent.change(screen.getByRole("textbox", { name: "メッセージ" }), {
       target: { value: "届いた質問" },
     });
     fireEvent.click(screen.getByRole("button", { name: "送信" }));
     await screen.findByText("届いた返事");
+    await openUserActions();
 
     const after = screen.getByRole("textbox", { name: "メッセージの書き直し" });
     expect(after).toHaveValue("書きかけの下書き");
@@ -208,8 +229,6 @@ describe("ChatView の発言の識別子", () => {
     const state = newState();
     stubBackend(state);
     render(<ChatView characterId="a" characterName="案内役" initialConversationId="conv" />);
-    const toggles = await screen.findAllByRole("button", { name: "枝操作" });
-    fireEvent.click(toggles[toggles.length - 2]);
     fireEvent.click(await screen.findByRole("button", { name: "次の枝" }));
     await screen.findByText("別の枝の返事");
 

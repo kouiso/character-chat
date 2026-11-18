@@ -20,7 +20,7 @@
   gap: 4px;
   height: 44px;
   padding: 0 4px;
-  color: var(--v2-text-soft, #dcd3ce);
+  color: var(--color-text-sub);
   font-size: 13px;
   line-height: 20px;
   font-weight: 500;

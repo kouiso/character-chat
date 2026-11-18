@@ -1,14 +1,13 @@
-import { createFileRoute, getRouteApi, notFound } from "@tanstack/react-router";
+import { createFileRoute, getRouteApi, notFound, Link } from "@tanstack/react-router";
 import { z } from "zod";
 
 import {
-  ChatConnectionState,
   ChatErrorState,
   ChatLoadingState,
   ChatUnavailableState,
 } from "../../component/chat-route-state";
 import { ChatView } from "../../component/chat-view";
-import { ProactiveToggle } from "../../component/proactive-toggle";
+import { TalkIcon } from "../../component/talk-icon";
 import { avatarUrl } from "../../lib/avatar-url";
 import { getCharacter } from "../../server/characters";
 
@@ -19,10 +18,13 @@ const ChatPage = () => {
   const { conversationId, newChat } = routeApi.useSearch();
   return (
     <div className="v2-chat-page">
-      <ChatConnectionState />
-      <ProactiveToggle key={character.id} characterId={character.id} />
       <ChatView
         key={`${character.id}:${conversationId ?? newChat ?? "saved"}`}
+        backSlot={
+          <Link to="/" aria-label="戻る">
+            <TalkIcon name="back" />
+          </Link>
+        }
         characterId={character.id}
         characterName={character.name}
         characterAvatar={avatarUrl(character.id, character.avatar)}

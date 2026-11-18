@@ -34,6 +34,7 @@ import { followTurn } from "../lib/turn-stream";
 import { playVoiceText, readVoiceAutoplay, type VoicePlayback } from "../lib/tts";
 
 import { BranchControls } from "./branch-controls";
+import { BookmarkPanel } from "./bookmark-panel";
 import { ChatHeaderControls } from "./chat-header-controls";
 import { ChatImage } from "./chat-image";
 import { ChatMessage, ChatMessageText } from "./chat-message";
@@ -56,6 +57,11 @@ import {
 import { ChatWaiting } from "./chat-waiting";
 import { VoiceButton } from "./voice-button";
 import { VoiceCallButton } from "./voice-call-button";
+import { TalkIcon } from "./talk-icon";
+import { TalkSheet } from "./talk-sheet";
+import { TalkSceneBar } from "./talk-scene-bar";
+import { ProactiveToggle } from "./proactive-toggle";
+import "./talk-screen.css";
 
 import type { ChatSseEvent } from "../lib/sse-events";
 
@@ -64,6 +70,7 @@ const isPlayableAssistant = (bubble: ChatBubble): boolean =>
   bubble.role === "assistant" && !bubble.pending && Boolean(bubble.text);
 
 export type ChatViewProps = {
+  backSlot?: React.ReactNode;
   characterId: string;
   characterName: string;
   characterAvatar?: string | null;
@@ -322,6 +329,7 @@ const I2iSlot = ({
 };
 
 type ChatFooterProps = {
+  trayContent: React.ReactNode;
   busy: boolean;
   imageBusy: boolean;
   pending: PendingTurn | null;
@@ -352,8 +360,47 @@ type ChatFooterProps = {
   ) => React.ReactNode;
 };
 
+const ChatTray = ({
+  busy,
+  imageBusy,
+  pending,
+  onImage,
+  trayContent,
+  paramField,
+}: Pick<
+  ChatFooterProps,
+  "busy" | "imageBusy" | "pending" | "onImage" | "trayContent" | "paramField"
+>) => (
+  <section className="v2-talk-tray" aria-label="トークの操作">
+    <div className="v2-talk-handle" aria-hidden="true" />
+    <p className="v2-talk-caption">よく使う</p>
+    <button
+      type="button"
+      className="v2-talk-image-request"
+      onClick={onImage}
+      disabled={[busy, imageBusy, pending !== null].some(Boolean)}
+    >
+      <TalkIcon name="image" />
+      {imageBusy ? "描いています" : "画像をもらう"}
+    </button>
+    <div className="v2-talk-tray-settings">{trayContent}</div>
+    <details className="v2-image-params">
+      <summary>もらう画像の設定</summary>
+      <div className="v2-image-params-grid">
+        {paramField("cfg", "CFG", "5", "number", "0.5")}
+        {paramField("seed", "seed", "ランダム")}
+        {paramField("width", "幅", "832", "number", "8")}
+        {paramField("height", "高さ", "1216", "number", "8")}
+        {paramField("strength", "i2i強度", "0.45", "number", "0.05")}
+        {paramField("negativePrompt", "ネガティブプロンプト", "既定", "text")}
+      </div>
+    </details>
+  </section>
+);
+
 // 入力の行とその上の通知。待っている間は送信ボタンを「止める」と入れ替える（部品 D）。
 const ChatFooter = ({
+  trayContent,
   busy,
   imageBusy,
   pending,
@@ -376,50 +423,38 @@ const ChatFooter = ({
   getConversationId,
   onError,
   paramField,
-}: ChatFooterProps) => (
-  <>
-    {rewoundFrom !== null && (
-      <div className="v2-branch-restore">
-        <button type="button" onClick={() => void onRestoreRewound()} disabled={busy}>
-          戻した会話を進む（復元）
-        </button>
-      </div>
-    )}
-    {error && (
-      <ChatErrorBar
-        error={error}
-        canResume={pending !== null && !isFailurePhase(phase)}
-        terminalFailure={phase === "rejected"}
-        busy={busy}
-        onRecover={onWithdraw}
-        onRetry={onRetry}
-      />
-    )}
-    {failure !== null && <TurnFailureBox {...failure} actions={failureActions} />}
-    <details className="v2-image-params">
-      <summary>画像設定</summary>
-      <div className="v2-image-params-grid">
-        {paramField("cfg", "CFG", "5", "number", "0.5")}
-        {paramField("seed", "seed", "ランダム")}
-        {paramField("width", "幅", "832", "number", "8")}
-        {paramField("height", "高さ", "1216", "number", "8")}
-        {paramField("strength", "i2i強度", "0.45", "number", "0.05")}
-        {paramField("negativePrompt", "ネガティブプロンプト", "既定", "text")}
-      </div>
-    </details>
-    <form
-      className="v2-chat-form"
-      onSubmit={(event) => {
-        void onSubmit(event);
-      }}
-    >
-      <input
-        value={input}
-        onChange={(event) => onInput(event.target.value)}
-        placeholder="メッセージを入力"
-        aria-label="メッセージ"
-        disabled={imageBusy}
-      />
+}: ChatFooterProps) => {
+  const [trayOpen, setTrayOpen] = useState(false);
+  return (
+    <div className="v2-talk-footer">
+      {rewoundFrom !== null && (
+        <div className="v2-branch-restore">
+          <button type="button" onClick={() => void onRestoreRewound()} disabled={busy}>
+            戻した会話を進む（復元）
+          </button>
+        </div>
+      )}
+      {error && (
+        <ChatErrorBar
+          error={error}
+          canResume={pending !== null && !isFailurePhase(phase)}
+          terminalFailure={phase === "rejected"}
+          busy={busy}
+          onRecover={onWithdraw}
+          onRetry={onRetry}
+        />
+      )}
+      {failure !== null && <TurnFailureBox {...failure} actions={failureActions} />}
+      {trayOpen && (
+        <ChatTray
+          busy={busy}
+          imageBusy={imageBusy}
+          pending={pending}
+          onImage={onImage}
+          trayContent={trayContent}
+          paramField={paramField}
+        />
+      )}
       <SuggestionChips
         characterId={characterId}
         getConversationId={getConversationId}
@@ -427,24 +462,44 @@ const ChatFooter = ({
         onPick={(text) => void onPick(text)}
         onError={onError}
       />
-      <button
-        type="button"
-        onClick={onImage}
-        disabled={[busy, imageBusy, pending !== null].some(Boolean)}
+      <form
+        className="v2-chat-form"
+        onSubmit={(event) => {
+          void onSubmit(event);
+        }}
       >
-        {imageBusy ? "生成中…" : "画像"}
-      </button>
-      {isWaitingPhase(phase) ? (
-        // 部品 D: 待っている間は送信ボタンと入れ替わる（FR-6）。
-        <TurnStopButton disabled={stopping} onClick={onStop} />
-      ) : (
-        <button type="submit" disabled={busy || pending !== null || input.trim().length === 0}>
-          送信
+        <button
+          type="button"
+          className="v2-talk-plus"
+          aria-label={trayOpen ? "閉じる" : "ひらく（画像・電話・しおり・場面）"}
+          aria-expanded={trayOpen}
+          onClick={() => setTrayOpen(!trayOpen)}
+        >
+          <TalkIcon name={trayOpen ? "close" : "plus"} />
         </button>
-      )}
-    </form>
-  </>
-);
+        <input
+          value={input}
+          onChange={(event) => onInput(event.target.value)}
+          placeholder="なに話す？"
+          aria-label="メッセージ"
+          disabled={imageBusy}
+        />
+        {isWaitingPhase(phase) ? (
+          // 部品 D: 待っている間は送信ボタンと入れ替わる（FR-6）。
+          <TurnStopButton disabled={stopping} onClick={onStop} />
+        ) : (
+          <button
+            type="submit"
+            aria-label="送信"
+            disabled={[busy, pending !== null, input.trim().length === 0].some(Boolean)}
+          >
+            <TalkIcon name="send" />
+          </button>
+        )}
+      </form>
+    </div>
+  );
+};
 
 const runImageRequest = async (deps: {
   characterId: string;
@@ -570,7 +625,21 @@ const GreetingRow = ({
     </div>
   );
 
+const TalkBack = ({ slot }: { slot?: React.ReactNode }) =>
+  slot ?? (
+    <a href="/" aria-label="戻る">
+      <TalkIcon name="back" />
+    </a>
+  );
+
+const TalkPortrait = ({ src }: { src?: string | null }) => (
+  <div className="v2-talk-portrait" aria-hidden="true">
+    {src && <img src={src} alt="" />}
+  </div>
+);
+
 export const ChatView = ({
+  backSlot,
   characterId,
   characterName,
   characterAvatar,
@@ -955,7 +1024,7 @@ export const ChatView = ({
   }, [characterId, reloadMarks]);
 
   // RIT-202: 枝操作は永続行（id/turn あり・送信完了済み）にだけ出す。
-  const bubbleControls = (bubble: ChatBubble) => {
+  const bubbleControls = (bubble: ChatBubble, latestAssistant: boolean) => {
     const targetConversationId = conversationId.current;
     if (
       bubble.id === undefined ||
@@ -964,17 +1033,21 @@ export const ChatView = ({
       !targetConversationId
     )
       return null;
+    const branch = (
+      <BranchControls
+        embedded
+        characterId={characterId}
+        conversationId={targetConversationId}
+        role={bubble.role}
+        turn={bubble.turn}
+        busy={busy || pending !== null}
+        onChanged={reloadHistory}
+        onRewound={setRewoundFrom}
+      />
+    );
     return (
       <>
-        <BranchControls
-          characterId={characterId}
-          conversationId={targetConversationId}
-          role={bubble.role}
-          turn={bubble.turn}
-          busy={busy || pending !== null}
-          onChanged={reloadHistory}
-          onRewound={setRewoundFrom}
-        />
+        {latestAssistant && branch}
         <MessageActions
           messageId={bubble.id}
           role={bubble.role}
@@ -985,7 +1058,9 @@ export const ChatView = ({
               setError((cause as Error).message),
             )
           }
-        />
+        >
+          {bubble.role === "user" && branch}
+        </MessageActions>
       </>
     );
   };
@@ -1410,6 +1485,7 @@ export const ChatView = ({
   };
 
   const [showInner, setShowInner] = useState(true);
+  const [menuOpen, setMenuOpen] = useState(false);
   const jumpToMessageId = (messageId: string) => {
     const target = rootRef.current?.querySelector<HTMLElement>(
       `[data-message-id="${CSS.escape(messageId)}"]`,
@@ -1452,29 +1528,48 @@ export const ChatView = ({
 
   return (
     <div className="v2-chat" data-hide-inner={!showInner} ref={rootRef}>
-      <div className="v2-chat-header">
-        <ChatMessageText text={characterName} />
-        <ChatHeaderControls
-          characterId={characterId}
-          showInner={showInner}
-          getConversationId={() => conversationId.current}
-          onToggleInner={() => setShowInner((prev) => !prev)}
-          onJumpMessage={jumpToMessageId}
-        />
-        <LedgerPanel characterId={characterId} getConversationId={() => conversationId.current} />
-        <VoiceCallButton
-          state={voiceCall.state}
-          remaining={voiceCall.remaining}
-          onStart={() => void voiceCall.start()}
-          onStop={voiceCall.stop}
-        />
-        <GalleryPanel
-          characterId={characterId}
-          getConversationId={() => conversationId.current}
-          onJumpToMessage={jumpToMessage}
-          onChanged={() => void reloadAfterGalleryChange()}
-        />
-      </div>
+      <TalkPortrait src={characterAvatar} />
+      <header className="v2-talk-header">
+        <div className="v2-talk-nameplate">
+          <TalkBack slot={backSlot} />
+          <span className="v2-talk-lamp" aria-hidden="true" />
+          <h1>
+            <ChatMessageText text={characterName} />
+          </h1>
+        </div>
+        <div className="v2-talk-header-actions">
+          <VoiceCallButton
+            state={voiceCall.state}
+            remaining={voiceCall.remaining}
+            onStart={() => void voiceCall.start()}
+            onStop={voiceCall.stop}
+          />
+          <button type="button" aria-label="メニュー" onClick={() => setMenuOpen(true)}>
+            <TalkIcon name="menu" />
+          </button>
+        </div>
+      </header>
+      {menuOpen && (
+        <TalkSheet title="メニュー" onClose={() => setMenuOpen(false)}>
+          <p className="v2-talk-caption">{characterName}との設定</p>
+          <ProactiveToggle characterId={characterId} />
+          <a className="v2-talk-menu-row" href={`/chat/${encodeURIComponent(characterId)}/memory`}>
+            記憶
+          </a>
+          <GalleryPanel
+            characterId={characterId}
+            getConversationId={() => conversationId.current}
+            onJumpToMessage={jumpToMessage}
+            onChanged={() => void reloadAfterGalleryChange()}
+          />
+        </TalkSheet>
+      )}
+      <TalkSceneBar
+        characterId={characterId}
+        conversationId={conversationId.current}
+        turn={nextTurn.current}
+        busy={busy}
+      />
       <ChatMessageLog key={characterId} busy={busy}>
         <GreetingRow name={characterName} avatar={characterAvatar} text={greeting} />
         {visibleBubbles.map((bubble, index) => (
@@ -1509,13 +1604,15 @@ export const ChatView = ({
               />
               <ChatMessage
                 role={bubble.role}
-                text={bubble.text || (bubble.pending ? "…" : "")}
+                text={bubble.text}
                 characterName={characterName}
                 streaming={bubble.pending}
                 voiceSlot={voiceSlotOf(bubble)}
               />
               {learnedLinkFor(bubble, index)}
-              {bubbleControls(bubble)}
+            </div>
+            <div className="v2-talk-bubble-controls">
+              {bubbleControls(bubble, index === lastAssistantIndex)}
             </div>
           </div>
         ))}
@@ -1524,6 +1621,29 @@ export const ChatView = ({
         {stoppedNotice && <StoppedMarker />}
       </ChatMessageLog>
       <ChatFooter
+        trayContent={
+          <>
+            <section>
+              <p className="v2-talk-caption">この会話</p>
+              <ChatHeaderControls
+                showInner={showInner}
+                onToggleInner={() => setShowInner((prev) => !prev)}
+              />
+            </section>
+            <section>
+              <p className="v2-talk-caption">場面</p>
+              <LedgerPanel
+                characterId={characterId}
+                getConversationId={() => conversationId.current}
+              />
+              <BookmarkPanel
+                characterId={characterId}
+                getConversationId={() => conversationId.current}
+                onJump={jumpToMessageId}
+              />
+            </section>
+          </>
+        }
         busy={busy}
         imageBusy={imageBusy}
         pending={pending}
