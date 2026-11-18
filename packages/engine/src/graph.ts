@@ -581,9 +581,10 @@ const settleGeneration = async (
 const SUMMARY_DEFAULTS = { thresholdMessages: 20, maxLevel1: 4 } as const;
 
 // 作り話防止が本質の指示（壊しにいく確かめ: 要約に無い作り話が混ざらんか）。
-const SUMMARIZE_LEVEL1_INSTRUCTION =
+// RIT-99: ベンチの偽チャットが呼び出し種別を識別するため export する。
+export const SUMMARIZE_LEVEL1_INSTRUCTION =
   "これはキャラクターチャットの会話の一部。後のターンで参照するため、起きた出来事・約束・感情の変化・大事な設定を失わんよう簡潔に要約せよ。書かれとらん事実や推測は足すな。";
-const SUMMARIZE_LEVEL2_INSTRUCTION =
+export const SUMMARIZE_LEVEL2_INSTRUCTION =
   "これは会話の部分要約の集まり。全体の流れが分かる一段上の要約にまとめ直せ。書かれとらん事実や推測は足すな。";
 
 // 画面側へ戻す要約の選び方: 最新の level 2 と、それが届いとらん範囲の level 1 を時系列で。

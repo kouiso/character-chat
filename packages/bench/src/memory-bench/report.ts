@@ -1,6 +1,6 @@
-// RIT-96 モデル比較の報告の形。stdout・--out の JSON・doc/v2/model-compare.md の元データ。
-// 本文（会話・台本の返事・記憶の中身）は一切入れん — 数・ラベル・時間だけ（FR-6）。
-// このファイルは RIT-99 の memoryRecallReportSchema とも同居する（あちらは想起試験台の形）。
+// ベンチ報告の形。stdout・--out の JSON・doc の元データ。
+// 本文（会話・台本の返事・記憶の中身）は一切入れん — 数・ラベル・時間だけ（FR-6 / FR-11）。
+// modelCompareReportSchema（RIT-96 モデル比較）と memoryRecallReportSchema（RIT-99 想起試験台）が同居する。
 import { z } from "zod";
 
 // 台本ごとの打ち切りターン。キーは script-run.ts の成人向け台本ラベルそのまま。
@@ -74,3 +74,62 @@ export const modelCompareReportSchema = z.object({
 export type StoppedAfterTurn = z.infer<typeof stoppedAfterTurnSchema>;
 export type ModelCompareRow = z.infer<typeof modelCompareRowSchema>;
 export type ModelCompareReport = z.infer<typeof modelCompareReportSchema>;
+
+export const recallCheckSchema = z.object({
+  factId: z.string(),
+  turn: z.number().int(),
+  distance: z.union([z.literal(50), z.literal(200)]),
+  correct: z.boolean(),
+  competitorAnswered: z.boolean(),
+  retrievedRank: z.number().int().nullable(),
+  inSummary: z.boolean(),
+  firstChunkMs: z.number().nullable(),
+  totalMs: z.number(),
+});
+
+const distanceCounts = z.object({ asked: z.number().int(), correct: z.number().int() });
+
+export const armReportSchema = z.object({
+  asked: z.number().int(),
+  correct: z.number().int(),
+  ratio: z.number(),
+  byDistance: z.object({ "50": distanceCounts, "200": distanceCounts }),
+  checks: z.array(recallCheckSchema),
+});
+
+export const memoryRecallReportSchema = z.object({
+  kind: z.literal("memory-recall"),
+  schemaVersion: z.literal(1),
+  startedAt: z.string(),
+  finishedAt: z.string(),
+  gitSha: z.string(),
+  mode: z.enum(["fake", "real"]),
+  models: z.object({
+    chat: z.string(),
+    extraction: z.string(),
+    embedding: z.enum(["@cf/baai/bge-m3", "fake-bigram-1024"]),
+  }),
+  arms: z.object({
+    retrieval: armReportSchema.optional(),
+    cheat: armReportSchema.optional(),
+    none: armReportSchema.optional(),
+  }),
+  valid: z.boolean(),
+  invalidReason: z.string().nullable(),
+  calls: z.object({
+    chat: z.number().int(),
+    extraction: z.number().int(),
+    summary: z.number().int(),
+    embedding: z.number().int(),
+    extractionFailures: z.number().int().optional(),
+    embeddingFailures: z.number().int().optional(),
+  }),
+  estimatedUsd: z.number().nullable(),
+  aborted: z.enum(["call-limit", "cost-limit"]).nullable(),
+  sabotage: z.enum(["retrieval-off"]).nullable(),
+});
+
+export type RecallCheck = z.infer<typeof recallCheckSchema>;
+export type ArmReport = z.infer<typeof armReportSchema>;
+export type MemoryRecallReport = z.infer<typeof memoryRecallReportSchema>;
+export type ArmName = "retrieval" | "cheat" | "none";

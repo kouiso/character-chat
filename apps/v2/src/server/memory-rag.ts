@@ -1,163 +1,35 @@
+// 実体は packages/engine/src/memory-rag.ts（RIT-99: ベンチでも本番部品を使うため移動）。
+// 検索・固定読み出しは失敗の知らせ先として Slack 連携つきの reportFailure を差すため、
+// ここで包んで渡す。呼び出し側の引数形は変わらない。
+import type { ExtractionScope, V2Db } from "@v2/db";
 import {
-  describeError,
-  failMemoryIndex,
-  hashMemorySource,
-  loadMemoryCandidates,
-  loadPinnedMemories,
-  loadUnindexedMemoryJob,
-  saveMemoryEmbedding,
-  type ExtractionScope,
-  type V2Db,
-} from "@v2/db";
-
-import { jstDateKey } from "./jst-date";
-import { reportFailure } from "./log";
-import {
-  embedMemoryText,
-  memoryNamespace,
-  memoryVectorId,
-  memoryVectorReady,
+  indexMemoryJob,
+  retrieveMemories as retrieveMemoriesCore,
+  retrieveVectorMemories as retrieveVectorMemoriesCore,
   type MemoryVectorBindings,
-} from "./memory-vector";
+} from "@v2/engine";
+
+import { reportFailure } from "./log";
 
 import type { MemoryContextEntry } from "@v2/engine";
 
-export const indexMemoryJob = async (
-  db: V2Db,
-  env: MemoryVectorBindings,
-  jobId: string,
-): Promise<void> => {
-  if (!memoryVectorReady(env)) return;
-  const memories = await loadUnindexedMemoryJob(db, jobId);
-  for (const memory of memories) {
-    if ((await hashMemorySource(memory.sourceContent)) !== memory.sourceContentHash) {
-      // 元発言が抜き出し後に変わった食い違いはやり直しても一致せんので、
-      // 回数を数えず即 index_failed（terminal）にして送りを止める。
-      await failMemoryIndex(db, jobId, true);
-      return;
-    }
-    const hash = await hashMemorySource(memory.content);
-    const values = await embedMemoryText(env.AI, memory.content);
-    await env.MEMORY_INDEX.upsert([
-      {
-        id: await memoryVectorId(memory.id, hash),
-        namespace: await memoryNamespace(memory),
-        values,
-        metadata: {
-          memory_id: memory.id,
-          content_hash: hash,
-          kind: memory.kind,
-          conversation_id: memory.conversationId,
-        },
-      },
-    ]);
-    await saveMemoryEmbedding(db, memory, values);
-  }
-};
-
-type MemoryCandidateMatch = {
-  id: string;
-  hash: string;
-  vectorId: string;
-  similarity: number;
-};
-
-const rankMemoryCandidates = async (
-  rows: Awaited<ReturnType<typeof loadMemoryCandidates>>,
-  matches: MemoryCandidateMatch[],
-  now: number,
-): Promise<MemoryContextEntry[]> => {
-  const today = jstDateKey(now);
-  const ranked: (MemoryContextEntry & { score: number })[] = [];
-  for (const row of rows) {
-    if ((row.validFrom && row.validFrom > today) || (row.validUntil && row.validUntil < today))
-      continue;
-    if ((await hashMemorySource(row.sourceContent)) !== row.sourceContentHash) continue;
-    const hash = await hashMemorySource(row.content);
-    const vectorId = await memoryVectorId(row.id, hash);
-    const match = matches.find(
-      (candidate) =>
-        candidate.id === row.id && candidate.hash === hash && candidate.vectorId === vectorId,
-    );
-    if (!match) continue;
-    const ageDays = Math.max(0, now - row.createdAt) / 86_400_000;
-    const score = match.similarity * row.importance * 2 ** (-ageDays / 30);
-    ranked.push({ id: row.id, content: row.content, score });
-  }
-  return ranked
-    .sort((a, b) => b.score - a.score || a.id.localeCompare(b.id))
-    .map(({ id, content }) => ({
-      id,
-      content,
-    }));
-};
+export { indexMemoryJob };
 
 // 検索箱を通る道だけの検索（埋める → query → 候補読み直し → 順位付け）。固定の道は通らない。
 // RIT-78 の verify-memory が「会話の検索で実際に引けるか」を確かめるのに使う。
-export const retrieveVectorMemories = async (
+export const retrieveVectorMemories = (
   db: V2Db,
   env: MemoryVectorBindings,
   scope: ExtractionScope & { beforeTurn?: number; topK?: number },
   query: string,
   now = Date.now(),
-): Promise<MemoryContextEntry[]> => {
-  // 記憶の深さはプランの機能差（RIT-193）。未指定は従来どおり20。
-  const topK = scope.topK ?? 20;
-  if (!memoryVectorReady(env) || !query.trim()) return [];
-  try {
-    const values = await embedMemoryText(env.AI, query);
-    const result = await env.MEMORY_INDEX.query(values, {
-      namespace: await memoryNamespace(scope),
-      topK,
-      returnMetadata: "all",
-      returnValues: false,
-      filter: { conversation_id: scope.conversationId, kind: { $in: ["fact", "preference"] } },
-    });
-    const matches = result.matches.slice(0, topK).flatMap((match) => {
-      const id = match.metadata?.memory_id;
-      const hash = match.metadata?.content_hash;
-      return typeof id === "string" &&
-        typeof hash === "string" &&
-        Number.isFinite(match.score) &&
-        match.score > 0
-        ? [{ id, hash, vectorId: match.id, similarity: Math.min(1, match.score) }]
-        : [];
-    });
-    const rows = await loadMemoryCandidates(
-      db,
-      scope,
-      matches.map((match) => match.id),
-    );
-    return await rankMemoryCandidates(rows, matches, now);
-  } catch (error) {
-    reportFailure(env, {
-      event: "memory_retrieval_failed",
-      level: "error",
-      reason: describeError(error),
-    });
-    return [];
-  }
-};
+): Promise<MemoryContextEntry[]> =>
+  retrieveVectorMemoriesCore(db, env, scope, query, now, reportFailure);
 
-export const retrieveMemories = async (
+export const retrieveMemories = (
   db: V2Db,
   env: MemoryVectorBindings,
   scope: ExtractionScope & { beforeTurn?: number; topK?: number },
   query: string,
   now = Date.now(),
-): Promise<MemoryContextEntry[]> => {
-  // 固定済みは類似度を必要とせんので vector 非依存で必ず先に返す（手で足した記憶の既定経路）。
-  const pinned = await loadPinnedMemories(db, scope).catch((error: unknown) => {
-    reportFailure(env, {
-      event: "memory_pinned_load_failed",
-      level: "error",
-      reason: describeError(error),
-    });
-    return [];
-  });
-  // pinned 印は packMemoryContext が固定の別枠（最大8件・2000字）へ振り分ける印（RIT-92）。
-  const pinnedEntries = pinned.map(({ id, content }) => ({ id, content, pinned: true as const }));
-  const ranked = await retrieveVectorMemories(db, env, scope, query, now);
-  const pinnedIds = new Set(pinnedEntries.map((entry) => entry.id));
-  return [...pinnedEntries, ...ranked.filter((entry) => !pinnedIds.has(entry.id))];
-};
+): Promise<MemoryContextEntry[]> => retrieveMemoriesCore(db, env, scope, query, now, reportFailure);

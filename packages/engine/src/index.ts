@@ -15,6 +15,9 @@ export {
   maxTokensForTarget,
   runTurn,
   streamedCharCap,
+  visibleSummaries,
+  SUMMARIZE_LEVEL1_INSTRUCTION,
+  SUMMARIZE_LEVEL2_INSTRUCTION,
   type TurnGraph,
   type TurnGraphDeps,
   type TurnInput,
@@ -64,3 +67,23 @@ export {
   SUMMARY_BLOCK_HEADER,
   type ContextMeasureParts,
 } from "./prompt-layer-budget";
+export {
+  embedMemoryText,
+  MEMORY_EMBEDDING_MODEL,
+  MEMORY_VECTOR_DIMENSIONS,
+  memoryNamespace,
+  memoryVectorId,
+  memoryVectorReady,
+  validateMemoryVector,
+  type MemoryVectorBindings,
+  type MemoryVectorIndex,
+} from "./memory-vector";
+export {
+  indexMemoryJob,
+  rankMemoryCandidates,
+  retrieveMemories,
+  retrieveVectorMemories,
+  type MemoryFailureReporter,
+} from "./memory-rag";
+export { jstDateKey, jstDayStartMs } from "./jst-date";
+export { extractMemorySource, runMemoryJob } from "./memory-job";

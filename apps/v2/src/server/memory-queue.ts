@@ -2,17 +2,14 @@ import { FakeListChatModel } from "@langchain/core/utils/testing";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import {
   applySummaryRedaction,
-  completeMemoryExtraction,
   createDb,
   describeError,
   dropSummary,
   failMemoryExtraction,
   failMemoryIndex,
-  listActiveSubjects,
   listForgottenContents,
   listPendingMemoryJobs,
   listRedactPendingSummaries,
-  loadMemoryExtractionPolicy,
   loadMemoryExtractionSource,
   markMemoryJobsQueued,
   markMemoryPublishFailure,
@@ -25,13 +22,13 @@ import {
 import {
   createModelChain,
   createOpenRouterModel,
-  extractMemories,
+  extractMemorySource,
   type ModelCandidate,
 } from "@v2/engine";
 import { buildSummaryRedactInstruction } from "@v2/prompt";
 
-import { purgeExpiredMemories } from "./memory-purge";
 import { indexMemoryJob } from "./memory-rag";
+import { purgeExpiredMemories } from "./memory-purge";
 import { memoryVectorReady, type MemoryVectorBindings } from "./memory-vector";
 import { reportFailure } from "./log";
 import { readSafeMode } from "./user-settings";
@@ -135,31 +132,17 @@ export const resolveMemoryExtractionModels = async (
   createMemoryExtractionModels(env, await readSafeMode(env.DB, source.userId), source.content);
 
 // 1 件の予約を抜き出しから保存まで流す。models は試験が鎖を差し替える口
-// （未指定なら利用者のセーフモードで env から組む）。
+// （未指定なら利用者のセーフモードで env から組む）。policy・既知 subject の解決と
+// 保存の実体は engine の extractMemorySource（RIT-99 でベンチと共有するため移動）。
 export const runMemoryExtraction = async (
   db: V2Db,
   env: MemoryModelEnv & Pick<Cloudflare.Env, "DB">,
   source: MemoryExtractionSource,
   models?: readonly BaseChatModel[],
 ): Promise<void> => {
-  const policy = await loadMemoryExtractionPolicy(db, source.conversationId);
-  // 種類を全部切った版では呼んでも全て捨てるだけなので、モデルを呼ばず完了にする。
-  if (policy && policy.memoryKinds.length === 0) {
-    await completeMemoryExtraction(db, source, []);
-    return;
-  }
   if (memoryExtractFault(env)) throw new Error("test fault: memory-extract-fail");
-  const knownSubjects = await listActiveSubjects(db, source);
   const resolved = models ?? (await resolveMemoryExtractionModels(env, source)).map((c) => c.model);
-  const extracted = await extractMemories(resolved, source.content, {
-    instruction: policy?.memoryInstruction,
-    knownSubjects,
-  });
-  // 指示どおりの種類だけ残す契約。方針を読めん会話は全種類を通す。
-  const memories = policy
-    ? extracted.filter((memory) => policy.memoryKinds.includes(memory.kind))
-    : extracted;
-  await completeMemoryExtraction(db, source, memories);
+  await extractMemorySource(db, source, resolved);
 };
 
 // 伏せ直し用のモデル。試験環境では固定文を返す偽モデル（出力が消した事柄を含まん事を確かめる）。
