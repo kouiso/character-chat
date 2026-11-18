@@ -1,0 +1,26 @@
+// 巻き取り要約の係の実体は @v2/engine（bench が本番と同じ経路を回すため、RIT-72）。
+// app 側はこの再 export だけ持つ。
+export {
+  summarizeConversation,
+  SummaryAbortError,
+  SummaryFailure,
+  SUMMARY_TRIGGER_MESSAGES,
+  SUMMARY_ROLLUP_LEVEL1,
+  SUMMARY_SOURCE_CHARACTERS,
+  SUMMARY_TRUNCATED_MESSAGE_CHARACTERS,
+  SUMMARY_TIMEOUT_MS,
+  SUMMARY_MAX_FAILURES,
+  SUMMARY_PAUSE_MS,
+  SUMMARY_FAILURES_KEY,
+  SUMMARY_PAUSED_KEY,
+  SUMMARY_LEVEL1_TARGET_CHARS,
+  SUMMARY_LEVEL1_MAX_CHARS,
+  SUMMARY_LEVEL2_TARGET_CHARS,
+  SUMMARY_LEVEL2_MAX_CHARS,
+  type SummaryRunnerEnv,
+  type SummaryStorage,
+  type SummaryInput,
+  type SummaryDeps,
+  type SummaryOutcome,
+  type SummaryFailureReason,
+} from "@v2/engine";

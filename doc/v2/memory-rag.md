@@ -54,10 +54,24 @@ pnpm exec tsx apps/v2/script/memory-leak-check.ts --env staging
 
 同じ会話・同じ主題（`v2_memory.subject`、空は対象外）の記憶は、有効な行の中で一番新しい 1 つだけが `superseded_by is null` になり、残りはその id を指す。新しさは `source_turn` の大きい順、同じなら記憶 id の辞書順で後（Queue の配送順・`created_at` は使わない）。有効な行とは「同じ会話・同じ主題・`pinned = 0`・`deleted_at is null`・出どころの発言が今の枝（`v2_message.active = 1`）」を満たす行。並べ直しは `recomputeSupersessionStatements` が主題 1 つあたり 2 文（全部を新しい 1 つへ向ける・新しい 1 つを空にする）を返し、冪等。呼び出しは (1) 抜き出しの保存 `completeMemoryExtraction` が保存した記憶の主題で同じ batch に入れる、(2) ターンの置き換え `saveTurnMainLine` が消えた記憶の主題で batch の最後に入れる。(3) 記憶を 1 件消す処理は RIT-94 が、(4) 枝の操作は RIT-82 の `invalidateDerivedFromTurn` がそれぞれ自分の batch に入れる。置き換わった行は消さず記憶一覧に残り（`supersededBy` が「新しい記憶に置き換わった」印の元）、検索候補からは `loadMemoryCandidates` が外す。
 
+## 二段の巻き取り要約（RIT-72）
+
+短い窓（RIT-71）から押し出された会話を、会話が途切れた合間に別の係が要約へ巻き取る。返事のグラフとは別経路で、要約の失敗・中断はその返事の成否を変えない。
+
+level 1 は、窓の外に出てまだ要約に入っていない連続したターン（20件＝10ターン分たまった時点）から、先頭が12,000字に収まる範囲を1本にする。1ターンだけで12,000字を超えた時はそのターン単独で1本を作り、モデルへ渡す本文だけ各メッセージを6,000字に切る。level 2 は、最新のlevel 2の末尾より後のlevel 1が4本たまる度に、「前のlevel 2＋その4本」を畳み直して `from_turn=1` から通しで覆う。新しい分だけを畳むと古い出来事が落ちるので、必ず前のlevel 2本文を入力に含める。
+
+要約行は `from_turn`/`to_turn`（覆うターン番号、両端含む）と `source_hash`（その範囲の有効メッセージをターン・役割順に並べたSHA-256。切り詰め前の本文で作る）を持つ。指示文へ出す要約は `invalidated_at` が無く `to_turn` が入った行に限り、最新のlevel 2と、その末尾を超えて伸びるlevel 1を `from_turn` 順に並べ、見出し「これまでのあらすじ:」と合わせて2,500字以内へ1塊だけ積む。超えた分は古いlevel 1から外し、個々の要約は途中で切らない。
+
+ターンの置き換え・枝・消去は、保存のD1 batchが `to_turn >= N` の要約へ `invalidated_at` を立てる（行は消さない）。同じ枝をもう一度選ぶだけの操作（対象がすでに `active=1`）では `invalidated_at` を立てない。取りこぼし用の網として、要約の係は走る度に、指示文へ出す候補（無効でなく伏せ直し待ちでも無い行）の `source_hash` を作り直して合わない行を無効化し `summary_source_mismatch` を記録する。`source_hash` が空の行と、最新のlevel 2に畳み込み済みの古いlevel 1は毎回の検証対象ではなく、level 2を畳む時にその入力（前のlevel 2と4本のlevel 1）だけ追加で確かめる。この入力の検証は集約範囲の読込みの後に行い、読んだ行と畳む要約が同じ履歴の版を見る形にそろえる。level 2の集約は、入力が覆わない区間に有効メッセージが残る時は見送り、level 1の穴の修復は次に有効なlevel 1の手前で止める。伏せ直し待ち（`redact_pending`）の行は指示文から外し、消された記憶の本文は要約の指示へ「再び書かない事」を継ぎ足す。
+
+要約の係はChatRoomのalarmが、返事の配送と記憶の公開を終えて待っているjobが無い時だけ呼ぶ。新しい発言が受理されると走り途中の係へabortが届き、保存の文が始まる前の要約は保存されない。保存の文が始まった要約はabortでは止まらず、置き換えで無効化された元から作った行が残り得る。その行は次に係が走った時の `source_hash` 照合で無効化されるが、照合は係が走った時だけ動くので、返事の処理が先に走れば照合前の古い要約が1回分の指示文へ入り得る（置き換えのbatchでの無効化が本線の防ぎで、hash照合は取りこぼしを拾う網）。モデル呼び出しは60秒の締切と合図を一本のAbortControllerに束ね、返事は400字（level 2は1,200字）指示・800字（同1,500字）上限で、空・超過は失敗として保存しない。失敗はChatRoomのstorageへ回数を記録し、3回続くと1時間止める。成功で回数は0に戻り、中断は失敗に数えない。要約が失敗しても届き終わった返事は成功のまま残る。
+
+品質の確かめ台は `apps/v2/script/summary-check.ts`。固定の200ターン台本（`packages/bench/fixture/summary-200-turns.json`、成人向けでない会話と正解表10件）を手元のD1へ1ターンずつ入れて係を回し、最後のlevel 2に正解表が何件残るかと、要約に出たカタカナ語・数字のうち台本に無い物（作り話の候補）を記録する。モデル呼び出しは最大22回、上限30回。
+
 ## この経路だけでは満たさない項目
 
 - 固定vectorのテストは配線と境界の検査であり、意味の近い言い換えが上位3件へ入る品質検証ではない。言い換えの実測は`apps/v2/script/memory-paraphrase-check.ts`（fixture: `packages/bench/fixture/memory-paraphrase-10.json`）をstagingで実行する（`CLOUDFLARE_API_TOKEN`・`CLOUDFLARE_ACCOUNT_ID`が要る）。
 - 手入力記憶の統合、世界線・版の管理は別の接続が必要。
-- 古いvectorの物理削除と派生要約からの削除（RIT-94）、二段要約（RIT-72）は未接続。検索時の除外だけで削除完了とは扱わない。
+- 古いvectorの物理削除と派生要約からの削除（RIT-94）は未接続。検索時の除外だけで削除完了とは扱わない。
 
 参照: [bge-m3](https://developers.cloudflare.com/workers-ai/models/bge-m3/)、[Vectorize API](https://developers.cloudflare.com/vectorize/reference/client-api/)、[metadata index](https://developers.cloudflare.com/vectorize/reference/metadata-filtering/)、[bindingのローカル対応](https://developers.cloudflare.com/workers/local-development/bindings-per-env/)。

@@ -1,5 +1,4 @@
 // WorkerのD1バインディングを共有し、接続元のプロセスに会話を閉じ込めない。
-import { FakeListChatModel } from "@langchain/core/utils/testing";
 import {
   composeSystemPrompt,
   createD1SummaryStore,
@@ -28,6 +27,7 @@ import {
 import { PROMPT_VERSION } from "@v2/prompt";
 
 import { readCharacter } from "./character-data.server";
+import { fakeModelCandidates } from "./fake-model";
 import { retrieveDocumentChunks } from "./document-rag";
 import { listOwnerIds, LOCAL_USER_ID } from "./identity";
 import { retrieveMemories } from "./memory-rag";
@@ -62,42 +62,13 @@ export class CharacterInvalidError extends Error {
   }
 }
 
-// V2_FAKE_MODEL=1 の固定 XML（キー無しのこのコンテナで SSE の配線だけ検証する用）。
-const FAKE_RESPONSE =
-  "<response><action>小さく笑って、こちらへ一歩近づく。</action><dialogue>ねえ、こっち向いて。</dialogue><inner>ちょっとドキドキしてる。</inner></response>";
-
-// 試験で塊が複数要る時（届きかけの待ち・止めた時の切り詰め）だけ差し替える口。
-// APP_ENV=test 以外では効かせない（値が漏れても本番の応答は変わらん）。
-// 値が "[" で始まる時は JSON の文字列配列として読み、連続するターンへ順に返す
-// （FakeListChatModel の responses にそのまま渡る）。壊れた JSON は 1 本文として扱う。
-const fakeResponsesFromEnv = (env: { V2_FAKE_RESPONSE?: string }): string[] => {
-  const raw = env.V2_FAKE_RESPONSE?.trim();
-  if (!raw) return [FAKE_RESPONSE];
-  if (raw.startsWith("[")) {
-    try {
-      const parsed: unknown = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.every((item) => typeof item === "string")) {
-        return parsed as string[];
-      }
-    } catch {
-      // 単一本文として扱う
-    }
-  }
-  return [raw];
-};
-
 // RIT-102/104: 拒否・時間切れ・障害で順に落ちる逃げ道チェーン。
 // 単モデル指定（V2_MODEL・V2_FAKE_MODEL）の時は 1 本だけの列になる。
 const createModels = async (safeMode: boolean, chatMode: ChatMode): Promise<ModelCandidate[]> => {
   // 実行中のWorkerに束縛された設定だけを使い、別プロセスの設定を混ぜない。
   const { env } = await getPlatform();
   if (env.APP_ENV === "test" && env.V2_FAKE_MODEL === "1") {
-    return [
-      {
-        name: "fake",
-        model: new FakeListChatModel({ responses: fakeResponsesFromEnv(env), sleep: 5 }),
-      },
-    ];
+    return fakeModelCandidates(env);
   }
   return createModelChain(
     {

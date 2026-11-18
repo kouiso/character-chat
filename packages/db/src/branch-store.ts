@@ -2,6 +2,7 @@
 // 持ち、active=1 の1本だけが表示・履歴対象。行は消さん（記憶の出処が cascade で消える
 // のを防ぐため）。張り替えは 1 batch でやるので途中で2本 active にはならん。
 import { and, asc, eq, inArray, sql } from "drizzle-orm";
+import { invalidateSummariesFromStatement } from "./summary-store";
 import { v2LedgerTable, v2MessageTable } from "./v2-schema";
 import type { V2Db } from "./client";
 
@@ -49,6 +50,7 @@ const branchGroupOf = async (db: V2Db, messageId: string) => {
       conversationId: v2MessageTable.conversationId,
       turn: v2MessageTable.turn,
       role: v2MessageTable.role,
+      active: v2MessageTable.active,
     })
     .from(v2MessageTable)
     .where(eq(v2MessageTable.id, messageId));
@@ -60,6 +62,8 @@ const branchGroupOf = async (db: V2Db, messageId: string) => {
 export const activateBranch = async (db: V2Db, messageId: string): Promise<"ok" | "not-found"> => {
   const group = await branchGroupOf(db, messageId);
   if (!group) return "not-found";
+  // 対象がすでに active なら履歴は変わらん。操作の再送で要約まで消えるのを防ぐ。
+  if (group.active === 1) return "ok";
   const sameGroup = and(
     eq(v2MessageTable.conversationId, group.conversationId),
     eq(v2MessageTable.turn, group.turn),
@@ -68,6 +72,9 @@ export const activateBranch = async (db: V2Db, messageId: string): Promise<"ok" 
   await db.batch([
     db.update(v2MessageTable).set({ active: 0 }).where(sameGroup),
     db.update(v2MessageTable).set({ active: 1 }).where(eq(v2MessageTable.id, messageId)),
+    // 枝が替わったターンを覆う要約は新しい本文と合わん。saveTurn の置き換えと
+    // 同じく、そのターン以降を覆う要約を同じ batch で無効にする（FR-7）。
+    invalidateSummariesFromStatement(db, group.conversationId, group.turn),
   ]);
   return "ok";
 };
@@ -79,15 +86,18 @@ export const truncateFromTurn = async (
   conversationId: string,
   fromTurn: number,
 ): Promise<void> => {
-  await db
-    .update(v2MessageTable)
-    .set({ active: 0 })
-    .where(
-      and(
-        eq(v2MessageTable.conversationId, conversationId),
-        sql`${v2MessageTable.turn} >= ${fromTurn}`,
+  await db.batch([
+    db
+      .update(v2MessageTable)
+      .set({ active: 0 })
+      .where(
+        and(
+          eq(v2MessageTable.conversationId, conversationId),
+          sql`${v2MessageTable.turn} >= ${fromTurn}`,
+        ),
       ),
-    );
+    invalidateSummariesFromStatement(db, conversationId, fromTurn),
+  ]);
 };
 
 // truncateFromTurn の逆向き。fromTurn 以降の各 (turn, role) グループで一番新しい
@@ -130,7 +140,10 @@ export const restoreFromTurn = async (
   );
   const targets = ids.filter((id): id is string => id !== undefined);
   if (targets.length === 0) return;
-  await db.update(v2MessageTable).set({ active: 1 }).where(inArray(v2MessageTable.id, targets));
+  await db.batch([
+    db.update(v2MessageTable).set({ active: 1 }).where(inArray(v2MessageTable.id, targets)),
+    invalidateSummariesFromStatement(db, conversationId, fromTurn),
+  ]);
 };
 
 // 次の branch_no を出す。新しい代替系列は常に末尾へ足す。

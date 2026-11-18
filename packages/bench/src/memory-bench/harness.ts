@@ -33,6 +33,7 @@ import {
   runMemoryJob,
   retrieveMemories,
   runTurn,
+  summarizeConversation,
   visibleSummaries,
   SUMMARIZE_LEVEL1_INSTRUCTION,
   SUMMARIZE_LEVEL2_INSTRUCTION,
@@ -40,6 +41,7 @@ import {
   type MemoryContextEntry,
   type MemoryVectorBindings,
   type ModelCandidate,
+  type SummaryStorage,
   type TurnEvent,
   type TurnModel,
   type TurnModelCallOptions,
@@ -446,7 +448,7 @@ const visibleSummaryText = async (
   conversationId: string,
 ): Promise<string> =>
   plan.kind === "ask" && summaryStore
-    ? visibleSummaries(await summaryStore.list(conversationId))
+    ? visibleSummaries(await summaryStore.listActive(conversationId))
         .map((summary) => summary.text)
         .join("\n")
     : "";
@@ -595,6 +597,31 @@ export const runArm = async (deps: RunArmDeps): Promise<ArmRunResult> => {
     await seedScope(db, scope);
     const rt = armRuntime(deps, db, scope);
 
+    // 要約の係が本番で使う失敗カウンタ・止まる時刻の置き場（ChatRoom storage
+    // の代わり、腕ごとのメモリ）。gate・畳み込みの判定は本番と同じ係がする。
+    const summaryStorage = new Map<string, unknown>();
+    const storage: SummaryStorage = {
+      get: async (key) => summaryStorage.get(key),
+      put: async (key, value) => {
+        summaryStorage.set(key, value);
+      },
+    };
+    // 本番は alarm で全ジョブのあとに係を回す。bench では要約を読む腕
+    // （summaryStore がある＝抜き出し腕）だけ回す。inSummary の採点対象も同じ腕。
+    const runSummary = async (): Promise<void> => {
+      if (!rt.summaryStore) return;
+      await summarizeConversation(
+        {},
+        {
+          userId: scope.userId,
+          characterId: scope.characterId,
+          conversationId: scope.conversationId,
+          storage,
+        },
+        { db, models: deps.candidates ?? [{ name: "bench", model: deps.model }] },
+      );
+    };
+
     const checks: RecallCheck[] = [];
     let aborted: "call-limit" | "cost-limit" | null = null;
     let transportFailedAsks = 0;
@@ -606,7 +633,10 @@ export const runArm = async (deps: RunArmDeps): Promise<ArmRunResult> => {
       aborted = deps.budget.hit;
       if (aborted) break;
       transportFailedAsks += recordTurn(deps, plan, turn, rt, checks);
-      if (deps.arm === "retrieval") await drainMemoryJobs(db, deps, scope);
+      if (deps.arm === "retrieval") {
+        await drainMemoryJobs(db, deps, scope);
+        await runSummary();
+      }
       aborted = deps.budget.hit;
       if (aborted) break;
     }
