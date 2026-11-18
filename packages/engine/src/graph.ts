@@ -575,8 +575,6 @@ const settleGeneration = async (
   };
 };
 
-const SUMMARY_DEFAULTS = { thresholdMessages: 20, maxLevel1: 4 } as const;
-
 // 作り話防止が本質の指示（壊しにいく確かめ: 要約に無い作り話が混ざらんか）。
 // RIT-99: ベンチの偽チャットが呼び出し種別を識別するため export する。
 export const SUMMARIZE_LEVEL1_INSTRUCTION =
