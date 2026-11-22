@@ -1,8 +1,9 @@
-import { AIMessageChunk, BaseMessage } from "@langchain/core/messages";
+import { BaseMessage } from "@langchain/core/messages";
+import type { AIMessageChunk } from "@langchain/core/messages";
 import { FakeListChatModel } from "@langchain/core/utils/testing";
 import { createMemorySummaryStore } from "@v2/db";
 import { splitChunks } from "@v2/judge";
-import { exemplarForPhase } from "@v2/prompt";
+import { emptyLedger, exemplarForPhase } from "@v2/prompt";
 
 import { createTurnGraph, regenReasonLines, runTurn, visibleSummaries } from "../src/graph";
 import { createMemoryTurnStore, type MemoryTurnStore } from "../src/memory-store";
@@ -97,9 +98,10 @@ const assertContextUsage = (
 describe("createTurnGraph", () => {
   test("毎ターン記憶を取得し、採用IDと本文を保存するがsystemへは混ぜない", async () => {
     const store = createMemoryTurnStore();
-    const retrieveMemories = vi
-      .fn()
-      .mockResolvedValue([{ id: "fact-tea", content: "紅茶が好きです。" }]);
+    const retrieveMemories = vi.fn().mockResolvedValue({
+      entries: [{ id: "fact-tea", content: "紅茶が好きです。", via: "search" }],
+      status: "ok",
+    });
     const graph = createTurnGraph({
       model: new FakeListChatModel({ responses: [VALID_XML, VALID_XML_SECOND] }),
       store,
@@ -119,7 +121,10 @@ describe("createTurnGraph", () => {
     expect(first.request[0]?.content).toContain('"id":"fact-tea"');
     expect(first.request[0]?.content).toContain("紅茶が好きです。");
     expect(first.systemPrompt).not.toContain("fact-tea");
-    retrieveMemories.mockResolvedValue([]);
+    // 実際に指示文へ入った記憶だけが使った記憶として記録へ移る（RIT-84）。
+    expect(first.usedMemories).toEqual([{ id: "fact-tea", via: "search" }]);
+    expect(first.memoryRetrieval).toBe("ok");
+    retrieveMemories.mockResolvedValue({ entries: [], status: "ok" });
     await drain(
       runTurn(
         graph,
@@ -130,13 +135,150 @@ describe("createTurnGraph", () => {
     const second = generationAt(store, 1);
     expect(retrieveMemories).toHaveBeenCalledTimes(2);
     expect(second.request.some((message) => message.content.includes("fact-tea"))).toBe(false);
+    expect(second.usedMemories).toEqual([]);
+  });
+
+  test("記憶の問いは今回の発言と1つ前の利用者発言を繋ぐ（RIT-84 FR-2）", async () => {
+    const store = createMemoryTurnStore();
+    const retrieveMemories = vi.fn().mockResolvedValue({ entries: [], status: "ok" });
+    const graph = createTurnGraph({
+      model: new FakeListChatModel({ responses: [VALID_XML, VALID_XML_SECOND, VALID_XML] }),
+      store,
+      extendBelowRatio: 0,
+      retrieveMemories,
+    });
+    await drain(
+      runTurn(
+        graph,
+        { conversationId: "conv-q", userText: "この前行った店の名前なんだっけ", character },
+        "conv-q",
+      ),
+    );
+    // 1 ターン目は前の発言が無いので今回の発言だけ。
+    expect(retrieveMemories).toHaveBeenLastCalledWith("conv-q", "この前行った店の名前なんだっけ");
+    await drain(
+      runTurn(
+        graph,
+        { conversationId: "conv-q", userText: "そこで何を食べた？", character },
+        "conv-q",
+      ),
+    );
+    // 2 ターン目は「今回 + 改行 + 前の利用者発言」で問い合わせる。
+    expect(retrieveMemories).toHaveBeenLastCalledWith(
+      "conv-q",
+      "そこで何を食べた？\nこの前行った店の名前なんだっけ",
+    );
+  });
+
+  test("束ねが無くても固定だけの記憶塊を出し、印は disabled（RIT-84 FR-9）", async () => {
+    const store = createMemoryTurnStore();
+    const retrieveMemories = vi.fn().mockResolvedValue({
+      entries: [{ id: "pin-dog", content: "犬を飼っています。", via: "pinned" }],
+      status: "disabled",
+    });
+    const graph = createTurnGraph({
+      model: new FakeListChatModel({ responses: [VALID_XML] }),
+      store,
+      extendBelowRatio: 0,
+      retrieveMemories,
+    });
+    await drain(
+      runTurn(graph, { conversationId: "conv-d", userText: "ペットは？", character }, "conv-d"),
+    );
+    const generation = generationAt(store, 0, "conv-d");
+    expect(generation.request[0]?.content).toContain('"id":"pin-dog"');
+    expect(generation.usedMemories).toEqual([{ id: "pin-dog", via: "pinned" }]);
+    expect(generation.memoryRetrieval).toBe("disabled");
+  });
+
+  test("検索に落ちても固定分は出て印は pinned_only、0件でも塊は出る（RIT-84 FR-8）", async () => {
+    const store = createMemoryTurnStore();
+    const retrieveMemories = vi.fn().mockResolvedValue({
+      entries: [{ id: "pin-tea", content: "紅茶が好きです。", via: "pinned" }],
+      status: "pinned_only",
+    });
+    const graph = createTurnGraph({
+      model: new FakeListChatModel({ responses: [VALID_XML] }),
+      store,
+      extendBelowRatio: 0,
+      retrieveMemories,
+    });
+    await drain(
+      runTurn(graph, { conversationId: "conv-po", userText: "飲み物は？", character }, "conv-po"),
+    );
+    const generation = generationAt(store, 0, "conv-po");
+    expect(generation.request[0]?.content).toContain('"id":"pin-tea"');
+    expect(generation.memoryRetrieval).toBe("pinned_only");
+  });
+
+  test("記憶 OFF（kinds 空）は塊を出さず、検索0件の disabled も空の塊を出さん（RIT-84 FR-9）", async () => {
+    const store = createMemoryTurnStore();
+    // off: 覚える種類を全て切った版。dep 自体は呼ばれる（D1 側が status を返す）。
+    const retrieveMemories = vi
+      .fn()
+      .mockResolvedValueOnce({ entries: [], status: "off" })
+      .mockResolvedValueOnce({ entries: [], status: "disabled" })
+      .mockResolvedValue({ entries: [], status: "ok" });
+    const graph = createTurnGraph({
+      model: new FakeListChatModel({ responses: [VALID_XML, VALID_XML_SECOND, VALID_XML] }),
+      store,
+      extendBelowRatio: 0,
+      retrieveMemories,
+    });
+    const header = "以下は過去の発言から取得した参考データです";
+    await drain(
+      runTurn(graph, { conversationId: "conv-off", userText: "一回目", character }, "conv-off"),
+    );
+    let generation = generationAt(store, 0, "conv-off");
+    expect(generation.memoryRetrieval).toBe("off");
+    expect(generation.request.some((m) => String(m.content).includes(header))).toBe(false);
+
+    await drain(
+      runTurn(graph, { conversationId: "conv-off", userText: "二回目", character }, "conv-off"),
+    );
+    generation = generationAt(store, 1, "conv-off");
+    expect(generation.memoryRetrieval).toBe("disabled");
+    // disabled で 0 件なら空の記憶塊を出さん
+    expect(generation.request.some((m) => String(m.content).includes(header))).toBe(false);
+
+    // ok で 0 件は従来どおり「該当する記憶はありません。」を出す
+    await drain(
+      runTurn(graph, { conversationId: "conv-off", userText: "三回目", character }, "conv-off"),
+    );
+    generation = generationAt(store, 2, "conv-off");
+    expect(generation.memoryRetrieval).toBe("ok");
+    expect(generation.request.some((m) => String(m.content).includes(header))).toBe(true);
+    expect(
+      generation.request.some((m) => String(m.content).includes("該当する記憶はありません")),
+    ).toBe(true);
+  });
+
+  test("記憶の取り出しを注入せん従来の組み方では塊も印も出さん（後方互換）", async () => {
+    const store = createMemoryTurnStore();
+    const graph = createTurnGraph({
+      model: new FakeListChatModel({ responses: [VALID_XML] }),
+      store,
+      extendBelowRatio: 0,
+    });
+    await drain(
+      runTurn(graph, { conversationId: "conv-n", userText: "こんにちは", character }, "conv-n"),
+    );
+    const generation = generationAt(store, 0, "conv-n");
+    expect(generation.memoryRetrieval).toBeUndefined();
+    expect(generation.usedMemories).toBeUndefined();
+    expect(
+      generation.request.some((m) =>
+        String(m.content).includes("以下は過去の発言から取得した参考データです"),
+      ),
+    ).toBe(false);
   });
 
   test("記憶と資料が食い違う時、資料は記憶の後ろに優先ルール付きで渡る (RIT-117)", async () => {
     const store = createMemoryTurnStore();
-    const retrieveMemories = vi
-      .fn()
-      .mockResolvedValue([{ id: "fact-drink", content: "紅茶は嫌いです。" }]);
+    const retrieveMemories = vi.fn().mockResolvedValue({
+      entries: [{ id: "fact-drink", content: "紅茶は嫌いです。", via: "search" }],
+      status: "ok",
+    });
     const retrieveDocuments = vi
       .fn()
       .mockResolvedValue([{ id: "doc-setting", content: "【設定資料】紅茶が好きです。" }]);
@@ -627,141 +769,160 @@ describe("createTurnGraph", () => {
   });
 
   describe("巻き取り要約（RIT-72）", () => {
-    // 要約呼び出しだけ「出来事」を含む行を抜き出すモデル。返事（stream 側）には影響せん。
-    // 作り話は機構上起き得ず、要約へ紛れ込んだ事実漏洩を検査できる。
-    class MarkerModel extends FakeListChatModel {
-      // FakeListChatModel は _generate 直実装なので _call では捕まらん。invoke を差し替える。
-      override async invoke(
-        input: BaseLanguageModelInput,
-        options?: BaseChatModelCallOptions,
-      ): Promise<AIMessageChunk> {
-        const list = Array.isArray(input) ? (input as BaseMessage[]) : [];
-        const last = list.at(-1);
-        const text = typeof last?.content === "string" ? last.content : "";
-        if (text.includes("要約")) {
-          return new AIMessageChunk(
-            text
-              .split("\n")
-              .filter((line) => line.includes("出来事"))
-              .join("\n"),
-          );
-        }
-        return super.invoke(input, options);
-      }
-    }
+    // 要約の生成は要約の係（summary-runner）が担い、グラフは要約を作らん。
+    // ここで試すのは compose があらすじ塊をどう差し込むかだけ。
+    const summaryRow = (
+      level: 1 | 2,
+      fromTurn: number,
+      toTurn: number,
+      text: string,
+      redactPending = false,
+    ) => ({
+      id: `s-${level}-${fromTurn}-${toTurn}`,
+      level,
+      fromTurn,
+      toTurn,
+      sourceHash: "h",
+      text,
+      redactPending,
+    });
 
-    test("200ターン走ると level 2 要約ができ、最初の10ターンの出来事が要約に残る（作り話無し）", async () => {
+    const plant = async (
+      summaryStore: ReturnType<typeof createMemorySummaryStore>,
+      conversationId: string,
+      rows: Omit<
+        Parameters<ReturnType<typeof createMemorySummaryStore>["save"]>[0],
+        "conversationId"
+      >[],
+    ): Promise<void> => {
+      for (const row of rows) await summaryStore.save({ ...row, conversationId });
+    };
+
+    // 本番では要約は必ず現在ターンより前の範囲だけを覆う（それ以降を覆う行は
+    // 置き換え・枝・消去の時点で無効化されるし、グラフ側でも toTurn >= state.turn
+    // の行は生成入力から外す）。テストでも履歴を seed してその前提を作る。
+    const seedHistory = async (
+      store: MemoryTurnStore,
+      conversationId: string,
+      count: number,
+    ): Promise<void> => {
+      for (let i = 0; i < count; i += 1) {
+        await store.saveTurn({
+          conversationId,
+          turn: i + 1,
+          userText: `u${i + 1}`,
+          events: [],
+          ledger: emptyLedger(),
+        });
+      }
+    };
+
+    test("あらすじ塊は指示文へ 1 本だけ入り、見出しから始まる", async () => {
       const store = createMemoryTurnStore();
       const summaryStore = createMemorySummaryStore();
-      const model = new MarkerModel({ responses: [VALID_XML] });
-      const graph = createTurnGraph({
-        model,
-        store,
-        summaryStore,
-        extendBelowRatio: 0,
-        // 10ターンだけ窓に残る・未要約が20件溜まると level 1・level 1 が4本で level 2。
-        // 試験の MarkerModel は要約を圧縮せず200行積むので、あらすじ層の予算は緩めとく
-        // （層の予算自体は prompt-layer-budget.test.ts が担保する）。
-        contextBudget: { historyMessages: 20, summaryCharacters: 10_000 },
-        summary: { thresholdMessages: 20, maxLevel1: 4 },
-      });
-      for (let turn = 1; turn <= 200; turn += 1) {
-        await drain(
-          runTurn(
-            graph,
-            { conversationId: "conv-s", userText: `出来事${turn}を相手が話した`, character },
-            "conv-s",
-          ),
-        );
-      }
-      const rows = summaryStore.rows.get("conv-s") ?? [];
-      expect(rows.filter((row) => row.level === 1).length).toBeGreaterThanOrEqual(4);
-      const level2 = rows.filter((row) => row.level === 2);
-      expect(level2.length).toBeGreaterThanOrEqual(1);
-      const latest2 = level2.at(-1);
-      expect(latest2).toBeDefined();
-      // 最初の10ターンの出来事は最終的に level 2 が抱えとる。
-      for (let n = 1; n <= 10; n += 1) {
-        expect(latest2?.text).toContain(`出来事${n}`);
-      }
-      // 要約の行は全部「出来事」を含む（作り話・推測行が混ざっとらん）。
-      for (const row of rows) {
-        for (const line of row.text.split("\n")) {
-          expect(line).toContain("出来事");
-        }
-      }
-      // 直近ターンのプロンプトにあらすじが差し込まれ、冒頭ターンには差し込まれとらん。
-      const last = generationAt(store, 199, "conv-s");
-      expect(last.request.some((m) => m.content.includes("これまでのあらすじ"))).toBe(true);
-      const early = generationAt(store, 5, "conv-s");
-      expect(early.request.some((m) => m.content.includes("これまでのあらすじ"))).toBe(false);
-    }, 120000);
-
-    test("窓から押し出された分だけ要約を作る（押し出しが無いターンでは呼ばれん）", async () => {
-      const store = createMemoryTurnStore();
-      const summaryStore = createMemorySummaryStore();
-      const model = new MarkerModel({ responses: [VALID_XML] });
-      const graph = createTurnGraph({
-        model,
-        store,
-        summaryStore,
-        extendBelowRatio: 0,
-        contextBudget: { historyMessages: 6 },
-        summary: { thresholdMessages: 4, maxLevel1: 3 },
-      });
-      // 3ターン = 6件で窓いっぱい・押し出し無し。
-      for (let turn = 1; turn <= 3; turn += 1) {
-        await drain(
-          runTurn(
-            graph,
-            { conversationId: "conv-t", userText: `出来事${turn}`, character },
-            "conv-t",
-          ),
-        );
-      }
-      expect(summaryStore.rows.get("conv-t") ?? []).toHaveLength(0);
-      // 4ターン目で2件押し出し（閾値4未満）→ まだ要約なし。
+      await seedHistory(store, "conv-s", 30);
+      await plant(summaryStore, "conv-s", [
+        { level: 2, fromTurn: 1, toTurn: 20, text: "昔のまとめ" },
+        { level: 1, fromTurn: 21, toTurn: 30, text: "直前の要約" },
+      ]);
+      const model = new FakeListChatModel({ responses: [VALID_XML] });
+      const graph = createTurnGraph({ model, store, summaryStore, extendBelowRatio: 0 });
       await drain(
-        runTurn(graph, { conversationId: "conv-t", userText: "出来事4", character }, "conv-t"),
+        runTurn(graph, { conversationId: "conv-s", userText: "こんにちは", character }, "conv-s"),
       );
-      expect(summaryStore.rows.get("conv-t") ?? []).toHaveLength(0);
-      // さらに2ターンで押し出し計6件（閾値4超過）→ level 1 が1本。
-      for (let turn = 5; turn <= 6; turn += 1) {
-        await drain(
-          runTurn(
-            graph,
-            { conversationId: "conv-t", userText: `出来事${turn}`, character },
-            "conv-t",
-          ),
-        );
-      }
-      const rows = summaryStore.rows.get("conv-t") ?? [];
-      expect(rows.filter((row) => row.level === 1)).toHaveLength(1);
+      const request = generationAt(store, 30, "conv-s").request;
+      const blocks = request.filter((m) => m.content.includes("これまでのあらすじ"));
+      expect(blocks).toHaveLength(1);
+      expect(blocks[0]?.content.startsWith("これまでのあらすじ:\n")).toBe(true);
+      expect(blocks[0]?.content).toContain("昔のまとめ");
+      expect(blocks[0]?.content).toContain("直前の要約");
+    });
+
+    test("あらすじ塊の予算は見出しとつなぎ改行を数えて収まり、溢れると古い level 1 から外れる", async () => {
+      const store = createMemoryTurnStore();
+      const summaryStore = createMemorySummaryStore();
+      // 見出し 11 字 + 30 字 + 改行 1 字 + 30 字 = 72 字。上限 50 では古い level 1 を外して
+      // 11 + 30 = 41 字に収める。切られた「古い要約」は指示文へ入らん。
+      const long = "あ".repeat(30);
+      await seedHistory(store, "conv-cap", 20);
+      await plant(summaryStore, "conv-cap", [
+        { level: 1, fromTurn: 1, toTurn: 10, text: `古い要約${long}` },
+        { level: 1, fromTurn: 11, toTurn: 20, text: `新しい要約${long}` },
+      ]);
+      const model = new FakeListChatModel({ responses: [VALID_XML] });
+      const graph = createTurnGraph({
+        model,
+        store,
+        summaryStore,
+        extendBelowRatio: 0,
+        contextBudget: { summaryCharacters: 50 },
+      });
+      await drain(
+        runTurn(
+          graph,
+          { conversationId: "conv-cap", userText: "こんにちは", character },
+          "conv-cap",
+        ),
+      );
+      const generation = generationAt(store, 20, "conv-cap");
+      const block = generation.request.find((m) => m.content.includes("これまでのあらすじ"));
+      expect(block?.content).toContain("新しい要約");
+      expect(block?.content).not.toContain("古い要約");
+      // 層の計測が見出し込みの 41 字を数える（つなぎ改行も数える構造）。
+      expect(generation.contextUsage?.summary).toBe("これまでのあらすじ:\n".length + 35);
+      expect(block?.content.length).toBeLessThanOrEqual(50);
+    });
+
+    test("level 2 の境をまたぐ level 1 は外さん（外すと先側に隙間が開く・FR-9）", async () => {
+      const store = createMemoryTurnStore();
+      const summaryStore = createMemorySummaryStore();
+      // level 2 は 1-20。15-30 の level 1 は境をまたぐが、to_turn=30 > 20 なので残る。
+      // 1-10 の level 1 は level 2 の内側なので外れる。
+      await seedHistory(store, "conv-overlap", 30);
+      await plant(summaryStore, "conv-overlap", [
+        { level: 1, fromTurn: 1, toTurn: 10, text: "内側の古い要約" },
+        { level: 2, fromTurn: 1, toTurn: 20, text: "まとめ1-20" },
+        { level: 1, fromTurn: 15, toTurn: 30, text: "またぐ要約15-30" },
+      ]);
+      const model = new FakeListChatModel({ responses: [VALID_XML] });
+      const graph = createTurnGraph({ model, store, summaryStore, extendBelowRatio: 0 });
+      await drain(
+        runTurn(
+          graph,
+          { conversationId: "conv-overlap", userText: "こんにちは", character },
+          "conv-overlap",
+        ),
+      );
+      const block = generationAt(store, 30, "conv-overlap").request.find((m) =>
+        m.content.includes("これまでのあらすじ"),
+      );
+      expect(block?.content).toContain("まとめ1-20");
+      expect(block?.content).toContain("またぐ要約15-30");
+      expect(block?.content).not.toContain("内側の古い要約");
     });
 
     test("visibleSummaries は最新の level 2 とその後ろの level 1 を時系列で返し、伏せ直し待ちは出さん", () => {
-      const row = (level: 1 | 2, coveredTo: number, text: string, redactPending = false) => ({
-        id: `s-${level}-${coveredTo}`,
-        level,
-        coveredTo,
-        text,
-        redactPending,
-      });
       expect(
-        visibleSummaries([row(1, 10, "a"), row(1, 20, "b"), row(2, 20, "ab"), row(1, 30, "c")]).map(
+        visibleSummaries([
+          summaryRow(1, 1, 10, "a"),
+          summaryRow(1, 11, 20, "b"),
+          summaryRow(2, 1, 20, "ab"),
+          summaryRow(1, 21, 30, "c"),
+        ]).map((entry) => entry.text),
+      ).toEqual(["ab", "c"]);
+      expect(
+        visibleSummaries([summaryRow(1, 1, 10, "a"), summaryRow(1, 11, 20, "b")]).map(
           (entry) => entry.text,
         ),
-      ).toEqual(["ab", "c"]);
-      expect(visibleSummaries([row(1, 10, "a"), row(1, 20, "b")]).map((e) => e.text)).toEqual([
-        "a",
-        "b",
-      ]);
+      ).toEqual(["a", "b"]);
       expect(visibleSummaries([])).toEqual([]);
       // redact_pending = 1 の行は伏せ直しが済むまで指示文に出さん（RIT-94）
       expect(
-        visibleSummaries([row(1, 10, "a", true), row(1, 20, "b"), row(2, 20, "ab", true)]).map(
-          (entry) => entry.text,
-        ),
+        visibleSummaries([
+          summaryRow(1, 1, 10, "a", true),
+          summaryRow(1, 11, 20, "b"),
+          summaryRow(2, 1, 20, "ab", true),
+        ]).map((entry) => entry.text),
       ).toEqual(["b"]);
     });
   });

@@ -58,6 +58,23 @@ const reply = {
   },
 };
 
+// 「使った記憶」は generation イベントが運ぶ（RIT-84）。指示文へ入った記憶は
+// v2_generation_memory へ、検索の終わり方は v2_generation.memory_retrieval へ入る。
+const generation = (usedMemories: { id: string; via: "pinned" | "search" }[] = []) => ({
+  type: "generation" as const,
+  generationId: crypto.randomUUID(),
+  model: "test-model",
+  promptVersion: "test",
+  systemPrompt: "テスト用の指示",
+  request: [],
+  rawOutput: "",
+  usage: null,
+  latencyMs: 1,
+  status: "ok" as const,
+  usedMemories,
+  memoryRetrieval: "ok" as const,
+});
+
 describe("memories API", () => {
   let local: LocalD1;
   let persistRoot: string | undefined;
@@ -473,7 +490,7 @@ describe("memories API", () => {
     expect(ok.status).toBe(201);
   });
 
-  it("返事に使った記憶は usedInLastReply で返る（v2_memory_use・RIT-92）", async () => {
+  it("返事に使った記憶は usedInLastReply で返る（v2_generation_memory・RIT-84）", async () => {
     const conversationId = crypto.randomUUID();
     conversations.push(conversationId);
     const created = await call("POST", { conversationId, content: "使う記憶" });
@@ -504,13 +521,12 @@ describe("memories API", () => {
       turn: 2,
       userText: "紅茶の話をもっと。",
       ledger: emptyLedger(),
-      events: [reply],
-      usedMemoryIds: [memory.id],
+      events: [reply, generation([{ id: memory.id, via: "search" }])],
     });
     const { memories } = await list(conversationId);
     expect(memories.find((row) => row.id === memory.id)?.usedInLastReply).toBe(true);
 
-    // 同じ turn を保存し直すと使った記憶は入れ替わる（枝の切り替え・RIT-82）
+    // 新しい生成（枝の切り替え・RIT-82）で使った記憶が無ければバッジは落ちる
     await createD1TurnStore(local.db, {
       userId: LOCAL_USER_ID,
       characterId,
@@ -521,8 +537,7 @@ describe("memories API", () => {
       turn: 2,
       userText: "紅茶の話をもっと。",
       ledger: emptyLedger(),
-      events: [reply],
-      usedMemoryIds: [],
+      events: [reply, generation()],
     });
     const after = await list(conversationId);
     expect(after.memories.find((row) => row.id === memory.id)?.usedInLastReply).toBe(false);

@@ -28,3 +28,4 @@ export * from "./group-store";
 export * from "./usage-store";
 export * from "./document-store";
 export * from "./log";
+export * from "./user-settings-store";

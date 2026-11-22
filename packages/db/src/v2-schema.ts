@@ -144,9 +144,10 @@ export const v2ChunkTable = sqliteTable(
 );
 
 // 窓から押し出された履歴の巻き取り要約（RIT-72）。level 1 = 押し出し分の要約、
-// level 2 = レベル 1 がたまった分のまとめ直し。covered_to は履歴先頭から何件を
-// この要約（列）が吸収したか。行は追記のみで、画面には最新の level 2 と
-// それ以降の level 1 を時系列で見せる。
+// level 2 = レベル 1 がたまった分のまとめ直し。from_turn/to_turn は要約が覆うターン
+// 番号の範囲（両端を含む）。covered_to は旧来の「履歴先頭から何件を吸収したか」で、
+// not null のまま残すので新しい行には to_turn と同じ値を入れるが、新しいコードは読まん。
+// 行は消さず、置き換えで無効になったら invalidated_at に時刻を入れる。
 export const v2SummaryTable = sqliteTable(
   "v2_summary",
   {
@@ -156,7 +157,15 @@ export const v2SummaryTable = sqliteTable(
       .references(() => v2ConversationTable.id),
     level: integer("level").notNull(),
     coveredTo: integer("covered_to").notNull(),
+    // 要約が覆うターンの範囲（両端を含む）。旧行は null で、新しい読み方（listActive）から外れる。
+    fromTurn: integer("from_turn"),
+    toTurn: integer("to_turn"),
     text: text("text").notNull(),
+    // 要約の元にした会話（ターン番号・役割・本文の並び）の SHA-256。取りこぼした無効化を
+    // 拾う網（FR-8）。要約の係だけが確かめ、compose は見ん。
+    sourceHash: text("source_hash"),
+    // ターン N 以降が置き換わった時に立つ時刻。行は消さず、指示文にも画面にも使わん。
+    invalidatedAt: integer("invalidated_at"),
     // 記憶の削除・書き換えで触れた文が残っとる可能性があるので、伏せ直しが済むまで
     // 指示文から外す印（RIT-94）。1 = 伏せ直し待ち。
     redactPending: integer("redact_pending").notNull().default(0),
@@ -164,6 +173,20 @@ export const v2SummaryTable = sqliteTable(
   },
   (table) => [
     index("v2_summary_conversation_idx").on(table.conversationId, table.level, table.coveredTo),
+    index("v2_summary_active_idx").on(
+      table.conversationId,
+      table.invalidatedAt,
+      table.level,
+      table.toTurn,
+    ),
+    // 同じ範囲・同じ元の要約を二度作らんための冪等キー（FR-6）。
+    uniqueIndex("v2_summary_range_uq").on(
+      table.conversationId,
+      table.level,
+      table.fromTurn,
+      table.toTurn,
+      table.sourceHash,
+    ),
   ],
 );
 
@@ -205,6 +228,8 @@ export const v2GenerationTable = sqliteTable(
     timeoutMs: integer("timeout_ms"),
     // 層ごとの使用字数と窓の境目（RIT-71）。旧行は NULL。request_json は変えん。
     contextUsageJson: text("context_usage_json"),
+    // 記憶の取り出しがどういう条件で走ったか（RIT-84）。検査は zod 側（既存行は NULL）。
+    memoryRetrieval: text("memory_retrieval"),
     createdAt: integer("created_at").notNull(),
   },
   (table) => [
@@ -259,10 +284,32 @@ export const v2MemoryTable = sqliteTable(
   ],
 );
 
+// RIT-84: ある生成で指示文へ実際に入った記憶。入った順（rank）と入った経由
+// （pinned=手で固定 / search=束ねの検索）を残して「キャラが忘れた」を辿れるようにする。
+export const v2GenerationMemoryTable = sqliteTable(
+  "v2_generation_memory",
+  {
+    generationId: text("generation_id")
+      .notNull()
+      .references(() => v2GenerationTable.id),
+    memoryId: text("memory_id")
+      .notNull()
+      .references(() => v2MemoryTable.id, { onDelete: "cascade" }),
+    rank: integer("rank").notNull(),
+    via: text("via").notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.generationId, table.memoryId] }),
+    index("v2_generation_memory_memory_idx").on(table.memoryId),
+    check("v2_generation_memory_via_check", sql`${table.via} in ('pinned','search')`),
+  ],
+);
+
 // 最新の返事の指示文へ入った記憶（RIT-92）。「さっきの返事で使った」バッジの正本。
 // memory_id に外部キーは張らん: 記憶は論理削除→物理削除で行ごと消えるので、
 // 参照を張ると掃除ごと消える・残るのどちらでも不自然になる。読む側は常に
 // v2_memory と突き合わせるので、孤立行は単に無視される。
+// RIT-84 で v2_generation_memory に一本化したので新規書き込みはせん（読みだけ残す）。
 export const v2MemoryUseTable = sqliteTable(
   "v2_memory_use",
   {

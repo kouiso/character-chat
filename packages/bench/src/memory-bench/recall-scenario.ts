@@ -184,6 +184,13 @@ export const buildScenario = (overrides: ScenarioOverrides = {}): RecallScenario
     });
     extractorTable.push({ text: fact.askText, memories: [] });
   }
+  // 日常 filler は記憶にしない（本番の抽出も他愛ない文は拾わん）。
+  // 全部記憶化すると同文の行が主題なしで積み上がり、RIT-84 FR-2 の
+  // 「発言 + 前発言」の問いが聞くターンの前発言と同じ filler 群に topK を埋められて
+  // 植えた記憶・混ぜ物のどちらも検索へ届かんくなる。
+  for (const line of FILLER_LINES) {
+    extractorTable.push({ text: line, memories: [] });
+  }
 
   return {
     totalTurns: TOTAL_TURNS,

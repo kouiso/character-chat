@@ -10,7 +10,8 @@ import { messageTable } from "../../../src/schema/message";
 import { chunkSendTimes } from "./chunk-schedule";
 import { logEvent } from "./log";
 import { recomputeSupersessionStatements } from "./memory-supersession";
-import { memoryUseStatements } from "./memory-use-store";
+import { generationMemoryStatements } from "./memory-use-store";
+import { invalidateSummariesFromStatement } from "./summary-store";
 import {
   v2ChunkTable,
   v2ConversationTable,
@@ -50,6 +51,11 @@ export type ContextUsage = {
   oldestIncludedTurn: number | null;
 };
 
+// RIT-84: 記憶の塊に実際に入った 1 件。via は入った経由（pinned=固定 / search=束ねの検索）。
+export type UsedMemory = { id: string; via: "pinned" | "search" };
+// RIT-84: そのターンの記憶検索がどう終わったか。v2_generation.memory_retrieval と同じ値。
+export type MemoryRetrievalMarker = "ok" | "pinned_only" | "disabled" | "off";
+
 // RIT-102: 逃げ道チェーンの 1 試行分。使った順に並び、最後の要素が採用モデル
 // （全滅時は全要素が失敗理由を持つ）。
 export type ModelAttempt = {
@@ -86,6 +92,10 @@ export type GenerationRecord = {
   // 層ごとの使用字数（RIT-71）。compose が測った値を persist が context_usage_json へ書く。
   // 記録の無い旧行・生成を経ない保存では省略。
   contextUsage?: ContextUsage;
+  // RIT-84: 記憶の塊に実際に入った記憶（入った順）と、そのターンの検索の終わり方。
+  // persist が v2_generation_memory・v2_generation.memory_retrieval へ書く。
+  usedMemories?: UsedMemory[];
+  memoryRetrieval?: MemoryRetrievalMarker;
 };
 
 export type TurnEvent =
@@ -162,9 +172,6 @@ export type SaveTurnInput = {
   ledger: SceneLedger;
   // LangGraph の thread_id。engine が渡さん場合は conversationId と同じ値で保存する。
   threadId?: string;
-  // 返事を作る時に指示文へ入った記憶の id（RIT-92）。省略時は v2_memory_use を触らん。
-  // 渡された場合は同じ (conversationId, turn) の行を消してから入れ直す（再生成での入れ替え）。
-  usedMemoryIds?: string[];
 };
 
 // load() が返す turn は「次に演じるターン番号」（graph.ts の intake がそのまま state.turn に入れ、
@@ -660,9 +667,18 @@ const insertGenerationRows = (
         timeoutMs: generation.timeoutMs ?? null,
         // 層ごとの使用字数（RIT-71）。request_json の形は変えんので別列に入れる。
         contextUsageJson: generation.contextUsage ? JSON.stringify(generation.contextUsage) : null,
+        // 記憶検索の終わり方（RIT-84）。検索を走らせんかった保存は NULL。
+        memoryRetrieval: generation.memoryRetrieval ?? null,
         createdAt: now,
       })
       .onConflictDoNothing({ target: v2GenerationTable.id }),
+  );
+
+// その生成で指示文へ入った記憶（RIT-84）。生成行と同じ batch で書くので、
+// 「使った記憶」の記録は必ず generation の行と一緒に在る。
+const insertGenerationMemoryRows = (db: V2Db, generations: GenerationEvent[]) =>
+  generations.flatMap((generation) =>
+    generationMemoryStatements(db, generation.generationId, generation.usedMemories ?? []),
   );
 
 const insertChunkRows = (
@@ -778,18 +794,10 @@ const saveAssistantBranchTurn = async (args: {
       ledgerJson: JSON.stringify(input.ledger),
       createdAt: now,
     }),
-    // 記憶の使用記録も同じバッチで入れ替える（新しい枝で使った記憶が正本）。
-    ...(input.usedMemoryIds === undefined
-      ? []
-      : memoryUseStatements(
-          db,
-          {
-            conversationId: input.conversationId,
-            turn: input.turn,
-            memoryIds: input.usedMemoryIds,
-          },
-          now,
-        )),
+    // 新しい枝の生成が使った記憶を同じバッチで入れる（generation_id 側が正本、RIT-84）。
+    ...insertGenerationMemoryRows(db, generations),
+    // RIT-72 FR-7: このターンの枝替わりで、それ以降を覆う要約は元と合わんので無効にする。
+    invalidateSummariesFromStatement(db, input.conversationId, input.turn),
   ]);
   return { chunkSendAt: sendTimes };
 };
@@ -946,18 +954,10 @@ const saveTurnMainLine = async (args: {
           }),
         ]
       : []),
-    // 記憶の使用記録（RIT-92）。同じ turn の保存し直しでは消してから入れ直す。
-    ...(input.usedMemoryIds === undefined
-      ? []
-      : memoryUseStatements(
-          db,
-          {
-            conversationId: input.conversationId,
-            turn: input.turn,
-            memoryIds: input.usedMemoryIds,
-          },
-          now,
-        )),
+    // このターンの生成が使った記憶（RIT-84）。生成行と同じバッチで入れる。
+    ...insertGenerationMemoryRows(db, generations),
+    // RIT-72 FR-7: このターン以降を覆う要約は置き換え後の元と合わんので無効にする。
+    invalidateSummariesFromStatement(db, input.conversationId, input.turn),
     // 消えた記憶の主題を並べ直す（RIT-86）。この batch の記憶削除・発言置き換えが
     // 全部終わった後の状態で決まるよう、文は最後に置く。
     ...recomputeSupersessionStatements(db, input.conversationId, replacedSubjects),

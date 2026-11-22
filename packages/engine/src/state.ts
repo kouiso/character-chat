@@ -10,6 +10,8 @@ import type {
   ContextUsage,
   GenerationRecord,
   HistoryMessage,
+  MemoryRetrievalMarker,
+  UsedMemory,
 } from "./types";
 import type { JudgeResult } from "@v2/judge";
 import type { SceneLedger, ScenePhase } from "@v2/prompt";
@@ -39,8 +41,11 @@ export const TurnState = new StateSchema({
   history: z.array(z.custom<HistoryMessage>()).default(() => []),
   ledger: z.custom<SceneLedger>(),
   retrieved: z.array(z.string()).default(() => []),
-  // 指示文へ実際に入った記憶の id（packed 行から復元）。persist が v2_memory_use へ記録する（RIT-92）。
-  retrievedMemoryIds: z.array(z.string()).default(() => []),
+  // 指示文へ実際に入った記憶（入った順・via 付き）。persist が generation の記録へ移し、
+  // store が v2_generation_memory へ記録する（RIT-84）。
+  retrievedMemories: z.array(z.custom<UsedMemory>()).default(() => []),
+  // そのターンの記憶検索の終わり方（RIT-84）。検索を走らせん時は null のまま。
+  memoryRetrieval: z.custom<MemoryRetrievalMarker>().nullable().default(null),
   retrievedDocuments: z.array(z.string()).default(() => []),
   prompt: z.custom<ComposedPrompt>().nullable().default(null),
   raw: z.string().default(""),

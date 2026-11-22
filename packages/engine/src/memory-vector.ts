@@ -14,6 +14,9 @@ export type MemoryVectorBindings = {
   V2_RAG_ENABLED?: string;
   AI?: Pick<Ai, "run">;
   MEMORY_INDEX?: MemoryVectorIndex;
+  // 検索の故障注入（V2_TEST_FAULT=memory-search-fail）は staging・test でだけ効く。
+  APP_ENV?: string;
+  V2_TEST_FAULT?: string;
 };
 
 export const memoryVectorReady = (

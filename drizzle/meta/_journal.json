@@ -509,12 +509,26 @@
     {
       "idx": 107,
       "version": "6",
+      "when": 1794888786210,
+      "tag": "20261117041306_rit72_summary_rollup",
+      "breakpoints": true
+    },
+    {
+      "idx": 108,
+      "version": "6",
       "when": 1794889651188,
       "tag": "20261117042731_rit74_memory_index_attempts",
       "breakpoints": true
     },
     {
       "idx": 108,
+      "version": "6",
+      "when": 1794890184946,
+      "tag": "20261117043624_rit84_memory_retrieval",
+      "breakpoints": true
+    },
+    {
+      "idx": 109,
       "version": "6",
       "when": 1795356278647,
       "tag": "20261122140438_meet_character_keep",

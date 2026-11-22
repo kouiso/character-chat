@@ -35,11 +35,11 @@ import {
 } from "./prompt-layer-budget";
 import {
   packMemoryContext,
-  packedMemoryIds,
   MEMORY_CONTEXT_HEADER,
   packDocumentContext,
   DOCUMENT_CONTEXT_HEADER,
   type MemoryContextEntry,
+  type MemoryRetrievalResult,
 } from "./memory-context";
 import { hardRefusalDetect } from "./refusal-detect";
 import { TurnState, type JudgedChunk } from "./state";
@@ -59,7 +59,6 @@ import type {
   BaseChatModelCallOptions,
 } from "@langchain/core/language_models/chat_models";
 import type { AIMessageChunk } from "@langchain/core/messages";
-import { appendForgottenInstruction } from "@v2/prompt";
 import { chunkGapMs } from "@v2/db/chunk-schedule";
 import type { StoredSummary, SummaryStore } from "@v2/db";
 import type { ScenePhase } from "@v2/prompt";
@@ -266,7 +265,7 @@ const classifyAttempt = (
   return { kind: "ok" };
 };
 
-// 逃げ道チェーンで採用されたモデル。ターン内の続き・書き直し・要約はこれへ投げる。
+// 逃げ道チェーンで採用されたモデル。ターン内の続き・書き直しはこれへ投げる。
 const modelForTurn = (
   deps: Pick<TurnGraphDeps, "model" | "models">,
   state: { activeModelIndex: number },
@@ -283,9 +282,21 @@ const usageOf = (piece: AIMessageChunk): GenerationRecord["usage"] => {
   };
 };
 
+// RIT-84 FR-2: 記憶検索の問いは「今回の発言」と「1 つ前の利用者の発言」を改行で
+// つなぐ。合わせて 500 字を超える時は前の発言の先頭を削る（今回の発言は削らん）。
+export const MEMORY_QUERY_MAX_CHARS = 500;
+export const buildMemoryQuery = (userText: string, history: HistoryMessage[]): string => {
+  const previous = history.filter((message) => message.role === "user").at(-1)?.content ?? "";
+  if (previous === "") return userText;
+  const room = MEMORY_QUERY_MAX_CHARS - userText.length - 1;
+  if (room <= 0) return userText;
+  return `${userText}\n${previous.slice(-room)}`;
+};
+
 export type TurnGraphDeps = {
   contextBudget?: Partial<ContextBudget>;
-  retrieveMemories?: (conversationId: string, query: string) => Promise<MemoryContextEntry[]>;
+  // 記憶の取り出し（RIT-84）。束ねが無くても注入する（固定だけでも入るので）。
+  retrieveMemories?: (conversationId: string, query: string) => Promise<MemoryRetrievalResult>;
   // RIT-115: キャラの設定資料の検索。記憶とは別口（キャラごと・会話を跨ぐ）。
   retrieveDocuments?: (query: string) => Promise<MemoryContextEntry[]>;
   model: TurnModel;
@@ -309,11 +320,9 @@ export type TurnGraphDeps = {
   // RIT-30 ギャップ: キャラから見たユーザーの人物像。設定時だけコンテキスト 1 塊として
   // 履歴の直前へ差す（キャラの systemPrompt には混ぜん。保存プロンプト版も据え置き）。
   userPersona?: string;
-  // 巻き取り要約（RIT-72）。未注入では要約も注入も走らん。
+  // 巻き取り要約（RIT-72）。compose は有効な要約だけを読んであらすじ塊へ入れる。
+  // 要約の生成はグラフの外（ChatRoom の要約の係）が担うので、ここでは読むだけ。
   summaryStore?: SummaryStore;
-  // thresholdMessages: 窓から押し出された未要約メッセージがこの件数で level 1 を起こす。
-  // maxLevel1: 未集約の level 1 がこの件数で level 2 にまとめ直す。
-  summary?: { thresholdMessages?: number; maxLevel1?: number };
   // 返事を実際に返した実行先（OpenRouter の provider）を生成 id から引く。
   // 実行先の記録は完了条件（RIT-100）なので本番では必ず注入する。失敗してもターンは潰さん
   // （その場合 provider は NULL で残り、照合クエリが未記録として拾える）。
@@ -545,15 +554,14 @@ const settleGeneration = async (
     outcome: CandidateOutcome;
     timeoutMs: number;
     latencyMs: number;
+    // RIT-84: 記憶の塊に実際に入った記憶と検索の終わり方の印（retrieve ノードの結果）。
+    usedMemories?: GenerationRecord["usedMemories"];
+    memoryRetrieval?: GenerationRecord["memoryRetrieval"] | null;
     emitError: (message: string) => void;
   },
 ): Promise<GenerationRecord> => {
   const { outcome } = args;
-  let error = outcome.error;
-  if (outcome.winnerIndex < 0) {
-    error = `全モデルで生成に失敗した: ${outcome.attempts.map((a) => `${a.model}=${a.outcome}`).join(" → ")}`;
-    args.emitError(error);
-  }
+  const error = resolveOutcomeError(outcome, args.emitError);
   const provider = outcome.winnerUpstreamId
     ? await resolveWinnerProvider(deps, args.generationId, outcome.winnerUpstreamId)
     : null;
@@ -575,10 +583,69 @@ const settleGeneration = async (
     timeoutMs: args.timeoutMs,
     // 層ごとの使用字数（RIT-71）。persist が context_usage_json へ書く。
     ...(args.contextUsage ? { contextUsage: args.contextUsage } : {}),
+    // 記憶の使用記録と検索の印（RIT-84）。persist が v2_generation_memory・
+    // v2_generation.memory_retrieval へ書く。取り出し未注入の時は undefined。
+    ...(args.usedMemories !== undefined ? { usedMemories: args.usedMemories } : {}),
+    ...(args.memoryRetrieval ? { memoryRetrieval: args.memoryRetrieval } : {}),
   };
 };
 
-const SUMMARY_DEFAULTS = { thresholdMessages: 20, maxLevel1: 4 } as const;
+// RIT-84 FR-9: 記憶 OFF・取り出し自体の未注入・束ね無しで固定も 0 件の時は隠す。
+const hideMemoryBlock = (state: { memoryRetrieval: string | null; retrieved: readonly string[] }) =>
+  state.memoryRetrieval === null ||
+  state.memoryRetrieval === "off" ||
+  (state.memoryRetrieval === "disabled" && state.retrieved.length === 0);
+
+// compose ノードの層ブロック組み立て。要約・記憶・資料・人物像の4層を決めて返す。
+const buildContextBlocks = async (
+  state: {
+    conversationId: string;
+    turn: number;
+    memoryRetrieval: string | null;
+    retrieved: readonly string[];
+    retrievedDocuments: readonly string[];
+  },
+  deps: TurnGraphDeps,
+  budget: { summaryCharacters: number },
+) => {
+  // 窓の外に出た分は要約が代わりに乗る（RIT-72）。あらすじ層の上限は
+  // V2_SUMMARY_CHARACTERS（既定 2,500 字・RIT-71）。溢れる時は古い level 1 から外す。
+  // 再生成では対象ターン以降を覆う要約は入れん。置き換えられる未来の出来事を
+  // 書き直しの材料にすると、消えるはずの枝の内容が新しい本文へ漏れる。
+  // ターン番号での絞り込みは visibleSummaries より先に掛ける。先に最新
+  // level 2 を選ぶと、未来の要約が有効な過去の要約を隠して全部落ちることがある。
+  const summaries = deps.summaryStore
+    ? visibleSummaries(
+        (await deps.summaryStore.listActive(state.conversationId)).filter(
+          (entry) => entry.toTurn < state.turn,
+        ),
+      )
+    : [];
+  const packedSummaries = packSummaries(summaries, budget.summaryCharacters);
+  const summaryBlock =
+    packedSummaries.length > 0 ? SUMMARY_BLOCK_HEADER + packedSummaries.join("\n") : null;
+  // RIT-84 FR-9: 記憶 OFF・取り出し自体の未注入・束ね無しで固定も 0 件の時は
+  // 記憶の塊を出さん。それ以外は 0 件でも「該当する記憶はありません。」を出す。
+  const memoryBlock = hideMemoryBlock(state)
+    ? null
+    : MEMORY_CONTEXT_HEADER + (state.retrieved.join("\n") || "該当する記憶はありません。");
+  // 設定資料は記憶の後ろ。資料が無い時はメッセージ自体を出さん（空約束を書かん）。
+  const documentsBlock =
+    deps.retrieveDocuments && state.retrievedDocuments.length > 0
+      ? DOCUMENT_CONTEXT_HEADER + state.retrievedDocuments.join("\n")
+      : null;
+  // ユーザーの人物像は会話履歴の直前。記憶や資料より新しい指示として読ませる。
+  const personaBlock = deps.userPersona ? PERSONA_BLOCK_HEADER + deps.userPersona : null;
+  return { summaryBlock, memoryBlock, documentsBlock, personaBlock };
+};
+
+// 全滅時は error イベントをここで流し、保存用の error 文字列を返す。
+const resolveOutcomeError = (outcome: CandidateOutcome, emitError: (message: string) => void) => {
+  if (outcome.winnerIndex >= 0) return outcome.error;
+  const error = `全モデルで生成に失敗した: ${outcome.attempts.map((a) => `${a.model}=${a.outcome}`).join(" → ")}`;
+  emitError(error);
+  return error;
+};
 
 // 作り話防止が本質の指示（壊しにいく確かめ: 要約に無い作り話が混ざらんか）。
 // RIT-99: ベンチの偽チャットが呼び出し種別を識別するため export する。
@@ -587,68 +654,18 @@ export const SUMMARIZE_LEVEL1_INSTRUCTION =
 export const SUMMARIZE_LEVEL2_INSTRUCTION =
   "これは会話の部分要約の集まり。全体の流れが分かる一段上の要約にまとめ直せ。書かれとらん事実や推測は足すな。";
 
-// 画面側へ戻す要約の選び方: 最新の level 2 と、それが届いとらん範囲の level 1 を時系列で。
+// 画面側へ戻す要約の選び方（RIT-72 FR-3）: 最新の有効な level 2 と、それが届いとらん
+// 範囲の level 1 を時系列で。「後」とは level 1 の to_turn が level 2 の to_turn の先へ
+// 出るもの。範囲がまたがる level 1 が在っても外さん（外すと先側に隙間が開く・FR-9）。
 // 伏せ直し待ち（redact_pending）は出さん — 消した記憶が残っとる可能性がある（RIT-94）。
 export const visibleSummaries = (list: StoredSummary[]): StoredSummary[] => {
   const visible = list.filter((entry) => !entry.redactPending);
-  const level2Covered = Math.max(
-    0,
-    ...visible.filter((s) => s.level === 2).map((s) => s.coveredTo),
-  );
-  const latest2 = visible.filter((s) => s.level === 2 && s.coveredTo === level2Covered).at(-1);
-  const tail = visible.filter((s) => s.level === 1 && s.coveredTo > level2Covered);
+  const level2Covered = Math.max(0, ...visible.filter((s) => s.level === 2).map((s) => s.toTurn));
+  const latest2 = visible.filter((s) => s.level === 2 && s.toTurn === level2Covered).at(-1);
+  const tail = visible
+    .filter((s) => s.level === 1 && s.toTurn > level2Covered)
+    .sort((a, b) => a.fromTurn - b.fromTurn);
   return [...(latest2 ? [latest2] : []), ...tail];
-};
-
-const invokeForSummary = async (
-  model: TurnModel,
-  instruction: string,
-  body: string,
-  state: { timeoutMs?: number | null; signal?: AbortSignal },
-): Promise<string> => {
-  const controller = new AbortController();
-  linkAbort(controller, state.signal);
-  const deadline = setTimeout(
-    () =>
-      controller.abort(
-        new Error(`要約の締切 ${state.timeoutMs ?? DEFAULT_TURN_TIMEOUT_MS}ms を超えた`),
-      ),
-    state.timeoutMs ?? DEFAULT_TURN_TIMEOUT_MS,
-  );
-  try {
-    const result = await model.invoke([new HumanMessage(`${instruction}\n\n${body}`)], {
-      signal: controller.signal,
-    });
-    return contentToText(result.content).trim();
-  } finally {
-    clearTimeout(deadline);
-  }
-};
-
-// 未集約の level 1 が閾値に届いたら「前の level 2 + 新しい level 1」でまとめ直す。
-// 新しい分だけを畳むと古い出来事が最新の level 2 から落ちて、巻き取りの意味が無くなる。
-const rollUpLevel2 = async (
-  deps: Pick<TurnGraphDeps, "model" | "models" | "signal">,
-  summaries: StoredSummary[],
-  maxLevel1: number,
-  state: { timeoutMs?: number | null; activeModelIndex: number; signal?: AbortSignal },
-  forgotten: string[],
-): Promise<string> => {
-  const level2Covered = Math.max(
-    0,
-    ...summaries.filter((entry) => entry.level === 2).map((entry) => entry.coveredTo),
-  );
-  const uncovered = summaries.filter(
-    (entry) => entry.level === 1 && entry.coveredTo > level2Covered,
-  );
-  if (uncovered.length < maxLevel1) return "";
-  const previous2 = summaries.filter((entry) => entry.level === 2).at(-1);
-  return invokeForSummary(
-    modelForTurn(deps, state),
-    appendForgottenInstruction(SUMMARIZE_LEVEL2_INSTRUCTION, forgotten),
-    [...(previous2 ? [previous2.text] : []), ...uncovered.map((entry) => entry.text)].join("\n"),
-    { ...state, signal: deps.signal ?? state.signal },
-  );
 };
 
 const regenerateWithDeadline = async (
@@ -782,13 +799,17 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
         return { ledger: { ...state.ledger, lastEvents, phase } };
       })
       .addNode("retrieve", async (state) => {
-        const packed = packMemoryContext(
-          (await deps.retrieveMemories?.(state.conversationId, state.userText)) ?? [],
+        const memory = await deps.retrieveMemories?.(
+          state.conversationId,
+          buildMemoryQuery(state.userText, state.history),
         );
+        const packed = packMemoryContext(memory?.entries ?? []);
         return {
-          retrieved: packed,
+          retrieved: packed.lines,
           // 指示文へ入った分だけ使った記憶として persist へ渡す（枠から溢れた分は「使った」に数えん）。
-          retrievedMemoryIds: packedMemoryIds(packed),
+          retrievedMemories: packed.used,
+          // 検索の終わり方の印（RIT-84）。取り出しの注入が無い時は null のまま。
+          memoryRetrieval: memory?.status ?? null,
           retrievedDocuments: packDocumentContext(
             (await deps.retrieveDocuments?.(state.userText)) ?? [],
           ),
@@ -821,24 +842,8 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
           deps.contextBudget,
         );
         const budget = resolveContextBudget(deps.contextBudget);
-        // 窓の外に出た分は要約が代わりに乗る（RIT-72）。あらすじ層の上限は
-        // V2_SUMMARY_CHARACTERS（既定 2,500 字・RIT-71）。溢れる時は古い level 1 から外す。
-        const summaries = deps.summaryStore
-          ? visibleSummaries(await deps.summaryStore.list(state.conversationId))
-          : [];
-        const packedSummaries = packSummaries(summaries, budget.summaryCharacters);
-        const summaryBlock =
-          packedSummaries.length > 0 ? SUMMARY_BLOCK_HEADER + packedSummaries.join("\n") : null;
-        const memoryBlock = deps.retrieveMemories
-          ? MEMORY_CONTEXT_HEADER + (state.retrieved.join("\n") || "該当する記憶はありません。")
-          : null;
-        // 設定資料は記憶の後ろ。資料が無い時はメッセージ自体を出さん（空約束を書かん）。
-        const documentsBlock =
-          deps.retrieveDocuments && state.retrievedDocuments.length > 0
-            ? DOCUMENT_CONTEXT_HEADER + state.retrievedDocuments.join("\n")
-            : null;
-        // ユーザーの人物像は会話履歴の直前。記憶や資料より新しい指示として読ませる。
-        const personaBlock = deps.userPersona ? PERSONA_BLOCK_HEADER + deps.userPersona : null;
+        const { summaryBlock, memoryBlock, documentsBlock, personaBlock } =
+          await buildContextBlocks(state, deps, budget);
         const prompt: ComposedPrompt = {
           version: "v0002",
           system,
@@ -893,6 +898,10 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
           outcome,
           timeoutMs,
           latencyMs: now() - startedAt,
+          // 記憶の取り出し自体が走らんターン（未注入）は usedMemories ごと
+          // 記録に残さん（GenerationRecord 両列とも未設定 = 旧形式のまま）。
+          usedMemories: state.memoryRetrieval === null ? undefined : state.retrievedMemories,
+          memoryRetrieval: state.memoryRetrieval,
           emitError: (message) => runtime.writer({ type: "error", message }),
         });
         // preExtendVisibleChars / preExtendRawLength は extend が raw を上書きする前の
@@ -1121,7 +1130,6 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
           userText: state.userText,
           events,
           ledger: state.ledger,
-          usedMemoryIds: state.retrievedMemoryIds,
         });
         if (state.generation) {
           runtime.writer({
@@ -1146,60 +1154,6 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
           generationId: state.generationId,
           sendAt: saved.chunkSendAt,
         } satisfies TurnEvent);
-        return {};
-      })
-      .addNode("summarize", async (state) => {
-        // 窓から押し出された未要約分がたまったら level 1、level 1 がたまったら level 2 へ
-        // まとめ直す（RIT-72）。保存の後に走るので、失敗・再実行で二度呼ばれても
-        // coveredTo が進んでおれば追加入らず（冪等）。
-        if (!deps.summaryStore) return {};
-        const threshold = deps.summary?.thresholdMessages ?? SUMMARY_DEFAULTS.thresholdMessages;
-        const maxLevel1 = deps.summary?.maxLevel1 ?? SUMMARY_DEFAULTS.maxLevel1;
-        const omittedCount = state.omittedHistoryMessages;
-        const existing = await deps.summaryStore.list(state.conversationId);
-        const covered = Math.max(0, ...existing.map((entry) => entry.coveredTo));
-        const baseline = Math.min(covered, omittedCount);
-        if (omittedCount - baseline < threshold) return {};
-        const slice = state.history.slice(baseline, omittedCount);
-        if (slice.length === 0) return {};
-        const body = slice
-          .map(
-            (message) =>
-              `${message.role === "user" ? "相手" : state.character.name}: ${message.content}`,
-          )
-          .join("\n");
-        // 消した記憶は新しい要約にも書き戻さん（RIT-94）。墓標の本文を「書かない事柄」
-        // として指示に足す（要約を作る指示へのみ。返事の指示文には足さん）。
-        const forgotten = await deps.summaryStore.listForgotten(state.conversationId);
-        const level1 = await invokeForSummary(
-          modelForTurn(deps, state),
-          appendForgottenInstruction(SUMMARIZE_LEVEL1_INSTRUCTION, forgotten),
-          body,
-          { ...state, signal: deps.signal },
-        );
-        if (level1.length === 0) return {};
-        await deps.summaryStore.save({
-          conversationId: state.conversationId,
-          level: 1,
-          coveredTo: omittedCount,
-          text: level1,
-        });
-        const after = await deps.summaryStore.list(state.conversationId);
-        const level2Text = await rollUpLevel2(deps, after, maxLevel1, state, forgotten);
-        if (level2Text.length === 0) return {};
-        const level2Covered = Math.max(
-          0,
-          ...after.filter((entry) => entry.level === 2).map((entry) => entry.coveredTo),
-        );
-        const uncovered = after.filter(
-          (entry) => entry.level === 1 && entry.coveredTo > level2Covered,
-        );
-        await deps.summaryStore.save({
-          conversationId: state.conversationId,
-          level: 2,
-          coveredTo: uncovered[uncovered.length - 1].coveredTo,
-          text: level2Text,
-        });
         return {};
       })
       .addEdge(START, "intake")
@@ -1239,8 +1193,9 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
       .addConditionalEdges("emit", (state) =>
         state.cursor < state.pendingChunks.length ? "judge_chunk" : "persist",
       )
-      .addEdge("persist", "summarize")
-      .addEdge("summarize", END)
+      // 要約は返事の処理の外（ChatRoom の alarm → summarizeConversation）で作る。
+      // ここで終わらせるので、要約の失敗・遅れが保存済みの返事を潰さん（RIT-72 UR-4）。
+      .addEdge("persist", END)
       .compile({ checkpointer: deps.checkpointer ?? new MemorySaver() })
   );
 };

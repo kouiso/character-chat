@@ -13,6 +13,9 @@ import {
 import type { V2Db } from "./client";
 import type { ExtractionScope } from "./memory-extraction-contract";
 
+// Vectorize の topK 上限（RIT-84 NFR-2）。D1 1 文の引数上限 100 にも収まる。
+export const MEMORY_QUERY_TOPK_MAX = 50;
+
 const sourceQuery = (db: V2Db) =>
   db
     .select({
@@ -73,7 +76,7 @@ export type IndexableMemory = Awaited<ReturnType<typeof loadUnindexedMemoryJob>>
 
 export const loadMemoryCandidates = async (
   db: V2Db,
-  scope: ExtractionScope & { beforeTurn?: number },
+  scope: ExtractionScope & { beforeTurn?: number; kinds?: ("fact" | "preference" | "summary")[] },
   ids: string[],
 ) => {
   if (ids.length === 0) return [];
@@ -90,11 +93,12 @@ export const loadMemoryCandidates = async (
           activeBranchOnly: true,
           kinds: ["fact", "preference"],
         }),
-        inArray(v2MemoryTable.id, ids.slice(0, 20)),
+        inArray(v2MemoryTable.id, ids.slice(0, MEMORY_QUERY_TOPK_MAX)),
         scope.beforeTurn === undefined ? undefined : lt(v2MemoryTable.sourceTurn, scope.beforeTurn),
+        scope.kinds === undefined ? undefined : inArray(v2MemoryTable.kind, scope.kinds),
       ),
     )
-    .limit(20);
+    .limit(MEMORY_QUERY_TOPK_MAX);
 };
 
 export const saveMemoryEmbedding = async (db: V2Db, memory: IndexableMemory, vector: number[]) => {
