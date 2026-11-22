@@ -158,10 +158,11 @@ const SettingsHeader = () => (
 );
 
 export const SettingsScreen = ({ settings }: { settings: UserSettings }) => {
-  // confirmed = 最後に読み込み・保存が確定した値。values = 画面に出している値（押すと先に変わる）。
-  const [confirmed, setConfirmed] = useState<UserSettings>(settings);
+  // values = 画面に出している値（押すと先に変わる）。confirmedRef = 最後に保存が確定した値。
   const [values, setValues] = useState<UserSettings>(settings);
   const [failures, setFailures] = useState<Partial<Record<SettingKey, SaveFailure>>>({});
+  // 失敗時の巻き戻し先は、書き込みが終わる時点の最新であって欲しいので state ではなく ref に積む。
+  const confirmedRef = useRef<UserSettings>(settings);
   // 同じ項目に重ねて押された時、古い書き込みの失敗で新しい選択が巻き戻らんようにする通し番号。
   const writeSeq = useRef<Record<SettingKey, number>>({
     chatMode: 0,
@@ -169,6 +170,8 @@ export const SettingsScreen = ({ settings }: { settings: UserSettings }) => {
     handedness: 0,
     voiceAutoplay: 0,
   });
+  // 同じ項目への PUT は直列にする（先の PUT が後から着くと、画面と保存値が食い違う）。
+  const writeChain = useRef<Partial<Record<SettingKey, Promise<void>>>>({});
   const clearFailure = (key: SettingKey) => {
     setFailures((previous) => {
       if (!(key in previous)) return previous;
@@ -184,22 +187,27 @@ export const SettingsScreen = ({ settings }: { settings: UserSettings }) => {
     const seq = ++writeSeq.current[key];
     setValues((previous) => ({ ...previous, [key]: value }));
     clearFailure(key);
-    void (async () => {
-      const result = await putSetting({ [key]: value });
-      setConfirmed((previousConfirmed) => {
-        if (result.ok) return { ...previousConfirmed, [key]: value };
-        return previousConfirmed;
+    const queued = writeChain.current[key] ?? Promise.resolve();
+    const task = queued
+      .catch(() => {})
+      .then(async () => {
+        const result = await putSetting({ [key]: value });
+        if (result.ok) {
+          confirmedRef.current[key] = value;
+          return;
+        }
+        // 失敗した書き込みより新しい選択がある時は、巻き戻しも失敗の表示もしない。
+        if (writeSeq.current[key] !== seq) return;
+        const previous = confirmedRef.current[key];
+        setValues((current) =>
+          current[key] === value ? { ...current, [key]: previous } : current,
+        );
+        setFailures((current) => ({
+          ...current,
+          [key]: { key, offline: result.offline, retry: () => save(key, value) },
+        }));
       });
-      if (result.ok) return;
-      // 失敗した書き込みより新しい選択がある時は、巻き戻しも失敗の表示もしない。
-      if (writeSeq.current[key] !== seq) return;
-      const previous = confirmed[key];
-      setValues((current) => (current[key] === value ? { ...current, [key]: previous } : current));
-      setFailures((current) => ({
-        ...current,
-        [key]: { key, offline: result.offline, retry: () => save(key, value) },
-      }));
-    })();
+    writeChain.current[key] = task;
   }
 
   const segmented = <K extends "chatMode" | "style" | "handedness">(

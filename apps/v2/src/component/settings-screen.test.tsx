@@ -8,7 +8,7 @@ import {
   Outlet,
   RouterProvider,
 } from "@tanstack/react-router";
-import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
@@ -187,7 +187,10 @@ describe("SettingsScreen（板 Settings）", () => {
     expect(selectedIn("持つ手")?.textContent).toBe("右");
 
     // 後から「左」の書き込みが失敗しても「右」の選びは残る
-    deferred.resolve({ ok: false });
+    await act(async () => {
+      deferred.resolve({ ok: false });
+      await Promise.resolve();
+    });
     await waitFor(() => expect(screen.queryByRole("alert")).toBeNull());
     expect(selectedIn("持つ手")?.textContent).toBe("右");
   });
