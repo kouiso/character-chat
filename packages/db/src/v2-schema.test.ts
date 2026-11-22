@@ -14,6 +14,7 @@ import { FRESH_LOCAL_D1_TIMEOUT_MS, openLocalD1, type LocalD1 } from "./test/loc
 import {
   characterRevisionTable,
   characterVersionTable,
+  v2CharacterKeepTable,
   v2ChunkTable,
   v2ConversationTable,
   v2GenerationTable,
@@ -56,6 +57,7 @@ describe("v2_ tables: SQL DDL と drizzle 宣言の一致", () => {
     v2MemoryJobTable,
     v2MemorySourceTable,
     v2LegacyImportTable,
+    v2CharacterKeepTable,
   ];
 
   it("SQL 側にすべての v2_ テーブルが存在する", async () => {
@@ -70,6 +72,7 @@ describe("v2_ tables: SQL DDL と drizzle 宣言の一致", () => {
         "v2_chapter",
         "v2_character_document",
         "v2_character_document_chunk",
+        "v2_character_keep",
         "v2_character_publish",
         "v2_character_voice",
         "v2_chunk",

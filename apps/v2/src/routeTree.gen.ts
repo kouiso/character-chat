@@ -72,6 +72,7 @@ import { Route as ApiCatalogIdReactionsRouteImport } from './routes/api/catalog/
 import { Route as ApiCatalogIdTipRouteImport } from './routes/api/catalog/$id_/tip'
 import { Route as ApiCharactersIdAvatarRouteImport } from './routes/api/characters/$id_/avatar'
 import { Route as ApiCharactersIdDocumentsRouteImport } from './routes/api/characters/$id_/documents'
+import { Route as ApiCharactersIdKeepRouteImport } from './routes/api/characters/$id_/keep'
 import { Route as ApiCharactersIdMemoriesRouteImport } from './routes/api/characters/$id_/memories'
 import { Route as ApiCharactersIdPublishRouteImport } from './routes/api/characters/$id_/publish'
 import { Route as ApiCharactersIdRestoreRouteImport } from './routes/api/characters/$id_/restore'
@@ -421,6 +422,11 @@ const ApiCharactersIdDocumentsRoute =
     path: '/$id/documents',
     getParentRoute: () => ApiCharactersRoute,
   })
+const ApiCharactersIdKeepRoute = ApiCharactersIdKeepRouteImport.update({
+  id: '/$id_/keep',
+  path: '/$id/keep',
+  getParentRoute: () => ApiCharactersRoute,
+})
 const ApiCharactersIdMemoriesRoute = ApiCharactersIdMemoriesRouteImport.update({
   id: '/$id_/memories',
   path: '/$id/memories',
@@ -655,6 +661,7 @@ export interface FileRoutesByFullPath {
   '/api/catalog/$id/tip': typeof ApiCatalogIdTipRoute
   '/api/characters/$id/avatar': typeof ApiCharactersIdAvatarRoute
   '/api/characters/$id/documents': typeof ApiCharactersIdDocumentsRouteWithChildren
+  '/api/characters/$id/keep': typeof ApiCharactersIdKeepRoute
   '/api/characters/$id/memories': typeof ApiCharactersIdMemoriesRouteWithChildren
   '/api/characters/$id/publish': typeof ApiCharactersIdPublishRoute
   '/api/characters/$id/restore': typeof ApiCharactersIdRestoreRoute
@@ -752,6 +759,7 @@ export interface FileRoutesByTo {
   '/api/catalog/$id/tip': typeof ApiCatalogIdTipRoute
   '/api/characters/$id/avatar': typeof ApiCharactersIdAvatarRoute
   '/api/characters/$id/documents': typeof ApiCharactersIdDocumentsRouteWithChildren
+  '/api/characters/$id/keep': typeof ApiCharactersIdKeepRoute
   '/api/characters/$id/memories': typeof ApiCharactersIdMemoriesRouteWithChildren
   '/api/characters/$id/publish': typeof ApiCharactersIdPublishRoute
   '/api/characters/$id/restore': typeof ApiCharactersIdRestoreRoute
@@ -850,6 +858,7 @@ export interface FileRoutesById {
   '/api/catalog/$id_/tip': typeof ApiCatalogIdTipRoute
   '/api/characters/$id_/avatar': typeof ApiCharactersIdAvatarRoute
   '/api/characters/$id_/documents': typeof ApiCharactersIdDocumentsRouteWithChildren
+  '/api/characters/$id_/keep': typeof ApiCharactersIdKeepRoute
   '/api/characters/$id_/memories': typeof ApiCharactersIdMemoriesRouteWithChildren
   '/api/characters/$id_/publish': typeof ApiCharactersIdPublishRoute
   '/api/characters/$id_/restore': typeof ApiCharactersIdRestoreRoute
@@ -949,6 +958,7 @@ export interface FileRouteTypes {
     | '/api/catalog/$id/tip'
     | '/api/characters/$id/avatar'
     | '/api/characters/$id/documents'
+    | '/api/characters/$id/keep'
     | '/api/characters/$id/memories'
     | '/api/characters/$id/publish'
     | '/api/characters/$id/restore'
@@ -1046,6 +1056,7 @@ export interface FileRouteTypes {
     | '/api/catalog/$id/tip'
     | '/api/characters/$id/avatar'
     | '/api/characters/$id/documents'
+    | '/api/characters/$id/keep'
     | '/api/characters/$id/memories'
     | '/api/characters/$id/publish'
     | '/api/characters/$id/restore'
@@ -1143,6 +1154,7 @@ export interface FileRouteTypes {
     | '/api/catalog/$id_/tip'
     | '/api/characters/$id_/avatar'
     | '/api/characters/$id_/documents'
+    | '/api/characters/$id_/keep'
     | '/api/characters/$id_/memories'
     | '/api/characters/$id_/publish'
     | '/api/characters/$id_/restore'
@@ -1682,6 +1694,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCharactersIdDocumentsRouteImport
       parentRoute: typeof ApiCharactersRoute
     }
+    '/api/characters/$id_/keep': {
+      id: '/api/characters/$id_/keep'
+      path: '/$id/keep'
+      fullPath: '/api/characters/$id/keep'
+      preLoaderRoute: typeof ApiCharactersIdKeepRouteImport
+      parentRoute: typeof ApiCharactersRoute
+    }
     '/api/characters/$id_/memories': {
       id: '/api/characters/$id_/memories'
       path: '/$id/memories'
@@ -2002,6 +2021,7 @@ interface ApiCharactersRouteChildren {
   ApiCharactersIdRoute: typeof ApiCharactersIdRoute
   ApiCharactersIdAvatarRoute: typeof ApiCharactersIdAvatarRoute
   ApiCharactersIdDocumentsRoute: typeof ApiCharactersIdDocumentsRouteWithChildren
+  ApiCharactersIdKeepRoute: typeof ApiCharactersIdKeepRoute
   ApiCharactersIdMemoriesRoute: typeof ApiCharactersIdMemoriesRouteWithChildren
   ApiCharactersIdPublishRoute: typeof ApiCharactersIdPublishRoute
   ApiCharactersIdRestoreRoute: typeof ApiCharactersIdRestoreRoute
@@ -2014,6 +2034,7 @@ const ApiCharactersRouteChildren: ApiCharactersRouteChildren = {
   ApiCharactersIdRoute: ApiCharactersIdRoute,
   ApiCharactersIdAvatarRoute: ApiCharactersIdAvatarRoute,
   ApiCharactersIdDocumentsRoute: ApiCharactersIdDocumentsRouteWithChildren,
+  ApiCharactersIdKeepRoute: ApiCharactersIdKeepRoute,
   ApiCharactersIdMemoriesRoute: ApiCharactersIdMemoriesRouteWithChildren,
   ApiCharactersIdPublishRoute: ApiCharactersIdPublishRoute,
   ApiCharactersIdRestoreRoute: ApiCharactersIdRestoreRoute,
