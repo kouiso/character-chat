@@ -859,3 +859,18 @@ export const v2CharacterVoiceTable = sqliteTable("v2_character_voice", {
   intonation: real("intonation").notNull(),
   updatedAt: integer("updated_at").notNull(),
 });
+
+// 出会うの「とっておく」。板 Meet の右送り（とっておく）が残す印。
+// メッセージの bookmark（v2_message_mark）は発言への印なので別表にする。
+export const v2CharacterKeepTable = sqliteTable(
+  "v2_character_keep",
+  {
+    characterId: text("character_id").notNull(),
+    userId: text("user_id").notNull(),
+    keptAt: integer("kept_at").notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.characterId, table.userId] }),
+    index("v2_character_keep_user_idx").on(table.userId),
+  ],
+);

@@ -1,0 +1,895 @@
+/* 出会う（板 Meet・MeetList・MeetEmpty）。値は design-token.css の変数だけ使う */
+
+.v2-meet {
+  position: relative;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--gradient-ground);
+  color: var(--color-text);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+  font-weight: 500;
+  letter-spacing: var(--text-tracking);
+  overflow: hidden;
+}
+
+/* 左上の題札「出会う｜今夜ひま？」（絵の上の札＝不透明の濃い札＋影） */
+.v2-meet-plate {
+  position: absolute;
+  left: var(--space-edge);
+  top: var(--space-edge);
+  z-index: 12;
+  height: 44px;
+  box-sizing: border-box;
+  padding: 0 16px;
+  border-radius: var(--radius-pill);
+  background: var(--color-plate);
+  box-shadow: var(--shadow-plate);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.v2-meet-plate-title {
+  font-size: var(--text-title-size);
+  line-height: var(--text-title-line);
+  font-weight: 700;
+  letter-spacing: var(--text-tracking-title);
+}
+
+.v2-meet-plate-sub {
+  color: var(--color-peach);
+  font-size: var(--text-note-size);
+  line-height: var(--text-note-line);
+  font-weight: 500;
+  letter-spacing: var(--text-tracking);
+  white-space: nowrap;
+}
+
+/* 右上の見え方トグル（1 人ずつ／一覧） */
+.v2-meet-toggle {
+  position: absolute;
+  right: var(--space-edge);
+  top: var(--space-edge);
+  z-index: 12;
+  height: 44px;
+  border-radius: var(--radius-pill);
+  background: var(--color-plate);
+  box-shadow: var(--shadow-plate);
+  display: flex;
+}
+
+.v2-meet-toggle button {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: var(--radius-pill);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: var(--color-text-sub);
+  cursor: pointer;
+}
+
+.v2-meet-toggle button[aria-pressed="true"] {
+  background: var(--color-skeleton-hi);
+  color: var(--color-peach);
+}
+
+.v2-meet-toggle svg {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  display: block;
+}
+
+/* ============ 1 人ずつ（デッキ） ============ */
+
+.v2-meet-deck {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* カードは画面いっぱい。絵 61%＋下の面（板は 516/328、デッキ全体はタブ分を引いた高さ） */
+.v2-meet-stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+.v2-meet-card {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.v2-meet-card.under {
+  transform: scale(0.96);
+  transform-origin: 50% 46%;
+  filter: brightness(0.6);
+}
+
+.v2-meet-card.dragging {
+  transition: none;
+}
+
+.v2-meet-card.fly {
+  transition:
+    transform 0.24s ease-in,
+    opacity 0.24s ease-in;
+}
+
+.v2-meet-card.settle {
+  animation: v2-meet-settle 0.28s ease-out;
+}
+
+/* 引いている向きの印（板 Meet の drag 状態）。右＝とっておく（桃）、左＝飛ばす（白） */
+.v2-meet-stamp {
+  position: absolute;
+  top: 88px;
+  z-index: 6;
+  height: 44px;
+  box-sizing: border-box;
+  padding: 0 16px;
+  border-radius: 12px;
+  background: var(--color-plate);
+  box-shadow: var(--shadow-plate);
+  border: 2px solid var(--color-peach);
+  color: var(--color-peach);
+  display: flex;
+  align-items: center;
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.v2-meet-stamp.keep {
+  right: 24px;
+}
+
+.v2-meet-stamp.skip {
+  left: 24px;
+  border-color: var(--color-text);
+  color: var(--color-text);
+}
+
+@keyframes v2-meet-settle {
+  from {
+    transform: scale(0.96);
+    filter: brightness(0.6);
+  }
+  to {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+}
+
+.v2-meet-hero {
+  position: relative;
+  flex: 0 0 61%;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--color-ground-low);
+}
+
+.v2-meet-hero img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* 絵が無い子は頭文字の札の面を敷く（KIT §1.1、4 色を行ごとに回す） */
+.v2-meet-hero-plate {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--edge-top-press);
+  color: var(--color-text);
+  font-size: 32px;
+  line-height: 40px;
+  font-weight: 700;
+}
+
+.v2-meet-hero-plate.plate-1,
+.v2-meet-tile-plate.plate-1 {
+  background: var(--color-initial-plate-1);
+}
+
+.v2-meet-hero-plate.plate-2,
+.v2-meet-tile-plate.plate-2 {
+  background: var(--color-initial-plate-2);
+}
+
+.v2-meet-hero-plate.plate-3,
+.v2-meet-tile-plate.plate-3 {
+  background: var(--color-initial-plate-3);
+}
+
+.v2-meet-hero-plate.plate-4,
+.v2-meet-tile-plate.plate-4 {
+  background: var(--color-initial-plate-4);
+}
+
+.v2-meet-hero-edge {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: var(--image-edge-height);
+  background: var(--gradient-image-edge);
+}
+
+/* 下の面。地（絵の下）のグラデーション */
+.v2-meet-body {
+  flex: 1;
+  min-height: 0;
+  box-sizing: border-box;
+  padding: 0 var(--space-gutter);
+  background: var(--gradient-sheet);
+  display: flex;
+  flex-direction: column;
+}
+
+.v2-meet-namerow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 44px;
+}
+
+.v2-meet-namerow h1 {
+  margin: 0;
+  flex: 0 1 auto;
+  min-width: 0;
+  font-family: var(--font-display);
+  font-size: 32px;
+  line-height: 40px;
+  font-weight: 900;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.v2-meet-awake {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-text-sub);
+  font-size: var(--text-note-size);
+  line-height: var(--text-note-line);
+  font-weight: 500;
+  letter-spacing: var(--text-tracking);
+  white-space: nowrap;
+}
+
+.v2-meet-awake::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--color-lamp);
+  flex: none;
+}
+
+.v2-meet-kind {
+  flex: none;
+  color: var(--color-text-sub);
+  font-size: var(--text-note-size);
+  line-height: var(--text-note-line);
+  font-weight: 500;
+  letter-spacing: var(--text-tracking);
+  white-space: nowrap;
+}
+
+.v2-meet-profile-link {
+  flex: none;
+  margin-left: auto;
+  height: 44px;
+  padding: 0 0 0 8px;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-size: var(--text-row-size);
+  line-height: var(--text-row-line);
+  font-weight: 700;
+  letter-spacing: var(--text-tracking-strong);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.v2-meet-profile-link svg {
+  color: var(--color-text-sub);
+}
+
+.v2-meet-role {
+  color: var(--color-text-sub);
+  font-size: var(--text-note-size);
+  line-height: var(--text-note-line);
+  font-weight: 500;
+  letter-spacing: var(--text-tracking);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.v2-meet-spacer-16 {
+  flex: none;
+  height: 16px;
+}
+
+.v2-meet-bubble {
+  align-self: flex-start;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 12px 16px;
+  border-radius: var(--radius-bubble-other);
+  background: var(--gradient-surface);
+  box-shadow: var(--shadow-surface);
+  color: var(--color-text);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+  font-weight: 500;
+  letter-spacing: var(--text-tracking);
+}
+
+.v2-meet-spacer-12 {
+  flex: none;
+  height: 12px;
+}
+
+.v2-meet-tags {
+  display: flex;
+  gap: 16px;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--color-text-sub);
+  font-size: var(--text-note-size);
+  line-height: var(--text-note-line);
+  font-weight: 500;
+  letter-spacing: var(--text-tracking);
+  white-space: nowrap;
+}
+
+.v2-meet-tags b {
+  color: var(--color-peach);
+  font-weight: 500;
+}
+
+.v2-meet-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: auto;
+  padding-bottom: 16px;
+}
+
+.v2-meet-skip {
+  flex: none;
+  height: 56px;
+  padding: 0 12px 0 0;
+  background: transparent;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-row-size);
+  line-height: var(--text-row-line);
+  font-weight: 700;
+  letter-spacing: var(--text-tracking-strong);
+  cursor: pointer;
+}
+
+.v2-meet-skip svg {
+  color: var(--color-text-sub);
+}
+
+.v2-meet-keep {
+  flex: none;
+  height: 56px;
+  padding: 0 20px 0 16px;
+  border-radius: var(--radius-pill);
+  background: var(--gradient-press);
+  box-shadow: var(--shadow-press);
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-row-size);
+  line-height: var(--text-row-line);
+  font-weight: 700;
+  letter-spacing: var(--text-tracking-strong);
+  cursor: pointer;
+}
+
+.v2-meet-keep[disabled] {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.v2-meet-talk {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 56px;
+  border-radius: var(--radius-pill);
+  background: var(--gradient-peach);
+  box-shadow: var(--shadow-peach);
+  color: var(--color-on-peach);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: var(--text-title-size);
+  line-height: var(--text-title-line);
+  font-weight: 700;
+  letter-spacing: var(--text-tracking-title);
+  text-decoration: none;
+}
+
+/* 中央の初回ヒント「左右に送れます」 */
+.v2-meet-hint {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  transform: translateX(-50%);
+  z-index: 11;
+  height: 44px;
+  box-sizing: border-box;
+  padding: 0 16px;
+  border-radius: var(--radius-pill);
+  background: var(--color-plate);
+  box-shadow: var(--shadow-plate);
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--text-note-size);
+  line-height: var(--text-note-line);
+  font-weight: 500;
+  letter-spacing: var(--text-tracking);
+  white-space: nowrap;
+}
+
+.v2-meet-hint svg {
+  width: 16px;
+  height: 16px;
+  flex: none;
+}
+
+/* 下の知らせ（とっておきました／飛ばしました／失敗） */
+.v2-meet-toast {
+  position: absolute;
+  left: var(--space-edge);
+  right: var(--space-edge);
+  bottom: calc(var(--tab-bar-total) + 16px);
+  z-index: 20;
+  height: 52px;
+  box-sizing: border-box;
+  padding: 0 4px 0 20px;
+  border-radius: var(--radius-pill);
+  background: var(--color-plate);
+  box-shadow: var(--shadow-plate);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.v2-meet-toast-text {
+  flex: 1;
+  min-width: 0;
+  color: var(--color-text);
+  font-size: var(--text-row-size);
+  line-height: var(--text-row-line);
+  font-weight: 500;
+  letter-spacing: var(--text-tracking);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.v2-meet-toast-action {
+  flex: none;
+  height: 44px;
+  padding: 0 16px;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-peach);
+  display: flex;
+  align-items: center;
+  font-size: var(--text-row-size);
+  line-height: var(--text-row-line);
+  font-weight: 700;
+  letter-spacing: var(--text-tracking-strong);
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* ============ 一覧 ============ */
+
+.v2-meet-list {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding-top: 72px;
+  overflow-y: auto;
+}
+
+.v2-meet-chips {
+  flex: none;
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 0 0 8px var(--space-gutter);
+  scrollbar-width: none;
+}
+
+.v2-meet-chips::-webkit-scrollbar {
+  display: none;
+}
+
+.v2-meet-chips + .v2-meet-chips {
+  padding-top: 0;
+}
+
+.v2-meet-chip {
+  flex: none;
+  height: 44px;
+  padding: 0 16px;
+  border-radius: var(--radius-pill);
+  background: var(--gradient-press);
+  box-shadow: var(--shadow-press);
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-row-size);
+  line-height: var(--text-row-line);
+  font-weight: 500;
+  letter-spacing: var(--text-tracking);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.v2-meet-chip[aria-pressed="true"] {
+  padding: 0 16px 0 12px;
+  background: var(--gradient-selected);
+  box-shadow: var(--edge-selected);
+  font-weight: 700;
+  letter-spacing: var(--text-tracking-strong);
+}
+
+.v2-meet-chip .v2-meet-chip-check {
+  color: var(--color-peach);
+  display: flex;
+}
+
+/* 見たい子の切り替えとさがすの行 */
+.v2-meet-tools {
+  flex: none;
+  display: flex;
+  align-items: center;
+  height: 48px;
+  margin: 4px 8px 0 var(--space-gutter);
+  gap: 4px;
+}
+
+.v2-meet-want {
+  flex: none;
+  height: 44px;
+  padding: 0 12px 0 0;
+  background: transparent;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--text-title-size);
+  line-height: var(--text-title-line);
+  font-weight: 700;
+  letter-spacing: var(--text-tracking-strong);
+  cursor: pointer;
+}
+
+.v2-meet-want svg {
+  color: var(--color-text-sub);
+}
+
+.v2-meet-search-button {
+  flex: none;
+  margin-left: auto;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-sub);
+  cursor: pointer;
+}
+
+.v2-meet-search {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 48px;
+  padding: 0 16px;
+  border-radius: var(--radius-control);
+  background: var(--color-well);
+  border: 1px solid var(--color-well-border);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: var(--text-body-size);
+  line-height: 24px;
+  font-weight: 500;
+  letter-spacing: var(--text-tracking);
+}
+
+.v2-meet-search::placeholder {
+  color: var(--color-text-sub);
+}
+
+.v2-meet-search:focus {
+  outline: none;
+}
+
+/* 2 列の札一覧 */
+.v2-meet-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px 12px;
+  padding: 12px var(--space-gutter) 24px;
+}
+
+.v2-meet-tile {
+  min-width: 0;
+  color: var(--color-text);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-decoration: none;
+}
+
+.v2-meet-tile-img {
+  position: relative;
+  display: block;
+  height: 188px;
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  background: var(--color-ground-low);
+}
+
+.v2-meet-tile-img img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.v2-meet-tile-plate {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text);
+  font-size: 32px;
+  line-height: 40px;
+  font-weight: 700;
+}
+
+.v2-meet-badge {
+  position: absolute;
+  left: 8px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: var(--radius-tail);
+  background: var(--color-plate);
+  box-shadow: var(--edge-ring);
+  color: var(--color-text-sub);
+  font-size: var(--text-note-size);
+  line-height: var(--text-note-line);
+  font-weight: 500;
+  letter-spacing: var(--text-tracking);
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.v2-meet-badge.top {
+  top: 8px;
+}
+
+.v2-meet-badge.bottom {
+  bottom: 8px;
+}
+
+.v2-meet-tile-text {
+  display: flex;
+  flex-direction: column;
+  padding: 0 4px;
+  min-width: 0;
+}
+
+.v2-meet-tile-name {
+  font-size: var(--text-row-size);
+  line-height: var(--text-row-line);
+  font-weight: 700;
+  letter-spacing: var(--text-tracking-strong);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.v2-meet-tile-sub {
+  color: var(--color-text-sub);
+  font-size: var(--text-note-size);
+  line-height: var(--text-note-line);
+  font-weight: 500;
+  letter-spacing: var(--text-tracking);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 見たい子シートの選択肢（面のカードに行を積む） */
+.v2-meet-want-list {
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  background: var(--gradient-surface);
+  box-shadow: var(--shadow-surface);
+  display: flex;
+  flex-direction: column;
+}
+
+.v2-meet-want-option {
+  height: 52px;
+  padding: 0 16px;
+  background: transparent;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+  font-weight: 500;
+  letter-spacing: var(--text-tracking);
+  cursor: pointer;
+}
+
+.v2-meet-want-option + .v2-meet-want-option {
+  box-shadow: var(--edge-top);
+}
+
+.v2-meet-want-option > span:first-child {
+  flex: 1;
+}
+
+.v2-meet-want-option[aria-pressed="true"] {
+  font-weight: 700;
+}
+
+.v2-meet-want-option .v2-meet-want-check {
+  color: var(--color-peach);
+  display: flex;
+}
+
+.v2-meet-want-count {
+  color: var(--color-text-sub);
+  font-size: var(--text-note-size);
+  line-height: var(--text-note-line);
+  font-weight: 500;
+  letter-spacing: var(--text-tracking);
+  white-space: nowrap;
+}
+
+/* 読み込み中の骨組み（デッキ側は絵の枠＋文の枠） */
+.v2-meet-skeleton-hero {
+  flex: 0 0 61%;
+  background: linear-gradient(180deg, var(--color-skeleton-hi) 0%, var(--color-skeleton-lo) 100%);
+}
+
+.v2-meet-skeleton-lines {
+  flex: 1;
+  padding: 16px var(--space-gutter) 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: var(--gradient-sheet);
+}
+
+.v2-meet-skeleton-lines span {
+  display: block;
+  border-radius: var(--radius-tail);
+  background: var(--color-skeleton-lo);
+}
+
+.v2-meet-skeleton-lines .hi {
+  width: 55%;
+  height: 28px;
+  background: var(--color-skeleton-hi);
+}
+
+.v2-meet-skeleton-lines .lo {
+  width: 80%;
+  height: 20px;
+}
+
+/* 空・読めない時の置き場（デッキ中央） */
+.v2-meet-state {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 0 var(--space-gutter) 64px;
+  text-align: center;
+}
+
+.v2-meet-state-title {
+  font-size: var(--text-title-size);
+  line-height: var(--text-title-line);
+  font-weight: 700;
+  letter-spacing: var(--text-tracking-title);
+}
+
+.v2-meet-state-text {
+  color: var(--color-text-sub);
+  font-size: var(--text-note-size);
+  line-height: var(--text-note-line);
+  font-weight: 500;
+  letter-spacing: var(--text-tracking);
+}
+
+.v2-meet-state-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.v2-meet-quiet-button {
+  height: 48px;
+  padding: 0 20px;
+  border-radius: var(--radius-pill);
+  background: var(--gradient-press);
+  box-shadow: var(--shadow-press);
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-row-size);
+  line-height: var(--text-row-line);
+  font-weight: 700;
+  letter-spacing: var(--text-tracking-strong);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.v2-meet-quiet-button.primary {
+  background: var(--gradient-peach);
+  box-shadow: var(--shadow-peach);
+  color: var(--color-on-peach);
+}
