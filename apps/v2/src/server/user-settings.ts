@@ -149,6 +149,86 @@ export const setHandedness = async (
     .run();
 };
 
+// 燈デザイン「通知の設定」。master（受け取る）・届くもの 4 種・文を隠す。
+// push 送信側（proactive-sink）も同じ行を読んで止めるので、ここが正本。
+export type NotificationSettings = {
+  enabled: boolean;
+  proactive: boolean;
+  feed: boolean;
+  call: boolean;
+  anniversary: boolean;
+  hideText: boolean;
+};
+
+const NOTIFY_COLUMNS =
+  "notify_enabled, notify_proactive, notify_feed, notify_call, notify_anniversary, notify_hide_text";
+
+type NotifyRow = {
+  notify_enabled: number;
+  notify_proactive: number;
+  notify_feed: number;
+  notify_call: number;
+  notify_anniversary: number;
+  notify_hide_text: number;
+};
+
+// 行が無い時の既定は schema 側の DEFAULT と揃える（master=off・種類=on・隠す=on）。
+const NOTIFY_DEFAULTS: NotificationSettings = {
+  enabled: false,
+  proactive: true,
+  feed: true,
+  call: true,
+  anniversary: true,
+  hideText: true,
+};
+
+export const readNotificationSettings = async (
+  db: D1Database,
+  userId: string,
+): Promise<NotificationSettings> => {
+  const row = await db
+    .prepare(`SELECT ${NOTIFY_COLUMNS} FROM v2_user_settings WHERE user_id = ?`)
+    .bind(userId)
+    .first<NotifyRow>();
+  if (!row) return NOTIFY_DEFAULTS;
+  return {
+    enabled: row.notify_enabled === 1,
+    proactive: row.notify_proactive === 1,
+    feed: row.notify_feed === 1,
+    call: row.notify_call === 1,
+    anniversary: row.notify_anniversary === 1,
+    hideText: row.notify_hide_text === 1,
+  };
+};
+
+const NOTIFY_COLUMN_BY_KEY: Record<keyof NotificationSettings, string> = {
+  enabled: "notify_enabled",
+  proactive: "notify_proactive",
+  feed: "notify_feed",
+  call: "notify_call",
+  anniversary: "notify_anniversary",
+  hideText: "notify_hide_text",
+};
+
+// 1 項目だけ上書きする（押してすぐ効く設定は項目ごとに PUT される）。
+// 列名は外部入力を通さず固定レコードから引く。
+export const setNotificationSetting = async (
+  db: D1Database,
+  userId: string,
+  key: keyof NotificationSettings,
+  on: boolean,
+  now: number,
+): Promise<void> => {
+  const column = NOTIFY_COLUMN_BY_KEY[key];
+  await db
+    .prepare(
+      `INSERT INTO v2_user_settings (user_id, ${column}, updated_at) VALUES (?, ?, ?) ` +
+        `ON CONFLICT(user_id) DO UPDATE SET ${column} = excluded.${column}, updated_at = excluded.updated_at`,
+    )
+    .bind(userId, on ? 1 : 0, now)
+    .run();
+};
+
 export const setUserPersona = async (
   db: D1Database,
   userId: string,

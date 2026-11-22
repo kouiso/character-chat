@@ -35,6 +35,8 @@ const renderShell = async (entry: string) => {
     "/my",
     "/chat/$id",
     "/groups/$id",
+    "/settings",
+    "/notifications",
   ];
   const children = paths.map((path) =>
     createRoute({
@@ -99,5 +101,12 @@ describe("AppTabBar", () => {
   it("会話画面では帯を出さない（Talk ボードに帯は無い）", async () => {
     await renderShell("/chat/abc");
     expect(screen.queryByRole("navigation", { name: "メイン" })).toBeNull();
+  });
+
+  it("マイの奥の画面（設定・通知の設定）では帯を出さない", async () => {
+    for (const path of ["/settings", "/notifications"]) {
+      await renderShell(path);
+      expect(screen.queryByRole("navigation", { name: "メイン" })).toBeNull();
+    }
   });
 });

@@ -13,6 +13,7 @@ const {
   readChatMode,
   readChatStyle,
   readHandedness,
+  readNotificationSettings,
   readSafeMode,
   readUserPersona,
   readVoiceAutoplay,
@@ -157,6 +158,7 @@ describe("readUserPersona / setUserPersona", () => {
 describe("settings API", () => {
   it("GET は現在値、PUT で更新して次回 GET に反映される", async () => {
     const before = await (await handleSettingsReadRequest()).json();
+    const notify = await readNotificationSettings(local.d1, "local");
     expect(before).toEqual({
       safeMode: await readSafeMode(local.d1, "local"),
       chatMode: await readChatMode(local.d1, "local"),
@@ -164,6 +166,12 @@ describe("settings API", () => {
       voiceAutoplay: await readVoiceAutoplay(local.d1, "local"),
       userPersona: await readUserPersona(local.d1, "local"),
       handedness: await readHandedness(local.d1, "local"),
+      notifyEnabled: notify.enabled,
+      notifyProactive: notify.proactive,
+      notifyFeed: notify.feed,
+      notifyCall: notify.call,
+      notifyAnniversary: notify.anniversary,
+      notifyHideText: notify.hideText,
     });
 
     const put = await handleSettingsWriteRequest(
@@ -194,6 +202,7 @@ describe("settings API", () => {
       style: string;
       voiceAutoplay: boolean;
     } = await put.json();
+    const notify = await readNotificationSettings(local.d1, "local");
     const expected = {
       safeMode: true,
       chatMode: "quality",
@@ -201,6 +210,12 @@ describe("settings API", () => {
       voiceAutoplay: await readVoiceAutoplay(local.d1, "local"),
       userPersona: await readUserPersona(local.d1, "local"),
       handedness: await readHandedness(local.d1, "local"),
+      notifyEnabled: notify.enabled,
+      notifyProactive: notify.proactive,
+      notifyFeed: notify.feed,
+      notifyCall: notify.call,
+      notifyAnniversary: notify.anniversary,
+      notifyHideText: notify.hideText,
     };
     expect(body).toEqual(expected);
     expect(await (await handleSettingsReadRequest()).json()).toEqual(expected);
@@ -262,6 +277,35 @@ describe("settings API", () => {
     expect(await readChatStyle(local.d1, "local")).toBe("prose");
   });
 
+  it("PUT は通知設定を1キーずつ更新でき、他列を上書きせん", async () => {
+    const put = await handleSettingsWriteRequest(
+      new Request("https://x/api/settings", {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ notifyHideText: false }),
+      }),
+    );
+    expect(put.status).toBe(200);
+    const notify = await readNotificationSettings(local.d1, "local");
+    expect(notify.hideText).toBe(false);
+    // 既定 ON のままの項目と他の設定列は動いていない。
+    expect(notify.proactive).toBe(true);
+    expect(await readSafeMode(local.d1, "local")).toBe(true);
+
+    const off = await handleSettingsWriteRequest(
+      new Request("https://x/api/settings", {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ notifyEnabled: true, notifyProactive: false }),
+      }),
+    );
+    expect(off.status).toBe(200);
+    const after = await readNotificationSettings(local.d1, "local");
+    expect(after.enabled).toBe(true);
+    expect(after.proactive).toBe(false);
+    expect(after.hideText).toBe(false);
+  });
+
   it("PUT は型の違う safeMode・未対応の chatMode・空の更新を 400 で弾く", async () => {
     for (const body of [
       { safeMode: "yes" },
@@ -269,6 +313,7 @@ describe("settings API", () => {
       { style: "poetic" },
       { userPersona: 42 },
       { handedness: "both" },
+      { notifyEnabled: "yes" },
       {},
       { other: 1 },
     ]) {

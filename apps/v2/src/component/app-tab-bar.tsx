@@ -99,7 +99,8 @@ const isMakeSubScreen = (path: string) =>
   ["/clips", "/stories", "/groups"].some((base) => startsWithSegment(path, base));
 
 // マイの奥（戻るの付く画面）も帯を出さない（板 Settings・Notifications・LearnedPrefs・History に帯は無い）
-const isMySubScreen = (path: string) => startsWithSegment(path, "/settings");
+const isMySubScreen = (path: string) =>
+  startsWithSegment(path, "/settings") || startsWithSegment(path, "/notifications");
 
 // Talk（会話・グループ会話）とリーダーは絵と入力欄が画面いっぱいなので、ボードどおり帯を出さない
 const isImmersive = (path: string) =>

@@ -15,7 +15,8 @@ import { LOCAL_USER_ID } from "./identity";
 import { createProviderLookup, resolveProvider, retryProviderLookup } from "./openrouter-lookup";
 import { findRecallCue, recallCueLead, type RecallCue } from "./proactive-recall";
 import { reportFailure } from "./log";
-import { sendProactivePush } from "./push";
+import { proactivePushPayloadFor, sendProactivePush } from "./push";
+import { readNotificationSettings } from "./user-settings";
 
 import type { ProactiveNotificationSink } from "./proactive-notification-store";
 import type { BaseChatModel } from "@langchain/core/language_models/chat_models";
@@ -193,11 +194,15 @@ export const createEnvProactiveSink = async (env: {
     }),
     providerLookup: (upstreamId) => retryProviderLookup(lookup, upstreamId),
     push: async ({ characterId, characterName, text, conversationId }) => {
+      // 「通知の設定」の正本は v2_user_settings。受け取る・話しかけが切れている時は
+      // メッセージの保存だけ残して push は送らん（文を隠す時は汎用文になる）。
+      const notify = await readNotificationSettings(env.DB, LOCAL_USER_ID);
+      const payload = proactivePushPayloadFor(notify, { characterName, text });
+      if (!payload) return;
       await sendProactivePush(db, env, {
         userId: LOCAL_USER_ID,
         payload: {
-          title: characterName,
-          body: text,
+          ...payload,
           url: `/chat/${characterId}?conversationId=${conversationId}`,
           tag: conversationId,
         },

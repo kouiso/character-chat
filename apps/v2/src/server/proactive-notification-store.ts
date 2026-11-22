@@ -17,6 +17,8 @@ import type {
 export type ProactiveNotificationTransaction = {
   get<T>(key: string): Promise<T | undefined>;
   put<T>(key: string, value: T): Promise<void>;
+  // キャラごとの enabled 一覧を引くために prefix 走査だけ使う。
+  list<T>(options: { prefix: string }): Promise<Map<string, T>>;
   setAlarm(time: number): Promise<void>;
   deleteAlarm(): Promise<void>;
 };
@@ -230,6 +232,22 @@ export class ProactiveNotificationStore {
     );
   }
 
+  // 「話しかけてくる子」の一覧用。:enabled: キーだけを prefix 走査で集める。
+  // キーのキャラ ID は入れる時に encodeURIComponent 済みなので戻す時に decode する。
+  listEnabled(): Promise<Record<string, boolean>> {
+    const enabledPrefix = `${this.prefix}:enabled:`;
+    return this.serialize(() =>
+      this.storage.transaction(async (transaction) => {
+        const entries = await transaction.list<boolean>({ prefix: enabledPrefix });
+        const enabled: Record<string, boolean> = {};
+        for (const [key, value] of entries) {
+          enabled[decodeURIComponent(key.slice(enabledPrefix.length))] = value === true;
+        }
+        return enabled;
+      }),
+    );
+  }
+
   getSchedule(): Promise<ProactiveSchedule[]> {
     return this.serialize(() =>
       this.storage.transaction(
@@ -244,6 +262,8 @@ export class ProactiveNotificationStore {
     return this.serialize(() =>
       this.storage.transaction(async (transaction) => {
         await transaction.put(`${this.prefix}:enabled:${validateId(characterId)}`, enabled);
+        // 未設定の子に予定を立てる既定値の注入は API 境界（scheduler の /enabled）でやる。
+        // ここは印と予定の同期だけに留め、store の単体テストが見る挙動を変えん。
         const settings = await transaction.get<ProactiveCharacterSettings>(settingsKey);
         if (!settings) return;
         const state = await this.readSchedule(transaction);

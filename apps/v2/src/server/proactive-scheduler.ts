@@ -2,6 +2,7 @@ import { DurableObject } from "cloudflare:workers";
 import { z } from "zod";
 
 import { LOCAL_USER_ID } from "./identity";
+import { DEFAULT_PROACTIVE_SETTINGS } from "./proactive-notification-policy";
 import { ProactiveNotificationStore } from "./proactive-notification-store";
 import { createEnvProactiveSink } from "./proactive-sink";
 
@@ -74,7 +75,12 @@ export class ProactiveScheduler extends DurableObject<Cloudflare.Env> {
   private async postEnabled(request: Request): Promise<Response> {
     const parsed = EnabledBody.safeParse(await request.json());
     if (!parsed.success) return json(400, { message: "invalid enabled" });
-    await this.store.setCharacterEnabled(parsed.data.characterId, parsed.data.enabled);
+    // 未設定の子を入れた時は TalkSettings 板の既定で設定ごと立てる。
+    // 印だけだと予定が無くて一向に届かん（正直な入切りにするため）。
+    const existing = await this.store.getCharacterSettings(parsed.data.characterId);
+    if (parsed.data.enabled && !existing)
+      await this.store.configureCharacter(parsed.data.characterId, DEFAULT_PROACTIVE_SETTINGS);
+    else await this.store.setCharacterEnabled(parsed.data.characterId, parsed.data.enabled);
     return json(200, { ok: true });
   }
 
@@ -90,6 +96,8 @@ export class ProactiveScheduler extends DurableObject<Cloudflare.Env> {
     const routes: Record<string, () => Promise<Response>> = {
       "PUT /settings": () => this.putSettings(request),
       "GET /settings": () => this.getSettings(url),
+      // 「話しかけてくる子」の一覧。enabled 印だけをまとめて返す。
+      "GET /enabled": async () => json(200, { enabled: await this.store.listEnabled() }),
       "POST /enabled": () => this.postEnabled(request),
       "POST /activity": () => this.postActivity(request),
       "GET /schedule": async () => json(200, { schedule: await this.store.getSchedule() }),

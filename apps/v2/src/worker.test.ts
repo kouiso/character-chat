@@ -71,6 +71,8 @@ const UNAUTHENTICATED_PROBES = [
   ["GET", "/api/characters/example/versions"],
   ["GET", "/api/characters/example/versions/1"],
   ["GET", "/api/proactive/characters/example/settings"],
+  ["GET", "/api/proactive/enabled"],
+  ["GET", "/notifications"],
   ["GET", "/api/push/vapid-key"],
   ["POST", "/api/push/subscriptions"],
   ["GET", "/api/groups"],

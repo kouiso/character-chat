@@ -19,6 +19,18 @@ export type ProactivePushPayload = {
 export const vapidConfigured = (env: PushVapidConfig): boolean =>
   Boolean(env.VAPID_PUBLIC_KEY && env.VAPID_PRIVATE_KEY);
 
+// 「通知の設定」の反映。受け取る・話しかけが切れている時は null（送らない）。
+// 「通知の文を隠す」が入っている時はロック画面へ名前と本文を出さん。
+export const proactivePushPayloadFor = (
+  notify: { enabled: boolean; proactive: boolean; hideText: boolean },
+  input: { characterName: string; text: string },
+): { title: string; body: string } | null => {
+  if (!notify.enabled || !notify.proactive) return null;
+  return notify.hideText
+    ? { title: "燈", body: "新しいメッセージがあります" }
+    : { title: input.characterName, body: input.text };
+};
+
 // 着信に失敗した購読（404/410）は端末側で消えているのでDBからも落とす。
 const GONE_STATUSES = new Set([404, 410]);
 

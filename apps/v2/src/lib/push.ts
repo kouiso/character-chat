@@ -34,8 +34,8 @@ const postSubscription = async (subscription: PushSubscription): Promise<boolean
 
 const pushSupported = (): boolean =>
   typeof navigator !== "undefined" &&
-  "serviceWorker" in navigator &&
-  "PushManager" in globalThis &&
+  typeof navigator.serviceWorker === "object" &&
+  typeof globalThis.PushManager === "function" &&
   typeof Notification !== "undefined";
 
 const fetchVapidKey = async (): Promise<string | null | undefined> => {
