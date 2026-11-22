@@ -174,7 +174,15 @@ const CharRow = ({ character, index }: { character: MyCharacter; index: number }
   </div>
 );
 
-const NavRow = ({ label, value, to }: { label: string; value?: string; to?: "/" | "/catalog" }) => {
+const NavRow = ({
+  label,
+  value,
+  to,
+}: {
+  label: string;
+  value?: string;
+  to?: "/" | "/catalog" | "/settings";
+}) => {
   // まだ行き先の画面が無い項目は、見た目だけ揃えて押せないまま置く
   const inner = (
     <>
@@ -337,7 +345,7 @@ export const MyScreen = ({ characters }: { characters: MyCharacter[] }) => {
           </div>
           <div className="v2-my-card">
             <NavRow label="AI がおぼえた好み" />
-            <NavRow label="設定" />
+            <NavRow label="設定" to="/settings" />
             <NavRow label="通知の設定" />
           </div>
         </nav>

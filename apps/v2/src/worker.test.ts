@@ -160,6 +160,7 @@ const UNAUTHENTICATED_PROBES = [
   ["GET", "/create"],
   ["GET", "/album"],
   ["GET", "/my"],
+  ["GET", "/settings"],
   ["GET", "/api/clips"],
   ["GET", "/api/clip-media/example"],
   ["GET", "/api/clips/example"],

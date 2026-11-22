@@ -1,0 +1,1 @@
+ALTER TABLE `v2_user_settings` ADD `handedness` text DEFAULT 'right' NOT NULL;

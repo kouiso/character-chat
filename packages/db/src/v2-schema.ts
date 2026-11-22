@@ -714,6 +714,8 @@ export const v2UserSettingsTable = sqliteTable("v2_user_settings", {
   voiceAutoplay: integer("voice_autoplay").notNull().default(0),
   // RIT-30 ギャップ: 「AIから見たユーザー」の人物像。空文字は未設定と同じ扱い。
   userPersona: text("user_persona"),
+  // 燈デザイン「持つ手」。right/left。左はトークの送信と「＋」の並びを左右入れ替える。
+  handedness: text("handedness").notNull().default("right"),
   updatedAt: integer("updated_at").notNull(),
 });
 
