@@ -39,6 +39,12 @@ export const handleProactiveSettings = async (
   });
 };
 
+// GET /api/proactive/enabled — 「話しかけてくる子」の一覧用に enabled 印をまとめて返す。
+export const handleProactiveEnabledList = async (): Promise<Response> => {
+  const { env } = await getPlatform();
+  return doFetch(env, "/enabled", { method: "GET" });
+};
+
 // 会話ターンの受付から呼ぶ。失敗しても返信を遅らせんよう waitUntil 側へ投げる想定。
 export const recordProactiveActivity = async (characterId: string): Promise<void> => {
   const { env } = await getPlatform();

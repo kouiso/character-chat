@@ -181,7 +181,7 @@ const NavRow = ({
 }: {
   label: string;
   value?: string;
-  to?: "/" | "/catalog" | "/settings";
+  to?: "/" | "/catalog" | "/settings" | "/notifications";
 }) => {
   // まだ行き先の画面が無い項目は、見た目だけ揃えて押せないまま置く
   const inner = (
@@ -346,7 +346,7 @@ export const MyScreen = ({ characters }: { characters: MyCharacter[] }) => {
           <div className="v2-my-card">
             <NavRow label="AI がおぼえた好み" />
             <NavRow label="設定" to="/settings" />
-            <NavRow label="通知の設定" />
+            <NavRow label="通知の設定" to="/notifications" />
           </div>
         </nav>
       </div>

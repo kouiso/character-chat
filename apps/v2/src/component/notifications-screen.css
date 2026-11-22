@@ -1,0 +1,559 @@
+/* 通知の設定（板 Notifications）。色・寸法は design-token.css の変数だけを使う。
+   形は設定画面（settings-screen.css）と同じ札・つまみ・失敗の並び。 */
+
+.v2-notify-page {
+  min-height: 100dvh;
+  background: var(--gradient-ground);
+  color: var(--color-text);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+  font-weight: 500;
+  letter-spacing: var(--text-tracking);
+  display: flex;
+  flex-direction: column;
+}
+
+.v2-notify-header {
+  flex: none;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 8px;
+}
+
+.v2-notify-icon-button {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.v2-notify-title {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+  font-size: var(--text-title-size);
+  line-height: var(--text-title-line);
+  font-weight: 700;
+  letter-spacing: var(--text-tracking-title);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.v2-notify-body {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  padding: 0 var(--space-gutter);
+}
+
+.v2-notify-note {
+  margin: 0;
+  flex: none;
+  color: var(--color-text-sub);
+  font-size: var(--text-note-size);
+  line-height: var(--text-note-line);
+  font-weight: 500;
+  letter-spacing: var(--text-tracking);
+  padding: 0 4px;
+}
+
+.v2-notify-gap-8 {
+  flex: none;
+  height: 8px;
+}
+.v2-notify-gap-16 {
+  flex: none;
+  height: 16px;
+}
+.v2-notify-gap-24 {
+  flex: none;
+  height: 24px;
+}
+.v2-notify-gap-32 {
+  flex: none;
+  height: 32px;
+}
+
+.v2-notify-section {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.v2-notify-section-title {
+  margin: 0;
+  color: var(--color-text);
+  font-size: var(--text-row-size);
+  line-height: var(--text-row-line);
+  font-weight: 700;
+  letter-spacing: var(--text-tracking-strong);
+  padding: 0 4px;
+}
+
+.v2-notify-group {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.v2-notify-card {
+  flex: none;
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  background: var(--gradient-surface);
+  box-shadow: var(--shadow-surface);
+  display: flex;
+  flex-direction: column;
+}
+
+.v2-notify-switch-row {
+  font: inherit;
+  margin: 0;
+  border: 0;
+  appearance: none;
+  height: 52px;
+  padding: 0 16px;
+  background: transparent;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+  font-weight: 500;
+  letter-spacing: var(--text-tracking);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.v2-notify-row-label {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* つまみ（入・切）。設定画面と同じ形。 */
+.v2-notify-switch-track {
+  flex: none;
+  width: 52px;
+  height: 32px;
+  box-sizing: border-box;
+  padding: 3px;
+  border-radius: var(--radius-pill);
+  background: var(--color-well);
+  border: 1px solid var(--color-well-border);
+  display: flex;
+  justify-content: flex-start;
+}
+
+.v2-notify-switch-track.is-on {
+  padding: 4px;
+  border: 0;
+  background: var(--gradient-peach);
+  justify-content: flex-end;
+}
+
+.v2-notify-switch-knob {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-pill);
+  background: var(--color-text-sub);
+}
+
+.v2-notify-switch-track.is-on .v2-notify-switch-knob {
+  background: var(--color-on-peach);
+}
+
+/* 許可ゲートの文と「もう一度」・「追加のしかた」ボタン */
+.v2-notify-gate {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 0 4px;
+}
+
+.v2-notify-retry {
+  font: inherit;
+  margin: 0;
+  border: 0;
+  appearance: none;
+  flex: none;
+  align-self: flex-start;
+  height: 44px;
+  padding: 0 16px 0 12px;
+  border-radius: var(--radius-pill);
+  background: var(--gradient-press);
+  box-shadow: var(--shadow-press);
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-row-size);
+  line-height: var(--text-row-line);
+  font-weight: 700;
+  letter-spacing: var(--text-tracking-strong);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.v2-notify-caption {
+  margin: 0;
+  flex: none;
+  color: var(--color-text-sub);
+  font-size: var(--text-note-size);
+  line-height: var(--text-note-line);
+  font-weight: 700;
+  letter-spacing: var(--text-tracking-strong);
+  padding: 0 4px;
+}
+
+/* ロック画面の例（板「ロック画面にはこう出ます」） */
+.v2-notify-preview {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 16px;
+  border-radius: var(--radius-card);
+  background: var(--gradient-surface);
+  box-shadow: var(--shadow-surface);
+}
+
+.v2-notify-preview-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.v2-notify-preview-app {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--text-note-size);
+  line-height: var(--text-note-line);
+  font-weight: 700;
+  letter-spacing: var(--text-tracking-strong);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.v2-notify-preview-time {
+  flex: none;
+  color: var(--color-text-sub);
+  font-size: var(--text-note-size);
+  line-height: var(--text-note-line);
+  font-weight: 500;
+  letter-spacing: var(--text-tracking);
+}
+
+.v2-notify-preview-body {
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+  font-weight: 500;
+  letter-spacing: var(--text-tracking);
+}
+
+/* 「話しかけてくる子」の行（板: 顔44px＋名＋つまみ、64px） */
+.v2-notify-child-wrap {
+  display: flex;
+  flex-direction: column;
+}
+
+.v2-notify-child-row {
+  height: 64px;
+  padding: 0 12px 0 10px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.v2-notify-child-face {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-pill);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-title-size);
+  line-height: var(--text-title-line);
+  font-weight: 700;
+  color: var(--color-text);
+  box-shadow: var(--edge-top-press);
+  overflow: hidden;
+  position: relative;
+}
+
+.v2-notify-child-face.plate-1 {
+  background: var(--color-initial-plate-1);
+}
+.v2-notify-child-face.plate-2 {
+  background: var(--color-initial-plate-2);
+}
+.v2-notify-child-face.plate-3 {
+  background: var(--color-initial-plate-3);
+}
+.v2-notify-child-face.plate-4 {
+  background: var(--color-initial-plate-4);
+}
+
+.v2-notify-child-face img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.v2-notify-child-name {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.v2-notify-child-switch {
+  font: inherit;
+  margin: 0;
+  border: 0;
+  appearance: none;
+  flex: none;
+  padding: 0;
+  background: transparent;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+/* 「話しかけてくる子」がいない時（板: 文2行＋「出会うへ」） */
+.v2-notify-empty {
+  align-items: flex-start;
+  gap: 4px;
+  padding: 16px;
+}
+
+.v2-notify-empty-title {
+  margin: 0;
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+  font-weight: 700;
+  letter-spacing: var(--text-tracking-strong);
+}
+
+.v2-notify-empty-sub {
+  margin: 0;
+  color: var(--color-text-sub);
+  font-size: var(--text-note-size);
+  line-height: var(--text-note-line);
+  font-weight: 500;
+  letter-spacing: var(--text-tracking);
+}
+
+.v2-notify-empty-link {
+  margin-top: 8px;
+  align-self: flex-start;
+  height: 44px;
+  padding: 0 20px;
+  border-radius: var(--radius-pill);
+  background: var(--gradient-press);
+  box-shadow: var(--shadow-press);
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  font-size: var(--text-row-size);
+  line-height: var(--text-row-line);
+  font-weight: 700;
+  letter-spacing: var(--text-tracking-strong);
+  text-decoration: none;
+}
+
+/* 失敗の形「項目の下」（板「切り替えを保存できなかった時」） */
+.v2-notify-failure {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 0 4px;
+}
+
+.v2-notify-failure-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  color: var(--color-danger);
+  font-size: var(--text-note-size);
+  line-height: var(--text-note-line);
+  font-weight: 500;
+  letter-spacing: var(--text-tracking);
+}
+
+.v2-notify-failure-icon {
+  flex: none;
+  height: 20px;
+  display: flex;
+  align-items: center;
+}
+
+/* 「追加のしかた」のシート（板: 下からのシート・手順3つ） */
+.v2-notify-sheet-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  background: var(--color-scrim);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.v2-notify-sheet {
+  width: 100%;
+  max-width: 430px;
+  box-sizing: border-box;
+  border-radius: var(--radius-sheet);
+  background: var(--color-bar);
+  box-shadow: var(--shadow-sheet);
+  display: flex;
+  flex-direction: column;
+  padding: 8px var(--space-edge) 24px;
+}
+
+.v2-notify-sheet-grabber {
+  align-self: center;
+  width: 36px;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--color-grabber);
+}
+
+.v2-notify-sheet-head {
+  display: flex;
+  align-items: center;
+  height: 52px;
+  padding: 0 0 0 4px;
+}
+
+.v2-notify-sheet-head h2 {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+  font-size: var(--text-title-size);
+  line-height: var(--text-title-line);
+  font-weight: 700;
+  letter-spacing: var(--text-tracking-title);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.v2-notify-steps {
+  margin: 0;
+  padding: 0 4px 0 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+  font-weight: 500;
+  letter-spacing: var(--text-tracking);
+}
+
+/* 読み込み中の骨組み（板「読み込んでいる間」） */
+.v2-notify-skeleton {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 8px var(--space-gutter) 32px;
+}
+
+.v2-notify-skeleton-label-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0 4px;
+}
+
+.v2-notify-skeleton-label-wrap.is-next {
+  padding: 8px 4px 0;
+}
+
+.v2-notify-skeleton-label {
+  flex: none;
+  height: 12px;
+  border-radius: var(--radius-tail);
+  background: var(--color-skeleton-hi);
+  display: block;
+}
+
+.v2-notify-skeleton-card {
+  flex: none;
+  height: 52px;
+  border-radius: var(--radius-card);
+  background: var(--color-skeleton-lo);
+  display: block;
+}
+
+/* 読み込みの失敗（板「通知の設定を読み込めなかった時」） */
+.v2-notify-error-body {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  padding: 4px var(--space-gutter) 32px;
+}
+
+.v2-notify-error-card {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border-radius: var(--radius-card);
+  background: var(--gradient-surface);
+  box-shadow: var(--shadow-surface);
+}
+
+.v2-notify-error-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.v2-notify-error-icon {
+  flex: none;
+  height: 28px;
+  color: var(--color-danger);
+  display: flex;
+  align-items: center;
+}
+
+.v2-notify-error-text {
+  flex: 1;
+  min-width: 0;
+  color: var(--color-text);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+  font-weight: 500;
+  letter-spacing: var(--text-tracking);
+}

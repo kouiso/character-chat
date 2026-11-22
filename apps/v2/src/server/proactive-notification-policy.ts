@@ -1,5 +1,14 @@
 export const DEFAULT_PROACTIVE_DAILY_LIMIT = 3;
 
+// 板 TalkSettings「ふだん（話しかけるが入っている時）」の初期値。
+// 通知の設定画面から入れた時も同じ既定で動くよう、未設定キャラはこれで立てる。
+export const DEFAULT_PROACTIVE_SETTINGS: ProactiveCharacterSettings = {
+  enabled: true,
+  dailyLimit: DEFAULT_PROACTIVE_DAILY_LIMIT,
+  idleMinutes: 180,
+  quietHours: { startMinute: 23 * 60, endMinute: 7 * 60 },
+};
+
 const MINUTE_MS = 60_000;
 const DAY_MS = 24 * 60 * MINUTE_MS;
 const JAPAN_OFFSET_MS = 9 * 60 * MINUTE_MS;

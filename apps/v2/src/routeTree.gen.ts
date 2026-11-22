@@ -16,6 +16,7 @@ import { Route as CatalogRouteImport } from './routes/catalog'
 import { Route as ClipsRouteImport } from './routes/clips'
 import { Route as CreateRouteImport } from './routes/create'
 import { Route as MyRouteImport } from './routes/my'
+import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as RevenueRouteImport } from './routes/revenue'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ApiBoardRouteImport } from './routes/api/board'
@@ -57,6 +58,7 @@ import { Route as ApiCurrencyDailyPassRouteImport } from './routes/api/currency/
 import { Route as ApiCurrencyLoginBonusRouteImport } from './routes/api/currency/login-bonus'
 import { Route as ApiMediaIdRouteImport } from './routes/api/media/$id'
 import { Route as ApiPlanCancelRouteImport } from './routes/api/plan/cancel'
+import { Route as ApiProactiveEnabledRouteImport } from './routes/api/proactive/enabled'
 import { Route as ApiPushSubscriptionsRouteImport } from './routes/api/push/subscriptions'
 import { Route as ApiPushVapidKeyRouteImport } from './routes/api/push/vapid-key'
 import { Route as ApiRevenueAggregateRouteImport } from './routes/api/revenue_/aggregate'
@@ -140,6 +142,11 @@ const CreateRoute = CreateRouteImport.update({
 const MyRoute = MyRouteImport.update({
   id: '/my',
   path: '/my',
+  getParentRoute: () => rootRouteImport,
+})
+const NotificationsRoute = NotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
   getParentRoute: () => rootRouteImport,
 })
 const RevenueRoute = RevenueRouteImport.update({
@@ -346,6 +353,11 @@ const ApiPlanCancelRoute = ApiPlanCancelRouteImport.update({
   id: '/cancel',
   path: '/cancel',
   getParentRoute: () => ApiPlanRoute,
+})
+const ApiProactiveEnabledRoute = ApiProactiveEnabledRouteImport.update({
+  id: '/api/proactive/enabled',
+  path: '/api/proactive/enabled',
+  getParentRoute: () => rootRouteImport,
 })
 const ApiPushSubscriptionsRoute = ApiPushSubscriptionsRouteImport.update({
   id: '/api/push/subscriptions',
@@ -611,6 +623,7 @@ export interface FileRoutesByFullPath {
   '/clips': typeof ClipsRoute
   '/create': typeof CreateRoute
   '/my': typeof MyRoute
+  '/notifications': typeof NotificationsRoute
   '/revenue': typeof RevenueRoute
   '/settings': typeof SettingsRoute
   '/api/board': typeof ApiBoardRouteWithChildren
@@ -652,6 +665,7 @@ export interface FileRoutesByFullPath {
   '/api/currency/login-bonus': typeof ApiCurrencyLoginBonusRoute
   '/api/media/$id': typeof ApiMediaIdRoute
   '/api/plan/cancel': typeof ApiPlanCancelRoute
+  '/api/proactive/enabled': typeof ApiProactiveEnabledRoute
   '/api/push/subscriptions': typeof ApiPushSubscriptionsRoute
   '/api/push/vapid-key': typeof ApiPushVapidKeyRoute
   '/api/revenue/aggregate': typeof ApiRevenueAggregateRoute
@@ -710,6 +724,7 @@ export interface FileRoutesByTo {
   '/clips': typeof ClipsRoute
   '/create': typeof CreateRoute
   '/my': typeof MyRoute
+  '/notifications': typeof NotificationsRoute
   '/revenue': typeof RevenueRoute
   '/settings': typeof SettingsRoute
   '/api/board': typeof ApiBoardRouteWithChildren
@@ -751,6 +766,7 @@ export interface FileRoutesByTo {
   '/api/currency/login-bonus': typeof ApiCurrencyLoginBonusRoute
   '/api/media/$id': typeof ApiMediaIdRoute
   '/api/plan/cancel': typeof ApiPlanCancelRoute
+  '/api/proactive/enabled': typeof ApiProactiveEnabledRoute
   '/api/push/subscriptions': typeof ApiPushSubscriptionsRoute
   '/api/push/vapid-key': typeof ApiPushVapidKeyRoute
   '/api/revenue/aggregate': typeof ApiRevenueAggregateRoute
@@ -810,6 +826,7 @@ export interface FileRoutesById {
   '/clips': typeof ClipsRoute
   '/create': typeof CreateRoute
   '/my': typeof MyRoute
+  '/notifications': typeof NotificationsRoute
   '/revenue': typeof RevenueRoute
   '/settings': typeof SettingsRoute
   '/api/board': typeof ApiBoardRouteWithChildren
@@ -851,6 +868,7 @@ export interface FileRoutesById {
   '/api/currency/login-bonus': typeof ApiCurrencyLoginBonusRoute
   '/api/media/$id': typeof ApiMediaIdRoute
   '/api/plan/cancel': typeof ApiPlanCancelRoute
+  '/api/proactive/enabled': typeof ApiProactiveEnabledRoute
   '/api/push/subscriptions': typeof ApiPushSubscriptionsRoute
   '/api/push/vapid-key': typeof ApiPushVapidKeyRoute
   '/api/revenue_/aggregate': typeof ApiRevenueAggregateRoute
@@ -911,6 +929,7 @@ export interface FileRouteTypes {
     | '/clips'
     | '/create'
     | '/my'
+    | '/notifications'
     | '/revenue'
     | '/settings'
     | '/api/board'
@@ -952,6 +971,7 @@ export interface FileRouteTypes {
     | '/api/currency/login-bonus'
     | '/api/media/$id'
     | '/api/plan/cancel'
+    | '/api/proactive/enabled'
     | '/api/push/subscriptions'
     | '/api/push/vapid-key'
     | '/api/revenue/aggregate'
@@ -1010,6 +1030,7 @@ export interface FileRouteTypes {
     | '/clips'
     | '/create'
     | '/my'
+    | '/notifications'
     | '/revenue'
     | '/settings'
     | '/api/board'
@@ -1051,6 +1072,7 @@ export interface FileRouteTypes {
     | '/api/currency/login-bonus'
     | '/api/media/$id'
     | '/api/plan/cancel'
+    | '/api/proactive/enabled'
     | '/api/push/subscriptions'
     | '/api/push/vapid-key'
     | '/api/revenue/aggregate'
@@ -1109,6 +1131,7 @@ export interface FileRouteTypes {
     | '/clips'
     | '/create'
     | '/my'
+    | '/notifications'
     | '/revenue'
     | '/settings'
     | '/api/board'
@@ -1150,6 +1173,7 @@ export interface FileRouteTypes {
     | '/api/currency/login-bonus'
     | '/api/media/$id'
     | '/api/plan/cancel'
+    | '/api/proactive/enabled'
     | '/api/push/subscriptions'
     | '/api/push/vapid-key'
     | '/api/revenue_/aggregate'
@@ -1209,6 +1233,7 @@ export interface RootRouteChildren {
   ClipsRoute: typeof ClipsRoute
   CreateRoute: typeof CreateRoute
   MyRoute: typeof MyRoute
+  NotificationsRoute: typeof NotificationsRoute
   RevenueRoute: typeof RevenueRoute
   SettingsRoute: typeof SettingsRoute
   ApiBoardRoute: typeof ApiBoardRouteWithChildren
@@ -1242,6 +1267,7 @@ export interface RootRouteChildren {
   ApiChatIdRoute: typeof ApiChatIdRoute
   ApiClipMediaIdRoute: typeof ApiClipMediaIdRoute
   ApiMediaIdRoute: typeof ApiMediaIdRoute
+  ApiProactiveEnabledRoute: typeof ApiProactiveEnabledRoute
   ApiPushSubscriptionsRoute: typeof ApiPushSubscriptionsRoute
   ApiPushVapidKeyRoute: typeof ApiPushVapidKeyRoute
   ApiRevenueAggregateRoute: typeof ApiRevenueAggregateRoute
@@ -1313,6 +1339,13 @@ declare module '@tanstack/react-router' {
       path: '/my'
       fullPath: '/my'
       preLoaderRoute: typeof MyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notifications': {
+      id: '/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof NotificationsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/revenue': {
@@ -1601,6 +1634,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/plan/cancel'
       preLoaderRoute: typeof ApiPlanCancelRouteImport
       parentRoute: typeof ApiPlanRoute
+    }
+    '/api/proactive/enabled': {
+      id: '/api/proactive/enabled'
+      path: '/api/proactive/enabled'
+      fullPath: '/api/proactive/enabled'
+      preLoaderRoute: typeof ApiProactiveEnabledRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/push/subscriptions': {
       id: '/api/push/subscriptions'
@@ -2174,6 +2214,7 @@ const rootRouteChildren: RootRouteChildren = {
   ClipsRoute: ClipsRoute,
   CreateRoute: CreateRoute,
   MyRoute: MyRoute,
+  NotificationsRoute: NotificationsRoute,
   RevenueRoute: RevenueRoute,
   SettingsRoute: SettingsRoute,
   ApiBoardRoute: ApiBoardRouteWithChildren,
@@ -2207,6 +2248,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiChatIdRoute: ApiChatIdRoute,
   ApiClipMediaIdRoute: ApiClipMediaIdRoute,
   ApiMediaIdRoute: ApiMediaIdRoute,
+  ApiProactiveEnabledRoute: ApiProactiveEnabledRoute,
   ApiPushSubscriptionsRoute: ApiPushSubscriptionsRoute,
   ApiPushVapidKeyRoute: ApiPushVapidKeyRoute,
   ApiRevenueAggregateRoute: ApiRevenueAggregateRoute,
