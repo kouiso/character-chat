@@ -2,7 +2,7 @@
   "version": "6",
   "dialect": "sqlite",
   "id": "479b4bb6-6db1-472b-86fa-68a654d8724b",
-  "prevId": "a68393f3-271d-4e45-8793-a4f9a906cdd1",
+  "prevId": "b131d859-e4aa-4cb2-8d12-9af42c046229",
   "tables": {
     "character_default_outfit_tag": {
       "name": "character_default_outfit_tag",
@@ -4495,6 +4495,13 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
+        },
+        "memory_retrieval": {
+          "name": "memory_retrieval",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
         }
       },
       "indexes": {
@@ -6179,11 +6186,39 @@
           "notNull": true,
           "autoincrement": false
         },
+        "from_turn": {
+          "name": "from_turn",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "to_turn": {
+          "name": "to_turn",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
         "text": {
           "name": "text",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
+          "autoincrement": false
+        },
+        "source_hash": {
+          "name": "source_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "invalidated_at": {
+          "name": "invalidated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
           "autoincrement": false
         },
         "redact_pending": {
@@ -6211,6 +6246,27 @@
             "covered_to"
           ],
           "isUnique": false
+        },
+        "v2_summary_active_idx": {
+          "name": "v2_summary_active_idx",
+          "columns": [
+            "conversation_id",
+            "invalidated_at",
+            "level",
+            "to_turn"
+          ],
+          "isUnique": false
+        },
+        "v2_summary_range_uq": {
+          "name": "v2_summary_range_uq",
+          "columns": [
+            "conversation_id",
+            "level",
+            "from_turn",
+            "to_turn",
+            "source_hash"
+          ],
+          "isUnique": true
         }
       },
       "foreignKeys": {
@@ -6497,6 +6553,92 @@
       },
       "uniqueConstraints": {},
       "checkConstraints": {}
+    },
+    "v2_generation_memory": {
+      "name": "v2_generation_memory",
+      "columns": {
+        "generation_id": {
+          "name": "generation_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "memory_id": {
+          "name": "memory_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "rank": {
+          "name": "rank",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "via": {
+          "name": "via",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "v2_generation_memory_memory_idx": {
+          "name": "v2_generation_memory_memory_idx",
+          "columns": [
+            "memory_id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "v2_generation_memory_generation_id_v2_generation_id_fk": {
+          "name": "v2_generation_memory_generation_id_v2_generation_id_fk",
+          "tableFrom": "v2_generation_memory",
+          "tableTo": "v2_generation",
+          "columnsFrom": [
+            "generation_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "v2_generation_memory_memory_id_v2_memory_id_fk": {
+          "name": "v2_generation_memory_memory_id_v2_memory_id_fk",
+          "tableFrom": "v2_generation_memory",
+          "tableTo": "v2_memory",
+          "columnsFrom": [
+            "memory_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "v2_generation_memory_generation_id_memory_id_pk": {
+          "columns": [
+            "generation_id",
+            "memory_id"
+          ],
+          "name": "v2_generation_memory_generation_id_memory_id_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "v2_generation_memory_via_check": {
+          "name": "v2_generation_memory_via_check",
+          "value": "\"v2_generation_memory\".\"via\" in ('pinned','search')"
+        }
+      }
     }
   },
   "views": {},

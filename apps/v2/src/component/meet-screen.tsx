@@ -538,12 +538,18 @@ const useMeetDrag = ({
     else setDragX(0);
   };
 
+  // 取り消し（OS の割り込み等）は確定せず、カードを中央へ戻すだけにする
+  const onPointerCancel = () => {
+    setDragging(false);
+    setDragX(0);
+  };
+
   return {
     dragX,
     dragging,
     flying,
     fling,
-    stageProps: { onPointerDown, onPointerMove, onPointerUp, onPointerCancel: onPointerUp },
+    stageProps: { onPointerDown, onPointerMove, onPointerUp, onPointerCancel },
   };
 };
 
@@ -614,6 +620,8 @@ const MeetStage = ({
 const MeetDeck = ({
   items,
   keptIds,
+  skipped,
+  setSkipped,
   onKept,
   onShowKept,
   toast,
@@ -621,12 +629,14 @@ const MeetDeck = ({
 }: {
   items: MeetCharacter[];
   keptIds: Set<string>;
+  // 飛ばした履歴は表示切替（デッキ⇔一覧）で消えないよう親が持つ
+  skipped: string[];
+  setSkipped: React.Dispatch<React.SetStateAction<string[]>>;
   onKept: (id: string) => void;
   onShowKept: () => void;
   toast: Toast | null;
   setToast: (toast: Toast | null) => void;
 }) => {
-  const [skipped, setSkipped] = useState<string[]>([]);
   const [settleKey, setSettleKey] = useState<string | null>(null);
   // 初回だけ出る 1 行は SSR とクライアントで見え方を揃えるため、
   // 最初は「見た」として描き、乗ってから実際の記憶を読む
@@ -875,51 +885,68 @@ const MeetWantSheet = ({
   keptCount: number;
   onPick: (want: WantFilter) => void;
   onClose: () => void;
-}) => (
-  <div className="v2-make-scrim" onClick={onClose}>
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-label="見たい子"
-      className="v2-make-sheet"
-      onClick={(event) => event.stopPropagation()}
-    >
-      <div className="v2-make-sheet-grabber" aria-hidden="true" />
-      <div className="v2-make-sheet-head">
-        <h2>見たい子</h2>
-        <button
-          type="button"
-          aria-label="見たい子を閉じる"
-          className="v2-make-icon-button"
-          onClick={onClose}
-        >
-          <XIcon />
-        </button>
-      </div>
-      <div className="v2-meet-want-list">
-        {(Object.keys(WANT_LABELS) as WantFilter[]).map((key) => (
+}) => {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  // シートを開いた時は今選ばれている項へフォーカスを移し、閉じた時は開いた所へ戻す。
+  // 読み上げ利用で「どこにいるか」が分からんままにならんため。
+  useEffect(() => {
+    const restore = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const selected = dialogRef.current?.querySelector<HTMLElement>('[aria-pressed="true"]');
+    (selected ?? dialogRef.current)?.focus();
+    return () => restore?.focus();
+  }, []);
+
+  return (
+    <div className="v2-make-scrim" onClick={onClose}>
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="見たい子"
+        className="v2-make-sheet"
+        ref={dialogRef}
+        tabIndex={-1}
+        onClick={(event) => event.stopPropagation()}
+        onKeyDown={(event) => {
+          if (event.key === "Escape") onClose();
+        }}
+      >
+        <div className="v2-make-sheet-grabber" aria-hidden="true" />
+        <div className="v2-make-sheet-head">
+          <h2>見たい子</h2>
           <button
-            key={key}
             type="button"
-            aria-pressed={want === key}
-            className="v2-meet-want-option"
-            onClick={() => onPick(key)}
+            aria-label="見たい子を閉じる"
+            className="v2-make-icon-button"
+            onClick={onClose}
           >
-            <span>{WANT_LABELS[key]}</span>
-            {key === "kept" && keptCount > 0 && (
-              <span className="v2-meet-want-count">{keptCount} 人</span>
-            )}
-            {want === key && (
-              <span className="v2-meet-want-check">
-                <CheckIcon />
-              </span>
-            )}
+            <XIcon />
           </button>
-        ))}
+        </div>
+        <div className="v2-meet-want-list">
+          {(Object.keys(WANT_LABELS) as WantFilter[]).map((key) => (
+            <button
+              key={key}
+              type="button"
+              aria-pressed={want === key}
+              className="v2-meet-want-option"
+              onClick={() => onPick(key)}
+            >
+              <span>{WANT_LABELS[key]}</span>
+              {key === "kept" && keptCount > 0 && (
+                <span className="v2-meet-want-count">{keptCount} 人</span>
+              )}
+              {want === key && (
+                <span className="v2-meet-want-check">
+                  <CheckIcon />
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 const MeetListTools = ({
   searching,
@@ -1093,6 +1120,7 @@ export const MeetScreen = ({ items }: { items: MeetCharacter[] }) => {
     () => new Set(items.filter((item) => item.keptAt !== null).map((item) => item.id)),
   );
   const [want, setWant] = useState<WantFilter>("all");
+  const [skippedIds, setSkippedIds] = useState<string[]>([]);
 
   // 知らせは 6 秒で消す（板は消え方を書いていないので、次の操作まで残り過ぎない程度）
   useEffect(() => {
@@ -1110,6 +1138,8 @@ export const MeetScreen = ({ items }: { items: MeetCharacter[] }) => {
         <MeetDeck
           items={items}
           keptIds={keptIds}
+          skipped={skippedIds}
+          setSkipped={setSkippedIds}
           onKept={onKept}
           onShowKept={() => {
             setWant("kept");

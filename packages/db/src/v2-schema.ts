@@ -32,7 +32,11 @@ export const v2ConversationTable = sqliteTable(
     createdAt: integer("created_at").notNull(),
     updatedAt: integer("updated_at").notNull(),
   },
-  (table) => [index("v2_conversation_user_updated_idx").on(table.userId, table.updatedAt)],
+  (table) => [
+    index("v2_conversation_user_updated_idx").on(table.userId, table.updatedAt),
+    // 出会う一覧がキャラごとの最終会話時刻を引くので、character_id 先頭の索引が要る
+    index("v2_conversation_character_user_idx").on(table.characterId, table.userId),
+  ],
 );
 
 // キャラの版。content_json が正で、character 表の同名列は互換ミラー。
@@ -912,7 +916,10 @@ export const v2CharacterVoiceTable = sqliteTable("v2_character_voice", {
 export const v2CharacterKeepTable = sqliteTable(
   "v2_character_keep",
   {
-    characterId: text("character_id").notNull(),
+    // キャラが消えたら「とっておく」の印も残さん（孤立行を出さんための cascade）
+    characterId: text("character_id")
+      .notNull()
+      .references(() => characterTable.id, { onDelete: "cascade" }),
     userId: text("user_id").notNull(),
     keptAt: integer("kept_at").notNull(),
   },
