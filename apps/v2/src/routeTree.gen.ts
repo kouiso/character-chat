@@ -17,6 +17,7 @@ import { Route as ClipsRouteImport } from './routes/clips'
 import { Route as CreateRouteImport } from './routes/create'
 import { Route as MyRouteImport } from './routes/my'
 import { Route as RevenueRouteImport } from './routes/revenue'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ApiBoardRouteImport } from './routes/api/board'
 import { Route as ApiCatalogRouteImport } from './routes/api/catalog'
 import { Route as ApiCharactersRouteImport } from './routes/api/characters'
@@ -144,6 +145,11 @@ const MyRoute = MyRouteImport.update({
 const RevenueRoute = RevenueRouteImport.update({
   id: '/revenue',
   path: '/revenue',
+  getParentRoute: () => rootRouteImport,
+})
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => rootRouteImport,
 })
 const ApiBoardRoute = ApiBoardRouteImport.update({
@@ -606,6 +612,7 @@ export interface FileRoutesByFullPath {
   '/create': typeof CreateRoute
   '/my': typeof MyRoute
   '/revenue': typeof RevenueRoute
+  '/settings': typeof SettingsRoute
   '/api/board': typeof ApiBoardRouteWithChildren
   '/api/catalog': typeof ApiCatalogRouteWithChildren
   '/api/characters': typeof ApiCharactersRouteWithChildren
@@ -704,6 +711,7 @@ export interface FileRoutesByTo {
   '/create': typeof CreateRoute
   '/my': typeof MyRoute
   '/revenue': typeof RevenueRoute
+  '/settings': typeof SettingsRoute
   '/api/board': typeof ApiBoardRouteWithChildren
   '/api/catalog': typeof ApiCatalogRouteWithChildren
   '/api/characters': typeof ApiCharactersRouteWithChildren
@@ -803,6 +811,7 @@ export interface FileRoutesById {
   '/create': typeof CreateRoute
   '/my': typeof MyRoute
   '/revenue': typeof RevenueRoute
+  '/settings': typeof SettingsRoute
   '/api/board': typeof ApiBoardRouteWithChildren
   '/api/catalog': typeof ApiCatalogRouteWithChildren
   '/api/characters': typeof ApiCharactersRouteWithChildren
@@ -903,6 +912,7 @@ export interface FileRouteTypes {
     | '/create'
     | '/my'
     | '/revenue'
+    | '/settings'
     | '/api/board'
     | '/api/catalog'
     | '/api/characters'
@@ -1001,6 +1011,7 @@ export interface FileRouteTypes {
     | '/create'
     | '/my'
     | '/revenue'
+    | '/settings'
     | '/api/board'
     | '/api/catalog'
     | '/api/characters'
@@ -1099,6 +1110,7 @@ export interface FileRouteTypes {
     | '/create'
     | '/my'
     | '/revenue'
+    | '/settings'
     | '/api/board'
     | '/api/catalog'
     | '/api/characters'
@@ -1198,6 +1210,7 @@ export interface RootRouteChildren {
   CreateRoute: typeof CreateRoute
   MyRoute: typeof MyRoute
   RevenueRoute: typeof RevenueRoute
+  SettingsRoute: typeof SettingsRoute
   ApiBoardRoute: typeof ApiBoardRouteWithChildren
   ApiCatalogRoute: typeof ApiCatalogRouteWithChildren
   ApiCharactersRoute: typeof ApiCharactersRouteWithChildren
@@ -1307,6 +1320,13 @@ declare module '@tanstack/react-router' {
       path: '/revenue'
       fullPath: '/revenue'
       preLoaderRoute: typeof RevenueRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/board': {
@@ -2155,6 +2175,7 @@ const rootRouteChildren: RootRouteChildren = {
   CreateRoute: CreateRoute,
   MyRoute: MyRoute,
   RevenueRoute: RevenueRoute,
+  SettingsRoute: SettingsRoute,
   ApiBoardRoute: ApiBoardRouteWithChildren,
   ApiCatalogRoute: ApiCatalogRouteWithChildren,
   ApiCharactersRoute: ApiCharactersRouteWithChildren,

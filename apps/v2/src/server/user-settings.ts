@@ -120,6 +120,35 @@ export const readUserPersonaForPrompt = async (
 ): Promise<string | undefined> =>
   db ? (await readUserPersona(db, userId)) || undefined : undefined;
 
+// 燈デザイン「持つ手」。左はトークの送信と「＋」の並びを左右入れ替える。
+export const HANDEDNESSES = ["right", "left"] as const;
+export type Handedness = (typeof HANDEDNESSES)[number];
+const isHandedness = (v: unknown): v is Handedness =>
+  typeof v === "string" && (HANDEDNESSES as readonly string[]).includes(v);
+
+export const readHandedness = async (db: D1Database, userId: string): Promise<Handedness> => {
+  const row = await db
+    .prepare("SELECT handedness FROM v2_user_settings WHERE user_id = ?")
+    .bind(userId)
+    .first<{ handedness: string }>();
+  return isHandedness(row?.handedness) ? row.handedness : "right";
+};
+
+export const setHandedness = async (
+  db: D1Database,
+  userId: string,
+  handedness: Handedness,
+  now: number,
+): Promise<void> => {
+  await db
+    .prepare(
+      "INSERT INTO v2_user_settings (user_id, handedness, updated_at) VALUES (?, ?, ?) " +
+        "ON CONFLICT(user_id) DO UPDATE SET handedness = excluded.handedness, updated_at = excluded.updated_at",
+    )
+    .bind(userId, handedness, now)
+    .run();
+};
+
 export const setUserPersona = async (
   db: D1Database,
   userId: string,

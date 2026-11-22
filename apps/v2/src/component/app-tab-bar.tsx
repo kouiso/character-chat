@@ -98,12 +98,16 @@ const isMakeSubScreen = (path: string) =>
   path === "/characters/new" ||
   ["/clips", "/stories", "/groups"].some((base) => startsWithSegment(path, base));
 
+// マイの奥（戻るの付く画面）も帯を出さない（板 Settings・Notifications・LearnedPrefs・History に帯は無い）
+const isMySubScreen = (path: string) => startsWithSegment(path, "/settings");
+
 // Talk（会話・グループ会話）とリーダーは絵と入力欄が画面いっぱいなので、ボードどおり帯を出さない
 const isImmersive = (path: string) =>
   startsWithSegment(path, "/chat") ||
   /^\/groups\/[^/]+/.test(path) ||
   /^\/stories\/[^/]+\/read/.test(path) ||
-  isMakeSubScreen(path);
+  isMakeSubScreen(path) ||
+  isMySubScreen(path);
 
 export const AppTabBar = () => {
   const path = useRouterState({ select: (state) => state.location.pathname });

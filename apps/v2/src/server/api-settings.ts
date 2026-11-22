@@ -6,14 +6,17 @@ import { getPlatform } from "./platform";
 import {
   CHAT_MODES,
   CHAT_STYLES,
+  HANDEDNESSES,
   USER_PERSONA_MAX_CHARS,
   readChatMode,
   readChatStyle,
+  readHandedness,
   readSafeMode,
   readUserPersona,
   readVoiceAutoplay,
   setChatMode,
   setChatStyle,
+  setHandedness,
   setSafeMode,
   setUserPersona,
   setVoiceAutoplay,
@@ -30,6 +33,7 @@ const readSettings = async () => {
     style: await readChatStyle(env.DB, LOCAL_USER_ID),
     voiceAutoplay: await readVoiceAutoplay(env.DB, LOCAL_USER_ID),
     userPersona: await readUserPersona(env.DB, LOCAL_USER_ID),
+    handedness: await readHandedness(env.DB, LOCAL_USER_ID),
   };
 };
 
@@ -48,6 +52,8 @@ const settingsSchema = z
     voiceAutoplay: z.boolean().optional(),
     // RIT-30 ギャップ: AIから見たユーザーの人物像。
     userPersona: z.string().max(USER_PERSONA_MAX_CHARS).optional(),
+    // 燈デザイン「持つ手」。トークの下の並びの左右。
+    handedness: z.enum(HANDEDNESSES).optional(),
   })
   .refine(
     (body) =>
@@ -55,7 +61,8 @@ const settingsSchema = z
       body.chatMode !== undefined ||
       body.style !== undefined ||
       body.voiceAutoplay !== undefined ||
-      body.userPersona !== undefined,
+      body.userPersona !== undefined ||
+      body.handedness !== undefined,
     {
       message: "更新する項目を1つ以上指定してください。",
     },
@@ -81,5 +88,7 @@ export const handleSettingsWriteRequest = async (request: Request): Promise<Resp
     await setVoiceAutoplay(env.DB, LOCAL_USER_ID, parsed.data.voiceAutoplay, now);
   if (parsed.data.userPersona !== undefined)
     await setUserPersona(env.DB, LOCAL_USER_ID, parsed.data.userPersona, now);
+  if (parsed.data.handedness !== undefined)
+    await setHandedness(env.DB, LOCAL_USER_ID, parsed.data.handedness, now);
   return json(200, await readSettings());
 };

@@ -12,11 +12,13 @@ const { handleSettingsReadRequest, handleSettingsWriteRequest } = await import("
 const {
   readChatMode,
   readChatStyle,
+  readHandedness,
   readSafeMode,
   readUserPersona,
   readVoiceAutoplay,
   setChatMode,
   setChatStyle,
+  setHandedness,
   setSafeMode,
   setUserPersona,
   setVoiceAutoplay,
@@ -110,6 +112,26 @@ describe("readChatStyle / setChatStyle", () => {
   });
 });
 
+// 燈デザイン「持つ手」設定。
+describe("readHandedness / setHandedness", () => {
+  it("行が無いユーザーは既定で right、往復できる", async () => {
+    const userId = `u-${crypto.randomUUID()}`;
+    expect(await readHandedness(local.d1, userId)).toBe("right");
+    await setHandedness(local.d1, userId, "left", T0);
+    expect(await readHandedness(local.d1, userId)).toBe("left");
+    await setHandedness(local.d1, userId, "right", T0 + 1);
+    expect(await readHandedness(local.d1, userId)).toBe("right");
+  });
+
+  it("ほかの設定列を上書きせん", async () => {
+    const userId = `u-${crypto.randomUUID()}`;
+    await setChatMode(local.d1, userId, "light", T0);
+    await setHandedness(local.d1, userId, "left", T0 + 1);
+    expect(await readHandedness(local.d1, userId)).toBe("left");
+    expect(await readChatMode(local.d1, userId)).toBe("light");
+  });
+});
+
 describe("readUserPersona / setUserPersona", () => {
   it("行が無いユーザーは既定で空文字", async () => {
     expect(await readUserPersona(local.d1, `u-${crypto.randomUUID()}`)).toBe("");
@@ -141,6 +163,7 @@ describe("settings API", () => {
       style: await readChatStyle(local.d1, "local"),
       voiceAutoplay: await readVoiceAutoplay(local.d1, "local"),
       userPersona: await readUserPersona(local.d1, "local"),
+      handedness: await readHandedness(local.d1, "local"),
     });
 
     const put = await handleSettingsWriteRequest(
@@ -177,6 +200,7 @@ describe("settings API", () => {
       style: await readChatStyle(local.d1, "local"),
       voiceAutoplay: await readVoiceAutoplay(local.d1, "local"),
       userPersona: await readUserPersona(local.d1, "local"),
+      handedness: await readHandedness(local.d1, "local"),
     };
     expect(body).toEqual(expected);
     expect(await (await handleSettingsReadRequest()).json()).toEqual(expected);
@@ -224,12 +248,27 @@ describe("settings API", () => {
     expect(await readSafeMode(local.d1, "local")).toBe(true);
   });
 
+  it("PUT は handedness だけでも更新でき、他列を上書きせん", async () => {
+    const put = await handleSettingsWriteRequest(
+      new Request("https://x/api/settings", {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ handedness: "left" }),
+      }),
+    );
+    expect(put.status).toBe(200);
+    expect(await readHandedness(local.d1, "local")).toBe("left");
+    expect(await readChatMode(local.d1, "local")).toBe("quality");
+    expect(await readChatStyle(local.d1, "local")).toBe("prose");
+  });
+
   it("PUT は型の違う safeMode・未対応の chatMode・空の更新を 400 で弾く", async () => {
     for (const body of [
       { safeMode: "yes" },
       { chatMode: "extreme" },
       { style: "poetic" },
       { userPersona: 42 },
+      { handedness: "both" },
       {},
       { other: 1 },
     ]) {

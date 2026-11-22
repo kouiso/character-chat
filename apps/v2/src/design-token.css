@@ -111,6 +111,8 @@
   --edge-top-surface: inset 0 1px 0 rgba(255, 255, 255, 0.07);
   --edge-top-press: inset 0 1px 0 rgba(255, 255, 255, 0.1);
   --edge-ring: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+  /* 切り替え（2〜4択）の溝の内側の輪郭（KIT 6.26）。入力欄の #8C8497 枠とは別物 */
+  --edge-well: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
   /* 選ばれた面の枠 */
   --edge-selected: inset 0 0 0 1.5px var(--color-peach);
   /* シートの後ろの暗幕（KIT §6。半透明はここだけ） */
