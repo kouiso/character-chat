@@ -10,11 +10,12 @@ import { ChatView } from "../../component/chat-view";
 import { TalkIcon } from "../../component/talk-icon";
 import { avatarUrl } from "../../lib/avatar-url";
 import { getCharacter } from "../../server/characters";
+import { getUserSettings } from "../../server/settings";
 
 const routeApi = getRouteApi("/chat/$id");
 
 const ChatPage = () => {
-  const character = routeApi.useLoaderData();
+  const { character, handedness } = routeApi.useLoaderData();
   const { conversationId, newChat } = routeApi.useSearch();
   return (
     <div className="v2-chat-page">
@@ -31,6 +32,7 @@ const ChatPage = () => {
         characterGreeting={character.greeting}
         initialConversationId={conversationId}
         newConversationKey={newChat}
+        handedness={handedness}
       />
     </div>
   );
@@ -44,7 +46,11 @@ export const Route = createFileRoute("/chat/$id")({
   loader: async ({ params, abortController }) => {
     const character = await getCharacter({ data: params.id, signal: abortController.signal });
     if (!character) throw notFound();
-    return character;
+    // 持つ手（板 TalkLeft）。読めん時は右のまま進める。
+    const handedness = await getUserSettings()
+      .then((settings) => settings.handedness)
+      .catch(() => "right" as const);
+    return { character, handedness };
   },
   pendingComponent: ChatLoadingState,
   errorComponent: ChatErrorState,

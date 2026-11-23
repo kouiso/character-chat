@@ -48,3 +48,22 @@ export const saveLedger = async (
   const body = z.object({ turn: z.number() }).parse(await response.json());
   return body.turn;
 };
+
+// 雰囲気の切り替え専用。phase だけを送り、サーバーが最新台帳行の1項目だけ更新する。
+// 読んだ台帳全体を送ると、生成で新しく積まれた行を古い内容で潰す事故になる。
+export const saveLedgerPhase = async (
+  characterId: string,
+  conversationId: string,
+  phase: LedgerData["phase"],
+): Promise<number | null> => {
+  const response = await fetch(`/api/chat/${encodeURIComponent(characterId)}/ledger`, {
+    method: "PATCH",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ conversationId, phase }),
+  });
+  if (response.status === 404) throw new Error("会話が見つかりません。");
+  if (response.status === 409) return null;
+  if (!response.ok) throw new Error("台帳を保存できませんでした。");
+  const body = z.object({ turn: z.number() }).parse(await response.json());
+  return body.turn;
+};

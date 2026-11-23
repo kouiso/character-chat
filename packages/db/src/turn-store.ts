@@ -443,6 +443,41 @@ export const updateLatestLedger = async (
 };
 
 /**
+ * 雰囲気の切り替え用: 最新台帳行の phase だけを書き換える（RIT-202 板 Mood）。
+ * 全体を読み直してから書き戻すと、開いた時点の台帳で「生成で新しく作られた行」の
+ * 場面・持ち物・登場人物を古い値で潰す。json_set で場の1項目だけ更新すれば
+ * 読み→書きの間に行が入れ替わっても他の項目は失われん。
+ * 台帳行が無い会話は null を返す。
+ */
+export const updateLatestLedgerPhase = async (
+  db: V2Db,
+  opts: D1TurnStoreOptions,
+  conversationId: string,
+  phase: SceneLedger["phase"],
+): Promise<number | null> => {
+  await assertConversationOwner(db, opts, conversationId);
+  // 最新行の選択と更新は 1 文にしないと、読み→書きの間に返事の保存で
+  // 新しい台帳行が積まれた時、古い行だけを直して成功を返してしまい、
+  // 選んだ雰囲気が次の読み込み（新しい行）に出ない。
+  const rows = await db
+    .update(v2LedgerTable)
+    .set({
+      ledgerJson: sql`json_set(${v2LedgerTable.ledgerJson}, '$.phase', ${phase})`,
+    })
+    .where(
+      and(
+        eq(v2LedgerTable.conversationId, conversationId),
+        eq(
+          v2LedgerTable.turn,
+          sql`(select max(${v2LedgerTable.turn}) from ${v2LedgerTable} where ${v2LedgerTable.conversationId} = ${conversationId})`,
+        ),
+      ),
+    )
+    .returning({ turn: v2LedgerTable.turn });
+  return rows[0]?.turn ?? null;
+};
+
+/**
  * 手直し画面用: 会話の最新台帳を返す（RIT-118）。
  * load と同じく壊れた行は直近3件の中で遡り、全滅なら初期台帳。
  * 台帳行そのものが無い会話は null（画面は「まだ台帳がない」を出す）。

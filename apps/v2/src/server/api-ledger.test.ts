@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
   createDb: vi.fn(() => ({ database: true })),
   loadLatestLedger: vi.fn(),
   updateLatestLedger: vi.fn(),
+  updateLatestLedgerPhase: vi.fn(),
   getPlatform: vi.fn(async () => ({ env: { DB: {} } })),
 }));
 
@@ -14,6 +15,7 @@ vi.mock("@v2/db", async (importOriginal) => ({
   createDb: mocks.createDb,
   loadLatestLedger: mocks.loadLatestLedger,
   updateLatestLedger: mocks.updateLatestLedger,
+  updateLatestLedgerPhase: mocks.updateLatestLedgerPhase,
 }));
 
 vi.mock("./platform", () => ({ getPlatform: mocks.getPlatform }));
@@ -135,5 +137,28 @@ describe("PATCH /api/chat/:id/ledger", () => {
     mocks.updateLatestLedger.mockRejectedValue(new ConversationAccessError());
     const response = await patch({ conversationId: "conv", ledger: baseLedger });
     expect(response.status).toBe(404);
+  });
+
+  describe("phase 単独の PATCH（雰囲気の切り替え）", () => {
+    it("phase だけ送ると部分更新を呼び、最新行の1項目だけ効かせる", async () => {
+      mocks.updateLatestLedgerPhase.mockResolvedValue(5);
+      const response = await patch({ conversationId: "conv", phase: "intimate" });
+      expect(response.status).toBe(200);
+      expect(await response.json()).toEqual({ turn: 5, phase: "intimate" });
+      expect(mocks.updateLatestLedgerPhase.mock.calls[0][3]).toBe("intimate");
+      // 全体置き換えの経路は通らない。
+      expect(mocks.updateLatestLedger).not.toHaveBeenCalled();
+    });
+
+    it("台帳行が無い会話は 409", async () => {
+      mocks.updateLatestLedgerPhase.mockResolvedValue(null);
+      const response = await patch({ conversationId: "conv", phase: "intimate" });
+      expect(response.status).toBe(409);
+    });
+
+    it("phase の値が enum 外なら 422", async () => {
+      const response = await patch({ conversationId: "conv", phase: "invalid-phase" });
+      expect(response.status).toBe(422);
+    });
   });
 });

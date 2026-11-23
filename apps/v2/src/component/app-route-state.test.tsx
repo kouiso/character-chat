@@ -25,6 +25,15 @@ vi.mock("../server/characters", () => ({
   listCharacters,
   listSavedConversations: async () => [],
 }));
+// 持つ手の読み出しは server/platform 経由の D1 なので、画面テストでは置き換える。
+vi.mock("../server/settings", () => ({
+  getUserSettings: async () => ({
+    chatMode: "standard",
+    style: "balanced",
+    voiceAutoplay: false,
+    handedness: "right",
+  }),
+}));
 
 const fixture = { id: "synthetic-character", name: "合成の一覧項目", avatar: null };
 let failRender = false;

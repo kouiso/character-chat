@@ -34,8 +34,12 @@ export const v2ConversationTable = sqliteTable(
   },
   (table) => [
     index("v2_conversation_user_updated_idx").on(table.userId, table.updatedAt),
-    // 出会う一覧がキャラごとの最終会話時刻を引くので、character_id 先頭の索引が要る
-    index("v2_conversation_character_user_idx").on(table.characterId, table.userId),
+    // 出会う一覧が利用者×キャラの最終会話時刻(MAX)を引くので 3 列の索引が要る
+    index("v2_conversation_user_character_updated_idx").on(
+      table.userId,
+      table.characterId,
+      table.updatedAt,
+    ),
   ],
 );
 
