@@ -4019,11 +4019,12 @@
           ],
           "isUnique": false
         },
-        "v2_conversation_character_user_idx": {
-          "name": "v2_conversation_character_user_idx",
+        "v2_conversation_user_character_updated_idx": {
+          "name": "v2_conversation_user_character_updated_idx",
           "columns": [
+            "user_id",
             "character_id",
-            "user_id"
+            "updated_at"
           ],
           "isUnique": false
         }
