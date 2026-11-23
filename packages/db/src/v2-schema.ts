@@ -34,8 +34,12 @@ export const v2ConversationTable = sqliteTable(
   },
   (table) => [
     index("v2_conversation_user_updated_idx").on(table.userId, table.updatedAt),
-    // 出会う一覧がキャラごとの最終会話時刻を引くので、character_id 先頭の索引が要る
-    index("v2_conversation_character_user_idx").on(table.characterId, table.userId),
+    // 出会う一覧が利用者×キャラの最終会話時刻(MAX)を引くので 3 列の索引が要る
+    index("v2_conversation_user_character_updated_idx").on(
+      table.userId,
+      table.characterId,
+      table.updatedAt,
+    ),
   ],
 );
 
@@ -716,6 +720,15 @@ export const v2UserSettingsTable = sqliteTable("v2_user_settings", {
   userPersona: text("user_persona"),
   // 燈デザイン「持つ手」。right/left。左はトークの送信と「＋」の並びを左右入れ替える。
   handedness: text("handedness").notNull().default("right"),
+  // 燈デザイン「通知の設定」。master は許可フローを通るまで 0 のまま。
+  notifyEnabled: integer("notify_enabled").notNull().default(0),
+  // 届くもの（話しかけ/つぶやき・日記/電話の約束/おぼえている日）。選んだものだけ届く。
+  notifyProactive: integer("notify_proactive").notNull().default(1),
+  notifyFeed: integer("notify_feed").notNull().default(1),
+  notifyCall: integer("notify_call").notNull().default(1),
+  notifyAnniversary: integer("notify_anniversary").notNull().default(1),
+  // 「通知の文を隠す」。既定は隠す（ロック画面に名前とセリフを出さない）。
+  notifyHideText: integer("notify_hide_text").notNull().default(1),
   updatedAt: integer("updated_at").notNull(),
 });
 

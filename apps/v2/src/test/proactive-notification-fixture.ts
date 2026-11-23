@@ -27,6 +27,13 @@ export class FakeProactiveStorage implements ProactiveNotificationStorage {
           pending.set(key, structuredClone(value));
           return Promise.resolve();
         },
+        list: <Value>(options: { prefix: string }) => {
+          const entries = new Map<string, Value>();
+          for (const [key, value] of pending) {
+            if (key.startsWith(options.prefix)) entries.set(key, structuredClone(value) as Value);
+          }
+          return Promise.resolve(entries);
+        },
         setAlarm: (time: number) => {
           pendingAlarm = time;
           return Promise.resolve();

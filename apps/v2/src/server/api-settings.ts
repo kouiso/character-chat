@@ -11,12 +11,14 @@ import {
   readChatMode,
   readChatStyle,
   readHandedness,
+  readNotificationSettings,
   readSafeMode,
   readUserPersona,
   readVoiceAutoplay,
   setChatMode,
   setChatStyle,
   setHandedness,
+  setNotificationSetting,
   setSafeMode,
   setUserPersona,
   setVoiceAutoplay,
@@ -27,6 +29,7 @@ const json = (status: number, body: Record<string, unknown>): Response =>
 
 const readSettings = async () => {
   const { env } = await getPlatform();
+  const notify = await readNotificationSettings(env.DB, LOCAL_USER_ID);
   return {
     safeMode: await readSafeMode(env.DB, LOCAL_USER_ID),
     chatMode: await readChatMode(env.DB, LOCAL_USER_ID),
@@ -34,6 +37,13 @@ const readSettings = async () => {
     voiceAutoplay: await readVoiceAutoplay(env.DB, LOCAL_USER_ID),
     userPersona: await readUserPersona(env.DB, LOCAL_USER_ID),
     handedness: await readHandedness(env.DB, LOCAL_USER_ID),
+    // 燈デザイン「通知の設定」。押してすぐ効く項目として 1 キーずつ PUT される。
+    notifyEnabled: notify.enabled,
+    notifyProactive: notify.proactive,
+    notifyFeed: notify.feed,
+    notifyCall: notify.call,
+    notifyAnniversary: notify.anniversary,
+    notifyHideText: notify.hideText,
   };
 };
 
@@ -54,19 +64,43 @@ const settingsSchema = z
     userPersona: z.string().max(USER_PERSONA_MAX_CHARS).optional(),
     // 燈デザイン「持つ手」。トークの下の並びの左右。
     handedness: z.enum(HANDEDNESSES).optional(),
+    // 燈デザイン「通知の設定」。
+    notifyEnabled: z.boolean().optional(),
+    notifyProactive: z.boolean().optional(),
+    notifyFeed: z.boolean().optional(),
+    notifyCall: z.boolean().optional(),
+    notifyAnniversary: z.boolean().optional(),
+    notifyHideText: z.boolean().optional(),
   })
-  .refine(
-    (body) =>
-      body.safeMode !== undefined ||
-      body.chatMode !== undefined ||
-      body.style !== undefined ||
-      body.voiceAutoplay !== undefined ||
-      body.userPersona !== undefined ||
-      body.handedness !== undefined,
-    {
-      message: "更新する項目を1つ以上指定してください。",
-    },
-  );
+  // 全部 optional なので「少なくとも1つある」を値で見る（条件列挙は複雑度が膨らむ）。
+  .refine((body) => Object.values(body).some((value) => value !== undefined), {
+    message: "更新する項目を1つ以上指定してください。",
+  });
+
+// notify* API キー → 通知設定の項目名。クライアントはキーごとに PUT する。
+const NOTIFY_KEY_MAP = {
+  notifyEnabled: "enabled",
+  notifyProactive: "proactive",
+  notifyFeed: "feed",
+  notifyCall: "call",
+  notifyAnniversary: "anniversary",
+  notifyHideText: "hideText",
+} as const;
+
+const NOTIFY_API_KEYS = Object.keys(NOTIFY_KEY_MAP) as (keyof typeof NOTIFY_KEY_MAP)[];
+
+// 通知設定の notify* キーをまとめて書く。複雑度を本体から分けるため別関数。
+const writeNotificationUpdates = async (
+  env: Cloudflare.Env,
+  data: z.infer<typeof settingsSchema>,
+  now: number,
+): Promise<void> => {
+  for (const apiKey of NOTIFY_API_KEYS) {
+    const value = data[apiKey];
+    if (value !== undefined)
+      await setNotificationSetting(env.DB, LOCAL_USER_ID, NOTIFY_KEY_MAP[apiKey], value, now);
+  }
+};
 
 // PUT /api/settings — 渡した項目だけ更新する（切替は次ターンから効く）。
 export const handleSettingsWriteRequest = async (request: Request): Promise<Response> => {
@@ -90,5 +124,6 @@ export const handleSettingsWriteRequest = async (request: Request): Promise<Resp
     await setUserPersona(env.DB, LOCAL_USER_ID, parsed.data.userPersona, now);
   if (parsed.data.handedness !== undefined)
     await setHandedness(env.DB, LOCAL_USER_ID, parsed.data.handedness, now);
+  await writeNotificationUpdates(env, parsed.data, now);
   return json(200, await readSettings());
 };
