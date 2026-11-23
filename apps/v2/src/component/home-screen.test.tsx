@@ -147,7 +147,8 @@ describe("ホーム（いつもの子が迎える）", () => {
         speaker: memberA,
         faces: [memberA, memberB],
       },
-    ].sort((a, b) => {
+    ];
+    continuations.sort((a, b) => {
       const at = a.kind === "chat" ? a.conversation.updatedAt : a.group.updatedAt;
       const bt = b.kind === "chat" ? b.conversation.updatedAt : b.group.updatedAt;
       return bt - at;
