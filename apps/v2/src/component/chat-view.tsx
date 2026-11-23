@@ -407,6 +407,40 @@ const ChatTray = ({
   );
 };
 
+// 字数カウンタ（WORDING）: 1 行の欄は上限の 8 割を超えた時だけ出す。
+// 超えた時は失敗の文と「!」の印を左に、数えを右端に並べる。
+const TalkCounter = ({ count }: { count: number }) => {
+  if (count <= MAX_MESSAGE_LENGTH * 0.8) return null;
+  const overLimit = count > MAX_MESSAGE_LENGTH;
+  return (
+    <div className={overLimit ? "v2-talk-counter over" : "v2-talk-counter"}>
+      {overLimit && (
+        <span className="v2-talk-counter-text">
+          <span aria-hidden="true">!</span>
+          メッセージは {MAX_MESSAGE_LENGTH.toLocaleString("ja-JP")} 文字までです。 いま{" "}
+          {count.toLocaleString("ja-JP")} 文字です。
+        </span>
+      )}
+      <span className="v2-talk-counter-num">
+        {count.toLocaleString("ja-JP")} / {MAX_MESSAGE_LENGTH.toLocaleString("ja-JP")}
+      </span>
+    </div>
+  );
+};
+
+// 「＋」の開閉ボタン。開いている間は「閉じる」の✕へ姿を変える。
+const TrayToggle = ({ open, onToggle }: { open: boolean; onToggle: () => void }) => (
+  <button
+    type="button"
+    className="v2-talk-plus"
+    aria-label={open ? "閉じる" : "ひらく（画像・電話・しおり・場面）"}
+    aria-expanded={open}
+    onClick={onToggle}
+  >
+    <TalkIcon name={open ? "close" : "plus"} />
+  </button>
+);
+
 // 入力の行とその上の通知。待っている間は送信ボタンを「止める」と入れ替える（部品 D）。
 // 持つ手が左の時は「＋」と送信・止めるの位置を左右入れ替える（板 TalkLeft）。
 const ChatFooter = ({
@@ -437,11 +471,7 @@ const ChatFooter = ({
   call,
 }: ChatFooterProps) => {
   const [trayOpen, setTrayOpen] = useState(false);
-  // 字数カウンタ（WORDING）: 1 行の欄は上限の 8 割を超えた時だけ出す。
-  // 超えた時は失敗の文と「!」の印を左に、数えを右端に並べる。
-  const count = input.length;
-  const overLimit = count > MAX_MESSAGE_LENGTH;
-  const showCounter = count > MAX_MESSAGE_LENGTH * 0.8;
+  const overLimit = input.length > MAX_MESSAGE_LENGTH;
   return (
     <div className="v2-talk-footer">
       {rewoundFrom !== null && (
@@ -480,20 +510,7 @@ const ChatFooter = ({
         enabled={suggestOn}
         onPick={(text) => void onPick(text)}
       />
-      {showCounter && (
-        <div className={overLimit ? "v2-talk-counter over" : "v2-talk-counter"}>
-          {overLimit && (
-            <span className="v2-talk-counter-text">
-              <span aria-hidden="true">!</span>
-              メッセージは {MAX_MESSAGE_LENGTH.toLocaleString("ja-JP")} 文字までです。 いま{" "}
-              {count.toLocaleString("ja-JP")} 文字です。
-            </span>
-          )}
-          <span className="v2-talk-counter-num">
-            {count.toLocaleString("ja-JP")} / {MAX_MESSAGE_LENGTH.toLocaleString("ja-JP")}
-          </span>
-        </div>
-      )}
+      <TalkCounter count={input.length} />
       <form
         className="v2-chat-form"
         data-hand={handedness}
@@ -501,15 +518,7 @@ const ChatFooter = ({
           void onSubmit(event);
         }}
       >
-        <button
-          type="button"
-          className="v2-talk-plus"
-          aria-label={trayOpen ? "閉じる" : "ひらく（画像・電話・しおり・場面）"}
-          aria-expanded={trayOpen}
-          onClick={() => setTrayOpen(!trayOpen)}
-        >
-          <TalkIcon name={trayOpen ? "close" : "plus"} />
-        </button>
+        <TrayToggle open={trayOpen} onToggle={() => setTrayOpen(!trayOpen)} />
         <input
           value={input}
           onChange={(event) => onInput(event.target.value)}
@@ -659,6 +668,46 @@ const GreetingRow = ({
     </div>
   );
 
+// 相手の発言の左の顔。画像が無い・404 の時は外して頭文字へ戻す
+//（公式キャラは /avatars/ で配信）。
+const AssistantAvatar = ({ name, avatar }: { name: string; avatar?: string | null }) => (
+  <span className="v2-avatar" aria-hidden>
+    {name.slice(0, 1)}
+    {avatar && <img src={avatar} alt="" onError={(e) => e.currentTarget.remove()} />}
+  </span>
+);
+
+// ≡ メニューのシート（TalkMenu の入口分）。中身の板合わせは別 PR。
+const TalkMenuSheet = ({
+  characterId,
+  characterName,
+  getConversationId,
+  onJumpToMessage,
+  onChanged,
+  onClose,
+}: {
+  characterId: string;
+  characterName: string;
+  getConversationId: () => string | null;
+  onJumpToMessage: (messageId: string) => void;
+  onChanged: () => void;
+  onClose: () => void;
+}) => (
+  <TalkSheet title="メニュー" onClose={onClose}>
+    <p className="v2-talk-caption">{characterName}との設定</p>
+    <ProactiveToggle characterId={characterId} />
+    <a className="v2-talk-menu-row" href={`/chat/${encodeURIComponent(characterId)}/memory`}>
+      記憶
+    </a>
+    <GalleryPanel
+      characterId={characterId}
+      getConversationId={getConversationId}
+      onJumpToMessage={onJumpToMessage}
+      onChanged={onChanged}
+    />
+  </TalkSheet>
+);
+
 const TalkBack = ({ slot }: { slot?: React.ReactNode }) =>
   slot ?? (
     <a href="/" aria-label="戻る">
@@ -671,6 +720,33 @@ const TalkPortrait = ({ src }: { src?: string | null }) => (
     {src && <img src={src} alt="" />}
   </div>
 );
+
+// i2i の依頼欄は、送信・画像生成・受付のどれか進行中なら押させない。
+const i2iLocked = (busy: boolean, imageBusy: boolean, pending: PendingTurn | null): boolean =>
+  busy || imageBusy || pending !== null;
+
+// 失敗の状態では空の「作成中」吹き出しは出さん（返事は来てへん）。
+const bubblesForPhase = (bubbles: ChatBubble[], phase: TurnPhase): ChatBubble[] =>
+  isFailurePhase(phase)
+    ? bubbles.filter((bubble) => !(bubble.pending && bubble.role === "assistant"))
+    : bubbles;
+
+// 返事の候補の入切は端末へ残す（トレイの「この会話」カードの行）。
+// 保存を読めん・書けん時は「入」のまま進める。
+const readSuggestOn = (characterId: string): boolean => {
+  try {
+    return localStorage.getItem(`v2-suggest:${characterId}`) !== "0";
+  } catch {
+    return true;
+  }
+};
+const writeSuggestOn = (characterId: string, on: boolean): void => {
+  try {
+    localStorage.setItem(`v2-suggest:${characterId}`, on ? "1" : "0");
+  } catch {
+    // 保存できん時は画面を閉じるまでの入切に留まる。
+  }
+};
 
 export const ChatView = ({
   backSlot,
@@ -1519,21 +1595,11 @@ export const ChatView = ({
   const [showInner, setShowInner] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
   // 返事の候補の入切（板 TalkTray「この会話」カードの行）。切った選択は端末へ残す。
-  const [suggestOn, setSuggestOn] = useState(() => {
-    try {
-      return localStorage.getItem(`v2-suggest:${characterId}`) !== "0";
-    } catch {
-      return true;
-    }
-  });
+  const [suggestOn, setSuggestOn] = useState(() => readSuggestOn(characterId));
   const toggleSuggest = () => {
     setSuggestOn((previous) => {
       const next = !previous;
-      try {
-        localStorage.setItem(`v2-suggest:${characterId}`, next ? "1" : "0");
-      } catch {
-        // 保存できん時は画面を閉じるまでの入切に留まる。
-      }
+      writeSuggestOn(characterId, next);
       return next;
     });
   };
@@ -1546,14 +1612,12 @@ export const ChatView = ({
 
   const keys = bubbleKeys(bubbles);
   // 失敗の状態では空の「作成中」吹き出しは出さん（返事は来てへん）。
-  const visibleBubbles = isFailurePhase(phase)
-    ? bubbles.filter((bubble) => !(bubble.pending && bubble.role === "assistant"))
-    : bubbles;
+  const visibleBubbles = bubblesForPhase(bubbles, phase);
   const marker = markerText(phase);
   const failure = failureCopy(phase, dailyLimitMessage);
   const failureActions = failureActionsFor(phase, retryTurn, withdrawPending);
   const actionBubbleIndex = actionIndexFor(phase, pending, visibleBubbles);
-  const i2iDisabled = busy || imageBusy || pending !== null;
+  const i2iDisabled = i2iLocked(busy, imageBusy, pending);
   // 「覚えた：…」は直近の確定した返事の下にだけ出す（RIT-92）。送信中・枝の
   // 古い行・pending 泡には付けん。key に会話+ターンを入れて、返事が進んだ時は
   // リンクごと作り直して問い直させる。index は描画に使う visibleBubbles の番号。
@@ -1601,19 +1665,14 @@ export const ChatView = ({
         </div>
       </header>
       {menuOpen && (
-        <TalkSheet title="メニュー" onClose={() => setMenuOpen(false)}>
-          <p className="v2-talk-caption">{characterName}との設定</p>
-          <ProactiveToggle characterId={characterId} />
-          <a className="v2-talk-menu-row" href={`/chat/${encodeURIComponent(characterId)}/memory`}>
-            記憶
-          </a>
-          <GalleryPanel
-            characterId={characterId}
-            getConversationId={() => conversationId.current}
-            onJumpToMessage={jumpToMessage}
-            onChanged={() => void reloadAfterGalleryChange()}
-          />
-        </TalkSheet>
+        <TalkMenuSheet
+          characterId={characterId}
+          characterName={characterName}
+          getConversationId={() => conversationId.current}
+          onJumpToMessage={jumpToMessage}
+          onChanged={() => void reloadAfterGalleryChange()}
+          onClose={() => setMenuOpen(false)}
+        />
       )}
       <TalkSceneBar
         characterId={characterId}
@@ -1627,13 +1686,7 @@ export const ChatView = ({
           // LINE 型の見た目に寄せるため、相手の発言はアイコン付きの行にする（本人専用の顔出し）。
           <div key={keys[index]} className={`v2-turn-row ${bubble.role}`}>
             {bubble.role === "assistant" && (
-              <span className="v2-avatar" aria-hidden>
-                {characterName.slice(0, 1)}
-                {characterAvatar && (
-                  // 画像が無い・404 の時は外して頭文字へ戻す（公式キャラは /avatars/ で配信）。
-                  <img src={characterAvatar} alt="" onError={(e) => e.currentTarget.remove()} />
-                )}
-              </span>
+              <AssistantAvatar name={characterName} avatar={characterAvatar} />
             )}
             {index === actionBubbleIndex && (
               // 部品 C: 発言の左の操作ボタン。押すと「入力に戻す」と同じ動き。

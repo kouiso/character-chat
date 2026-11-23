@@ -42,12 +42,13 @@ export const TalkMood = ({
   const [error, setError] = useState<string | null>(null);
 
   // 呼び出し側が phase を持たん時（トレイの行）は、開くのを待たず現在値を読む。
+  // 会話の変わり目だけ見ればよいので、描画の時点の会話番号を依存にする。
+  const conversationId = getConversationId();
   useEffect(() => {
     if (phase !== undefined) {
       setCurrent(phase ?? undefined);
       return;
     }
-    const conversationId = getConversationId();
     if (!conversationId) return;
     const abort = new AbortController();
     void loadLedger(characterId, conversationId, abort.signal)
@@ -56,8 +57,7 @@ export const TalkMood = ({
       })
       .catch(() => {});
     return () => abort.abort();
-    // getConversationId は描画ごとに変わるので、対象の会話だけを依存にする。
-  }, [characterId, phase, getConversationId()]);
+  }, [characterId, phase, conversationId]);
 
   const openSheet = async () => {
     setOpen(true);
@@ -111,7 +111,7 @@ export const TalkMood = ({
         type="button"
         className="v2-talk-mood-toggle"
         onClick={() => void openSheet()}
-        disabled={!getConversationId()}
+        disabled={!conversationId}
       >
         {trigger?.(moodLabel(current)) ?? (
           <>
