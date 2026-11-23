@@ -19,7 +19,8 @@ jobs:
     name: v2 runtime
     runs-on: ${{ vars.RUNNER_LINUX_4VCPU || 'ubuntu-latest' }}
     if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
-    timeout-minutes: 25
+    # 全工程で約24分掛かるので、境目で落ちないよう余裕を持たせる
+    timeout-minutes: 30
     env:
       NODE_OPTIONS: --experimental-sqlite
       WRANGLER_SEND_METRICS: "false"

@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray } from "drizzle-orm";
+import { and, asc, desc, eq, sql } from "drizzle-orm";
 
 import {
   v2GroupMemberTable,
@@ -57,15 +57,77 @@ export const listGroups = async (db: V2Db, userId: string): Promise<GroupRow[]> 
     .where(eq(v2GroupTable.userId, userId))
     .orderBy(desc(v2GroupTable.createdAt));
   if (groups.length === 0) return [];
+  // D1 のバインド上限は 1 クエリ 100 個。inArray に全場 ID を渡すと場 101 件目で
+  // 壊れるので、ユーザーの場に限定した JOIN でメンバーを取る。
   const members = await db
     .select({ groupId: v2GroupMemberTable.groupId, characterId: v2GroupMemberTable.characterId })
     .from(v2GroupMemberTable)
-    .where(
-      inArray(
-        v2GroupMemberTable.groupId,
-        groups.map((g) => g.id),
+    .innerJoin(v2GroupTable, eq(v2GroupMemberTable.groupId, v2GroupTable.id))
+    .where(eq(v2GroupTable.userId, userId))
+    .orderBy(asc(v2GroupMemberTable.position));
+  const byGroup = new Map<string, string[]>();
+  for (const m of members) {
+    byGroup.set(m.groupId, [...(byGroup.get(m.groupId) ?? []), m.characterId]);
+  }
+  return groups.map((g) => ({ ...g, memberIds: byGroup.get(g.id) ?? [] }));
+};
+
+export type GroupContinuationRow = {
+  id: string;
+  title: string;
+  // 一覧の並びと日付は最後の発言時刻。まだ発言が無ければ場の更新時刻。
+  updatedAt: number;
+  speakerCharacterId: string | null;
+  lastMessage: string | null;
+  memberIds: string[];
+};
+
+// ホームの「つづきから」に並べる場（板 HomeStates「つづきからにグループがある時」）。
+// 新しい発言のある順、直近の発言と話し手、顔の札に使う先頭メンバー（position 順）を返す。
+export const listGroupContinuations = async (
+  db: V2Db,
+  userId: string,
+): Promise<GroupContinuationRow[]> => {
+  const groups = await db
+    .select({
+      id: v2GroupTable.id,
+      title: v2GroupTable.title,
+      // select 句内の sql 片では drizzle がカラムのテーブル修飾を落とすのでリテラル名で書く。
+      updatedAt: sql<number>`coalesce(
+        (select max(created_at) from v2_group_message where v2_group_message.group_id = v2_group.id),
+        v2_group.updated_at
+      )`.mapWith(Number),
+      speakerCharacterId: sql<string | null>`(
+        select speaker_character_id from v2_group_message
+        where v2_group_message.group_id = v2_group.id
+        order by v2_group_message.turn desc
+        limit 1
+      )`,
+      lastMessage: sql<string | null>`(
+        select content from v2_group_message
+        where v2_group_message.group_id = v2_group.id
+        order by v2_group_message.turn desc
+        limit 1
+      )`,
+    })
+    .from(v2GroupTable)
+    .where(eq(v2GroupTable.userId, userId))
+    .orderBy(
+      desc(
+        sql`coalesce(
+          (select max(created_at) from v2_group_message where v2_group_message.group_id = v2_group.id),
+          v2_group.updated_at
+        )`,
       ),
-    )
+    );
+  if (groups.length === 0) return [];
+  // inArray に全場 ID を渡すと場 101 件目で D1 のバインド上限（100 個）を越えるので、
+  // メンバー側からユーザーの場へ JOIN して取る（パラメーターは userId の 1 個だけ）。
+  const members = await db
+    .select({ groupId: v2GroupMemberTable.groupId, characterId: v2GroupMemberTable.characterId })
+    .from(v2GroupMemberTable)
+    .innerJoin(v2GroupTable, eq(v2GroupMemberTable.groupId, v2GroupTable.id))
+    .where(eq(v2GroupTable.userId, userId))
     .orderBy(asc(v2GroupMemberTable.position));
   const byGroup = new Map<string, string[]>();
   for (const m of members) {
