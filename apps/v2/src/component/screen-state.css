@@ -1,0 +1,295 @@
+/* 画面まるごとの状態（板 HomeStates・KIT 6.31〜6.33 と「ほかの画面」の見本）。
+   値は design-token.css の変数だけ使う。 */
+
+/* 「ほかの画面」の状態画面の地。タブの根と同じ仕立て */
+.v2-screen {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--gradient-ground);
+  color: var(--color-text);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+  font-weight: 500;
+  letter-spacing: var(--text-tracking);
+}
+
+/* 主ボタン（塗り）。状態の画面でも次の一手は 1 つだけ（KIT 6.5） */
+.v2-fill-btn {
+  height: 56px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  box-sizing: border-box;
+  background: var(--gradient-peach);
+  box-shadow: var(--shadow-peach);
+  color: var(--color-on-peach);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: var(--text-title-size);
+  line-height: var(--text-title-line);
+  font-weight: 700;
+  letter-spacing: var(--text-tracking-title);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.v2-fill-btn svg {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  display: block;
+}
+
+/* 画面の中央に置く状態の塊（空・失敗・見つからない）。タブのある画面では
+   タブの高さぶん持ち上げて、板の位置（上からおおよそ 3 割）に揃える */
+.v2-screen-block {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  padding: 0 var(--space-gutter) calc(var(--tab-bar-total) + 16px);
+  text-align: center;
+}
+
+/* 「ほかの画面」はタブが無い分だけ同じ高さに見えるよう補正する */
+.v2-screen-block--inner {
+  padding-bottom: calc(var(--safe-bottom) + 96px);
+}
+
+.v2-screen-badge {
+  flex: none;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-pill);
+  background: var(--gradient-surface);
+  box-shadow: var(--shadow-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.v2-screen-badge svg {
+  width: 24px;
+  height: 24px;
+  flex: none;
+  display: block;
+}
+
+.v2-screen-badge--peach {
+  color: var(--color-peach);
+}
+
+.v2-screen-badge--danger {
+  color: var(--color-danger);
+}
+
+.v2-screen-badge--sub {
+  color: var(--color-text-sub);
+}
+
+.v2-screen-block h1 {
+  margin: 0;
+  padding: 16px 0 4px;
+  font-size: var(--text-title-size);
+  line-height: var(--text-title-line);
+  font-weight: 700;
+  letter-spacing: var(--text-tracking-title);
+}
+
+.v2-screen-block-note {
+  color: var(--color-text-sub);
+}
+
+.v2-screen-block .v2-fill-btn {
+  align-self: stretch;
+  margin-top: 24px;
+}
+
+/* 下の帯（板 HomeStates の「時間がかかっています」「オフラインです」）。
+   タブのある画面はタブのすぐ上、無い画面は画面の下端に置く */
+.v2-screen-band {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: var(--safe-bottom);
+  min-height: 52px;
+  box-sizing: border-box;
+  padding: 4px 8px 4px 20px;
+  background: var(--color-bar);
+  box-shadow: var(--edge-top);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 39;
+}
+
+.v2-screen-band--tab {
+  bottom: var(--tab-bar-total);
+}
+
+.v2-screen-band-icon {
+  flex: none;
+  display: flex;
+}
+
+.v2-screen-band-icon svg {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  display: block;
+}
+
+.v2-screen-band-icon--sub {
+  color: var(--color-text-sub);
+}
+
+.v2-screen-band-icon--danger {
+  color: var(--color-danger);
+}
+
+.v2-screen-band-text {
+  flex: 1;
+  min-width: 0;
+  color: var(--color-text);
+  font-size: var(--text-row-size);
+  line-height: var(--text-row-line);
+  font-weight: 500;
+  letter-spacing: var(--text-tracking);
+}
+
+/* 帯の右の「もう一度」は文字だけの桃色（KIT 6.7） */
+.v2-screen-band-retry {
+  flex: none;
+  height: 44px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-peach);
+  display: flex;
+  align-items: center;
+  font-family: inherit;
+  font-size: var(--text-row-size);
+  line-height: var(--text-row-line);
+  font-weight: 700;
+  letter-spacing: var(--text-tracking-strong);
+  cursor: pointer;
+}
+
+/* 「ほかの画面」の頭（戻るだけ。題は読み込めた画面が出す） */
+.v2-back-header {
+  flex: none;
+  height: 56px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 8px;
+}
+
+.v2-back-header button {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.v2-back-header button svg {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  display: block;
+}
+
+/* 骨組み（KIT 6.32）。出てくる物と同じ形・同じ場所に置く */
+.v2-skel {
+  display: block;
+  border-radius: var(--radius-tail);
+  background: var(--color-skeleton-lo);
+}
+
+.v2-skel--hi {
+  background: var(--color-skeleton-hi);
+}
+
+.v2-skel--circle {
+  border-radius: var(--radius-pill);
+}
+
+.v2-skel--pill {
+  border-radius: var(--radius-pill);
+}
+
+/* 面の明るさがゆっくり行き来する（KIT 11。1 周 1.6 秒） */
+@keyframes v2-skeleton-breathe {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+.v2-skel-anim {
+  animation: v2-skeleton-breathe 1.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .v2-skel-anim {
+    animation: none;
+  }
+}
+
+/* 「ほかの画面」の読み込み中の中身（板 HomeStates「ほかの画面：読み込みが長引いた時」） */
+.v2-app-skel {
+  display: flex;
+  flex-direction: column;
+  padding: 16px var(--space-gutter) 0;
+}
+
+.v2-app-skel-gap16 {
+  height: 16px;
+}
+
+.v2-app-skel-gap12 {
+  height: 12px;
+}
+
+.v2-app-skel-gap32 {
+  height: 32px;
+}
+
+/* 帯が出る時は中身を帯の高さぶん持ち上げる */
+.v2-screen--band {
+  padding-bottom: 52px;
+}
+
+/* 骨組みの行（顔＋2 段の棒） */
+.v2-skel-row {
+  height: 64px;
+  box-shadow: var(--edge-top);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.v2-skel-row-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}

@@ -1,6 +1,6 @@
 // パーティモード画面用の server fn（RIT-216）。API と同じクエリを loader から直接呼ぶ。
 import { createServerFn } from "@tanstack/react-start";
-import { createDb, listGroups, type GroupRow } from "@v2/db";
+import { createDb, listGroupContinuations, listGroups, type GroupRow } from "@v2/db";
 import { z } from "zod";
 
 import { loadGroupView, type GroupView } from "./api-group";
@@ -14,6 +14,12 @@ export const listUserGroups = createServerFn({ method: "GET" }).handler(
     return listGroups(createDb(env.DB), LOCAL_USER_ID);
   },
 );
+
+// ホームの「つづきから」に並べる場。会話と同じく発言のある順で返す。
+export const listSavedGroups = createServerFn({ method: "GET" }).handler(async () => {
+  const { env } = await getPlatform();
+  return listGroupContinuations(createDb(env.DB), LOCAL_USER_ID);
+});
 
 export const getGroupView = createServerFn({ method: "GET" })
   .inputValidator(z.string().min(1))

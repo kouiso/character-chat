@@ -1,274 +1,108 @@
-import { createFileRoute, getRouteApi, Link } from "@tanstack/react-router";
+import { createFileRoute, getRouteApi, useRouter } from "@tanstack/react-router";
 
 import {
-  ListConnectionState,
-  ListErrorState,
-  ListLoadingState,
-} from "../component/list-route-state";
-import { avatarUrl } from "../lib/avatar-url";
+  HomeEmptyScreen,
+  HomeErrorScreen,
+  HomeLoadingScreen,
+  HomeScreen,
+  type HomeContinuation,
+  type HomeHeroData,
+} from "../component/home-screen";
+import { ScreenBand, useSlowFlag } from "../component/screen-state";
+import { useChatOnline } from "../lib/chat-online";
 import { listCharacters, listSavedConversations } from "../server/characters";
+import { listSavedGroups } from "../server/groups";
 
 import "../component/home-screen.css";
 
-import type { CharacterListItem } from "../server/characters";
-import type { ConversationSummaryRow } from "@v2/db";
-
 const routeApi = getRouteApi("/");
 
-const WEEKDAYS = ["日曜", "月曜", "火曜", "水曜", "木曜", "金曜", "土曜"] as const;
-
-const dayStart = (time: number) => {
-  const d = new Date(time);
-  d.setHours(0, 0, 0, 0);
-  return d.getTime();
+const useRetryHome = () => {
+  const router = useRouter();
+  return () => {
+    // 「もう一度」で取り直す。forcePending は付けない（付けると読み込み済みの
+    // 中身まで骨組みに置き換わる。板のオフラインは中身を残したまま帯だけ出す）。
+    void router.invalidate({ filter: (match) => match.routeId === "/" });
+  };
 };
 
-// 暦の語はひらがな（きょう・きのう）。1 週間以内は曜日、それより前は日付（CAST.md）
-const formatHomeDay = (time: number) => {
-  const diffDays = Math.round((dayStart(Date.now()) - dayStart(time)) / 86_400_000);
-  if (diffDays <= 0) return "きょう";
-  if (diffDays === 1) return "きのう";
-  if (diffDays < 7) return WEEKDAYS[new Date(time).getDay()];
-  const d = new Date(time);
-  return `${d.getMonth() + 1}月${d.getDate()}日`;
-};
-
-const formatHomeTime = (time: number) => {
-  const d = new Date(time);
-  return `${d.getHours()}:${String(d.getMinutes()).padStart(2, "0")}`;
-};
-
-// セリフの吹き出しと行のプレビューは板どおり「」で包む。本文に既に括弧があればそのまま
-const quoteLine = (text: string) => (text.startsWith("「") ? text : `「${text}」`);
-
-const ArrowRight = () => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    aria-hidden="true"
-  >
-    <path d="M5 12h14" />
-    <path d="M13 6l6 6-6 6" />
-  </svg>
-);
-
-const PinIcon = () => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.75"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    aria-hidden="true"
-  >
-    <path d="M9 4h6l-1 6 3 3H7l3-3-1-6z" />
-    <path d="M12 13v7" />
-  </svg>
-);
-
-const ChevronRight = () => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.75"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    aria-hidden="true"
-  >
-    <path d="M9 5l7 7-7 7" />
-  </svg>
-);
-
-const LampIcon = () => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.75"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    aria-hidden="true"
-  >
-    <path d="M9 17h6" />
-    <path d="M10 20h4" />
-    <path d="M8.5 14a6 6 0 1 1 7 0c-.6.5-1 1.2-1 2v1h-5v-1c0-.8-.4-1.5-1-2z" />
-  </svg>
-);
-
-const facePalette = ["#2E2A4A", "#1E3437", "#3B2630", "#38291C"] as const;
-
-// 顔の絵が無い子は名前の頭文字を色つきの札に載せる（Kit「頭文字の札」）
-const FaceInitial = ({ name, index }: { name: string; index: number }) => (
-  <span
-    className="v2-home-continuation-face"
-    style={{ background: facePalette[index % facePalette.length] }}
-    aria-hidden="true"
-  >
-    {name.slice(0, 1)}
-  </span>
-);
-
-type Continuation = { conversation: ConversationSummaryRow; character: CharacterListItem };
-
-const ContinuationRow = ({ conversation, character, index }: Continuation & { index: number }) => {
-  const face = avatarUrl(character.id, character.avatar);
-  return (
-    <li>
-      <Link
-        to="/chat/$id"
-        params={{ id: character.id }}
-        search={{ conversationId: conversation.id }}
-        className="v2-home-continuation"
-        aria-label={`${character.name}との会話をつづきから話す`}
-      >
-        {face ? (
-          <span className="v2-home-continuation-face">
-            <img src={face} alt="" loading="lazy" />
-          </span>
-        ) : (
-          <FaceInitial name={character.name} index={index} />
-        )}
-        <span className="v2-home-continuation-body">
-          <span className="v2-home-continuation-name">{character.name}</span>
-          <span className="v2-home-continuation-preview">
-            {conversation.lastMessage
-              ? quoteLine(conversation.lastMessage)
-              : conversation.title || "無題の会話"}
-          </span>
-        </span>
-        <span className="v2-home-continuation-day">{formatHomeDay(conversation.updatedAt)}</span>
-      </Link>
-    </li>
+// 読み込み中（骨組み）。長引いた時は帯、まだ何も出ていない時のオフラインは題つきの形
+const HomePendingState = () => {
+  const online = useChatOnline();
+  const slow = useSlowFlag();
+  const retry = useRetryHome();
+  return online ? (
+    <HomeLoadingScreen slow={slow} onRetry={retry} />
+  ) : (
+    <HomeErrorScreen offline onRetry={retry} />
   );
 };
 
-const HomeEmpty = () => (
-  <div className="v2-home-empty">
-    <span className="v2-home-empty-icon" aria-hidden="true">
-      <LampIcon />
-    </span>
-    <h1>まだ、いつもの子はいません</h1>
-    <div className="v2-home-empty-note">話しはじめた子が、ここで迎えてくれます。</div>
-    <Link to="/catalog" className="v2-home-primary">
-      <span>出会うへ</span>
-      <ArrowRight />
-    </Link>
-  </div>
-);
-
-const HomeMain = ({
-  hero,
-  latest,
-  continuations,
-}: {
-  hero: CharacterListItem;
-  latest?: ConversationSummaryRow;
-  continuations: Continuation[];
-}) => (
-  <>
-    <div className="v2-home-hero">
-      {hero.avatar && <img src={avatarUrl(hero.id, hero.avatar) ?? undefined} alt={hero.name} />}
-      <div className="v2-home-hero-edge" aria-hidden="true" />
-      <Link
-        to="/characters/$id"
-        params={{ id: hero.id }}
-        className="v2-home-plate"
-        aria-label={`いつもの子（プロフィールで留めた子）${hero.name}のプロフィール`}
-      >
-        <PinIcon />
-        <span>いつもの子</span>
-      </Link>
-    </div>
-    <div className="v2-home-sheet">
-      {latest && (
-        <div className="v2-home-arrival">
-          <span className="v2-home-arrival-dot" aria-hidden="true" />
-          <span className="v2-home-arrival-new">新着</span>
-          <span>
-            {formatHomeDay(latest.updatedAt)} {formatHomeTime(latest.updatedAt)}
-          </span>
-        </div>
-      )}
-      <div className="v2-home-name">
-        <h1>{hero.name}</h1>
-      </div>
-      {latest?.lastMessage && <div className="v2-home-bubble">{quoteLine(latest.lastMessage)}</div>}
-      <Link
-        to="/chat/$id"
-        params={{ id: hero.id }}
-        search={latest ? { conversationId: latest.id } : {}}
-        className="v2-home-primary"
-        aria-label={latest ? `${hero.name}と、ゆうべのつづきを話す` : `${hero.name}と話す`}
-      >
-        <span>{latest ? "ゆうべのつづき" : "話す"}</span>
-        <ArrowRight />
-      </Link>
-      {continuations.length > 0 && (
-        <>
-          <div className="v2-home-section">
-            <h2>つづきから</h2>
-            {/* 履歴の画面は未着工。行き先ができたら差し替える */}
-            <Link to="/my" className="v2-home-history">
-              <span>履歴</span>
-              <ChevronRight />
-            </Link>
-          </div>
-          <ul className="v2-home-continuations">
-            {continuations.map(({ conversation, character }, index) => (
-              <ContinuationRow
-                key={conversation.id}
-                conversation={conversation}
-                character={character}
-                index={index}
-              />
-            ))}
-          </ul>
-        </>
-      )}
-    </div>
-  </>
-);
+const HomeErrorState = () => {
+  const online = useChatOnline();
+  const retry = useRetryHome();
+  return <HomeErrorScreen offline={!online} onRetry={retry} />;
+};
 
 const HomePage = () => {
-  const { characters, conversations } = routeApi.useLoaderData();
+  const { characters, conversations, groups } = routeApi.useLoaderData();
+  const online = useChatOnline();
+  const retry = useRetryHome();
   const byId = new Map(characters.map((c) => [c.id, c]));
 
-  // 「いつもの子」は留める枠がまだ無いので、いちばん新しく話した子を主役にする。
-  // 会話が 1 件も無い時は一覧の先頭の子を迎える。
+  // 「いつもの子」に留める枠はまだ無いので、いちばん新しく話した子を主役にする
+  // （板 HomeEmpty「留めた子がいない時」の「さいきん話した子」）。
   const latest = conversations.find((conversation) => byId.has(conversation.characterId));
-  const hero = latest ? byId.get(latest.characterId) : characters[0];
-  const continuations = conversations.flatMap((conversation) => {
-    const character = byId.get(conversation.characterId);
-    return character && conversation.id !== latest?.id ? [{ conversation, character }] : [];
+  const heroCharacter = latest ? byId.get(latest.characterId) : undefined;
+  const hero: HomeHeroData | undefined =
+    heroCharacter && latest ? { character: heroCharacter, pinned: false, latest } : undefined;
+
+  // つづきからは会話と場を新しい順に混ぜる。主役にした会話は除く（板 Main）。
+  const continuations: HomeContinuation[] = [
+    ...conversations.flatMap((conversation) => {
+      const character = byId.get(conversation.characterId);
+      return character && conversation.id !== latest?.id
+        ? [{ kind: "chat" as const, conversation, character }]
+        : [];
+    }),
+    ...groups.map((group) => ({
+      kind: "group" as const,
+      group,
+      speaker: group.speakerCharacterId ? byId.get(group.speakerCharacterId) : undefined,
+      faces: group.memberIds.flatMap((id) => {
+        const character = byId.get(id);
+        return character ? [character] : [];
+      }),
+    })),
+  ].sort((a, b) => {
+    const at = a.kind === "chat" ? a.conversation.updatedAt : a.group.updatedAt;
+    const bt = b.kind === "chat" ? b.conversation.updatedAt : b.group.updatedAt;
+    return bt - at;
   });
 
   return (
-    <div className="v2-home">
-      <ListConnectionState />
-      {hero ? (
-        <HomeMain hero={hero} latest={latest} continuations={continuations} />
+    <div className={online ? "v2-home" : "v2-home v2-home--band"}>
+      {/* 主役もつづきも無い時だけ空の画面。場だけある時は主役無しの一覧を出す */}
+      {hero || continuations.length > 0 ? (
+        <HomeScreen hero={hero} continuations={continuations} />
       ) : (
-        <HomeEmpty />
+        <HomeEmptyScreen />
       )}
+      {!online && <ScreenBand kind="alert" text="オフラインです" onRetry={retry} tab />}
     </div>
   );
 };
 
 export const Route = createFileRoute("/")({
-  pendingComponent: ListLoadingState,
-  errorComponent: ListErrorState,
+  pendingComponent: HomePendingState,
+  errorComponent: HomeErrorState,
   loader: async ({ abortController }) => {
-    const [characters, conversations] = await Promise.all([
+    const [characters, conversations, groups] = await Promise.all([
       listCharacters({ signal: abortController.signal }),
       listSavedConversations({ signal: abortController.signal }),
+      listSavedGroups({ signal: abortController.signal }),
     ]);
-    return { characters, conversations };
+    return { characters, conversations, groups };
   },
   component: HomePage,
 });

@@ -16,15 +16,20 @@ import { Route as ListRoute } from "../routes/index";
 
 import type { AnyRootRoute } from "@tanstack/react-router";
 
-const { getCharacter, listCharacters } = vi.hoisted(() => ({
-  getCharacter: vi.fn(),
-  listCharacters: vi.fn(),
-}));
+const { getCharacter, listCharacters, listSavedConversations, listSavedGroups } = vi.hoisted(
+  () => ({
+    getCharacter: vi.fn(),
+    listCharacters: vi.fn(),
+    listSavedConversations: vi.fn(),
+    listSavedGroups: vi.fn(),
+  }),
+);
 vi.mock("../server/characters", () => ({
   getCharacter,
   listCharacters,
-  listSavedConversations: async () => [],
+  listSavedConversations,
 }));
+vi.mock("../server/groups", () => ({ listSavedGroups }));
 // 持つ手の読み出しは server/platform 経由の D1 なので、画面テストでは置き換える。
 vi.mock("../server/settings", () => ({
   getUserSettings: async () => ({
@@ -35,7 +40,14 @@ vi.mock("../server/settings", () => ({
   }),
 }));
 
-const fixture = { id: "synthetic-character", name: "合成の一覧項目", avatar: null };
+const fixture = { id: "synthetic-character", name: "合成の一覧項目", avatar: null, tags: [] };
+const talkFixture = {
+  id: "synthetic-talk",
+  characterId: fixture.id,
+  title: "",
+  updatedAt: Date.now(),
+  lastMessage: "おかえり",
+};
 let failRender = false;
 const RootFrame = () => {
   if (failRender) throw new Error("synthetic-render-failure");
@@ -85,6 +97,8 @@ beforeEach(() => {
   vi.spyOn(console, "warn").mockImplementation(() => {});
   getCharacter.mockReset().mockResolvedValue(fixture);
   listCharacters.mockReset().mockResolvedValue([fixture]);
+  listSavedConversations.mockReset().mockResolvedValue([talkFixture]);
+  listSavedGroups.mockReset().mockResolvedValue([]);
 });
 afterEach(() => {
   cleanup();
@@ -96,10 +110,10 @@ describe("production root recovery slots", () => {
   it("描画例外を直した後に再試行で実一覧へ復帰する", async () => {
     failRender = true;
     renderRecovery("/");
-    await screen.findByRole("heading", { name: "画面を読み込めませんでした" });
+    await screen.findByRole("heading", { name: "ページを読み込めませんでした" });
     expect(screen.queryByText("synthetic-render-failure")).not.toBeInTheDocument();
     failRender = false;
-    fireEvent.click(screen.getByRole("button", { name: "読み込みをやり直す" }));
+    fireEvent.click(screen.getByRole("button", { name: "もう一度" }));
     expect(await screen.findByRole("heading", { name: fixture.name })).toBeInTheDocument();
   });
 
@@ -109,10 +123,10 @@ describe("production root recovery slots", () => {
       .mockRejectedValueOnce(new Error("synthetic-list-failure"))
       .mockResolvedValue([fixture]);
     renderRecovery("/unknown");
-    await screen.findByRole("heading", { name: "ページが見つかりません" });
-    fireEvent.click(screen.getByRole("link", { name: "一覧に戻る" }));
-    await screen.findByRole("heading", { name: "一覧を読み込めませんでした" });
-    fireEvent.click(screen.getByRole("button", { name: "読み込みをやり直す" }));
+    await screen.findByRole("heading", { name: "このページが見つかりませんでした" });
+    fireEvent.click(screen.getByRole("link", { name: "ホームへ" }));
+    await screen.findByRole("heading", { name: "ホームを読み込めませんでした" });
+    fireEvent.click(screen.getByRole("button", { name: "もう一度" }));
     expect(await screen.findByRole("heading", { name: fixture.name })).toBeInTheDocument();
   });
 
@@ -160,9 +174,9 @@ describe("production root recovery slots", () => {
       .mockRejectedValueOnce(new Error("synthetic-root-failure"))
       .mockResolvedValue(null);
     renderRecovery(`/chat/${fixture.id}`, loader);
-    await screen.findByRole("heading", { name: "画面を読み込めませんでした" });
+    await screen.findByRole("heading", { name: "ページを読み込めませんでした" });
     expect(posts).toHaveLength(0);
-    fireEvent.click(screen.getByRole("button", { name: "読み込みをやり直す" }));
+    fireEvent.click(screen.getByRole("button", { name: "もう一度" }));
     // 受付の続きは GET でつなぐので、この時点で POST は出てへん。
     await screen.findByText("返事が届きませんでした。");
     expect(posts).toHaveLength(0);
