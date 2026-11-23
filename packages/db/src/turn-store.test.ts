@@ -21,6 +21,7 @@ import {
   truncateAssistantReply,
   updateGenerationProvider,
   updateLatestLedger,
+  updateLatestLedgerPhase,
   type TurnEvent,
   type TurnStore,
 } from "./turn-store";
@@ -630,6 +631,55 @@ describe("createD1TurnStore", () => {
     const loaded = await store.load(conversationId);
     expect(loaded.ledger).toEqual(fixed);
     expect(loaded.turn).toBe(3);
+  });
+
+  it("phase だけの更新は他の項目を残したまま最新行へ効く（RIT-202 板 Mood）", async () => {
+    const conversationId = newConversationId();
+    await store.saveTurn({
+      conversationId,
+      turn: 1,
+      userText: "user 1",
+      events: chunkEvents(1),
+      ledger: ledgerAt(1),
+    });
+    await store.saveTurn({
+      conversationId,
+      turn: 2,
+      userText: "user 2",
+      events: chunkEvents(2),
+      ledger: ledgerAt(2),
+    });
+
+    const updated = await updateLatestLedgerPhase(
+      local.db,
+      storeOpts(),
+      conversationId,
+      "intimate",
+    );
+    expect(updated).toBe(2);
+
+    const loaded = await store.load(conversationId);
+    // phase だけが新しく、場面・持ち物など残りは turn 2 の台帳のまま。
+    expect(loaded.ledger).toEqual({ ...ledgerAt(2), phase: "intimate" });
+    expect(loaded.turn).toBe(3);
+  });
+
+  it("台帳行が無い会話の phase 更新は null", async () => {
+    const conversationId = newConversationId();
+    await ensureConversationVersion(local.db, {
+      conversationId,
+      userId: "vitest",
+      characterId,
+      promptVersion: "v0001",
+      versionId: `ver-${conversationId}`,
+    });
+    const updated = await updateLatestLedgerPhase(
+      local.db,
+      storeOpts(),
+      conversationId,
+      "intimate",
+    );
+    expect(updated).toBeNull();
   });
 
   it("台帳行が無い会話の手直しは null（対話未開始）", async () => {

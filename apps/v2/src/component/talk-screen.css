@@ -186,6 +186,56 @@
   color: var(--color-on-peach);
 }
 
+/* 「止める」は板どおり文字つきの薬丸。アイコンだけの送信ボタンより横長でよい。 */
+.v2-talk-footer .v2-chat-form .v2-turn-stop {
+  width: auto;
+  min-width: 0;
+  padding: 0 16px;
+  gap: 6px;
+  font-size: var(--text-row-size);
+  line-height: var(--text-row-line);
+  font-weight: 700;
+}
+
+/* 持つ手が左の時（板 TalkLeft）: ＋と送信・止めるの位置を左右入れ替える。 */
+.v2-talk-footer .v2-chat-form[data-hand="left"] .v2-talk-plus {
+  order: 3;
+}
+.v2-talk-footer .v2-chat-form[data-hand="left"] input {
+  order: 2;
+}
+.v2-talk-footer .v2-chat-form[data-hand="left"] button[type="submit"],
+.v2-talk-footer .v2-chat-form[data-hand="left"] .v2-turn-stop {
+  order: 1;
+}
+
+/* 字数カウンタ（WORDING「文字数の上限」）: 8 割超で右端に数え、超過で失敗の文＋「!」。 */
+.v2-talk-counter {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 8px 20px 0;
+  color: var(--color-text-sub);
+  font-size: var(--text-note-size);
+  line-height: var(--text-note-line);
+}
+.v2-talk-counter .v2-talk-counter-num {
+  flex: none;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.v2-talk-counter.over .v2-talk-counter-num {
+  color: var(--color-danger);
+}
+.v2-talk-counter-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  gap: 6px;
+  color: var(--color-danger);
+}
+
 .v2-talk-footer .v2-suggestions {
   display: flex;
   flex-wrap: nowrap;
@@ -221,6 +271,24 @@
   color: var(--color-text-sub);
 }
 
+/* 候補を出せなかった時（板 TalkError）。流れの中の静かな 1 行＋もう一度。 */
+.v2-suggestions-failed {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px 0;
+  color: var(--color-text-sub);
+  font-size: var(--text-note-size);
+  line-height: var(--text-note-line);
+}
+.v2-suggestions-failed button {
+  min-height: 44px;
+  border: 0;
+  background: none;
+  color: var(--color-peach);
+  font-size: var(--text-note-size);
+}
+
 .v2-talk-tray {
   max-height: min(420px, 55dvh);
   overflow-y: auto;
@@ -247,8 +315,6 @@
   line-height: var(--text-note-line);
 }
 
-.v2-talk-tray button,
-.v2-talk-tray summary,
 .v2-talk-menu-row,
 .v2-talk-sheet-content > div > button {
   display: flex;
@@ -265,41 +331,82 @@
   text-decoration: none;
 }
 
-.v2-talk-tray .v2-talk-image-request {
-  width: 100%;
-  min-height: 52px;
-  background: var(--gradient-press);
-  box-shadow: var(--shadow-press);
-  border-radius: var(--radius-card);
-  font-weight: 700;
-}
-
-.v2-talk-tray-settings {
+/* 「よく使う」の 2 つの札（板 TalkTray）。画像をもらう・電話する。 */
+.v2-talk-tiles {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
-  margin-bottom: 8px;
+}
+.v2-talk-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 8px;
+  min-height: 64px;
+  padding: 12px 16px;
+  border: 0;
+  border-radius: var(--radius-card);
+  background: var(--gradient-press);
+  box-shadow: var(--shadow-press);
+  color: var(--color-text);
+  font-size: var(--text-row-size);
+  line-height: var(--text-row-line);
+  font-weight: 700;
+}
+.v2-talk-tile[aria-pressed="true"] {
+  background: var(--gradient-peach);
+  color: var(--color-on-peach);
 }
 
-.v2-talk-tray-settings > section {
-  min-width: 0;
+/* 「この会話」「場面」のカード。行の境はうっすら影で分ける。 */
+.v2-talk-card {
+  overflow: hidden;
+  border-radius: var(--radius-card);
+  background: var(--gradient-surface);
 }
-
-.v2-talk-tray-settings button {
-  width: 100%;
+.v2-talk-card > * + * {
+  box-shadow: inset 0 1px 0 rgba(4, 6, 14, 0.35);
+}
+.v2-talk-card > button,
+.v2-talk-card .v2-ledger > .v2-ledger-toggle,
+.v2-talk-card .v2-bookmarks > button,
+.v2-talk-card > .v2-image-params > summary {
+  display: flex;
+  align-items: center;
   justify-content: space-between;
-  gap: 4px;
-  padding: 12px;
+  gap: 8px;
+  width: 100%;
+  min-height: 52px;
+  padding: 12px 16px;
+  border: 0;
+  background: none;
+  color: var(--color-text);
+  font-size: var(--text-row-size);
+  line-height: var(--text-row-line);
+  text-align: left;
 }
-
-.v2-talk-tray-settings button span + span {
-  font-size: var(--text-note-size);
+.v2-talk-card .v2-talk-row-value {
   color: var(--color-text-sub);
+  font-size: var(--text-note-size);
+  line-height: var(--text-note-line);
 }
 
 .v2-talk-tray .v2-image-params {
   margin: 0;
   padding: 0;
+  border-top: 0;
+  color: inherit;
+  font-size: inherit;
+}
+.v2-talk-tray .v2-image-params .v2-image-params-grid {
+  padding: 0 16px 12px;
+}
+.v2-talk-tray .v2-image-params > summary {
+  list-style: none;
+}
+.v2-talk-tray .v2-image-params > summary::-webkit-details-marker {
+  display: none;
 }
 
 .v2-talk-sheet {
@@ -362,29 +469,61 @@
   padding: 0 20px 16px;
 }
 
-.v2-talk-scene-bar .v2-ledger-toggle {
+/* 場面帯は 1 つの薬丸を 2 つに分ける（板 Talk）。左は場面シート、右は雰囲気の切替。 */
+.v2-talk-scene-pill {
+  display: flex;
+  align-items: stretch;
+  min-height: 44px;
+  border-radius: var(--radius-pill);
+  background: var(--gradient-press);
+  box-shadow: var(--shadow-press);
+}
+.v2-talk-scene-pill .v2-ledger {
+  flex: 1 1 60%;
+  min-width: 0;
+}
+.v2-talk-scene-pill .v2-ledger-toggle {
   display: flex;
   align-items: center;
   width: 100%;
   min-height: 44px;
-  padding: 0 16px;
+  padding: 0 8px 0 16px;
   gap: 8px;
   border: 0;
-  border-radius: var(--radius-pill);
-  background: var(--gradient-press);
+  border-radius: var(--radius-pill) 0 0 var(--radius-pill);
+  background: none;
   color: var(--color-text);
-  box-shadow: var(--shadow-press);
   font-size: var(--text-row-size);
   line-height: var(--text-row-line);
   font-weight: 700;
 }
-
-.v2-talk-scene-bar .v2-ledger-toggle span {
+.v2-talk-scene-pill .v2-ledger-toggle span {
   flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   text-align: left;
+}
+.v2-talk-scene-pill .v2-talk-mood-toggle {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 16px 0 12px;
+  border: 0;
+  border-radius: 0 var(--radius-pill) var(--radius-pill) 0;
+  background: none;
+  color: var(--color-text);
+  font-size: var(--text-row-size);
+  line-height: var(--text-row-line);
+  font-weight: 700;
+  box-shadow: inset 1px 0 0 rgba(4, 6, 14, 0.4);
+}
+.v2-talk-scene-pill .v2-talk-mood-toggle span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .v2-talk-action-list {

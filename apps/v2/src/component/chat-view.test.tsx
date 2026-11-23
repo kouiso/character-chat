@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { readChatSession, writeChatSession } from "../lib/chat-session";
@@ -149,6 +149,8 @@ describe("ChatView", () => {
     const attached: string[] = [];
     const fetchMock = vi.fn(async (url: RequestInfo | URL, init?: RequestInit) => {
       const path = String(url);
+      // 候補の自動取得は送りとは別口。受付の数えには入れん。
+      if (path.endsWith("/suggest")) return Response.json({ suggestions: [] });
       if (init?.method === "POST") {
         requests.push(JSON.parse(String(init.body)) as Record<string, unknown>);
         return new Response("", { status: 503 });
@@ -259,6 +261,8 @@ describe("ChatView", () => {
       "fetch",
       vi.fn(async (url: RequestInfo | URL, init?: RequestInit) => {
         const path = String(url);
+        // 候補の自動取得は送りとは別口。受付の数えには入れん。
+        if (path.endsWith("/suggest")) return Response.json({ suggestions: [] });
         if (init?.method === "POST" && path.endsWith("/withdraw")) {
           withdraws.push(JSON.parse(String(init.body)) as Record<string, unknown>);
           return Response.json({
@@ -396,6 +400,8 @@ describe("ChatView", () => {
       "fetch",
       vi.fn(async (url: RequestInfo | URL, init?: RequestInit) => {
         const path = String(url);
+        // 候補の自動取得は送りとは別口。受付の数えには入れん。
+        if (path.endsWith("/suggest")) return Response.json({ suggestions: [] });
         if (init?.method === "POST") {
           requests.push(JSON.parse(String(init.body)) as Record<string, unknown>);
           return new Response("", { status: 503 });
@@ -672,7 +678,9 @@ describe("ChatView", () => {
       target: { value: long },
     });
     fireEvent.click(screen.getByRole("button", { name: "送信" }));
-    await screen.findByText("4000字以内で送信してください。入力は保持されています。");
+    // 上限超えはカウンタの行が文を出す（板 TalkError・WORDING「文字数の上限」）。
+    await screen.findByText(/メッセージは 4,000 文字までです。\s*いま 4,001 文字です。/);
+    expect(screen.getByText("4,001 / 4,000")).toBeInTheDocument();
     expect(fetchMock).not.toHaveBeenCalled();
     expect(readChatSession("a").pending).toBeNull();
     expect(screen.getByRole("textbox", { name: "メッセージ" })).toHaveValue(long);
@@ -895,7 +903,8 @@ describe("ChatView", () => {
       Response.json({ code: "busy", message: "作成中" }, { status: 409 }),
     );
     fireEvent.click(await screen.findByRole("button", { name: "入力に戻す" }));
-    await screen.findByText("返事を書いています");
+    // 待ちの表示は板どおり「点 3 つの泡」。読み上げ名が「返事を書いています」。
+    await screen.findByRole("status", { name: "返事を書いています" });
     expect(screen.getByRole("textbox", { name: "メッセージ" })).toHaveValue("");
     expect(readChatSession("a").pending?.requestId).toBe("request-old");
     expect(screen.getByRole("button", { name: "返事を止める" })).toBeInTheDocument();
@@ -1019,7 +1028,7 @@ describe("ChatView", () => {
     });
     fireEvent.click(screen.getByRole("button", { name: "送信" }));
 
-    await screen.findByText("返事を書いています");
+    await screen.findByRole("status", { name: "返事を書いています" });
     // 待ちの間は送信ボタンではなく「返事を止める」が出る。
     expect(screen.getByRole("button", { name: "返事を止める" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "送信" })).not.toBeInTheDocument();
@@ -1147,5 +1156,69 @@ describe("ChatView", () => {
     expect(screen.getByText("二つ目の返事")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "送信" })).toBeInTheDocument();
     expect(document.querySelectorAll(".v2-message-turn.assistant.pending")).toHaveLength(0);
+  });
+
+  it("字数カウンタは上限の 8 割を超えた時だけ出て、超過で失敗の文と「!」を足す", () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => Response.json({ turn: 1, history: [] })),
+    );
+    render(<ChatView characterId="a" characterName="案内役" />);
+    const box = screen.getByRole("textbox", { name: "メッセージ" });
+    // 8 割（3,200）までは出さん。
+    fireEvent.change(box, { target: { value: "あ".repeat(3200) } });
+    expect(screen.queryByText(/\/ 4,000/)).not.toBeInTheDocument();
+    // 8 割超で数えだけ出る（失敗の文はまだ出さん）。
+    fireEvent.change(box, { target: { value: "あ".repeat(3201) } });
+    expect(screen.getByText("3,201 / 4,000")).toBeInTheDocument();
+    expect(screen.queryByText(/メッセージは/)).not.toBeInTheDocument();
+    // 超過で失敗の文と「!」の印を足す。送信ボタンは止まる。
+    fireEvent.change(box, { target: { value: "あ".repeat(4001) } });
+    expect(screen.getByText(/いま 4,001 文字です。/)).toBeInTheDocument();
+    expect(screen.getByText("4,001 / 4,000")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "送信" })).toBeDisabled();
+  });
+
+  it("持つ手が左の時は、＋と入力・送信の並びを左右入れ替える（板 TalkLeft）", () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => Response.json({ turn: 1, history: [] })),
+    );
+    render(<ChatView characterId="a" characterName="案内役" handedness="left" />);
+    const form = screen.getByRole("textbox", { name: "メッセージ" }).closest("form");
+    expect(form).toHaveAttribute("data-hand", "left");
+    // DOM の順は＋・入力・送信のまま保ち、並び替えは CSS の order に任せる。
+    const children = Array.from(form?.querySelectorAll("button, input") ?? []);
+    expect(children.indexOf(form?.querySelector(".v2-talk-plus") as Element)).toBeLessThan(
+      children.indexOf(form?.querySelector('button[type="submit"]') as Element),
+    );
+  });
+
+  it("「＋」のトレイは板どおりの構成で、返事の候補の入切は端末に残る", () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => Response.json({ turn: 1, history: [] })),
+    );
+    render(<ChatView characterId="a" characterName="案内役" />);
+    fireEvent.click(screen.getByRole("button", { name: /ひらく/ }));
+    const tray = document.querySelector(".v2-talk-tray");
+    expect(tray).toHaveTextContent("よく使う");
+    expect(tray).toHaveTextContent("画像をもらう");
+    // 非対応端末では「電話する」の札は出さん（jsdom は音声認識を持たん）。
+    expect(tray).toHaveTextContent("この会話");
+    expect(tray).toHaveTextContent("雰囲気");
+    expect(tray).toHaveTextContent("心の声");
+    const suggestRow = within(tray as HTMLElement).getByRole("button", {
+      name: /返事の候補/,
+    });
+    expect(suggestRow).toHaveTextContent("オン");
+    expect(tray).toHaveTextContent("場面");
+    expect(tray).toHaveTextContent("いまの場面");
+    expect(tray).toHaveTextContent("しおり");
+    expect(tray).toHaveTextContent("もらう画像の設定");
+    // 切った選択は端末へ残る。
+    fireEvent.click(suggestRow);
+    expect(suggestRow).toHaveTextContent("オフ");
+    expect(localStorage.getItem("v2-suggest:a")).toBe("0");
   });
 });

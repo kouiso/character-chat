@@ -13,6 +13,15 @@ import { Route as ChatRoute } from "../routes/chat/$id";
 
 const { getCharacter } = vi.hoisted(() => ({ getCharacter: vi.fn() }));
 vi.mock("../server/characters", () => ({ getCharacter }));
+// 持つ手の読み出しは server/platform 経由の D1 なので、画面テストでは置き換える。
+vi.mock("../server/settings", () => ({
+  getUserSettings: async () => ({
+    chatMode: "standard",
+    style: "balanced",
+    voiceAutoplay: false,
+    handedness: "right",
+  }),
+}));
 
 const fixture = { id: "synthetic-character", name: "合成テストキャラクター" };
 

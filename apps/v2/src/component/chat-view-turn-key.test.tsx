@@ -87,6 +87,8 @@ const sendResponse = (state: BackendState) => {
 const respond = (state: BackendState, url: string, init?: RequestInit): Response => {
   if (url.includes("/images")) return imagesResponse(state, init);
   if (url.includes("/branch")) return branchResponse(state, url, init);
+  // 候補の自動取得は送りとは別口。返事を足さない。
+  if (url.endsWith("/suggest")) return Response.json({ suggestions: [] });
   if (url.includes("/history")) {
     return Response.json({ turn: state.replied ? 5 : 4, history: historyOf(state) });
   }
