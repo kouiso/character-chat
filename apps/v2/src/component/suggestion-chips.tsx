@@ -11,8 +11,8 @@ type SuggestionChipsProps = {
   // 会話は最初の送信で初めてサーバへ作られるので、値は描画のたび最新を渡す。
   conversationId: string | null;
   disabled: boolean;
-  // 返事が進むたび変わる値。変わったら候補を取り直す。
-  version: number;
+  // 返事が進む・枝で差し替わるたび変わる値。変わったら候補を取り直す。
+  version: string;
   enabled: boolean;
   onPick: (text: string) => void;
 };
@@ -25,10 +25,12 @@ export const SuggestionChips = ({
   enabled,
   onPick,
 }: SuggestionChipsProps) => {
-  const [suggestions, setSuggestions] = useState<string[] | null>(null);
+  // 取った候補は取った時の version と対で持つ。取った後で version が進んだ
+  // （枝操作など）場合、古い場面の候補を新しい返事の下に出さんようする。
+  const [suggestions, setSuggestions] = useState<{ items: string[]; version: string } | null>(null);
   const [failed, setFailed] = useState(false);
   // 閉じた候補は次の返事まで出さん。version の変化で閉じた印を外す。
-  const [dismissedAt, setDismissedAt] = useState<number | null>(null);
+  const [dismissedAt, setDismissedAt] = useState<string | null>(null);
   // 「もう一度」は取り直しの回数を上げて effect をもう一度走らせる。
   const [attempt, setAttempt] = useState(0);
 
@@ -39,10 +41,11 @@ export const SuggestionChips = ({
     }
     if (!conversationId || disabled) return;
     const abort = new AbortController();
+    const askedVersion = version;
     setFailed(false);
     void fetchSuggestions(characterId, conversationId, abort.signal)
       .then((items) => {
-        if (!abort.signal.aborted) setSuggestions(items);
+        if (!abort.signal.aborted) setSuggestions({ items, version: askedVersion });
       })
       .catch(() => {
         if (!abort.signal.aborted) setFailed(true);
@@ -73,7 +76,12 @@ export const SuggestionChips = ({
   }
 
   const visible =
-    suggestions !== null && suggestions.length > 0 && dismissedAt !== version ? suggestions : null;
+    suggestions !== null &&
+    suggestions.items.length > 0 &&
+    suggestions.version === version &&
+    dismissedAt !== version
+      ? suggestions.items
+      : null;
   if (visible === null) return null;
 
   return (

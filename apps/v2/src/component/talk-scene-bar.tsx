@@ -12,11 +12,17 @@ export const TalkSceneBar = ({
   conversationId,
   turn,
   busy,
+  reloadSignal = 0,
+  onMoodChanged,
 }: {
   characterId: string;
   conversationId: string | null;
   turn: number;
   busy: boolean;
+  // トレイ側など帯の外で雰囲気が変わった時に読み直すための合図。変わるたび取り直す。
+  reloadSignal?: number;
+  // 帯の中で雰囲気を変えた時、帯の外（トレイ側など）へも伝える。
+  onMoodChanged?: () => void;
 }) => {
   const [ledger, setLedger] = useState<LedgerData | null>(null);
   // 雰囲気を変えた時に帯を読み直すための合図。
@@ -31,7 +37,7 @@ export const TalkSceneBar = ({
         .catch(() => {});
     }
     return () => abort.abort();
-  }, [characterId, conversationId, turn, busy, reloadKey]);
+  }, [characterId, conversationId, turn, busy, reloadKey, reloadSignal]);
   const scene = ledger ? [ledger.time, ledger.location].filter(Boolean).join("・") : "";
   return (
     <div className="v2-talk-scene-bar">
@@ -50,7 +56,10 @@ export const TalkSceneBar = ({
           characterId={characterId}
           getConversationId={() => conversationId}
           phase={ledger?.phase ?? null}
-          onChanged={() => setReloadKey((count) => count + 1)}
+          onChanged={() => {
+            setReloadKey((count) => count + 1);
+            onMoodChanged?.();
+          }}
         />
       </div>
     </div>

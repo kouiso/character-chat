@@ -353,8 +353,8 @@ type ChatFooterProps = {
   onImage: () => void;
   characterId: string;
   getConversationId: () => string | null;
-  // 返事が進むたび変わる値。候補チップの取り直しの合図。
-  historyVersion: number;
+  // 返事が進む・枝で差し替わるたび変わる値。候補チップの取り直しの合図。
+  historyVersion: string;
   suggestOn: boolean;
   handedness: "right" | "left";
   call: {
@@ -781,6 +781,11 @@ export const ChatView = ({
   const [withdrawing, setWithdrawing] = useState(false);
   // RIT-202: 「ここから戻る」で眠らせた末尾を「進む」で起こせるよう、戻したターンを覚える。
   const [rewoundFrom, setRewoundFrom] = useState<number | null>(null);
+  // 枝操作で同じ位置の返事が差し替わっても変わるよう、履歴の読み直しの度に進める番号。
+  // 候補チップは返事の並び番号と合わせて使い、枝替わりでも取り直し・閉じた印の解除が効く。
+  const [historyNonce, setHistoryNonce] = useState(0);
+  // トレイ側の雰囲気シートで変えた時に場面帯へ読み直しを伝える合図。
+  const [sceneReload, setSceneReload] = useState(0);
   const conversationId = useRef<string | null>(null);
   const nextTurn = useRef(1);
   const controller = useRef<AbortController | null>(null);
@@ -1131,6 +1136,8 @@ export const ChatView = ({
     );
     nextTurn.current = history.nextTurn;
     setBubbles(history.bubbles);
+    // 同じ位置の返事が差し替わっても候補チップへ「進んだ」ことを伝える。
+    setHistoryNonce((count) => count + 1);
     void reloadMarks();
   }, [characterId, reloadMarks]);
 
@@ -1679,6 +1686,8 @@ export const ChatView = ({
         conversationId={conversationId.current}
         turn={nextTurn.current}
         busy={busy}
+        reloadSignal={sceneReload}
+        onMoodChanged={() => setSceneReload((count) => count + 1)}
       />
       <ChatMessageLog key={characterId} busy={busy}>
         <GreetingRow name={characterName} avatar={characterAvatar} text={greeting} />
@@ -1732,6 +1741,8 @@ export const ChatView = ({
               <TalkMood
                 characterId={characterId}
                 getConversationId={() => conversationId.current}
+                onChanged={() => setSceneReload((count) => count + 1)}
+                reloadSignal={sceneReload}
                 trigger={(label) => (
                   <>
                     <span>雰囲気</span>
@@ -1799,7 +1810,7 @@ export const ChatView = ({
         onImage={requestImage}
         characterId={characterId}
         getConversationId={() => conversationId.current}
-        historyVersion={lastAssistantIndex}
+        historyVersion={`${lastAssistantIndex}.${historyNonce}`}
         suggestOn={suggestOn}
         handedness={handedness}
         call={{

@@ -6,6 +6,7 @@ import {
   loadLatestLedger,
   sceneLedgerSchema,
   updateLatestLedger,
+  updateLatestLedgerPhase,
 } from "@v2/db";
 import { PROMPT_VERSION } from "@v2/prompt";
 import { z } from "zod";
@@ -13,10 +14,16 @@ import { z } from "zod";
 import { LOCAL_USER_ID } from "./identity";
 import { getPlatform } from "./platform";
 
-const BodySchema = z.object({
-  conversationId: z.string().min(1).max(120),
-  ledger: sceneLedgerSchema,
-});
+// 手直しは台帳全体、雰囲気の切り替えは phase だけ。phase 単独の時は部分更新を使い、
+// 読んだ時点の台帳で最新行を丸ごと置き換えて生成の更新を失う事故を避ける。
+const BodySchema = z
+  .object({ conversationId: z.string().min(1).max(120) })
+  .and(
+    z.union([
+      z.object({ ledger: sceneLedgerSchema }),
+      z.object({ phase: sceneLedgerSchema.shape.phase }),
+    ]),
+  );
 
 const json = (status: number, body: Record<string, unknown>): Response =>
   Response.json(body, { status });
@@ -62,6 +69,18 @@ export const handleLedgerRequest = async (
   try {
     const { env } = await getPlatform();
     const db = createDb(env.DB);
+    if ("phase" in parsed.data) {
+      const turn = await updateLatestLedgerPhase(
+        db,
+        storeOpts(characterId),
+        parsed.data.conversationId,
+        parsed.data.phase,
+      );
+      if (turn === null) {
+        return json(409, { message: "まだ保存された台帳がありません。" });
+      }
+      return json(200, { turn, phase: parsed.data.phase });
+    }
     const turn = await updateLatestLedger(
       db,
       storeOpts(characterId),

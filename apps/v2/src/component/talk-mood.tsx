@@ -1,8 +1,8 @@
 // 雰囲気（板 Mood）。場面台帳の phase を画面の語に写し、シートから切り替える。
 // 変えた値は PATCH /api/chat/:id/ledger で最新台帳へ書き、次の返事から効く。
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
-import { loadLedger, saveLedger, type LedgerData } from "../lib/ledger";
+import { loadLedger, saveLedgerPhase, type LedgerData } from "../lib/ledger";
 import { TalkIcon } from "./talk-icon";
 import { TalkSheet } from "./talk-sheet";
 
@@ -26,6 +26,8 @@ type TalkMoodProps = {
   // 行の形は呼び出し側が決める。今の雰囲気の語を渡す。
   trigger?: (label: string) => ReactNode;
   onChanged?: () => void;
+  // 別の場所（場面帯など）で雰囲気が変わった時に読み直すための合図。変わるたび取り直す。
+  reloadSignal?: number;
 };
 
 export const TalkMood = ({
@@ -34,12 +36,16 @@ export const TalkMood = ({
   phase,
   trigger,
   onChanged,
+  reloadSignal = 0,
 }: TalkMoodProps) => {
   const [open, setOpen] = useState(false);
   const [current, setCurrent] = useState<LedgerData["phase"] | undefined>(phase ?? undefined);
   const [ledger, setLedger] = useState<LedgerData | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // 保存が成功した版の番号。保存より先に出した読み込みが遅れて返っても、
+  // 新しい雰囲気を古い値で上書きせんよう、届いた時点で番号がズレてたら捨てる。
+  const savedSeq = useRef(0);
 
   // 呼び出し側が phase を持たん時（トレイの行）は、開くのを待たず現在値を読む。
   // 会話の変わり目だけ見ればよいので、描画の時点の会話番号を依存にする。
@@ -51,13 +57,17 @@ export const TalkMood = ({
     }
     if (!conversationId) return;
     const abort = new AbortController();
+    const seq = savedSeq.current;
     void loadLedger(characterId, conversationId, abort.signal)
       .then((loaded) => {
-        if (!abort.signal.aborted && loaded) setCurrent(loaded.phase);
+        if (!abort.signal.aborted && loaded && seq === savedSeq.current) setCurrent(loaded.phase);
       })
-      .catch(() => {});
+      .catch(() => {
+        // 失敗も捨てんと覚えておく。シートを開く時にもう一度読み、そこで文を出す。
+        if (!abort.signal.aborted) setError("雰囲気を読み込めませんでした。");
+      });
     return () => abort.abort();
-  }, [characterId, phase, conversationId]);
+  }, [characterId, phase, conversationId, reloadSignal]);
 
   const openSheet = async () => {
     setOpen(true);
@@ -67,8 +77,10 @@ export const TalkMood = ({
       setLedger(null);
       return;
     }
+    const seq = savedSeq.current;
     try {
       const loaded = await loadLedger(characterId, conversationId, new AbortController().signal);
+      if (seq !== savedSeq.current) return;
       setLedger(loaded);
       if (loaded) setCurrent(loaded.phase);
     } catch {
@@ -87,13 +99,15 @@ export const TalkMood = ({
     setSaving(true);
     setError(null);
     try {
-      const updated: LedgerData = { ...ledger, phase: next };
-      const turn = await saveLedger(characterId, conversationId, updated);
+      // サーバーは最新台帳行の phase だけを差し替える。開いた時点の台帳を
+      // 丸ごと送ると、生成で新しく積まれた行を古い内容で潰してしまう。
+      const turn = await saveLedgerPhase(characterId, conversationId, next);
       if (turn === null) {
         setError("まだ場面の記録がありません。");
         return;
       }
-      setLedger(updated);
+      savedSeq.current += 1;
+      setLedger((prev) => (prev ? { ...prev, phase: next } : prev));
       setCurrent(next);
       setOpen(false);
       onChanged?.();
