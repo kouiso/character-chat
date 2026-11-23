@@ -18,7 +18,6 @@ import {
   HomeScreen,
   formatHomeDay,
   type HomeContinuation,
-  type HomeHeroData,
 } from "./home-screen";
 
 import type { AnyRootRoute } from "@tanstack/react-router";
