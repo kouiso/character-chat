@@ -182,10 +182,12 @@ describe("オフライン送信（S-15）", () => {
     });
     fireEvent.click(screen.getByRole("button", { name: "送信" }));
 
-    // POST は出さん。場面帯の GET は許す。文は入力欄に残る。
+    // POST は出さん。場面帯の GET と候補の取得は許す。文は入力欄に残る。
     const postCalls = () =>
       (fetchMock.mock.calls as unknown[][]).filter(
-        (call) => (call[1] as RequestInit | undefined)?.method === "POST",
+        (call) =>
+          (call[1] as RequestInit | undefined)?.method === "POST" &&
+          !String(call[0]).endsWith("/suggest"),
       );
     expect(postCalls()).toHaveLength(0);
     expect(screen.getByRole("textbox", { name: "メッセージ" })).toHaveValue("圏外のひとこと");
