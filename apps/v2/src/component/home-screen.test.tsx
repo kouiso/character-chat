@@ -175,6 +175,30 @@ describe("ホーム（いつもの子が迎える）", () => {
     ).toBeTruthy();
   });
 
+  it("1 対 1 が無く場だけある時は主役無しで「つづきから」を出す", async () => {
+    const member = character({ name: "ひなた" });
+    const group = {
+      id: "group-only",
+      title: "宅飲みの夜",
+      updatedAt: Date.now() - day,
+      speakerCharacterId: member.id,
+      lastMessage: "おつかれさまです。隣、いいですか？",
+      memberIds: [member.id],
+    };
+    await renderHome(
+      <HomeScreen
+        hero={undefined}
+        continuations={[{ kind: "group", group, speaker: member, faces: [member] }]}
+      />,
+    );
+    // 主役の札も主ボタンも出さないが、つづきからは見せて再開できる
+    expect(screen.queryByText("ゆうべのつづき")).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "つづきから" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "宅飲みの夜との会話をつづきから話す" }),
+    ).toHaveAttribute("href", "/groups/group-only");
+  });
+
   it("長い名前と長い文（絵が無い子）でも収める: 頭文字の頭・省略・2 行止め", async () => {
     const hero = character({
       name: "エレオノーラ・ヴァレンティーナ",

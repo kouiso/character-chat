@@ -20,8 +20,9 @@ const routeApi = getRouteApi("/");
 const useRetryHome = () => {
   const router = useRouter();
   return () => {
-    // 帯・状態の「もう一度」は同じ URL への移動だけで再取得が省略されんよう明示する。
-    void router.invalidate({ filter: (match) => match.routeId === "/", forcePending: true });
+    // 「もう一度」で取り直す。forcePending は付けない（付けると読み込み済みの
+    // 中身まで骨組みに置き換わる。板のオフラインは中身を残したまま帯だけ出す）。
+    void router.invalidate({ filter: (match) => match.routeId === "/" });
   };
 };
 
@@ -81,7 +82,12 @@ const HomePage = () => {
 
   return (
     <div className={online ? "v2-home" : "v2-home v2-home--band"}>
-      {hero ? <HomeScreen hero={hero} continuations={continuations} /> : <HomeEmptyScreen />}
+      {/* 主役もつづきも無い時だけ空の画面。場だけある時は主役無しの一覧を出す */}
+      {hero || continuations.length > 0 ? (
+        <HomeScreen hero={hero} continuations={continuations} />
+      ) : (
+        <HomeEmptyScreen />
+      )}
       {!online && <ScreenBand kind="alert" text="オフラインです" onRetry={retry} tab />}
     </div>
   );

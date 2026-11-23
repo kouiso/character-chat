@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, desc, eq, sql } from "drizzle-orm";
 
 import {
   v2GroupMemberTable,
@@ -57,15 +57,13 @@ export const listGroups = async (db: V2Db, userId: string): Promise<GroupRow[]> 
     .where(eq(v2GroupTable.userId, userId))
     .orderBy(desc(v2GroupTable.createdAt));
   if (groups.length === 0) return [];
+  // D1 のバインド上限は 1 クエリ 100 個。inArray に全場 ID を渡すと場 101 件目で
+  // 壊れるので、ユーザーの場に限定した JOIN でメンバーを取る。
   const members = await db
     .select({ groupId: v2GroupMemberTable.groupId, characterId: v2GroupMemberTable.characterId })
     .from(v2GroupMemberTable)
-    .where(
-      inArray(
-        v2GroupMemberTable.groupId,
-        groups.map((g) => g.id),
-      ),
-    )
+    .innerJoin(v2GroupTable, eq(v2GroupMemberTable.groupId, v2GroupTable.id))
+    .where(eq(v2GroupTable.userId, userId))
     .orderBy(asc(v2GroupMemberTable.position));
   const byGroup = new Map<string, string[]>();
   for (const m of members) {
@@ -123,15 +121,13 @@ export const listGroupContinuations = async (
       ),
     );
   if (groups.length === 0) return [];
+  // inArray に全場 ID を渡すと場 101 件目で D1 のバインド上限（100 個）を越えるので、
+  // メンバー側からユーザーの場へ JOIN して取る（パラメーターは userId の 1 個だけ）。
   const members = await db
     .select({ groupId: v2GroupMemberTable.groupId, characterId: v2GroupMemberTable.characterId })
     .from(v2GroupMemberTable)
-    .where(
-      inArray(
-        v2GroupMemberTable.groupId,
-        groups.map((g) => g.id),
-      ),
-    )
+    .innerJoin(v2GroupTable, eq(v2GroupMemberTable.groupId, v2GroupTable.id))
+    .where(eq(v2GroupTable.userId, userId))
     .orderBy(asc(v2GroupMemberTable.position));
   const byGroup = new Map<string, string[]>();
   for (const m of members) {

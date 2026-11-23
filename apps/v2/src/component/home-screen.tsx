@@ -223,95 +223,111 @@ export type HomeHeroData = {
   latest: ConversationSummaryRow;
 };
 
-export const HomeScreen = ({
-  hero,
-  continuations,
-}: {
-  hero: HomeHeroData;
-  continuations: HomeContinuation[];
-}) => {
-  const { character, pinned, latest } = hero;
+// 主役が居る時の絵の頭（シートの外）
+const HomeHeroSection = ({ hero }: { hero: HomeHeroData }) => {
+  const { character, pinned } = hero;
   const face = avatarUrl(character.id, character.avatar);
+  return (
+    <div className="v2-home-hero">
+      {face ? (
+        <img src={face} alt={character.name} />
+      ) : (
+        <span
+          className="v2-home-hero-initial"
+          style={{ background: initialColor(character.id) }}
+          aria-hidden="true"
+        >
+          {character.name.slice(0, 1)}
+        </span>
+      )}
+      <div className="v2-home-hero-edge" aria-hidden="true" />
+      <HomeHeroPlate character={character} pinned={pinned} />
+    </div>
+  );
+};
+
+// 主役が居る時のシートの頭（新着・名前・吹き出し・主ボタン）
+const HomeHeroSheetTop = ({ hero }: { hero: HomeHeroData }) => {
+  const { character, latest } = hero;
   const subtitle = character.tags?.[0];
   const bubble = latest.lastMessage ? quoteLine(latest.lastMessage) : null;
   return (
     <>
-      <div className="v2-home-hero">
-        {face ? (
-          <img src={face} alt={character.name} />
-        ) : (
-          <span
-            className="v2-home-hero-initial"
-            style={{ background: initialColor(character.id) }}
-            aria-hidden="true"
-          >
-            {character.name.slice(0, 1)}
-          </span>
-        )}
-        <div className="v2-home-hero-edge" aria-hidden="true" />
-        <HomeHeroPlate character={character} pinned={pinned} />
+      <div className="v2-home-arrival">
+        <span className="v2-home-arrival-dot" aria-hidden="true" />
+        <span className="v2-home-arrival-new">新着</span>
+        <span>
+          {formatHomeDay(latest.updatedAt)} {formatHomeTime(latest.updatedAt)}
+        </span>
       </div>
-      <div className="v2-home-sheet">
-        <div className="v2-home-arrival">
-          <span className="v2-home-arrival-dot" aria-hidden="true" />
-          <span className="v2-home-arrival-new">新着</span>
-          <span>
-            {formatHomeDay(latest.updatedAt)} {formatHomeTime(latest.updatedAt)}
-          </span>
-        </div>
-        <div className="v2-home-name">
-          <h1>{character.name}</h1>
-          {subtitle && <span className="v2-home-name-sub">{subtitle}</span>}
-        </div>
-        {bubble && (
-          <div className="v2-home-bubble">
-            <span className="v2-home-bubble-text">{bubble}</span>
-          </div>
-        )}
-        <Link
-          to="/chat/$id"
-          params={{ id: character.id }}
-          search={{ conversationId: latest.id }}
-          className="v2-fill-btn v2-home-primary"
-          aria-label={`${character.name}と、ゆうべのつづきを話す`}
-        >
-          <span>ゆうべのつづき</span>
-          <ArrowRightIcon />
-        </Link>
-        {continuations.length > 0 && (
-          <>
-            <div className="v2-home-section">
-              <h2>つづきから</h2>
-              {/* 履歴の画面は未着工。行き先ができたら差し替える */}
-              <Link to="/my" className="v2-home-history">
-                <span>履歴</span>
-                <ChevronRightIcon />
-              </Link>
-            </div>
-            <ul className="v2-home-continuations">
-              {continuations.map((item) =>
-                item.kind === "chat" ? (
-                  <ChatContinuationRow
-                    key={item.conversation.id}
-                    conversation={item.conversation}
-                    character={item.character}
-                  />
-                ) : (
-                  <GroupContinuationRow
-                    key={item.group.id}
-                    group={item.group}
-                    speaker={item.speaker}
-                    faces={item.faces}
-                  />
-                ),
-              )}
-            </ul>
-          </>
-        )}
+      <div className="v2-home-name">
+        <h1>{character.name}</h1>
+        {subtitle && <span className="v2-home-name-sub">{subtitle}</span>}
       </div>
+      {bubble && (
+        <div className="v2-home-bubble">
+          <span className="v2-home-bubble-text">{bubble}</span>
+        </div>
+      )}
+      <Link
+        to="/chat/$id"
+        params={{ id: character.id }}
+        search={{ conversationId: latest.id }}
+        className="v2-fill-btn v2-home-primary"
+        aria-label={`${character.name}と、ゆうべのつづきを話す`}
+      >
+        <span>ゆうべのつづき</span>
+        <ArrowRightIcon />
+      </Link>
     </>
   );
 };
+
+export const HomeScreen = ({
+  hero,
+  continuations,
+}: {
+  // 主役（いつもの子・さいきん話した子）。1 対 1 の会話が無く場だけある時は無し。
+  hero: HomeHeroData | undefined;
+  continuations: HomeContinuation[];
+}) => (
+  <>
+    {hero && <HomeHeroSection hero={hero} />}
+    <div className={hero ? "v2-home-sheet" : "v2-home-sheet v2-home-sheet--top"}>
+      {hero && <HomeHeroSheetTop hero={hero} />}
+      {continuations.length > 0 && (
+        <>
+          <div className="v2-home-section">
+            <h2>つづきから</h2>
+            {/* 履歴の画面は未着工。行き先ができたら差し替える */}
+            <Link to="/my" className="v2-home-history">
+              <span>履歴</span>
+              <ChevronRightIcon />
+            </Link>
+          </div>
+          <ul className="v2-home-continuations">
+            {continuations.map((item) =>
+              item.kind === "chat" ? (
+                <ChatContinuationRow
+                  key={item.conversation.id}
+                  conversation={item.conversation}
+                  character={item.character}
+                />
+              ) : (
+                <GroupContinuationRow
+                  key={item.group.id}
+                  group={item.group}
+                  speaker={item.speaker}
+                  faces={item.faces}
+                />
+              ),
+            )}
+          </ul>
+        </>
+      )}
+    </div>
+  </>
+);
 
 // いつもの子がまだいない時（HomeEmpty 上段）: 迎える子が居ない空の画面
 export const HomeEmptyScreen = () => (

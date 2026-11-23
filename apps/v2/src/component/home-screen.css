@@ -107,6 +107,12 @@
   background: var(--gradient-sheet);
 }
 
+/* 主役が居ない時（場だけある）はシートが上から始まるので空けて面を持たせる */
+.v2-home-sheet--top {
+  flex: 1 0 auto;
+  padding-top: calc(24px + var(--safe-top, 0px));
+}
+
 .v2-home-arrival {
   display: flex;
   align-items: center;
