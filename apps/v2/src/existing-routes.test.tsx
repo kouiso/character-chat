@@ -18,9 +18,20 @@ import { Route as ListRoute } from "./routes/index";
 import type { AnyRootRoute } from "@tanstack/react-router";
 
 vi.mock("./server/characters", () => ({
-  listCharacters: async () => [{ id: "synthetic-character", name: "合成の一覧項目", avatar: null }],
-  listSavedConversations: async () => [],
+  listCharacters: async () => [
+    { id: "synthetic-character", name: "合成の一覧項目", avatar: null, tags: [] },
+  ],
+  listSavedConversations: async () => [
+    {
+      id: "synthetic-talk",
+      characterId: "synthetic-character",
+      title: "",
+      updatedAt: Date.now(),
+      lastMessage: "おかえり",
+    },
+  ],
 }));
+vi.mock("./server/groups", () => ({ listSavedGroups: async () => [] }));
 
 // 下タブを足しても、既存の URL を一つも消していないことを固定する。
 // routeTree.gen.ts を import すると server 側（cloudflare:workers）まで引くので本文で見る。

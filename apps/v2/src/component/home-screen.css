@@ -1,4 +1,5 @@
-/* ホーム（板 Main.dc.html / HomeEmpty.dc.html）。値は design-token.css の変数だけ使う */
+/* ホーム（板 Main.dc.html / HomeEmpty.dc.html / HomeStates.dc.html）。
+   値は design-token.css の変数だけ使う。 */
 
 .v2-home {
   min-height: 100%;
@@ -12,10 +13,18 @@
   letter-spacing: var(--text-tracking);
 }
 
-/* 絵の頭。ホームは 420px、絵は無加工、下端 64px の縁だけでシートへ溶かす */
+/* 下の帯（オフライン・長引き）が出る時は帯の高さぶん中身を持ち上げる */
+.v2-home--band {
+  padding-bottom: 52px;
+}
+
+/* 絵の頭。高さは中身に合わせて伸び縮みする（つづきからがある時は 420、
+   無い時は 516、帯や行が増えるとその分だけ低くなる。板と同じ決め方）。
+   絵は無加工で置き、下端 64px の縁だけでシートの色へつなぐ */
 .v2-home-hero {
   position: relative;
-  height: 420px;
+  flex: 1 1 0;
+  min-height: 0;
   overflow: hidden;
   background: var(--color-ground-low);
 }
@@ -27,6 +36,25 @@
   height: 100%;
   object-fit: cover;
   display: block;
+}
+
+/* 絵が無い子は頭文字の札を画面いっぱいに置く（HomeStates「長い名前と長い文」） */
+.v2-home-hero-initial {
+  position: absolute;
+  inset: 0;
+  box-shadow: var(--edge-top-press);
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  line-height: 40px;
+  font-weight: 700;
+}
+
+/* 読み込み中の絵の頭は骨組みの色（HomeStates「読み込み中」） */
+.v2-home-hero--skel {
+  background: var(--color-skeleton-lo);
 }
 
 .v2-home-hero-edge {
@@ -59,19 +87,23 @@
   text-decoration: none;
 }
 
-.v2-home-plate svg {
+.v2-home-plate-icon {
+  display: flex;
+  color: var(--color-peach);
+}
+
+.v2-home-plate-icon svg {
   width: 18px;
   height: 18px;
   flex: none;
   display: block;
-  color: var(--color-peach);
 }
 
 .v2-home-sheet {
-  flex: 1;
+  flex: none;
   display: flex;
   flex-direction: column;
-  padding: 0 var(--space-gutter) 24px;
+  padding: 0 var(--space-gutter) 16px;
   background: var(--gradient-sheet);
 }
 
@@ -100,23 +132,46 @@
   font-weight: 700;
 }
 
+/* 名前とひとことが並ぶ。合わせて入り切らん時はひとことが次の行へ折る
+   （HomeStates「長い名前と長い文」と同じ決め方） */
 .v2-home-name {
   display: flex;
   align-items: baseline;
-  gap: 12px;
+  column-gap: 12px;
+  row-gap: 0;
+  flex-wrap: wrap;
+  min-height: 40px;
   margin-top: 4px;
 }
 
 .v2-home-name h1 {
   margin: 0;
+  flex: 0 1 auto;
+  min-width: 0;
   font-family: var(--font-display);
   font-size: 32px;
   line-height: 40px;
   font-weight: 900;
   letter-spacing: 0.03em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* 相手の吹き出し（面の階層 1。話し手側の左下の角だけ 8） */
+.v2-home-name-sub {
+  flex: 0 1 auto;
+  min-width: 0;
+  color: var(--color-text-sub);
+  font-size: var(--text-note-size);
+  line-height: var(--text-note-line);
+  font-weight: 500;
+  letter-spacing: var(--text-tracking);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 相手の吹き出し（面の階層 1。話し手側の左下の角だけ 8）。長い文は 2 行で止める */
 .v2-home-bubble {
   align-self: flex-start;
   max-width: 100%;
@@ -127,30 +182,16 @@
   box-shadow: var(--shadow-surface);
 }
 
-/* 主ボタンは 1 画面に 1 つ。灯の光はここだけ */
-.v2-home-primary {
-  margin-top: 24px;
-  height: 56px;
-  border-radius: var(--radius-pill);
-  background: var(--gradient-peach);
-  box-shadow: var(--shadow-peach);
-  color: var(--color-on-peach);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  font-size: var(--text-title-size);
-  line-height: var(--text-title-line);
-  font-weight: 700;
-  letter-spacing: var(--text-tracking-title);
-  text-decoration: none;
+.v2-home-bubble-text {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
 }
 
-.v2-home-primary svg {
-  width: 20px;
-  height: 20px;
-  flex: none;
-  display: block;
+/* 主ボタンは 1 画面に 1 つ。灯の光はここだけ（形は screen-state.css の v2-fill-btn） */
+.v2-home-primary {
+  margin-top: 24px;
 }
 
 .v2-home-section {
@@ -230,6 +271,47 @@
   display: block;
 }
 
+/* 場の行は先頭メンバー 2 人の顔を重ねる（前の 1 枚は地の色の縁で浮かせる） */
+.v2-home-continuation-faces {
+  flex: none;
+  position: relative;
+  width: 44px;
+  height: 44px;
+  display: block;
+}
+
+.v2-home-continuation-faces-back,
+.v2-home-continuation-faces-front {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-note-size);
+  font-weight: 700;
+}
+
+.v2-home-continuation-faces-back {
+  left: 0;
+  top: 0;
+}
+
+.v2-home-continuation-faces-front {
+  right: 0;
+  bottom: 0;
+  box-shadow: 0 0 0 2px var(--color-ground-mid);
+}
+
+.v2-home-continuation-faces img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
 .v2-home-continuation-body {
   flex: 1;
   min-width: 0;
@@ -267,50 +349,30 @@
   letter-spacing: var(--text-tracking);
 }
 
-/* いつもの子がまだいない時（HomeEmpty）。上下中央の塊 */
-.v2-home-empty {
-  min-height: 70vh;
-  padding: 0 var(--space-gutter);
+/* 骨組みの置き方は実物と同じ形・同じ場所（HomeStates「読み込み中」） */
+.v2-home-skel-meta {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  text-align: center;
+  height: 20px;
 }
 
-.v2-home-empty-icon {
-  flex: none;
-  width: 56px;
+.v2-home-skel-name {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 40px;
+  margin-top: 4px;
+}
+
+.v2-home-skel-bubble {
+  width: 264px;
+  height: 52px;
+  margin-top: 16px;
+  border-radius: var(--radius-bubble-other);
+}
+
+.v2-home-skel-btn {
   height: 56px;
+  margin-top: 24px;
   border-radius: var(--radius-pill);
-  background: var(--gradient-surface);
-  box-shadow: var(--shadow-surface);
-  color: var(--color-peach);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.v2-home-empty-icon svg {
-  width: 24px;
-  height: 24px;
-  flex: none;
-  display: block;
-}
-
-.v2-home-empty h1 {
-  margin: 0;
-  padding: 16px 0 4px;
-  font-size: var(--text-title-size);
-  line-height: var(--text-title-line);
-  font-weight: 700;
-  letter-spacing: var(--text-tracking-title);
-}
-
-.v2-home-empty-note {
-  color: var(--color-text-sub);
-}
-
-.v2-home-empty .v2-home-primary {
-  align-self: stretch;
 }
