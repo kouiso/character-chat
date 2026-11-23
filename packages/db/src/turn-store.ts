@@ -456,22 +456,25 @@ export const updateLatestLedgerPhase = async (
   phase: SceneLedger["phase"],
 ): Promise<number | null> => {
   await assertConversationOwner(db, opts, conversationId);
-  const [latest] = await db
-    .select({ turn: v2LedgerTable.turn })
-    .from(v2LedgerTable)
-    .where(eq(v2LedgerTable.conversationId, conversationId))
-    .orderBy(desc(v2LedgerTable.turn))
-    .limit(1);
-  if (!latest) return null;
-  await db
+  // 最新行の選択と更新は 1 文にしないと、読み→書きの間に返事の保存で
+  // 新しい台帳行が積まれた時、古い行だけを直して成功を返してしまい、
+  // 選んだ雰囲気が次の読み込み（新しい行）に出ない。
+  const rows = await db
     .update(v2LedgerTable)
     .set({
       ledgerJson: sql`json_set(${v2LedgerTable.ledgerJson}, '$.phase', ${phase})`,
     })
     .where(
-      and(eq(v2LedgerTable.conversationId, conversationId), eq(v2LedgerTable.turn, latest.turn)),
-    );
-  return latest.turn;
+      and(
+        eq(v2LedgerTable.conversationId, conversationId),
+        eq(
+          v2LedgerTable.turn,
+          sql`(select max(${v2LedgerTable.turn}) from ${v2LedgerTable} where ${v2LedgerTable.conversationId} = ${conversationId})`,
+        ),
+      ),
+    )
+    .returning({ turn: v2LedgerTable.turn });
+  return rows[0]?.turn ?? null;
 };
 
 /**

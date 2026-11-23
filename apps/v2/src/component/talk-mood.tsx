@@ -43,6 +43,9 @@ export const TalkMood = ({
   const [ledger, setLedger] = useState<LedgerData | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // 初期読み込みが失敗した印。失敗時に current が空のままだと、行が
+  // 「ふだん」と見えて読めてないことと区別がつかんので、表示を分ける。
+  const [loadFailed, setLoadFailed] = useState(false);
   // 保存が成功した版の番号。保存より先に出した読み込みが遅れて返っても、
   // 新しい雰囲気を古い値で上書きせんよう、届いた時点で番号がズレてたら捨てる。
   const savedSeq = useRef(0);
@@ -60,11 +63,17 @@ export const TalkMood = ({
     const seq = savedSeq.current;
     void loadLedger(characterId, conversationId, abort.signal)
       .then((loaded) => {
-        if (!abort.signal.aborted && loaded && seq === savedSeq.current) setCurrent(loaded.phase);
+        if (abort.signal.aborted) return;
+        if (loaded && seq === savedSeq.current) {
+          setCurrent(loaded.phase);
+          setLoadFailed(false);
+        }
       })
       .catch(() => {
         // 失敗も捨てんと覚えておく。シートを開く時にもう一度読み、そこで文を出す。
-        if (!abort.signal.aborted) setError("雰囲気を読み込めませんでした。");
+        if (abort.signal.aborted) return;
+        setError("雰囲気を読み込めませんでした。");
+        setLoadFailed(true);
       });
     return () => abort.abort();
   }, [characterId, phase, conversationId, reloadSignal]);
@@ -82,9 +91,13 @@ export const TalkMood = ({
       const loaded = await loadLedger(characterId, conversationId, new AbortController().signal);
       if (seq !== savedSeq.current) return;
       setLedger(loaded);
-      if (loaded) setCurrent(loaded.phase);
+      if (loaded) {
+        setCurrent(loaded.phase);
+        setLoadFailed(false);
+      }
     } catch {
       setError("雰囲気を読み込めませんでした。");
+      setLoadFailed(true);
     }
   };
 
@@ -119,6 +132,9 @@ export const TalkMood = ({
     }
   };
 
+  // 読み込み失敗で値が無い時は「ふだん」ではなく失敗を出す（開く前から分かるように）。
+  const label = current === undefined && loadFailed ? "読み込めません" : moodLabel(current);
+
   return (
     <>
       <button
@@ -127,10 +143,10 @@ export const TalkMood = ({
         onClick={() => void openSheet()}
         disabled={!conversationId}
       >
-        {trigger?.(moodLabel(current)) ?? (
+        {trigger?.(label) ?? (
           <>
             <span className="v2-talk-lamp" aria-hidden="true" />
-            <span>{moodLabel(current)}</span>
+            <span>{label}</span>
             <TalkIcon name="down" />
           </>
         )}

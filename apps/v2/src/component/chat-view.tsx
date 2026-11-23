@@ -1810,7 +1810,10 @@ export const ChatView = ({
         onImage={requestImage}
         characterId={characterId}
         getConversationId={() => conversationId.current}
-        historyVersion={`${lastAssistantIndex}.${historyNonce}`}
+        // nextTurn は通常の返信確定でも進むので版に混ぜる。混ぜんと、小出しで
+        // 追加される泡は turn を持たず lastAssistantIndex が進まんため、
+        // 「候補を閉じる→通常送信→返信完了」で新しい候補を取っても閉じた印が残る。
+        historyVersion={`${lastAssistantIndex}.${nextTurn.current}.${historyNonce}`}
         suggestOn={suggestOn}
         handedness={handedness}
         call={{
