@@ -896,12 +896,14 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
     this.runningJobId = job.id;
     const controller = new AbortController();
     this.abortControllers.set(job.id, controller);
+    let attemptStarted = false;
     try {
       // 非同期の回復確認の間に状態が動くので、開始直前の行だけを使う。
       const latest = await this.readyJobForAttempt(job);
       if (!latest) return;
       const faultAction = this.faultActionFor(this.testFault(), latest);
       this.beginAttempt(latest);
+      attemptStarted = true;
       if (this.applyFault(faultAction)) return;
       await this.generate(job, controller.signal);
       this.finishGenerate(job, controller.signal);
@@ -915,7 +917,7 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
         this.stopFinish(current);
         return;
       }
-      this.fail(current, current.attempts + 1, error);
+      this.fail(current, attemptStarted ? current.attempts : current.attempts + 1, error);
     } finally {
       this.abortControllers.delete(job.id);
     }
