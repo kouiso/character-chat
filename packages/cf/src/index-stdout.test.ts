@@ -47,6 +47,8 @@ describe("createPlatform の標準出力", () => {
     const env = { ...process.env, HTTPS_PROXY: "http://127.0.0.1:9", WRANGLER_LOG: "log" };
     const result = runScript(env);
     expect(result.status).toBe(0);
-    expect(result.stdout).toContain("Proxy environment variables detected");
+    // 案内を log の段で書くか warn の段で書くかは wrangler の版で違う（4.76 は標準出力、4.152 は
+    // 標準エラー）。どちらでも、呼び出し側の指定が効いて案内が黙らされていない事を確かめる
+    expect(`${result.stdout}${result.stderr}`).toContain("Proxy environment variables detected");
   });
 });

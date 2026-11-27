@@ -30,14 +30,15 @@ const PERSIST_PATH = path.join(PERSIST_ROOT, "v3");
 
 const isRemote = (explicit?: boolean): boolean => explicit ?? process.env.CF_REMOTE === "1";
 
-// wrangler は読み込んだ時点で、proxy の環境変数があると標準出力へ案内を 1 行書く（log の段）。
-// 標準出力を JSON の報告に使う呼び出し側（ベンチ・移行の CLI）を汚さんよう、使う時まで読まず、
-// 読む間だけ log の段を黙らせる。呼び出し側が WRANGLER_LOG を決めとる時はそれに従う
-const importWranglerQuietly = async () => {
-  if (process.env.WRANGLER_LOG !== undefined) return import("wrangler");
+// wrangler は読み込んだ時点で proxy の案内を、getPlatformProxy の中では .dev.vars を読んだ旨を、
+// log の段で標準出力へ書く。標準出力を JSON の報告に使う呼び出し側（ベンチ・移行の CLI）を
+// 汚さんよう、読み込みから起動が終わるまで log の段を黙らせる（警告とエラーは標準エラーに残る）。
+// 呼び出し側が WRANGLER_LOG を決めとる時はそれに従う
+const withQuietWrangler = async <T>(run: () => Promise<T>): Promise<T> => {
+  if (process.env.WRANGLER_LOG !== undefined) return run();
   process.env.WRANGLER_LOG = "warn";
   try {
-    return await import("wrangler");
+    return await run();
   } finally {
     delete process.env.WRANGLER_LOG;
   }
@@ -50,13 +51,15 @@ export const createPlatform = async (
   const remote = isRemote(opts.remote);
   if (remote)
     throw new Error("CLI の接続はローカル限定です。Worker は実行環境の bindings を使用します。");
-  const { getPlatformProxy } = await importWranglerQuietly();
-  const proxy: PlatformProxy<CfEnv> = await getPlatformProxy<CfEnv>({
-    configPath: WRANGLER_CONFIG,
-    persist: {
-      path: opts.persistRoot ? path.join(path.resolve(opts.persistRoot), "v3") : PERSIST_PATH,
-    },
-    remoteBindings: false,
+  const proxy: PlatformProxy<CfEnv> = await withQuietWrangler(async () => {
+    const { getPlatformProxy } = await import("wrangler");
+    return getPlatformProxy<CfEnv>({
+      configPath: WRANGLER_CONFIG,
+      persist: {
+        path: opts.persistRoot ? path.join(path.resolve(opts.persistRoot), "v3") : PERSIST_PATH,
+      },
+      remoteBindings: false,
+    });
   });
   return {
     env: proxy.env,
