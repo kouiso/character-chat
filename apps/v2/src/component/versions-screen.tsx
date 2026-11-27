@@ -2,13 +2,18 @@
 // 版を選ぶとその時点の中身を読み、現行でなければ「この設定に戻す」で戻せる。
 // 戻すのは新しい版を積むのではなく「いま」の指し先をその版へ戻す
 // （restoreCharacterVersion が currentVersionId を差し替えるだけ。会話は始めた時の版のまま動く）。
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { Link, useRouter } from "@tanstack/react-router";
 import { z } from "zod";
 
 import { storedCharacterContentSchema, type CharacterContent } from "@v2/db/character-version";
 import { characterDraftKey } from "../lib/character-draft";
-import { characterPath, CharacterRequestError, requestCharacter } from "../lib/character-editor";
+import {
+  characterDetailSchema,
+  characterPath,
+  CharacterRequestError,
+  requestCharacter,
+} from "../lib/character-editor";
 
 import "./versions-screen.css";
 
@@ -208,6 +213,22 @@ const Field = ({ label, children }: { label: string; children?: string | null })
   </div>
 );
 
+// 顔の失敗は React の状態で代替へ倒す。DOM を直接外すと、版を行き来した時に
+// React が既に無い img を消しに行って画面ごと止まることがある。
+const VersionAvatar = ({ characterId, detail }: { characterId: string; detail: VersionDetail }) => {
+  const [failed, setFailed] = useState(false);
+  if (!detail.content.avatarRef || failed) {
+    return <span className="v2-versions-field-empty">入っていません</span>;
+  }
+  return (
+    <img
+      src={`/api/characters/${encodeURIComponent(characterId)}/versions/${encodeURIComponent(detail.id)}/avatar`}
+      alt={`${formatDay(detail.createdAt)}の顔`}
+      onError={() => setFailed(true)}
+    />
+  );
+};
+
 const VersionDetailView = ({
   characterId,
   detail,
@@ -223,18 +244,7 @@ const VersionDetailView = ({
         <div className="v2-versions-field">
           <div className="v2-versions-field-label">顔</div>
           <div className="v2-versions-face">
-            {content.avatarRef ? (
-              <img
-                src={`/api/characters/${encodeURIComponent(characterId)}/versions/${encodeURIComponent(detail.id)}/avatar`}
-                alt={`${formatDay(detail.createdAt)}の顔`}
-                onError={(event) => {
-                  // 絵が消えた版は「入っていません」と同じ扱いに倒す。
-                  event.currentTarget.replaceWith(document.createTextNode("入っていません"));
-                }}
-              />
-            ) : (
-              <span className="v2-versions-field-empty">入っていません</span>
-            )}
+            <VersionAvatar key={detail.id} characterId={characterId} detail={detail} />
           </div>
         </div>
         <Field label="名前">{content.name}</Field>
@@ -367,36 +377,106 @@ const DetailSkeleton = () => (
   </div>
 );
 
-const RestoredToast = ({ characterId }: { characterId: string }) => (
-  <output className="v2-versions-toast">
-    <span className="v2-versions-toast-text">前の設定に戻しました</span>
-    <Link
-      to="/chat/$id"
-      params={{ id: characterId }}
-      search={{ newChat: crypto.randomUUID() }}
-      className="v2-versions-toast-action"
-    >
-      新しい会話を始める
-    </Link>
+const RestoredToast = ({
+  characterId,
+  draftRemovalFailed,
+  onRetryDraftRemoval,
+}: {
+  characterId: string;
+  draftRemovalFailed: boolean;
+  onRetryDraftRemoval: () => void;
+}) => (
+  <output className={`v2-versions-toast${draftRemovalFailed ? " v2-versions-toast-warning" : ""}`}>
+    <span className="v2-versions-toast-text">
+      {draftRemovalFailed
+        ? "前の設定に戻しました。端末の下書きは残っています。"
+        : "前の設定に戻しました"}
+    </span>
+    {draftRemovalFailed ? (
+      <button type="button" className="v2-versions-toast-action" onClick={onRetryDraftRemoval}>
+        もう一度
+      </button>
+    ) : (
+      <Link
+        to="/chat/$id"
+        params={{ id: characterId }}
+        search={{ newChat: crypto.randomUUID() }}
+        className="v2-versions-toast-action"
+      >
+        新しい会話を始める
+      </Link>
+    )}
   </output>
 );
+
+// シート内は二つのボタンだけ。端で折り返すことで、背景へ focus が抜けない。
+const trapRestoreSheetFocus = (event: KeyboardEvent<HTMLDialogElement>) => {
+  if (event.key !== "Tab") return;
+  const buttons = Array.from(
+    event.currentTarget.querySelectorAll<HTMLButtonElement>("button:not(:disabled)"),
+  );
+  const first = buttons[0];
+  const last = buttons.at(-1);
+  if (!first || !last) return;
+  const active = document.activeElement;
+  if (event.shiftKey && (active === first || !event.currentTarget.contains(active))) {
+    event.preventDefault();
+    last.focus();
+    return;
+  }
+  if (!event.shiftKey && (active === last || !event.currentTarget.contains(active))) {
+    event.preventDefault();
+    first.focus();
+  }
+};
 
 const RestoreSheet = ({
   detail,
   restoring,
+  conflicted,
   onCancel,
   onConfirm,
 }: {
   detail: VersionDetail;
   restoring: boolean;
+  conflicted: boolean;
   onCancel: () => void;
   onConfirm: () => void;
-}) => (
-  <div className="v2-versions-scrim">
-    <div
+}) => {
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const cancelRef = useRef<HTMLButtonElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    previousFocusRef.current =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    if (typeof dialog.showModal === "function") {
+      if (!dialog.open) dialog.showModal();
+    } else {
+      // jsdom は dialog の開閉を持たない。実ブラウザでは showModal が modal・inert・focus 復帰を担う。
+      dialog.open = true;
+    }
+    cancelRef.current?.focus();
+    return () => {
+      if (typeof dialog.close === "function" && dialog.open) dialog.close();
+      const previous = previousFocusRef.current;
+      if (previous?.isConnected) previous.focus();
+    };
+  }, []);
+
+  return (
+    <dialog
+      ref={dialogRef}
       role="alertdialog"
       aria-labelledby="v2-versions-confirm-title"
       className="v2-versions-sheet"
+      onCancel={(event) => {
+        event.preventDefault();
+        if (!restoring) onCancel();
+      }}
+      onKeyDown={trapRestoreSheetFocus}
     >
       <div aria-hidden="true" className="v2-versions-sheet-grabber" />
       <h2 id="v2-versions-confirm-title" className="v2-versions-sheet-title">
@@ -407,8 +487,14 @@ const RestoreSheet = ({
         <br />
         これまでの会話はそのままです。
       </div>
+      {conflicted && (
+        <output className="v2-versions-sheet-warning">
+          別の画面で変更がありました。最新の内容を読み直しました。戻すかどうか、もう一度確かめてください。
+        </output>
+      )}
       <div className="v2-versions-sheet-actions">
         <button
+          ref={cancelRef}
           type="button"
           className="v2-versions-sheet-cancel"
           disabled={restoring}
@@ -425,9 +511,9 @@ const RestoreSheet = ({
           <span>{restoring ? "戻しています" : "戻す"}</span>
         </button>
       </div>
-    </div>
-  </div>
-);
+    </dialog>
+  );
+};
 
 // 選んだ版の中身を版ごとの口から読む。現行・未選択・読み済み・失敗済みは読まない。
 const useVersionDetail = (
@@ -484,50 +570,120 @@ const useVersionDetail = (
   };
 };
 
-// 「この設定に戻す」の実行。expectedRevision で別画面の変更とぶつかったら失敗側に倒す。
-const useRestore = (
-  character: VersionsCharacter,
-  detail: VersionDetail | undefined,
-  onRestored: (versionId: string) => void,
-) => {
+type ServerPointer = { revision: number; currentVersionId: string | null };
+
+// 「この設定に戻す」の実行。409 は接続失敗ではなく revision の衝突なので、
+// 最新の revision / 現行版を読み直してから同じ確かめシートでやり直させる。
+const useRestore = ({
+  character,
+  detail,
+  serverPointer,
+  setServerPointer,
+  onRestored,
+}: {
+  character: VersionsCharacter;
+  detail: VersionDetail | undefined;
+  serverPointer: ServerPointer | null;
+  setServerPointer: (pointer: ServerPointer) => void;
+  onRestored: (versionId: string) => void;
+}) => {
   const router = useRouter();
   const [restoring, setRestoring] = useState(false);
   const [restoreFailed, setRestoreFailed] = useState(false);
   const [restored, setRestored] = useState(false);
+  const [conflicted, setConflicted] = useState(false);
+  const [draftRemovalFailed, setDraftRemovalFailed] = useState(false);
+
+  const expectedRevision =
+    serverPointer && serverPointer.revision > character.revision
+      ? serverPointer.revision
+      : character.revision;
+
+  const invalidateVersions = () =>
+    router.invalidate({
+      filter: (match) => match.routeId === "/characters/$id_/versions",
+    });
+
+  const clearDraft = () => {
+    try {
+      localStorage.removeItem(characterDraftKey(character.ownerUserId, character.id));
+      setDraftRemovalFailed(false);
+    } catch {
+      // 復元自体は成立している。失敗を成功と混ぜず、削除だけやり直せる状態として出す。
+      setDraftRemovalFailed(true);
+    }
+  };
+
+  const refreshVersionsCache = async () => {
+    try {
+      await invalidateVersions();
+    } catch {
+      // 画面の正は直前の server 応答へ置いた。cache の再読込だけでは操作結果を反転させない。
+    }
+  };
+
+  const refreshAfterConflict = async () => {
+    const latest = await requestCharacter(characterPath(character.id), characterDetailSchema);
+    setServerPointer({
+      revision: latest.revision,
+      currentVersionId: latest.currentVersionId,
+    });
+    await refreshVersionsCache();
+  };
+
+  const finishRestore = async (saved: z.infer<typeof restoredSchema>) => {
+    setServerPointer({ revision: saved.revision, currentVersionId: saved.versionId });
+    clearDraft();
+    // 失敗 → もう一度 → 成功、で失敗形が残らんよう成功側でも戻す。
+    setRestoreFailed(false);
+    setRestored(true);
+    // 板「戻したあと」は選びが新しい現行（いま）に移る。
+    onRestored(saved.versionId);
+    await refreshVersionsCache();
+  };
 
   const restore = async () => {
     if (!detail || restoring) return;
     setRestoring(true);
+    setConflicted(false);
     try {
       const saved = await requestCharacter(
         `${characterPath(character.id)}/restore`,
         restoredSchema,
         {
           method: "POST",
-          body: JSON.stringify({ versionId: detail.id, expectedRevision: character.revision }),
+          body: JSON.stringify({ versionId: detail.id, expectedRevision }),
         },
       );
-      try {
-        localStorage.removeItem(characterDraftKey(character.ownerUserId, character.id));
-      } catch {
-        /* 戻した版の確定は端末の下書き消去に依存せん。 */
+      await finishRestore(saved);
+    } catch (cause) {
+      if (!(cause instanceof CharacterRequestError) || cause.status !== 409) {
+        setRestoreFailed(true);
+      } else {
+        setConflicted(true);
+        try {
+          await refreshAfterConflict();
+        } catch {
+          setConflicted(false);
+          setRestoreFailed(true);
+        }
       }
-      // 失敗 → もう一度 → 成功、で失敗形が残らんよう成功側でも戻す。
-      setRestoreFailed(false);
-      setRestored(true);
-      // 板「戻したあと」は選びが新しい現行（いま）に移る。
-      onRestored(saved.versionId);
-      await router.invalidate({
-        filter: (match) => match.routeId === "/characters/$id_/versions",
-      });
-    } catch {
-      setRestoreFailed(true);
     } finally {
       setRestoring(false);
     }
   };
 
-  return { restore, restoring, restoreFailed, restored };
+  return {
+    restore,
+    restoring,
+    restoreFailed,
+    restored,
+    conflicted,
+    clearConflict: () => setConflicted(false),
+    draftRemovalFailed,
+    retryDraftRemoval: clearDraft,
+    serverPointer,
+  };
 };
 
 export const VersionsScreen = ({
@@ -539,8 +695,13 @@ export const VersionsScreen = ({
   currentVersionId: string | null;
   versions: VersionsRow[];
 }) => {
+  const [serverPointer, setServerPointer] = useState<ServerPointer | null>(null);
+  const effectiveCurrentVersionId =
+    serverPointer && serverPointer.revision >= character.revision
+      ? serverPointer.currentVersionId
+      : currentVersionId;
   // いま（現行）を選んだ時は中身を出さん（板「いまの設定を選んでいる時」）。
-  const firstOld = versions.find((row) => row.id !== currentVersionId) ?? null;
+  const firstOld = versions.find((row) => row.id !== effectiveCurrentVersionId) ?? null;
   const [selectedId, setSelectedId] = useState<string | null>(firstOld?.id ?? null);
   const [expanded, setExpanded] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -548,15 +709,26 @@ export const VersionsScreen = ({
     detail,
     detailFailure,
     retry: retryDetail,
-  } = useVersionDetail(character.id, selectedId, currentVersionId);
-  const { restore, restoring, restoreFailed, restored } = useRestore(
+  } = useVersionDetail(character.id, selectedId, effectiveCurrentVersionId);
+  const {
+    restore,
+    restoring,
+    restoreFailed,
+    restored,
+    conflicted,
+    clearConflict,
+    draftRemovalFailed,
+    retryDraftRemoval,
+  } = useRestore({
     character,
     detail,
-    (versionId) => {
+    serverPointer,
+    setServerPointer,
+    onRestored: (versionId) => {
       setConfirmOpen(false);
       setSelectedId(versionId);
     },
-  );
+  });
   const hasOld = firstOld !== null;
 
   if (restoreFailed) {
@@ -585,7 +757,7 @@ export const VersionsScreen = ({
   return (
     <VersionsBody
       character={character}
-      currentVersionId={currentVersionId}
+      currentVersionId={effectiveCurrentVersionId}
       versions={versions}
       selectedId={selectedId}
       expanded={expanded}
@@ -593,12 +765,18 @@ export const VersionsScreen = ({
       detail={detail}
       restoring={restoring}
       restored={restored}
+      conflicted={conflicted}
+      draftRemovalFailed={draftRemovalFailed}
       confirmOpen={confirmOpen}
       onSelect={setSelectedId}
       onExpand={() => setExpanded(true)}
       onConfirmOpen={() => setConfirmOpen(true)}
-      onConfirmClose={() => setConfirmOpen(false)}
+      onConfirmClose={() => {
+        setConfirmOpen(false);
+        clearConflict();
+      }}
       onConfirm={() => void restore()}
+      onRetryDraftRemoval={retryDraftRemoval}
     />
   );
 };
@@ -613,12 +791,15 @@ const VersionsBody = ({
   detail,
   restoring,
   restored,
+  conflicted,
+  draftRemovalFailed,
   confirmOpen,
   onSelect,
   onExpand,
   onConfirmOpen,
   onConfirmClose,
   onConfirm,
+  onRetryDraftRemoval,
 }: {
   character: VersionsCharacter;
   currentVersionId: string | null;
@@ -629,12 +810,15 @@ const VersionsBody = ({
   detail: VersionDetail | undefined;
   restoring: boolean;
   restored: boolean;
+  conflicted: boolean;
+  draftRemovalFailed: boolean;
   confirmOpen: boolean;
   onSelect: (id: string) => void;
   onExpand: () => void;
   onConfirmOpen: () => void;
   onConfirmClose: () => void;
   onConfirm: () => void;
+  onRetryDraftRemoval: () => void;
 }) => {
   const showDetail = hasOld && selectedId !== null && selectedId !== currentVersionId;
   return (
@@ -671,12 +855,19 @@ const VersionsBody = ({
         onRestore={onConfirmOpen}
       />
 
-      {restored && <RestoredToast characterId={character.id} />}
+      {restored && (
+        <RestoredToast
+          characterId={character.id}
+          draftRemovalFailed={draftRemovalFailed}
+          onRetryDraftRemoval={onRetryDraftRemoval}
+        />
+      )}
 
       {confirmOpen && detail && (
         <RestoreSheet
           detail={detail}
           restoring={restoring}
+          conflicted={conflicted}
           onCancel={onConfirmClose}
           onConfirm={onConfirm}
         />

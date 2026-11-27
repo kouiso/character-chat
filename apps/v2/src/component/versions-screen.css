@@ -352,6 +352,10 @@
 }
 
 .v2-versions-toast-action {
+  font: inherit;
+  margin: 0;
+  border: 0;
+  appearance: none;
   flex: none;
   height: 44px;
   padding: 0 16px;
@@ -366,29 +370,45 @@
   letter-spacing: var(--text-tracking-strong);
   white-space: nowrap;
   text-decoration: none;
+  cursor: pointer;
 }
 
-/* 戻すのを確かめるシート（板: 暗幕＋下からの alertdialog） */
-.v2-versions-scrim {
-  position: fixed;
-  inset: 0;
-  z-index: 30;
-  background: var(--color-scrim);
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
+/* 下書き失敗の告知は板の pill を保ったまま、文だけ二行に折り返す。 */
+.v2-versions-toast-warning {
+  height: auto;
+  min-height: 52px;
+  padding-top: 4px;
+  padding-bottom: 4px;
 }
 
+.v2-versions-toast-warning .v2-versions-toast-text {
+  white-space: normal;
+}
+
+/* 戻すのを確かめるシート（板: 暗幕＋下からの alertdialog）。
+   実体は native dialog にし、暗幕・背景操作の禁止・focus 復帰をブラウザへ任せる。 */
 .v2-versions-sheet {
+  position: fixed;
+  inset: auto 0 0;
   width: 100%;
   max-width: 430px;
   box-sizing: border-box;
+  margin: auto auto 0;
+  border: 0;
   border-radius: var(--radius-sheet);
   background: var(--color-bar);
   box-shadow: var(--shadow-sheet);
+  color: var(--color-text);
+  padding: 8px var(--space-gutter) calc(24px + var(--safe-bottom));
+}
+
+.v2-versions-sheet[open] {
   display: flex;
   flex-direction: column;
-  padding: 8px var(--space-gutter) calc(24px + var(--safe-bottom));
+}
+
+.v2-versions-sheet::backdrop {
+  background: var(--color-scrim);
 }
 
 .v2-versions-sheet-grabber {
@@ -412,6 +432,16 @@
   color: var(--color-text-sub);
   font-size: var(--text-body-size);
   line-height: var(--text-body-line);
+  font-weight: 500;
+  letter-spacing: var(--text-tracking);
+}
+
+.v2-versions-sheet-warning {
+  display: block;
+  margin: 8px 0 0;
+  color: var(--color-danger);
+  font-size: var(--text-note-size);
+  line-height: var(--text-note-line);
   font-weight: 500;
   letter-spacing: var(--text-tracking);
 }

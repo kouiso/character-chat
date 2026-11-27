@@ -34,7 +34,7 @@ export const getCharacterVersions = createServerFn({ method: "GET" })
         revision: detail.revision,
         ownerUserId: detail.ownerUserId,
       },
-      currentVersionId: versions.currentVersionId,
+      currentVersionId: detail.currentVersionId,
       versions: versions.versions,
     };
   });

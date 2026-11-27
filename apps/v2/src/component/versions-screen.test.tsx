@@ -11,6 +11,7 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-li
 import { characterContentSchema } from "@v2/db/character-version";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { characterDraftKey } from "../lib/character-draft";
 import { VersionsScreen, type VersionsRow } from "./versions-screen";
 
 import type { AnyRootRoute } from "@tanstack/react-router";
@@ -66,7 +67,19 @@ const renderWithRouter = async (node: React.ReactNode) => {
   await waitFor(() => expect(screen.getByRole("link", { name: "戻る" })).toBeInTheDocument());
 };
 
-const stubDetail = (status = 200) => {
+const detailStamp = (id: string): number => {
+  if (id === V1.id) return V1.createdAt;
+  if (id === V2.id) return V2.createdAt;
+  if (id === V3.id) return V3.createdAt;
+  return V1.createdAt;
+};
+
+const detailVersion = (id: string): number => {
+  const parsed = Number(id.replace(/^v/, ""));
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : 1;
+};
+
+const stubDetail = (status = 200, detailContent: typeof content = content) => {
   const calls: { url: string; init?: RequestInit }[] = [];
   vi.stubGlobal("fetch", async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
@@ -76,9 +89,9 @@ const stubDetail = (status = 200) => {
       return status === 200
         ? Response.json({
             id: hit[1],
-            version: 1,
-            createdAt: V1.createdAt,
-            content,
+            version: detailVersion(hit[1]),
+            createdAt: detailStamp(hit[1]),
+            content: detailContent,
           })
         : new Response("{}", { status });
     }
@@ -130,7 +143,7 @@ describe("VersionsScreen", () => {
     expect(screen.getByText("前の設定は、まだありません。")).toBeInTheDocument();
   });
 
-  it("戻す→確かめ→POST restore→知らせが出る", async () => {
+  it("戻す→確かめ→POST restore→戻した版がいまになり知らせが出る", async () => {
     const calls = stubDetail();
     await renderScreen();
     fireEvent.click(await screen.findByRole("button", { name: "11月2日 0:41の設定を見る" }));
@@ -143,9 +156,8 @@ describe("VersionsScreen", () => {
       vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
         calls.push({ url: String(input), init });
         if (init?.method === "POST")
-          return Response.json({ id: "char-1", revision: 6, versionId: "v4" });
-        // 戻したあとの選択は新版 v4。props が変わるまでの読みに中身を返す。
-        return Response.json({ id: "v4", version: 4, createdAt: V3.createdAt, content });
+          return Response.json({ id: "char-1", revision: 6, versionId: "v1" });
+        return Response.json({ id: "v1", version: 1, createdAt: V1.createdAt, content });
       }),
     );
     fireEvent.click(within(sheet).getByRole("button", { name: "戻す" }));
@@ -157,6 +169,10 @@ describe("VersionsScreen", () => {
       versionId: "v1",
       expectedRevision: 5,
     });
+    const restoredRow = screen.getByRole("button", { name: "11月2日 0:41の設定を見る" });
+    expect(within(restoredRow).getByText("いま")).toBeInTheDocument();
+    expect(screen.getByText("いまの設定です。戻す必要はありません。")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "この設定に戻す" })).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: "新しい会話を始める" })).toBeInTheDocument();
   });
 
@@ -174,8 +190,8 @@ describe("VersionsScreen", () => {
     expect(await screen.findByText("前の設定に戻せませんでした。")).toBeInTheDocument();
     const retry = vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
       if (init?.method === "POST")
-        return Response.json({ id: "char-1", revision: 6, versionId: "v4" });
-      return Response.json({ id: "v4", version: 4, createdAt: V3.createdAt, content });
+        return Response.json({ id: "char-1", revision: 6, versionId: "v1" });
+      return Response.json({ id: "v1", version: 1, createdAt: V1.createdAt, content });
     });
     vi.stubGlobal("fetch", retry);
     fireEvent.click(screen.getByRole("button", { name: "もう一度" }));
@@ -186,6 +202,115 @@ describe("VersionsScreen", () => {
       versionId: "v1",
       expectedRevision: 5,
     });
+  });
+
+  it("顔の読み込み失敗は代替文へ切り替え、別の版では画像を出す", async () => {
+    stubDetail(200, { ...content, avatarRef: "face-key" });
+    await renderScreen();
+    const image = await screen.findByAltText("11月5日の顔");
+    fireEvent.error(image);
+    await waitFor(() => expect(screen.queryByAltText("11月5日の顔")).not.toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: "11月2日 0:41の設定を見る" }));
+    expect(await screen.findByAltText("11月2日の顔")).toBeInTheDocument();
+  });
+
+  it("確かめシートは中へ focus を移し、Tab を閉じ込め、閉じると元へ戻す", async () => {
+    stubDetail();
+    await renderScreen();
+    fireEvent.click(await screen.findByRole("button", { name: "11月2日 0:41の設定を見る" }));
+    const openButton = await screen.findByRole("button", { name: "この設定に戻す" });
+    openButton.focus();
+    fireEvent.click(openButton);
+    const sheet = await screen.findByRole("alertdialog");
+    const cancel = within(sheet).getByRole("button", { name: "やめる" });
+    const confirm = within(sheet).getByRole("button", { name: "戻す" });
+    await waitFor(() => expect(cancel).toHaveFocus());
+    fireEvent.keyDown(sheet, { key: "Tab", shiftKey: true });
+    expect(confirm).toHaveFocus();
+    fireEvent.keyDown(sheet, { key: "Tab" });
+    expect(cancel).toHaveFocus();
+    fireEvent.click(cancel);
+    await waitFor(() => expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument());
+    expect(openButton).toHaveFocus();
+  });
+
+  it("409 なら最新 revision を読み直し、確かめたまま次は新しい revision で戻す", async () => {
+    stubDetail();
+    await renderScreen();
+    fireEvent.click(await screen.findByRole("button", { name: "11月2日 0:41の設定を見る" }));
+    fireEvent.click(await screen.findByRole("button", { name: "この設定に戻す" }));
+    const posts: { versionId: string; expectedRevision: number }[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = String(input);
+        if (init?.method === "POST") {
+          posts.push(JSON.parse(String(init.body)));
+          if (posts.length === 1) return Response.json({ message: "conflict" }, { status: 409 });
+          return Response.json({ id: "char-1", revision: 7, versionId: "v1" });
+        }
+        if (url === "/api/characters/char-1") {
+          return Response.json({ id: "char-1", revision: 6, currentVersionId: "v3", content });
+        }
+        return Response.json({ id: "v1", version: 1, createdAt: V1.createdAt, content });
+      }),
+    );
+    const sheet = await screen.findByRole("alertdialog");
+    fireEvent.click(within(sheet).getByRole("button", { name: "戻す" }));
+    expect(await screen.findByText(/別の画面で変更がありました/)).toBeInTheDocument();
+    expect(screen.getByRole("alertdialog")).toBeInTheDocument();
+    const reconfirm = within(screen.getByRole("alertdialog")).getByRole("button", { name: "戻す" });
+    await waitFor(() => expect(reconfirm).toBeEnabled());
+    fireEvent.click(reconfirm);
+    await waitFor(() =>
+      expect(screen.getByRole("status")).toHaveTextContent("前の設定に戻しました"),
+    );
+    expect(posts).toEqual([
+      { versionId: "v1", expectedRevision: 5 },
+      { versionId: "v1", expectedRevision: 6 },
+    ]);
+  });
+
+  it("下書き削除の失敗は戻し成功と分けて知らせ、削除だけやり直せる", async () => {
+    const draftKey = characterDraftKey(CHARACTER.ownerUserId, CHARACTER.id);
+    localStorage.setItem(draftKey, "draft");
+    stubDetail();
+    await renderScreen();
+    fireEvent.click(await screen.findByRole("button", { name: "11月2日 0:41の設定を見る" }));
+    fireEvent.click(await screen.findByRole("button", { name: "この設定に戻す" }));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
+        if (init?.method === "POST")
+          return Response.json({ id: "char-1", revision: 6, versionId: "v1" });
+        return Response.json({ id: "v1", version: 1, createdAt: V1.createdAt, content });
+      }),
+    );
+    const originalRemove = Storage.prototype.removeItem;
+    let failOnce = true;
+    vi.spyOn(Storage.prototype, "removeItem").mockImplementation(function (
+      this: Storage,
+      key: string,
+    ) {
+      if (failOnce && key === draftKey) {
+        failOnce = false;
+        throw new Error("storage denied");
+      }
+      originalRemove.call(this, key);
+    });
+    const sheet = await screen.findByRole("alertdialog");
+    fireEvent.click(within(sheet).getByRole("button", { name: "戻す" }));
+    expect(
+      await screen.findByText("前の設定に戻しました。端末の下書きは残っています。"),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "もう一度" }));
+    await waitFor(() =>
+      expect(
+        screen.queryByText("前の設定に戻しました。端末の下書きは残っています。"),
+      ).not.toBeInTheDocument(),
+    );
+    expect(localStorage.getItem(draftKey)).toBeNull();
+    expect(screen.getByRole("link", { name: "新しい会話を始める" })).toBeInTheDocument();
   });
 
   it("版の中身が 404 なら「この設定が見つかりませんでした。」", async () => {
