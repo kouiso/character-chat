@@ -663,6 +663,8 @@ const useRestore = ({
         setConflicted(true);
         try {
           await refreshAfterConflict();
+          // 失敗形からのやり直しが 409 へ変わった時は、最新値の確認へ戻せるようにする。
+          setRestoreFailed(false);
         } catch {
           setConflicted(false);
           setRestoreFailed(true);

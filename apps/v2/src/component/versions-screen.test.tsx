@@ -271,6 +271,37 @@ describe("VersionsScreen", () => {
     ]);
   });
 
+  it("失敗からの再試行が 409 なら最新値を読み直して確かめシートへ戻る", async () => {
+    stubDetail();
+    await renderScreen();
+    fireEvent.click(await screen.findByRole("button", { name: "11月2日 0:41の設定を見る" }));
+    fireEvent.click(await screen.findByRole("button", { name: "この設定に戻す" }));
+    let posts = 0;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = String(input);
+        if (init?.method === "POST") {
+          posts += 1;
+          return posts === 1
+            ? Response.json({ message: "unavailable" }, { status: 503 })
+            : Response.json({ message: "conflict" }, { status: 409 });
+        }
+        if (url === "/api/characters/char-1") {
+          return Response.json({ id: "char-1", revision: 6, currentVersionId: "v3", content });
+        }
+        return Response.json({ id: "v1", version: 1, createdAt: V1.createdAt, content });
+      }),
+    );
+    fireEvent.click(
+      within(await screen.findByRole("alertdialog")).getByRole("button", { name: "戻す" }),
+    );
+    fireEvent.click(await screen.findByRole("button", { name: "もう一度" }));
+    expect(await screen.findByText(/別の画面で変更がありました/)).toBeInTheDocument();
+    expect(screen.getByRole("alertdialog")).toBeInTheDocument();
+    expect(screen.queryByText("前の設定に戻せませんでした。")).not.toBeInTheDocument();
+  });
+
   it("下書き削除の失敗は戻し成功と分けて知らせ、削除だけやり直せる", async () => {
     const draftKey = characterDraftKey(CHARACTER.ownerUserId, CHARACTER.id);
     localStorage.setItem(draftKey, "draft");

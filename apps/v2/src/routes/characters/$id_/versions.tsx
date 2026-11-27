@@ -15,6 +15,7 @@ const VersionsPage = () => {
   const data = routeApi.useLoaderData();
   return (
     <VersionsScreen
+      key={data.character.id}
       character={data.character}
       currentVersionId={data.currentVersionId}
       versions={data.versions}
