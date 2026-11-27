@@ -2,7 +2,7 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { getPlatformProxy, type PlatformProxy } from "wrangler";
+import type { PlatformProxy } from "wrangler";
 
 export type CfEnv = {
   DB: D1Database;
@@ -37,6 +37,9 @@ export const createPlatform = async (
   const remote = isRemote(opts.remote);
   if (remote)
     throw new Error("CLI の接続はローカル限定です。Worker は実行環境の bindings を使用します。");
+  // wrangler は読み込んだ時点で、proxy の環境変数があると標準出力へ案内を 1 行書く。
+  // 標準出力を JSON の報告に使う呼び出し側（ベンチ・移行の CLI）を汚さんよう、使う時まで読まん
+  const { getPlatformProxy } = await import("wrangler");
   const proxy: PlatformProxy<CfEnv> = await getPlatformProxy<CfEnv>({
     configPath: WRANGLER_CONFIG,
     persist: {
