@@ -1153,6 +1153,7 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
           turn: state.turn,
           generationId: state.generationId,
           sendAt: chunkSendOffsets(saved.chunkSendAt),
+          savedAt: saved.chunkSendAt[0],
         } satisfies TurnEvent);
         return {};
       })

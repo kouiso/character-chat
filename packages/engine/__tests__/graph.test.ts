@@ -2,6 +2,7 @@ import { BaseMessage } from "@langchain/core/messages";
 import type { AIMessageChunk } from "@langchain/core/messages";
 import { FakeListChatModel } from "@langchain/core/utils/testing";
 import { createMemorySummaryStore } from "@v2/db";
+import { chunkGapMs } from "@v2/db/chunk-schedule";
 import { splitChunks } from "@v2/judge";
 import { emptyLedger, exemplarForPhase } from "@v2/prompt";
 
@@ -407,6 +408,27 @@ describe("createTurnGraph", () => {
     expect(request.some((message) => String(message.content).includes("ユーザーについて"))).toBe(
       false,
     );
+  });
+
+  test("done の sendAt は最初の塊からの経過ミリ秒（先頭 0）で、保存時刻は savedAt に載る", async () => {
+    const store = createMemoryTurnStore();
+    const model = new FakeListChatModel({ responses: [VALID_XML, VALID_XML_SECOND] });
+    const graph = createTurnGraph({ model, store, extendBelowRatio: 0 });
+    const stream = await graph.stream(
+      { conversationId: "conv-1", userText: "こんにちは", character },
+      { streamMode: "custom", configurable: { thread_id: "conv-1" } },
+    );
+    const events: TurnEvent[] = [];
+    for await (const event of stream) events.push(event as TurnEvent);
+
+    const done = events.find((event) => event.type === "done");
+    if (done?.type !== "done") throw new Error("done が無い");
+    const texts = events.filter(isChunkEvent).map((event) => event.text);
+    expect(done.sendAt?.[0]).toBe(0);
+    expect(done.sendAt).toHaveLength(texts.length);
+    // 2 つ目の塊は 1 つ目の読み時間ぶん後（絶対時刻のままなら先頭が 0 にならん）。
+    expect(done.sendAt?.[1]).toBe(chunkGapMs(texts[0]));
+    expect(done.savedAt).toBeGreaterThan(1_000_000_000_000);
   });
 
   test("token* → chunk+ → done の順でイベントが流れ、store に1ターン保存される", async () => {

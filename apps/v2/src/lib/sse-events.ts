@@ -88,6 +88,8 @@ const eventSchemas = {
     generationId: z.string().nullable(),
     // 塊ごとの表示予定（最初の塊からの経過ミリ秒。旧形式は絶対時刻）。無い・空の done は全部即出し（回復・旧形式）。
     sendAt: z.array(finiteNumber).optional(),
+    savedAt: finiteNumber.optional(),
+    serverNow: finiteNumber.optional(),
   }),
   attempt: z.object({ type: z.literal("attempt"), attempt: finiteNumber }),
   stopped: z.object({ type: z.literal("stopped") }),

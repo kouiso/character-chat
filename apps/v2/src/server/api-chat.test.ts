@@ -14,6 +14,7 @@ const usageLimit = vi.hoisted(() => vi.fn(async () => ({ allowed: true, limit: 3
 const platform = vi.hoisted(() => ({ env: {} as Record<string, unknown> }));
 const roomStop = vi.hoisted(() => vi.fn());
 const roomPeek = vi.hoisted(() => vi.fn(async (): Promise<JobPeek | null> => null));
+const roomWaitEvents = vi.hoisted(() => vi.fn());
 const roomWake = vi.hoisted(() => vi.fn(async () => undefined));
 const truncate = vi.hoisted(() => vi.fn());
 const deleteVectors = vi.hoisted(() => vi.fn(async () => undefined));
@@ -78,6 +79,7 @@ const envWith = (vars: Record<string, unknown>) => ({
       current: vi.fn(async () => null),
       stop: roomStop,
       wake: roomWake,
+      waitEvents: roomWaitEvents,
     }),
   },
   ...vars,
@@ -109,6 +111,39 @@ describe("POST /api/chat の履歴予算設定", () => {
     platform.env = envWith({});
     await post();
     expect(submit).toHaveBeenCalledOnce();
+  });
+});
+
+describe("done の配信（#195）", () => {
+  // 開き直しで再生された done も、サーバが「配った瞬間」の時刻を付けて経過を画面に出させる。
+  // 端末の時計は使わんので、保存から何分たったかがずれずに伝わる。
+  it("保存済みの done には配る時のサーバ時刻 serverNow が付き、保存はされん", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(2_000_000);
+    const stored = {
+      type: "done",
+      conversationId: "conv",
+      turn: 1,
+      generationId: null,
+      sendAt: [0, 500],
+      savedAt: 1_880_000,
+    };
+    roomWaitEvents.mockResolvedValueOnce({
+      events: [{ id: 1, event: stored }],
+      status: "succeeded",
+      hasMore: false,
+    });
+    submit.mockResolvedValue({ status: "accepted", requestId: "r1", created: false });
+    platform.env = envWith({});
+    const body = await (await post()).text();
+    vi.useRealTimers();
+    const data = body.split("\n").find((line) => line.startsWith("data:"));
+    expect(JSON.parse(String(data).slice(5))).toMatchObject({
+      sendAt: [0, 500],
+      savedAt: 1_880_000,
+      serverNow: 2_000_000,
+    });
+    expect(stored).not.toHaveProperty("serverNow");
   });
 });
 

@@ -161,6 +161,10 @@ export type TurnEvent =
       // 塊が無い失敗ターンは空配列。
       // 古い保存済みイベント再生では欠けるため optional。
       sendAt?: number[];
+      // 保存した時刻（サーバの時計）。開き直した画面が、とうに経った分を差し引く基準。
+      savedAt?: number;
+      // 配る瞬間にサーバが付ける現在時刻（保存はせん）。savedAt との差が「保存からの経過」になる。
+      serverNow?: number;
     }
   | { type: "error"; message: string };
 
