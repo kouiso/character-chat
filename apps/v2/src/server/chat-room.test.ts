@@ -149,7 +149,10 @@ const interruptAfterHistoryRead = (d1: D1Database, onRead: () => Promise<void>) 
         if (typeof value !== "function") return value;
         if (property === "bind")
           return (...values: unknown[]) => watch(target.bind(...values), query);
-        if (["all", "raw", "first"].includes(String(property)) && /from "v2_message"/.test(query))
+        if (
+          ["all", "raw", "first"].includes(String(property)) &&
+          /from\s+(?:"v2_message"|v2_message)/i.test(query)
+        )
           return async (...args: unknown[]) => interrupt(await value.apply(target, args));
         return value.bind(target);
       },
@@ -804,6 +807,62 @@ describe("ChatRoom", () => {
       .bind(conversationId, "images/race.png")
       .first<{ count: number }>();
     expect(images?.count).toBe(1);
+  });
+
+  it("ターン衝突の確認中に止められた送信は、失敗へ上書きされん", async () => {
+    const room = newRoom();
+    const conversationId = newConversation();
+    const input = { requestId: "req-stop-conflict", conversationId, text: "送信", characterId };
+    expect((await room.submit(input)).status).toBe("accepted");
+
+    const now = Date.now();
+    await local.d1.batch([
+      local.d1
+        .prepare(
+          "INSERT INTO v2_conversation (id,user_id,character_id,thread_id,prompt_version,created_at,updated_at) VALUES (?,?,?,?,?,?,?)",
+        )
+        .bind(
+          conversationId,
+          LOCAL_USER_ID,
+          characterId,
+          crypto.randomUUID(),
+          PROMPT_VERSION,
+          now,
+          now,
+        ),
+      local.d1
+        .prepare(
+          "INSERT INTO v2_message (id,conversation_id,turn,role,content,image_key,branch_no,active,created_at) VALUES (?,?,?,?,?,?,?,?,?)",
+        )
+        .bind(
+          crypto.randomUUID(),
+          conversationId,
+          1,
+          "assistant",
+          "",
+          "images/stop-race.png",
+          0,
+          1,
+          now,
+        ),
+    ]);
+
+    const d1 = local.d1;
+    const { db: racing, state: race } = interruptAfterHistoryRead(d1, async () => {
+      await room.stop(input.requestId);
+    });
+    const roomEnv = platform.env as unknown as { DB: D1Database };
+    roomEnv.DB = racing;
+    replies.queue.push([VALID_REPLY]);
+    await room.alarm();
+    roomEnv.DB = d1;
+
+    expect(race.armed).toBe(false);
+    expect(room.readEvents(input.requestId, 0).status).toBe("stopped");
+    expect(room.readEvents(input.requestId, 0).events.map((item) => item.event)).toEqual([
+      { type: "stopped" },
+    ]);
+    expect(replies.calls).toBe(0);
   });
 
   it("履歴の確認中に止められた再試行は、stopped を running へ起こし直さん", async () => {

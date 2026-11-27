@@ -905,13 +905,16 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
       await this.generate(job, controller.signal);
       this.finishGenerate(job, controller.signal);
     } catch (error) {
+      // 非同期の確認中に job が畳まれたかもしれんので、古い行で失敗へ上書きせん。
+      const current = this.job(job.id);
+      if (!current || !isActive(current.status)) return;
       // 止めの合図と失敗が重なった時は止めた終わりを優先する。失敗の表示より、
       // 「止めた後に保存されん」約束の方が大事。
       if (this.stopRequested(job.id)) {
-        this.stopFinish(job);
+        this.stopFinish(current);
         return;
       }
-      this.fail(job, job.attempts + 1, error);
+      this.fail(current, current.attempts + 1, error);
     } finally {
       this.abortControllers.delete(job.id);
     }
