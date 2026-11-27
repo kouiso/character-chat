@@ -4,6 +4,7 @@ import { characterContentSchema, type CharacterContent } from "@v2/db/character-
 
 import { readCharacterDraft, type CharacterDraft } from "../lib/character-draft";
 
+import { CharacterAvatarPicker } from "./character-avatar-picker";
 import { CharacterMemorySection } from "./character-memory-section";
 
 export type CharacterFormValue = CharacterContent;
@@ -49,17 +50,18 @@ const FIELDS: Field[] = [
     max: 4000,
     multiline: true,
   },
-  { key: "avatarRef", label: "アバターの参照", max: 500 },
 ];
 
 export const CharacterForm = ({
   initial,
   revision,
   draftKey,
+  characterId,
   onSubmit,
   disabled = false,
 }: {
   initial?: CharacterFormValue;
+  characterId?: string;
   revision: number;
   draftKey: string;
   disabled?: boolean;
@@ -153,6 +155,12 @@ export const CharacterForm = ({
       )}
       {error && <p role="alert">{error}</p>}
       <fieldset disabled={busy || disabled}>
+        <CharacterAvatarPicker
+          characterId={characterId}
+          savedAvatarRef={initial?.avatarRef ?? null}
+          avatarRef={draft.content.avatarRef}
+          onChange={(avatarRef) => change({ avatarRef })}
+        />
         {FIELDS.map((field) => (
           <label key={field.key}>
             <span>
@@ -172,11 +180,7 @@ export const CharacterForm = ({
                 aria-label={field.label}
                 required={field.required}
                 value={draft.content[field.key] ?? ""}
-                onChange={(event) =>
-                  change({
-                    [field.key]: event.target.value || (field.key === "avatarRef" ? null : ""),
-                  })
-                }
+                onChange={(event) => change({ [field.key]: event.target.value })}
               />
             )}
           </label>

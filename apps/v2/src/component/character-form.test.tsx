@@ -89,4 +89,43 @@ describe("CharacterForm", () => {
       ),
     );
   });
+
+  it("アップロードで選んだ顔の参照が、保存の内容に入る", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockResolvedValue(
+          new Response(JSON.stringify({ avatarRef: "local/face.png" }), { status: 200 }),
+        ),
+    );
+    vi.stubGlobal(
+      "URL",
+      Object.assign(URL, { createObjectURL: () => "blob:x", revokeObjectURL: vi.fn() }),
+    );
+    const save = vi.fn().mockResolvedValue(false);
+    render(
+      <CharacterForm
+        initial={content}
+        revision={1}
+        characterId="character"
+        draftKey={characterDraftKey("owner", "avatar-case")}
+        onSubmit={save}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "顔を変える" }));
+    const file = new File([new Uint8Array([1, 2])], "a.png", { type: "image/png" });
+    fireEvent.change(screen.getByLabelText("顔にする画像のファイル"), {
+      target: { files: [file] },
+    });
+    await screen.findByAltText("いまの顔");
+    fireEvent.click(screen.getByRole("button", { name: submitName }));
+    await waitFor(() =>
+      expect(save).toHaveBeenCalledWith(
+        expect.objectContaining({ avatarRef: "local/face.png" }),
+        1,
+      ),
+    );
+    vi.unstubAllGlobals();
+  });
 });
