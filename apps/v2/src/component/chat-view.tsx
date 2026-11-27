@@ -27,7 +27,7 @@ import {
   type StoredTurn,
   type TurnStateRequest,
 } from "../lib/chat-session";
-import { revealChunk, scheduleReveal } from "../lib/chunk-reveal";
+import { revealBaseAt, revealChunk, scheduleReveal } from "../lib/chunk-reveal";
 import { useChatOnline } from "../lib/chat-online";
 import { isFailurePhase, isWaitingPhase, markerText, type TurnPhase } from "../lib/turn-phase";
 import { followTurn } from "../lib/turn-stream";
@@ -558,6 +558,8 @@ const runImageRequest = async (deps: {
   setError: Dispatch<SetStateAction<string | null>>;
   setImageBusy: Dispatch<SetStateAction<boolean>>;
   setBubbles: Dispatch<SetStateAction<ChatBubble[]>>;
+  // 小出しの残りを先に出し切る。履歴で置き換えたあとに残りが重ねて出るのを防ぐ。
+  flushRevealRest: () => boolean;
 }): Promise<void> => {
   const targetConversationId = deps.conversationId.current;
   if (!targetConversationId) {
@@ -570,6 +572,7 @@ const runImageRequest = async (deps: {
     deps.setError("画像設定の数値を確認してください。");
     return;
   }
+  deps.flushRevealRest();
   const abort = new AbortController();
   deps.setImageBusy(true);
   deps.setError(null);
@@ -627,9 +630,6 @@ type LastFailure = "event" | "connect" | null;
 // ここを超えて返事が来ん時は「少し時間がかかっています」の副の文を足す（板 TalkWaiting-3）。
 // 部屋側の ping 間隔（15 秒）と揃えた。出来事が流れ続けても長いなら出る。
 const WAIT_SLOW_MS = 15_000;
-
-// 塊が 1 つも届かん done（回復・旧形式）は、受け取った今を基準にする。
-const revealBaseAt = (firstChunkAt: number | null): number => firstChunkAt ?? Date.now();
 
 const startScheduledReveal = (
   revealCancel: RefObject<(() => void) | null>,
@@ -807,7 +807,6 @@ export const ChatView = ({
   const activeTurn = useRef<PendingTurn | null>(null);
   const revealTexts = useRef<string[] | null>(null);
   const revealCancel = useRef<(() => void) | null>(null);
-  const firstChunkAt = useRef<number | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   // RIT-211/212: 音声再生。レイヤ連続再生のハンドルを持ち、再生中キーでボタンを切替える。
   const playbackRef = useRef<VoicePlayback | null>(null);
@@ -965,8 +964,9 @@ export const ChatView = ({
       const applyTerminalEvent = async (
         chunks: Map<number, string>,
         event: ChatSseEvent,
-      ): Promise<"exit" | { done: true; sendAt?: number[] } | null> => {
-        if (event.type === "done") return { done: true, sendAt: event.sendAt };
+      ): Promise<"exit" | { done: true; sendAt?: number[]; baseAt: number } | null> => {
+        if (event.type === "done")
+          return { done: true, sendAt: event.sendAt, baseAt: revealBaseAt(event) };
         if (event.type === "stopped") {
           await finishStopped();
           return "exit";
@@ -983,13 +983,12 @@ export const ChatView = ({
       const applyTurnEvent = async (
         chunks: Map<number, string>,
         event: ChatSseEvent,
-      ): Promise<"exit" | { done: true; sendAt?: number[] } | null> => {
+      ): Promise<"exit" | { done: true; sendAt?: number[]; baseAt: number } | null> => {
         markAccepted();
         // 部屋が次の試行を始めたら、前の試行で出ていた塊の控えを捨て直す（S-13b）。
         // 受付が確実に部屋へ届き生成が動き出した印なので、送信待ちは「書いています」へ進む。
         if (event.type === "attempt") {
           chunks.clear();
-          firstChunkAt.current = null;
           shownCount.current = 0;
           setPhase((previous) =>
             previous === "sending" || previous === "resending" ? "writing" : previous,
@@ -997,8 +996,6 @@ export const ChatView = ({
           return null;
         }
         if (event.type === "chunk") {
-          // 小出しの基準は最初の塊を受け取った端末の時刻。生成で待たせた分は間から差し引く。
-          firstChunkAt.current ??= Date.now();
           chunks.set(event.seq, event.text);
           chunkSeqs.current = [...chunks.keys()].sort((a, b) => a - b);
           setPhase("arriving");
@@ -1040,6 +1037,7 @@ export const ChatView = ({
       // 出来事の流れを最後まで追いかける。"done" を確かめたら仕上げへ。
       const followLoop = async (chunks: Map<number, string>) => {
         let sendAt: number[] | undefined;
+        let baseAt = Date.now();
         let done = false;
         // 待ちが長引いている印。繋ぎ直し・長い生成のどちらでも「少し時間がかかっています」へ。
         const slowTimer = setTimeout(() => {
@@ -1065,6 +1063,7 @@ export const ChatView = ({
             if (action !== null) {
               done = true;
               sendAt = action.sendAt;
+              baseAt = action.baseAt;
             }
           }
         } finally {
@@ -1075,7 +1074,7 @@ export const ChatView = ({
           enterPhase("no_reply", "connect");
           return;
         }
-        await finishDone(chunks, sendAt, revealBaseAt(firstChunkAt.current));
+        await finishDone(chunks, sendAt, baseAt);
       };
 
       if (signal.aborted) return;
@@ -1086,7 +1085,6 @@ export const ChatView = ({
       activeTurn.current = turn;
       chunkSeqs.current = [];
       shownCount.current = 0;
-      firstChunkAt.current = null;
       const chunks = new Map<number, string>();
       try {
         await followLoop(chunks);
@@ -1555,6 +1553,7 @@ export const ChatView = ({
       setError,
       setImageBusy,
       setBubbles,
+      flushRevealRest,
     });
 
   const requestI2i = () => {
@@ -1572,6 +1571,7 @@ export const ChatView = ({
       setError,
       setImageBusy,
       setBubbles,
+      flushRevealRest,
     });
     setI2iTarget(null);
     setI2iInstruction("");

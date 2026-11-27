@@ -1266,21 +1266,30 @@ describe("ChatView 小出しの最中の送信（#196）", () => {
   };
 
   // 送った本文ごとに返す流れを決める（再接続で POST が重なっても取り違えんため）。
+  const posted: string[] = [];
+  // 履歴は送った分だけ積む（固定の台詞を返すと並びの比較が飾りになる）。
   const stubReplies = (replies: Record<string, string>) => {
+    posted.length = 0;
     vi.stubGlobal(
       "fetch",
-      vi.fn(async (_url: RequestInfo | URL, init?: RequestInit) => {
+      vi.fn(async (url: RequestInfo | URL, init?: RequestInit) => {
+        // 返事の候補の自動取得（/suggest）も POST。送信の数えには入れん（本文を持たん別口）。
+        if (String(url).endsWith("/suggest")) return Response.json({ suggestions: [] });
         if (init?.method === "POST") {
           const body = JSON.parse(String(init.body)) as { text: string };
+          posted.push(body.text);
           return new Response(replies[body.text]);
         }
-        return Response.json({
-          turn: 2,
-          history: [
-            { id: "m1", turn: 1, role: "user", content: "最初の発言" },
-            { id: "m2", turn: 1, role: "assistant", content: "保存済みの返事" },
-          ],
-        });
+        const history = posted.flatMap((text, index) => [
+          { id: `u${index}`, turn: index + 1, role: "user", content: text },
+          {
+            id: `a${index}`,
+            turn: index + 1,
+            role: "assistant",
+            content: [...replies[text].matchAll(/"text":"([^"]*)"/g)].map((m) => m[1]).join(""),
+          },
+        ]);
+        return Response.json({ turn: posted.length + 1, history });
       }),
     );
   };
@@ -1324,6 +1333,8 @@ describe("ChatView 小出しの最中の送信（#196）", () => {
     await screen.findByText("最後の返事");
 
     expectOrder(["前一", "前二", "前三", "発言2", "中一", "中二", "中三", "発言3", "最後の返事"]);
+    // 送信は 1 発言につき 1 回だけ（再送・二重送信が無い）。
+    expect(posted).toEqual(["発言1", "発言2", "発言3"]);
     expect(document.querySelectorAll(".v2-message-turn.assistant.pending")).toHaveLength(0);
   });
 
@@ -1335,9 +1346,103 @@ describe("ChatView 小出しの最中の送信（#196）", () => {
     first.unmount();
 
     render(<ChatView characterId="a" characterName="案内役" />);
-    await screen.findByText("保存済みの返事");
-    expectOrder(["最初の発言", "保存済みの返事"]);
+    await screen.findByText("前一前二前三");
+    expectOrder(["最初の発言", "前一前二前三"]);
+    expect(document.querySelectorAll(".v2-message-turn.assistant.pending")).toHaveLength(0);
+  });
+
+  it("小出しの最中に画像を頼んでも、履歴で置き換えたあとに前の返信の残りが重ならん", async () => {
+    const reply =
+      chunk(0, "前一") + chunk(1, "前二") + chunk(2, "前三") + done(1, ',"sendAt":[0,300,300]');
+    stubReplies({ 最初の発言: reply });
+    const base = globalThis.fetch;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: RequestInfo | URL, init?: RequestInit) =>
+        String(url).endsWith("/images")
+          ? Response.json({ messageId: "img1", imageUrl: "/api/media/img1" })
+          : base(url, init),
+      ),
+    );
+    render(<ChatView characterId="a" characterName="案内役" />);
+    sendMessage("最初の発言");
+    await screen.findByText("前一");
+    expect(screen.queryByText("前二")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /ひらく/ }));
+    fireEvent.click(screen.getByRole("button", { name: /画像をもらう/ }));
+    await screen.findByText("前一前二前三");
+    const before = bubbleTexts();
+    // 予定（300ms）が過ぎても、残りの塊が履歴の後ろへ足されたり「…」が出たりせん。
+    await new Promise((resolve) => setTimeout(resolve, 600));
+    expect(bubbleTexts()).toEqual(before);
     expect(screen.queryByText("前二")).not.toBeInTheDocument();
     expect(document.querySelectorAll(".v2-message-turn.assistant.pending")).toHaveLength(0);
+  });
+
+  // 開き直し: サーバが保存してから十分たった done は、経過（serverNow - savedAt）ぶん過ぎた扱いで
+  // 予定の長い塊も待たずに出る。端末の時計は使わん（RIT-69・#195）。
+  describe("保存済みの返事への再接続", () => {
+    const savedPending = () =>
+      writeChatSession("a", {
+        version: 1,
+        conversationId: "conversation-a",
+        pending: {
+          characterId: "a",
+          conversationId: "conversation-a",
+          requestId: "request-a",
+          text: "最初の発言",
+          baseTurn: 1,
+          accepted: true,
+        },
+      });
+    const attachWith = (doneTail: string) => {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(async (url: RequestInfo | URL) => {
+          const path = String(url);
+          if (path.endsWith("/suggest")) return Response.json({ suggestions: [] });
+          if (path.includes("/turn?")) {
+            return Response.json({
+              active: null,
+              request: { requestId: "request-a", status: "succeeded", turn: 1, kind: "send" },
+            });
+          }
+          if (path.includes("/events?")) {
+            return new Response(
+              chunk(0, "前一") + chunk(1, "前二") + chunk(2, "前三") + done(1, doneTail),
+            );
+          }
+          return Response.json({
+            turn: 2,
+            history: [
+              { id: "u0", turn: 1, role: "user", content: "最初の発言" },
+              { id: "a0", turn: 1, role: "assistant", content: "前一前二前三" },
+            ],
+          });
+        }),
+      );
+    };
+
+    it("保存から 2 分たっていれば、10 秒おきの予定でも 1 秒以内に全部出る", async () => {
+      savedPending();
+      attachWith(',"sendAt":[0,10000,20000],"savedAt":1000000,"serverNow":1120000');
+      render(
+        <ChatView characterId="a" characterName="案内役" initialConversationId="conversation-a" />,
+      );
+      await waitFor(() => expect(screen.getByText("前三")).toBeInTheDocument(), { timeout: 1000 });
+      expect(screen.getByText("前二")).toBeInTheDocument();
+    });
+
+    it("保存の直後に配られた done なら、予定どおり後の塊は待たされる", async () => {
+      savedPending();
+      attachWith(',"sendAt":[0,10000,20000],"savedAt":1000000,"serverNow":1000020');
+      render(
+        <ChatView characterId="a" characterName="案内役" initialConversationId="conversation-a" />,
+      );
+      await screen.findByText("前一");
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      expect(screen.queryByText("前二")).not.toBeInTheDocument();
+    });
   });
 });

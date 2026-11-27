@@ -1,10 +1,22 @@
 import type { ChatBubble } from "./chat-session";
 
+// 小出しの基準は、サーバが保存した時刻を端末の今へ置き直したもの。保存からの経過は
+// サーバの時計どうしの差（serverNow - savedAt）で出すので、端末の時計ずれに依らん。
+// 開き直して再生された done は経過が長く、過ぎた分はまとめて出る（RIT-69）。
+// 経過が付かん done（旧形式）は受け取った今を基準にする。
+export const revealBaseAt = (event: { savedAt?: number; serverNow?: number }): number => {
+  const elapsed =
+    event.savedAt !== undefined && event.serverNow !== undefined
+      ? Math.max(event.serverNow - event.savedAt, 0)
+      : 0;
+  return Date.now() - elapsed;
+};
+
 // 予定が来た塊を順に出す。過ぎた分はまとめて出るので、裏タブに回っても
 // visibilitychange の時点で経過分が一気に揃う（RIT-69）。
 // sendAt は最初の塊からの経過ミリ秒。端末の時計はサーバとずれるので、絶対時刻としては読まず、
-// 先頭を引いた間隔だけを使って baseAt（最初の塊を受け取った端末の時刻）から引き直す。
-// こうすると旧形式の絶対時刻も同じ間隔として読め、生成で待たされた分は間から差し引かれる。
+// 先頭を引いた間隔だけを使って baseAt（サーバの保存時刻を端末の今へ置き直したもの）から引き直す。
+// こうすると旧形式の絶対時刻も同じ間隔として読め、開き直しでは過ぎた分がまとめて出る。
 export const scheduleReveal = (
   texts: string[],
   sendAt: number[] | undefined,

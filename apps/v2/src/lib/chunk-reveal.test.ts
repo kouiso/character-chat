@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { revealChunk, scheduleReveal } from "./chunk-reveal";
+import { revealBaseAt, revealChunk, scheduleReveal } from "./chunk-reveal";
 
 import type { ChatBubble } from "./chat-session";
 
@@ -63,12 +63,14 @@ describe("scheduleReveal", () => {
   });
 
   it("予定時刻を全部過ぎておる分は一度に出る（再オープンで1秒以内に揃う）", () => {
-    // 最初の塊を受け取ってから 5 秒たった端末では、3 秒先までの予定は全部過ぎている。
+    // 部屋が保存してから 2 分後に開き直した。再生された done の経過（serverNow - savedAt）は 2 分。
+    const savedAt = 5_000_000;
+    const baseAt = revealBaseAt({ savedAt, serverNow: savedAt + 120_000 });
     const cancel = scheduleReveal(
       ["一", "二", "三"],
-      [0, 1000, 3000],
+      [0, 5000, 10_000],
       (text, more) => revealed.push({ text, more }),
-      Date.now() - 5000,
+      baseAt,
     );
     expect(revealed).toEqual([
       { text: "一", more: true },
@@ -132,17 +134,37 @@ describe("scheduleReveal", () => {
     cancel();
   });
 
-  it("生成に 60 秒かかった時は、待たせた分だけ間が詰まり、全部すぐ出る", () => {
-    const firstChunkAt = Date.now();
+  // 生成の 60 秒は保存より前なので、done の経過（保存から配るまで）には入らん。間は崩れない。
+  it("生成に 60 秒かかっても、保存直後に配った done なら間は崩れない", () => {
+    const savedAt = 9_000_000;
     vi.advanceTimersByTime(60_000);
+    const baseAt = revealBaseAt({ savedAt, serverNow: savedAt + 30 });
     const cancel = scheduleReveal(
       ["一", "二", "三"],
       [0, 1000, 3000],
       (text, more) => revealed.push({ text, more }),
-      firstChunkAt,
+      baseAt,
     );
-    expect(revealed).toHaveLength(3);
+    expect(revealed).toHaveLength(1);
+    vi.advanceTimersByTime(969);
+    expect(revealed).toHaveLength(1);
+    vi.advanceTimersByTime(1);
+    expect(revealed).toHaveLength(2);
     cancel();
+  });
+
+  it.each([5 * 60_000, -5 * 60_000])(
+    "端末の時計が %i ms ずれても、基準はサーバどうしの差だけで決まる",
+    (skew) => {
+      vi.setSystemTime(1_000_000 + skew);
+      expect(revealBaseAt({ savedAt: 7_000_000, serverNow: 7_000_400 })).toBe(Date.now() - 400);
+      expect(revealBaseAt({ savedAt: 7_000_000, serverNow: 6_999_000 })).toBe(Date.now());
+    },
+  );
+
+  it("経過が付かん done（旧形式）は受け取った今が基準", () => {
+    expect(revealBaseAt({})).toBe(Date.now());
+    expect(revealBaseAt({ savedAt: 1 })).toBe(Date.now());
   });
 
   it("待たせた分が間より短い時は、残りの間だけ待つ", () => {
