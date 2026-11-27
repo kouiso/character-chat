@@ -148,7 +148,7 @@ const ChatContinuationRow = ({
   conversation: ConversationSummaryRow;
   character: CharacterListItem;
 }) => (
-  <li>
+  <li className="v2-home-continuation-item">
     <Link
       to="/chat/$id"
       params={{ id: character.id }}
@@ -166,6 +166,15 @@ const ChatContinuationRow = ({
         </span>
       </span>
       <span className="v2-home-continuation-day">{formatHomeDay(conversation.updatedAt)}</span>
+    </Link>
+    <Link
+      to="/chat/$id"
+      params={{ id: character.id }}
+      search={{ newChat: crypto.randomUUID() }}
+      className="v2-home-continuation-new"
+      aria-label={`${character.name}と新しい会話を始める`}
+    >
+      新しい会話
     </Link>
   </li>
 );

@@ -275,13 +275,20 @@
   padding: 0;
 }
 
+.v2-home-continuation-item {
+  display: flex;
+  align-items: center;
+  box-shadow: var(--edge-top);
+}
+
 /* 札の中の行は面なし。行の間は細い線（上端の光）だけ */
 .v2-home-continuation {
+  flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 12px;
   height: 64px;
-  box-shadow: var(--edge-top);
   color: var(--color-text);
   text-decoration: none;
 }
@@ -304,6 +311,19 @@
   height: 100%;
   object-fit: cover;
   display: block;
+}
+
+.v2-home-continuation-new {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding-left: 8px;
+  color: var(--color-peach);
+  font-size: var(--text-note-size);
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
 }
 
 /* 場の行は先頭メンバー 2 人の顔を重ねる（前の 1 枚は地の色の縁で浮かせる） */
