@@ -110,7 +110,9 @@
 .v2-profile-sheet {
   display: flex;
   flex-direction: column;
-  padding: 0 var(--space-gutter) 32px;
+  /* #root は高さ 100% 固定で、はみ出した本文の後ろには帯の分の余白が付かん。末尾のボイス設定が
+     下の帯に隠れんよう、帯の高さをこの面の下に足す */
+  padding: 0 var(--space-gutter) calc(var(--tab-bar-total) + 32px);
 }
 
 .v2-profile-name {

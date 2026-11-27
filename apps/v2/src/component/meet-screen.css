@@ -176,7 +176,9 @@
 
 .v2-meet-hero {
   position: relative;
-  flex: 0 0 61%;
+  /* 板の割合は 61%。背の低い画面（板 Sizes の 360×740 など）では下の面の文と「話す」が
+     カードからはみ出してタブバーの裏へ潜るので、絵の方を縮めて下の面を守る */
+  flex: 0 1 61%;
   min-height: 0;
   overflow: hidden;
   background: var(--color-ground-low);
@@ -236,8 +238,8 @@
 
 /* 下の面。地（絵の下）のグラデーション */
 .v2-meet-body {
-  flex: 1;
-  min-height: 0;
+  /* 下の面は文と「話す」が全部入る高さより縮めん（縮むのは絵の方。.v2-meet-hero） */
+  flex: 1 0 auto;
   box-sizing: border-box;
   padding: 0 var(--space-gutter);
   background: var(--gradient-sheet);
@@ -348,6 +350,12 @@
   line-height: var(--text-body-line);
   font-weight: 500;
   letter-spacing: var(--text-tracking);
+  /* 台詞は 1〜2 行で見せる（局長の決め J1-1「台詞 1 行」、ホームの吹き出しと同じ 2 行止め）。
+     止めんと長いはじまりのひとことで下の面が伸び、絵が潰れて「話す」がカードの外へ押し出される */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
 }
 
 .v2-meet-spacer-12 {
@@ -806,7 +814,8 @@
 
 /* 読み込み中の骨組み（デッキ側は絵の枠＋文の枠） */
 .v2-meet-skeleton-hero {
-  flex: 0 0 61%;
+  /* 本物のカード（.v2-meet-hero）と同じ縮み方にして、差し替わる時に配置が跳ねんようにする */
+  flex: 0 1 61%;
   background: linear-gradient(180deg, var(--color-skeleton-hi) 0%, var(--color-skeleton-lo) 100%);
 }
 
