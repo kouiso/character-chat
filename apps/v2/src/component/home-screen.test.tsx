@@ -169,7 +169,10 @@ describe("ホーム（いつもの子が迎える）", () => {
     const chatRow = screen.getByRole("link", { name: "さくらとの会話をつづきから話す" });
     expect(chatRow).toHaveAttribute("href", expect.stringContaining(`/chat/${other.id}`));
     expect(within(chatRow).getByText("「また、あのカフェで」")).toBeInTheDocument();
-    // 行ごとに最終更新日が出る（#170）。2・3 日前は曜日で書く（WORDING.md）
+    // 行ごとにキャラクター名（読み上げの名前でなく見える字）と最終更新日が出る（#170）。
+    // 2・3 日前は曜日で書く（WORDING.md）
+    expect(within(chatRow).getByText("さくら")).toBeInTheDocument();
+    expect(within(groupRow).getByText("宅飲みの夜")).toBeInTheDocument();
     const weekdays = ["日曜", "月曜", "火曜", "水曜", "木曜", "金曜", "土曜"] as const;
     expect(
       within(chatRow).getByText(weekdays[new Date(older.updatedAt).getDay()]),
