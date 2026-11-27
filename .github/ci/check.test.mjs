@@ -60,8 +60,27 @@ test("fast preserves lint/typecheck and enforces cloud coverage", () => {
     ["pnpm", "run", "lint"],
     ["pnpm", "run", "typecheck"],
     ["pnpm", "run", "test:coverage"],
+    ["pnpm", "run", "v2:lint"],
+    ["pnpm", "run", "v2:typecheck"],
+    ["pnpm", "run", "v2:test"],
   ]);
 });
+test("pre-push chain reaches v2 lint typecheck and test after v1 fast checks", () => {
+  const hook = readFileSync(join(root, ".lefthook.yml"), "utf8");
+  assert.match(hook, /task ci:fast/);
+  const task = readFileSync(join(root, "Taskfile.yml"), "utf8");
+  assert.match(task, /ci:fast:[\s\S]*?node \.github\/ci\/run\.mjs fast/);
+  const fast = trace("fast");
+  const v1Test = fast.commands.findIndex((cmd) => cmd.join(" ") === "pnpm run test:coverage");
+  const v2Lint = fast.commands.findIndex((cmd) => cmd.join(" ") === "pnpm run v2:lint");
+  const v2Typecheck = fast.commands.findIndex((cmd) => cmd.join(" ") === "pnpm run v2:typecheck");
+  const v2Test = fast.commands.findIndex((cmd) => cmd.join(" ") === "pnpm run v2:test");
+  assert.ok(v1Test >= 0);
+  assert.ok(v2Lint > v1Test);
+  assert.ok(v2Typecheck > v2Lint);
+  assert.ok(v2Test > v2Typecheck);
+});
+
 test("full retains every cloud check and builds once before browser boot", () => {
   const r = trace("full");
   assert.equal(r.status, 0, r.stderr);
@@ -84,12 +103,17 @@ test("first failure propagates without later checks/build", () => {
     "pnpm run lint",
     "pnpm run typecheck",
     "pnpm run test:coverage",
-    "pnpm run db:migrate:local",
+    "pnpm run v2:lint",
+    "pnpm run v2:typecheck",
+    "pnpm run v2:test",
   ]) {
-    const r = trace("full", fail);
+    const r = trace("fast", fail);
     assert.equal(r.status, 37);
     assert.equal(r.commands.at(-1).slice(0, 3).join(" "), fail);
   }
+  const migration = trace("full", "pnpm run db:migrate:local");
+  assert.equal(migration.status, 37);
+  assert.equal(migration.commands.at(-1).slice(0, 3).join(" "), "pnpm run db:migrate:local");
 });
 test("single cloud phases use exactly the shared commands", () => {
   for (const [profile, cmd] of Object.entries({
