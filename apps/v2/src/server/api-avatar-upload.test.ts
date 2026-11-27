@@ -13,7 +13,8 @@ const store = vi.hoisted(() => ({
 const platform = vi.hoisted(() => ({ env: {} as Record<string, unknown> }));
 vi.mock("./platform", () => ({ getPlatform: async () => platform }));
 
-const { handleAvatarPost, AVATAR_MAX_BYTES } = await import("./avatar-upload");
+const { handleAvatarPost, AVATAR_MAX_BYTES, listAvatarCandidateIds } =
+  await import("./avatar-upload");
 
 const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 13, 1, 2]);
 // 画像鍵の形（R2_KEY_PATTERN）に合うよう、メッセージ id は 16 進だけで作る。
@@ -246,5 +247,69 @@ describe("顔の絵の取り込み口", () => {
     expect(await message(video)).toContain("動画");
     expect((await choose(mine, 42)).status).toBe(400);
     expect((await choose("no-such-character", msgMine)).status).toBe(404);
+  });
+
+  it("別オリジンからの取り込みは断り、置かない", async () => {
+    const before = store.objects.size;
+    const form = new FormData();
+    form.set("file", new Blob([png], { type: "image/png" }), "a.png");
+    const crossOrigin: Record<string, string>[] = [
+      { "sec-fetch-site": "cross-site" },
+      { origin: "https://evil.example" },
+    ];
+    for (const headers of crossOrigin) {
+      const response = await handleAvatarPost(
+        mine,
+        new Request("https://example.test/x", { method: "POST", headers, body: form }),
+      );
+      expect(response.status).toBe(403);
+    }
+    const json = await handleAvatarPost(
+      mine,
+      new Request("https://example.test/x", {
+        method: "POST",
+        headers: { "content-type": "application/json", "sec-fetch-site": "cross-site" },
+        body: JSON.stringify({ messageId: msgMine }),
+      }),
+    );
+    expect(json.status).toBe(403);
+    expect(store.objects.size).toBe(before);
+  });
+
+  it("JSON と名乗らない本文（単純リクエスト）は読まずに断る", async () => {
+    const response = await handleAvatarPost(
+      mine,
+      new Request("https://example.test/x", {
+        method: "POST",
+        headers: { "content-type": "text/plain" },
+        body: JSON.stringify({ messageId: msgMine }),
+      }),
+    );
+    expect(response.status).toBe(415);
+    const bare = await handleAvatarPost(
+      mine,
+      new Request("https://example.test/x", {
+        method: "POST",
+        body: JSON.stringify({ messageId: msgMine }),
+      }),
+    );
+    expect(bare.status).toBe(415);
+  });
+
+  it("予約の new 以外の存在しないキャラ id へはアップロードできず、置かない", async () => {
+    const before = store.objects.size;
+    const response = await upload("zzz-does-not-exist", new Blob([png], { type: "image/png" }));
+    expect(response.status).toBe(404);
+    expect(store.objects.size).toBe(before);
+  });
+
+  it("顔の候補はこの子の画像だけで、全体の件数上限に左右されない", async () => {
+    const env = platform.env as unknown as Parameters<typeof listAvatarCandidateIds>[0];
+    const ids = (await listAvatarCandidateIds(env, mine)).map((item) => item.messageId);
+    expect(ids).toContain(msgMine);
+    for (const excluded of [msgOtherChar, msgStranger, msgGone, msgVideo]) {
+      expect(ids).not.toContain(excluded);
+    }
+    expect(await listAvatarCandidateIds(env, "no-such-character")).toEqual([]);
   });
 });

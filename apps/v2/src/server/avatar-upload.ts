@@ -26,6 +26,8 @@ export const AVATAR_REJECTIONS = {
     "画像ではないファイルです。PNG・JPEG・WebP・GIF の画像を選んでください。",
   ],
   tooLarge: ["avatar_too_large", "画像が大きすぎます。5MB までの画像を選んでください。"],
+  badRequest: ["avatar_bad_request", "リクエストを確認してください。"],
+  notJson: ["avatar_not_json", "送信形式を確認してください。"],
   empty: ["avatar_empty", "画像が空です。別のファイルを選んでください。"],
   foreignImage: [
     "avatar_image_not_found",
@@ -43,8 +45,12 @@ const fail = (status: number, key: keyof typeof AVATAR_REJECTIONS): Response =>
 
 type Env = Awaited<ReturnType<typeof getPlatform>>["env"];
 
-// 既存のキャラは持ち主の集合に入る物だけ触れる。新規作成中（行が無い）は名義 local の
-// 利用者として取り込みだけ許す（保存前の顔を選べるように）。
+// 保存前の新規キャラが取り込み口へ渡す予約の id（クライアントの avatarPath と同じ）。
+const NEW_CHARACTER_ID = "new";
+
+// 既存のキャラは持ち主の集合に入る物だけ触れる。新規作成中（行が無い）は予約 id の時だけ
+// 取り込みを許す（保存前の顔を選べるように）。それ以外の行無し id へ許すと、誰にも
+// 参照されん実体を好きな id で積めてしまう。
 const characterAccess = async (
   env: Env,
   characterId: string,
@@ -53,7 +59,7 @@ const characterAccess = async (
   const row = await env.DB.prepare("SELECT user_id FROM character WHERE id = ?")
     .bind(characterId)
     .first<{ user_id: string }>();
-  if (!row) return !requireExisting;
+  if (!row) return !requireExisting && characterId === NEW_CHARACTER_ID;
   return (await listOwnerIds(createDb(env.DB))).includes(row.user_id);
 };
 
@@ -171,14 +177,31 @@ export const handleAvatarFromImage = async (
   return read.ok ? storeChecked(env, read.value) : read.response;
 };
 
+// 別オリジンからの書き込みを弾く（api-documents.ts の badOrigin と同じ判定）。
+// 認証が BASIC のブラウザ自動付与なので、別サイトのフォームからでも資格情報が付いて届く。
+const badOrigin = (request: Request): boolean => {
+  const origin = request.headers.get("origin");
+  try {
+    if (origin && (new URL(origin).origin !== origin || origin !== new URL(request.url).origin)) {
+      return true;
+    }
+  } catch {
+    return true;
+  }
+  return request.headers.get("sec-fetch-site")?.toLowerCase() === "cross-site";
+};
+
 export const handleAvatarPost = async (
   characterId: string,
   request: Request,
 ): Promise<Response> => {
-  const contentType = request.headers.get("content-type") ?? "";
-  if (contentType.startsWith("multipart/form-data")) {
+  if (badOrigin(request)) return fail(403, "badRequest");
+  const contentType = request.headers.get("content-type")?.split(";")[0]?.trim().toLowerCase();
+  if (contentType === "multipart/form-data") {
     return handleAvatarUpload(characterId, request);
   }
+  // text/plain 等は preflight なしで送れる「単純リクエスト」なので、JSON と名乗る物だけ読む。
+  if (contentType !== "application/json") return fail(415, "notJson");
   let body: unknown;
   try {
     body = await request.json();
@@ -186,4 +209,31 @@ export const handleAvatarPost = async (
     return fail(400, "noFile");
   }
   return handleAvatarFromImage(characterId, body);
+};
+
+const AVATAR_CANDIDATE_LIMIT = 60;
+
+// 顔に選べる画像: この子との会話の、消えていない静止画。findOwnImageKey と同じ条件
+// （持ち主の集合・4コマも含む）で、キャラ単位に絞ってから件数を切る。
+export const listAvatarCandidateIds = async (
+  env: Env,
+  characterId: string,
+): Promise<{ messageId: string }[]> => {
+  const owners = await listOwnerIds(createDb(env.DB));
+  const marks = owners.map(() => "?").join(", ");
+  const { results } = await env.DB.prepare(
+    `SELECT m.id AS messageId, coalesce(m.image_key, lm.image_key) AS imageKey
+     FROM v2_message m
+     JOIN v2_conversation conv ON conv.id = m.conversation_id
+     LEFT JOIN message lm ON lm.id = m.id
+     WHERE m.active = 1 AND conv.character_id = ? AND conv.user_id IN (${marks})
+       AND coalesce(m.image_key, lm.image_key) IS NOT NULL
+     ORDER BY m.created_at DESC, m.id DESC LIMIT ?`,
+  )
+    .bind(characterId, ...owners, AVATAR_CANDIDATE_LIMIT * 4)
+    .all<{ messageId: string; imageKey: string }>();
+  return (results ?? [])
+    .filter((row) => !row.imageKey.endsWith(".mp4") && R2_KEY_PATTERN.test(row.imageKey))
+    .slice(0, AVATAR_CANDIDATE_LIMIT)
+    .map((row) => ({ messageId: row.messageId }));
 };
