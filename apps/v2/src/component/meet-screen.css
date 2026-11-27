@@ -176,7 +176,9 @@
 
 .v2-meet-hero {
   position: relative;
-  flex: 0 0 61%;
+  /* 板の割合は 61%。背の低い画面（板 Sizes の 360×740 など）では下の面の文と「話す」が
+     カードからはみ出してタブバーの裏へ潜るので、絵の方を縮めて下の面を守る */
+  flex: 0 1 61%;
   min-height: 0;
   overflow: hidden;
   background: var(--color-ground-low);
@@ -236,8 +238,8 @@
 
 /* 下の面。地（絵の下）のグラデーション */
 .v2-meet-body {
-  flex: 1;
-  min-height: 0;
+  /* 下の面は文と「話す」が全部入る高さより縮めん（縮むのは絵の方。.v2-meet-hero） */
+  flex: 1 0 auto;
   box-sizing: border-box;
   padding: 0 var(--space-gutter);
   background: var(--gradient-sheet);
