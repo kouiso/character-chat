@@ -1222,3 +1222,122 @@ describe("ChatView", () => {
     expect(localStorage.getItem("v2-suggest:a")).toBe("0");
   });
 });
+
+describe("ChatView 小出しの最中の送信（#196）", () => {
+  afterEach(() => {
+    cleanup();
+    localStorage.clear();
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  const judge = JSON.stringify({
+    ok: true,
+    reasons: [],
+    warnings: [],
+    checks: {
+      ngram: { ok: true, ratio: 0, matchedPhrases: [], exactRepeat: false },
+      nearDuplicate: { ok: true, matches: [] },
+      voice: { ok: true, endingsMismatch: false },
+      format: { ok: true },
+      empty: { ok: true },
+    },
+  });
+  const chunk = (seq: number, text: string) =>
+    `event: chunk\ndata: {"seq":${seq},"text":"${text}","judge":${judge},"attempt":1,"preExtend":true}\n\n`;
+  const done = (turn: number, sendAt: string) =>
+    `event: done\ndata: {"conversationId":"conversation-a","turn":${turn},"generationId":null${sendAt}}\n\n`;
+  // 先頭だけ即出し、残りは遠い先（小出しの途中で止まる）。
+  const slowReply = (label: string, turn: number) =>
+    chunk(0, `${label}一`) +
+    chunk(1, `${label}二`) +
+    chunk(2, `${label}三`) +
+    done(turn, ',"sendAt":[0,60000,60000]');
+  const quickReply = (text: string, turn: number) => chunk(0, text) + done(turn, "");
+
+  const bubbleTexts = () =>
+    Array.from(document.querySelectorAll(".v2-message-turn")).map((node) => node.textContent ?? "");
+
+  const expectOrder = (expected: string[]) => {
+    const texts = bubbleTexts();
+    const order = expected.map((part) => texts.findIndex((text) => text.includes(part)));
+    expect(order.every((index) => index >= 0)).toBe(true);
+    expect(order).toEqual([...order].sort((a, b) => a - b));
+  };
+
+  // 送った本文ごとに返す流れを決める（再接続で POST が重なっても取り違えんため）。
+  const stubReplies = (replies: Record<string, string>) => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (_url: RequestInfo | URL, init?: RequestInit) => {
+        if (init?.method === "POST") {
+          const body = JSON.parse(String(init.body)) as { text: string };
+          return new Response(replies[body.text]);
+        }
+        return Response.json({
+          turn: 2,
+          history: [
+            { id: "m1", turn: 1, role: "user", content: "最初の発言" },
+            { id: "m2", turn: 1, role: "assistant", content: "保存済みの返事" },
+          ],
+        });
+      }),
+    );
+  };
+
+  const sendMessage = (text: string) => {
+    fireEvent.change(screen.getByRole("textbox", { name: "メッセージ" }), {
+      target: { value: text },
+    });
+    // 小出しの最中は送信ボタンが「止める」に替わるので、Enter 相当のフォーム送信で送る。
+    const form = screen.getByRole("textbox", { name: "メッセージ" }).closest("form");
+    if (form === null) throw new Error("フォームが無い");
+    fireEvent.submit(form);
+  };
+
+  it("小出しの最中に次を送ると、前の返信の残りは新しい発言の前に出て、「…」の枠も残らない", async () => {
+    stubReplies({ 最初の発言: slowReply("前", 1), 次の発言: quickReply("次の返事", 2) });
+    render(<ChatView characterId="a" characterName="案内役" />);
+    sendMessage("最初の発言");
+    await screen.findByText("前一");
+    expect(screen.queryByText("前二")).not.toBeInTheDocument();
+
+    sendMessage("次の発言");
+    await screen.findByText("次の返事");
+
+    expectOrder(["前一", "前二", "前三", "次の発言", "次の返事"]);
+    expect(document.querySelectorAll(".v2-message-turn.assistant.pending")).toHaveLength(0);
+  });
+
+  it("小出しの最中に 2 回続けて送っても、並びは送った順のまま「…」も残らない", async () => {
+    stubReplies({
+      発言1: slowReply("前", 1),
+      発言2: slowReply("中", 2),
+      発言3: quickReply("最後の返事", 3),
+    });
+    render(<ChatView characterId="a" characterName="案内役" />);
+    sendMessage("発言1");
+    await screen.findByText("前一");
+    sendMessage("発言2");
+    await screen.findByText("中一");
+    sendMessage("発言3");
+    await screen.findByText("最後の返事");
+
+    expectOrder(["前一", "前二", "前三", "発言2", "中一", "中二", "中三", "発言3", "最後の返事"]);
+    expect(document.querySelectorAll(".v2-message-turn.assistant.pending")).toHaveLength(0);
+  });
+
+  it("小出しの最中に画面を開き直すと、並びは保存どおりで「…」も残らない", async () => {
+    stubReplies({ 最初の発言: slowReply("前", 1) });
+    const first = render(<ChatView characterId="a" characterName="案内役" />);
+    sendMessage("最初の発言");
+    await screen.findByText("前一");
+    first.unmount();
+
+    render(<ChatView characterId="a" characterName="案内役" />);
+    await screen.findByText("保存済みの返事");
+    expectOrder(["最初の発言", "保存済みの返事"]);
+    expect(screen.queryByText("前二")).not.toBeInTheDocument();
+    expect(document.querySelectorAll(".v2-message-turn.assistant.pending")).toHaveLength(0);
+  });
+});

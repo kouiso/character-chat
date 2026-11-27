@@ -628,6 +628,9 @@ type LastFailure = "event" | "connect" | null;
 // 部屋側の ping 間隔（15 秒）と揃えた。出来事が流れ続けても長いなら出る。
 const WAIT_SLOW_MS = 15_000;
 
+// 塊が 1 つも届かん done（回復・旧形式）は、受け取った今を基準にする。
+const revealBaseAt = (firstChunkAt: number | null): number => firstChunkAt ?? Date.now();
+
 const startScheduledReveal = (
   revealCancel: RefObject<(() => void) | null>,
   setBubbles: Dispatch<SetStateAction<ChatBubble[]>>,
@@ -1072,7 +1075,7 @@ export const ChatView = ({
           enterPhase("no_reply", "connect");
           return;
         }
-        await finishDone(chunks, sendAt, firstChunkAt.current ?? Date.now());
+        await finishDone(chunks, sendAt, revealBaseAt(firstChunkAt.current));
       };
 
       if (signal.aborted) return;
