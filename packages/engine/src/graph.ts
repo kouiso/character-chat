@@ -178,7 +178,7 @@ export const samplingForPhase = (phase: ScenePhase): SamplingOptions => ({
 // 直前 6 ターン分の自分の本文を反復判定の比較対象に入れる。2026-09-04 v2 arm run 2 の Downer t9 は
 // t5 の <action> を一字一句写して配られた。判定器はターン内の塊しか見とらんかった（chunk ノードが
 // chunks を毎ターン空に戻す）。
-const HISTORY_TURNS_FOR_REPETITION = 6;
+export const HISTORY_TURNS_FOR_REPETITION = 6;
 
 const previousTurnChunks = (history: HistoryMessage[]): string[] =>
   history

@@ -164,6 +164,17 @@ describe("V2_FAKE_RESPONSE", () => {
     expect(captured.model?.responses).toEqual(['["返事", 42]']);
   });
 
+  it("未設定なら、組み立て中のターン番号で既定の返事を選ぶ（2 ターン目が反復で落ちんように）", async () => {
+    platform.env = { APP_ENV: "test", V2_FAKE_MODEL: "1" };
+    await startTurn({ characterId: "c", conversationId: "conv", text: "今", expectedTurn: 1 });
+    const first = captured.model?.responses;
+    await startTurn({ characterId: "c", conversationId: "conv", text: "次", expectedTurn: 2 });
+    const second = captured.model?.responses;
+    expect(first).toHaveLength(1);
+    expect(second).toHaveLength(1);
+    expect(second).not.toEqual(first);
+  });
+
   it("未設定なら既定の固定応答 1 本", async () => {
     platform.env = { APP_ENV: "test", V2_FAKE_MODEL: "1" };
     await start();
