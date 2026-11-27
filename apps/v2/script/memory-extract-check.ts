@@ -2,7 +2,7 @@
 // 返事の done から記憶の行ができるまでの秒数・category・subject を記録する。
 // 使い方: pnpm exec tsx apps/v2/script/memory-extract-check.ts --env staging
 // 要る変数（無い時は実行せず「未確認」で止まる）:
-//   V2_STAGING_URL … staging の Worker の URL（例 https://adult-ai-v2-staging.<acct>.workers.dev）
+//   V2_STAGING_URL … staging の Worker の URL（例 https://character-chat-staging.<acct>.workers.dev）
 //   BASIC_AUTH_USERNAME / BASIC_AUTH_PASSWORD … staging の secret と同じ値
 //   CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID … D1 を読むため（SELECT だけ）
 //   V2_CHECK_CHARACTER_ID … 省略時は直近の v2 会話が使ったキャラを使う

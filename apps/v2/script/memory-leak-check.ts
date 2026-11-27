@@ -7,7 +7,7 @@
 //
 // 使い方: pnpm exec tsx apps/v2/script/memory-leak-check.ts --env staging
 // 要る変数（全部揃わん時は実行せず status: "unverified" を出して終了）:
-//   V2_STAGING_URL          staging の Worker の URL（例: https://adult-ai-v2-staging.….workers.dev）
+//   V2_STAGING_URL          staging の Worker の URL（例: https://character-chat-staging.….workers.dev）
 //   BASIC_AUTH_USERNAME     staging の Basic 認証
 //   BASIC_AUTH_PASSWORD
 //   CLOUDFLARE_API_TOKEN    wrangler d1 execute --remote 用

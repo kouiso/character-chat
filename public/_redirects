@@ -4,4 +4,4 @@
 # /sw.js へは自害 SW（キャッシュ全削除＋unregister＋v2 誘導）の中身を返し、
 # 旧アプリを拾ったブラウザの SW 更新チェックで掃除させる。
 /sw.js /sw-kill.js 200
-/* https://adult-ai-v2.kouiso.workers.dev/ 302
+/* https://character-chat.kouiso.workers.dev/ 302
