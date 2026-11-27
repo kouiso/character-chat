@@ -24,7 +24,7 @@
 .v2-home-hero {
   position: relative;
   flex: 1 1 0;
-  min-height: 0;
+  min-height: calc(44px + (var(--space-edge) * 2));
   overflow: hidden;
   background: var(--color-ground-low);
 }
