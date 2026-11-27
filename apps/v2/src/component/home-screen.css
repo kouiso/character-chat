@@ -203,6 +203,10 @@
   align-items: center;
 }
 
+.v2-home-topbar--edge {
+  padding: 0 var(--space-gutter);
+}
+
 .v2-home-settings {
   display: inline-flex;
   align-items: center;

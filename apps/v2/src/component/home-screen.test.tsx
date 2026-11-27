@@ -249,6 +249,7 @@ describe("ホーム（いつもの子がまだいない時）", () => {
   it("灯の図像・題・文・「出会うへ」を出す", async () => {
     await renderHome(<HomeEmptyScreen />);
     expect(screen.getByRole("heading", { name: "まだ、いつもの子はいません" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "設定を開く" })).toHaveAttribute("href", "/settings");
     expect(screen.getByText("話しはじめた子が、ここで迎えてくれます。")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "出会うへ" })).toHaveAttribute("href", "/catalog");
   });

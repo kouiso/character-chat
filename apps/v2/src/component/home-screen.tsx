@@ -354,18 +354,25 @@ export const HomeScreen = ({
 
 // いつもの子がまだいない時（HomeEmpty 上段）: 迎える子が居ない空の画面
 export const HomeEmptyScreen = () => (
-  <ScreenBlock
-    role="status"
-    iconTone="peach"
-    icon={<LampIcon />}
-    title="まだ、いつもの子はいません"
-    note="話しはじめた子が、ここで迎えてくれます。"
-  >
-    <Link to="/catalog" className="v2-fill-btn">
-      <span>出会うへ</span>
-      <ArrowRightIcon />
-    </Link>
-  </ScreenBlock>
+  <>
+    <div className="v2-home-topbar v2-home-topbar--edge">
+      <Link to="/settings" className="v2-home-settings" aria-label="設定を開く">
+        設定
+      </Link>
+    </div>
+    <ScreenBlock
+      role="status"
+      iconTone="peach"
+      icon={<LampIcon />}
+      title="まだ、いつもの子はいません"
+      note="話しはじめた子が、ここで迎えてくれます。"
+    >
+      <Link to="/catalog" className="v2-fill-btn">
+        <span>出会うへ</span>
+        <ArrowRightIcon />
+      </Link>
+    </ScreenBlock>
+  </>
 );
 
 // 読み込み中（HomeStates「読み込み中」）: 出てくる物と同じ形の骨組み。
