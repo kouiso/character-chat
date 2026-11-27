@@ -290,6 +290,7 @@ export const CharacterEditor = ({
         initial={detail?.content}
         revision={detail?.revision ?? 0}
         draftKey={draftKey}
+        characterId={characterId}
         onSubmit={save}
         disabled={editingDisabled}
       />

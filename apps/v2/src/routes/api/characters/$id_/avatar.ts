@@ -5,6 +5,7 @@ import { createDb } from "@v2/db";
 import { z } from "zod";
 
 import { canServeAvatar, resolveAvatar } from "../../../../server/avatar";
+import { handleAvatarPost } from "../../../../server/avatar-upload";
 import { listOwnerIds } from "../../../../server/identity";
 import { getPlatform } from "../../../../server/platform";
 
@@ -48,6 +49,7 @@ export const Route = createFileRoute("/api/characters/$id_/avatar")({
   server: {
     handlers: {
       GET: ({ request, params }) => handleAvatarRequest(params.id, request),
+      POST: ({ request, params }) => handleAvatarPost(params.id, request),
     },
   },
 });

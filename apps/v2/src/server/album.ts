@@ -6,6 +6,7 @@ import { PROMPT_VERSION } from "@v2/prompt";
 import { createDb, listConversationImages } from "@v2/db";
 
 import { listAlbumItems } from "./api-album";
+import { listAvatarCandidateIds } from "./avatar-upload";
 import { toConversationImageEntry } from "./api-images";
 import { LOCAL_USER_ID } from "./identity";
 import { getPlatform } from "./platform";
@@ -35,4 +36,12 @@ export const listChatAlbum = createServerFn({ method: "GET" })
       data.conversationId,
     );
     return rows.map(toConversationImageEntry);
+  });
+
+// 顔にする画像の候補。アルバム全体の件数上限に左右されんよう、キャラ単位で引く。
+export const listAvatarCandidateItems = createServerFn({ method: "GET" })
+  .validator(z.object({ characterId: z.string().min(1).max(120) }).parse)
+  .handler(async ({ data }) => {
+    const { env } = await getPlatform();
+    return listAvatarCandidateIds(env, data.characterId);
   });
