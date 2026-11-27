@@ -59,7 +59,7 @@ import type {
   BaseChatModelCallOptions,
 } from "@langchain/core/language_models/chat_models";
 import type { AIMessageChunk } from "@langchain/core/messages";
-import { chunkGapMs } from "@v2/db/chunk-schedule";
+import { chunkGapMs, chunkSendOffsets } from "@v2/db/chunk-schedule";
 import type { StoredSummary, SummaryStore } from "@v2/db";
 import type { ScenePhase } from "@v2/prompt";
 
@@ -1152,7 +1152,7 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
           conversationId: state.conversationId,
           turn: state.turn,
           generationId: state.generationId,
-          sendAt: saved.chunkSendAt,
+          sendAt: chunkSendOffsets(saved.chunkSendAt),
         } satisfies TurnEvent);
         return {};
       })

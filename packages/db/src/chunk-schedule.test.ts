@@ -4,6 +4,7 @@ import {
   CHUNK_MAX_GAP_MS,
   CHUNK_MS_PER_CHAR,
   chunkGapMs,
+  chunkSendOffsets,
   chunkSendTimes,
   chunkVisibleLength,
 } from "./chunk-schedule";
@@ -87,5 +88,22 @@ describe("chunkSendTimes (RIT-67: 壊しにいく確かめ)", () => {
     const texts = Array.from({ length: 12 }, () => "あ".repeat(400));
     const times = chunkSendTimes(texts, BASE);
     expect(times[times.length - 1] - times[0]).toBeLessThanOrEqual(88_000);
+  });
+});
+
+describe("chunkSendOffsets (配信は最初の塊からの経過ミリ秒)", () => {
+  it("先頭は 0、以降は絶対時刻の差。保存時刻（基準）が何であっても同じ", () => {
+    const texts = ["ab", "cdef", "x"];
+    const expected = [0, 2 * CHUNK_MS_PER_CHAR, 6 * CHUNK_MS_PER_CHAR];
+    expect(chunkSendOffsets(chunkSendTimes(texts, BASE))).toEqual(expected);
+    // 端末・サーバの時計が 5 分ずれても、60 秒かけた生成のあとでも、間隔は変わらん。
+    expect(chunkSendOffsets(chunkSendTimes(texts, BASE + 5 * 60_000))).toEqual(expected);
+    expect(chunkSendOffsets(chunkSendTimes(texts, BASE - 5 * 60_000))).toEqual(expected);
+    expect(chunkSendOffsets(chunkSendTimes(texts, BASE + 60_000))).toEqual(expected);
+  });
+
+  it("空列は空列、すでに差分の列に掛けても変わらん", () => {
+    expect(chunkSendOffsets([])).toEqual([]);
+    expect(chunkSendOffsets([0, 40, 120])).toEqual([0, 40, 120]);
   });
 });

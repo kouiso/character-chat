@@ -63,8 +63,13 @@ describe("scheduleReveal", () => {
   });
 
   it("予定時刻を全部過ぎておる分は一度に出る（再オープンで1秒以内に揃う）", () => {
-    const now = Date.now();
-    const cancel = start(["一", "二", "三"], [now - 3000, now - 2000, now - 1000]);
+    // 最初の塊を受け取ってから 5 秒たった端末では、3 秒先までの予定は全部過ぎている。
+    const cancel = scheduleReveal(
+      ["一", "二", "三"],
+      [0, 1000, 3000],
+      (text, more) => revealed.push({ text, more }),
+      Date.now() - 5000,
+    );
     expect(revealed).toEqual([
       { text: "一", more: true },
       { text: "二", more: true },
@@ -91,24 +96,69 @@ describe("scheduleReveal", () => {
     cancel();
   });
 
-  it("時計がサーバより進んでおっても（時刻ズレ）過ぎた分は即出る", () => {
-    // サーバ時刻基準の予定時刻が全部過去に見える端末。
-    const serverNow = Date.now() - 60_000;
+  // 予定は「最初の塊からの経過ミリ秒」。サーバと端末の時計が数分ずれても間は同じ。
+  it.each([
+    ["サーバが端末より 5 分進んでいる", 5 * 60_000],
+    ["サーバが端末より 5 分遅れている", -5 * 60_000],
+    ["時計はずれていない", 0],
+  ])("%s: 塊の間隔は変わらない", (_label, skew) => {
+    const serverNow = Date.now() + skew;
+    // 経過ミリ秒の形（新）と絶対時刻の形（旧）の両方で、同じ間隔になる。
+    for (const sendAt of [
+      [0, 1000, 3000],
+      [serverNow, serverNow + 1000, serverNow + 3000],
+    ]) {
+      revealed = [];
+      const cancel = start(["一", "二", "三"], sendAt);
+      expect(revealed.map((item) => item.text)).toEqual(["一"]);
+      vi.advanceTimersByTime(999);
+      expect(revealed).toHaveLength(1);
+      vi.advanceTimersByTime(1);
+      expect(revealed).toHaveLength(2);
+      vi.advanceTimersByTime(1999);
+      expect(revealed).toHaveLength(2);
+      vi.advanceTimersByTime(1);
+      expect(revealed).toHaveLength(3);
+      cancel();
+    }
+  });
+
+  it("旧形式の絶対時刻でも、先頭を引いた同じ間隔として読む（端末の時計と無関係）", () => {
+    const serverNow = Date.now() - 5 * 60_000;
     const cancel = start(["一", "二"], [serverNow, serverNow + 1000]);
+    expect(revealed).toHaveLength(1);
+    vi.advanceTimersByTime(1000);
     expect(revealed).toHaveLength(2);
     cancel();
   });
 
-  it("時計がサーバより遅れておっても、遅れた分だけ待って出る", () => {
-    // サーバの now より端末が 5 分遅れ → 予定時刻が未来に見える。
-    const serverNow = Date.now() + 5 * 60_000;
-    const cancel = start(["一", "二"], [serverNow, serverNow + 1000]);
-    expect(revealed).toHaveLength(0);
-    vi.advanceTimersByTime(5 * 60_000 + 1000);
-    expect(revealed).toEqual([
-      { text: "一", more: true },
-      { text: "二", more: false },
-    ]);
+  it("生成に 60 秒かかった時は、待たせた分だけ間が詰まり、全部すぐ出る", () => {
+    const firstChunkAt = Date.now();
+    vi.advanceTimersByTime(60_000);
+    const cancel = scheduleReveal(
+      ["一", "二", "三"],
+      [0, 1000, 3000],
+      (text, more) => revealed.push({ text, more }),
+      firstChunkAt,
+    );
+    expect(revealed).toHaveLength(3);
+    cancel();
+  });
+
+  it("待たせた分が間より短い時は、残りの間だけ待つ", () => {
+    const firstChunkAt = Date.now();
+    vi.advanceTimersByTime(800);
+    const cancel = scheduleReveal(
+      ["一", "二"],
+      [0, 1000],
+      (text, more) => revealed.push({ text, more }),
+      firstChunkAt,
+    );
+    expect(revealed).toHaveLength(1);
+    vi.advanceTimersByTime(199);
+    expect(revealed).toHaveLength(1);
+    vi.advanceTimersByTime(1);
+    expect(revealed).toHaveLength(2);
     cancel();
   });
 

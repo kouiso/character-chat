@@ -29,3 +29,9 @@ export const chunkSendTimes = (texts: string[], base: number): number[] => {
   }
   return times;
 };
+
+// 配信用の予定。最初の塊からの経過ミリ秒にして渡す。端末の時計はサーバとずれる（実測で数分）ので、
+// 絶対時刻のまま渡すと間が潰れたり伸びたりする。受け取った側が自分の受信時刻で引き直す。
+// v2_chunk.send_at は保存時刻基準の絶対値のまま残し、配信の時だけここで差し引く。
+export const chunkSendOffsets = (sendAt: number[]): number[] =>
+  sendAt.map((at) => at - sendAt[0]);

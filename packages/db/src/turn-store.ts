@@ -156,7 +156,9 @@ export type TurnEvent =
       conversationId: string;
       turn: number;
       generationId: string | null;
-      // 各塊の表示予定時刻（v2_chunk.send_at と同じ値）。塊が無い失敗ターンは空配列。
+      // 各塊の表示予定を最初の塊からの経過ミリ秒で持つ（先頭は 0）。端末の時計に依らんため。
+      // 保存済みの旧イベントは v2_chunk.send_at と同じ絶対時刻のまま残るので、受け手は先頭を引いて読む。
+      // 塊が無い失敗ターンは空配列。
       // 古い保存済みイベント再生では欠けるため optional。
       sendAt?: number[];
     }
