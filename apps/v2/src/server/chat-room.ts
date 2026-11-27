@@ -225,6 +225,8 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
       if (!receipt) continue;
       if (receipt.status === "accepted") {
         // 待ちの job が入ったので、走っとる要約は止める（部分保存せず、失敗に数えん）。
+        // 再実行の印も下ろす。残っとると後始末の後で生成と要約が並走する。
+        this.summaryPending = false;
         this.summaryAbort?.abort();
         await this.scheduleIfWaiting(input.requestId);
       }
@@ -674,6 +676,32 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
     this.notifyEventWrite();
   }
 
+  // 未開始の送信はまだ保存されえへんので、全履歴の回復確認は要らん。
+  // それでも受付後に画像生成が同じターンを使っとると置き換えで消える。次ターンの
+  // 上限と同じターンの行だけを軽く見て、失敗ターンの置き換えだけを許す。
+  private async assertQueuedTurnCurrent(job: Job): Promise<void> {
+    const latest = await this.env.DB.prepare(
+      "SELECT MAX(turn) AS turn FROM v2_message WHERE conversation_id = ? AND active = 1",
+    )
+      .bind(job.conversation_id)
+      .first<{ turn: number | null }>();
+    if (!latest?.turn || latest.turn < job.turn) return;
+    if (latest.turn > job.turn) throw new TurnFailure("conversation_advanced");
+    const rows = await this.env.DB.prepare(
+      "SELECT role, content FROM v2_message WHERE conversation_id = ? AND turn = ? AND active = 1",
+    )
+      .bind(job.conversation_id, job.turn)
+      .all<{ role: "user" | "assistant"; content: string }>();
+    const messages = rows.results ?? [];
+    if (messages.length === 0) return;
+    const assistants = messages.filter((message) => message.role === "assistant");
+    const dead =
+      messages.some((message) => message.role === "user") &&
+      assistants.length > 0 &&
+      assistants.every((message) => message.content.trim() === "");
+    if (!dead) throw new TurnFailure("conversation_advanced");
+  }
+
   private async recover(job: Job): Promise<boolean> {
     const history = await loadHistory({
       characterId: job.character_id,
@@ -854,16 +882,23 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
       // ままなので、今の行で状態を確かめ直す（畳まれた job を beginAttempt で起こし直さんため）。
       const current = this.job(job.id);
       if (!current || !isActive(current.status)) return;
-      // running は試行上限へ達した後でも、保存直後に止まった形を先に確かめる。
-      // 未開始の queued だけは保存済みにならんので、全履歴を読む回復確認を省く。
-      if ((current.status === "running" || current.attempts > 0) && (await this.recover(current)))
-        return;
-      if (current.attempts >= MAX_ATTEMPTS) {
-        this.fail(current, current.attempts, new TurnFailure("attempt_limit"));
+      // 受付後に画像生成が同じターンを使った時は、生成前に conversation_advanced へ
+      // 倒さんと置き換えで消す。未開始の送信は軽い衝突確認だけに留め、生成開始を遅らせん。
+      if (current.status === "queued" && current.attempts === 0) {
+        await this.assertQueuedTurnCurrent(current);
+      } else if (await this.recover(current)) {
         return;
       }
-      const faultAction = this.faultActionFor(this.testFault(), current);
-      this.beginAttempt(current);
+      // recover が履歴を待っとる間に「止める」が畳いたかもしれん。古い行のまま
+      // beginAttempt すると stopped を running へ起こし直すので、直前に読み直す。
+      const latest = this.job(job.id);
+      if (!latest || !isActive(latest.status) || this.stopRequested(job.id)) return;
+      if (latest.attempts >= MAX_ATTEMPTS) {
+        this.fail(latest, latest.attempts, new TurnFailure("attempt_limit"));
+        return;
+      }
+      const faultAction = this.faultActionFor(this.testFault(), latest);
+      this.beginAttempt(latest);
       if (this.applyFault(faultAction)) return;
       await this.generate(job, controller.signal);
       this.finishGenerate(job, controller.signal);
