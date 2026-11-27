@@ -67,7 +67,18 @@ test("fast preserves lint/typecheck and enforces cloud coverage", () => {
 });
 test("pre-push chain reaches v2 lint typecheck and test after v1 fast checks", () => {
   const hook = readFileSync(join(root, ".lefthook.yml"), "utf8");
-  assert.match(hook, /task ci:fast/);
+  const hookLines = hook.split("\n");
+  const hookStart = hookLines.findIndex((line) => line === "    ci-fast:");
+  const hookRun = hookLines.findIndex(
+    (line, index) => index > hookStart && line === "      run: |",
+  );
+  assert.ok(hookStart >= 0);
+  assert.ok(hookRun > hookStart);
+  const hookCommands = [];
+  for (let index = hookRun + 1; hookLines[index]?.startsWith("        "); index += 1) {
+    hookCommands.push(hookLines[index].trim());
+  }
+  assert.ok(hookCommands.includes("task ci:fast"));
   const task = readFileSync(join(root, "Taskfile.yml"), "utf8");
   assert.match(task, /ci:fast:[\s\S]*?node \.github\/ci\/run\.mjs fast/);
   const fast = trace("fast");
