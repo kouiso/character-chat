@@ -27,7 +27,7 @@ import {
   type StoredTurn,
   type TurnStateRequest,
 } from "../lib/chat-session";
-import { revealChunk, scheduleReveal } from "../lib/chunk-reveal";
+import { revealBaseAt, revealChunk, scheduleReveal } from "../lib/chunk-reveal";
 import { useChatOnline } from "../lib/chat-online";
 import { isFailurePhase, isWaitingPhase, markerText, type TurnPhase } from "../lib/turn-phase";
 import { followTurn } from "../lib/turn-stream";
@@ -558,6 +558,8 @@ const runImageRequest = async (deps: {
   setError: Dispatch<SetStateAction<string | null>>;
   setImageBusy: Dispatch<SetStateAction<boolean>>;
   setBubbles: Dispatch<SetStateAction<ChatBubble[]>>;
+  // 小出しの残りを先に出し切る。履歴で置き換えたあとに残りが重ねて出るのを防ぐ。
+  flushRevealRest: () => boolean;
 }): Promise<void> => {
   const targetConversationId = deps.conversationId.current;
   if (!targetConversationId) {
@@ -570,6 +572,7 @@ const runImageRequest = async (deps: {
     deps.setError("画像設定の数値を確認してください。");
     return;
   }
+  deps.flushRevealRest();
   const abort = new AbortController();
   deps.setImageBusy(true);
   deps.setError(null);
@@ -633,16 +636,22 @@ const startScheduledReveal = (
   setBubbles: Dispatch<SetStateAction<ChatBubble[]>>,
   texts: string[],
   sendAt: number[] | undefined,
+  baseAt: number,
   onShown?: (index: number, more: boolean) => void,
 ) => {
   revealCancel.current?.();
   let index = 0;
-  revealCancel.current = scheduleReveal(texts, sendAt, (text, more) => {
-    const shown = index;
-    index += 1;
-    setBubbles((previous) => revealChunk(previous, text, more));
-    onShown?.(shown, more);
-  });
+  revealCancel.current = scheduleReveal(
+    texts,
+    sendAt,
+    (text, more) => {
+      const shown = index;
+      index += 1;
+      setBubbles((previous) => revealChunk(previous, text, more));
+      onShown?.(shown, more);
+    },
+    baseAt,
+  );
 };
 
 // 「初回のひとこと」の冒頭バブル。履歴に無い表示専用なので id/turn・枝操作は付けん。
@@ -857,7 +866,11 @@ export const ChatView = ({
       options: { attach?: boolean; retry?: boolean } = {},
     ) => {
       // done のあとの仕上げ: 保留を片付け、履歴を読み直し、塊は予定時刻で順に出す（RIT-69）。
-      const finishDone = async (chunks: Map<number, string>, sendAt: number[] | undefined) => {
+      const finishDone = async (
+        chunks: Map<number, string>,
+        sendAt: number[] | undefined,
+        baseAt: number,
+      ) => {
         // サーバーが完了を確かめた時点で保留を片付ける。履歴の読み直しで失敗しても、
         // 保存済みの送信を「入力に戻す」で戻して二重に送らせんため。
         clearPendingTurn(turn.characterId, turn);
@@ -875,7 +888,7 @@ export const ChatView = ({
           // 届いた塊は出したまま、読み直しの失敗だけを知らせる（保留は片付け済み）。
           if (reveal) {
             revealTexts.current = texts;
-            startScheduledReveal(revealCancel, setBubbles, texts, sendAt, (index, more) => {
+            startScheduledReveal(revealCancel, setBubbles, texts, sendAt, baseAt, (index, more) => {
               shownCount.current = index + 1;
               if (!more) {
                 revealTexts.current = null;
@@ -900,7 +913,7 @@ export const ChatView = ({
           return;
         }
         revealTexts.current = texts;
-        startScheduledReveal(revealCancel, setBubbles, texts, sendAt, (index, more) => {
+        startScheduledReveal(revealCancel, setBubbles, texts, sendAt, baseAt, (index, more) => {
           shownCount.current = index + 1;
           if (!more) {
             revealTexts.current = null;
@@ -951,8 +964,9 @@ export const ChatView = ({
       const applyTerminalEvent = async (
         chunks: Map<number, string>,
         event: ChatSseEvent,
-      ): Promise<"exit" | { done: true; sendAt?: number[] } | null> => {
-        if (event.type === "done") return { done: true, sendAt: event.sendAt };
+      ): Promise<"exit" | { done: true; sendAt?: number[]; baseAt: number } | null> => {
+        if (event.type === "done")
+          return { done: true, sendAt: event.sendAt, baseAt: revealBaseAt(event) };
         if (event.type === "stopped") {
           await finishStopped();
           return "exit";
@@ -969,7 +983,7 @@ export const ChatView = ({
       const applyTurnEvent = async (
         chunks: Map<number, string>,
         event: ChatSseEvent,
-      ): Promise<"exit" | { done: true; sendAt?: number[] } | null> => {
+      ): Promise<"exit" | { done: true; sendAt?: number[]; baseAt: number } | null> => {
         markAccepted();
         // 部屋が次の試行を始めたら、前の試行で出ていた塊の控えを捨て直す（S-13b）。
         // 受付が確実に部屋へ届き生成が動き出した印なので、送信待ちは「書いています」へ進む。
@@ -1023,6 +1037,7 @@ export const ChatView = ({
       // 出来事の流れを最後まで追いかける。"done" を確かめたら仕上げへ。
       const followLoop = async (chunks: Map<number, string>) => {
         let sendAt: number[] | undefined;
+        let baseAt = Date.now();
         let done = false;
         // 待ちが長引いている印。繋ぎ直し・長い生成のどちらでも「少し時間がかかっています」へ。
         const slowTimer = setTimeout(() => {
@@ -1048,6 +1063,7 @@ export const ChatView = ({
             if (action !== null) {
               done = true;
               sendAt = action.sendAt;
+              baseAt = action.baseAt;
             }
           }
         } finally {
@@ -1058,7 +1074,7 @@ export const ChatView = ({
           enterPhase("no_reply", "connect");
           return;
         }
-        await finishDone(chunks, sendAt);
+        await finishDone(chunks, sendAt, baseAt);
       };
 
       if (signal.aborted) return;
@@ -1301,6 +1317,29 @@ export const ChatView = ({
     void consume(turn, abort.signal, { attach: false, retry: regenerate });
   };
 
+  // 小出しの残りを直ちに全部出す。次の送信を足す前にも使い、前の返信の残りが新しい発言の
+  // 後ろへ混ざったり、「…」の枠が取り残されたりせんようにする。出す物が無ければ false。
+  const flushRevealRest = () => {
+    const texts = revealTexts.current;
+    if (texts === null) return false;
+    revealCancel.current?.();
+    revealCancel.current = null;
+    revealTexts.current = null;
+    activeTurn.current = null;
+    // setBubbles の更新は遅れて走る。中で shownCount.current を読むと、後続の
+    // 代入（texts.length）が先に見えて残りの塊が全部落ちるので、ここで確定させる。
+    const shown = shownCount.current;
+    setBubbles((previous) => {
+      let next = previous;
+      for (let index = shown; index < texts.length; index += 1) {
+        next = revealChunk(next, texts[index], index + 1 < texts.length);
+      }
+      return next;
+    });
+    shownCount.current = texts.length;
+    return true;
+  };
+
   // 「止める」（部品 D）。止めるの結果は押した時の状態で変わる（FR-9）。
   // 小出しの途中は保留が片付け済みなので、覚えておいた受付を使う。
   const stopTurn = () => {
@@ -1336,24 +1375,7 @@ export const ChatView = ({
 
     // 小出しの途中で止めの POST が届かんかった時: 残りを直ちに全部出して通常へ（FR-9）。
     const flushReveal = () => {
-      const texts = revealTexts.current;
-      if (texts === null) return;
-      revealCancel.current?.();
-      revealCancel.current = null;
-      revealTexts.current = null;
-      activeTurn.current = null;
-      // setBubbles の更新は遅れて走る。中で shownCount.current を読むと、後続の
-      // 代入（texts.length）が先に見えて残りの塊が全部落ちるので、ここで確定させる。
-      const shown = shownCount.current;
-      setBubbles((previous) => {
-        let next = previous;
-        for (let index = shown; index < texts.length; index += 1) {
-          next = revealChunk(next, texts[index], index + 1 < texts.length);
-        }
-        return next;
-      });
-      shownCount.current = texts.length;
-      setPhase("idle");
+      if (flushRevealRest()) setPhase("idle");
     };
 
     setStopping(true);
@@ -1494,6 +1516,7 @@ export const ChatView = ({
       return;
     }
     conversationId.current = turn.conversationId;
+    flushRevealRest();
     setPending(turn);
     setInput("");
     setPhase("sending");
@@ -1530,6 +1553,7 @@ export const ChatView = ({
       setError,
       setImageBusy,
       setBubbles,
+      flushRevealRest,
     });
 
   const requestI2i = () => {
@@ -1547,6 +1571,7 @@ export const ChatView = ({
       setError,
       setImageBusy,
       setBubbles,
+      flushRevealRest,
     });
     setI2iTarget(null);
     setI2iInstruction("");

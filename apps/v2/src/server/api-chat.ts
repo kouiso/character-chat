@@ -76,7 +76,10 @@ const emitPage = function* (
 ): Generator<SequencedSseEvent> {
   for (const item of page.events) {
     sink.cursor = item.id;
-    yield item;
+    // 保存からの経過を画面が出せるよう、配る瞬間のサーバ時刻を done に添える（端末の時計は使わん）。
+    yield item.event.type === "done"
+      ? { ...item, event: { ...item.event, serverNow: Date.now() } }
+      : item;
     if (TERMINAL_EVENT_TYPE.has(item.event.type)) sink.terminal = true;
   }
 };
