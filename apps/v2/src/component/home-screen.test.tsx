@@ -76,6 +76,11 @@ const renderHome = async (node: React.ReactNode, path = "/") => {
       path: "/my",
       component: () => <p>my</p>,
     }),
+    createRoute({
+      getParentRoute: (): AnyRootRoute => root,
+      path: "/settings",
+      component: () => <p>settings</p>,
+    }),
   ];
   const router = createRouter({
     routeTree: root.addChildren(children),
@@ -105,6 +110,10 @@ describe("ホーム（いつもの子が迎える）", () => {
     const primary = screen.getByRole("link", { name: "霜月 鈴と、ゆうべのつづきを話す" });
     expect(primary).toHaveAttribute("href", expect.stringContaining(`/chat/${hero.id}`));
     expect(within(primary).getByText("ゆうべのつづき")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "設定を開く" })).toHaveAttribute("href", "/settings");
+    const newChat = screen.getByRole("link", { name: `${hero.name}と新しい会話を始める` });
+    expect(newChat).toHaveAttribute("href", expect.stringContaining(`/chat/${hero.id}`));
+    expect(newChat).toHaveAttribute("href", expect.stringContaining("newChat="));
   });
 
   it("留めた子は「いつもの子」の札で迎える（Main 板の形）", async () => {

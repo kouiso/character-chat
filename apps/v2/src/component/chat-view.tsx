@@ -696,6 +696,12 @@ const TalkMenuSheet = ({
   <TalkSheet title="メニュー" onClose={onClose}>
     <p className="v2-talk-caption">{characterName}との設定</p>
     <ProactiveToggle characterId={characterId} />
+    <a
+      className="v2-talk-menu-row"
+      href={`/chat/${encodeURIComponent(characterId)}?newChat=${crypto.randomUUID()}`}
+    >
+      新しい会話
+    </a>
     <a className="v2-talk-menu-row" href={`/chat/${encodeURIComponent(characterId)}/memory`}>
       記憶
     </a>

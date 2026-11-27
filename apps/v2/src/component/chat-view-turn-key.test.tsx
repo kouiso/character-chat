@@ -141,6 +141,27 @@ const removeFirstImage = async () => {
   await openUserActions();
 };
 
+describe("ChatView の会話メニュー", () => {
+  afterEach(() => {
+    cleanup();
+    localStorage.clear();
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  it("編集権限に関わらず「新しい会話」へ進める", async () => {
+    const state = newState();
+    stubBackend(state);
+    render(<ChatView characterId="a" characterName="案内役" initialConversationId="conv" />);
+    await screen.findAllByText("二番目の発言");
+    fireEvent.click(screen.getByRole("button", { name: "メニュー" }));
+
+    const menu = screen.getByRole("dialog", { name: "メニュー" });
+    const link = within(menu).getByRole("link", { name: "新しい会話" });
+    expect(link).toHaveAttribute("href", expect.stringContaining("/chat/a?newChat="));
+  });
+});
+
 describe("ChatView の発言の識別子", () => {
   afterEach(() => {
     cleanup();

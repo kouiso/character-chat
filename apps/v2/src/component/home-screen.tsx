@@ -279,6 +279,15 @@ const HomeHeroSheetTop = ({ hero }: { hero: HomeHeroData }) => {
         <span>ゆうべのつづき</span>
         <ArrowRightIcon />
       </Link>
+      <Link
+        to="/chat/$id"
+        params={{ id: character.id }}
+        search={{ newChat: crypto.randomUUID() }}
+        className="v2-home-secondary"
+        aria-label={`${character.name}と新しい会話を始める`}
+      >
+        新しい会話
+      </Link>
     </>
   );
 };
@@ -294,6 +303,11 @@ export const HomeScreen = ({
   <>
     {hero && <HomeHeroSection hero={hero} />}
     <div className={hero ? "v2-home-sheet" : "v2-home-sheet v2-home-sheet--top"}>
+      <div className="v2-home-topbar">
+        <Link to="/settings" className="v2-home-settings" aria-label="設定を開く">
+          設定
+        </Link>
+      </div>
       {hero && <HomeHeroSheetTop hero={hero} />}
       {continuations.length > 0 && (
         <>
