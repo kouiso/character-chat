@@ -70,6 +70,8 @@ const UNAUTHENTICATED_PROBES = [
   ["POST", "/api/characters/example/restore"],
   ["GET", "/api/characters/example/versions"],
   ["GET", "/api/characters/example/versions/1"],
+  ["GET", "/api/characters/example/versions/1/avatar"],
+  ["GET", "/characters/example/versions"],
   ["GET", "/api/proactive/characters/example/settings"],
   ["GET", "/api/proactive/enabled"],
   ["GET", "/notifications"],

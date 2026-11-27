@@ -64,6 +64,7 @@ import { Route as ApiPushVapidKeyRouteImport } from './routes/api/push/vapid-key
 import { Route as ApiRevenueAggregateRouteImport } from './routes/api/revenue_/aggregate'
 import { Route as ApiStoriesIdRouteImport } from './routes/api/stories/$id'
 import { Route as ApiVoiceCallQuotaRouteImport } from './routes/api/voice-call/quota'
+import { Route as CharactersIdVersionsRouteImport } from './routes/characters/$id_/versions'
 import { Route as ChatIdAlbumRouteImport } from './routes/chat/$id_/album'
 import { Route as ChatIdMemoryRouteImport } from './routes/chat/$id_/memory'
 import { Route as StoriesIdReadRouteImport } from './routes/stories/$id/read'
@@ -105,6 +106,7 @@ import { Route as ApiCharactersIdVersionsVersionRouteImport } from './routes/api
 import { Route as ApiProactiveCharactersIdSettingsRouteImport } from './routes/api/proactive/characters/$id_/settings'
 import { Route as ApiStoriesIdChaptersCidRouteImport } from './routes/api/stories/$id_/chapters/$cid'
 import { Route as ApiStoriesIdChaptersReorderRouteImport } from './routes/api/stories/$id_/chapters/reorder'
+import { Route as ApiCharactersIdVersionsVersionAvatarRouteImport } from './routes/api/characters/$id_/versions/$version_/avatar'
 import { Route as ApiStoriesIdChaptersCidComicRouteImport } from './routes/api/stories/$id_/chapters/$cid_/comic'
 import { Route as ApiStoriesIdChaptersCidIllustrationRouteImport } from './routes/api/stories/$id_/chapters/$cid_/illustration'
 import { Route as ApiStoriesIdChaptersCidVideoRouteImport } from './routes/api/stories/$id_/chapters/$cid_/video'
@@ -384,6 +386,11 @@ const ApiVoiceCallQuotaRoute = ApiVoiceCallQuotaRouteImport.update({
   path: '/api/voice-call/quota',
   getParentRoute: () => rootRouteImport,
 })
+const CharactersIdVersionsRoute = CharactersIdVersionsRouteImport.update({
+  id: '/characters/$id_/versions',
+  path: '/characters/$id/versions',
+  getParentRoute: () => rootRouteImport,
+})
 const ChatIdAlbumRoute = ChatIdAlbumRouteImport.update({
   id: '/chat/$id_/album',
   path: '/chat/$id/album',
@@ -596,6 +603,12 @@ const ApiStoriesIdChaptersReorderRoute =
     path: '/reorder',
     getParentRoute: () => ApiStoriesIdChaptersRoute,
   })
+const ApiCharactersIdVersionsVersionAvatarRoute =
+  ApiCharactersIdVersionsVersionAvatarRouteImport.update({
+    id: '/$version_/avatar',
+    path: '/$version/avatar',
+    getParentRoute: () => ApiCharactersIdVersionsRoute,
+  })
 const ApiStoriesIdChaptersCidComicRoute =
   ApiStoriesIdChaptersCidComicRouteImport.update({
     id: '/$cid_/comic',
@@ -671,6 +684,7 @@ export interface FileRoutesByFullPath {
   '/api/revenue/aggregate': typeof ApiRevenueAggregateRoute
   '/api/stories/$id': typeof ApiStoriesIdRoute
   '/api/voice-call/quota': typeof ApiVoiceCallQuotaRoute
+  '/characters/$id/versions': typeof CharactersIdVersionsRoute
   '/chat/$id/album': typeof ChatIdAlbumRoute
   '/chat/$id/memory': typeof ChatIdMemoryRoute
   '/stories/$id/read': typeof StoriesIdReadRoute
@@ -712,6 +726,7 @@ export interface FileRoutesByFullPath {
   '/api/proactive/characters/$id/settings': typeof ApiProactiveCharactersIdSettingsRoute
   '/api/stories/$id/chapters/$cid': typeof ApiStoriesIdChaptersCidRoute
   '/api/stories/$id/chapters/reorder': typeof ApiStoriesIdChaptersReorderRoute
+  '/api/characters/$id/versions/$version/avatar': typeof ApiCharactersIdVersionsVersionAvatarRoute
   '/api/stories/$id/chapters/$cid/comic': typeof ApiStoriesIdChaptersCidComicRoute
   '/api/stories/$id/chapters/$cid/illustration': typeof ApiStoriesIdChaptersCidIllustrationRoute
   '/api/stories/$id/chapters/$cid/video': typeof ApiStoriesIdChaptersCidVideoRoute
@@ -772,6 +787,7 @@ export interface FileRoutesByTo {
   '/api/revenue/aggregate': typeof ApiRevenueAggregateRoute
   '/api/stories/$id': typeof ApiStoriesIdRoute
   '/api/voice-call/quota': typeof ApiVoiceCallQuotaRoute
+  '/characters/$id/versions': typeof CharactersIdVersionsRoute
   '/chat/$id/album': typeof ChatIdAlbumRoute
   '/chat/$id/memory': typeof ChatIdMemoryRoute
   '/stories/$id/read': typeof StoriesIdReadRoute
@@ -813,6 +829,7 @@ export interface FileRoutesByTo {
   '/api/proactive/characters/$id/settings': typeof ApiProactiveCharactersIdSettingsRoute
   '/api/stories/$id/chapters/$cid': typeof ApiStoriesIdChaptersCidRoute
   '/api/stories/$id/chapters/reorder': typeof ApiStoriesIdChaptersReorderRoute
+  '/api/characters/$id/versions/$version/avatar': typeof ApiCharactersIdVersionsVersionAvatarRoute
   '/api/stories/$id/chapters/$cid/comic': typeof ApiStoriesIdChaptersCidComicRoute
   '/api/stories/$id/chapters/$cid/illustration': typeof ApiStoriesIdChaptersCidIllustrationRoute
   '/api/stories/$id/chapters/$cid/video': typeof ApiStoriesIdChaptersCidVideoRoute
@@ -874,6 +891,7 @@ export interface FileRoutesById {
   '/api/revenue_/aggregate': typeof ApiRevenueAggregateRoute
   '/api/stories/$id': typeof ApiStoriesIdRoute
   '/api/voice-call/quota': typeof ApiVoiceCallQuotaRoute
+  '/characters/$id_/versions': typeof CharactersIdVersionsRoute
   '/chat/$id_/album': typeof ChatIdAlbumRoute
   '/chat/$id_/memory': typeof ChatIdMemoryRoute
   '/stories/$id/read': typeof StoriesIdReadRoute
@@ -915,6 +933,7 @@ export interface FileRoutesById {
   '/api/proactive/characters/$id_/settings': typeof ApiProactiveCharactersIdSettingsRoute
   '/api/stories/$id_/chapters/$cid': typeof ApiStoriesIdChaptersCidRoute
   '/api/stories/$id_/chapters/reorder': typeof ApiStoriesIdChaptersReorderRoute
+  '/api/characters/$id_/versions/$version_/avatar': typeof ApiCharactersIdVersionsVersionAvatarRoute
   '/api/stories/$id_/chapters/$cid_/comic': typeof ApiStoriesIdChaptersCidComicRoute
   '/api/stories/$id_/chapters/$cid_/illustration': typeof ApiStoriesIdChaptersCidIllustrationRoute
   '/api/stories/$id_/chapters/$cid_/video': typeof ApiStoriesIdChaptersCidVideoRoute
@@ -977,6 +996,7 @@ export interface FileRouteTypes {
     | '/api/revenue/aggregate'
     | '/api/stories/$id'
     | '/api/voice-call/quota'
+    | '/characters/$id/versions'
     | '/chat/$id/album'
     | '/chat/$id/memory'
     | '/stories/$id/read'
@@ -1018,6 +1038,7 @@ export interface FileRouteTypes {
     | '/api/proactive/characters/$id/settings'
     | '/api/stories/$id/chapters/$cid'
     | '/api/stories/$id/chapters/reorder'
+    | '/api/characters/$id/versions/$version/avatar'
     | '/api/stories/$id/chapters/$cid/comic'
     | '/api/stories/$id/chapters/$cid/illustration'
     | '/api/stories/$id/chapters/$cid/video'
@@ -1078,6 +1099,7 @@ export interface FileRouteTypes {
     | '/api/revenue/aggregate'
     | '/api/stories/$id'
     | '/api/voice-call/quota'
+    | '/characters/$id/versions'
     | '/chat/$id/album'
     | '/chat/$id/memory'
     | '/stories/$id/read'
@@ -1119,6 +1141,7 @@ export interface FileRouteTypes {
     | '/api/proactive/characters/$id/settings'
     | '/api/stories/$id/chapters/$cid'
     | '/api/stories/$id/chapters/reorder'
+    | '/api/characters/$id/versions/$version/avatar'
     | '/api/stories/$id/chapters/$cid/comic'
     | '/api/stories/$id/chapters/$cid/illustration'
     | '/api/stories/$id/chapters/$cid/video'
@@ -1179,6 +1202,7 @@ export interface FileRouteTypes {
     | '/api/revenue_/aggregate'
     | '/api/stories/$id'
     | '/api/voice-call/quota'
+    | '/characters/$id_/versions'
     | '/chat/$id_/album'
     | '/chat/$id_/memory'
     | '/stories/$id/read'
@@ -1220,6 +1244,7 @@ export interface FileRouteTypes {
     | '/api/proactive/characters/$id_/settings'
     | '/api/stories/$id_/chapters/$cid'
     | '/api/stories/$id_/chapters/reorder'
+    | '/api/characters/$id_/versions/$version_/avatar'
     | '/api/stories/$id_/chapters/$cid_/comic'
     | '/api/stories/$id_/chapters/$cid_/illustration'
     | '/api/stories/$id_/chapters/$cid_/video'
@@ -1272,6 +1297,7 @@ export interface RootRouteChildren {
   ApiPushVapidKeyRoute: typeof ApiPushVapidKeyRoute
   ApiRevenueAggregateRoute: typeof ApiRevenueAggregateRoute
   ApiVoiceCallQuotaRoute: typeof ApiVoiceCallQuotaRoute
+  CharactersIdVersionsRoute: typeof CharactersIdVersionsRoute
   ChatIdAlbumRoute: typeof ChatIdAlbumRoute
   ChatIdMemoryRoute: typeof ChatIdMemoryRoute
   ApiChatIdBranchRoute: typeof ApiChatIdBranchRoute
@@ -1677,6 +1703,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiVoiceCallQuotaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/characters/$id_/versions': {
+      id: '/characters/$id_/versions'
+      path: '/characters/$id/versions'
+      fullPath: '/characters/$id/versions'
+      preLoaderRoute: typeof CharactersIdVersionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/chat/$id_/album': {
       id: '/chat/$id_/album'
       path: '/chat/$id/album'
@@ -1964,6 +1997,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiStoriesIdChaptersReorderRouteImport
       parentRoute: typeof ApiStoriesIdChaptersRoute
     }
+    '/api/characters/$id_/versions/$version_/avatar': {
+      id: '/api/characters/$id_/versions/$version_/avatar'
+      path: '/$version/avatar'
+      fullPath: '/api/characters/$id/versions/$version/avatar'
+      preLoaderRoute: typeof ApiCharactersIdVersionsVersionAvatarRouteImport
+      parentRoute: typeof ApiCharactersIdVersionsRoute
+    }
     '/api/stories/$id_/chapters/$cid_/comic': {
       id: '/api/stories/$id_/chapters/$cid_/comic'
       path: '/$cid/comic'
@@ -2065,11 +2105,14 @@ const ApiCharactersIdMemoriesRouteWithChildren =
 
 interface ApiCharactersIdVersionsRouteChildren {
   ApiCharactersIdVersionsVersionRoute: typeof ApiCharactersIdVersionsVersionRoute
+  ApiCharactersIdVersionsVersionAvatarRoute: typeof ApiCharactersIdVersionsVersionAvatarRoute
 }
 
 const ApiCharactersIdVersionsRouteChildren: ApiCharactersIdVersionsRouteChildren =
   {
     ApiCharactersIdVersionsVersionRoute: ApiCharactersIdVersionsVersionRoute,
+    ApiCharactersIdVersionsVersionAvatarRoute:
+      ApiCharactersIdVersionsVersionAvatarRoute,
   }
 
 const ApiCharactersIdVersionsRouteWithChildren =
@@ -2253,6 +2296,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPushVapidKeyRoute: ApiPushVapidKeyRoute,
   ApiRevenueAggregateRoute: ApiRevenueAggregateRoute,
   ApiVoiceCallQuotaRoute: ApiVoiceCallQuotaRoute,
+  CharactersIdVersionsRoute: CharactersIdVersionsRoute,
   ChatIdAlbumRoute: ChatIdAlbumRoute,
   ChatIdMemoryRoute: ChatIdMemoryRoute,
   ApiChatIdBranchRoute: ApiChatIdBranchRoute,

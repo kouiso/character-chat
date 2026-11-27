@@ -1,0 +1,87 @@
+{
+  "viewport": "390x844 CSS px",
+  "scaleCaptured": 2,
+  "gap": 12,
+  "comparisons": [
+    {
+      "file": "cmp-normal.png",
+      "implementation": "01-normal.png",
+      "boardPanel": "normal"
+    },
+    {
+      "file": "cmp-current-selected.png",
+      "implementation": "02-current-selected.png",
+      "boardPanel": "currentSelected"
+    },
+    {
+      "file": "cmp-confirm.png",
+      "implementation": "03-confirm.png",
+      "boardPanel": "confirm"
+    },
+    {
+      "file": "cmp-restored.png",
+      "implementation": "04-restored.png",
+      "boardPanel": "restored"
+    },
+    {
+      "file": "cmp-empty.png",
+      "implementation": "05-empty.png",
+      "boardPanel": "empty"
+    },
+    {
+      "file": "cmp-many-collapsed.png",
+      "implementation": "06-many-collapsed.png",
+      "boardPanel": "many"
+    },
+    {
+      "file": "cmp-many-expanded.png",
+      "implementation": "07-many-expanded.png",
+      "boardPanel": "many"
+    },
+    {
+      "file": "cmp-detail-loading.png",
+      "implementation": "08-detail-loading.png",
+      "boardPanel": "loading"
+    },
+    {
+      "file": "cmp-detail-error.png",
+      "implementation": "09-detail-error.png",
+      "boardPanel": "detailError"
+    },
+    {
+      "file": "cmp-detail-notfound.png",
+      "implementation": "10-detail-notfound.png",
+      "boardPanel": "detailNotfound"
+    },
+    {
+      "file": "cmp-restore-fail.png",
+      "implementation": "11-restore-fail.png",
+      "boardPanel": "restoreFail"
+    },
+    {
+      "file": "cmp-list-loading.png",
+      "implementation": "12-list-loading.png",
+      "boardPanel": "loading"
+    },
+    {
+      "file": "cmp-list-error.png",
+      "implementation": "13-list-error.png",
+      "boardPanel": "listError"
+    },
+    {
+      "file": "cmp-conflict.png",
+      "implementation": "14-conflict.png",
+      "boardPanel": "confirm"
+    },
+    {
+      "file": "cmp-draft-removal-failure.png",
+      "implementation": "15-draft-removal-failure.png",
+      "boardPanel": "restored"
+    },
+    {
+      "file": "cmp-restoring.png",
+      "implementation": "16-restoring.png",
+      "boardPanel": "restoring"
+    }
+  ]
+}
