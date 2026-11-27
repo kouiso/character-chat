@@ -113,6 +113,7 @@ const createDurableState = () => {
         scheduled = null;
       },
     },
+    waitUntil: (promise: Promise<unknown>) => void waitUntilJobs.jobs.push(promise),
   };
 };
 

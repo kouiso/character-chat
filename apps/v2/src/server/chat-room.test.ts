@@ -123,6 +123,7 @@ const createDurableState = () => {
         scheduled = null;
       },
     },
+    waitUntil: (promise: Promise<unknown>) => void promise.catch(() => undefined),
   };
 };
 
@@ -957,8 +958,11 @@ describe("ChatRoom", () => {
         expect(page.events.map((item) => item.event.type)).toContain("done");
         expect(summary.calls).toBe(1);
         // 失敗は summary_failed だけを記録し、返事の失敗記録（chat_turn_failed）には触れん。
+        await vi.waitFor(() => {
+          const events = errors.mock.calls.map((call) => JSON.parse(String(call[0])).event);
+          expect(events).toContain("summary_failed");
+        });
         const events = errors.mock.calls.map((call) => JSON.parse(String(call[0])).event);
-        expect(events).toContain("summary_failed");
         expect(events).not.toContain("chat_turn_failed");
       } finally {
         errors.mockRestore();
@@ -1043,6 +1047,53 @@ describe("ChatRoom", () => {
       expect(replies.calls).toBe(callsBefore + 1);
       // 要約の中断から次の生成開始（モデル鎖の作成）まで 100ms 以内。
       expect(replies.lastCallAt - abortedAt).toBeLessThan(100);
+      // 止めた要約の後始末を待っとる間に見送った分は、最後に拾い直す。
+      await vi.waitFor(() => expect(summary.calls).toBe(2));
+    });
+
+    it("要約の後始末が残っとる間の次回は、重ねずに終わってから拾う", async () => {
+      const room = newRoom();
+      const conversationId = newConversation();
+      let finishFirst: ((value: string) => void) | undefined;
+      summary.impl = () => {
+        if (summary.calls === 1) {
+          return new Promise<string>((resolve) => {
+            finishFirst = resolve;
+          });
+        }
+        return Promise.resolve("idle");
+      };
+      replies.queue.push([VALID_REPLY]);
+      expect(
+        (
+          await room.submit({
+            requestId: "req-sum-pending-a",
+            conversationId,
+            text: "先",
+            characterId,
+          })
+        ).status,
+      ).toBe("accepted");
+      await room.alarm();
+      expect(summary.calls).toBe(1);
+
+      replies.queue.push([SECOND_REPLY]);
+      expect(
+        (
+          await room.submit({
+            requestId: "req-sum-pending-b",
+            conversationId,
+            text: "後",
+            characterId,
+          })
+        ).status,
+      ).toBe("accepted");
+      await room.alarm();
+      expect(room.readEvents("req-sum-pending-b", 0).status).toBe("succeeded");
+      expect(summary.calls).toBe(1);
+
+      finishFirst?.("aborted");
+      await vi.waitFor(() => expect(summary.calls).toBe(2));
     });
   });
 });

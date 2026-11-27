@@ -157,6 +157,8 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
   private abortControllers = new Map<string, AbortController>();
   // 要約の係の中断（RIT-72）。新しい job が入ったら submit がここから止める。
   private summaryAbort: AbortController | null = null;
+  private summaryTask: Promise<void> | null = null;
+  private summaryPending = false;
   private eventWaiters = new Set<() => void>();
   // abandon-once の故障を入れた試行は、alarm の末尾の再予約を止めて孤児を再現する。
   private abandonedByFault = false;
@@ -520,7 +522,11 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
       const waiting = this.ctx.storage.sql
         .exec(`SELECT id FROM jobs WHERE ${ACTIVE_STATUS_SQL} LIMIT 1`)
         .toArray()[0];
-      if (!waiting) await this.summarizeRoom();
+      if (!waiting) {
+        // 要約を待つと running が残り、発言で止めた後の次件まで古い alarm の
+        // 後始末待ちになる。submit が要約を止めるので、ここは始めただけで畳む。
+        this.startSummary();
+      }
     } finally {
       this.running = false;
       this.runningJobId = null;
@@ -561,6 +567,32 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
     if (pending) await reserve();
   }
 
+  private startSummary(): void {
+    if (this.summaryTask) {
+      this.summaryPending = true;
+      return;
+    }
+    const task = this.runSummaryLoop();
+    this.summaryTask = task;
+    // alarm を畳んでいるので、切り離した要約の寿命は waitUntil へ渡す。
+    this.ctx.waitUntil(task);
+  }
+
+  private async runSummaryLoop(): Promise<void> {
+    try {
+      do {
+        this.summaryPending = false;
+        try {
+          await this.summarizeRoom();
+        } catch (error) {
+          logEvent({ event: "summary_failed", level: "error", reason: describeError(error) });
+        }
+      } while (this.summaryPending);
+    } finally {
+      this.summaryTask = null;
+    }
+  }
+
   // 要約の係（RIT-72）。会話の選び方は publishMemories と同じ（一番新しい job の会話）。
   // 失敗・中断はここで記録するだけで、job の成否には一切触れん（UR-4）。
   private async summarizeRoom(): Promise<void> {
@@ -586,7 +618,7 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
         reason: describeError(error),
       });
     } finally {
-      this.summaryAbort = null;
+      if (this.summaryAbort === controller) this.summaryAbort = null;
     }
   }
 
@@ -818,12 +850,14 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
     const controller = new AbortController();
     this.abortControllers.set(job.id, controller);
     try {
-      // 最後の試行が D1 へ保存した直後に止まった job もここへ来る。保存済みなら生成し直さず完了にする。
-      if (await this.recover(job)) return;
       // 履歴を待っとる間に「止める」が queued の job を畳んだかもしれん。手元の行は読んだ時点の
       // ままなので、今の行で状態を確かめ直す（畳まれた job を beginAttempt で起こし直さんため）。
       const current = this.job(job.id);
       if (!current || !isActive(current.status)) return;
+      // running は試行上限へ達した後でも、保存直後に止まった形を先に確かめる。
+      // 未開始の queued だけは保存済みにならんので、全履歴を読む回復確認を省く。
+      if ((current.status === "running" || current.attempts > 0) && (await this.recover(current)))
+        return;
       if (current.attempts >= MAX_ATTEMPTS) {
         this.fail(current, current.attempts, new TurnFailure("attempt_limit"));
         return;
