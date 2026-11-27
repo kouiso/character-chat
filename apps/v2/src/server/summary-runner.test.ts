@@ -88,7 +88,9 @@ const memoryStorage = (): SummaryStorage & { map: Map<string, unknown> } => {
   };
 };
 
-describe("summarizeConversation（RIT-72）", () => {
+// 各試験はローカル D1 へ 1 ターンずつ数十件を書き込んでから要約する。CPU を取り合う手元の
+// push 前の検査では既定の 5 秒を越える事があるので、締切を長めに取る
+describe("summarizeConversation（RIT-72）", { timeout: 30_000 }, () => {
   let local: LocalD1;
   let characterId = "";
   const conversationIds: string[] = [];
