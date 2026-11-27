@@ -75,8 +75,10 @@ test("pre-push chain reaches v2 lint typecheck and test after v1 fast checks", (
   assert.ok(hookStart >= 0);
   assert.ok(hookRun > hookStart);
   const hookCommands = [];
-  for (let index = hookRun + 1; hookLines[index]?.startsWith("        "); index += 1) {
-    hookCommands.push(hookLines[index].trim());
+  for (let index = hookRun + 1; index < hookLines.length; index += 1) {
+    const line = hookLines[index];
+    if (line !== "" && !line.startsWith("        ")) break;
+    hookCommands.push(line.trim());
   }
   assert.ok(hookCommands.includes("task ci:fast"));
   const task = readFileSync(join(root, "Taskfile.yml"), "utf8");
