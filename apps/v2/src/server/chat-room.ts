@@ -873,30 +873,32 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
     this.finishSuccess(job);
   }
 
+  // 生成へ進める今の行だけを返す。回復済み・停止済み・試行上限は、ここで畳む。
+  private async readyJobForAttempt(job: Job): Promise<Job | null> {
+    const current = this.job(job.id);
+    if (!current || !isActive(current.status)) return null;
+    if (current.status === "queued" && current.attempts === 0) {
+      await this.assertQueuedTurnCurrent(current);
+    } else if (await this.recover(current)) {
+      return null;
+    }
+    const latest = this.job(job.id);
+    if (!latest || !isActive(latest.status) || this.stopRequested(job.id)) return null;
+    if (latest.attempts >= MAX_ATTEMPTS) {
+      this.fail(latest, latest.attempts, new TurnFailure("attempt_limit"));
+      return null;
+    }
+    return latest;
+  }
+
   private async process(job: Job): Promise<void> {
     this.runningJobId = job.id;
     const controller = new AbortController();
     this.abortControllers.set(job.id, controller);
     try {
-      // 履歴を待っとる間に「止める」が queued の job を畳んだかもしれん。手元の行は読んだ時点の
-      // ままなので、今の行で状態を確かめ直す（畳まれた job を beginAttempt で起こし直さんため）。
-      const current = this.job(job.id);
-      if (!current || !isActive(current.status)) return;
-      // 受付後に画像生成が同じターンを使った時は、生成前に conversation_advanced へ
-      // 倒さんと置き換えで消す。未開始の送信は軽い衝突確認だけに留め、生成開始を遅らせん。
-      if (current.status === "queued" && current.attempts === 0) {
-        await this.assertQueuedTurnCurrent(current);
-      } else if (await this.recover(current)) {
-        return;
-      }
-      // recover が履歴を待っとる間に「止める」が畳いたかもしれん。古い行のまま
-      // beginAttempt すると stopped を running へ起こし直すので、直前に読み直す。
-      const latest = this.job(job.id);
-      if (!latest || !isActive(latest.status) || this.stopRequested(job.id)) return;
-      if (latest.attempts >= MAX_ATTEMPTS) {
-        this.fail(latest, latest.attempts, new TurnFailure("attempt_limit"));
-        return;
-      }
+      // 非同期の回復確認の間に状態が動くので、開始直前の行だけを使う。
+      const latest = await this.readyJobForAttempt(job);
+      if (!latest) return;
       const faultAction = this.faultActionFor(this.testFault(), latest);
       this.beginAttempt(latest);
       if (this.applyFault(faultAction)) return;
