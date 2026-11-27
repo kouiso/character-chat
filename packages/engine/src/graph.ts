@@ -466,11 +466,24 @@ const refusalGuardedWriter = (
   };
 };
 
+// 途中で切れた試行を捨てて次の候補へ回してよい回数。候補ごとに締切が新しく始まるので、
+// 回数に上限が無いと候補数 × 締切だけ待たされ、クライアントの諦め（300 秒）を越えうる。
+// 1 回なら最悪でも締切 2 本分で収まる。
+const MAX_CUT_OFF_FALLTHROUGHS = 1;
+
+const isCutOff = (result: CappedStreamResult, caught: unknown): boolean =>
+  caught !== undefined || result.truncated === "deadline";
+
 const isCommitted = (
   passedSafe: boolean,
   streamsToCaller: boolean,
-  attempt: { isLast: boolean; cutOff: boolean },
-): boolean => passedSafe && (streamsToCaller || attempt.isLast || !attempt.cutOff);
+  attempt: { isLast: boolean; cutOff: boolean; priorCutOffs: number },
+): boolean =>
+  passedSafe &&
+  (streamsToCaller ||
+    attempt.isLast ||
+    !attempt.cutOff ||
+    attempt.priorCutOffs >= MAX_CUT_OFF_FALLTHROUGHS);
 
 type CandidateOutcome = {
   raw: string;
@@ -503,6 +516,7 @@ const runModelCandidates = async (
     winnerIndex: -1,
     attempts,
   };
+  let cutOffFallthroughs = 0;
   for (const [index, candidate] of candidates.entries()) {
     const guard = refusalGuardedWriter(opts.writer, !opts.streamsToCaller);
     let result: CappedStreamResult;
@@ -522,11 +536,14 @@ const runModelCandidates = async (
     }
     // 配信を受け取る呼び出しでは配信済み = 取り消せん。受け取らん呼び出しでは、最後の候補
     // 以外で切れた（締切・例外）試行だけ取り消せる扱いにして次の候補へ進める。
+    const cutOff = isCutOff(result, caught);
     const committed = isCommitted(guard.emitted(), opts.streamsToCaller, {
       isLast: index === candidates.length - 1,
-      cutOff: caught !== undefined || result.truncated === "deadline",
+      cutOff,
+      priorCutOffs: cutOffFallthroughs,
     });
     const outcome = classifyAttempt(result, caught, committed);
+    if (guard.emitted() && !committed) cutOffFallthroughs += 1;
     attempts.push({
       model: candidate.name,
       outcome: outcome.kind,

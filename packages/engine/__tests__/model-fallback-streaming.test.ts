@@ -24,11 +24,13 @@ const xmlChunk = (text: string) =>
 
 // 300 字を越えるまで流した後、締切まで止まる。
 class CutByDeadlineModel extends FakeListChatModel {
+  head = LONG_HEAD;
+
   async *_streamResponseChunks(
     _messages: BaseMessage[],
     options: this["ParsedCallOptions"],
   ): AsyncGenerator<ChatGenerationChunk> {
-    yield xmlChunk(LONG_HEAD);
+    yield xmlChunk(this.head);
     await new Promise<void>((resolve) => {
       const timer = setTimeout(resolve, 60_000);
       options.signal?.addEventListener("abort", () => {
@@ -46,6 +48,13 @@ class CutByErrorModel extends FakeListChatModel {
     throw new Error("502 upstream reset");
   }
 }
+
+// 候補ごとに本文を見分けるため、先頭の字を差し替えた締切切れモデル。
+const cutModelWith = (label: string): CutByDeadlineModel => {
+  const model = new CutByDeadlineModel({ responses: [] });
+  model.head = `<response><action>${label.repeat(320)}`;
+  return model;
+};
 
 const drain = async (events: AsyncIterable<TurnEvent>): Promise<TurnEvent[]> => {
   const out: TurnEvent[] = [];
@@ -118,20 +127,43 @@ describe("逐次配信を受け取らん呼び出しの逃げ道（#193）", () 
     expect(generation.attempts?.[0]).toMatchObject({ model: "cut", outcome: "error" });
   });
 
-  test("全候補が途中で切れた時は、最後の候補の部分生成を従来どおり採用する（status・本文は配信を受け取る呼び出しと同じ）", async () => {
+  test("全候補が途中で切れた時は、最後の候補の部分生成を採用する（本文は 1 本目と見分けがつく）", async () => {
     const candidates = () => [
-      { name: "cut1", model: new CutByDeadlineModel({ responses: [] }) },
-      { name: "cut2", model: new CutByDeadlineModel({ responses: [] }) },
+      { name: "cut1", model: cutModelWith("あ") },
+      { name: "cut2", model: cutModelWith("い") },
     ];
     const quiet = await run(candidates(), false);
     const streaming = await run(candidates(), true);
     expect(quiet.generation.model).toBe("cut2");
-    // 配信を受け取る側は 1 本目で確定する（従来どおり）。受け取らん側は最後の候補の部分生成。
-    expect(streaming.generation.model).toBe("cut1");
-    expect(quiet.generation.status).toBe(streaming.generation.status);
+    expect(quiet.generation.rawOutput).toContain("い".repeat(320));
+    expect(quiet.generation.rawOutput).not.toContain("あ".repeat(320));
+    expect(quiet.generation.attempts?.map((a) => [a.model, a.outcome])).toEqual([
+      ["cut1", "timeout"],
+      ["cut2", "ok"],
+    ]);
     expect(quiet.generation.truncated).toBe("deadline");
-    expect(quiet.generation.rawOutput).toBe(streaming.generation.rawOutput);
-    expect(quiet.generation.rawOutput).toContain("静かに歩み寄る");
+    // 配信を受け取る側は 1 本目で確定する（従来どおり）。
+    expect(streaming.generation.model).toBe("cut1");
+    expect(streaming.generation.rawOutput).toContain("あ".repeat(320));
+    expect(quiet.generation.status).toBe(streaming.generation.status);
+  });
+
+  test("切れた試行の回し先は 1 回まで。2 本目も切れたら 3 本目へ進まず 2 本目の部分生成を採用する（待ち時間が締切 2 本分で止まる）", async () => {
+    const third = new FakeListChatModel({ responses: [VALID_XML] });
+    const { generation } = await run(
+      [
+        { name: "cut1", model: cutModelWith("あ") },
+        { name: "cut2", model: cutModelWith("い") },
+        { name: "escape", model: third },
+      ],
+      false,
+    );
+    expect(generation.model).toBe("cut2");
+    expect(generation.rawOutput).toContain("い".repeat(320));
+    expect(generation.attempts?.map((a) => [a.model, a.outcome])).toEqual([
+      ["cut1", "timeout"],
+      ["cut2", "ok"],
+    ]);
   });
 
   test.each([true, undefined])(
