@@ -189,7 +189,7 @@ const GroupContinuationRow = ({
   speaker: CharacterListItem | undefined;
   faces: CharacterListItem[];
 }) => (
-  <li>
+  <li className="v2-home-continuation-item">
     <Link
       to="/groups/$id"
       params={{ id: group.id }}
