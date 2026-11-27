@@ -240,7 +240,7 @@ tasks:
       - node .github/ci/run.mjs full
 
   ci:fast:
-    desc: "lint・型検査・coverage 付き unit test"
+    desc: "v1のlint・型検査・coverage付きunit testとv2のlint・型検査・test"
     cmds:
       - node --test .github/ci/check.test.mjs
       - node .github/ci/run.mjs fast

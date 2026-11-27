@@ -5,6 +5,7 @@
 import { DatabaseSync } from "node:sqlite";
 
 import { FakeListChatModel } from "@langchain/core/utils/testing";
+import { PROMPT_VERSION } from "@v2/prompt";
 import { createDb, loadCharacter } from "@v2/db";
 import { judgeChunk, extractVoice } from "@v2/judge";
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
@@ -76,6 +77,7 @@ vi.mock("@v2/engine", async (importOriginal) => {
 
 const { ChatRoom } = await import("./chat-room");
 const { consumeMemoryJobs } = await import("./memory-queue");
+const { LOCAL_USER_ID } = await import("./identity");
 const { loadHistory } = await import("./engine");
 const { handleChatRequest, handleHistoryRequest, handleWithdrawRequest } =
   await import("./api-chat");
@@ -123,6 +125,7 @@ const createDurableState = () => {
         scheduled = null;
       },
     },
+    waitUntil: (promise: Promise<unknown>) => void promise.catch(() => undefined),
   };
 };
 
@@ -146,7 +149,10 @@ const interruptAfterHistoryRead = (d1: D1Database, onRead: () => Promise<void>) 
         if (typeof value !== "function") return value;
         if (property === "bind")
           return (...values: unknown[]) => watch(target.bind(...values), query);
-        if (["all", "raw", "first"].includes(String(property)) && /from "v2_message"/.test(query))
+        if (
+          ["all", "raw", "first"].includes(String(property)) &&
+          /from\s+(?:"v2_message"|v2_message)/i.test(query)
+        )
           return async (...args: unknown[]) => interrupt(await value.apply(target, args));
         return value.bind(target);
       },
@@ -692,6 +698,203 @@ describe("ChatRoom", () => {
     expect(state.alarms).toHaveLength(1);
   });
 
+  it("再実行の印が残った要約は、次の返信と並走せず終わってから拾う", async () => {
+    const room = newRoom();
+    const conversationId = newConversation();
+    let finishFirst: ((value: string) => void) | undefined;
+    let overlapped = false;
+    summary.impl = () => {
+      if (summary.calls === 1) {
+        return new Promise<string>((resolve) => {
+          finishFirst = resolve;
+        });
+      }
+      const active = state.sqlite
+        .prepare("SELECT COUNT(*) AS count FROM jobs WHERE status IN ('queued','running')")
+        .get() as { count: number };
+      overlapped = overlapped || active.count > 0;
+      return Promise.resolve("idle");
+    };
+
+    replies.queue.push([VALID_REPLY]);
+    expect(
+      (
+        await room.submit({
+          requestId: "req-summary-race-a",
+          conversationId,
+          text: "先",
+          characterId,
+        })
+      ).status,
+    ).toBe("accepted");
+    await room.alarm();
+    expect(summary.calls).toBe(1);
+    // job が無い alarm がもう一度走ると、要約の再実行印だけが残る。
+    await room.alarm();
+
+    replies.queue.push([SECOND_REPLY]);
+    expect(
+      (
+        await room.submit({
+          requestId: "req-summary-race-b",
+          conversationId,
+          text: "後",
+          characterId,
+        })
+      ).status,
+    ).toBe("accepted");
+    finishFirst?.("aborted");
+    await room.alarm();
+    await vi.waitFor(() =>
+      expect(room.readEvents("req-summary-race-b", 0).status).toBe("succeeded"),
+    );
+    await vi.waitFor(() => expect(summary.calls).toBe(2));
+    expect(overlapped).toBe(false);
+  });
+
+  it("受付後に画像が同じターンへ保存されとったら、生成せず衝突で畳む", async () => {
+    const room = newRoom();
+    const conversationId = newConversation();
+    const input = { requestId: "req-image-race", conversationId, text: "送信", characterId };
+    expect((await room.submit(input)).status).toBe("accepted");
+
+    // 生成へ進む前に画像生成がターン 1 を使った形を作る。assistant だけの画像行は
+    // 失敗ターンではないので、次の会話ターンは 2 へ進む。
+    const now = Date.now();
+    await local.d1.batch([
+      local.d1
+        .prepare(
+          "INSERT INTO v2_conversation (id,user_id,character_id,thread_id,prompt_version,created_at,updated_at) VALUES (?,?,?,?,?,?,?)",
+        )
+        .bind(
+          conversationId,
+          LOCAL_USER_ID,
+          characterId,
+          crypto.randomUUID(),
+          PROMPT_VERSION,
+          now,
+          now,
+        ),
+      local.d1
+        .prepare(
+          "INSERT INTO v2_message (id,conversation_id,turn,role,content,image_key,branch_no,active,created_at) VALUES (?,?,?,?,?,?,?,?,?)",
+        )
+        .bind(
+          crypto.randomUUID(),
+          conversationId,
+          1,
+          "assistant",
+          "",
+          "images/race.png",
+          0,
+          1,
+          now,
+        ),
+    ]);
+    replies.queue.push([VALID_REPLY]);
+    await room.alarm();
+
+    expect(room.readEvents(input.requestId, 0).status).toBe("failed");
+    expect(room.readEvents(input.requestId, 0).events.at(-1)?.event).toMatchObject({
+      type: "error",
+      code: "conversation_advanced",
+    });
+    expect(replies.calls).toBe(0);
+    const images = await local.d1
+      .prepare(
+        "SELECT COUNT(*) AS count FROM v2_message WHERE conversation_id = ? AND image_key = ?",
+      )
+      .bind(conversationId, "images/race.png")
+      .first<{ count: number }>();
+    expect(images?.count).toBe(1);
+  });
+
+  it("ターン衝突の確認中に止められた送信は、失敗へ上書きされん", async () => {
+    const room = newRoom();
+    const conversationId = newConversation();
+    const input = { requestId: "req-stop-conflict", conversationId, text: "送信", characterId };
+    expect((await room.submit(input)).status).toBe("accepted");
+
+    const now = Date.now();
+    await local.d1.batch([
+      local.d1
+        .prepare(
+          "INSERT INTO v2_conversation (id,user_id,character_id,thread_id,prompt_version,created_at,updated_at) VALUES (?,?,?,?,?,?,?)",
+        )
+        .bind(
+          conversationId,
+          LOCAL_USER_ID,
+          characterId,
+          crypto.randomUUID(),
+          PROMPT_VERSION,
+          now,
+          now,
+        ),
+      local.d1
+        .prepare(
+          "INSERT INTO v2_message (id,conversation_id,turn,role,content,image_key,branch_no,active,created_at) VALUES (?,?,?,?,?,?,?,?,?)",
+        )
+        .bind(
+          crypto.randomUUID(),
+          conversationId,
+          1,
+          "assistant",
+          "",
+          "images/stop-race.png",
+          0,
+          1,
+          now,
+        ),
+    ]);
+
+    const d1 = local.d1;
+    const { db: racing, state: race } = interruptAfterHistoryRead(d1, async () => {
+      await room.stop(input.requestId);
+    });
+    const roomEnv = platform.env as unknown as { DB: D1Database };
+    roomEnv.DB = racing;
+    replies.queue.push([VALID_REPLY]);
+    await room.alarm();
+    roomEnv.DB = d1;
+
+    expect(race.armed).toBe(false);
+    expect(room.readEvents(input.requestId, 0).status).toBe("stopped");
+    expect(room.readEvents(input.requestId, 0).events.map((item) => item.event)).toEqual([
+      { type: "stopped" },
+    ]);
+    expect(replies.calls).toBe(0);
+  });
+
+  it("履歴の確認中に止められた再試行は、stopped を running へ起こし直さん", async () => {
+    const room = newRoom();
+    const conversationId = newConversation();
+    const input = { requestId: "req-stop-recover", conversationId, text: "止める質問" };
+    replies.queue.push([""]);
+    const failed = await submitAndRun(room, input);
+    expect(failed.status).toBe("failed");
+    expect(replies.calls).toBe(1);
+
+    const d1 = local.d1;
+    const { db: racing, state: race } = interruptAfterHistoryRead(d1, async () => {
+      platform.env = { ...platform.env, DB: d1 };
+      await room.stop(input.requestId);
+    });
+    race.armed = false;
+    platform.env = { ...platform.env, DB: racing };
+    expect((await room.submit({ ...input, retry: true, characterId })).status).toBe("accepted");
+    race.armed = true;
+    replies.queue.push([VALID_REPLY]);
+    await room.alarm();
+    platform.env = { ...platform.env, DB: d1 };
+
+    expect(race.armed).toBe(false);
+    expect(room.readEvents(input.requestId, 0).status).toBe("stopped");
+    expect(room.readEvents(input.requestId, 0).events.map((item) => item.event)).toEqual([
+      { type: "stopped" },
+    ]);
+    expect(replies.calls).toBe(1);
+  });
+
   describe("POST /api/chat", () => {
     const post = (
       body: Record<string, unknown>,
@@ -957,8 +1160,11 @@ describe("ChatRoom", () => {
         expect(page.events.map((item) => item.event.type)).toContain("done");
         expect(summary.calls).toBe(1);
         // 失敗は summary_failed だけを記録し、返事の失敗記録（chat_turn_failed）には触れん。
+        await vi.waitFor(() => {
+          const events = errors.mock.calls.map((call) => JSON.parse(String(call[0])).event);
+          expect(events).toContain("summary_failed");
+        });
         const events = errors.mock.calls.map((call) => JSON.parse(String(call[0])).event);
-        expect(events).toContain("summary_failed");
         expect(events).not.toContain("chat_turn_failed");
       } finally {
         errors.mockRestore();
@@ -1043,6 +1249,53 @@ describe("ChatRoom", () => {
       expect(replies.calls).toBe(callsBefore + 1);
       // 要約の中断から次の生成開始（モデル鎖の作成）まで 100ms 以内。
       expect(replies.lastCallAt - abortedAt).toBeLessThan(100);
+      // 止めた要約の後始末を待っとる間に見送った分は、最後に拾い直す。
+      await vi.waitFor(() => expect(summary.calls).toBe(2));
+    });
+
+    it("要約の後始末が残っとる間の次回は、重ねずに終わってから拾う", async () => {
+      const room = newRoom();
+      const conversationId = newConversation();
+      let finishFirst: ((value: string) => void) | undefined;
+      summary.impl = () => {
+        if (summary.calls === 1) {
+          return new Promise<string>((resolve) => {
+            finishFirst = resolve;
+          });
+        }
+        return Promise.resolve("idle");
+      };
+      replies.queue.push([VALID_REPLY]);
+      expect(
+        (
+          await room.submit({
+            requestId: "req-sum-pending-a",
+            conversationId,
+            text: "先",
+            characterId,
+          })
+        ).status,
+      ).toBe("accepted");
+      await room.alarm();
+      expect(summary.calls).toBe(1);
+
+      replies.queue.push([SECOND_REPLY]);
+      expect(
+        (
+          await room.submit({
+            requestId: "req-sum-pending-b",
+            conversationId,
+            text: "後",
+            characterId,
+          })
+        ).status,
+      ).toBe("accepted");
+      await room.alarm();
+      expect(room.readEvents("req-sum-pending-b", 0).status).toBe("succeeded");
+      expect(summary.calls).toBe(1);
+
+      finishFirst?.("aborted");
+      await vi.waitFor(() => expect(summary.calls).toBe(2));
     });
   });
 });

@@ -15,9 +15,12 @@ const checks = {
   "boot-smoke": ["node", "scripts/boot-smoke.mjs"],
   "deploy-guard": ["pnpm", "verify:no-github-actions-deploy"],
   "runner-guard": ["bash", "./.github/script/check-runner-hardcode.sh"],
+  "v2-lint": ["pnpm", "run", "v2:lint"],
+  "v2-typecheck": ["pnpm", "run", "v2:typecheck"],
+  "v2-test": ["pnpm", "run", "v2:test"],
 };
 const profiles = {
-  fast: ["adult-terms", "lint", "typecheck", "test"],
+  fast: ["adult-terms", "lint", "typecheck", "test", "v2-lint", "v2-typecheck", "v2-test"],
   // なぜ: ローカルの全検査も同じビルドを再利用して起動を確認する。
   full: [
     "adult-terms",
