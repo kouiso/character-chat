@@ -873,7 +873,8 @@ export class ChatRoom extends DurableObject<Cloudflare.Env> {
     this.finishSuccess(job);
   }
 
-  // 生成へ進める今の行だけを返す。回復済み・停止済み・試行上限は、ここで畳む。
+  // 保存済みの返信の回復は試行上限の判定より先に行う。順番が逆だと、
+  // もう読める成功を試行使い切りの失敗へ倒してしまう。
   private async readyJobForAttempt(job: Job): Promise<Job | null> {
     const current = this.job(job.id);
     if (!current || !isActive(current.status)) return null;
