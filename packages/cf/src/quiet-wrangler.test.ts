@@ -1,7 +1,7 @@
 // createPlatform が重なった時に、先に終わった方が残りの呼び出しのログ抑制を外さん事を確かめる。
 import { afterEach, describe, expect, it } from "vitest";
 
-import { withQuietWrangler } from "./index";
+import { withQuietWrangler } from "./quiet-wrangler";
 
 const deferred = () => {
   let resolve: () => void = () => {};
@@ -11,9 +11,13 @@ const deferred = () => {
   return { promise, resolve };
 };
 
+// 開発者が手元で決めた WRANGLER_LOG を、試験の後に元へ戻す
+const original = process.env.WRANGLER_LOG;
+
 describe("withQuietWrangler", () => {
   afterEach(() => {
-    delete process.env.WRANGLER_LOG;
+    if (original === undefined) delete process.env.WRANGLER_LOG;
+    else process.env.WRANGLER_LOG = original;
   });
 
   it("重なった呼び出しの片方が終わっても、もう片方が終わるまで warn のまま", async () => {
