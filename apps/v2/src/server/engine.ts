@@ -242,6 +242,8 @@ export const startTurn = async (
   const graph = createTurnGraph({
     model: models[0].model,
     models,
+    // 画面は token を使わず塊の確定イベントだけで描くので、途中で切れた試行は次の候補へ回す。
+    streamsToCaller: false,
     charScale: CHAT_MODE_CHAR_SCALE[chatMode],
     style: chatStyle === "balanced" ? undefined : chatStyle,
     userPersona,

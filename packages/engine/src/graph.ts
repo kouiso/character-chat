@@ -335,6 +335,10 @@ export type TurnGraphDeps = {
   id?: () => string;
   // RIT-83 「止める」の合図。立ったら呼び出し中のモデル要求を中断する（各所の締切器と連結）。
   signal?: AbortSignal;
+  // 本文の token を受け取って逐次に見せる呼び出しか。省略は true（計測など従来どおり）。
+  // false の呼び出し（アプリ）は塊の確定イベントだけを使い token を捨てるので、配信済みを
+  // 理由に逃げ道へ切り替えんのは不要で、途中で切れた試行でも次の候補を試せる。
+  streamsToCaller?: boolean;
 };
 
 // 止めの合図を各呼び出しの締切 controller へ連結する。合図は 1 方向なので片側だけ。
@@ -421,8 +425,11 @@ const collectCappedStream = async (
 
 // token だけを溜めて、拒否パターンなら RefusalSignal、安全域を越えたら配信を始める writer。
 // flush は採用が決まった試行の残りを流す。
+// holdAll は逐次配信を受け取らん呼び出し用で、安全域を越えても配信せず採用まで溜め続ける
+// （切り替えた時に捨てた試行の token が漏れんようにする）。
 const refusalGuardedWriter = (
   writer: (event: TurnEvent) => void,
+  holdAll: boolean,
 ): {
   writer: (event: TurnEvent) => void;
   emitted: () => boolean;
@@ -430,8 +437,9 @@ const refusalGuardedWriter = (
 } => {
   let held = "";
   let emitted = false;
+  let passedSafe = false;
   return {
-    emitted: () => emitted,
+    emitted: () => passedSafe,
     flush: () => {
       if (held.length > 0) writer({ type: "token", text: held });
       held = "";
@@ -443,10 +451,13 @@ const refusalGuardedWriter = (
         return;
       }
       held += event.text;
+      if (passedSafe) return;
       // 20 字未満は文が揃う前の部分文字列なのでパターンを当てん
       // （短すぎる失速の判定は試行の最終結果にだけ効かせる）。
       if (held.length >= 20 && hardRefusalDetect(held)) throw new RefusalSignal();
       if (held.length >= REFUSAL_SAFE_CHARS) {
+        passedSafe = true;
+        if (holdAll) return;
         writer({ type: "token", text: held });
         held = "";
         emitted = true;
@@ -454,6 +465,25 @@ const refusalGuardedWriter = (
     },
   };
 };
+
+// 途中で切れた試行を捨てて次の候補へ回してよい回数。候補ごとに締切が新しく始まるので、
+// 回数に上限が無いと候補数 × 締切だけ待たされ、クライアントの諦め（300 秒）を越えうる。
+// 1 回なら最悪でも締切 2 本分で収まる。
+const MAX_CUT_OFF_FALLTHROUGHS = 1;
+
+const isCutOff = (result: CappedStreamResult, caught: unknown): boolean =>
+  caught !== undefined || result.truncated === "deadline";
+
+const isCommitted = (
+  passedSafe: boolean,
+  streamsToCaller: boolean,
+  attempt: { isLast: boolean; cutOff: boolean; priorCutOffs: number },
+): boolean =>
+  passedSafe &&
+  (streamsToCaller ||
+    attempt.isLast ||
+    !attempt.cutOff ||
+    attempt.priorCutOffs >= MAX_CUT_OFF_FALLTHROUGHS);
 
 type CandidateOutcome = {
   raw: string;
@@ -476,6 +506,7 @@ const runModelCandidates = async (
     sampling: SamplingOptions;
     writer: (event: TurnEvent) => void;
     signal?: AbortSignal;
+    streamsToCaller: boolean;
   },
 ): Promise<CandidateOutcome> => {
   const attempts: ModelAttempt[] = [];
@@ -485,8 +516,9 @@ const runModelCandidates = async (
     winnerIndex: -1,
     attempts,
   };
+  let cutOffFallthroughs = 0;
   for (const [index, candidate] of candidates.entries()) {
-    const guard = refusalGuardedWriter(opts.writer);
+    const guard = refusalGuardedWriter(opts.writer, !opts.streamsToCaller);
     let result: CappedStreamResult;
     let caught: unknown;
     try {
@@ -502,7 +534,16 @@ const runModelCandidates = async (
       caught = thrown;
       result = { raw: "", usage: null };
     }
-    const outcome = classifyAttempt(result, caught, guard.emitted());
+    // 配信を受け取る呼び出しでは配信済み = 取り消せん。受け取らん呼び出しでは、最後の候補
+    // 以外で切れた（締切・例外）試行だけ取り消せる扱いにして次の候補へ進める。
+    const cutOff = isCutOff(result, caught);
+    const committed = isCommitted(guard.emitted(), opts.streamsToCaller, {
+      isLast: index === candidates.length - 1,
+      cutOff,
+      priorCutOffs: cutOffFallthroughs,
+    });
+    const outcome = classifyAttempt(result, caught, committed);
+    if (guard.emitted() && !committed) cutOffFallthroughs += 1;
     attempts.push({
       model: candidate.name,
       outcome: outcome.kind,
@@ -889,6 +930,7 @@ export const createTurnGraph = (deps: TurnGraphDeps) => {
           sampling,
           writer: (event) => runtime.writer(event),
           signal: deps.signal,
+          streamsToCaller: deps.streamsToCaller ?? true,
         });
         const generation = await settleGeneration(deps, {
           generationId,
