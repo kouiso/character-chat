@@ -17,11 +17,7 @@ export const ChatWaiting = ({ phase }: { phase: TurnPhase }) => {
 
   const stateText = phase === "arriving" ? "返事が届いています" : "返事を書いています";
   return (
-    <div
-      className="v2-turn-row assistant v2-turn-waiting"
-      role="status"
-      aria-label={stateText}
-    >
+    <div className="v2-turn-row assistant v2-turn-waiting" role="status" aria-label={stateText}>
       <span className="v2-turn-typing" aria-hidden="true">
         <span className="v2-typing-dot" />
         <span className="v2-typing-dot" />
