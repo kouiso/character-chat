@@ -29,7 +29,13 @@ import {
 } from "../lib/chat-session";
 import { revealChunk, scheduleReveal } from "../lib/chunk-reveal";
 import { useChatOnline } from "../lib/chat-online";
-import { isFailurePhase, isWaitingPhase, markerText, type TurnPhase } from "../lib/turn-phase";
+import {
+  isCreationNoticePhase,
+  isFailurePhase,
+  isWaitingPhase,
+  markerText,
+  type TurnPhase,
+} from "../lib/turn-phase";
 import { followTurn } from "../lib/turn-stream";
 import { playVoiceText, readVoiceAutoplay, type VoicePlayback } from "../lib/tts";
 
@@ -1736,7 +1742,7 @@ export const ChatView = ({
           </div>
         ))}
         {marker !== null && <TurnMarker text={marker} icon={phase !== "resending"} />}
-        {isWaitingPhase(phase) && <ChatWaiting phase={phase} />}
+        {isCreationNoticePhase(phase) && <ChatWaiting phase={phase} />}
         {stoppedNotice && <StoppedMarker />}
       </ChatMessageLog>
       <ChatFooter

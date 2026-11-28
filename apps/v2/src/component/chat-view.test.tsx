@@ -1152,9 +1152,12 @@ describe("ChatView", () => {
     });
     fireEvent.click(screen.getByRole("button", { name: "送信" }));
 
-    // 先頭の塊だけ出て、残りは予定時刻待ち（小出しの途中）。
+    // 先頭の塊だけ出て、残りは予定時刻待ち（小出しの途中）。返事は届き始めたので、
+    // 待ちの「作成中」と経過は重ねない。
     await screen.findByText("一つ目の返事");
     expect(screen.queryByText("二つ目の返事")).not.toBeInTheDocument();
+    expect(screen.queryByText("作成中")).not.toBeInTheDocument();
+    expect(screen.queryByText(/^\d+秒$/)).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "返事を止める" }));
 
     // 届かんかったので、残りを全部出して入力へ戻る（作成中の「…」も消える）。

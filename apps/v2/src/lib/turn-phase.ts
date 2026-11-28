@@ -30,6 +30,13 @@ export type TurnPhase =
 export const isWaitingPhase = (phase: TurnPhase): boolean =>
   phase === "sending" || phase === "writing" || phase === "slow" || phase === "arriving";
 
+export type CreationNoticePhase = "sending" | "writing" | "slow";
+
+// 「作成中」の印を出すのは返事がまだ届き始めていない間だけ。arriving では
+// 返事そのものが見え始めているため、待ちの印を重ねない。
+export const isCreationNoticePhase = (phase: TurnPhase): phase is CreationNoticePhase =>
+  phase === "sending" || phase === "writing" || phase === "slow";
+
 // 失敗の枠（部品 B）を出す状態。
 export const isFailurePhase = (phase: TurnPhase): boolean =>
   phase === "send_failed" ||
