@@ -1,6 +1,6 @@
 {
   "$schema": "../../node_modules/wrangler/config-schema.json",
-  "name": "adult-ai-v2",
+  "name": "character-chat",
   "compatibility_date": "2026-10-26",
   // top-level は手元の開発・試験用。D1 はローカル専用の id で、Cloudflare に実体が無いので
   // 素の `wrangler deploy` は束ね解決で止まる。本番は env.rag、試し用は env.staging から出す。
@@ -21,12 +21,12 @@
   ],
   // AIとVectorizeはローカルで模擬できないため、通常の開発では接続しない。
   "env": {
-    // 本番 Worker adult-ai-v2。name を書かんと wrangler が adult-ai-v2-rag という別 Worker にする。
+    // 本番 Worker character-chat（リポジトリ名に揃えた。旧名 adult-ai-v2）。name を書かんと wrangler が character-chat-rag という別 Worker にする。
     "rag": {
-      "name": "adult-ai-v2",
+      "name": "character-chat",
       "vars": {
         "APP_ENV": "production",
-        // Access アプリ（adult-ai-v2 Worker destination）が入口の Google 認証を担うので、
+        // Access アプリ（character-chat Worker destination）が入口の Google 認証を担うので、
         // 二重になる Basic 認証は worker.ts 側でこの印を見て外す。
         "V2_CF_ACCESS": "1",
         "V2_FAKE_MODEL": "0",
@@ -106,9 +106,9 @@
         ]
       }
     },
-    // 試し用 Worker adult-ai-v2-staging。vars・secrets・束ねは env へ継承されんので全部書く。
+    // 試し用 Worker character-chat-staging（旧名 adult-ai-v2-staging）。vars・secrets・束ねは env へ継承されんので全部書く。
     "staging": {
-      "name": "adult-ai-v2-staging",
+      "name": "character-chat-staging",
       "vars": {
         "APP_ENV": "staging",
         "V2_FAKE_MODEL": "0",

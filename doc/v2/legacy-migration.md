@@ -96,11 +96,11 @@ V2_LOCAL_PERSIST_ROOT=/absolute/path/to/restored-d1 pnpm --filter @v2/app dev
 ```sh
 # BASIC 認証
 V2_BASIC_USER=... V2_BASIC_PASSWORD=... \
-  node apps/v2/script/verify-character-check.mjs https://adult-ai-v2-staging.kouiso.workers.dev
+  node apps/v2/script/verify-character-check.mjs https://character-chat-staging.kouiso.workers.dev
 
 # Cloudflare Access（サービストークン）
 CF_ACCESS_CLIENT_ID=... CF_ACCESS_CLIENT_SECRET=... \
-  node apps/v2/script/verify-character-check.mjs https://adult-ai-v2-staging.kouiso.workers.dev
+  node apps/v2/script/verify-character-check.mjs https://character-chat-staging.kouiso.workers.dev
 ```
 
 ローカルの復元コピー（上の `V2_LOCAL_PERSIST_ROOT` で起動した開発サーバー）にも同じ手順で向けられる。認証が通らなければ「認証の値を確かめてください」と出て終了コード1。応答が失敗したページは同じページをもう一度だけ呼び直す。

@@ -1,7 +1,7 @@
 // @vitest-environment node
 // wrangler.jsonc が設計書の束ね（SBI-02-2 / §4.5・§4.8）を満たすかを、deploy と同じ wrangler の
 // 解決結果で固定する。env は top-level の一部だけを継承するので、生の JSON では確かめきれん。
-// 本番は env.rag（Worker adult-ai-v2）、試し用は env.staging、top-level は手元用。
+// 本番は env.rag（Worker character-chat）、試し用は env.staging、top-level は手元用。
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
@@ -69,8 +69,8 @@ const REQUIRED_SECRETS = [
   "VAPID_PRIVATE_KEY",
 ];
 const DEPLOYED = [
-  { env: "rag", name: "adult-ai-v2", appEnv: "production" },
-  { env: "staging", name: "adult-ai-v2-staging", appEnv: "staging" },
+  { env: "rag", name: "character-chat", appEnv: "production" },
+  { env: "staging", name: "character-chat-staging", appEnv: "staging" },
 ] as const;
 
 const migrationClasses = (config: ResolvedConfig): string[] =>

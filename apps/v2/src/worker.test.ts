@@ -296,8 +296,8 @@ describe("Worker 入口の BASIC 認証", () => {
   });
 
   it.each([
-    ["rag", "adult-ai-v2"],
-    ["staging", "adult-ai-v2-staging"],
+    ["rag", "character-chat"],
+    ["staging", "character-chat-staging"],
   ])("env.%s も wrangler が解決した結果で静的ファイルを Worker に先に通す", (name, workerName) => {
     // env 側に assets が無いと top-level を継承するので、生の JSON では確かめきれん。
     // deploy と同じ解決を通した結果で見る。

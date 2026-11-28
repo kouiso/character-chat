@@ -1,7 +1,7 @@
 # v2 の secret の入れ方・入れ替え手順（SBI-01-3 / RIT-61）
 
-2026-10-28（11-02 に main の記憶処理と合わせて改訂）。対象は Worker `adult-ai-v2`（本番、`wrangler.jsonc` の `env.rag`）と
-`adult-ai-v2-staging`（試し用、`env.staging`）。`wrangler.jsonc` の top-level は手元用で、出す先ではない。
+2026-10-28（11-02 に main の記憶処理と合わせて改訂）。対象は Worker `character-chat`（本番、`wrangler.jsonc` の `env.rag`）と
+`character-chat-staging`（試し用、`env.staging`）。`wrangler.jsonc` の top-level は手元用で、出す先ではない。
 資格情報は Cloudflare の secret と手元の `.dev.vars` だけに置く。repo・PR 本文・
 ログ・ビルド成果物へは書かん。
 
@@ -30,8 +30,8 @@ RIT-100 の受け入れで行う。
 
 ```sh
 cd apps/v2
-pnpm run deploy       # 本番 adult-ai-v2 = env.rag（`pnpm deploy` は pnpm 自身の別コマンドなので run を付ける）
-pnpm run deploy:staging   # 試し用 adult-ai-v2-staging
+pnpm run deploy       # 本番 character-chat = env.rag（`pnpm deploy` は pnpm 自身の別コマンドなので run を付ける）
+pnpm run deploy:staging   # 試し用 character-chat-staging
 # 中身を確かめるだけなら deploy:dry-run / deploy:staging:dry-run
 ```
 
