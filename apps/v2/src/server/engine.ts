@@ -64,11 +64,16 @@ export class CharacterInvalidError extends Error {
 
 // RIT-102/104: 拒否・時間切れ・障害で順に落ちる逃げ道チェーン。
 // 単モデル指定（V2_MODEL・V2_FAKE_MODEL）の時は 1 本だけの列になる。
-const createModels = async (safeMode: boolean, chatMode: ChatMode): Promise<ModelCandidate[]> => {
+const createModels = async (
+  safeMode: boolean,
+  chatMode: ChatMode,
+  turn: number | undefined,
+): Promise<ModelCandidate[]> => {
   // 実行中のWorkerに束縛された設定だけを使い、別プロセスの設定を混ぜない。
   const { env } = await getPlatform();
   if (env.APP_ENV === "test" && env.V2_FAKE_MODEL === "1") {
-    return fakeModelCandidates(env);
+    // 固定モデルはターンごとに組み直すので、ターン番号で返事を変えんと 2 ターン目が反復で落ちる。
+    return fakeModelCandidates(env, turn);
   }
   return createModelChain(
     {
@@ -84,8 +89,11 @@ const createModels = async (safeMode: boolean, chatMode: ChatMode): Promise<Mode
   );
 };
 
-const getModels = (safeMode: boolean, chatMode: ChatMode): Promise<ModelCandidate[]> =>
-  createModels(safeMode, chatMode);
+const getModels = (
+  safeMode: boolean,
+  chatMode: ChatMode,
+  turn: number | undefined,
+): Promise<ModelCandidate[]> => createModels(safeMode, chatMode, turn);
 
 // RIT-205: モードごとの目安字数倍率。standard=1 が従来どおり。
 const CHAT_MODE_CHAR_SCALE: Record<ChatMode, number> = {
@@ -229,7 +237,7 @@ export const startTurn = async (
   const { env: modelEnv } = await getPlatform();
   const { safeMode, chatMode, chatStyle } = await readTurnSettings(modelEnv.DB);
   const userPersona = await readUserPersonaForPrompt(modelEnv.DB, LOCAL_USER_ID);
-  const models = await getModels(safeMode, chatMode);
+  const models = await getModels(safeMode, chatMode, input.expectedTurn);
   const db = await getDb();
   const conversationId = input.conversationId ?? crypto.randomUUID();
   const { character, versionId } = await resolveConversationCharacter(db, {

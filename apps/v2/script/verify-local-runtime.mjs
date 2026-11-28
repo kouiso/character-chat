@@ -86,6 +86,44 @@ const resumed = await request(endpoint, {
   body: JSON.stringify(body),
 });
 assert.equal((await resumed.text()).includes("event:"), false);
+
+// 2 ターン目以降で初めて通る所（ターンの採番・履歴の積み上げ・前ターンとの反復判定）を
+// 鍵なしで踏む。1 ターン目だけやと、固定モデルが毎ターン同じ返事を返しても気付けん。
+const laterTexts = ["歴史の棚はどこですか。", "その棚で一冊借りたいです。"];
+for (const text of laterTexts) {
+  const response = await post({
+    conversationId: body.conversationId,
+    requestId: crypto.randomUUID(),
+    text,
+  });
+  assert.equal(response.status, 200);
+  const stream = await response.text();
+  // 落とされた塊は外へ配られんので、chunk が 1 個も無ければ全部落ちたと分かる。
+  assert.ok(stream.includes("event: chunk"), `turn for "${text}" streamed no chunk`);
+  assert.ok(stream.includes("event: done"), `turn for "${text}" did not finish`);
+}
+const multiTurn = await (
+  await request(`${endpoint}/history?conversationId=${body.conversationId}`)
+).json();
+const totalTurns = 1 + laterTexts.length;
+assert.equal(multiTurn.history.length, totalTurns * 2);
+assert.deepEqual(
+  multiTurn.history.map((row) => [row.turn, row.role]),
+  Array.from({ length: totalTurns }, (_, index) => [
+    [index + 1, "user"],
+    [index + 1, "assistant"],
+  ]).flat(),
+);
+assert.equal(multiTurn.turn, totalTurns + 1);
+assert.deepEqual(
+  multiTurn.history.filter((row) => row.role === "user").map((row) => row.content),
+  [body.text, ...laterTexts],
+);
+const replies = multiTurn.history
+  .filter((row) => row.role === "assistant")
+  .map((row) => row.content);
+assert.ok(replies.every((reply) => reply.trim().length > 0));
+assert.equal(new Set(replies).size, replies.length);
 process.stdout.write(
   JSON.stringify({
     runtime: "workerd",
@@ -96,6 +134,7 @@ process.stdout.write(
     persistedMessages: 2,
     cursorReplay: true,
     consecutiveReconnects: 10,
+    consecutiveTurns: totalTurns,
     durationMs: Math.round(performance.now() - started),
   }),
 );
