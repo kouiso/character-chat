@@ -52,6 +52,8 @@ describe("ChatView", () => {
     fireEvent.click(screen.getByRole("button", { name: "送信" }));
     await screen.findByText("よろしくね");
     expect(screen.getByText("はじめまして、案内役です")).toBeInTheDocument();
+    expect(screen.queryByText("作成中")).not.toBeInTheDocument();
+    expect(screen.queryByText(/^\d+秒$/)).not.toBeInTheDocument();
   });
 
   it("確定済みの発言がある会話を再開すると「初回のひとこと」は出さない", async () => {
@@ -1029,6 +1031,8 @@ describe("ChatView", () => {
     fireEvent.click(screen.getByRole("button", { name: "送信" }));
 
     await screen.findByRole("status", { name: "返事を書いています" });
+    expect(screen.getByText("作成中")).toBeInTheDocument();
+    expect(screen.getByText(/^\d+秒$/)).toBeInTheDocument();
     // 待ちの間は送信ボタンではなく「返事を止める」が出る。
     expect(screen.getByRole("button", { name: "返事を止める" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "送信" })).not.toBeInTheDocument();
@@ -1070,6 +1074,8 @@ describe("ChatView", () => {
     expect(alert.querySelectorAll("button")).toHaveLength(1);
     expect(screen.getByRole("button", { name: "もう一度" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "入力に戻す" })).not.toBeInTheDocument();
+    expect(screen.queryByText("作成中")).not.toBeInTheDocument();
+    expect(screen.queryByText(/^\d+秒$/)).not.toBeInTheDocument();
   });
 
   it("試行の上限（attempt_limit）の失敗は「もう一度送れない時」へ出る", async () => {
