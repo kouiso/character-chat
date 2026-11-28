@@ -743,6 +743,13 @@ const bubblesForPhase = (bubbles: ChatBubble[], phase: TurnPhase): ChatBubble[] 
     ? bubbles.filter((bubble) => !(bubble.pending && bubble.role === "assistant"))
     : bubbles;
 
+// いまの返事が画面に出たか。送信中の末尾は「利用者の文 + 空の作成中」なので、
+// 末尾2件の中に本文入りの返事がある時だけ届いた扱いにする。
+export const hasVisibleCurrentReply = (visibleBubbles: ChatBubble[]): boolean =>
+  visibleBubbles
+    .slice(-2)
+    .some((bubble) => bubble.role === "assistant" && !bubble.pending && bubble.text.trim() !== "");
+
 // 返事の候補の入切は端末へ残す（トレイの「この会話」カードの行）。
 // 保存を読めん・書けん時は「入」のまま進める。
 const readSuggestOn = (characterId: string): boolean => {
@@ -1632,6 +1639,7 @@ export const ChatView = ({
   const keys = bubbleKeys(bubbles);
   // 失敗の状態では空の「作成中」吹き出しは出さん（返事は来てへん）。
   const visibleBubbles = bubblesForPhase(bubbles, phase);
+  const currentReplyVisible = hasVisibleCurrentReply(visibleBubbles);
   const marker = markerText(phase);
   const failure = failureCopy(phase, dailyLimitMessage);
   const failureActions = failureActionsFor(phase, retryTurn, withdrawPending);
@@ -1742,7 +1750,7 @@ export const ChatView = ({
           </div>
         ))}
         {marker !== null && <TurnMarker text={marker} icon={phase !== "resending"} />}
-        {isCreationNoticePhase(phase) && <ChatWaiting phase={phase} />}
+        {isCreationNoticePhase(phase) && !currentReplyVisible && <ChatWaiting phase={phase} />}
         {stoppedNotice && <StoppedMarker />}
       </ChatMessageLog>
       <ChatFooter

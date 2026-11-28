@@ -30,12 +30,12 @@ export type TurnPhase =
 export const isWaitingPhase = (phase: TurnPhase): boolean =>
   phase === "sending" || phase === "writing" || phase === "slow" || phase === "arriving";
 
-export type CreationNoticePhase = "sending" | "writing" | "slow";
+export type CreationNoticePhase = "sending" | "writing" | "slow" | "arriving";
 
-// 「作成中」の印を出すのは返事がまだ届き始めていない間だけ。arriving では
-// 返事そのものが見え始めているため、待ちの印を重ねない。
+// 「作成中」の印を出せる待ち状態。arriving でも本文は小出しの開始まで見えんので、
+// 描画側はこの判定に加えて、返事の本文が見えたかどうかを見る。
 export const isCreationNoticePhase = (phase: TurnPhase): phase is CreationNoticePhase =>
-  phase === "sending" || phase === "writing" || phase === "slow";
+  phase === "sending" || phase === "writing" || phase === "slow" || phase === "arriving";
 
 // 失敗の枠（部品 B）を出す状態。
 export const isFailurePhase = (phase: TurnPhase): boolean =>

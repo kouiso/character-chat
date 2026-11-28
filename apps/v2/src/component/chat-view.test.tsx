@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { readChatSession, writeChatSession } from "../lib/chat-session";
 
-import { ChatView } from "./chat-view";
+import { ChatView, hasVisibleCurrentReply } from "./chat-view";
 
 describe("ChatView", () => {
   afterEach(() => {
@@ -12,6 +12,29 @@ describe("ChatView", () => {
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
   });
+  it("返事の本文が末尾へ出るまでは、届いた扱いにしない", () => {
+    expect(
+      hasVisibleCurrentReply([
+        { role: "user", text: "質問" },
+        { role: "assistant", text: "", pending: true },
+      ]),
+    ).toBe(false);
+    expect(
+      hasVisibleCurrentReply([
+        { role: "assistant", text: "前の返事", turn: 1 },
+        { role: "user", text: "質問" },
+        { role: "assistant", text: "", pending: true },
+      ]),
+    ).toBe(false);
+    expect(
+      hasVisibleCurrentReply([
+        { role: "user", text: "質問" },
+        { role: "assistant", text: "最初の返事片" },
+        { role: "assistant", text: "", pending: true },
+      ]),
+    ).toBe(true);
+  });
+
   it("キャラ名と入力フォームを描画する", () => {
     render(<ChatView characterId="char-koharu-ex" characterName="小春" />);
 
