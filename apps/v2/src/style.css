@@ -655,6 +655,18 @@ body {
 .v2-typing-dot:nth-child(3) {
   animation-delay: 0.4s;
 }
+.v2-turn-waiting-main {
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--color-text);
+  font-weight: 700;
+}
+.v2-turn-waiting-elapsed {
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--color-text-sub);
+  font-variant-numeric: tabular-nums;
+}
 .v2-turn-waiting-sub {
   font-size: 13px;
   line-height: 20px;
