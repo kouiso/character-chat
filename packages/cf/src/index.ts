@@ -2,7 +2,9 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { getPlatformProxy, type PlatformProxy } from "wrangler";
+import type { PlatformProxy } from "wrangler";
+
+import { withQuietWrangler } from "./quiet-wrangler";
 
 export type CfEnv = {
   DB: D1Database;
@@ -37,12 +39,15 @@ export const createPlatform = async (
   const remote = isRemote(opts.remote);
   if (remote)
     throw new Error("CLI の接続はローカル限定です。Worker は実行環境の bindings を使用します。");
-  const proxy: PlatformProxy<CfEnv> = await getPlatformProxy<CfEnv>({
-    configPath: WRANGLER_CONFIG,
-    persist: {
-      path: opts.persistRoot ? path.join(path.resolve(opts.persistRoot), "v3") : PERSIST_PATH,
-    },
-    remoteBindings: false,
+  const proxy: PlatformProxy<CfEnv> = await withQuietWrangler(async () => {
+    const { getPlatformProxy } = await import("wrangler");
+    return getPlatformProxy<CfEnv>({
+      configPath: WRANGLER_CONFIG,
+      persist: {
+        path: opts.persistRoot ? path.join(path.resolve(opts.persistRoot), "v3") : PERSIST_PATH,
+      },
+      remoteBindings: false,
+    });
   });
   return {
     env: proxy.env,
