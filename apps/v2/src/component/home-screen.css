@@ -24,7 +24,7 @@
 .v2-home-hero {
   position: relative;
   flex: 1 1 0;
-  min-height: 0;
+  min-height: calc(44px + (var(--space-edge) * 2));
   overflow: hidden;
   background: var(--color-ground-low);
 }
@@ -195,9 +195,42 @@
   overflow: hidden;
 }
 
+/* 設定はホームの上段から1発で開く。主役の絵より先に指が届く場所へ置く */
+.v2-home-topbar {
+  display: flex;
+  justify-content: flex-end;
+  min-height: 44px;
+  align-items: center;
+}
+
+.v2-home-topbar--edge {
+  padding: 0 var(--space-gutter);
+}
+
+.v2-home-settings {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--color-text-sub);
+  font-size: var(--text-note-size);
+  font-weight: 700;
+  text-decoration: none;
+}
+
 /* 主ボタンは 1 画面に 1 つ。灯の光はここだけ（形は screen-state.css の v2-fill-btn） */
 .v2-home-primary {
-  margin-top: 24px;
+  margin-top: 16px;
+}
+
+.v2-home-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  margin-top: 8px;
+  color: var(--color-peach);
+  font-weight: 700;
+  text-decoration: none;
 }
 
 .v2-home-section {
@@ -246,13 +279,20 @@
   padding: 0;
 }
 
+.v2-home-continuation-item {
+  display: flex;
+  align-items: center;
+  box-shadow: var(--edge-top);
+}
+
 /* 札の中の行は面なし。行の間は細い線（上端の光）だけ */
 .v2-home-continuation {
+  flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 12px;
   height: 64px;
-  box-shadow: var(--edge-top);
   color: var(--color-text);
   text-decoration: none;
 }
@@ -275,6 +315,19 @@
   height: 100%;
   object-fit: cover;
   display: block;
+}
+
+.v2-home-continuation-new {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding-left: 8px;
+  color: var(--color-peach);
+  font-size: var(--text-note-size);
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
 }
 
 /* 場の行は先頭メンバー 2 人の顔を重ねる（前の 1 枚は地の色の縁で浮かせる） */

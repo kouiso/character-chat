@@ -148,7 +148,7 @@ const ChatContinuationRow = ({
   conversation: ConversationSummaryRow;
   character: CharacterListItem;
 }) => (
-  <li>
+  <li className="v2-home-continuation-item">
     <Link
       to="/chat/$id"
       params={{ id: character.id }}
@@ -167,6 +167,15 @@ const ChatContinuationRow = ({
       </span>
       <span className="v2-home-continuation-day">{formatHomeDay(conversation.updatedAt)}</span>
     </Link>
+    <Link
+      to="/chat/$id"
+      params={{ id: character.id }}
+      search={{ newChat: crypto.randomUUID() }}
+      className="v2-home-continuation-new"
+      aria-label={`${character.name}と新しい会話を始める`}
+    >
+      新しい会話
+    </Link>
   </li>
 );
 
@@ -180,7 +189,7 @@ const GroupContinuationRow = ({
   speaker: CharacterListItem | undefined;
   faces: CharacterListItem[];
 }) => (
-  <li>
+  <li className="v2-home-continuation-item">
     <Link
       to="/groups/$id"
       params={{ id: group.id }}
@@ -279,6 +288,15 @@ const HomeHeroSheetTop = ({ hero }: { hero: HomeHeroData }) => {
         <span>ゆうべのつづき</span>
         <ArrowRightIcon />
       </Link>
+      <Link
+        to="/chat/$id"
+        params={{ id: character.id }}
+        search={{ newChat: crypto.randomUUID() }}
+        className="v2-home-secondary"
+        aria-label={`${character.name}と新しい会話を始める`}
+      >
+        新しい会話
+      </Link>
     </>
   );
 };
@@ -294,6 +312,11 @@ export const HomeScreen = ({
   <>
     {hero && <HomeHeroSection hero={hero} />}
     <div className={hero ? "v2-home-sheet" : "v2-home-sheet v2-home-sheet--top"}>
+      <div className="v2-home-topbar">
+        <Link to="/settings" className="v2-home-settings" aria-label="設定を開く">
+          設定
+        </Link>
+      </div>
       {hero && <HomeHeroSheetTop hero={hero} />}
       {continuations.length > 0 && (
         <>
@@ -331,18 +354,25 @@ export const HomeScreen = ({
 
 // いつもの子がまだいない時（HomeEmpty 上段）: 迎える子が居ない空の画面
 export const HomeEmptyScreen = () => (
-  <ScreenBlock
-    role="status"
-    iconTone="peach"
-    icon={<LampIcon />}
-    title="まだ、いつもの子はいません"
-    note="話しはじめた子が、ここで迎えてくれます。"
-  >
-    <Link to="/catalog" className="v2-fill-btn">
-      <span>出会うへ</span>
-      <ArrowRightIcon />
-    </Link>
-  </ScreenBlock>
+  <>
+    <div className="v2-home-topbar v2-home-topbar--edge">
+      <Link to="/settings" className="v2-home-settings" aria-label="設定を開く">
+        設定
+      </Link>
+    </div>
+    <ScreenBlock
+      role="status"
+      iconTone="peach"
+      icon={<LampIcon />}
+      title="まだ、いつもの子はいません"
+      note="話しはじめた子が、ここで迎えてくれます。"
+    >
+      <Link to="/catalog" className="v2-fill-btn">
+        <span>出会うへ</span>
+        <ArrowRightIcon />
+      </Link>
+    </ScreenBlock>
+  </>
 );
 
 // 読み込み中（HomeStates「読み込み中」）: 出てくる物と同じ形の骨組み。
