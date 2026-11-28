@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { readChatSession, writeChatSession } from "../lib/chat-session";
 
-import { ChatView } from "./chat-view";
+import { ChatView, hasVisibleCurrentReply } from "./chat-view";
 
 describe("ChatView", () => {
   afterEach(() => {
@@ -12,6 +12,29 @@ describe("ChatView", () => {
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
   });
+  it("返事の本文が末尾へ出るまでは、届いた扱いにしない", () => {
+    expect(
+      hasVisibleCurrentReply([
+        { role: "user", text: "質問" },
+        { role: "assistant", text: "", pending: true },
+      ]),
+    ).toBe(false);
+    expect(
+      hasVisibleCurrentReply([
+        { role: "assistant", text: "前の返事", turn: 1 },
+        { role: "user", text: "質問" },
+        { role: "assistant", text: "", pending: true },
+      ]),
+    ).toBe(false);
+    expect(
+      hasVisibleCurrentReply([
+        { role: "user", text: "質問" },
+        { role: "assistant", text: "最初の返事片" },
+        { role: "assistant", text: "", pending: true },
+      ]),
+    ).toBe(true);
+  });
+
   it("キャラ名と入力フォームを描画する", () => {
     render(<ChatView characterId="char-koharu-ex" characterName="小春" />);
 
@@ -52,6 +75,8 @@ describe("ChatView", () => {
     fireEvent.click(screen.getByRole("button", { name: "送信" }));
     await screen.findByText("よろしくね");
     expect(screen.getByText("はじめまして、案内役です")).toBeInTheDocument();
+    expect(screen.queryByText("作成中")).not.toBeInTheDocument();
+    expect(screen.queryByText(/^\d+秒$/)).not.toBeInTheDocument();
   });
 
   it("確定済みの発言がある会話を再開すると「初回のひとこと」は出さない", async () => {
@@ -1029,6 +1054,8 @@ describe("ChatView", () => {
     fireEvent.click(screen.getByRole("button", { name: "送信" }));
 
     await screen.findByRole("status", { name: "返事を書いています" });
+    expect(screen.getByText("作成中")).toBeInTheDocument();
+    expect(screen.getByText(/^\d+秒$/)).toBeInTheDocument();
     // 待ちの間は送信ボタンではなく「返事を止める」が出る。
     expect(screen.getByRole("button", { name: "返事を止める" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "送信" })).not.toBeInTheDocument();
@@ -1070,6 +1097,8 @@ describe("ChatView", () => {
     expect(alert.querySelectorAll("button")).toHaveLength(1);
     expect(screen.getByRole("button", { name: "もう一度" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "入力に戻す" })).not.toBeInTheDocument();
+    expect(screen.queryByText("作成中")).not.toBeInTheDocument();
+    expect(screen.queryByText(/^\d+秒$/)).not.toBeInTheDocument();
   });
 
   it("試行の上限（attempt_limit）の失敗は「もう一度送れない時」へ出る", async () => {
@@ -1146,9 +1175,12 @@ describe("ChatView", () => {
     });
     fireEvent.click(screen.getByRole("button", { name: "送信" }));
 
-    // 先頭の塊だけ出て、残りは予定時刻待ち（小出しの途中）。
+    // 先頭の塊だけ出て、残りは予定時刻待ち（小出しの途中）。返事は届き始めたので、
+    // 待ちの「作成中」と経過は重ねない。
     await screen.findByText("一つ目の返事");
     expect(screen.queryByText("二つ目の返事")).not.toBeInTheDocument();
+    expect(screen.queryByText("作成中")).not.toBeInTheDocument();
+    expect(screen.queryByText(/^\d+秒$/)).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "返事を止める" }));
 
     // 届かんかったので、残りを全部出して入力へ戻る（作成中の「…」も消える）。
